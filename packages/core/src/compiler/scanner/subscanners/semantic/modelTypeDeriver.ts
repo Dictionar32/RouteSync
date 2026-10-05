@@ -9,8 +9,8 @@
 import { ObjectType, ScannedObjectProperty, type ObjectProperty, type SemanticType } from '../../../types/SemanticType';
 import { toPascalCase } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
-import { relationEqual, relationFold, relationGate, relationProject, relationSequenceToArray } from '../../../../semantic/kernel/relationalSequence';
-import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
+import { relationEqual, relationFold, relationGate, relationProject, relationSequenceToArray } from '../../../../semantic/foundation/relationalSequence';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
 import { typeExpressionToSemanticType } from '../../../domain/common/typeExpressionSemanticType';
 import type { ModelSemanticProperty } from '../../../../types/upstream/model';
 

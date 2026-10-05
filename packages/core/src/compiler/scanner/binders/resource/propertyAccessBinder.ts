@@ -14,8 +14,8 @@ import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import type { PhpAccessMode } from "../../lexer/phpAstExpressionTypes";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import { matchLookup } from "../../../../types/upstream/collections";
-import { relationVariantFold } from "../../../../semantic/kernel/relationalSequence";
-import { relationResolve } from "../../../../semantic/kernel/relationalSequence";
+import { relationVariantFold } from "../../../../semantic/foundation/relationalSequence";
+import { relationResolve } from "../../../../semantic/foundation/relationalSequence";
 import type { ResolvedPropertyBinding } from "../../symbols/model/types";
 
 export function bindPropertyAccessField(

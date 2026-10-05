@@ -1,7 +1,7 @@
 import type { PrimitiveBody, ResponseBody } from "../../compiler/ir/ResponseArtifact";
 import type { ObjectProperty } from "../../compiler/types/SemanticType";
 import type { SemanticType } from "../../compiler/types/SemanticType";
-import { relationProject } from '../../semantic/kernel/relationalSequence';
+import { relationProject } from '../../semantic/foundation/relationalSequence';
 import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldSemanticBinding } from "./resourceFieldSemanticBinding";
 import { requireResourceFieldType } from './resourceFieldSemantic';
@@ -134,6 +134,7 @@ export const VoidResponseDescriptor = Object.freeze({ create: voidDescriptor });
 
 export type ResponseSemanticProperty = ObjectProperty;
 
+/** Compatibility name for the canonical domain ResponseContract. */
 export type ResponseSemanticContract = ResponseContract;
 
 export type ResponseOriginTraceEntry =

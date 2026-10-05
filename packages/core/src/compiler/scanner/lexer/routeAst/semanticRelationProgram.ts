@@ -1,7 +1,7 @@
 import { relationResolve } from '../../../relational/sequence';
-import { relationFirst, relationOptionFold, relationSome, relationNone, relationGate, relationRefine } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
+import { relationFirst, relationOptionFold, relationSome, relationNone, relationGate, relationRefine } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationEqual, relationNotEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
 /**
  * Declarative relation-program validation.
  *

@@ -27,7 +27,7 @@ export function getSqlTypeMapping(sqlType: string): SqlTypeMapping | null {
 }
 
 export function getCastMapping(castType: string): SqlTypeMapping | null {
-    const { castKind } = EloquentCastMapper.map(castType);
+    const { castKind } = EloquentCastMapper.resolve(castType);
     const mapping = matchEloquentCastKind(castKind, CAST_TYPE_VISITOR);
     return mapping.baseType === 'unknown' ? null : mapping;
 }

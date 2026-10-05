@@ -18,23 +18,24 @@ export function buildApiEndpointsLines(manifest: RouteManifest): string[] {
 
   const uniqueRoutesMap = new Map<string, any>();
   for (const route of manifest.routes) {
-    if (!uniqueRoutesMap.has(route.path)) {
-      uniqueRoutesMap.set(route.path, route);
+    const path = route.identity.coordinates.path.value;
+    if (!uniqueRoutesMap.has(path)) {
+      uniqueRoutesMap.set(path, route);
     }
   }
 
   const uniqueRoutes = Array.from(uniqueRoutesMap.values());
-  uniqueRoutes.sort((a, b) => a.path.localeCompare(b.path));
+  uniqueRoutes.sort((a, b) => a.identity.coordinates.path.value.localeCompare(b.identity.coordinates.path.value));
 
   const routeKeys = uniqueRoutes.map(route => {
-    const endpointKey = resolveRouteKey(route.path);
+    const endpointKey = resolveRouteKey(route.identity.coordinates.path.value);
     return { route, endpointKey };
   });
 
   lines.push(`export const API_ENDPOINTS = {`);
   for (const { route, endpointKey } of routeKeys) {
     const contract = route.contract ?? getRouteContract(route);
-    const hasExplicitParams = Boolean(route.pathParameters && route.pathParameters.length > 0);
+    const hasExplicitParams = route.identity.parameters.path.length > 0;
     const pathParams = contract.request.pathParameters.map(p => ({
       name: p.name,
       propertyName: p.propertyName,

@@ -20,7 +20,7 @@ import type {
     LoweredTypeDeclaration,
     TypeScriptBuildResult
 } from './typeScriptMetadata';
-import { relationGate } from '../../../../semantic/kernel/relationalSequence';
+import { relationGate } from '../../../../semantic/foundation/relationalSequence';
 
 import {
     lowerTypeExpression as lowerTypeExpressionNode,

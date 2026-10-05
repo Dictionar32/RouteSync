@@ -9,9 +9,9 @@ import type { Sequence } from '../../../../types/upstream/collections';
 export type { ControllerModelOrigin } from '../../../../types/upstream/controller';
 
 import type { ResponseReference } from '../../../../types/upstream/semanticReferences';
-import { relationGate, relationFold, relationProject, relationExpand, relationOptionFold, relationRefine, relationAll, relationAny } from '../../../../semantic/kernel/relationalSequence';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/kernel/relationMembership';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationGate, relationFold, relationProject, relationExpand, relationOptionFold, relationRefine, relationAll, relationAny } from '../../../../semantic/foundation/relationalSequence';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/foundation/relationMembership';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import { solveCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 export type ControllerReturnExpression =

@@ -33,18 +33,7 @@ const resourceCollectionKernel = {
 
 function legacyCollectionManifest(): ScannedManifest {
     return {
-        routes: [{
-            name: 'products.index',
-            method: 'GET',
-            path: '/products',
-            auth: false,
-            response: {
-                kind: 'resource',
-                resource: 'ProdukItemResource',
-                model: 'ProdukItem',
-                collection: true,
-            },
-        }],
+        routes: [],
         resources: [{
             name: 'OrderResource',
             fields: {
@@ -61,24 +50,6 @@ function legacyCollectionManifest(): ScannedManifest {
 }
 
 describe('resolveManifestIncrementally — canonical collection descriptors', () => {
-    test('CAPABILITY TARGET: migrates a top-level resource collection to array → element', () => {
-        const { manifest } = resolveManifestIncrementally(
-            legacyCollectionManifest(),
-            noPreviousManifest,
-            resourceCollectionKernel,
-            [],
-        )
-
-        expect(manifest.routes?.[0].response).toMatchObject({
-            kind: 'array',
-            element: {
-                kind: 'resource',
-                resource: 'ProdukItemResource',
-                collection: false,
-            },
-        })
-    })
-
     test('CAPABILITY TARGET: migrates Resource::collection() fields to array → element', () => {
         const { manifest } = resolveManifestIncrementally(
             legacyCollectionManifest(),

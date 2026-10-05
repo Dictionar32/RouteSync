@@ -1,4 +1,4 @@
-import type { ActionName, ClassName, SourceFile } from './names';
+import type { ActionName, ClassName, ModelName, SourceFile } from './names';
 import type { DeclaredType } from './typeVocabulary';
 import type { Expression, ResolvedExpression } from './expression';
 import type { SourceStatements, ServiceParameters } from './collections';
@@ -6,6 +6,7 @@ import type { SourceSpan } from './provenance';
 import type { Sequence } from './collections';
 import type { ModelReference, ServiceReference } from './semanticReferences';
 import type { SemanticValue } from './primitiveVocabulary';
+import { relationEqual, relationFirstOption, relationOptionFold } from '../../semantic/foundation/relationalSequence';
 
 
 export type ServiceReturnType =
@@ -67,10 +68,21 @@ export type ResolvedServiceDependency = {
   readonly target: ServiceDependencyTarget;
 };
 
-export type ServiceDependencyTarget =
-  | ModelReference
-  | ServiceReference
-  | { readonly kind: 'class_reference'; readonly name: ClassName };
+export type ServiceDependencyTarget = import('./semanticReferences').DependencyTargetReference;
+
+export const resolveServiceDependencyTarget = (
+  target: ClassName,
+  modelNames: readonly ModelName[],
+  serviceNames: readonly ClassName[],
+): ServiceDependencyTarget => relationOptionFold(
+  relationFirstOption(modelNames, model => relationEqual(model.value.value, target.value.value)),
+  () => relationOptionFold(
+    relationFirstOption(serviceNames, service => relationEqual(service.value.value, target.value.value)),
+    () => ({ kind: 'class_reference' as const, name: target }),
+    service => ({ kind: 'service_reference' as const, name: service }),
+  ),
+  model => ({ kind: 'model_reference' as const, name: model }),
+);
 
 export type ResolvedServiceDependencies = {
   readonly kind: 'resolved_service_dependencies';

@@ -1,4 +1,4 @@
-import { relationNormalizeWhitespace, relationEqual, relationAny } from '../../../../semantic/kernel/semanticRelations';
+import { relationNormalizeWhitespace, relationEqual, relationAny } from '../../../../semantic/foundation/semanticRelations';
 import {
     relationAdvanceIndex,
     relationGate,
@@ -7,7 +7,7 @@ import {
     relationTextSlice,
     relationFirstOption,
     relationOptionFold,
-} from '../../../../semantic/kernel/relationalSequence';
+} from '../../../../semantic/foundation/relationalSequence';
 import type { PhpClassPropertyAst, PhpPropertyTypeAst } from '../../lexer';
 import type { ClassName, ColumnName, ModelName, RelationName } from '../../../../types/upstream/names';
 import type { PropertyAst, PropertyDeclaration, PropertyDefinition, PropertyType, PropertyVisibility, PropertyStorage, PropertyInitialization, PropertyPromotion, PropertyAccess, PropertyCasting, PropertyDocumentation } from '../../../../types/upstream/property';

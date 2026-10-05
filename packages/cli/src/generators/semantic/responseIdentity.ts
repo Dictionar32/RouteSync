@@ -7,7 +7,7 @@ export function resolveResponseName(route: RouteSemanticFlow, response: RouteSem
         resource: (descriptor: ResourceResponseDescriptor) => toTypeName(descriptor.resourceName.value),
         model: (descriptor: ModelResponseDescriptor) => toTypeName(descriptor.modelName.value),
         inline: (descriptor: InlineResponseDescriptor) => toTypeName(descriptor.typeName.value),
-        void: () => `${toTypeName(route.identity.name)}Response`,
+        void: () => `${toTypeName(route.identity.coordinates.name.value.value)}Response`,
     });
 }
 

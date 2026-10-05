@@ -13,4 +13,9 @@ export {
   buildModelNode
 } from './nodeFactories';
 export { assembleServiceGraph } from './graphAssembler';
-export { compileGraphFromManifest, type GraphBuilderContext } from './manifestGraphCompiler';
+export { compileGraphFromSourceModel, type GraphBuilderContext } from './manifestGraphCompiler';
+
+export { createGraphEdgeRelation, type GraphEdgeRelation, type GraphEdgeRelationOrigin } from './graphEdgeRelation';
+export { GraphEdgeRelationSink } from './graphEdgeRelationSink';
+
+export { projectStructuralSemanticRelationToGraphEdge, type StructuralGraphEdgeProjection } from './structuralSemanticRelationProjection';

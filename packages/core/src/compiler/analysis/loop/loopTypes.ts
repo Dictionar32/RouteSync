@@ -1,5 +1,5 @@
 /** Loop facts represented as relation memberships. */
-import type { RelationMembership } from '../../../semantic/kernel/relationMembership';
+import type { RelationMembership } from '../../../semantic/foundation/relationMembership';
 export interface LoopInfo {
     readonly header: number;
     readonly backEdges: readonly number[];

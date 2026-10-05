@@ -38,18 +38,12 @@ export { program };
 
 export {
   resolveManifestIncrementally,
-  calculateRouteHash,
-  canonicalizeCollectionDescriptor,
   NominalAtomFactory,
   matchRouteResponsePayload,
-  RouteSemanticFlowFactory,
   ScannedResourceDescriptor,
-  ScannedManifestDescriptor,
-  type RouteSemanticFlow,
   type ScannedResource,
   type ScannedModel,
   type ScannedManifest,
-  type RouteSemanticFlowContract,
   type ScannedResourceContract,
   type ScannedModelContract,
   type ScannedManifestContract,

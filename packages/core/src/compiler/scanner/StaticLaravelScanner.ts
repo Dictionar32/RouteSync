@@ -61,9 +61,13 @@ const createScanner = ({
     readonly version?: string;
 }): StaticLaravelScanner => {
     const interner = TypeInterner.create();
-    const executeUpstream = (): Promise<RouteSyncManifest> => scanRouteSyncManifest(sourceProject);
+    let upstreamManifest: Promise<RouteSyncManifest> | undefined;
+    const executeUpstream = (): Promise<RouteSyncManifest> => {
+        upstreamManifest ??= scanRouteSyncManifest(sourceProject);
+        return upstreamManifest;
+    };
     const executeUpstreamAst = async (): Promise<ManifestAst> => {
-        const manifest = await scanRouteSyncManifest(sourceProject);
+        const manifest = await executeUpstream();
         return Object.freeze({ kind: 'manifest_ast', definition: manifest, source: sourceProject.source });
     };
     return Object.freeze({ sourceProject, baseURL, version, interner, executeUpstream, executeUpstreamAst });

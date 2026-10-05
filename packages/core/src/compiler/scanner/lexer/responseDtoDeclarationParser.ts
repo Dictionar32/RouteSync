@@ -3,8 +3,8 @@ import { createAstIdentifier } from './phpAstTypes';
 import type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst } from './responseDtoAstTypes';
 import type { TypeExpression } from '../../../types/upstream/typeVocabulary';
 import { createClassName } from '../../../types/upstream/names';
-import { relationEqual, relationAll } from '../../../semantic/kernel/semanticRelations';
-import { relationFold, relationGate, relationLookup, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationAll } from '../../../semantic/foundation/semanticRelations';
+import { relationFold, relationGate, relationLookup, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../semantic/foundation/relationalSequence';
 
 const primitivePropertyTypes: readonly (readonly [string, TypeExpression])[] = Object.freeze([
     ['string', { kind: 'primitive', value: { kind: 'string' } }],

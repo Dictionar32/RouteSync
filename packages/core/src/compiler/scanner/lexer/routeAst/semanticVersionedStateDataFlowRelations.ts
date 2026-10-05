@@ -1,5 +1,5 @@
 import { relationEqual, relationNotEqual, relationResolve } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, relationOptionMap, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationOptionMap, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 import type { KnowledgeId, SemanticKnowledgeDataFlow, SemanticSource } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeId, knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { analyzeSemanticStateDataFlow, semanticStateLocationKey, type SemanticStateDef, type SemanticStateLocation, type SemanticStateMerge, type SemanticStateUse } from './semanticStateDataFlow';

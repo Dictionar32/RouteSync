@@ -4,7 +4,7 @@ import type { RequestFieldPresence } from "./requestFieldPresence";
 import type { PropertyName } from "../upstream/names";
 import { createPropertyName } from "../upstream/names";
 import { toCamelCase } from "../../utils/resource-naming";
-import { relationGate } from "../../semantic/kernel/relationalSequence";
+import { relationGate } from "../../semantic/foundation/relationalSequence";
 
 export interface ScalarValidationFieldNode {
   readonly kind: 'scalar';

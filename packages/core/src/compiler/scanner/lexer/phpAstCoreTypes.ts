@@ -6,7 +6,7 @@ export type SourceRange = { readonly startOffset: SourceOffset; readonly endOffs
 
 export const createSourceOffset = (value: number): SourceOffset => Math.max(0, value) as SourceOffset;
 export const createSourceLineNumber = (value: number): SourceLineNumber => Math.max(1, value) as SourceLineNumber;
-import { relationGate, relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationGate, relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 export const createAstIdentifier = (value: string): AstIdentifier => relationGate(
     relationEqual(value.length, 0),

@@ -1,8 +1,8 @@
 import type { Expression } from './expression';
 import type { ColumnName, PropertyName, RelationName, TableName } from './names';
 import type { RelationPaths, ResourceFields } from './collections';
-import { relationFirstOption, relationOptionFold } from '../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
 
 export type ResourceOperationValue =
   | { readonly kind: 'implicit_resource_value' }

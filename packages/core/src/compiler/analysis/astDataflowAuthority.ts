@@ -1,67 +1,20 @@
-/** Elevates syntax-neutral semantic knowledge flow into the upstream AST judgment. */
-import type { AstNodeIdentity } from '../../types/upstream/ast';
+/** Elevates syntax-neutral semantic knowledge flow into the upstream semantic dataflow judgment. */
 import type {
-  AstDataflowFact,
-  AstDataflowIdentity,
-  AstDataflowInterface,
-  AstDataflowJudgment,
-  AstDataflowRole,
-  AstDataflowEntityRole,
-} from '../../types/upstream/astDataflowInterface';
-import type { SourceSpan } from '../../types/upstream/provenance';
-import { stringValue, numberValue } from '../../types/upstream/valueObjects';
-import type { SemanticDataFlowFact, SemanticKnowledgeDataFlow, SemanticDataFlowRoleCode } from '../scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations';
-import { relationEqual, relationResolve } from '../../semantic/kernel/semanticRelations';
-import { relationFixedPoint, relationProject, relationExpand, relationFirstOption, relationOptionFold, relationVariantFold } from '../../semantic/kernel/relationalSequence';
+  SemanticDataflowFact,
+  SemanticDataflowIdentity,
+  SemanticDataflowJudgment,
+  SemanticDataflowDerivation,
+  SemanticDataflowInput,
+} from '../../types/upstream/semanticDataflowInterface';
+import type { AstRuleName, AstWitnessName } from '../../types/upstream/ast';
+import { stringValue } from '../../types/upstream/valueObjects';
+import { relationEqual, relationResolve } from '../../semantic/foundation/semanticRelations';
+import { relationFixedPoint, relationProject, relationExpand, relationFirstOption, relationOptionFold, relationVariantFold } from '../../semantic/foundation/relationalSequence';
 
-const ROLE_CATALOG: readonly AstDataflowRole[] = Object.freeze([
-  'operator', 'operand_left', 'operand_right', 'operand', 'receiver', 'index',
-  'part', 'argument', 'callable', 'array_key', 'array_value', 'class_expression',
-  'value', 'predicate', 'alternative', 'subject', 'candidate', 'body', 'initializer',
-  'update', 'iterable', 'target', 'binding', 'emitted_value', 'exception_type',
-  'handler', 'finally_block', 'member', 'availability',
-]);
+const identityKey = (value: SemanticDataflowIdentity): string => JSON.stringify(value);
+const factKey = (fact: SemanticDataflowFact): string => JSON.stringify(fact);
 
-const ENTITY_ROLE_CATALOG: readonly AstDataflowEntityRole[] = Object.freeze([
-  'variable', 'value', 'operator', 'comparison', 'binary-operation', 'unary-operation',
-  'predicate', 'merge', 'match', 'outcome', 'assignment', 'binding', 'reference',
-  'callable', 'invocation', 'access', 'cast', 'array', 'static-invocation', 'construction',
-  'type-check', 'class-reference', 'class-constant', 'resource-access', 'interpolated-string',
-  'magic-constant', 'closure', 'arrow-function', 'anonymous-class', 'unsupported-expression',
-  'emission', 'include', 'unset', 'region', 'exception-handler', 'exception', 'scope',
-]);
-
-const role = (value: SemanticDataFlowRoleCode): AstDataflowRole =>
-  relationOptionFold(relationFirstOption(ROLE_CATALOG, candidate => relationEqual(candidate, value)), () => 'value', candidate => candidate);
-
-const entityRole = (value: AstDataflowEntityRole): AstDataflowEntityRole =>
-  relationOptionFold(relationFirstOption(ENTITY_ROLE_CATALOG, candidate => relationEqual(candidate, value)), () => 'value', candidate => candidate);
-
-const identity = (id: SemanticDataFlowFact['source']): AstDataflowIdentity => {
-  const source: SourceSpan = Object.freeze({
-    kind: 'source_span',
-    file: Object.freeze({ kind: 'source_file', value: stringValue(id.identity.source.filePath.value) }),
-    start: numberValue(id.identity.source.span.start.value),
-    end: numberValue(id.identity.source.span.end.value),
-  });
-  return Object.freeze({
-    kind: 'ast_dataflow_identity',
-    source,
-    role: entityRole(id.identity.role),
-    slot: stringValue(id.identity.slot.value),
-  });
-};
-
-const canonicalFact = (fact: SemanticDataFlowFact): AstDataflowFact => relationResolve(
-  relationEqual(fact.kind, 'dependency'),
-  () => Object.freeze({ kind: 'dependency', source: identity(fact.source), target: identity(fact.target), role: role(fact.role.code) }),
-  () => Object.freeze({ kind: 'value_flow', source: identity(fact.source), target: identity(fact.target), role: role(fact.role.code) }),
-);
-
-const identityKey = (value: AstDataflowIdentity): string => JSON.stringify(value);
-const factKey = (fact: AstDataflowFact): string => JSON.stringify(fact);
-
-const uniqueFacts = (facts: readonly AstDataflowFact[], index = 0, output: readonly AstDataflowFact[] = []): readonly AstDataflowFact[] =>
+const uniqueFacts = (facts: readonly SemanticDataflowFact[], index = 0, output: readonly SemanticDataflowFact[] = []): readonly SemanticDataflowFact[] =>
   relationResolve(
     relationEqual(index, facts.length),
     () => Object.freeze(output),
@@ -72,7 +25,7 @@ const uniqueFacts = (facts: readonly AstDataflowFact[], index = 0, output: reado
     )),
   );
 
-const reachesFrom = (facts: readonly AstDataflowFact[]): readonly AstDataflowFact[] =>
+const reachesFrom = (facts: readonly SemanticDataflowFact[]): readonly SemanticDataflowFact[] =>
   relationExpand(
     facts,
     fact => relationResolve(
@@ -82,7 +35,7 @@ const reachesFrom = (facts: readonly AstDataflowFact[]): readonly AstDataflowFac
     ),
   );
 
-const transitiveReaches = (facts: readonly AstDataflowFact[]): readonly AstDataflowFact[] =>
+const transitiveReaches = (facts: readonly SemanticDataflowFact[]): readonly SemanticDataflowFact[] =>
   relationExpand(
     facts,
     left => relationExpand(
@@ -95,12 +48,114 @@ const transitiveReaches = (facts: readonly AstDataflowFact[]): readonly AstDataf
     ),
   );
 
-const relationAllEqual = (left: AstDataflowFact, right: AstDataflowFact): boolean =>
-  relationVariantFold<AstDataflowFact, 'reaches', boolean>(
+const ruleName = (value: string): AstRuleName => Object.freeze({ kind: 'ast_rule', value: stringValue(value) });
+const witnessName = (value: string): AstWitnessName => Object.freeze({ kind: 'ast_witness', value: stringValue(value) });
+
+const reachFact = (source: SemanticDataflowIdentity, target: SemanticDataflowIdentity): SemanticDataflowFact =>
+  Object.freeze({ kind: 'reaches', source, target });
+
+const sameReach = (left: SemanticDataflowFact, right: SemanticDataflowFact): boolean =>
+  relationVariantFold<SemanticDataflowFact, 'reaches', boolean>(
     left,
     'reaches',
     () => false,
-    leftReach => relationVariantFold<AstDataflowFact, 'reaches', boolean>(
+    leftReach => relationVariantFold<SemanticDataflowFact, 'reaches', boolean>(
+      right,
+      'reaches',
+      () => false,
+      rightReach => relationEqual(identityKey(leftReach.source), identityKey(rightReach.source))
+        && relationEqual(identityKey(leftReach.target), identityKey(rightReach.target)),
+    ),
+  );
+
+const derivationKey = (derivation: SemanticDataflowDerivation): string => JSON.stringify({
+  rule: derivation.rule,
+  witness: derivation.witness,
+  premises: derivation.premises,
+  conclusion: derivation.conclusion,
+});
+
+const factIn = (facts: readonly SemanticDataflowFact[], candidate: SemanticDataflowFact): boolean =>
+  facts.some(fact => relationEqual(factKey(fact), factKey(candidate)));
+
+const derivationValid = (
+  derivation: SemanticDataflowDerivation,
+  closure: readonly SemanticDataflowFact[],
+): boolean => factIn(closure, derivation.conclusion)
+  && derivation.premises.every(premise => factIn(closure, premise))
+  && relationResolve(
+    relationEqual(derivation.rule.value.value, 'semantic-dataflow-reach-transitive'),
+    () => derivation.premises.length === 2
+      && derivation.premises.every(premise => premise.kind === 'reaches')
+      && derivation.premises[0].kind === 'reaches'
+      && derivation.premises[1].kind === 'reaches'
+      && sameReach(
+        reachFact(derivation.premises[0].source, derivation.premises[1].target),
+        derivation.conclusion,
+      )
+      && relationEqual(
+        identityKey(derivation.premises[0].target),
+        identityKey(derivation.premises[1].source),
+      ),
+    () => true,
+  );
+
+export const validateSemanticDataflowDerivations = (
+  closure: readonly SemanticDataflowFact[],
+  derivations: readonly SemanticDataflowDerivation[],
+): boolean => derivations.every(derivation => derivationValid(derivation, closure));
+
+const derivationsFor = (facts: readonly SemanticDataflowFact[], closure: readonly SemanticDataflowFact[]): readonly SemanticDataflowDerivation[] => {
+  const base: SemanticDataflowDerivation[] = facts.map(fact => Object.freeze({
+    kind: 'semantic_dataflow_derivation' as const,
+    rule: ruleName('semantic-dataflow-canonical-fact'),
+    witness: witnessName(`canonical:${fact.kind}:${identityKey(fact.source)}:${identityKey(fact.target)}`),
+    premises: Object.freeze([]),
+    conclusion: fact,
+  }));
+  const reachSeeds: SemanticDataflowDerivation[] = facts
+    .filter(fact => fact.kind !== 'reaches')
+    .map(fact => Object.freeze({
+      kind: 'semantic_dataflow_derivation' as const,
+      rule: ruleName('semantic-dataflow-reach-seed'),
+      witness: witnessName(`reach-seed:${fact.kind}:${identityKey(fact.source)}:${identityKey(fact.target)}`),
+      premises: Object.freeze([fact]),
+      conclusion: reachFact(fact.source, fact.target),
+    }));
+  const directReachKeys = new Set(reachSeeds.map(derivation => factKey(derivation.conclusion)));
+  const transitive: SemanticDataflowDerivation[] = [];
+  closure.filter(fact => fact.kind === 'reaches' && !directReachKeys.has(factKey(fact))).forEach(conclusion => {
+    const left = closure.find(candidate => candidate.kind === 'reaches'
+      && closure.some(right => right.kind === 'reaches'
+        && relationEqual(identityKey(candidate.target), identityKey(right.source))
+        && sameReach(reachFact(candidate.source, right.target), conclusion)));
+    if (left === undefined || left.kind !== 'reaches') return;
+    const right = closure.find(candidate => candidate.kind === 'reaches'
+      && relationEqual(identityKey(left.target), identityKey(candidate.source))
+      && sameReach(reachFact(left.source, candidate.target), conclusion));
+    if (right === undefined || right.kind !== 'reaches') return;
+    transitive.push(Object.freeze({
+      kind: 'semantic_dataflow_derivation',
+      rule: ruleName('semantic-dataflow-reach-transitive'),
+      witness: witnessName(`reach-transitive:${identityKey(conclusion.source)}:${identityKey(conclusion.target)}`),
+      premises: Object.freeze([left, right]),
+      conclusion,
+    }));
+  });
+  const derivations = [...base, ...reachSeeds, ...transitive];
+  if (!validateSemanticDataflowDerivations(closure, derivations)) {
+    throw new Error('semantic dataflow derivation invariant violated');
+  }
+  return Object.freeze(derivations.filter((derivation, index, all) =>
+    all.findIndex(candidate => relationEqual(derivationKey(candidate), derivationKey(derivation))) === index));
+};
+
+const relationAllEqual = (left: SemanticDataflowFact, right: SemanticDataflowFact): boolean =>
+  relationVariantFold<SemanticDataflowFact, 'reaches', boolean>(
+    left,
+    'reaches',
+    () => false,
+    leftReach => relationVariantFold<SemanticDataflowFact, 'reaches', boolean>(
       right,
       'reaches',
       () => false,
@@ -108,12 +163,10 @@ const relationAllEqual = (left: AstDataflowFact, right: AstDataflowFact): boolea
     ),
   );
 
-export const createAstDataflowInterface = (
-  node: AstNodeIdentity,
-  source: SourceSpan,
-  knowledge: SemanticKnowledgeDataFlow,
-): AstDataflowInterface => {
-  const facts = Object.freeze(uniqueFacts(relationProject(knowledge.dataFlow, canonicalFact)));
+export const createSemanticDataflowJudgment = (
+  input: SemanticDataflowInput,
+): SemanticDataflowJudgment => {
+  const facts = Object.freeze(uniqueFacts(relationProject(input.facts, fact => fact)));
   const seed = Object.freeze(uniqueFacts([...facts, ...reachesFrom(facts)]));
   const fixed = relationFixedPoint(
     seed,
@@ -122,17 +175,17 @@ export const createAstDataflowInterface = (
     128,
   );
   const closure = Object.freeze(fixed.value);
-  const judgment: AstDataflowJudgment = Object.freeze({
-    kind: 'ast_dataflow_judgment',
-    node,
-    source,
+  const judgment: SemanticDataflowJudgment = Object.freeze({
+    kind: 'semantic_dataflow_judgment',
+    node: input.node,
+    source: input.source,
     facts,
     closure,
-    derivations: Object.freeze([]),
+    derivations: derivationsFor(facts, closure),
     fixedPoint: 'least_fixed_point',
     reasoning: 'declarative_relation_rewrite_fixed_point',
-    authority: 'ast_dataflow_judgment',
+    authority: 'semantic_dataflow_judgment',
     closed: true,
   });
-  return Object.freeze({ kind: 'ast_dataflow_interface', authority: 'ast_dataflow_judgment', judgment, closed: true });
+  return judgment;
 };

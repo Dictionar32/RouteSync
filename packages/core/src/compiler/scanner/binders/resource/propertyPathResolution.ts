@@ -10,7 +10,7 @@ import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
 import { resolveAstValueToExpression } from "../../subscanners/resource/resourceAstExpressionMapper";
 import { matchLookup } from "../../../../types/upstream/collections";
 import { createPropertyName } from "../../../../types/upstream/names";
-import { relationFold, relationOptionFold, relationProject, relationResolve, relationSome, relationNone, type RelationOption } from "../../../../semantic/kernel/relationalSequence";
+import { relationFold, relationOptionFold, relationProject, relationResolve, relationSome, relationNone, type RelationOption } from "../../../../semantic/foundation/relationalSequence";
 
 type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
 type ResultOption = { readonly kind: 'none' } | { readonly kind: 'some'; readonly value: SemanticType };

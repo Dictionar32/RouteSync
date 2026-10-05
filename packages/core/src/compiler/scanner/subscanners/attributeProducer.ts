@@ -9,8 +9,8 @@ import type { ControllerDeclarationAst, ControllerMethodAst } from '../lexer/con
 import type { PhpParameterTypeAst } from '../lexer/phpMethodAstTypes';
 import { expressionFromPhpAst } from './expressionProducer';
 import { resolveClosureBody } from './resource/resourceUpstreamExpressionClosure';
-import { relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationFoldRight, relationGate, relationFirst, relationOptionFold, relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationFoldRight, relationGate, relationFirst, relationOptionFold, relationProject } from '../../../semantic/foundation/relationalSequence';
 
 /**
  * Syntax and provenance required to produce the canonical attribute AST.

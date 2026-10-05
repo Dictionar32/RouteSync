@@ -6,8 +6,8 @@ import type { PhpStatement, PhpAssignmentTarget, PhpForClause, PhpIfAlternative,
 import { matchPhpStatement } from '../../lexer/phpAstAlgebra';
 import type { UpstreamExpressionMapper } from './resourceUpstreamExpressionMappings';
 import { className, resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode, sequence, variable } from './resourceUpstreamExpressionMappings';
-import { relationEqual, relationGate, relationLookup, relationOptionFold, relationProject } from '../../../../semantic/kernel/semanticRelations';
-import { relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate, relationLookup, relationOptionFold, relationProject } from '../../../../semantic/foundation/semanticRelations';
+import { relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
 
 export function resolveClosureBody(statements: readonly PhpStatement[], file: string, resolveExpression: UpstreamExpressionMapper): ClosureBody {
   return { kind: 'statement_body', statements: sequence(relationProject(statements, statement => resolveClosureStatement(statement, file, resolveExpression))) };

@@ -1,5 +1,5 @@
 import { PrimitiveKind, type SemanticType, type SemanticTypeKind } from '../../../types/SemanticType';
-import { relationFoldRight, relationProject } from '../../../../semantic/kernel/relationalSequence';
+import { relationFoldRight, relationProject } from '../../../../semantic/foundation/relationalSequence';
 import type { PrimitiveVocabulary } from '../../../../types/upstream/primitiveVocabulary';
 import type { TypeExpression, TypeParameters } from '../../../../types/upstream/typeVocabulary';
 import type { StringValue } from '../../../../types/upstream/valueObjects';

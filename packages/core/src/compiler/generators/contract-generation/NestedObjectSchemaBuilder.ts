@@ -1,6 +1,6 @@
 /** Closed semantic lowering for nested object response fields. */
 
-import { relationOptionFold, relationProject, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationOptionFold, relationProject, relationResolve } from '../../../semantic/foundation/relationalSequence';
 import { matchResponseFieldProjection, type ResponseFieldProjection } from './response-field';
 import { ZodModifierBuilder } from './ZodModifierBuilder';
 

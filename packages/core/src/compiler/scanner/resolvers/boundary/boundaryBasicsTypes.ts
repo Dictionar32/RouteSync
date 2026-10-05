@@ -14,7 +14,6 @@ import type {
     FormRequestDescriptor, RouteHandlerDescriptor
 } from "../../../../types/route";
 
-import type { RouteSemanticFlowCompleteContracts } from "../../descriptors/route/routeContracts";
 import type { RouteRequestBinding } from "../../../../types/domain/request";
 import type { ResolvedRouteBinding } from "../../../../types/domain/routes";
 import type { ControllerRuntimeReturn } from "../../../../types/domain/controllerExpression";
@@ -23,7 +22,7 @@ import type {
     ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath, SourceFile
 } from "../../../../types/upstream/names";
 
-export type RouteBoundaryContract = RouteSemanticFlowCompleteContracts;
+export type { RouteBoundaryContract } from "../../../../types/upstream/route";
 
 export interface RouteBoundaryCommonOptions {
     readonly method: HttpMethod;

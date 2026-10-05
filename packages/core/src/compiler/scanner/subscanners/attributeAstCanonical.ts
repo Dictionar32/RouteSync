@@ -8,8 +8,8 @@ import type { AttributeAst } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
 import { attributeProducer } from './attributeProducer';
-import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({ kind: 'source_span', file: { kind: 'source_file', value: stringValue(file) }, start: { kind: 'number_value', value: line }, end: { kind: 'number_value', value: line } });

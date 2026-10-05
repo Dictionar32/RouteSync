@@ -18,7 +18,7 @@ import type {
 } from '../../compiler/types/SemanticType';
 import type { TypeIR, PrimitiveTypeIR, ReferenceTypeIR, TypePropertyIR } from '../../types/ir';
 import { TypeIRUtils } from '../../types/ir';
-import { relationEqual, relationProject, relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual, relationProject, relationResolve } from '../../semantic/foundation/relationalSequence';
 
 export const SemanticTypeResolvers = Object.freeze({
   primitive(type: PrimitiveType): TypeIR {

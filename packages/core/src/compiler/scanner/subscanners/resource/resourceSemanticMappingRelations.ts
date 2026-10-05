@@ -16,8 +16,8 @@ import {
   type SemanticRelation,
   type SemanticRelationRewrite,
 } from '../../lexer/routeAst/semanticRewriteEngine';
-import { relationLookup, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationLookup, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import { astSemanticTextTerm } from '../../../../types/upstream/astSemanticInterface';
 import { createUpstreamMappingPort, upstreamMappingFact, type AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';
 

@@ -7,14 +7,14 @@
  * while semantic decisions are represented as relations.
  */
 import type { LaravelRouteMethod } from './routeDeclarationAst';
-import type { TokenCursor } from '../../../../semantic/kernel/syntax/relationalSyntaxCursor';
+import type { TokenCursor } from './relationalSyntaxCursor';
 import {
     routeSyntaxSemanticJudgment,
     type RouteSyntaxSemanticFact,
     type RouteSyntaxSemanticJudgment,
 } from './semanticRouteSyntaxRelations';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationFirst, relationOptionFold, relationProject, relationUnique } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationFirst, relationOptionFold, relationProject, relationUnique } from '../../../../semantic/foundation/relationalSequence';
 
 export type RouteSyntaxSemanticRelation =
     | 'syntax_observes_path'

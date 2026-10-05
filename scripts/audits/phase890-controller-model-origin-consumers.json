@@ -1,0 +1,55 @@
+{
+  "phase": 890,
+  "title": "controller model-origin consumer trace",
+  "classification": "CANDIDATE_ORIGIN_CONSUMERS_CLEAN_VERIFIER_NOT_YET_WIRED",
+  "parserIsCandidate": true,
+  "verifier": "ModelSymbolTable.findForControllerOrigin",
+  "verifierConsumerCount": 1,
+  "verifierCurrentConsumer": "ResourceModelResolver",
+  "controllerHasVerifierWiring": false,
+  "noTypeRecomputation": true,
+  "consumers": [
+    {
+      "name": "controllerMethodParser",
+      "role": "candidate producer",
+      "present": true
+    },
+    {
+      "name": "controllerDataflowAnalyzer",
+      "role": "candidate semantic transfer",
+      "present": true
+    },
+    {
+      "name": "controllerActionContract",
+      "role": "candidate-dependent contract classification",
+      "present": true
+    },
+    {
+      "name": "routeProducerRelations",
+      "role": "route binding projection",
+      "present": true
+    },
+    {
+      "name": "controllerDataflowContract",
+      "role": "semantic dataflow propagation",
+      "present": true
+    },
+    {
+      "name": "controllerAstCanonical",
+      "role": "AST semantic projection",
+      "present": true
+    },
+    {
+      "name": "modelSymbolTableClass",
+      "role": "canonical verifier",
+      "present": true
+    },
+    {
+      "name": "ResourceModelResolver",
+      "role": "verified-model consumer",
+      "present": true
+    }
+  ],
+  "recommendation": "Keep model_origin as candidate origin. Do not add a second resolved-origin ADT. The next safe cutover is to pass the existing ModelSymbolTable into the controller semantic boundary only where a consumer requires verified model identity.",
+  "emptyLegacyFiles": 204
+}

@@ -1,7 +1,7 @@
 /** Declarative resolved-type -> response-field conversion semantics. */
-import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../../../scanner/lexer/routeAst/semanticRewriteEngine';
-import { relationAll } from '../../../../../semantic/kernel/semanticRelations';
-import { relationFirst, relationOptionFold, relationProject } from '../../../../../semantic/kernel/relationalSequence';
+import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../../../../semantic/foundation/semanticRewriteEngine';
+import { relationAll } from '../../../../../semantic/foundation/semanticRelations';
+import { relationFirst, relationOptionFold, relationProject } from '../../../../../semantic/foundation/relationalSequence';
 import type { ResolvedSemanticTypeKind } from '../../ResolvedSemanticType';
 
 export type ResponseFieldSemanticRelation = 'resolved_type_kind' | 'response_field_operation';

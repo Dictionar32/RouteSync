@@ -11,7 +11,7 @@ import { toCamelCase } from '../../utils/resource-naming';
 import type { ObjectPropertyOrigin } from '../../types/domain/objectPropertyOrigin';
 import { SemanticValueFactory, type PropertyName, type VariableName } from '../../types/domain/semanticValues';
 import type { StringValue } from '../../types/upstream/valueObjects';
-import { relationEqual, relationResolve } from '../../semantic/kernel/semanticRelations';
+import { relationEqual, relationResolve } from '../../semantic/foundation/semanticRelations';
 import { SemanticTypeResolver } from '../domain/common/SemanticTypeResolver';
 
 export enum PrimitiveKind {

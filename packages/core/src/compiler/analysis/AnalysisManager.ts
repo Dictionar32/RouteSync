@@ -3,9 +3,9 @@ import type { AnalysisKey } from '../passes/PassResult';
 import type { AnalysisKeyName, AnalysisRegistry } from './AnalysisRegistry';
 import { createPassAnalysisStore, type PassAnalysisStore } from './PassAnalysisStore';
 import { createAnalysisDependencyGraph, type AnalysisDependencyGraph, type AnyAnalysisKey } from './manager/dependencyGraph';
-import { relationContains } from '../../semantic/kernel/relationMembership';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationExpand, relationGate, relationFold, type RelationOption } from '../../semantic/kernel/relationalSequence';
+import { relationContains } from '../../semantic/foundation/relationMembership';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
+import { relationExpand, relationGate, relationFold, type RelationOption } from '../../semantic/foundation/relationalSequence';
 
 export type { AnalysisDependencyGraph };
 

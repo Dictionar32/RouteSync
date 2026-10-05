@@ -2,9 +2,9 @@ import type { PhpAstValue, TokenDescriptor } from './phpAstTypes';
 import { classifyAstTokens } from './astClassifier';
 import { createAstIdentifier } from './phpAstTypes';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationProject, relationIndexOf, relationGate, relationFold, relationFirst, relationOptionFold, relationRange, relationTextSlice, relationAdvanceIndex, relationSome, relationNone, type RelationOption } from '../../../semantic/kernel/relationalSequence';
-import { relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationProject, relationIndexOf, relationGate, relationFold, relationFirst, relationOptionFold, relationRange, relationTextSlice, relationAdvanceIndex, relationSome, relationNone, type RelationOption } from '../../../semantic/foundation/relationalSequence';
+import { relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
 import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 import type { RequestName } from '../../../types/upstream/names';
 import { parseControllerReturns } from './controllerReturnParser';
@@ -22,6 +22,57 @@ import type {
     ResponseAttributeAst,
 } from './controllerAstTypes';
 
+const controllerMethodVisibility = (value: string): import('./controllerAstTypes').ControllerMethodVisibilityAst =>
+    relationGate(relationEqual(value, 'public'), () => 'public' as const, () =>
+        relationGate(relationEqual(value, 'protected'), () => 'protected' as const, () =>
+            relationGate(relationEqual(value, 'private'), () => 'private' as const, () => 'implicit' as const)));
+
+const findControllerMethodAttributeStart = (tokens: readonly TokenDescriptor[], index: number, cursor = index - 1): number =>
+    relationGate(cursor < 0, () => -1, () => {
+        const token = tokens[cursor];
+        const barrier = relationAny([
+            relationEqual(token.value, ';'),
+            relationEqual(token.value, '}'),
+            relationEqual(token.value, '{'),
+        ]);
+        return relationGate(barrier, () => -1, () =>
+            relationGate(relationEqual(token.value, '#'), () => cursor, () => findControllerMethodAttributeStart(tokens, index, cursor - 1)));
+    });
+
+const parseControllerMethodAttributes = (tokens: readonly TokenDescriptor[], index: number): readonly ControllerParameterAttributeAst[] => {
+    const attributeStart = findControllerMethodAttributeStart(tokens, index);
+    return relationGate(attributeStart < 0, () => Object.freeze([]), () => Object.freeze(parseParameterAttributes(tokens, attributeStart).attributes));
+};
+
+
+const controllerMethodStorage = (tokens: readonly TokenDescriptor[], index: number): import('./controllerAstTypes').ControllerMethodStorageAst => {
+    const scan = (cursor: number): boolean => relationGate(cursor < 0, () => false, () => {
+        const token = tokens[cursor];
+        return relationGate(relationEqual(token.value, 'static'), () => true, () =>
+            relationGate(relationAny([relationEqual(token.value, ';'), relationEqual(token.value, '}'), relationEqual(token.value, '{'), relationEqual(token.value, 'function')]), () => false, () => scan(cursor - 1)));
+    });
+    return scan(index - 1) ? 'static' : 'instance';
+};
+
+const parseControllerMethodVisibility = (tokens: readonly TokenDescriptor[], index: number): import('./controllerAstTypes').ControllerMethodVisibilityAst => {
+    const start = Math.max(0, index - 6);
+    const candidates = relationProject(relationRange(tokens, start, index), (item, relativeIndex) => ({ item, index: start + relativeIndex }));
+    const candidate = relationFirst(candidates, entry => relationAny([
+        relationEqual(entry.item.value, 'public'),
+        relationEqual(entry.item.value, 'protected'),
+        relationEqual(entry.item.value, 'private'),
+    ]));
+    const barrier = relationFirst(candidates, entry => relationAny([
+        relationEqual(entry.item.value, ';'),
+        relationEqual(entry.item.value, '}'),
+        relationEqual(entry.item.value, '{'),
+        relationEqual(entry.item.value, 'function'),
+    ]));
+    return relationOptionFold(candidate, () => 'implicit' as const, entry =>
+        relationOptionFold(barrier, () => controllerMethodVisibility(entry.item.value), boundary =>
+            relationGate(entry.index > boundary.index, () => controllerMethodVisibility(entry.item.value), () => 'implicit' as const)));
+};
+
 export function parseControllerMethod(
     source: string,
     tokens: readonly TokenDescriptor[],
@@ -37,6 +88,9 @@ export function parseControllerMethod(
         const parameterClose = findParameterClose(tokens, relationAdvanceIndex(functionIndex, 2));
         const declaredReturnType = parseDeclaredReturnType(tokens, relationAdvanceIndex(parameterClose, 1), bodyStart);
         return relationSome(Object.freeze({
+            attributes: parseControllerMethodAttributes(tokens, functionIndex),
+            visibility: parseControllerMethodVisibility(tokens, functionIndex),
+            storage: controllerMethodStorage(tokens, functionIndex),
             name: createAstIdentifier(nameToken.value),
             parameters: Object.freeze(parameters),
             responseAttribute: parseResponseAttribute(tokens, functionIndex),

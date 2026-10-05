@@ -3,8 +3,8 @@ import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSou
 import { ResourceModelResolutionOrigin } from './resource/resourceModelKnowledgeDataFlow';
 import { createResourceRelationFact, createResourceModelResolutionFact } from './resource/resourceModelKnowledgeDataFlow';
 import { readSourceText } from './scannerUtils';
-import { relationAsyncFold, relationProject, relationExpand, relationOptionFold, relationAdvanceIndex, relationFirstOption, relationFold, relationIndexOf, relationSlice, relationSome, relationNone, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationGate, relationAll, relationAny } from '../../../semantic/kernel/semanticRelations';
+import { relationAsyncFold, relationProject, relationExpand, relationOptionFold, relationAdvanceIndex, relationFirstOption, relationFold, relationIndexOf, relationSlice, relationSome, relationNone, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationGate, relationAll, relationAny } from '../../../semantic/foundation/semanticRelations';
 import { presenceFold, type Presence } from '../../../types/upstream/presence';
 import { matchLookup } from '../../../types/upstream/collections';
 /**
@@ -25,7 +25,7 @@ import type { PhpStatement } from "../lexer/phpAstTypes";
 import { collectPhpFiles } from "./scannerUtils";
 import { createModelSymbolTable, type ModelSymbolTable } from "../symbols/ModelSymbolTable";
 import { SemanticResourceBinder } from "../binders/SemanticResourceBinder";
-import { resourceProducer } from "./resourceProducer";
+import { resourceProducer, type ResourceProducerResult } from "./resourceProducer";
 import {
     type ResourceRelationEdge,
     resolveInitialModel,
@@ -77,6 +77,7 @@ interface ResourceScanEvidence {
 
 interface BoundResourceFile {
     readonly resource: ResourceAst;
+    readonly definition: import('../../../types/upstream/resource').ResourceDefinition;
     readonly evidence: ResourceScanEvidence;
 }
 
@@ -202,6 +203,18 @@ export class ResourceScanner {
         return relationProject(files, item => item.resource);
     }
 
+    public static async scanCanonicalBundle(
+        sourceProject: SourceProjectIdentity,
+        modelSymbolTable: ModelSymbolTable = createModelSymbolTable([]),
+        controllerDataflowMap: Presence<import("./controller/resourceDataflowAggregator").ControllerResourceDataflow> = { kind: 'absent' },
+    ): Promise<{ readonly definitions: readonly import('../../../types/upstream/resource').ResourceDefinition[]; readonly asts: readonly ResourceAst[] }> {
+        const files = await ResourceScanner.scanResourceFiles(sourceProject, modelSymbolTable, controllerDataflowMap);
+        return {
+            definitions: relationProject(files, item => item.definition),
+            asts: relationProject(files, item => item.resource),
+        };
+    }
+
     public static async scan(
         sourceProject: SourceProjectIdentity,
         modelSymbolTable: ModelSymbolTable,
@@ -271,17 +284,20 @@ export class ResourceScanner {
                 relations: [],
                 resolutions: resolutionFacts,
             }, file.identity.resourceName);
-            return presenceFold<ResourceModelResolutionFact, ResourceAst>(resolution,
+            return presenceFold<ResourceModelResolutionFact, BoundResourceFile>(resolution,
                 () => { throw Error(`Resource '${file.identity.resourceName.value.value}' has no model from upstream model producer.`); },
                 resolved => {
                     const modelLookup = modelSymbolTable.get(resolved.model);
                     return matchLookup(modelLookup, {
                         missing: () => { throw Error(`Resource '${file.identity.resourceName.value.value}' resolved to an unknown model.`); },
-                        found: ({ value: model }) => resourceProducer.produce({
-                            resourceName: file.identity.resourceName, entries: file.syntax.entries,
-                            source: { kind: 'source_span', file: file.identity.sourceFile, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: file.identity.sourceLength } },
-                            model, assignments: file.syntax.assignments, method: file.syntax.method, baseClass: file.syntax.baseClass, wrapping: file.syntax.wrapping, requestParameter: file.syntax.requestParameter, documentationMixins: file.syntax.documentationMixins, methods: file.syntax.methods, properties: file.syntax.properties, preserveKeys: file.syntax.preserveKeys, forceWrapping: file.syntax.forceWrapping, usesRequestQueryString: file.syntax.usesRequestQueryString, includesPreviouslyLoadedRelationships: file.syntax.includesPreviouslyLoadedRelationships, jsonAttributes: file.syntax.jsonAttributes, jsonRelationships: file.syntax.jsonRelationships, collectsResource: file.syntax.collectsResource,
-                        }),
+                        found: ({ value: model }) => {
+                            const result: ResourceProducerResult = resourceProducer.produceResult({
+                                resourceName: file.identity.resourceName, entries: file.syntax.entries,
+                                source: { kind: 'source_span', file: file.identity.sourceFile, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: file.identity.sourceLength } },
+                                model, assignments: file.syntax.assignments, method: file.syntax.method, baseClass: file.syntax.baseClass, wrapping: file.syntax.wrapping, requestParameter: file.syntax.requestParameter, documentationMixins: file.syntax.documentationMixins, methods: file.syntax.methods, properties: file.syntax.properties, preserveKeys: file.syntax.preserveKeys, forceWrapping: file.syntax.forceWrapping, usesRequestQueryString: file.syntax.usesRequestQueryString, includesPreviouslyLoadedRelationships: file.syntax.includesPreviouslyLoadedRelationships, jsonAttributes: file.syntax.jsonAttributes, jsonRelationships: file.syntax.jsonRelationships, collectsResource: file.syntax.collectsResource,
+                            });
+                            return { resource: result.ast, definition: result.definition, evidence: file };
+                        },
                     });
                 },
             );

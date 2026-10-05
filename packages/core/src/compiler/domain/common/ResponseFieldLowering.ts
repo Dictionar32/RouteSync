@@ -10,7 +10,7 @@
 import type { ObjectType, SemanticType, ObjectProperty } from '../../types/SemanticType';
 import type { ResponseFieldProjection } from '../../generators/contract-generation/response-field';
 import { SemanticTypeResolver, type SemanticTypeResolverLike } from './SemanticTypeResolver';
-import { relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationProject } from '../../../semantic/foundation/relationalSequence';
 import {
     type NullableWrapperResult,
     type StageResult,

@@ -27,7 +27,4 @@ export {
     RouteBoundaryContractFactory
 } from "./boundary";
 
-export {
-    RouteBoundaryAdapter
-} from "./RouteBoundaryAdapter";
 export * from './resolverGraphSemanticInterface';

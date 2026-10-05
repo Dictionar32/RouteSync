@@ -48,7 +48,7 @@ export function toRuntimePath(path: string): string {
 }
 
 function toActionName(route: RouteSemanticFlow, restSegments: string[]): string {
-  const method = route.method.toLowerCase()
+  const method = route.identity.coordinates.method.toLowerCase()
   const suffix = restSegments.map(normalizeSegment).filter(Boolean).map(toTypeName).join('')
   return toIdentifier(suffix ? `${method}-${suffix}` : method)
 }
@@ -92,9 +92,10 @@ function uniquify(baseName: string, used: Set<string>): string {
 }
 
 export function toMethodName(route: RouteSemanticFlow): string {
-  if (route.name) {
-    const parts = route.name.split('.')
+  const routeName = route.identity.coordinates.name.value.value
+  if (routeName.length > 0) {
+    const parts = routeName.split('.')
     return toIdentifier(parts.join(' '))
   }
-  return toIdentifier(route.method + ' ' + route.path)
+  return toIdentifier(route.identity.coordinates.method + ' ' + route.identity.coordinates.path.value.value)
 }

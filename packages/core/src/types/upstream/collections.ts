@@ -12,8 +12,8 @@ import type { RelationName, PropertyName, VariableName, TraitName } from './name
 import type { SemanticValue } from './primitiveVocabulary';
 import type { ServiceParameter } from './service';
 import type { CompletenessFailure } from './completeness';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationOptionFold, relationRefine } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
+import { relationOptionFold, relationRefine, type Sequence } from '../../semantic/foundation/relationalSequence';
 
 export type Option<T> =
   | { readonly kind: 'none' }
@@ -47,7 +47,7 @@ export function matchDiscovered<T, R>(discovery: Discovered<T>, visitor: {
   return relationOptionFold(relationRefine(discovery, isDiscoveredMany), () => visitor.empty({ kind: 'discovered_empty' }), visitor.many);
 }
 
-export type Sequence<T> = { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: Sequence<T> };
+export type { Sequence } from '../../semantic/foundation/relationalSequence';
 export type Discovered<T> = { readonly kind: 'discovered_empty' } | { readonly kind: 'discovered_many'; readonly items: Sequence<T> };
 export type SourceDiscovery<T> = { readonly kind: 'not_scanned' } | { readonly kind: 'scanned'; readonly result: Discovered<T> };
 
@@ -102,7 +102,7 @@ export type SchemaAsts = { readonly kind: 'schema_asts'; readonly items: SourceD
 export type ResponseAsts = { readonly kind: 'response_asts'; readonly items: SourceDiscovery<ResponseAst> };
 export type DtoAsts = { readonly kind: 'dto_asts'; readonly items: SourceDiscovery<DtoAst> };
 import type { MiddlewareAsts, ProviderAsts, AttributeAsts } from './application';
-export type SourceAsts = { readonly kind: 'source_asts'; readonly schemas: SchemaAsts; readonly models: ModelAsts; readonly resources: ResourceAsts; readonly requests: RequestAsts; readonly routes: RouteAsts; readonly controllers: ControllerAsts; readonly services: ServiceAsts; readonly migrations: MigrationAsts; readonly responses: ResponseAsts; readonly dtos: DtoAsts; readonly middlewares: MiddlewareAsts; readonly providers: ProviderAsts; readonly attributes: AttributeAsts; readonly channels: ChannelAsts; readonly properties: PropertyAsts; readonly assignments: AssignmentAsts; readonly expressions: ExpressionAsts; readonly queries: QueryAsts };
+export type SourceAsts = { readonly kind: 'source_asts'; readonly modelDefinitions: readonly import('./model').ModelDefinition[]; readonly resourceDefinitions: readonly import('./resource').ResourceDefinition[]; readonly requestDefinitions: readonly import('./request').RequestDefinition[]; readonly providerDefinitions: readonly import('./application').ProviderDefinition[]; readonly serviceDefinitions: readonly import('./service').ServiceDefinition[]; readonly responseDefinitions: readonly import('./response').ResponseDefinition[]; readonly schemas: SchemaAsts; readonly models: ModelAsts; readonly resources: ResourceAsts; readonly requests: RequestAsts; readonly routes: RouteAsts; readonly routeFlows: readonly import('../domain/routes').RouteSemanticFlow[]; readonly controllers: ControllerAsts; readonly controllerActions: readonly import('./highLevelContracts').ControllerActionFlowContract[]; readonly services: ServiceAsts; readonly migrations: MigrationAsts; readonly responses: ResponseAsts; readonly dtos: DtoAsts; readonly middlewares: MiddlewareAsts; readonly providers: ProviderAsts; readonly attributes: AttributeAsts; readonly channels: ChannelAsts; readonly properties: PropertyAsts; readonly assignments: AssignmentAsts; readonly expressions: ExpressionAsts; readonly queries: QueryAsts };
 export type PropertyPaths = { readonly kind: 'property_paths'; readonly items: Sequence<PropertyPath> };
 export type ColumnNames = { readonly kind: 'column_names'; readonly items: Sequence<import('./names').ColumnName> };
 export type RelationPaths = { readonly kind: 'relation_paths'; readonly items: Sequence<RelationPath> };

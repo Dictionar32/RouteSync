@@ -14,22 +14,22 @@ function requireValue(value: unknown, label: string): void {
 }
 
 function validateResponse(route: RouteManifest['routes'][number], models: readonly ModelAst[], resources: readonly ResourceAst[]): void {
-  const response = route.response
-  requireValue(response, `${route.name}.response`)
+  const response = route.binding.response
+  requireValue(response, `${route.identity.coordinates.name.value.value}.response`)
 
   if (response.kind === 'model') {
     const exists = models.some(model => model.definition.name === response.modelName)
-    if (!exists) throw new Error(`Manifest invariant failed: ${route.name} references unknown model ${response.modelName}`)
+    if (!exists) throw new Error(`Manifest invariant failed: ${route.identity.coordinates.name.value.value} references unknown model ${response.modelName}`)
   }
 
   if (response.kind === 'resource') {
     const exists = resources.some(resource => resource.definition.name === response.resourceName)
-    if (!exists) throw new Error(`Manifest invariant failed: ${route.name} references unknown resource ${response.resourceName}`)
+    if (!exists) throw new Error(`Manifest invariant failed: ${route.identity.coordinates.name.value.value} references unknown resource ${response.resourceName}`)
   }
 
   if (response.kind === 'inline') {
-    requireValue(response.origin, `${route.name}.response.origin`)
-    requireValue(response.semanticContract, `${route.name}.response.semanticContract`)
+    requireValue(response.origin, `${route.identity.coordinates.name.value.value}.response.origin`)
+    requireValue(response.semanticContract, `${route.identity.coordinates.name.value.value}.response.semanticContract`)
   }
 }
 
@@ -39,16 +39,16 @@ export function validateManifestContract(manifest: RouteManifest): void {
   }
 
   manifest.routes.forEach(route => {
-    requireValue(route.identity, `${route.name}.identity`)
-    requireValue(route.binding, `${route.name}.binding`)
-    requireValue(route.capability, `${route.name}.capability`)
-    requireValue(route.provenance, `${route.name}.provenance`)
-    requireValue(route.identity.parameters, `${route.name}.identity.parameters`)
-    requireValue(route.binding.operation.handler, `${route.name}.binding.handler`)
-    requireValue(route.binding.response, `${route.name}.binding.response`)
-    requireValue(route.capability.security, `${route.name}.capability.security`)
-    requireValue(route.capability.executionSignature, `${route.name}.capability.executionSignature`)
-    requireValue(route.capability.errorResponses, `${route.name}.capability.errorResponses`)
+    requireValue(route.identity, `${route.identity.coordinates.name.value.value}.identity`)
+    requireValue(route.binding, `${route.identity.coordinates.name.value.value}.binding`)
+    requireValue(route.capability, `${route.identity.coordinates.name.value.value}.capability`)
+    requireValue(route.provenance, `${route.identity.coordinates.name.value.value}.provenance`)
+    requireValue(route.identity.parameters, `${route.identity.coordinates.name.value.value}.identity.parameters`)
+    requireValue(route.binding.operation.handler, `${route.identity.coordinates.name.value.value}.binding.handler`)
+    requireValue(route.binding.response, `${route.identity.coordinates.name.value.value}.binding.response`)
+    requireValue(route.capability.security, `${route.identity.coordinates.name.value.value}.capability.security`)
+    requireValue(route.capability.executionSignature, `${route.identity.coordinates.name.value.value}.capability.executionSignature`)
+    requireValue(route.capability.errorResponses, `${route.identity.coordinates.name.value.value}.capability.errorResponses`)
     validateResponse(route, manifest.models, manifest.resources)
   })
 }

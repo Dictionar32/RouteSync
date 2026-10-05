@@ -8,8 +8,8 @@ import type { MiddlewareAst } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
 import { middlewareProducer } from './middlewareProducer';
-import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({

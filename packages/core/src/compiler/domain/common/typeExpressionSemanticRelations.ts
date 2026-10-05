@@ -8,11 +8,11 @@ import {
     solveSemanticRelations,
     type SemanticRelation,
     type SemanticRelationRewrite,
-} from '../../scanner/lexer/routeAst/semanticRewriteEngine';
+} from '../../../semantic/foundation/semanticRewriteEngine';
 import type { PrimitiveVocabulary } from '../../../types/upstream/primitiveVocabulary';
 import type { TypeExpression } from '../../../types/upstream/typeVocabulary';
-import { relationAny, relationAll, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationFirst, relationOptionFold, relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationAny, relationAll, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationFirst, relationOptionFold, relationProject } from '../../../semantic/foundation/relationalSequence';
 
 export type TypeExpressionProjection =
     | 'primitive'

@@ -1,76 +1,112 @@
 /**
  * modelNormalizer.ts
  *
- * Normalizes Eloquent models into NormalizedModel models.
- *
- * @module cli/generators/normalizer/entities
+ * Projects canonical upstream ModelSemanticProperty judgments into the
+ * legacy NormalizedModel compatibility shape. Semantic meaning is never
+ * reconstructed from columns/casts/accessor bags here.
  */
 
 import {
   type RouteManifest,
   type SemanticResolutionKernel,
-  DATABASE_COLUMN_KIND_REGISTRY
+  type ModelSemanticProperty,
+  type SemanticType,
+  PrimitiveKind,
 } from '@routesync/core';
 import type {
   NormalizedModel,
   NormalizedField,
   NormalizedAccessor
 } from '../normalizerTypes';
-import { normalizeAccessor } from '../fieldNormalizer';
+
+const propertyName = (property: ModelSemanticProperty): string => property.property.value.value;
+
+const sequenceToArray = <T>(sequence: { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: typeof sequence }): readonly T[] =>
+  sequence.kind === 'empty' ? [] : [sequence.head, ...sequenceToArray(sequence.tail)];
+
+const primitiveField = (type: PrimitiveKind, nullable: boolean): NormalizedField => ({
+  kind: 'primitive',
+  type: type === PrimitiveKind.NUMBER
+    ? 'number'
+    : type === PrimitiveKind.BOOLEAN
+      ? 'boolean'
+      : 'string',
+  nullable,
+});
+
+const semanticTypeToField = (type: SemanticType, nullable = type.isNullable()): NormalizedField =>
+  type.accept({
+    primitive: value => primitiveField(value.type, nullable),
+    jsonValue: () => ({ kind: 'primitive', type: 'string', nullable }),
+    never: () => ({ kind: 'primitive', type: 'string', nullable }),
+    error: () => ({ kind: 'primitive', type: 'string', nullable }),
+    reference: value => value.role === 'model'
+      ? { kind: 'model', modelName: value.name, collection: false, nullable }
+      : { kind: 'primitive', type: 'string', nullable },
+    union: value => semanticTypeToField(value.members[0] ?? type, nullable),
+    intersection: value => semanticTypeToField(value.members[0] ?? type, nullable),
+    readonlyCollection: value => {
+      const element = semanticTypeToField(value.elementType, nullable);
+      return element.kind === 'model'
+        ? { ...element, collection: true, nullable }
+        : { kind: 'primitive', type: element.kind === 'primitive' ? element.type : 'string', nullable };
+    },
+    mutableCollection: value => {
+      const element = semanticTypeToField(value.elementType, nullable);
+      return element.kind === 'model'
+        ? { ...element, collection: true, nullable }
+        : { kind: 'primitive', type: element.kind === 'primitive' ? element.type : 'string', nullable };
+    },
+    generic: () => ({ kind: 'primitive', type: 'string', nullable }),
+    optional: value => semanticTypeToField(value.innerType, nullable || value.isOptional()),
+    nullable: value => semanticTypeToField(value.innerType, true),
+    object: () => ({ kind: 'object', fields: {}, nullable }),
+  });
+
+const propertyField = (property: ModelSemanticProperty): NormalizedField => {
+  if (property.kind === 'relation') {
+    const collection = property.multiplicity.kind === 'collection';
+    return {
+      kind: 'model',
+      modelName: property.targetModel.value.value,
+      collection,
+      nullable: !collection && property.traversal.semanticType.kind === 'nullable',
+    };
+  }
+  return semanticTypeToField(
+    property.traversal.semanticType,
+    property.traversal.semanticType.kind === 'nullable' || property.kind === 'column'
+      ? property.nullability.kind === 'nullable'
+      : property.traversal.semanticType.isNullable(),
+  );
+};
+
+const accessorEntry = (property: Extract<ModelSemanticProperty, { readonly kind: 'accessor' }>): NormalizedAccessor => ({
+  name: propertyName(property),
+  returnType: propertyField(property),
+});
 
 export function normalizeModels(manifest: RouteManifest, _kernel?: SemanticResolutionKernel): NormalizedModel[] {
-  const normalizedModels: NormalizedModel[] = [];
-  if (!manifest.models) return normalizedModels;
-
-  manifest.models.forEach(m => {
+  return manifest.models.map(model => {
+    const semantic = model.definition.semantic;
     const fields: Record<string, NormalizedField> = {};
-    const casts = m.casts || {};
-
-    m.columns.forEach(col => {
-      let type: "string" | "number" | "boolean" | "null" = "string";
-      if (col.columnKind && DATABASE_COLUMN_KIND_REGISTRY[col.columnKind]) {
-        const regType = DATABASE_COLUMN_KIND_REGISTRY[col.columnKind].tsType;
-        if (regType === 'number' || regType === 'boolean') {
-          type = regType;
-        }
-      } else {
-        const lower = col.type.toLowerCase();
-        if (lower.includes('int') || lower.includes('float') || lower.includes('double') || lower.includes('decimal')) type = 'number';
-        else if (lower.includes('bool') || lower.includes('tinyint(1)')) type = 'boolean';
-      }
-
-      const castType = casts[col.name];
-      if (castType) {
-        const lowerCast = castType.toLowerCase();
-        if (lowerCast.includes('int') || lowerCast.includes('float') || lowerCast.includes('double') || lowerCast.includes('real')) type = 'number';
-        else if (lowerCast.includes('bool') || lowerCast === 'boolean') type = 'boolean';
-        else if (lowerCast === 'array' || lowerCast === 'json' || lowerCast === 'object' || lowerCast === 'collection') type = 'string';
-      }
-
-      fields[col.name] = {
-        kind: "primitive",
-        type,
-        nullable: !!col.nullable
-      };
-    });
-
     const accessors: Record<string, NormalizedAccessor> = {};
-    const visited = new Set<string>();
-    if (m.accessors) {
-      for (const [accName, accDef] of Object.entries(m.accessors)) {
-        accessors[accName] = normalizeAccessor(accName, accDef, accName, visited);
+
+    for (const property of sequenceToArray(semantic.surface.properties)) {
+      if (property.kind === 'accessor') {
+        accessors[propertyName(property)] = accessorEntry(property);
+      } else {
+        fields[propertyName(property)] = propertyField(property);
       }
     }
 
-    normalizedModels.push({
-      symbolId: `model:${m.name}`,
-      name: m.name,
-      tableName: m.table,
+    return {
+      symbolId: `model:${semantic.identity.name.value.value}`,
+      name: semantic.identity.name.value.value,
+      tableName: semantic.identity.table.value.value,
       fields,
       accessors,
-      appends: m.appends
-    });
+      appends: sequenceToArray(semantic.exposure.appends).map(value => value.value.value),
+    };
   });
-
-  return normalizedModels;
 }

@@ -1,8 +1,8 @@
 import { relationResolve } from '../../../relational/sequence';
 import type { TokenDescriptor } from '../phpAstTypes';
-import { TokenCursor } from '../../../../semantic/kernel/syntax/relationalSyntaxCursor';
+import { TokenCursor } from './relationalSyntaxCursor';
 import { presenceFold, type Presence } from '../../../../types/upstream/presence';
-import { relationEqual, relationAll } from '../../../../semantic/kernel/semanticRelations';
+import { relationEqual, relationAll } from '../../../../semantic/foundation/semanticRelations';
 import { SYNTAX_KIND_GROUPS, tokenHasKind, tokenHasOperation } from './syntaxValue';
 import { projectRelation, selectRelation, expandRelation, relationGate, relationResolve } from '../../../relational/sequence';
 

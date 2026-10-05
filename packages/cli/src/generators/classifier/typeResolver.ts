@@ -43,19 +43,15 @@ export function resolveItemPrimaryKeyType(
   return paramTsType ?? modelKeyType ?? RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType;
 }
 
-function extractRawResponseType(rawResp: { semantic?: { readTypeName?: string }; resource?: string; model?: string } | undefined): string {
-  return rawResp?.semantic?.readTypeName
-    ?? (rawResp?.resource ? `${rawResp.resource}Transformed` : undefined)
-    ?? (rawResp?.model ? `${rawResp.model}Transformed` : undefined)
-    ?? 'never';
+function extractContractResponseType(route: ClassifiedRoute | undefined): string {
+  if (!route) return 'never';
+  return route.contract.response.success.descriptor.responseTypeName().value;
 }
 
 export function resolveRouteResponseType(route?: ClassifiedRoute): { readonly typeName: string; readonly importedType: string | null } {
-  const contractType = route?.contract.response.success.readTypeName;
-  const rawResp = route?.raw.response as { semantic?: { readTypeName?: string }; resource?: string; model?: string } | undefined;
-  const rawType = extractRawResponseType(rawResp);
+  const contractType = extractContractResponseType(route);
 
-  const candidateType = (contractType && contractType !== 'unknown') ? contractType : rawType;
+  const candidateType = contractType;
   const isImportable = Boolean(candidateType && candidateType !== 'void' && candidateType !== 'unknown' && candidateType !== 'never');
 
   return {
@@ -67,7 +63,7 @@ export function resolveRouteResponseType(route?: ClassifiedRoute): { readonly ty
 const STANDARD_FORM_ACTIONS: ReadonlySet<string> = new Set(['Create', 'Update', 'Get']);
 
 export function resolveRouteFormType(route?: ClassifiedRoute): ResolvedTypeInfo {
-  const hasSchema = Boolean(route?.raw.schema?.rules && Object.keys(route.raw.schema.rules).length > 0);
+  const hasSchema = Boolean(route?.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && Object.keys(route.contract.request.body.schema.rules).length > 0);
   const rawAction = route?.actionName ?? '';
   const actionKey = (CANONICAL_ACTION_MAP as Readonly<Record<string, string>>)[rawAction]
     || (rawAction ? rawAction.charAt(0).toUpperCase() + rawAction.slice(1) : '');

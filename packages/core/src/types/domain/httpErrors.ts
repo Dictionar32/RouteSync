@@ -6,7 +6,7 @@ import type { HttpErrorSchema as UpstreamHttpErrorSchema, HttpErrorSchemaField a
 import type { RequestRuntimeValue } from "./requestModels";
 import { HttpStatusCode } from "./httpVocabulary";
 import { SemanticValueFactory, type HttpErrorName, type ResponseTypeName } from "./semanticValues";
-import { relationGate } from "../../semantic/kernel/relationalSequence";
+import { relationGate } from "../../semantic/foundation/relationalSequence";
 
 export interface RouteQueryParameter {
   readonly name: RouteParameterName;

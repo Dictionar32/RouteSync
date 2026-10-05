@@ -12,11 +12,11 @@ import {
     InvalidationTarget,
     ScannedInvalidationTarget,
     RouteSemanticFlowInvalidationPayload,
+    ScannedEndpointContract,
 } from "../../../types/route";
 import type { ModelAst } from "../../../types/upstream/ast";
 import type { ResourceName } from "../../../types/upstream/names";
 import type { ModelRelation } from "../../../types/upstream/model";
-import { RouteSemanticFlowFactory } from "../descriptors/routeDescriptors";
 import { createResourceName } from "../../../types/upstream/names";
 import {
     relationGate,
@@ -29,8 +29,8 @@ import {
     relationSome,
     relationRefine,
     type RelationOption,
-} from "../../../semantic/kernel/relationalSequence";
-import { relationAny, relationEqual } from "../../../semantic/kernel/semanticRelations";
+} from "../../../semantic/foundation/relationalSequence";
+import { relationAny, relationEqual } from "../../../semantic/foundation/semanticRelations";
 
 type RouteInvalidationContext = Readonly<{
     readonly route: RouteSemanticFlow;
@@ -168,16 +168,29 @@ const routeTargets = (context: RouteInvalidationContext, allRoutes: readonly Rou
     return Object.freeze([...base, ...modelTargets, ...groupTargets, ...authTargets]);
 };
 
-const isRouteFactory = (route: RouteSemanticFlow): route is RouteSemanticFlowFactory => "withInvalidation" in route;
-
 const applyInvalidation = (
     route: RouteSemanticFlow,
     invalidation: RouteSemanticFlowInvalidationPayload,
-): RouteSemanticFlow => relationOptionFold(
-    relationRefine(route, isRouteFactory),
-    () => Object.freeze({ ...route, invalidation }),
-    value => value.withInvalidation(invalidation),
-);
+): RouteSemanticFlow => {
+    const capability = Object.freeze({
+        ...route.capability,
+        invalidation: Object.freeze({
+            targets: Object.freeze(invalidation.targets),
+            queryKeyExpressions: Object.freeze(invalidation.queryKeyExpressions),
+        }),
+    });
+    const contract = ScannedEndpointContract.fromSubcontracts({
+        identity: route.identity,
+        binding: route.binding,
+        capability,
+        provenance: route.provenance,
+    });
+    return Object.freeze({
+        ...route,
+        capability,
+        contract,
+    });
+};
 
 export const resolveRouteInvalidations = (
     routes: readonly RouteSemanticFlow[],

@@ -2,7 +2,7 @@
 import type { AstIdentifier, TokenDescriptor, PhpAstValue, PhpBlock, PhpStatement } from './phpAstTypes';
 import type { ControllerVariableSemantic, ControllerSemanticVariableFlow } from '../../../types/upstream/controller';
 import type { SemanticKnowledgeDataFlow } from './routeAst/semanticKnowledgeDataFlowRelations';
-import { relationAll, relationGate } from '../../../semantic/kernel/semanticRelations';
+import { relationAll, relationGate } from '../../../semantic/foundation/semanticRelations';
 
 export type ValidationRuleLiteralAst = string & { readonly __validationRuleAst: unique symbol };
 

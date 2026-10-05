@@ -1,4 +1,4 @@
-import { relationFirstOption, relationOptionFold, relationEqual } from '../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationEqual } from '../../semantic/foundation/relationalSequence';
 
 /** Immutable relational sequence primitives used by compiler infrastructure. */
 export type RelationStep<T> =
@@ -96,4 +96,4 @@ export const firstRelation = <T>(source: readonly T[], predicate: (value: T, ind
 export {
   relationOptionFold, relationOptionalFold, relationFirstOption, relationFirst, relationProject, relationSelect, relationAll, relationAny,
   relationEqual, relationNotEqual, relationIsSome, relationIsNone, relationFixedPoint, relationNone, relationSome, relationVariant, relationVariantFold, relationVariantValue, relationUnique, relationIndexAdd, relationIndexLookup, expandRelation, relationResolve as semanticRelationResolve,
-} from '../../semantic/kernel/relationalSequence';
+} from '../../semantic/foundation/relationalSequence';

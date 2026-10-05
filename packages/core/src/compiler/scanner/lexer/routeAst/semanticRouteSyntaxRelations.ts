@@ -1,9 +1,9 @@
-import { relationAll, relationAny, relationNormalizeWhitespace, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationContains, relationUnique } from '../../../../semantic/kernel/relationMembership';
+import { relationAll, relationAny, relationNormalizeWhitespace, relationNotEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationContains, relationUnique } from '../../../../semantic/foundation/relationMembership';
 import { relationResolve } from '../../../relational/sequence';
-import { relationFirst, relationOptionMap, relationOptionFold, relationVariantFold, relationVariantValue, relationEqual } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirst, relationOptionMap, relationOptionFold, relationVariantFold, relationVariantValue, relationEqual } from '../../../../semantic/foundation/relationalSequence';
 import { projectRelation, selectRelation, expandRelation, accumulateRelation } from '../../../relational/sequence';
-import { relationFirstOr } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOr } from '../../../../semantic/foundation/relationalSequence';
 import { createRouteConstraintValueAst, createRouteConstraintParameterAst, type LaravelRouteMethod, type RouteConstraintMethodAst, type RouteTargetAst, type RouteConstraintArgumentAst, type RouteConstraintValueAst, type RouteConstraintParameterAst, } from './routeDeclarationAst';
 import { createRouteParameterName, stringValue as semanticStringValue } from '../../../../types/upstream/names';
 import type { RouteGroupConstraintFact } from '../../../../types/upstream/routeGroupFacts';
@@ -11,7 +11,7 @@ import type { RouteConstraintArgument } from '../../../../types/upstream/routeCo
 import type { RouteResourceMethodAst } from './routeResourceDeclarationAst';
 import type { AstIdentifier, TokenDescriptor } from '../phpAstTypes';
 import { createAstIdentifier } from '../phpAstCoreTypes';
-import { TokenCursor } from '../../../../semantic/kernel/syntax/relationalSyntaxCursor';
+import { TokenCursor } from './relationalSyntaxCursor';
 import { absent, present, mapPresenceValue, presenceFold, presenceOf, isPresent, type Presence } from '../../../../types/upstream/presence';
 import { SYNTAX_KIND_GROUPS, tokenHasKind, tokenHasOperation, tokenRouteMethod, tokenRouteConstraintMethod, tokenResourceMethod, tokenSyntaxFact } from './syntaxValue';
 /** Laravel syntax vocabulary. Meaning lives here; parsers consume typed facts. */
@@ -22,7 +22,8 @@ type CatalogEntry<T> = readonly [
 type Catalog<T> = readonly CatalogEntry<T>[];
 const ROUTE_METHODS: Catalog<LaravelRouteMethod> = Object.freeze([
     ['get', 'get'], ['post', 'post'], ['put', 'put'], ['patch', 'patch'], ['delete', 'delete'],
-    ['options', 'options'], ['head', 'head'], ['match', 'match'], ['any', 'any'], ['apiResource', 'apiResource'],
+    ['options', 'options'], ['head', 'head'], ['match', 'match'], ['any', 'any'],
+  ['resource', 'resource'], ['apiResource', 'apiResource'], ['singleton', 'singleton'], ['apiSingleton', 'apiSingleton'],
 ]);
 const ROUTE_CONSTRAINT_METHODS: Catalog<RouteConstraintMethodAst> = Object.freeze([
     ['where', 'where'], ['whereNumber', 'whereNumber'], ['whereAlpha', 'whereAlpha'],
@@ -52,7 +53,8 @@ const ROUTE_PATH_TOKEN_POLICIES: Catalog<RoutePathTokenPolicy> = Object.freeze([
     ['put', { expectation: 'string' }], ['patch', { expectation: 'string' }],
     ['delete', { expectation: 'string' }], ['options', { expectation: 'string' }],
     ['head', { expectation: 'string' }], ['match', { expectation: 'any' }], ['any', { expectation: 'any' }],
-    ['apiResource', { expectation: 'string' }],
+    ['resource', { expectation: 'string' }], ['apiResource', { expectation: 'string' }],
+    ['singleton', { expectation: 'string' }], ['apiSingleton', { expectation: 'string' }],
 ]);
 const ROUTE_PATH_EXPECTATION_READERS = Object.freeze({
     string: (fact: RoutePathTokenFact) => relationOptionFold(fact.actual, () => false, entry => relationContains(SYNTAX_KIND_GROUPS.strings, entry.kind)),
@@ -124,13 +126,15 @@ const resolveRouteTargetMethodResolver = (resolver: RouteTargetMethodResolver, s
 const ROUTE_TARGET_METHOD_RESOLVERS: Catalog<RouteTargetMethodResolver> = Object.freeze([
     ['get', routeTargetDefault], ['post', routeTargetDefault], ['put', routeTargetDefault], ['patch', routeTargetDefault],
     ['delete', routeTargetDefault], ['options', routeTargetDefault], ['head', routeTargetDefault], ['match', routeTargetMatch],
-    ['any', routeTargetDefault], ['apiResource', routeTargetDefault],
+    ['any', routeTargetDefault],
+    ['resource', routeTargetDefault], ['apiResource', routeTargetDefault],
+    ['singleton', routeTargetDefault], ['apiSingleton', routeTargetDefault],
 ]);
 /** Resolves route target methods through a closed strategy relation rather than parser branching. */
 export const routeTargetMethodSet = (start: TokenCursor, method: LaravelRouteMethod): RouteTargetMethodSet => Object.freeze({ methods: resolveRouteTargetMethodResolver(catalogRequired(ROUTE_TARGET_METHOD_RESOLVERS, present(method)), start, method) });
 export type RouteResourceMiddlewareScopeKind = 'all' | 'only' | 'except';
 const RESOURCE_MIDDLEWARE_SCOPE: Catalog<RouteResourceMiddlewareScopeKind> = Object.freeze([
-    ['middleware', 'all'], ['middlewareFor', 'only'], ['withoutMiddlewareFor', 'except'],
+    ['middleware', 'all'], ['middlewareFor', 'only'], ['withoutMiddlewareFor', 'only'],
 ]);
 export const resourceMiddlewareScope = (method: ResourceMiddlewareMethod): RouteResourceMiddlewareScopeKind => catalogRequired(RESOURCE_MIDDLEWARE_SCOPE, present(method));
 /** Canonical route constraint argument ADT; no duplicate parser-local shape. */

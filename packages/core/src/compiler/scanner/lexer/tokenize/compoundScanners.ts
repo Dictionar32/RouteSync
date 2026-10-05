@@ -2,8 +2,8 @@
 import type { TokenDescriptor } from '../PhpAst';
 import type { SourceStream, CursorMark } from '../SourceStream';
 import { isIdentStart, isIdentPart, resolveIdentifierType } from './characterPredicates';
-import { relationFirstOption, relationOptionFold, relationTextSlice } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationTextSlice } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/foundation/semanticRelations';
 
 type ScanAction = (stream: SourceStream, mark: CursorMark, tokens: TokenDescriptor[]) => void;
 type Transition = readonly [string, string, ScanAction];

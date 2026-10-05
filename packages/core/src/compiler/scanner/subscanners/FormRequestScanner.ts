@@ -15,7 +15,7 @@ import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSou
 import type { RequestAsts, Sequence } from "../../../types/upstream/collections";
 import type { SourceSpan } from "../../../types/upstream/provenance";
 import type { NumberValue } from "../../../types/upstream/valueObjects";
-import { requestProducer } from "./requestProducer";
+import { requestProducer, type RequestProducerResult } from "./requestProducer";
 import { TypeInterner } from "../../types/TypeInterner";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { parsePhpMethodOrThrow } from "../lexer/phpMethodParser";
@@ -30,8 +30,8 @@ import {
     relationOptionFold,
     relationProject,
     relationResolve,
-} from "../../../semantic/kernel/relationalSequence";
-import { relationAll, relationEqual } from "../../../semantic/kernel/semanticRelations";
+} from "../../../semantic/foundation/relationalSequence";
+import { relationAll, relationEqual } from "../../../semantic/foundation/semanticRelations";
 
 export class FormRequestScanner {
     private static async scanSources(
@@ -83,11 +83,11 @@ export class FormRequestScanner {
     private static async scanOnce(
         sourceProject: SourceProjectIdentity,
         interner: TypeInterner
-    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[] }> {
+    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[]; readonly definitions: readonly import('../../../types/upstream/request').RequestDefinition[] }> {
         const sources = await FormRequestScanner.scanSources(sourceProject, interner, false);
-        const asts = await relationAsyncFold(
+        const results = await relationAsyncFold(
             sources,
-            [] as readonly RequestAst[],
+            [] as readonly RequestProducerResult[],
             async (accumulator, source) => {
                 const sourceName = source.identity.requestClass.value.value;
                 const sourceText = readSourceForProducer(source.sourceFile.value.value);
@@ -104,7 +104,7 @@ export class FormRequestScanner {
                         authorize => {
                             const rulesIndex = resolveRulesReturnIndex(tokens, rules.name);
                             const rulesEntries = LaravelSourceLexer.parseArray(sourceText, tokens, rulesIndex).entries;
-                            const ast = requestProducer.produce({
+                            const result = requestProducer.produceResult({
                                 requestName: createRequestName(sourceName),
                                 formType: source.identity.formType,
                                 source: source.source,
@@ -115,13 +115,13 @@ export class FormRequestScanner {
                                 sourceFile: source.sourceFile.value.value,
                                 interner
                             });
-                            return [...accumulator, ast];
+                            return [...accumulator, result];
                         },
                     ),
                 );
             },
         );
-        return { sources, asts: Object.freeze(asts) };
+        return { sources, asts: Object.freeze(relationProject(results, result => result.ast)), definitions: Object.freeze(relationProject(results, result => result.definition)) };
     }
 
     public static async scan(
@@ -142,7 +142,7 @@ export class FormRequestScanner {
     public static async scanCanonicalBundle(
         sourceProject: SourceProjectIdentity,
         interner: TypeInterner = TypeInterner.create()
-    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[] }> {
+    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[]; readonly definitions: readonly import('../../../types/upstream/request').RequestDefinition[] }> {
         return FormRequestScanner.scanOnce(sourceProject, interner);
     }
 

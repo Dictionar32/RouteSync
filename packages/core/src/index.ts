@@ -587,7 +587,6 @@ export type { ModelNode } from './semantic/modelNodes'
 export {
   IRHintsFactory,
   IRRawNodeDescriptor,
-  ModelCastCollection,
   SemanticFieldSet,
   SourceRefFactory,
   ZodObjectShape,
@@ -613,7 +612,6 @@ export type {
   IRRawNode,
   JsonMemberResolution,
   JsonObjectResolution,
-  ModelCastEntry,
   ReactQueryHooks,
   RequestContract,
   ResolutionStatus,
@@ -657,6 +655,8 @@ export type {
   TSConst
 } from './types/emit'
 export { ServiceGraphBuilder } from './graph/ServiceGraphBuilder'
+export { GraphEdgeRelationSink, createGraphEdgeRelation } from './graph/service'
+export type { GraphEdgeRelation, GraphEdgeRelationOrigin } from './graph/service'
 
 // IR v3 (CompilerRoadmap.md Stage 2)
 export { buildSemanticIRNode, computeStableHash, IRNodeRegistry } from './ir/buildIRNode'
@@ -769,6 +769,7 @@ export {
   TypeDeriver
 } from './compiler/scanner/StaticLaravelScanner'
 export { scanRouteSyncManifest } from './compiler/scanner/orchestrator/upstreamManifestScanner'
+export { lowerRouteSyncManifestToRouteManifest } from './compiler/scanner/upstream/routeManifestLowerer'
 export { IdentifierCase, extractClassBasename, inferLaravelTableName } from './utils/resource-naming'
 export {
   ScannedObjectProperty,
@@ -879,7 +880,6 @@ export {
   type RouteValidationRuleSet,
   ValidationTreeBuilder,
   buildValidationTree,
-  RouteSemanticFlowFactory,
   RouteParameterSemanticFactory,
     type RouteSemanticFlowCompleteContracts,
   type RouteSemanticFlowConstructorInput,
@@ -909,8 +909,7 @@ export {
   RouteSecurityResolver,
   type RouteBoundaryContract,
   type RouteBoundaryOptions,
-  RouteBoundaryContractFactory,
-  RouteBoundaryAdapter
+  RouteBoundaryContractFactory
 } from './compiler/scanner/resolvers'
 export { ModelSymbolTable, OriginModelSymbol } from './compiler/scanner/symbols/ModelSymbolTable'
 export { SemanticResourceBinder } from './compiler/scanner/binders/SemanticResourceBinder'

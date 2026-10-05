@@ -139,7 +139,10 @@ export type ResponseFacts = {
   readonly source: SourceSpan;
 };
 
-export interface ResponseContract {
-  readonly kind: 'response_contract';
+export interface ResponseDefinitionContract {
+  readonly kind: 'response_definition_contract';
   readonly definition: ResponseDefinition;
 }
+
+/** Compatibility alias retained for existing upstream consumers. */
+export type ResponseContract = ResponseDefinitionContract;

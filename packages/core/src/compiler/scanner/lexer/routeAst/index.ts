@@ -18,7 +18,6 @@ export * from './semanticKnowledgeEvidenceAdapter';
 export * from './semanticKnowledgeDataFlowProducer';
 export { phpAstSemanticKnowledgeEvidenceAdapter } from './semanticKnowledgeDataFlowProducer';
 
-export * from './semanticDataFlowAnalyzer';
 export * from './semanticStateDataFlow';
 export * from './semanticVersionedStateDataFlowRelations';
 export * from './semanticInterproceduralDataFlowRelations';

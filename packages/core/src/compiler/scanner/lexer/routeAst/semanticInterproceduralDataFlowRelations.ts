@@ -1,7 +1,7 @@
 import { relationAll, relationEqual, relationResolve } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, relationOptionMap, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationOptionMap, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 import type { KnowledgeId, SemanticCallable, SemanticEmission, SemanticInvocation, SemanticKnowledgeDataFlow, SemanticDataFlowFact, SemanticFact } from './semanticKnowledgeDataFlowRelations';
-import type { RelationVariant } from '../../../../semantic/kernel/relationalSequence';
+import type { RelationVariant } from '../../../../semantic/foundation/relationalSequence';
 import type { SemanticRelation } from './semanticRewriteEngine';
 import { typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 import { solveSemanticRelations, type SemanticRelationRewrite } from './semanticRewriteEngine';

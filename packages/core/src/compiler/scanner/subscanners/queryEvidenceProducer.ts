@@ -4,9 +4,9 @@ import type { QueryAst, QueryOperationAst, QuerySubqueryAst } from '../../../typ
 import { createModelName, createPropertyName, createRelationName } from '../../../types/upstream/names';
 import type { ModelName, PropertyName } from '../../../types/upstream/names';
 import type { Sequence, RelationPath, Option } from '../../../types/upstream/collections';
-import { RELATION_NONE, relationGate, type RelationNone, relationFirst, relationFold, relationExpand, relationProject, relationMapValueOr, relationCatalogValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSome, relationNone, relationVariant, relationVariantValue, type RelationOption, type RelationVariant } from '../../../semantic/kernel/relationalSequence';
+import { RELATION_NONE, relationGate, type RelationNone, relationFirst, relationFold, relationExpand, relationProject, relationMapValueOr, relationCatalogValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSome, relationNone, relationVariant, relationVariantValue, type RelationOption, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
 import { solveCandidate, requirement } from '../../../semantic/kernel/semanticDecisionRewriteEngine';
-import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/foundation/semanticRelations';
 export type QueryProducerInput = {
     readonly expressions: readonly ExpressionAst[];
 };
@@ -151,17 +151,17 @@ const orderingDirection = (expression: Expression | RelationNone): import('../..
     { id: 'ascending', value: { kind: 'ascending' }, requirements: [requirement('default', true)] },
 ]), () => ({ kind: 'ascending' as const }), value => value);
 type QueryJoinMethodName = 'join' | 'leftJoin' | 'rightJoin' | 'crossJoin' | 'joinSub' | 'leftJoinSub' | 'rightJoinSub' | 'crossJoinSub' | 'joinLateral' | 'leftJoinLateral' | 'straightJoin' | 'straightJoinSub';
-const queryJoinConstraint = (expression: Expression): import('../../../semantic/kernel/relationalSequence').RelationOption<import('../../../types/upstream/expression').QueryJoinConstraint> => solveCandidate([
+const queryJoinConstraint = (expression: Expression): import('../../../semantic/foundation/relationalSequence').RelationOption<import('../../../types/upstream/expression').QueryJoinConstraint> => solveCandidate([
     { id: 'closure', value: { kind: 'closure', expression: relationVariantValue(expression, 'closure') }, requirements: [requirement('closure', relationAny([relationEqual(expression.kind, 'closure'), relationEqual(expression.kind, 'arrow_function')]))] },
     { id: 'expression', value: { kind: 'expression', expression }, requirements: [requirement('expression', true)] },
 ]);
 type QueryJoinDescriptor = {
     readonly target: 'table' | 'subquery' | 'lateral';
     readonly type: 'inner' | 'left' | 'right' | 'cross' | 'straight';
-    readonly aliasIndex: import('../../../semantic/kernel/relationalSequence').RelationOption<number>;
-    readonly constraintIndex: import('../../../semantic/kernel/relationalSequence').RelationOption<number>;
+    readonly aliasIndex: import('../../../semantic/foundation/relationalSequence').RelationOption<number>;
+    readonly constraintIndex: import('../../../semantic/foundation/relationalSequence').RelationOption<number>;
 };
-const joinDescriptor = (target: QueryJoinDescriptor['target'], type: QueryJoinDescriptor['type'], aliasIndex: import('../../../semantic/kernel/relationalSequence').RelationOption<number>, constraintIndex: import('../../../semantic/kernel/relationalSequence').RelationOption<number>): QueryJoinDescriptor => ({ target, type, aliasIndex, constraintIndex });
+const joinDescriptor = (target: QueryJoinDescriptor['target'], type: QueryJoinDescriptor['type'], aliasIndex: import('../../../semantic/foundation/relationalSequence').RelationOption<number>, constraintIndex: import('../../../semantic/foundation/relationalSequence').RelationOption<number>): QueryJoinDescriptor => ({ target, type, aliasIndex, constraintIndex });
 const queryJoinCatalog: readonly (readonly [QueryJoinMethodName, QueryJoinDescriptor])[] = Object.freeze([
     ['join', joinDescriptor('table', 'inner', relationNone(), relationSome(1))],
     ['leftJoin', joinDescriptor('table', 'left', relationNone(), relationSome(1))],
@@ -176,9 +176,9 @@ const queryJoinCatalog: readonly (readonly [QueryJoinMethodName, QueryJoinDescri
     ['straightJoin', joinDescriptor('table', 'straight', relationNone(), relationSome(1))],
     ['straightJoinSub', joinDescriptor('subquery', 'straight', relationSome(1), relationSome(2))],
 ]);
-const argumentAt = (args: readonly Expression[], index: import('../../../semantic/kernel/relationalSequence').RelationOption<number>): import('../../../semantic/kernel/relationalSequence').RelationOption<Expression> => relationOptionFold(index, () => relationNone(), position => relationLookup(relationProject(args, (value, offset) => [offset, value] as const), position));
-const queryJoinTarget = (descriptor: QueryJoinDescriptor, targetExpression: Expression, alias: import('../../../semantic/kernel/relationalSequence').RelationOption<Expression>): import('../../../types/upstream/expression').QueryJoin['target'] => relationGate(relationEqual(descriptor.target, 'table'), () => ({ kind: 'table', expression: targetExpression }), () => relationGate(relationEqual(descriptor.target, 'subquery'), () => relationOptionFold(alias, () => ({ kind: 'subquery', expression: targetExpression }), value => ({ kind: 'subquery', expression: targetExpression, alias: value })), () => relationOptionFold(alias, () => ({ kind: 'lateral', expression: targetExpression }), value => ({ kind: 'lateral', expression: targetExpression, alias: value }))));
-const queryJoin = (name: QueryJoinMethodName, args: readonly Expression[]): import('../../../semantic/kernel/relationalSequence').RelationOption<import('../../../types/upstream/expression').QueryJoin> => relationOptionFold(
+const argumentAt = (args: readonly Expression[], index: import('../../../semantic/foundation/relationalSequence').RelationOption<number>): import('../../../semantic/foundation/relationalSequence').RelationOption<Expression> => relationOptionFold(index, () => relationNone(), position => relationLookup(relationProject(args, (value, offset) => [offset, value] as const), position));
+const queryJoinTarget = (descriptor: QueryJoinDescriptor, targetExpression: Expression, alias: import('../../../semantic/foundation/relationalSequence').RelationOption<Expression>): import('../../../types/upstream/expression').QueryJoin['target'] => relationGate(relationEqual(descriptor.target, 'table'), () => ({ kind: 'table', expression: targetExpression }), () => relationGate(relationEqual(descriptor.target, 'subquery'), () => relationOptionFold(alias, () => ({ kind: 'subquery', expression: targetExpression }), value => ({ kind: 'subquery', expression: targetExpression, alias: value })), () => relationOptionFold(alias, () => ({ kind: 'lateral', expression: targetExpression }), value => ({ kind: 'lateral', expression: targetExpression, alias: value }))));
+const queryJoin = (name: QueryJoinMethodName, args: readonly Expression[]): import('../../../semantic/foundation/relationalSequence').RelationOption<import('../../../types/upstream/expression').QueryJoin> => relationOptionFold(
     relationLookup(queryJoinCatalog, name),
     () => relationNone(),
     descriptor => relationOptionFold(argumentAt(args, relationSome(0)), () => relationNone(), targetExpression => {
@@ -187,7 +187,7 @@ const queryJoin = (name: QueryJoinMethodName, args: readonly Expression[]): impo
         return relationGate(relationAny([relationEqual(descriptor.aliasIndex.kind, 'none'), relationEqual(alias.kind, 'some')]), () => relationOptionFold(constraint, () => relationSome({ target: queryJoinTarget(descriptor, targetExpression, alias), type: { kind: descriptor.type } }), value => relationSome({ target: queryJoinTarget(descriptor, targetExpression, alias), type: { kind: descriptor.type }, constraint: value })), () => relationNone());
     }),
 );
-const queryOperationFromNamedMethod = (expression: RelationVariant<Expression, 'method' | 'nullsafe_method'>): import('../../../semantic/kernel/relationalSequence').RelationOption<QueryOperationAst> => relationGate(
+const queryOperationFromNamedMethod = (expression: RelationVariant<Expression, 'method' | 'nullsafe_method'>): import('../../../semantic/foundation/relationalSequence').RelationOption<QueryOperationAst> => relationGate(
     relationEqual(expression.operation.kind, 'domain'),
     () => {
         const domain = expression.operation;

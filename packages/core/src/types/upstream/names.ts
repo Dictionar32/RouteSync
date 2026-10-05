@@ -1,5 +1,5 @@
 import type { StringValue } from './valueObjects';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
 export interface ModelName { readonly kind: 'model_name'; readonly value: StringValue }
 export interface EnumName { readonly kind: 'enum_name'; readonly value: StringValue }
 export interface ServiceName { readonly kind: 'service_name'; readonly value: StringValue }

@@ -1,5 +1,5 @@
 /** Relation-backed memoized query key. */
-import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
+import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
 import type { QueryStorage, QueryValueStore } from './storage';
 import { createQueryValueStore } from './storage';
 

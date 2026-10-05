@@ -11,8 +11,8 @@ import {
     relationSequenceToArray,
     relationVariantFold,
     type RelationOption,
-} from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+} from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 
 export interface OriginModelSymbol {
     readonly name: ModelName;

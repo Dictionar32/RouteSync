@@ -32,7 +32,7 @@ export function buildCustomOrSingletonGroupDescriptor(
   standardKeys: readonly string[]
 ): ResourceGroupDescriptor<ClassifiedRoute> {
   const hasSchema = (route?: ClassifiedRoute): boolean =>
-    Boolean(route && route.raw.schema && route.raw.schema.rules && Object.keys(route.raw.schema.rules).length > 0);
+    Boolean(route && route.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && Object.keys(route.contract.request.body.schema.rules).length > 0);
 
   const listRes = res.index ? resolveRouteResponseType(res.index) : { typeName: 'never', importedType: null };
 

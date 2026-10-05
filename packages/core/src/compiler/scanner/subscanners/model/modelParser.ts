@@ -31,8 +31,8 @@ import { resolveModelColumns } from "./columnInferrer";
 import { buildModelColumnFacts } from "./modelColumnFactsCanonical";
 import { correlateModelColumnFacts } from "./modelColumnOrigin";
 import type { SourceSpan } from '../../../../types/upstream/provenance';
-import { relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
-import { relationProject, relationFold, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate } from '../../../../semantic/foundation/semanticRelations';
+import { relationProject, relationFold, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 
 
 const text = (value: string): StringValue => ({ kind: 'string_value', value });

@@ -1,8 +1,8 @@
 import { relationResolve } from '../../../relational/sequence';
 import { project, retain, expand, accumulate, visit } from './semanticRelationalCollections';
 import { projectRelation, visitRelation } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, relationIsPresent, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationIsPresent, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import type { PhpAstValue, PhpBlock } from '../phpAstTypes';
 import { compileSemanticEvidenceRelations } from './semanticEvidenceRelationCompiler';
 import { createPhpAstExpressionProjector } from './phpAstExpressionSyntaxEvidenceRegistry';

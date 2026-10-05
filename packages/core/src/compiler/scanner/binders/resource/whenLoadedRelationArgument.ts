@@ -2,7 +2,7 @@ import type { PhpArgument, PhpAstValue } from "../../lexer/PhpAst";
 import { matchPhpAstValue } from "../../lexer/PhpAst";
 import { createRelationName } from "../../../../types/upstream/names";
 import type { RelationName } from "../../../../types/upstream/names";
-import { relationFold, relationGate } from "../../../../semantic/kernel/relationalSequence";
+import { relationFold, relationGate } from "../../../../semantic/foundation/relationalSequence";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 
 export function readWhenLoadedRelation(argumentsAst: readonly PhpArgument[]): Lookup<RelationName> {

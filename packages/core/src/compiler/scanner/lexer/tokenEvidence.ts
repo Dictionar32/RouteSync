@@ -1,6 +1,6 @@
 import type { TokenDescriptor } from './phpAstCoreTypes';
-import { relationFold, relationNone, relationSome, relationOptionFold, relationGate, type RelationOption } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationFold, relationNone, relationSome, relationOptionFold, relationGate, type RelationOption } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 export type TokenIndex = number;
 

@@ -51,6 +51,7 @@ export {
 export type { PhpClassPropertyAst, PhpPropertyVisibility, PhpPropertyStorage, PhpPropertyMutability, PhpPropertyTypeAst, PhpPropertyInitializationAst, PhpPropertyValueAst, PhpPropertyPromotionAst } from './phpAstDeclarationTypes';
 
 export type {
+    ControllerInheritanceAst,
     ControllerDeclarationAst,
     ControllerMethodAst,
     ControllerParameterAst,

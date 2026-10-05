@@ -4,7 +4,7 @@ import { matchResourceArgumentPresence, matchResourceStringLiteralResolution, ma
 import { SemanticValueFactory, type MethodName, type PropertyName } from './semanticValues';
 import { matchResourceQueryMutation, matchResourceModelMethodMeaning, type ResourceModelMethodMeaning } from './resourceModelMethodMeaning';
 import type { ResourceConditionalArguments, ResourceGroupingArguments, ResourcePaginationArguments, ResourceWindowArguments } from './resourceQueryOperation';
-import { relationAt, relationEqual, relationFold, relationLookup, relationOptionFold, relationProject, relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationAt, relationEqual, relationFold, relationLookup, relationOptionFold, relationProject, relationResolve } from '../../semantic/foundation/relationalSequence';
 
 function literalString(expression: ResourceExpressionModel): ResourceStringLiteralResolution {
   return relationResolve(relationEqual(expression.expression.kind, 'literal'),

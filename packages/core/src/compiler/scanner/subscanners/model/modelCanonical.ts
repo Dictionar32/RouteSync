@@ -10,8 +10,8 @@ import type { ModelCast } from '../../../../types/upstream/model';
 import type { ModelAccessorFact, ModelColumnFact } from '../../../../types/upstream/modelSourceFacts';
 import type { NumberValue, StringValue, TruthValue } from '../../../../types/upstream/valueObjects';
 import { accessorExpression } from './modelAccessorCanonical';
-import { relationEqual, relationAny, relationGate } from '../../../../semantic/kernel/semanticRelations';
-import { relationFirstOption, relationProject, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationAny, relationGate } from '../../../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationProject, relationOptionFold } from '../../../../semantic/foundation/relationalSequence';
 import type { EloquentRelationAst } from '../../../../types/upstream/eloquent';
 
 const str = (value: string): StringValue => ({ kind: 'string_value', value });

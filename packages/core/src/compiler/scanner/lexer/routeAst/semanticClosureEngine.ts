@@ -1,6 +1,6 @@
-import { relationResolve } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationContains, relationUnique } from '../../../../semantic/kernel/relationMembership';
+import { relationResolve } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationContains, relationUnique } from '../../../../semantic/foundation/relationMembership';
 /**
  * Phase 270 — proof-carrying semantic closure.
  *

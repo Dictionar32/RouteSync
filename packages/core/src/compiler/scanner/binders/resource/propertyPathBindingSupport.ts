@@ -8,7 +8,7 @@ import type { ModelName } from "../../../../types/domain/semanticValues";
 import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
-import { relationFold, relationProject, relationResolve } from "../../../../semantic/kernel/relationalSequence";
+import { relationFold, relationProject, relationResolve } from "../../../../semantic/foundation/relationalSequence";
 
 type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
 

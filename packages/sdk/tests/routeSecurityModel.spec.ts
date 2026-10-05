@@ -1,5 +1,6 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest';
-import { RouteSecurityClassifier, SecuritySchemeKind, RouteSemanticFlowFactory, RouteActionKind, VoidResponseDescriptor } from '@routesync/core';
+import { RouteSecurityClassifier, SecuritySchemeKind, RouteActionKind, VoidResponseDescriptor } from '@routesync/core';
 
 describe('RouteSecurity Explicit Model Suite', () => {
   it('1. Classifies auth:sanctum as Sanctum security scheme', () => {

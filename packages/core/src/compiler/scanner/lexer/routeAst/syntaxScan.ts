@@ -1,6 +1,6 @@
-import { relationEqual, relationAll } from '../../../../semantic/kernel/semanticRelations';
+import { relationEqual, relationAll } from '../../../../semantic/foundation/semanticRelations';
 import { relationFixedPoint, relationResolve, relationGate } from '../../../relational/sequence';
-import { TokenCursor } from '../../../../semantic/kernel/syntax/relationalSyntaxCursor';
+import { TokenCursor } from './relationalSyntaxCursor';
 
 export type SyntaxScanDecision = 'continue' | 'stop';
 export type SyntaxScanStep<T> =

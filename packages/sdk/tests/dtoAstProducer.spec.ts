@@ -10,7 +10,7 @@ import type { Sequence } from '../../core/src/types/upstream/collections';
 import type { SourceProjectIdentity } from '../../core/src/types/upstream/highLevelSourceModel';
 import type { SourceSpan } from '../../core/src/types/upstream/provenance';
 
-const fixtureRoot = path.resolve(__dirname, '../../..', 'examples/ecommerce-shop-source');
+const fixtureRoot = path.resolve(__dirname, 'fixtures/ecommerce-shop-source');
 const fixtureFile = path.join(fixtureRoot, 'app/Http/DTOs/RegisterResponse.php');
 
 const sequenceToArray = <T>(items: Sequence<T>): readonly T[] => {

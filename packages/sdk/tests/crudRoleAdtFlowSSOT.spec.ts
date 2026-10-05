@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, test, expect } from 'vitest'
 import {
   CrudRole,
@@ -5,7 +6,6 @@ import {
   matchCrudRole,
   CrudRoleVisitor,
   ScannedCrudRoleDescriptor,
-  RouteSemanticFlowFactory,
   HttpMethod,
   RouteHookKind,
   RouteActionKind

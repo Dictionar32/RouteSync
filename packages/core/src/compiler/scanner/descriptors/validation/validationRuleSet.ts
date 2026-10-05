@@ -20,11 +20,11 @@ import {
     relationProject,
     relationVariantFold,
     relationGate,
-} from '../../../../semantic/kernel/relationalSequence';
-import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+} from '../../../../semantic/foundation/relationalSequence';
+import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import type { PropertyName } from '../../../../types/upstream/names';
-import type { RelationIndex } from '../../../../semantic/kernel/relationMembership';
-import { relationIndexAdd, relationIndexLookup } from '../../../../semantic/kernel/relationMembership';
+import type { RelationIndex } from '../../../../semantic/foundation/relationMembership';
+import { relationIndexAdd, relationIndexLookup } from '../../../../semantic/foundation/relationMembership';
 
 export interface RouteValidationRuleSet {
     readonly entries: readonly RouteValidationRuleEntry[];

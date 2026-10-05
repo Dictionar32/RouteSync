@@ -5,13 +5,13 @@ import type { SourceProjectIdentity } from '../../../../types/upstream/highLevel
 import type { PhpAstValue } from '../../lexer/phpAstTypes';
 import type { ControllerReturnSet } from './controllerDataflowContract';
 import type { ResponseDescriptor } from '../../../../types/route';
-import { relationUnique } from '../../../../semantic/kernel/relationMembership';
+import { relationUnique } from '../../../../semantic/foundation/relationMembership';
 import { InlineResponseDescriptor } from '../../../../types/route';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { readResponseDtoAnalysis } from './responseDtoReader';
 import type { ResponseContractField, ResponseValueContract } from '../../../../types/domain/responseContracts';
 import { createResponseFieldName } from '../../../../types/domain/semanticValueFactories';
-import { relationEqual, relationFold, relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, relationFirstOption, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationFold, relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, relationFirstOption, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 
 export interface ResponseAttributeResolution {
   readonly descriptor: ResponseDescriptor;

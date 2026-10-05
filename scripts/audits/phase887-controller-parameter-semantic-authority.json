@@ -1,0 +1,19 @@
+{
+  "phase": 887,
+  "authority": "controller_parameter_semantic",
+  "classification": "UPSTREAM_CONTROLLER_PARAMETER_SEMANTIC_AUTHORITY",
+  "controllerActionContract": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+  "controllerMethodParser": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+  "parserProducesSemantic": true,
+  "noParameterTypeReads": true,
+  "noModelNamesContext": true,
+  "requestUsesSemantic": true,
+  "dependenciesUseSemantic": true,
+  "methodExcludesSemanticRoutes": true,
+  "oldTypeParserRemoved": true,
+  "noControllerModelReconstruction": true,
+  "emptyLegacyFileCount": 203,
+  "emptyLegacyFileCountStable": true,
+  "deletedFiles": 0,
+  "conclusion": "ControllerActionContract now consumes ControllerParameterAst.semantic as the authority for request/model classification and dependency type identity. It no longer reparses parameter.type, carries modelNames solely to rediscover model dependencies, or reconstructs controller model names downstream."
+}

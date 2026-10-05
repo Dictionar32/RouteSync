@@ -26,7 +26,7 @@ import {
     relationSome,
     relationNone,
     type RelationOption,
-} from "../../../../semantic/kernel/relationalSequence";
+} from "../../../../semantic/foundation/relationalSequence";
 
 const isCollectionShape = (shape: string): boolean =>
     relationAny([relationEqual(shape, 'collection'), relationEqual(shape, 'paginated')]);

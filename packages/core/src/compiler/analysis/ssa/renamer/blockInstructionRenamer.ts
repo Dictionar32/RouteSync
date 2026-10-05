@@ -1,8 +1,8 @@
 /** Relation-driven instruction and phi renaming. */
 import { basicBlockLookup, basicBlockReplace, type Instruction, type Operand, type Expression, type BasicBlockRelation } from '../../../utils/ControlFlowGraph';
 import type { VariableVersionScope } from './variableVersionScope';
-import { relationAll, relationRefine, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/relationFoundation';
+import { relationAll, relationRefine, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/relationFoundation';
 
 export interface RenamedBlockInstructions {
     readonly instructions: readonly (Expression | Instruction)[];

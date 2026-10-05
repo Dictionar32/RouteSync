@@ -33,11 +33,11 @@ export function classifyRoutes(
   const usedActions = new Map<string, Set<string>>()
 
   return routes.map(route => {
-    const method = route.identity.method
-    const sourceGroupName = route.identity.groupName
+    const method = route.identity.coordinates.method
+    const sourceGroupName = route.identity.domain.group.value.value
     const groupName = groupAliases?.[sourceGroupName] ?? sourceGroupName
     const role = route.capability.crudRole
-    const runtimePath = route.identity.runtimePath
+    const runtimePath = route.identity.coordinates.runtimePath
     const hasParams = route.identity.parameters.all.length > 0
     const hasTrailingParam = CRUD_ROLE_REGISTRY[role].affectsSingleResource
 

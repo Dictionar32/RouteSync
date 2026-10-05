@@ -46,5 +46,5 @@ export interface ServiceGraph {
   services: ModelServiceMap<ServiceNode>;
   controllers: ModelControllerMap<ControllerNode>;
   models: ModelNodeMap<ServiceModelNode>;
-  edges: ServiceDependency[];
+  readonly edges: readonly ServiceDependency[];
 }

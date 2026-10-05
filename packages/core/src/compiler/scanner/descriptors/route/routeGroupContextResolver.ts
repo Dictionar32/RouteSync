@@ -6,10 +6,15 @@
  * intentionally only the upstream bridge; downstream never sees the AST.
  */
 import type { RouteDeclarationAst } from '../../lexer/routeAst/routeDeclarationAst';
+import type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 import type { RouteGroupContext } from '../../../../types/upstream/route';
 import { extractRouteGroupFactsFromAst } from './routeGroupAstAdapter';
 import { resolveRouteGroupFacts } from './routeGroupSemanticResolver';
 
+export function resolveRouteGroupContextFromFact(facts: RouteGroupFact): RouteGroupContext {
+  return resolveRouteGroupFacts(facts);
+}
+
 export function resolveRouteGroupContext(declaration: RouteDeclarationAst): RouteGroupContext {
-  return resolveRouteGroupFacts(extractRouteGroupFactsFromAst(declaration));
+  return resolveRouteGroupContextFromFact(extractRouteGroupFactsFromAst(declaration));
 }

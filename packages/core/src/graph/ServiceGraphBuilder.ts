@@ -4,9 +4,7 @@ import type {
   ControllerNode,
   ServiceModelNode,
   ExecutionLayer,
-  ServiceDependency,
 } from '../types/semantic';
-import type { RouteManifest } from '../types/route';
 import type { RouteSyncManifest } from '../types/upstream/manifest';
 import type { ModelSemanticDefinition } from '../types/upstream/model';
 import type { ActionName } from '../types/upstream/names';
@@ -15,18 +13,19 @@ import type { ControllerNodeName, ServiceNodeName } from '../types/semantic/nomi
 import type { Lookup } from '../types/upstream/collections';
 import { GraphNodeIndex } from './service/graphNodeIndex';
 import type { GraphNodeReference } from './service/graphNodeIndex';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/kernel/relationMembership';
-import { relationNone, relationSome } from '../semantic/kernel/relationFoundation';
-import { relationOptionFold } from '../semantic/kernel/relationalSequence';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/foundation/relationMembership';
+import { relationOptionFold } from '../semantic/foundation/relationalSequence';
 import {
   detectExecutionLayer,
   buildServiceNode,
   buildControllerNode,
   buildModelNode,
   assembleServiceGraph,
-  compileGraphFromManifest,
+  compileGraphFromSourceModel,
 } from './service';
 import type { ResourceReference } from '../types/upstream/semanticReferences';
+import { GraphEdgeRelationSink } from './service/graphEdgeRelationSink';
+import type { GraphEdgeRelation } from './service/graphEdgeRelation';
 
 const modelReference = (name: string): GraphNodeReference => ({
   kind: 'model_reference',
@@ -42,7 +41,7 @@ export class ServiceGraphBuilder {
   private readonly modelsMap = GraphNodeIndex.empty<ServiceModelNode>();
   private readonly servicesMap = GraphNodeIndex.empty<ServiceNode>();
   private controllersIndex: RelationIndex<string, ControllerNode> = Object.freeze([]);
-  private edges: readonly ServiceDependency[] = Object.freeze([]);
+  private readonly edgeSink = new GraphEdgeRelationSink();
 
   public detectLayer(filePath: string, code: string): ExecutionLayer {
     return detectExecutionLayer(filePath, code);
@@ -94,20 +93,12 @@ export class ServiceGraphBuilder {
     );
   }
 
-  public linkGraph(
-    fromNode: GraphNodeReference | ResourceReference,
-    toNode: GraphNodeReference | ResourceReference,
-    type: ServiceDependency['type'],
-    weight = 1.0,
-  ): void {
-    this.edges = Object.freeze([
-      ...this.edges,
-      { from: fromNode, to: toNode, type, weight },
-    ]);
+  public addGraphEdgeRelation(relation: GraphEdgeRelation): void {
+    this.edgeSink.accept(relation);
   }
 
   public getGraph(): ServiceGraph {
-    return assembleServiceGraph(this.modelsMap, this.servicesMap, this.controllersIndex, this.edges);
+    return assembleServiceGraph(this.modelsMap, this.servicesMap, this.controllersIndex, this.edgeSink.materialize());
   }
 
   private graphContext() {
@@ -115,19 +106,14 @@ export class ServiceGraphBuilder {
     return {
       modelsMap: owner.modelsMap,
       servicesMap: owner.servicesMap,
-      controllersIndex: owner.controllersIndex,
+      get controllersIndex(): RelationIndex<string, ControllerNode> { return owner.controllersIndex; },
       setController: (name: string, controller: ControllerNode): void => owner.registerController(name, controller),
-      edges: owner.edges,
-      linkGraph: (fromNode: GraphNodeReference | ResourceReference, toNode: GraphNodeReference | ResourceReference, type: ServiceDependency['type'], weight: number = 1.0): void =>
-        owner.linkGraph(fromNode, toNode, type, weight),
+      buildGraph: (): ServiceGraph => owner.getGraph(),
+      addGraphEdgeRelation: (relation: GraphEdgeRelation): void => owner.addGraphEdgeRelation(relation),
     };
   }
 
-  public buildFromManifest(manifest: RouteManifest): ServiceGraph {
-    return compileGraphFromManifest(manifest, this.graphContext(), relationNone());
-  }
-
-  public buildFromRouteSyncManifest(manifest: RouteSyncManifest, routeManifest: RouteManifest): ServiceGraph {
-    return compileGraphFromManifest(routeManifest, this.graphContext(), relationSome(manifest.sourceModel));
+  public buildFromRouteSyncManifest(manifest: RouteSyncManifest): ServiceGraph {
+    return compileGraphFromSourceModel(manifest.sourceModel, this.graphContext());
   }
 }

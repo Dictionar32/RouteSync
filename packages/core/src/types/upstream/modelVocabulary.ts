@@ -1,4 +1,4 @@
-import { relationResolve, relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationResolve, relationEqual } from '../../semantic/foundation/semanticRelations';
 import type { ClassName, ColumnName, ModelName, PropertyName, RelationName, MethodName } from './names';
 import type { TypeExpression } from './typeVocabulary';
 import type { SourceSpan } from './provenance';

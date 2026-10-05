@@ -7,7 +7,7 @@ import type { ModelName } from '../../../../types/upstream/names';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { EloquentRelationAst } from '../../../../types/upstream/eloquent';
 import { eloquentRelationMultiplicity } from '../../../../types/upstream/modelVocabulary';
-import { relationEqual, relationGate, relationOptionFold, relationFirst } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate, relationOptionFold, relationFirst } from '../../../../semantic/foundation/relationalSequence';
 import type { TypeExpression } from '../../../../types/upstream/typeVocabulary';
 
 

@@ -1,5 +1,6 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest';
-import { StaticLaravelScanner, ScannedModelDescriptor, RouteSemanticFlowFactory, ScannedRouteManifestDescriptor, inferLaravelTableName, extractClassBasename } from '@routesync/core';
+import { StaticLaravelScanner, ScannedModelDescriptor, ScannedRouteManifestDescriptor, inferLaravelTableName, extractClassBasename } from '@routesync/core';
 
 describe('StaticLaravelScanner Unit Test Suite', () => {
   it('1. Correctly constructs ScannedModelDescriptor with explicit model data and Laravel table inference', () => {

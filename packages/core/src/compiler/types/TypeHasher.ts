@@ -11,15 +11,15 @@ import {
     relationIndexAdd,
     relationIndexLookup,
     type RelationIndex,
-} from '../../semantic/kernel/relationMembership';
+} from '../../semantic/foundation/relationMembership';
 import {
     relationAdvanceIndex,
     relationIndexOf,
     relationOptionFold,
     relationProject,
     relationResolve,
-} from '../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
+} from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
 
 export interface HashContext {
     readonly activeStack: readonly SemanticType[];

@@ -13,6 +13,7 @@ import type { ModelCast } from "../../../types/upstream/model";
 import type { ModelAccessorFact } from "../../../types/upstream/modelSourceFacts";
 import type { EloquentRelationAst } from "../../../types/upstream/eloquent";
 import type { ModelAst } from "../../../types/upstream/ast";
+import type { ModelDefinition } from "../../../types/upstream/model";
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 import { createModelName } from "../../../types/upstream/names";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
@@ -21,9 +22,9 @@ import { parseModelPropertyAsts } from "./model/modelPropertyAstParser";
 import { parseModelCasts } from "./model/memberCastsParser";
 import { parseModelAccessors } from "./model/memberAccessorsParser";
 import { parseModelRelations } from "./model/memberRelationsParser";
-import { modelProducer } from "./modelProducer";
+import { modelProducer, type ModelProducerResult } from "./modelProducer";
 import { collectPhpFiles } from "./scannerUtils";
-import { relationAsyncFold } from "../../../semantic/kernel/relationalSequence";
+import { relationAsyncFold } from "../../../semantic/foundation/relationalSequence";
 import {
     scanMigrations,
     resolveModelColumns
@@ -41,14 +42,19 @@ export {
 /**
  * Active Consumer Orchestrator class for model and migration scanning.
  */
-export async function scanModelAsts(
+export interface ModelScanBundle {
+    readonly asts: readonly ModelAst[];
+    readonly definitions: readonly ModelDefinition[];
+}
+
+export async function scanModelBundle(
     sourceProject: SourceProjectIdentity,
     migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
-): Promise<readonly ModelAst[]> {
+): Promise<ModelScanBundle> {
     const sourceRoot = sourceProject.root.value.value;
     const modelDir = path.join(sourceRoot, "app", "Models");
     const files = await collectPhpFiles(modelDir);
-    return relationAsyncFold(files, [] as ModelAst[], async (asts, fullPath) => {
+    const results = await relationAsyncFold(files, [] as ModelProducerResult[], async (results, fullPath) => {
         const source = await readSourceText(fullPath);
         const modelName = path.basename(fullPath, ".php");
         const tokens = LaravelSourceLexer.tokenize(source);
@@ -56,21 +62,39 @@ export async function scanModelAsts(
         const declaration = parseModelDeclaration(tokens);
         const casts: ModelCast[] = [];
         const accessors: ModelAccessorFact[] = [];
-        const eloquentRelations = parseModelRelations(declaration, createModelName(modelName), { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: fullPath } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: source.length } });
         const sourceSpan = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: fullPath } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: source.length } };
+        const eloquentRelations = parseModelRelations(declaration, createModelName(modelName), sourceSpan);
         parseModelCasts(propertyAsts, declaration, casts, sourceSpan);
         parseModelAccessors(declaration, accessors, sourceSpan);
-        return [...asts, modelProducer.produce({ sourceSpan, migrations, propertyAsts, declaration, casts, accessors, eloquentRelations })];
+        return [...results, modelProducer.produceResult({ sourceSpan, migrations, propertyAsts, declaration, casts, accessors, eloquentRelations })];
     });
+    return {
+        asts: Object.freeze(relationProject(results, result => result.ast)),
+        definitions: Object.freeze(relationProject(results, result => result.definition)),
+    };
+}
+
+export async function scanModelAsts(
+    sourceProject: SourceProjectIdentity,
+    migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+): Promise<readonly ModelAst[]> {
+    return (await scanModelBundle(sourceProject, migrations)).asts;
 }
 
 
 export class ModelScanner {
+    public static async scanCanonicalBundle(
+        sourceProject: SourceProjectIdentity,
+        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+    ): Promise<ModelScanBundle> {
+        return scanModelBundle(sourceProject, migrations);
+    }
+
     public static async scanAsts(
         sourceProject: SourceProjectIdentity,
         migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
     ): Promise<readonly ModelAst[]> {
-        return scanModelAsts(sourceProject, migrations);
+        return (await ModelScanner.scanCanonicalBundle(sourceProject, migrations)).asts;
     }
 
     /** Canonical source boundary: PHP model source enters the upstream ADT here. */

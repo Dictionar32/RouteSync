@@ -10,8 +10,8 @@
 import type { AstSemanticPipeline, AstSemanticStage } from './astSemanticStageInterface';
 import type { AstSemanticStageInterface } from './astSemanticStageInterfaceAlgebra';
 import { astSemanticStageInterfaceAt } from './astSemanticStageInterfaceAlgebra';
-import { relationFirstOption, relationOptionFold } from '../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
 import type { AstSemanticStageTransition } from './astSemanticStageTransition';
 import { astSemanticStageTransition } from './astSemanticStageTransition';
 

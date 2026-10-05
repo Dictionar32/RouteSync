@@ -1,0 +1,22 @@
+{
+  "phase": 883,
+  "title": "upstream target and binding frontier",
+  "status": "PASS",
+  "classification": {
+    "routeTargetDescription": "SOURCE_EVIDENCE",
+    "routeTargetAst": "SYNTAX_PROJECTION",
+    "parseRouteBindingDeclarations": "SYNTAX_PARSER_AUTHORITY",
+    "RouteProducerInput": "CANONICAL_PROJECTION"
+  },
+  "assertions": {
+    "target_description_is_syntax_relation": true,
+    "target_ast_is_projection": true,
+    "parser_projects_target_relation": true,
+    "binding_parser_is_single_producer": true,
+    "binding_parser_has_no_production_duplicate": true,
+    "producer_consumes_canonical_binding": true,
+    "producer_target_comes_from_boundary_operation": true,
+    "no_second_route_target_parser": true
+  },
+  "recommendation": "Do not introduce a second RouteDeclarationEvidence model. Target already has a token-relation source and AST projection; bindings have one parser producer and no production duplicate. The next upstream frontier should be binding token evidence only if an existing token relation can supply the same facts without duplicating the regex parser."
+}

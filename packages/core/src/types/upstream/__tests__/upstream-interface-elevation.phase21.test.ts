@@ -16,9 +16,10 @@ describe('upstream interface elevation phase 21', () => {
       kind: 'complete_laravel_source_model',
       identity: {} as CompleteLaravelSourceModel['identity'],
       contracts: {} as CompleteLaravelSourceModel['contracts'],
+      relations: {} as CompleteLaravelSourceModel['relations'],
     });
 
-    expect(keys).toEqual(['kind', 'identity', 'contracts']);
+    expect(keys).toEqual(['kind', 'identity', 'contracts', 'relations']);
     expect(keys).not.toContain('catalog');
     expect(keys).not.toContain('references');
   });

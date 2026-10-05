@@ -1,7 +1,7 @@
 /** Scan a controller AST into the legacy action descriptor through one semantic contract. */
-import { type RelationMembership, type RelationIndex } from '../../../../semantic/kernel/relationMembership';
-import { relationGate } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { type RelationMembership, type RelationIndex } from '../../../../semantic/foundation/relationMembership';
+import { relationGate } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import type { ControllerMethodAst, ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { ActionName, ControllerName, SourceFile } from '../../../../types/upstream/names';
 import type { FormRequestSource } from '../../../../types/domain/request';
@@ -16,14 +16,12 @@ export function scanControllerAction(
   fullPath: SourceFile,
   formRequestIndex: RelationIndex<string, FormRequestSource>,
   sourceProject: SourceProjectIdentity,
-  modelNames: RelationMembership<string> = Object.freeze([] as string[]),
   constructorParameters: readonly ControllerParameterAst[] = [],
   customContextualAttributeNames: RelationMembership<string> = Object.freeze([] as string[])
 ): { readonly actionName: ActionName; readonly descriptor: ControllerActionInfo; readonly dependencies: import('../../../../types/upstream/controller').ControllerDependency[] } {
   const contract = resolveControllerActionContract(method, controllerName, fullPath, {
     formRequestIndex,
     sourceProject,
-    modelNames,
     constructorParameters,
     customContextualAttributeNames
   });

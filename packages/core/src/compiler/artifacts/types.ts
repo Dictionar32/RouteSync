@@ -18,7 +18,6 @@ import type { TypeEnvironmentArtifact } from './TypeEnvironmentArtifact';
 import type { ExpressionIRArtifact } from './ExpressionIRArtifact';
 import type { LoweredTypeArtifact } from './LoweredTypeArtifact';
 import type { DiagnosticArtifact } from './DiagnosticArtifact';
-import type { DependencyGraphArtifact } from './DependencyGraphArtifact';
 import type { SemanticIRArtifact } from './SemanticIRArtifact';
 import type { CompilationResultArtifact } from './CompilationResultArtifact';
 
@@ -62,7 +61,6 @@ export interface ArtifactRegistry {
     ExpressionIR: ExpressionIRArtifact;
     LoweredTypeGraph: LoweredTypeArtifact;
     DiagnosticSnapshot: DiagnosticArtifact;
-    DependencyGraph: DependencyGraphArtifact;
     SemanticIR: SemanticIRArtifact;
     CompilationResult: CompilationResultArtifact;
 

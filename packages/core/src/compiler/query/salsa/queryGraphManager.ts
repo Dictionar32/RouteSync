@@ -1,15 +1,16 @@
 /** Relation-backed dependency graph and cache invalidation engine. */
 import type { QueryNode } from './salsaTypes';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationResolve, relationFold } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../../semantic/kernel/relationFoundation';
-import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
-import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationResolve, relationFold } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../../semantic/foundation/relationFoundation';
+import { relationContains, relationInsert, relationRemove } from '../../../semantic/foundation/relationMembership';
+import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
 
 export interface QueryGraphManager {
   readonly getNode: (keyId: string) => RelationOption<QueryNode>;
   readonly setNode: (keyId: string, node: QueryNode) => void;
   readonly isCacheValid: (node: QueryNode, currentRevision: number) => boolean;
+  readonly beginEvaluation: (keyId: string) => void;
   readonly recordDependency: (parentId: string, childId: string) => void;
   readonly invalidateDependents: (keyId: string, revision: number) => void;
   readonly size: number;
@@ -30,6 +31,26 @@ export function createQueryGraphManager(): QueryGraphManager {
       dependency => dependency.lastChangedRevision <= node.lastVerifiedRevision,
     )),
   );
+
+  const beginEvaluation = (keyId: string): void => {
+    relationOptionFold(getNode(keyId), () => {}, node => {
+      relationFold(node.dependencies, false, (_removed, dependencyId) => relationOptionFold(
+        getNode(dependencyId),
+        () => _removed,
+        dependency => {
+          setNode(dependencyId, {
+            ...dependency,
+            dependents: relationRemove(dependency.dependents, keyId),
+          });
+          return true;
+        },
+      ));
+      setNode(keyId, {
+        ...node,
+        dependencies: Object.freeze([]),
+      });
+    });
+  };
 
   const recordDependency = (parentId: string, childId: string): void => {
     relationOptionFold(getNode(parentId), () => {}, parentNode => setNode(parentId, {
@@ -70,6 +91,7 @@ export function createQueryGraphManager(): QueryGraphManager {
     getNode,
     setNode,
     isCacheValid,
+    beginEvaluation,
     recordDependency,
     invalidateDependents: (keyId, revision) => invalidate([keyId], [], revision),
     get size(): number { return graph.length; },

@@ -1,0 +1,15 @@
+{
+  "phase": 877,
+  "audit": "route-downstream-authority",
+  "target": "packages/cli/src/generators/NextActionGenerator.ts",
+  "authority": "RouteSemanticFlow.identity + RouteSemanticFlow.capability",
+  "forbiddenLegacyReads": [
+    "route.raw.pathParameters",
+    "route.raw.queryParameters",
+    "route.raw.requestContentType",
+    "route.raw.executionSignature",
+    "route.raw.auth",
+    "route.raw.isMutating",
+    "route.raw.schema"
+  ]
+}

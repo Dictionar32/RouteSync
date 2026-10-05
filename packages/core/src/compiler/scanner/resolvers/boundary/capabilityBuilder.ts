@@ -9,7 +9,7 @@ import { RouteSecurityResolver } from "../RouteSecurityResolver";
 import { toUpstreamHttpErrorResponse, type HttpErrorResponseDescriptor } from "../../../../types/domain/httpErrors";
 import type { ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
 import type { Sequence } from "../../../../types/upstream/collections";
-import { relationFoldRight } from "../../../../semantic/kernel/relationalSequence";
+import { relationFoldRight } from "../../../../semantic/foundation/relationalSequence";
 
 const sequenceCons = <T>(head: T, tail: Sequence<T>): Sequence<T> => ({ kind: 'cons', head, tail });
 const sequenceFromArray = <T>(items: readonly T[]): Sequence<T> => {

@@ -1,0 +1,13 @@
+{
+  "phase": 888,
+  "title": "Upstream Controller Model Names Plumbing",
+  "classification": "PASS",
+  "authority": "ControllerParameterAst.semantic",
+  "removedDeadPlumbing": "modelNames from sourceAstScanner -> ControllerScanner -> scanControllerAction -> ControllerActionContractResolverContext",
+  "productionModelNamesReferences": 0,
+  "contractContextModelNames": false,
+  "zeroByteLegacyFiles": 203,
+  "deletedFiles": 0,
+  "fullTypeScriptBuild": "not_clean_baseline_errors",
+  "note": "Targeted tsc reports pre-existing unrelated resource/type errors; no remaining modelNames errors after cutover."
+}

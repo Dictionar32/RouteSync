@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest'
 import path from 'path'
 import fs from 'fs-extra'
@@ -12,7 +13,6 @@ import {
   createEndpointContract,
   ScannedEndpointContract,
   matchEndpointResponse,
-  RouteSemanticFlowFactory,
   ResourceResponseDescriptor,
   RouteSemanticFlowCacheInvalidationDescriptor,
   ScannedInvalidationTarget,

@@ -6,7 +6,7 @@
 
 import type { ResponseFieldProjection } from '../../../generators/contract-generation/response-field';
 import { ConversionResult, createConversionResult } from '../ConversionResult';
-import { relationExpand } from '../../../../semantic/kernel/relationalSequence';
+import { relationExpand } from '../../../../semantic/foundation/relationalSequence';
 
 /**
  * Result contract for Nullable Wrapper resolution

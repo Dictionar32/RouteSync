@@ -6,14 +6,14 @@
  * @module compiler/passes/contract-domain/contractExtraction
  */
 
-import type { FormAction, RequestField, RequestType, ResponseData } from '../../types/domain/request';
-import type { ResponseContractField, ResponseValueContract } from '../../types/domain/responseContracts';
+import type { FormAction, RequestField, RequestType, ResponseData } from '../../../types/domain/request';
+import type { ResponseContractField, ResponseValueContract } from '../../../types/domain/responseContracts';
 import type { RequestTypesArtifact } from '../../artifacts/RequestTypesArtifact';
 import type { GeneratedContractAction } from '../../generators/contract-generation/ContractActionGenerator';
 import type { ActionResponseSchema } from '../../generators/contract-generation/ResponseActionBuilder';
 import type { ResponseFieldProjection } from '../../generators/contract-generation/response-field';
 import { partitionResults } from '../../domain/common/ResponseFieldLowering';
-import { relationProject, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
+import { relationProject, relationResolve, relationEqual, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
 import type {
     ContractField,
     ContractActionGeneratorLike,
@@ -101,12 +101,35 @@ const RESPONSE_VALUE_TYPE_HANDLERS: Readonly<Record<string, (value: ResponseValu
 
 function responseContractFieldToParsed(field: ResponseContractField): ResponseFieldProjection {
     const type = responseValueToType(field.value);
+    const kind = relationResolve(
+        relationEqual(field.value.kind, 'collection'),
+        () => 'array' as const,
+        () => relationResolve(
+            relationEqual(field.value.kind, 'object'),
+            () => 'object' as const,
+            () => 'primitive' as const,
+        ),
+    );
+    const fields = relationVariantFold(
+        field.value,
+        'object',
+        () => Object.freeze([] as readonly ResponseFieldProjection[]),
+        value => relationProject(value.fields, responseContractFieldToParsed),
+    );
+    const itemType = relationVariantFold(
+        field.value,
+        'collection',
+        () => ({ kind: 'none' as const }),
+        value => ({ kind: 'some' as const, value: responseContractFieldToParsed(value.element) }),
+    );
     return {
         name: field.name.value,
-        kind: relationResolve(relationEqual(field.value.kind, 'collection'), () => 'array', () => 'primitive'),
+        kind,
         type,
         nullable: relationEqual(field.nullability.kind, 'nullable'),
-        optional: false
+        optional: false,
+        fields,
+        itemType,
     };
 }
 

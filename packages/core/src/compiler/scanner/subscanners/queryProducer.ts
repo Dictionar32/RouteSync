@@ -1,4 +1,4 @@
-import { queryRelation, semanticEvidenceFold } from '../../../semantic/kernel/semanticEvidenceRelations';
+import { queryRelation, semanticEvidenceFold } from '../semantic/semanticEvidenceRelations';
 import type { ExpressionAst } from '../../../types/upstream/ast';
 import type { QueryAst } from '../../../types/upstream/query';
 

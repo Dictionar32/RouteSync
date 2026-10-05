@@ -9,8 +9,8 @@ import type { ModelAccessorFact } from "../../../../types/upstream/modelSourceFa
 import type { ModelDeclarationAst } from "../../lexer";
 import { resolveModelAccessorReturnExpression } from "./modelAccessorExpressionMapper";
 import type { TypeExpression } from "../../../../types/upstream/typeVocabulary";
-import { relationGate, relationProject, relationTextSlice, relationNone, relationSome, relationOptionFold, type RelationOption } from "../../../../semantic/kernel/relationalSequence";
-import { relationAny, relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationGate, relationProject, relationTextSlice, relationNone, relationSome, relationOptionFold, type RelationOption } from "../../../../semantic/foundation/relationalSequence";
+import { relationAny, relationEqual } from "../../../../semantic/foundation/semanticRelations";
 
 type AccessorReturnType = 'textual' | 'numeric' | 'boolean' | 'array';
 

@@ -1,0 +1,21 @@
+{
+  "phase": 885,
+  "authority": "route_parameter",
+  "classification": "COMPATIBILITY_FALLBACK_ONLY",
+  "canonicalProducer": "packages/core/src/compiler/scanner/semantic/route/routeParameterSemanticFactory.ts",
+  "productionPathParameterProducers": [
+    "packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts",
+    "packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts",
+    "packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts"
+  ],
+  "productionRouteBoundaryFactoryConsumers": [
+    "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+    "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts"
+  ],
+  "sparseRouteSemanticFlowProductionConsumers": [],
+  "boundaryFallbackRecomputesFromPath": true,
+  "routeProducerPassesCanonicalParameters": true,
+  "routeProducerPassesCanonicalRuntimePath": true,
+  "routeProducerPassesCanonicalConstantKey": true,
+  "conclusion": "RouteParameterSemanticFactory is the canonical parameter producer. Boundary path parsing remains a compatibility fallback because production RouteBoundaryContractFactory input already carries emission.path.parameters. Do not create a second RouteParameterEvidence abstraction."
+}

@@ -8,7 +8,7 @@ import type { SourceFile, TableName, DomainTypeName } from '../../../types/upstr
 import { createColumnName, createIndexName, createTableName } from '../../../types/domain/modelValueFactories';
 import type { TokenDescriptor } from '../LaravelSourceLexer';
 import type { PhpMethodAst } from '../lexer/phpMethodAstTypes';
-import { relationAny, relationAll, relationEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
+import { relationAny, relationAll, relationEqual, relationGate } from '../../../semantic/foundation/semanticRelations';
 import {
     RELATION_NONE,
     relationAdvanceIndex,
@@ -18,7 +18,7 @@ import {
     relationSome,
     relationTextSlice,
     type RelationOption,
-} from '../../../semantic/kernel/relationalSequence';
+} from '../../../semantic/foundation/relationalSequence';
 
 export type MigrationSourceAst = {
     readonly kind: 'migration_source_ast';

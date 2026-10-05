@@ -1,5 +1,5 @@
 import { visitRelation } from '../../../relational/sequence';
-import { relationOptionalFold } from '../../../../semantic/kernel/relationalSequence';
+import { relationOptionalFold } from '../../../../semantic/foundation/relationalSequence';
 /**
  * Phase 267 — construct-free semantic behavior kernel.
  *

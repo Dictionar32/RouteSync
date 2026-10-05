@@ -1,10 +1,12 @@
 /** Syntax AST for Laravel Route facade declarations. */
 import type { AstIdentifier, TokenDescriptor, PhpAstValue } from "../phpAstTypes";
 import type { RouteBindingDeclarationAst } from "./routeBindingDeclarationAst";
+import type { RouteResourceMiddlewareAst } from "./routeResourceDeclarationAst";
 
 export type LaravelRouteMethod =
   | "get" | "post" | "put" | "patch" | "delete"
-  | "options" | "head" | "match" | "any" | "apiResource";
+  | "options" | "head" | "match" | "any"
+  | "resource" | "apiResource" | "singleton" | "apiSingleton";
 
 export type RoutePathLiteralAst = string & { readonly __routePathAst: unique symbol };
 export type MiddlewareNameAst = string & { readonly __middlewareAst: unique symbol };
@@ -45,6 +47,9 @@ export interface RouteDeclarationAst {
   readonly middleware: readonly MiddlewareNameAst[];
   /** Middleware declared directly on the route, distinct from inherited group middleware. */
   readonly routeMiddleware: readonly MiddlewareNameAst[];
+  /** Resource middleware declarations/exclusions discovered on resource fluent chains. */
+  readonly resourceMiddleware: readonly RouteResourceMiddlewareAst[];
+  readonly resourceMiddlewareExclusions: readonly RouteResourceMiddlewareAst[];
   /** Semantic group attributes captured upstream from Laravel fluent group syntax. */
   readonly groupNamePrefix: readonly RouteNamePrefixAst[];
   readonly groupController?: RouteControllerAst;
@@ -54,6 +59,12 @@ export interface RouteDeclarationAst {
   readonly missingHandler: boolean;
   /** Whether Laravel implicit model binding should include soft-deleted models via withTrashed(). */
   readonly withTrashed: boolean;
+  /** Resource action-selection and capability modifiers preserved before upstream resolution. */
+  readonly resourceActionFilter?: { readonly kind: 'only' | 'except'; readonly actions: readonly string[] };
+  readonly resourceShallow: boolean;
+  readonly resourceScoped: boolean;
+  readonly resourceCreatable: boolean;
+  readonly resourceDestroyable: boolean;
   /** Constraints declared directly on this route via where()/constraint helpers. */
   readonly routeConstraints: readonly {
     readonly method: RouteConstraintMethodAst;

@@ -16,6 +16,9 @@ import {
 } from '@routesync/core';
 import { formatEnumLines } from './enumLinesFormatter';
 
+const sequenceToArray = <T>(sequence: { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: typeof sequence }): readonly T[] =>
+  sequence.kind === 'empty' ? [] : [sequence.head, ...sequenceToArray(sequence.tail)];
+
 export function buildEnumsLines(manifest: RouteManifest): string[] {
   const enumGroups: Record<string, Record<string, string[]>> = {};
 
@@ -31,28 +34,25 @@ export function buildEnumsLines(manifest: RouteManifest): string[] {
 
   if (manifest.models && Array.isArray(manifest.models)) {
     for (const model of manifest.models) {
-      if (!model.columns || !Array.isArray(model.columns)) continue;
-      for (const col of model.columns) {
-        if (col.enumValues && col.enumValues.length > 0) {
-          addEnum(model.name, col.name, [...col.enumValues]);
-        } else {
-          const type = col.type.toLowerCase();
-          const enumMatch = type.match(/^enum\((.*)\)$/);
-          if (enumMatch && enumMatch[1]) {
-            const values = enumMatch[1].split(',').map(v => v.trim().replace(/^'|'$/g, ""));
-            addEnum(model.name, col.name, values);
-          }
-        }
+      const properties = model.definition.semantic.surface.properties;
+      for (const property of sequenceToArray(properties)) {
+        if (property.kind !== 'column' || property.databaseType.kind !== 'enum') continue;
+        addEnum(
+          model.definition.semantic.identity.name.value.value,
+          property.property.value.value,
+          property.databaseType.values.items.map(value => value.value),
+        );
       }
     }
   }
 
   if (manifest.routes && Array.isArray(manifest.routes)) {
     for (const route of manifest.routes) {
-      if (!route.schema?.rules) continue;
-      const group = route.groupName || 'App';
-      if (Array.isArray(route.schema.rules)) {
-        for (const ruleEntry of route.schema.rules) {
+      const schema = route.contract.request.body.kind === 'body' ? route.contract.request.body.schema : route.binding.schema;
+      if (!schema?.rules) continue;
+      const group = route.identity.domain.group.value.value || 'App';
+      if (Array.isArray(schema.rules)) {
+        for (const ruleEntry of schema.rules) {
           const field = ruleEntry.fieldName;
           const inRule = ruleEntry.ast?.find((r: any) => r.kind === ValidationRuleKind.In);
           if (inRule && inRule.kind === ValidationRuleKind.In && inRule.values && inRule.values.length > 0) {
@@ -60,7 +60,7 @@ export function buildEnumsLines(manifest: RouteManifest): string[] {
           }
         }
       } else {
-        const rules = route.schema.rules as Record<string, unknown>;
+        const rules = schema.rules as Record<string, unknown>;
         for (const [field, ruleVal] of Object.entries(rules)) {
           const ruleStr = String(ruleVal);
           const astNodes = ValidationRuleParser.parseAll(ruleStr.split('|'));

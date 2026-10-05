@@ -1,5 +1,5 @@
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../semantic/foundation/relationalSequence';
 import type { TokenDescriptor } from './PhpAst';
 
 /** Raw syntax spellings are confined to lexer evidence. Semantic dispatch sees only abstract relations. */

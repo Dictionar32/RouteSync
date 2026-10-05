@@ -5,13 +5,13 @@
  * Collection operations are semantic relation operators, never host-language
  * collection combinators or absence sentinels.
  */
-import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
 import {
   relationResolve,
   relationFirstOption,
   relationOptionFold,
   relationAt,
-} from '../../../../semantic/kernel/relationalSequence';
+} from '../../../../semantic/foundation/relationalSequence';
 
 export interface TypedRelation<T> {
   readonly tuples: readonly T[];

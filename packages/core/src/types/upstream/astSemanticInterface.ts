@@ -34,8 +34,8 @@ import {
   relationProject,
   relationResolve,
   relationVariantFold,
-} from '../../semantic/kernel/relationalSequence';
-import { relationUnique } from '../../semantic/kernel/relationMembership';
+} from '../../semantic/foundation/relationalSequence';
+import { relationUnique } from '../../semantic/foundation/relationMembership';
 
 export type AstSemanticStage =
   | 'scanner_evidence'

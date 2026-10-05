@@ -1,0 +1,15 @@
+{
+  "phase": 879,
+  "audit": "upstream-path-authority",
+  "checks": {
+    "resolvedRoutePathCarriesRuntimePath": true,
+    "resolvedRoutePathCarriesConstantKey": true,
+    "parserProducesRuntimePath": true,
+    "parserUsesCanonicalConstantKeyDerivation": true,
+    "emissionProjectsRuntimePath": true,
+    "emissionProjectsConstantKey": true,
+    "boundaryStillAcceptsUpstreamProjection": true,
+    "boundaryNoDuplicatePathDerivationInEmission": true
+  },
+  "pass": true
+}

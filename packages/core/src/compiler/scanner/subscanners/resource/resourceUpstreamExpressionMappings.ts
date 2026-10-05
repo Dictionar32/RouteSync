@@ -8,8 +8,8 @@ import type { TypeExpression } from '../../../../types/upstream/typeVocabulary';
 import type { AssignmentTarget, AssignmentOperator, AssignmentReferenceMode } from '../../../../types/upstream/assignment';
 import { resolveResourceSemanticKind, RESOURCE_ALL_MAPPING_RULES } from './resourceSemanticMappingRelations';
 import { solveSemanticRelations } from '../../lexer/routeAst/semanticRewriteEngine';
-import { relationAny, relationEqual, relationGate, relationFirstOption, relationOptionFold, relationProject } from '../../../../semantic/kernel/semanticRelations';
-import { relationLookup, relationVariantValue, relationCount, type RelationVariant } from '../../../../semantic/kernel/relationalSequence';
+import { relationAny, relationEqual, relationGate, relationFirstOption, relationOptionFold, relationProject } from '../../../../semantic/foundation/semanticRelations';
+import { relationLookup, relationVariantValue, relationCount, type RelationVariant } from '../../../../semantic/foundation/relationalSequence';
 
 export type UpstreamExpressionMapper = (value: PhpAstValue, file: string) => Expression;
 

@@ -1,7 +1,7 @@
 import type { ModelDefinition } from './model';
 import type { ResourceDefinition } from './resource';
 import type { RequestDefinition } from './request';
-import type { RouteDeclarationAst } from '../../compiler/scanner/lexer/routeAst/routeDeclarationAst';
+import type { RouteDeclarationEvidence } from './routeDeclarationEvidence';
 import type { ControllerMethod } from './controller';
 import type { SourceSpan } from './provenance';
 import type { StringValue, NumberValue } from './valueObjects';
@@ -317,14 +317,14 @@ export type AstSemanticSchemaKind = keyof AstNodeSchema;
 export type RouteAstSemantic = {
   readonly kind: 'route_ast_semantic';
   readonly definition: RouteDefinition;
-  readonly declaration: RouteDeclarationAst;
+  readonly declaration: RouteDeclarationEvidence;
 };
 
 export type AstCompatibilityProjection<Kind extends AstSemanticSchemaKind> =
   Kind extends 'model_ast' ? { readonly definition: ModelDefinition; readonly source: SourceSpan } :
   Kind extends 'resource_ast' ? { readonly definition: ResourceDefinition; readonly source: SourceSpan } :
   Kind extends 'request_ast' ? { readonly definition: RequestDefinition; readonly source: SourceSpan } :
-  Kind extends 'route_ast' ? { readonly definition: RouteDefinition; readonly declaration: RouteDeclarationAst; readonly source: SourceSpan } :
+  Kind extends 'route_ast' ? { readonly definition: RouteDefinition; readonly declaration: RouteDeclarationEvidence; readonly source: SourceSpan } :
   Kind extends 'controller_ast' ? { readonly methods: import('./collections').Sequence<ControllerMethod>; readonly source: SourceSpan } :
   Kind extends 'response_ast' ? { readonly definition: ResponseDefinition; readonly source: SourceSpan } :
   Kind extends 'service_ast' ? { readonly definition: ServiceDefinition; readonly source: SourceSpan } :

@@ -21,7 +21,7 @@ vi.mock('../../core/src/compiler/scanner/subscanners/controller/controllerAstCan
   })),
 }));
 
-const fixtureRoot = path.resolve(__dirname, '../../..', 'examples/ecommerce-shop-source');
+const fixtureRoot = path.resolve(__dirname, 'fixtures/ecommerce-shop-source');
 const fixtureFile = path.join(fixtureRoot, 'app/Http/Middleware/AdminMiddleware.php');
 
 const source = (file: string, line: number): SourceSpan => ({

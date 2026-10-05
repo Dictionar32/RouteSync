@@ -12,8 +12,8 @@ import { RouteSemanticFlowValidationRuleSet } from '../descriptors/validation/va
 import { requestFieldFromSource } from './requestAstCanonical';
 import { mapResourcePhpStatementsToSourceStatements } from './resource/resourceUpstreamExpressionCanonical';
 import { expressionFromPhpAst } from './expressionProducer';
-import { relationAll, relationEqual, relationSome, relationNone } from '../../../semantic/kernel/semanticRelations';
-import { relationExpand, relationFirst, relationGate, relationAdvanceIndex, relationOptionFold, relationProject, relationSelect, relationSlice } from '../../../semantic/kernel/relationalSequence';
+import { relationAll, relationEqual, relationSome, relationNone } from '../../../semantic/foundation/semanticRelations';
+import { relationExpand, relationFirst, relationGate, relationAdvanceIndex, relationOptionFold, relationProject, relationSelect, relationSlice } from '../../../semantic/foundation/relationalSequence';
 
 export type RequestProducerInput = {
     readonly requestName: RequestName;
@@ -29,6 +29,7 @@ export type RequestProducerInput = {
 
 export interface RequestProducer {
     readonly produce: (input: RequestProducerInput) => RequestAst;
+    readonly produceResult: (input: RequestProducerInput) => RequestProducerResult;
 }
 
 const seq = <T>(items: readonly T[], index = 0, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> =>
@@ -50,7 +51,7 @@ function authorization(method: PhpMethodAst, file: string): RequestAuthorization
     );
 }
 
-function lifecycleEntry<T>(entry: import('../../../semantic/kernel/relationalSequence').RelationOption<T>, index: number, file: string): readonly RequestValidationLifecycle[] {
+function lifecycleEntry<T>(entry: import('../../../semantic/foundation/relationalSequence').RelationOption<T>, index: number, file: string): readonly RequestValidationLifecycle[] {
     return relationGate(relationEqual(index, 0),
         () => relationOptionFold(entry, () => [], statements => [{ kind: 'prepare_for_validation', statements }]),
         () => relationGate(relationEqual(index, 1),
@@ -104,7 +105,7 @@ function sourceSpan(file: string, method: PhpMethodAst): SourceSpan {
     return { kind: 'source_span', file: { kind: 'source_file', value: { kind: 'string_value', value: file } }, start: { kind: 'number_value', value: method.source.start }, end: { kind: 'number_value', value: method.source.end } };
 }
 
-function literalString(value: PhpAstValue): import('../../../semantic/kernel/relationalSequence').RelationOption<string> {
+function literalString(value: PhpAstValue): import('../../../semantic/foundation/relationalSequence').RelationOption<string> {
     return relationGate(
         relationAll([relationEqual(value.kind, 'literal'), relationEqual(value.literalType, 'string')]),
         () => relationSome(value.value),
@@ -112,7 +113,7 @@ function literalString(value: PhpAstValue): import('../../../semantic/kernel/rel
     );
 }
 
-function literalBoolean(value: PhpAstValue): import('../../../semantic/kernel/relationalSequence').RelationOption<boolean> {
+function literalBoolean(value: PhpAstValue): import('../../../semantic/foundation/relationalSequence').RelationOption<boolean> {
     return relationGate(
         relationAll([relationEqual(value.kind, 'literal'), relationEqual(value.literalType, 'boolean')]),
         () => relationSome(value.value),
@@ -152,7 +153,7 @@ function attributes(method: PhpMethodAst, file: string): import('../../../types/
     return { kind: 'validation_attributes', items: seq(items) };
 }
 
-function propertyValue(properties: readonly PhpClassPropertyAst[], name: string): import('../../../semantic/kernel/relationalSequence').RelationOption<PhpAstValue> {
+function propertyValue(properties: readonly PhpClassPropertyAst[], name: string): import('../../../semantic/foundation/relationalSequence').RelationOption<PhpAstValue> {
     return relationOptionFold(
         relationFirst(properties, item => relationEqual(item.name.value, name)),
         () => relationNone(),
@@ -184,8 +185,16 @@ function failureResponse(properties: readonly PhpClassPropertyAst[]): import('..
     return { kind: 'request_failure_response_configuration', redirect: redirectValue, errorBag: errorBagValue };
 }
 
+export interface RequestProducerResult {
+    readonly definition: RequestDefinition;
+    readonly ast: RequestAst;
+}
+
 export const requestProducer: RequestProducer = {
     produce(input): RequestAst {
+        return requestProducer.produceResult(input).ast;
+    },
+    produceResult(input): RequestProducerResult {
         const validationEntries = parseCanonicalValidationRuleEntries(input.rules, input.sourceFile);
         const sourceFields = RouteSemanticFlowValidationRuleSet.create(validationEntries, input.interner).fields;
         const fields: RequestFields = { kind: 'request_fields', items: seq(relationProject(sourceFields, requestFieldFromSource)) };
@@ -211,6 +220,7 @@ export const requestProducer: RequestProducer = {
             inputAccesses: { kind: 'request_input_accesses', items: seq([]) },
         };
         const definition: RequestDefinition = { kind: 'request', identity: { kind: 'form_request_identity', request: input.requestName, formType: input.formType }, http, validation, source: input.source };
-        return createDomainAstJudgment({ kind: 'request_ast', semantic: definition, source: input.source });
+        const ast = createDomainAstJudgment({ kind: 'request_ast', semantic: definition, source: input.source });
+        return { definition, ast };
     },
 };

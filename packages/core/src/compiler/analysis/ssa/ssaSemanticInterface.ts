@@ -3,7 +3,7 @@ import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
 import type { DominatorTree } from '../DominatorAnalysis';
 import type { AstAnalysisFact, AstAnalysisJudgment } from '../astAnalysisInterface';
 import { astAnalysisInterface, type AstAnalysisInterface } from '../astAnalysisInterface';
-import { relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationProject } from '../../../semantic/foundation/relationalSequence';
 
 export type SsaSemanticJudgment = Readonly<{
   readonly kind: 'ssa_semantic_judgment';

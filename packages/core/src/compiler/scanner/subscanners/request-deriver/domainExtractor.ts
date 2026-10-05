@@ -14,7 +14,7 @@ export interface RouteDomainInfo {
 }
 
 export function extractRouteDomain(route: RouteSemanticFlow): RouteDomainInfo {
-    const resourceName = route.identity.resourceName.value;
+    const resourceName = route.identity.domain.resource.value.value;
     return {
         rawDomain: resourceName,
         bareDomain: resourceName

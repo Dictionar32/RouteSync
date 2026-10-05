@@ -52,4 +52,4 @@ Laravel routing remains a domain knowledge layer: route groups merge middleware 
 - `knowledgeFlowModel.ts` + `controlFlowKnowledgeProducer.ts`: targeted TypeScript validation passes with no diagnostics in those files.
 - Controller provenance chain files: targeted TypeScript validation passes with no diagnostics in those files.
 - Full project `tsc` remains blocked by the checkpoint/environment baseline (`@types/node` / existing unrelated type errors).
-- Canonical Laravel source exists at `examples/ecommerce-shop-source` and contains real `if`, `foreach`, `match`, `===`, `!==`, `??`, and nullsafe expressions.
+- Historical Phase 161 provenance referred to `examples/ecommerce-shop-source`; that tree is not a current workspace authority. Maintained regression evidence lives under `packages/sdk/tests/fixtures/ecommerce-shop-source`.

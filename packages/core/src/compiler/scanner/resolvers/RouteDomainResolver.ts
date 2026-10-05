@@ -8,8 +8,8 @@
 import { toCamelCase, toPascalCase, ResourceNamingConvention } from '../../../utils/resource-naming';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import type { ActionName, ControllerName, DomainTypeName, ResourceName, RoutePath } from '../../../types/upstream/names';
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationProject, relationSelect, relationTextTrimChars, relationTextFields, relationTextSlice, relationTextEndsWith, relationTextLower, relationTextNumber, relationTextRemoveSuffix, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate } from '../../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationProject, relationSelect, relationTextTrimChars, relationTextFields, relationTextSlice, relationTextEndsWith, relationTextLower, relationTextNumber, relationTextRemoveSuffix, type RelationOption } from '../../../semantic/foundation/relationalSequence';
 
 export interface RouteDomainResolutionContext {
   readonly domain: RelationOption<DomainTypeName>;

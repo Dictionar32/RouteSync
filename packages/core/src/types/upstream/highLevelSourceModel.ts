@@ -1,4 +1,4 @@
-import type { ModelAst, ControllerAst, ServiceAst, ProviderAst } from './ast';
+import type { ModelAst, ServiceAst, ProviderAst } from './ast';
 import type { ControllerMethod } from './controller';
 import { matchRequestValidationCapability } from './request';
 import type { RouteDefinition } from './route';
@@ -6,17 +6,21 @@ import type { SourceSpan } from './provenance';
 import type { SourceFile } from './names';
 import { matchDiscovered, matchSourceDiscovery } from './collections';
 import type { Sequence } from './collections';
-import type { ModelReference, ResourceReference, RequestReference, ResponseReference, RouteReference, ChannelReference, ServiceReference, ControllerReference, SemanticRelationGraph } from './semanticReferences';
-import { modelNameMatchesClassName } from './names';
-import type { ResolvedServiceDependencies } from './service';
+import type { ModelReference, ResourceReference, RequestReference, ResponseReference, RouteReference, ChannelReference, ServiceReference, ControllerReference, ClassReference, SemanticRelationGraph } from './semanticReferences';
+import type { EffectiveControllerActionPolicy } from './effectiveControllerActionPolicy';
+import { controllerActionPolicyRelations, controllerActionPolicyRelationsFromEvidence } from './controllerActionPolicyRelations';
+import { routeActionPolicyRelations, routeActionPolicyRelationsFromEffectivePolicy } from './routeActionPolicyRelations';
+import { resolveEffectiveControllerActionPolicyUpstream } from './effectiveControllerActionPolicyResolver';
+import { resolveServiceDependencyTarget, type ResolvedServiceDependencies } from './service';
 import type { ModelHighLevelContract, ProviderHighLevelContract, ResourceHighLevelContract, RequestHighLevelContract, ResponseHighLevelContract, RouteHighLevelContract, ServiceHighLevelContract, ServiceSemanticContract, ControllerActionHighLevelContract, ControllerActionFlowContract, LaravelSemanticContractCatalog } from './highLevelContracts';
 
 import type { RequestFieldTarget } from './request';
 import type { EndpointResponseBinding, EndpointRequestBinding } from './endpointBindings';
 import type { RouteTarget } from './route';
-import { relationEqual, relationExpand, relationFirstOption, relationFoldRight, relationOptionFold, relationProject, relationResolve, relationVariantFold } from '../../semantic/kernel/relationalSequence';
+import { relationEqual, relationExpand, relationFirstOption, relationFoldRight, relationOptionFold, relationProject, relationResolve, relationVariantFold } from '../../semantic/foundation/relationalSequence';
 
 type RequestPropertyRelation = Extract<import('./semanticReferences').SemanticRelation, { readonly kind: 'request_property' }>;
+type ControllerDependencyRelation = Extract<import('./semanticReferences').SemanticRelation, { readonly kind: 'controller_dependency' }>;
 type RouteResponseRelation = Extract<import('./semanticReferences').SemanticRelation, { readonly kind: 'route_response' }>;
 type RouteControllerRelation = Extract<import('./semanticReferences').SemanticRelation, { readonly kind: 'route_controller' }>;
 
@@ -137,35 +141,6 @@ const serviceNodeFromAst = (ast: ServiceAst): ServiceSemanticNode => ({
   source: ast.source,
 });
 
-const CONTROLLER_METHOD_NODE_MODEL: Readonly<Record<ControllerMethod['kind'], (method: ControllerMethod) => readonly ControllerSemanticNode[]>> = Object.freeze({
-  controller_helper: () => [],
-  controller_action: method => {
-    return relationVariantFold(method, 'controller_action', () => [], value => [{
-      kind: 'controller_semantic_node',
-      identity: { kind: 'controller_reference', name: value.controller, action: value.action },
-      action: value,
-      source: value.source,
-    }]);
-  },
-});
-
-const controllerNodesFromAst = (ast: ControllerAst): readonly ControllerSemanticNode[] =>
-  relationExpand(sequenceToArray(ast.methods), method => CONTROLLER_METHOD_NODE_MODEL[method.kind](method));
-
-
-const resourceNodeFromAst = (ast: import('./ast').ResourceAst): ResourceSemanticNode => ({
-  kind: 'resource_semantic_node',
-  identity: { kind: 'resource_reference', name: ast.definition.name },
-  definition: ast.definition,
-  source: ast.source,
-});
-
-const requestNodeFromAst = (ast: import('./ast').RequestAst): RequestSemanticNode => ({
-  kind: 'request_semantic_node',
-  identity: { kind: 'request_reference', name: ast.definition.identity.request },
-  definition: ast.definition,
-  source: ast.source,
-});
 
 const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
   const identity: RouteReference = { kind: 'route_reference', name: ast.definition.identity.key };
@@ -176,13 +151,6 @@ const routeNodeFromAst = (ast: import('./ast').RouteAst): RouteSemanticNode => {
     source: ast.source,
   };
 };
-
-const responseNodeFromAst = (ast: import('./ast').ResponseAst): ResponseSemanticNode => ({
-  kind: 'response_semantic_node',
-  identity: { kind: 'response_reference', name: ast.definition.typeName },
-  definition: ast.definition,
-  source: ast.source,
-});
 
 export interface ProviderSemanticNode {
   readonly kind: 'provider_semantic_node';
@@ -243,13 +211,138 @@ const sequenceFromArray = <T>(items: readonly T[], index = 0): Sequence<T> =>
     () => ({ kind: 'cons' as const, head: items[index], tail: sequenceFromArray(items, index + 1) }),
   );
 
-export function sourceModelReferenceIndexFromCatalog(catalog: SourceModelCatalog): SourceModelReferenceIndex {
+
+const routeMiddlewareContractsFromDefinition = (route: RouteSemanticNode) =>
+  Object.freeze(sequenceToArray(route.definition.capability.middleware.items).map(entry => Object.freeze({
+    middleware: { name: entry.name, parameters: [] },
+    source: { kind: entry.kind === 'inherited' ? 'route_group' as const : 'route' as const },
+    scope: { kind: 'all' as const },
+  })));
+
+const routeResourceMiddlewareContractsFromDefinition = (route: RouteSemanticNode) => {
+  const special = route.definition.special;
+  const resource = special.kind === 'resource' || special.kind === 'api_resource' || special.kind === 'singleton' || special.kind === 'api_singleton'
+    ? special.resource
+    : undefined;
+  if (!resource) return { declarations: [], exclusions: [] };
+  const rules = sequenceToArray(resource.middleware);
+  const declarations = rules.flatMap(rule => sequenceToArray(rule.include).map(name => Object.freeze({
+    middleware: { name, parameters: [] },
+    source: { kind: 'resource' as const },
+    scope: rule.scope,
+  })));
+  const exclusions = rules.flatMap(rule => sequenceToArray(rule.exclude).map(name => Object.freeze({
+    middleware: { name, parameters: [] },
+    source: { kind: 'resource' as const },
+    scope: rule.scope,
+  })));
+  return { declarations: Object.freeze(declarations), exclusions: Object.freeze(exclusions) };
+};
+
+const effectiveRouteActionPolicyRelations = (
+  catalog: SourceModelCatalog,
+  route: RouteSemanticNode,
+  suppliedPolicies: readonly EffectiveControllerActionPolicy[] = [],
+): readonly import('./routeActionPolicyRelations').RouteActionPolicyRelation[] => {
+  const target = route.definition.bindings.target;
+  if (target.kind !== 'controller_action') return [];
+  const suppliedPolicy = suppliedPolicies.find(policy =>
+    policy.controller.value.value === target.controller.name.value.value
+    && policy.action.value.value === target.controller.action.value.value,
+  );
+  if (suppliedPolicy) {
+    const routePolicy = resolveEffectiveControllerActionPolicyUpstream({
+      controller: suppliedPolicy.controller,
+      action: suppliedPolicy.action,
+      middleware: {
+        declarations: Object.freeze([
+          ...routeMiddlewareContractsFromDefinition(route),
+          ...routeResourceMiddlewareContractsFromDefinition(route).declarations,
+          ...suppliedPolicy.middleware,
+        ]),
+        exclusions: routeResourceMiddlewareContractsFromDefinition(route).exclusions,
+        action: { kind: 'present', value: suppliedPolicy.action },
+      },
+      policy: [],
+      inheritedFrom: suppliedPolicy.inheritedFrom,
+      source: Object.freeze([...suppliedPolicy.source, route.definition.provenance.span]),
+    });
+    return routeActionPolicyRelationsFromEffectivePolicy(route.identity, Object.freeze({
+      ...routePolicy,
+      authorization: suppliedPolicy.authorization,
+    }));
+  }
+
+  const routeResourceMiddleware = routeResourceMiddlewareContractsFromDefinition(route);
+  const controllers = sequenceToArray(catalog.controllers);
+  const controller = controllers.find(candidate =>
+    candidate.identity.name.value.value === target.controller.name.value.value
+    && candidate.identity.action.value.value === target.controller.action.value.value,
+  );
+  if (!controller) {
+    return routeActionPolicyRelations(
+      route.identity,
+      target.controller,
+      routeMiddlewareContractsFromDefinition(route),
+      route.definition.provenance.span,
+    );
+  }
+  const policy = resolveEffectiveControllerActionPolicyUpstream({
+    controller: controller.identity.name,
+    action: controller.identity.action,
+    middleware: {
+      declarations: Object.freeze([
+        ...routeMiddlewareContractsFromDefinition(route),
+        ...routeResourceMiddleware.declarations,
+      ]),
+      exclusions: Object.freeze(routeResourceMiddleware.exclusions),
+      action: { kind: 'present', value: controller.identity.action },
+    },
+    policy: sequenceToArray(controller.action.policy),
+    inheritedFrom: controller.action.inheritedFrom,
+    source: Object.freeze([route.definition.provenance.span, controller.action.source]),
+  });
+  return routeActionPolicyRelationsFromEffectivePolicy(route.identity, policy);
+};
+
+export function sourceModelReferenceIndexFromCatalog(
+  catalog: SourceModelCatalog,
+  effectivePolicies: readonly EffectiveControllerActionPolicy[] = [],
+): SourceModelReferenceIndex {
+  const modelNodes: readonly ModelSemanticNode[] = sequenceToArray(catalog.models);
   const relationValues = Object.freeze([
-    ...sequenceExpand(catalog.controllers, controller => sequenceExpand(controller.action.semantic.resources, resource => [
-      { kind: 'controller_resource' as const, controller: controller.identity, resource: resource.resource },
-      { kind: 'controller_model' as const, controller: controller.identity, model: resource.model },
-      { kind: 'controller_response' as const, controller: controller.identity, response: resource.response },
-    ])),
+    ...effectivePolicies.flatMap(policy => controllerActionPolicyRelations(policy)),
+    ...sequenceExpand(catalog.routes, route => {
+      return effectiveRouteActionPolicyRelations(catalog, route, effectivePolicies);
+    }),
+    ...sequenceExpand(catalog.controllers, controller => [
+      ...controllerActionPolicyRelationsFromEvidence(
+        controller.identity.name,
+        controller.identity.action,
+        sequenceToArray(controller.action.policy),
+        controller.action.inheritedFrom,
+      ),
+      ...sequenceExpand(controller.action.semantic.resources, resource => [
+        { kind: 'controller_resource' as const, controller: controller.identity, resource: resource.resource },
+        { kind: 'controller_model' as const, controller: controller.identity, model: resource.model },
+        { kind: 'controller_response' as const, controller: controller.identity, response: resource.response },
+      ]),
+      ...sequenceExpand(controller.action.dependencies, dependency => {
+        const modelNames = sequenceProject(sequenceToArray(catalog.models), model => model.identity.name);
+        const serviceNames = sequenceProject(sequenceToArray(catalog.services), service => service.name);
+        const resolved = resolveServiceDependencyTarget(dependency.type, modelNames, serviceNames);
+        return [{
+          kind: 'controller_dependency' as const,
+          controller: controller.identity,
+          dependency: resolved,
+        } satisfies ControllerDependencyRelation];
+      }),
+    ]),
+    ...relationExpand(modelNodes, model => sequenceExpand(model.definition.relations.items, relation => [{
+      kind: 'model_relation' as const,
+      model: model.identity,
+      target: { kind: 'model_reference' as const, name: relation.target },
+    }])),
     ...sequenceExpand(catalog.resources, resource => [
       { kind: 'resource_model' as const, resource: resource.identity, model: resource.definition.model },
       { kind: 'response_resource' as const, response: resource.definition.response, resource: resource.identity },
@@ -310,6 +403,16 @@ export function semanticContractCatalogFromSourceCatalog(catalog: SourceModelCat
   };
 }
 
+
+export interface SemanticContractSeeds {
+  readonly models: readonly import('./model').ModelDefinition[];
+  readonly resources: readonly import('./resource').ResourceDefinition[];
+  readonly requests: readonly import('./request').RequestDefinition[];
+  readonly providers: readonly import('./application').ProviderDefinition[];
+  readonly services: readonly import('./service').ServiceDefinition[];
+  readonly responses: readonly import('./response').ResponseDefinition[];
+}
+
 export interface CompleteLaravelSourceModel {
   readonly kind: 'complete_laravel_source_model';
   readonly identity: SourceProjectIdentity;
@@ -318,12 +421,18 @@ export interface CompleteLaravelSourceModel {
    * construction details and are intentionally not exposed to consumers.
    */
   readonly contracts: LaravelSemanticContractCatalog;
+  /** Canonical semantic relation graph derived once from the source catalog. */
+  readonly relations: SemanticRelationGraph;
 }
 
 export interface CompleteSourceModelBuildResult
 { readonly kind: 'complete_source_model'; readonly value: CompleteLaravelSourceModel }
 
-export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSourceAst, identity: SourceProjectIdentity): CompleteSourceModelBuildResult {
+export function buildCompleteLaravelSourceModel(
+  ast: import('./ast').CompleteSourceAst,
+  identity: SourceProjectIdentity,
+  seeds: SemanticContractSeeds,
+): CompleteSourceModelBuildResult {
   const source = ast.ast;
   const completeItems = <T>(discovery: import('./collections').SourceDiscovery<T>): Sequence<T> => matchSourceDiscovery(discovery, {
     notScanned: () => { throw Error('CompleteSourceAst invariant violated: source category was not scanned.'); },
@@ -332,39 +441,70 @@ export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSou
       many: value => value.items,
     }),
   });
-  const controllers = completeItems(source.controllers.items);
-  const providers = completeItems(source.providers.items);
+  const controllers = source.controllerActions;
+  const providers = seeds.providers;
   const models = completeItems(source.models.items);
-  const resources = completeItems(source.resources.items);
-  const requests = completeItems(source.requests.items);
-  const responses = completeItems(source.responses.items);
-  const services = completeItems(source.services.items);
+  const responses = seeds.responses;
+  const services = seeds.services;
   const routes = completeItems(source.routes.items);
   const channels = completeItems(source.channels.items);
 
   const catalog: SourceModelCatalog = {
     kind: 'source_model_catalog',
-    providers: sequenceFromArray(sequenceProject(providers, provider => ({
+    providers: sequenceFromArray(sequenceProject(providers, definition => ({
       kind: 'provider_semantic_node' as const,
-      identity: provider.definition.name,
-      definition: provider.definition,
-      source: provider.source,
+      identity: definition.name,
+      definition,
+      source: definition.source,
     }))),
-    controllers: sequenceFromArray(sequenceExpand(controllers, controllerNodesFromAst)),
-    models: sequenceFromArray(sequenceProject(models, modelNodeFromAst)),
-    resources: sequenceFromArray(sequenceProject(resources, resourceNodeFromAst)),
-    requests: sequenceFromArray(sequenceProject(requests, requestNodeFromAst)),
-    responses: sequenceFromArray(sequenceProject(responses, responseNodeFromAst)),
-    services: sequenceFromArray(sequenceProject(services, service => {
-      const base = serviceNodeFromAst(service);
-      const resolved = sequenceExpand(service.definition.dependencies.items, fact => relationOptionFold(
-        relationFirstOption(sequenceToArray(models), model => modelNameMatchesClassName(model.definition.identity.name, fact.target)),
-        () => [],
-        model => [{ kind: 'resolved_service_dependency' as const, fact, target: { kind: 'model_reference' as const, name: model.definition.identity.name } }],
-      ));
+    controllers: sequenceFromArray(sequenceProject(controllers, action => ({
+      kind: 'controller_semantic_node' as const,
+      identity: { kind: 'controller_reference' as const, name: action.controller, action: action.action },
+      action,
+      source: action.source,
+    }))),
+    models: sequenceFromArray(sequenceProject(seeds.models, definition => ({
+      kind: 'model_semantic_node' as const,
+      identity: { kind: 'model_reference' as const, name: definition.identity.name },
+      definition,
+      source: definition.source,
+    }))),
+    resources: sequenceFromArray(
+      sequenceProject(seeds.resources, definition => ({
+            kind: 'resource_semantic_node' as const,
+            identity: { kind: 'resource_reference' as const, name: definition.name },
+            definition,
+            source: definition.source,
+          })),
+    ),
+    requests: sequenceFromArray(
+      sequenceProject(seeds.requests, definition => ({
+            kind: 'request_semantic_node' as const,
+            identity: { kind: 'request_reference' as const, name: definition.identity.request },
+            definition,
+            source: definition.source,
+          })),
+    ),
+    responses: sequenceFromArray(sequenceProject(responses, definition => ({
+      kind: 'response_semantic_node' as const,
+      identity: { kind: 'response_reference' as const, name: definition.typeName },
+      definition,
+      source: definition.source,
+    }))),
+    services: sequenceFromArray(sequenceProject(services, definition => {
+      const modelNames = sequenceProject(sequenceToArray(models), model => model.definition.identity.name);
+      const serviceNames = sequenceProject(sequenceToArray(services), service => service.name);
+      const resolved = sequenceProject(definition.dependencies.items, fact => ({
+        kind: 'resolved_service_dependency' as const,
+        fact,
+        target: resolveServiceDependencyTarget(fact.target, modelNames, serviceNames),
+      }));
       return {
-        ...base,
+        kind: 'service_semantic_node' as const,
+        identity: { kind: 'service_reference' as const, name: definition.name },
+        definition,
         resolvedDependencies: { kind: 'resolved_service_dependencies', items: sequenceFromArray(resolved) },
+        source: definition.source,
       };
     })),
     routes: sequenceFromArray(sequenceProject(routes, routeNodeFromAst)),
@@ -384,6 +524,7 @@ export function buildCompleteLaravelSourceModel(ast: import('./ast').CompleteSou
       kind: 'complete_laravel_source_model',
       identity,
       contracts,
+      relations: sourceModelReferenceIndexFromCatalog(catalog).graph,
     },
   };
 }

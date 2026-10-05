@@ -19,6 +19,21 @@
   },
   "scripts": {
     "audit:scanner-lexer:phase534": "node scripts/audit-phase534-relational-solver-frontier.cjs",
-    "audit:phase599-relational-frontier": "node ../../scripts/audit-phase599-relational-frontier.cjs"
+    "audit:phase599-relational-frontier": "node ../../scripts/audit-phase599-relational-frontier.cjs",
+    "audit:phase818-route-contract-cutover": "node scripts/audit-phase818-route-contract-cutover.cjs",
+    "audit:phase840-channel-single-scan": "node scripts/audit-phase840-channel-single-scan.cjs",
+    "audit:phase844-provider-semantic-bundle": "node scripts/audits/audit-phase844-provider-semantic-bundle.cjs",
+    "audit:phase851-controller-graph-authority": "node scripts/audits/audit-phase851-controller-graph-authority.cjs",
+    "audit:phase856-dependency-authority": "node scripts/audits/audit-phase856-dependency-authority.cjs",
+    "audit:phase913-upstream-compiler-isolation": "node ../../scripts/audits/audit-phase913-upstream-compiler-isolation.cjs",
+    "audit:phase946-end-to-end-consumption": "node scripts/audits/audit-phase946-end-to-end-consumption.cjs",
+    "audit:phase947-dead-upstream-authority": "node scripts/audits/audit-phase947-dead-upstream-authority.cjs",
+    "audit:phase948-upstream-ownership-consumption": "node ../../scripts/audits/audit-phase948-upstream-ownership-consumption.cjs",
+    "audit:phase949-relation-foundation-ownership": "node ../../scripts/audits/audit-phase949-relation-foundation-ownership.cjs",
+    "audit:phase950-downstream-rewrite-ownership": "node ../../scripts/audits/audit-phase950-downstream-rewrite-ownership.cjs",
+    "audit:phase951-downstream-target-consumption": "node ../../scripts/audits/audit-phase951-downstream-target-consumption.cjs",
+    "audit:phase952-semantic-source-sink": "node ../../scripts/audits/audit-phase952-semantic-source-sink.cjs",
+    "audit:phase953-upstream-downstream-ownership": "node ../../scripts/audits/audit-phase953-upstream-downstream-ownership.cjs",
+    "audit:phase954-e2e-ownership-proof": "node scripts/audits/audit-phase954-e2e-ownership-proof.cjs"
   }
 }

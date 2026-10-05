@@ -8,13 +8,13 @@
 import {
   relationEqual,
   relationResolve,
-} from '../../semantic/kernel/semanticRelations';
+} from '../../semantic/foundation/semanticRelations';
 import {
   relationIndexAdd,
   relationIndexLookup,
   type RelationIndex,
-} from '../../semantic/kernel/relationMembership';
-import { relationOptionFold } from '../../semantic/kernel/relationalSequence';
+} from '../../semantic/foundation/relationMembership';
+import { relationOptionFold } from '../../semantic/foundation/relationalSequence';
 
 export interface UnionFind {
   readonly parents: RelationIndex<number, number>;

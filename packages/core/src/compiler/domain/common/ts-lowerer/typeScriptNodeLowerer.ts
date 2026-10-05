@@ -9,8 +9,8 @@ import { TypeScriptLowererOptions } from './typeScriptVocabulary';
 import { resolveTypeScriptLoweringFromType } from './typeScriptLoweringSemanticRelations';
 import { resolveTypeScriptPrimitiveToken } from './typeScriptPrimitiveSemanticRelations';
 import type { ResolvedPrimitiveKind } from '../resolved-types';
-import { relationProject, relationResolve, relationFirstOption, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationProject, relationResolve, relationFirstOption, relationOptionFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import { resolveTypeScriptSurfaceToken } from './typeScriptTargetSurfaceRelations';
 import { TypeScriptSyntax } from './typeScriptSyntax';
 

@@ -7,7 +7,7 @@ import { SemanticResolutionFactory } from '../../types/domain/semanticResolution
 import { semanticResolutionToBoundType } from '../semanticResolutionToBoundType';
 import { matchLookup } from '../../types/upstream/collections';
 import { relationAll, relationEqual, relationResolve } from '../kernel/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationRefine, relationSome } from '../kernel/relationalSequence';
+import { relationFirst, relationFirstOption, relationOptionFold, relationRefine, relationSome } from '../kernel/relationalSequence';
 
 type ConditionalMeta = Extract<ResolverMeta, { kind: 'method_call' }>;
 type ConditionalWrapper = 'whenLoaded' | 'when' | 'mergeWhen';
@@ -76,35 +76,36 @@ function resolveRelation(meta: ConditionalMeta, context: ResolutionContext): Sem
       const relationKey = SemanticValueFactory.relationName(relationName);
       return matchLookup(model.definition.semantic.surface.relationsByName.lookup(relationKey), {
         missing: () => unsupported(`Relation ${relationName} is not declared on ${model.definition.identity.name.value}`),
-        found: property => matchLookup(context.symbolTable.lookup(property.value.targetModel.value), {
-          missing: () => unsupported(`Relation target ${property.value.targetModel.value} is not a verified model`),
-          found: targetSymbol => {
-            const targetModel = property.value.targetModel;
-            const definition = targetSymbol.node.definition;
+        found: property => relationOptionFold(
+          relationFirst(context.models, candidate => relationEqual(candidate.definition.identity.name.value, property.value.targetModel.value)),
+          () => unsupported(`Relation target ${property.value.targetModel.value} is not a verified model`),
+          targetModel => {
+            const targetModelName = property.value.targetModel;
+            const definition = targetModel.definition;
             const relationNode = BoundSemanticFactory.relation({
               sourceModel: model.definition.identity.name,
               relationName: SemanticValueFactory.relationName(relationName),
               relationType: property.value.type,
-              targetModel,
+              targetModel: targetModelName,
               cardinality: property.value.multiplicity,
               nullability: { kind: 'nullable' },
               semanticType: property.value.semanticType,
             });
             return SemanticResolutionFactory.model({
               status: 'resolved', confidence: 100,
-              model: targetModel, definition, cardinality: property.value.multiplicity,
+              model: targetModelName, definition, cardinality: property.value.multiplicity,
               boundAst: BoundSemanticFactory.conditional({
                 wrapper: 'whenLoaded',
                 conditionExpression: SemanticValueFactory.conditionExpression(`whenLoaded('${relationName}')`),
                 target: relationNode,
-                relationModel: { kind: 'model', name: targetModel },
+                relationModel: { kind: 'model', name: targetModelName },
                 availability: { kind: 'present_when_loaded', relation: relationKey },
                 semanticType: property.value.semanticType,
               }),
-              trace: [{ source: 'ConditionalWrapperResolver', rule: 'Relation shorthand lookup', input: relationName, output: targetModel.value }],
+              trace: [{ source: 'ConditionalWrapperResolver', rule: 'Relation shorthand lookup', input: relationName, output: targetModelName.value }],
             });
-          },
-        }),
+          }
+        )
       });
     },
     () => unsupported('whenLoaded relation has no model context'),

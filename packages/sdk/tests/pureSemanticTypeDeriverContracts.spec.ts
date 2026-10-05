@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest';
 import {
     SemanticTypeDeriver,
@@ -16,8 +17,7 @@ import {
     ScannedModelDescriptor,
     ScannedResourceDescriptor,
     ScannedResourceFieldDescriptor,
-    RouteSemanticFlowFactory
-} from '@routesync/core';
+  } from '@routesync/core';
 
 describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
     describe('1. ResolvedPhpType TTD ADT & Catamorphism', () => {

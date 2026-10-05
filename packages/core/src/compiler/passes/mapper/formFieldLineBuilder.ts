@@ -1,5 +1,5 @@
 import { toCamelPropertyName, propertyNameText } from '../../../utils/resource-naming';
-import { relationProject, relationSelect } from '../../../semantic/kernel/relationalSequence';
+import { relationProject, relationSelect } from '../../../semantic/foundation/relationalSequence';
 import type { RequestField } from '../../types/domain/request';
 import type { RequestFieldMeaningVisitor, ObjectRequestMeaning, ResourceRequestMeaning, CollectionRequestMeaning, ResourceCollectionRequestMeaning } from '../../../types/domain/requestFieldMeaning';
 import { indent } from './readMapperBuilder';

@@ -1,8 +1,9 @@
 import type { ServiceAst } from '../../../types/upstream/ast';
+import type { ServiceDefinition } from '../../../types/upstream/service';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { ModelSymbolTable } from '../symbols/ModelSymbolTable';
 import type { ServiceDeclarationAst } from '../lexer/serviceAstTypes';
-import { buildServiceAstFromSource } from './serviceAstCanonical';
+import { buildServiceProducerResult } from './serviceAstCanonical';
 
 export type ServiceProducerInput = {
   readonly syntax: ServiceDeclarationAst;
@@ -10,10 +11,17 @@ export type ServiceProducerInput = {
   readonly models: ModelSymbolTable;
 };
 
+export interface ServiceProducerResult {
+  readonly definition: ServiceDefinition;
+  readonly ast: ServiceAst;
+}
+
 export interface ServiceProducer {
+  readonly produceResult: (input: ServiceProducerInput) => ServiceProducerResult;
   readonly produce: (input: ServiceProducerInput) => ServiceAst;
 }
 
 export const serviceProducer: ServiceProducer = {
-  produce: input => buildServiceAstFromSource(input.syntax, input.source, input.models),
+  produceResult: input => buildServiceProducerResult(input.syntax, input.source, input.models),
+  produce: input => serviceProducer.produceResult(input).ast,
 };

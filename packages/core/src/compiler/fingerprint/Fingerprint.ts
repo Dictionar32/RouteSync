@@ -3,7 +3,7 @@
  * Feature flags are immutable relation tuples rather than host Map state.
  */
 import { createHash } from 'crypto';
-import { relationProject } from '../../semantic/kernel/relationalSequence';
+import { relationProject } from '../../semantic/foundation/relationalSequence';
 
 export interface CompilerFingerprint {
     readonly compilerVersion: string;

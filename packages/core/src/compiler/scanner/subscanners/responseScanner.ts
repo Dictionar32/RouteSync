@@ -1,5 +1,7 @@
 import path from 'path';
 import type { ResponseAst } from '../../../types/upstream/ast';
+import type { ResponseDefinition } from '../../../types/upstream/response';
+import type { ResponseProducerResult } from './responseProducer';
 import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import type { ResponseDtoDeclarationAst } from '../lexer/responseDtoAstTypes';
 import { responseProducer } from './responseProducer';
@@ -9,8 +11,8 @@ import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { collectPhpFiles } from './scannerUtils';
 
 import { readSourceText } from './scannerUtils';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationGate, relationAsyncFold, relationFirst, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationGate, relationAsyncFold, relationFirst, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from '../../../semantic/foundation/relationalSequence';
 const span = (file: string, line: number): SourceSpan => ({
   kind: 'source_span',
   file: { kind: 'source_file', value: stringValue(file) },
@@ -52,7 +54,7 @@ const emptyTransport = (): import('../../../types/upstream/response').ResponseTr
   cookies: { kind: 'empty' },
 });
 
-function definition(ast: ResponseDtoDeclarationAst, file: string): ResponseAst {
+function definition(ast: ResponseDtoDeclarationAst, file: string): ResponseProducerResult {
   return responseProducer.produce({ kind: 'dto', declaration: ast, source: span(file, Number(ast.source.line)) });
 }
 
@@ -65,8 +67,8 @@ function className(tokens: readonly { readonly value: string }[]): string {
     value => value);
 }
 
-async function scanFiles(files: readonly string[], asts: readonly ResponseAst[]): Promise<readonly ResponseAst[]> {
-  return relationAsyncFold(files, asts, async (current, file) => {
+async function scanFiles(files: readonly string[], results: readonly ResponseProducerResult[]): Promise<readonly ResponseProducerResult[]> {
+  return relationAsyncFold(files, results, async (current, file) => {
     const source = await readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(source);
     const ast = LaravelSourceLexer.parseResponseDtoDeclaration(tokens, createAstIdentifier(className(tokens)));
@@ -74,8 +76,8 @@ async function scanFiles(files: readonly string[], asts: readonly ResponseAst[])
   });
 }
 
-async function scanControllerFiles(files: readonly string[], asts: readonly ResponseAst[]): Promise<readonly ResponseAst[]> {
-  return relationAsyncFold(files, asts, async (current, file) => {
+async function scanControllerFiles(files: readonly string[], results: readonly ResponseProducerResult[]): Promise<readonly ResponseProducerResult[]> {
+  return relationAsyncFold(files, results, async (current, file) => {
     const source = await readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(source);
     const declaration = LaravelSourceLexer.parseControllerDeclaration(source, tokens, createAstIdentifier(path.basename(file, '.php')));
@@ -85,12 +87,25 @@ async function scanControllerFiles(files: readonly string[], asts: readonly Resp
   });
 }
 
-export async function scanResponseAsts(sourceProject: SourceProjectIdentity): Promise<readonly ResponseAst[]> {
+export interface ResponseScannerBundle {
+  readonly definitions: readonly ResponseDefinition[];
+  readonly asts: readonly ResponseAst[];
+}
+
+export async function scanResponseBundle(sourceProject: SourceProjectIdentity): Promise<ResponseScannerBundle> {
   const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Http', 'DTOs');
   const controllerDirectory = path.join(sourceRoot, 'app', 'Http', 'Controllers');
   const files = await collectPhpFiles(directory);
   const controllerFiles = await collectPhpFiles(controllerDirectory);
-  const dtoAsts = await scanFiles(files, Object.freeze([]));
-  return Object.freeze(await scanControllerFiles(controllerFiles, dtoAsts));
+  const dtoResults = await scanFiles(files, Object.freeze([]));
+  const results = await scanControllerFiles(controllerFiles, dtoResults);
+  return Object.freeze({
+    definitions: Object.freeze(relationProject(results, result => result.definition)),
+    asts: Object.freeze(relationProject(results, result => result.ast)),
+  });
+}
+
+export async function scanResponseAsts(sourceProject: SourceProjectIdentity): Promise<readonly ResponseAst[]> {
+  return (await scanResponseBundle(sourceProject)).asts;
 }

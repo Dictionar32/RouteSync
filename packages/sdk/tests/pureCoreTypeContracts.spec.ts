@@ -12,7 +12,6 @@ import {
   IRHintsFactory,
   IRRawNodeDescriptor,
   SemanticFieldSet,
-  ModelCastCollection,
   ZodObjectShape,
   ModelFieldMap,
   ModelRelationMap,
@@ -207,7 +206,7 @@ describe('Pure Core Type Contracts & Domain Models (Zero Null, Zero ?, Zero Nake
     });
   });
 
-  describe('5. Semantic Domain Collections (SemanticFieldSet, ModelCastCollection, ZodObjectShape)', () => {
+  describe('5. Semantic Domain Collections (SemanticFieldSet, ZodObjectShape)', () => {
     it('SemanticFieldSet encapsulates field type definitions with O(1) lookup', () => {
       const fields = SemanticFieldSet.fromRecord({
         id: 'number',
@@ -222,20 +221,6 @@ describe('Pure Core Type Contracts & Domain Models (Zero Null, Zero ?, Zero Nake
       expect(fields.hasField('email')).toBe(true);
       expect(fields.hasField('missing')).toBe(false);
       expect(fields.toRecord()).toEqual({ id: 'number', email: 'string', is_verified: 'boolean' });
-    });
-
-    it('ModelCastCollection encapsulates eloquent casts with O(1) lookup', () => {
-      const casts = ModelCastCollection.fromRecord({
-        created_at: 'datetime',
-        settings: 'json'
-      });
-
-      expect(casts.getCast('created_at')).toBe('datetime');
-      expect(casts.getCast('settings')).toBe('json');
-      expect(casts.getCast('unknown')).toBeUndefined();
-      expect(casts.hasCast('settings')).toBe(true);
-      expect(casts.hasCast('unknown')).toBe(false);
-      expect(casts.toRecord()).toEqual({ created_at: 'datetime', settings: 'json' });
     });
 
     it('ZodObjectShape encapsulates Zod properties with O(1) lookup', () => {

@@ -8,7 +8,6 @@ import {
   createControllerNodeName,
   SourceRefFactory,
   SemanticFieldSet,
-  ModelCastCollection,
   IRHintsFactory,
   IRRawNodeDescriptor,
 } from '@routesync/core';
@@ -61,7 +60,7 @@ describe('Semantic Type Hardening & Level 7 Constructors SSOT', () => {
   });
 
 
-  it('maintains immutable and frozen field sets and cast collections', () => {
+  it('maintains immutable and frozen field sets', () => {
     const fieldSet = SemanticFieldSet.fromEntries([
       { name: 'id', type: 'number' },
       { name: 'email', type: 'string' }
@@ -73,17 +72,5 @@ describe('Semantic Type Hardening & Level 7 Constructors SSOT', () => {
     expect(fieldSet.get('email')).toBe('string');
     expect(fieldSet.has('id')).toBe(true);
     expect(fieldSet.has('missing')).toBe(false);
-
-    const castCollection = ModelCastCollection.fromEntries([
-      { column: 'is_active', castType: 'boolean' },
-      { column: 'metadata', castType: 'array' }
-    ]);
-
-    expect(Object.isFrozen(castCollection)).toBe(true);
-    expect(castCollection.size).toBe(2);
-    expect(castCollection.get('is_active')).toBe('boolean');
-    expect(castCollection.getCast('metadata')).toBe('array');
-    expect(castCollection.has('is_active')).toBe(true);
-    expect(castCollection.has('non_existent')).toBe(false);
   });
 });

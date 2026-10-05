@@ -6,21 +6,9 @@
  * @module core/compiler/scanner/descriptors/route/routeContracts
  */
 
-import {
-    EndpointContract,
-    RouteIdentityContract,
-    RouteBindingContract,
-    RouteCapabilityContract,
-    RouteProvenanceContract
-} from "../../../../types/route";
+import type { RouteBoundaryContract } from "../../../../types/upstream/route";
 
-export interface RouteSemanticFlowCompleteContracts {
-    readonly identity: RouteIdentityContract;
-    readonly binding: RouteBindingContract;
-    readonly capability: RouteCapabilityContract;
-    readonly provenance: RouteProvenanceContract;
-    readonly contract: EndpointContract;
-}
+export type RouteSemanticFlowCompleteContracts = RouteBoundaryContract;
 
 export type RouteSemanticFlowConstructorInput = RouteSemanticFlowCompleteContracts;
 

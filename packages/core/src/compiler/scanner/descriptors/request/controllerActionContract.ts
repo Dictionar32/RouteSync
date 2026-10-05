@@ -1,4 +1,4 @@
-import { type RelationIndex, relationIndexLookup } from '../../../../semantic/kernel/relationMembership';
+import { type RelationIndex, relationIndexLookup } from '../../../../semantic/foundation/relationMembership';
 import type { FormRequestSource } from '../../../../types/domain/request';
 import type { SourceProjectIdentity } from '../../../../types/upstream/highLevelSourceModel';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
@@ -7,7 +7,7 @@ import type { RouteSchemaPayload } from '../../../../types/route';
 import { ScannedFormRequestDescriptor, type ResponseDescriptor } from '../../../../types/route';
 import type { ControllerMethodAst, ControllerParameterAst, PhpParameterTypeAst } from '../../lexer/controllerAstTypes';
 import type { ControllerRuntimeReturn } from '../../../../types/domain/controllerExpression';
-import type { ControllerContextualAttributeName, ControllerDependency, ControllerDependencyInjection, ControllerDependencyResolution } from '../../../../types/upstream/controller';
+import type { ControllerContextualAttributeName, ControllerDependency, ControllerDependencyInjection, ControllerDependencyResolution, ControllerVariableSemantic } from '../../../../types/upstream/controller';
 import { mapResourcePhpAstToUpstream } from '../../subscanners/resource/resourceUpstreamExpressionCanonical';
 import { resolveResponseAttributeAst } from '../../subscanners/controller/responseAttributeScanner';
 import { VoidResponseDescriptor } from '../../../../types/route';
@@ -57,16 +57,14 @@ export interface ControllerActionContract {
 export interface ControllerActionContractResolverContext {
     readonly formRequestIndex: RelationIndex<string, FormRequestSource>;
     readonly sourceProject: SourceProjectIdentity;
-    /** Known Eloquent model class names, used only to distinguish route-model binding from container dependencies. */
-    readonly modelNames?: RelationMembership<string>;
     /** Controller constructor parameters are resolved by the container across each action on the controller. */
     readonly constructorParameters?: readonly ControllerParameterAst[];
     readonly customContextualAttributeNames?: RelationMembership<string>;
 }
 
-import { relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationContains, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
-import { relationFirstOption, relationGate, relationIsNone, relationIsPresent, relationNone, relationOptionFold, relationProject, relationSelect, relationSome, relationVariantValue, type RelationOption, type RelationVariant } from '../../../../semantic/kernel/relationalSequence';
+import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationContains, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
+import { relationFirstOption, relationGate, relationIsNone, relationIsPresent, relationNone, relationOptionFold, relationProject, relationSelect, relationSome, relationVariantValue, type RelationOption, type RelationVariant } from '../../../../semantic/foundation/relationalSequence';
 export function resolveControllerActionContract(
     method: ControllerMethodAst,
     controllerName: ControllerName,
@@ -101,13 +99,8 @@ export function resolveControllerActionContract(
         () => Object.freeze([] as string[]),
         value => value,
     );
-    const modelNames = relationOptionFold(
-        relationFirstOption([context.modelNames], (candidate): candidate is RelationMembership<string> => Object.is(typeof candidate, 'object')),
-        () => Object.freeze([] as string[]),
-        value => value,
-    );
     const constructorDependencies = resolveConstructorDependencies(constructorParameters, contextualNames);
-    const methodDependencies = resolveMethodDependencies(method.parameters, context.formRequestIndex, modelNames, contextualNames);
+    const methodDependencies = resolveMethodDependencies(method.parameters, contextualNames);
     const dependencies = Object.freeze([...constructorDependencies, ...methodDependencies]);
     return Object.freeze({
         identity: Object.freeze({ controllerName, actionName: createActionName(method.name) }),
@@ -125,12 +118,31 @@ export function resolveControllerActionContract(
     });
 }
 
+function controllerParameterClassName(semantic: ControllerVariableSemantic): RelationOption<string> {
+    return relationGate(
+        relationEqual(semantic.kind, 'model_origin'),
+        () => {
+            const origin = semantic.origin;
+            return relationGate(
+                relationEqual(origin.kind, 'model_class'),
+                () => relationSome(origin.name.value.value),
+                () => relationNone<string>(),
+            );
+        },
+        () => relationGate(
+            relationEqual(semantic.kind, 'request_origin'),
+            () => relationSome(semantic.name.value.value),
+            () => relationNone<string>(),
+        ),
+    );
+}
+
 function resolveConstructorDependencies(
     parameters: readonly ControllerParameterAst[],
     customContextualAttributeNames: RelationMembership<string>
 ): readonly ControllerDependency[] {
     const candidates = relationProject(parameters, parameter => {
-        const type = namedParameterType(parameter.type);
+        const type = controllerParameterClassName(parameter.semantic);
         return relationOptionFold(type, () => relationNone<ControllerDependency>(), typeName => relationSome<ControllerDependency>({
             kind: 'controller_dependency',
             injection: { kind: 'constructor' } satisfies ControllerDependencyInjection,
@@ -144,23 +156,17 @@ function resolveConstructorDependencies(
 
 function resolveMethodDependencies(
     parameters: readonly ControllerParameterAst[],
-    formRequestIndex: RelationIndex<string, FormRequestSource>,
-    modelNames: RelationMembership<string>,
     customContextualAttributeNames: RelationMembership<string>
 ): readonly ControllerDependency[] {
     const candidates = relationProject(parameters, parameter => {
-        const type = namedParameterType(parameter.type);
+        const type = controllerParameterClassName(parameter.semantic);
         return relationOptionFold(type, () => relationNone<ControllerDependency>(), typeName => {
             const contextualResolution = resolveContextualAttributeResolution(parameter, customContextualAttributeNames);
-            const excluded = relationGate(
-                relationIsNone(contextualResolution),
-                () => relationAny([
-                    relationEqual(FRAMEWORK_REQUEST_TYPE_KNOWLEDGE[typeName], true),
-                    relationOptionFold(relationIndexLookup(formRequestIndex, typeName), () => false, () => true),
-                    relationContains(modelNames, typeName),
-                ]),
-                () => false,
-            );
+            const excluded = relationAny([
+                relationIsPresent(contextualResolution),
+                relationEqual(parameter.semantic.kind, 'model_origin'),
+                relationEqual(parameter.semantic.kind, 'request_origin'),
+            ]);
             return relationGate(excluded, () => relationNone<ControllerDependency>(), () => relationSome<ControllerDependency>({
                 kind: 'controller_dependency',
                 injection: { kind: 'method' } satisfies ControllerDependencyInjection,
@@ -274,39 +280,30 @@ function createVariableName(value: string): VariableName {
     return { kind: 'variable_name', value: { kind: 'string_value', value } };
 }
 
-function namedParameterType(type: PhpParameterTypeAst): RelationOption<string> {
-    return relationGate(
-        relationEqual(type.kind, 'named'),
-        () => relationSome(relationVariantValue(type, 'named').name),
-        () => relationGate(
-            relationEqual(type.kind, 'nullable'),
-            () => namedParameterType(relationVariantValue(type, 'nullable').inner),
-            () => relationNone<string>(),
-        ),
-    );
-}
 
 function resolveRequest(
     parameters: readonly ControllerParameterAst[],
     formRequestIndex: RelationIndex<string, FormRequestSource>
 ): RequestContract {
-    const candidates = relationProject(parameters, parameter => relationGate(
-        relationEqual(parameter.type.kind, 'named'),
-        () => {
-            const type = relationVariantValue(parameter.type, 'named');
-            const source = relationIndexLookup(formRequestIndex, type.name);
+    const candidates = relationProject(parameters, parameter => {
+        const typeName = relationGate(
+            relationEqual(parameter.semantic.kind, 'request_origin'),
+            () => relationSome(parameter.semantic.name.value.value),
+            () => relationNone<string>(),
+        );
+        return relationOptionFold(typeName, () => relationNone<RequestContract>(), name => {
+            const source = relationIndexLookup(formRequestIndex, name);
             return relationGate(
                 relationEqual(source.kind, 'some'),
                 () => relationOptionFold(source, () => relationNone<RequestContract>(), value => relationSome<RequestContract>({ kind: 'form_request', source: value })),
                 () => relationGate(
-                    relationEqual(FRAMEWORK_REQUEST_TYPE_KNOWLEDGE[type.name], true),
-                    () => relationSome<RequestContract>({ kind: 'framework_request', type: SemanticValueFactory.className(type.name) }),
+                    relationEqual(FRAMEWORK_REQUEST_TYPE_KNOWLEDGE[name], true),
+                    () => relationSome<RequestContract>({ kind: 'framework_request', type: SemanticValueFactory.className(name) }),
                     () => relationNone<RequestContract>(),
                 ),
             );
-        },
-        () => relationNone<RequestContract>(),
-    ));
+        });
+    });
     return relationOptionFold(relationFirstOption(candidates, relationIsPresent), () => ({ kind: 'no_request' as const }), candidate => relationOptionFold(candidate, () => ({ kind: 'no_request' as const }), value => value));
 }
 

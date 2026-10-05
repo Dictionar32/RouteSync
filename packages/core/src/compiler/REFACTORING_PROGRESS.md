@@ -23,7 +23,6 @@ Refactoring monolithic `compiler.ts` (3245 lines) into modular domain-based stru
   - `ExpressionIRArtifact.ts`
   - `LoweredTypeArtifact.ts`
   - `DiagnosticArtifact.ts`
-  - `DependencyGraphArtifact.ts`
   - `SemanticIRArtifact.ts`
   - `ContractGraphArtifact.ts`
   - `CompilationResultArtifact.ts`

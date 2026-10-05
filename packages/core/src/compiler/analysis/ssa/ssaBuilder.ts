@@ -3,10 +3,10 @@
 import type { ControlFlowGraph, BasicBlock, Instruction, Operand } from '../../utils/ControlFlowGraph';
 import { basicBlockLookup, basicBlockReplace, createControlFlowGraph, type BasicBlockRelation } from '../../utils/ControlFlowGraph';
 import type { DominanceFrontier } from '../DominatorAnalysis';
-import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationFoundation';
-import { relationVariantValue } from '../../../semantic/kernel/relationalSequence';
-import { relationAll, relationFold } from '../../../semantic/kernel/relationalSequence';
+import { relationContains, relationInsert } from '../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/foundation/relationFoundation';
+import { relationVariantValue } from '../../../semantic/foundation/relationalSequence';
+import { relationAll, relationFold } from '../../../semantic/foundation/relationalSequence';
 
 export interface SSAPhiFacts {
     readonly definition: readonly (readonly [number, number])[];

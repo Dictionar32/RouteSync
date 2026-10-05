@@ -4,8 +4,8 @@ import type { Expression } from '../../../types/upstream/expression';
 import type { PhpAstValue } from '../lexer/phpAstExpressionTypes';
 import { createSourceFile } from '../../../types/upstream/names';
 import { stringValue } from '../../../types/upstream/names';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationGate, relationLookup, relationOptionFold, relationVariantValue } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationGate, relationLookup, relationOptionFold, relationVariantValue } from '../../../semantic/foundation/relationalSequence';
 
 const expressionSurfaces: readonly (readonly [string, ExpressionSurface])[] = Object.freeze([
   ['literal', { kind: 'php_literal' }],

@@ -15,8 +15,7 @@ import { ModelGenerator } from '../generators/ModelGenerator'
 import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
 import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
-import { ScannedModel } from '../utils/incremental'
-import { StaticLaravelScanner, createLaravelSourceProjectIdentity } from '@routesync/core'
+import { StaticLaravelScanner, createLaravelSourceProjectIdentity, lowerRouteSyncManifestToRouteManifest, IRNodeRegistry } from '@routesync/core'
 
 import fs from 'fs-extra'
 
@@ -47,58 +46,23 @@ export const syncCommand = new Command('sync')
     try {
       // Step 1: Scan via StaticLaravelScanner (0 PHP subprocess)
       const targetDir = process.cwd()
-      const manifest: any = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(targetDir), {
+      const sourceProject = createLaravelSourceProjectIdentity(targetDir)
+      const scannedManifest = await StaticLaravelScanner.scan(sourceProject, {
         baseURL: options.baseURL,
         version: '6.0.0'
       })
-      const routes = (manifest.routes || []) as any[]
-      const models = (manifest.models || []) as any[]
-      const resources = (manifest.resources || []) as any[]
-      const channels = (manifest.channels || []) as any[]
-
-      // Semantic Kernel V2 resolution
-      const { SemanticKernelV2Impl } = await import('@routesync/core')
-      const kernel = new SemanticKernelV2Impl()
-
-      const graphModels: Record<string, unknown> = {}
-      if (models) {
-        models.forEach((m) => {
-          const fields: Record<string, unknown> = {}
-          if (m.columns) {
-            m.columns.forEach((col) => {
-              const baseType = kernel.mapSqlTypeToTs(col.type)
-              let castedType = baseType
-              if (m.casts && m.casts[col.name]) {
-                castedType = kernel.mapCastToTs(m.casts[col.name], baseType)
-              }
-              fields[col.name] = { type: castedType, nullable: !!col.nullable }
-            })
-          }
-          graphModels[m.name] = {
-            kind: 'model_node',
-            name: m.name,
-            table: m.table,
-            fields: fields,
-            relations: m.relations,
-            accessors: m.accessors,
-            layer: 'model',
-            confidence: 1.0
-          }
-        })
-      }
-
-      kernel.loadGraph({
-        services: {},
-        controllers: {},
-        models: graphModels,
-        edges: []
-      })
-      
+      const resolvedManifest = lowerRouteSyncManifestToRouteManifest(
+        scannedManifest,
+        options.baseURL,
+        '6.0.0',
+      )
+      const routes = resolvedManifest.routes
+      const models = resolvedManifest.models
+      const resources = resolvedManifest.resources
+      const channels = resolvedManifest.channels
       const pathModule = require('path')
       const localManifestPath = pathModule.resolve(process.cwd(), 'routesync.manifest.json')
-
-      const { resolveManifestIncrementally } = await import('../utils/incremental')
-      const { manifest: resolvedManifest, irRegistry } = resolveManifestIncrementally(manifest, localManifestPath, kernel, models as ScannedModel[] | undefined)
+      const irRegistry = new IRNodeRegistry()
 
       // Save the resolved manifest locally
       await ManifestGenerator.save(resolvedManifest, localManifestPath)

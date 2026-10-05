@@ -2,7 +2,7 @@ import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { PrimitiveKind, PrimitiveType, primitiveType } from '../../../compiler/types/SemanticType';
 import type { SemanticType } from '../../../compiler/types/SemanticType';
 import type { ModelSemanticDefinition } from '../../../types/upstream/model';
-import { relationAll, relationAny, relationEqual, relationResolve } from '../../../semantic/kernel/semanticRelations';
+import { relationAll, relationAny, relationEqual, relationResolve } from '../../../semantic/foundation/semanticRelations';
 
 export function aggregateType(
   aggregate: 'avg' | 'count' | 'sum' | 'min' | 'max',

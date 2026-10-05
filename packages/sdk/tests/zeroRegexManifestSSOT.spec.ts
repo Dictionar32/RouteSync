@@ -1,8 +1,8 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest';
 import {
     ScannedResourceDescriptor,
-    RouteSemanticFlowFactory,
-    RouteManifest
+      RouteManifest
 } from '@routesync/core';
 import { buildEnumsLines } from '../../cli/src/generators/constants/enumConstantsBuilder';
 import { buildRoutesLines } from '../../cli/src/generators/constants/routesObjectBuilder';

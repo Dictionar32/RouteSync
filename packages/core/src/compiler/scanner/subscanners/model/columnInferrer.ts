@@ -6,8 +6,8 @@ import type { Columns, Indexes, ForeignKeys } from '../../../../types/upstream/c
 import type { MigrationAst } from '../../../../types/upstream/ast';
 import type { MigrationOperation } from '../../../../types/upstream/migration';
 import type { TableName } from '../../../../types/upstream/names';
-import { relationEqual, relationGate } from '../../../../semantic/kernel/semanticRelations';
-import { relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate } from '../../../../semantic/foundation/semanticRelations';
+import { relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 
 type SchemaWitness = {
     readonly columns: Columns;

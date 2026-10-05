@@ -24,8 +24,8 @@ import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 import type { RouteBoundaryOptions, ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
 import type { RouteRequestBinding } from "../../../../types/domain/request";
 import type { BaseValidationRuleNode } from "../../../../types/domain/validationRules";
-import { relationAny, relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
-import { relationProject, relationVariantFold, relationTextSlice } from "../../../../semantic/kernel/relationalSequence";
+import { relationAny, relationEqual, relationGate } from "../../../../semantic/foundation/semanticRelations";
+import { relationProject, relationVariantFold, relationTextSlice } from "../../../../semantic/foundation/relationalSequence";
 import { present, presenceFold, presenceOf, type Presence } from "../../../../types/upstream/presence";
 import { truthValue, type TruthValue } from "../../../../types/upstream/valueObjects";
 

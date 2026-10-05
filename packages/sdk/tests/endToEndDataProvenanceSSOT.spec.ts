@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest'
 import {
   DataProvenanceKind,
@@ -7,7 +8,6 @@ import {
   DataProvenanceVisitor,
   ScannedEndpointProvenanceDescriptor,
   ScannedEndpointContract,
-  RouteSemanticFlowFactory,
   ResourceResponseDescriptor,
   getRouteContract
 } from '../../core/src'

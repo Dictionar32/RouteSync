@@ -5,8 +5,8 @@ import type { Sequence } from '../../../../types/upstream/collections';
 import { createRoutePath } from '../../../../types/upstream/names';
 import type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 import type { RouteMiddlewareMutation } from '../../../../types/upstream/route';
-import { relationAdvanceIndex, relationGate, relationProject, relationVariantFold } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationAdvanceIndex, relationGate, relationProject, relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 
 export interface RouteGroupResolutionJudgment {
   readonly kind: 'route_group_resolution_judgment';

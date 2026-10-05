@@ -6,8 +6,8 @@ import type { ObjectType, SemanticType } from '../../types/SemanticType';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import type { PropertyName } from '../../../types/upstream/names';
 import type { Presence } from '../../../types/upstream/primitiveVocabulary';
-import { relationProject, relationResolve, relationSelect } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationProject, relationResolve, relationSelect } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import {
     ResolvedObjectType as CanonicalResolvedObjectType,
     ResolvedNullableType,

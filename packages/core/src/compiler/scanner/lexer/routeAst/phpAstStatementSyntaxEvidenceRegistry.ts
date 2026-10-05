@@ -6,8 +6,8 @@ import { matchPhpStatement } from '../phpAstAlgebra';
 import type { semanticSource } from './semanticKnowledgeDataFlowRelations';
 import { PHP_STATEMENT_KINDS } from '../phpAstStatementKinds';
 import { relationResolve, projectRelation } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, relationRefine } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationNotEqual, relationNone, relationSome } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationRefine } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationNotEqual, relationNone, relationSome } from '../../../../semantic/foundation/semanticRelations';
 
 /**
  * Declarative syntax-evidence registry for statement-shaped PHP input.
@@ -151,7 +151,7 @@ throw_statement: value => {
   emit(region);
 },
 [PHP_STATEMENT_KINDS.countedRecurrence]: value => {
-  const clauseExpression = (clause: typeof value.initializer, hint: string): import('../../../../semantic/kernel/relationalSequence').RelationOption<KnowledgeId> => relationCase(clause, current => current.kind, {
+  const clauseExpression = (clause: typeof value.initializer, hint: string): import('../../../../semantic/foundation/relationalSequence').RelationOption<KnowledgeId> => relationCase(clause, current => current.kind, {
     empty: () => relationNone(),
     expression: current => relationSome(expression(current.value, hint)),
   }, current => relationSome(expression(current.value, `${hint}:value`)));

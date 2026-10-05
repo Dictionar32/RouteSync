@@ -2,9 +2,9 @@
 import type { RouteSemanticFlow } from '../../../../types/route';
 import { TypeInterner } from '../../../types/TypeInterner';
 import type { ModelAst, ResourceAst } from '../../../../types/upstream/ast';
-import { relationFold } from '../../../../semantic/kernel/relationalSequence';
-import type { RelationIndex } from '../../../../semantic/kernel/relationMembership';
-import { relationIndexAdd } from '../../../../semantic/kernel/relationMembership';
+import { relationFold } from '../../../../semantic/foundation/relationalSequence';
+import type { RelationIndex } from '../../../../semantic/foundation/relationMembership';
+import { relationIndexAdd } from '../../../../semantic/foundation/relationMembership';
 
 export interface SemanticDerivationContext {
   readonly resources: readonly ResourceAst[];

@@ -2,9 +2,9 @@
 import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
 import type { DominatorTree } from '../DominatorAnalysis';
 import type { LoopInfo, LoopRelations } from './loopTypes';
-import { relationContains, relationInsert, type RelationMembership, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationFold, relationOptionFold, relationResolve } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/relationFoundation';
+import { relationContains, relationInsert, type RelationMembership, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationFold, relationOptionFold, relationResolve } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/relationFoundation';
 import { basicBlockLookup } from '../../utils/ControlFlowGraph';
 
 export function getNaturalLoopBlocks(header: number, backEdges: readonly number[], cfg: ControlFlowGraph): RelationMembership<number> {

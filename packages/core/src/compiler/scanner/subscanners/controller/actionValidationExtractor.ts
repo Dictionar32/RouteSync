@@ -1,6 +1,6 @@
-import { relationNormalizeWhitespace, relationAll } from '../../../../semantic/kernel/semanticRelations';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationNormalizeWhitespace, relationAll } from '../../../../semantic/foundation/semanticRelations';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 /**
  * actionValidationExtractor.ts
  *

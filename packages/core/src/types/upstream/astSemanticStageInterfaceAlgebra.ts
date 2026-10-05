@@ -15,8 +15,8 @@ import type {
 } from './astSemanticStageInterface';
 import { astSemanticStageFacts } from './astSemanticStageInterface';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
-import { relationEqual, relationResolve } from '../../semantic/kernel/semanticRelations';
-import { relationGate, relationNone, relationSome, type RelationOption } from '../../semantic/kernel/relationalSequence';
+import { relationEqual, relationResolve } from '../../semantic/foundation/semanticRelations';
+import { relationGate, relationNone, relationSome, type RelationOption } from '../../semantic/foundation/relationalSequence';
 
 export type AstSemanticStageInterface = Readonly<{
   readonly kind: 'ast_semantic_stage_interface';

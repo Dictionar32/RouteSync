@@ -12,7 +12,7 @@ import type { ResponseDtoDeclarationAst } from '../../lexer/responseDtoAstTypes'
 import type { ResponseContractField, ResponseNullability, ResponseValueContract } from '../../../../types/domain/responseContracts';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { createResponseFieldName, createResponseTypeName } from '../../../../types/domain/semanticValueFactories';
-import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, relationVariantFold, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, relationVariantFold, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 
 export interface ResponseDtoAnalysis {
     readonly fields: readonly ResourceFieldSemanticBinding[];

@@ -2,8 +2,8 @@ import type { PhpAstValue, PhpClassPropertyAst } from "../../lexer";
 import type { ModelKeyKind } from "../../../../types/upstream/model";
 import { createColumnName, createPropertyName, createTableName } from "../../../../types/upstream/names";
 import type { TableName, ColumnName, PropertyName } from "../../../../types/upstream/names";
-import { relationAll, relationEqual } from "../../../../semantic/kernel/semanticRelations";
-import { relationFold, relationFirstOption, relationOptionFold, relationRefine, relationSelect, relationSome, relationNone } from "../../../../semantic/kernel/relationalSequence";
+import { relationAll, relationEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationFold, relationFirstOption, relationOptionFold, relationRefine, relationSelect, relationSome, relationNone } from "../../../../semantic/foundation/relationalSequence";
 
 type ModelPropertyState = {
     table: TableName;

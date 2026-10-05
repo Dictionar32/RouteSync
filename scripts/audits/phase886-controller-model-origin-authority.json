@@ -1,0 +1,19 @@
+{
+  "phase": 886,
+  "authority": "controller_model_origin",
+  "classification": "UPSTREAM_MODEL_ORIGIN_AUTHORITY",
+  "controllerParser": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+  "routeProducer": "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts",
+  "routeParameterFactory": "packages/core/src/compiler/scanner/semantic/route/routeParameterSemanticFactory.ts",
+  "parserProducesModelOrigin": true,
+  "routeConsumesControllerSemantic": true,
+  "routeIndexesModelReferences": true,
+  "routeDoesNotParseParameterType": true,
+  "routeDoesNotInferControllerModelName": true,
+  "routeProjectsExistingModelName": true,
+  "factoryStillOwnsRouteCandidateInference": true,
+  "conclusion": "ControllerParameterAst.semantic.model_origin is the upstream authority for resolved controller model identity. Route binding enrichment now projects that ModelName into ModelReference instead of reparsing ControllerParameterAst.type or reconstructing a model name from the parameter type string. RouteParameterSemanticFactory retains only route-side candidate inference for unresolved path syntax.",
+  "emptyLegacyFileCount": 203,
+  "emptyLegacyFileCountStable": true,
+  "deletedFiles": 0
+}

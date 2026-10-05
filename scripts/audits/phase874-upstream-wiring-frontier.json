@@ -1,0 +1,2873 @@
+{
+  "phase": 874,
+  "principle": "trace upstream producer -> canonical state -> downstream consumer; do not infer consumers from declarations alone",
+  "declarationCount": 1030,
+  "zeroExternalProductionReferenceCount": 524,
+  "zeroExternalProductionReferences": [
+    {
+      "file": "packages/core/src/types/upstream/application.ts",
+      "name": "DtoMethod",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/application.ts",
+      "name": "ProviderContainerLifecycleOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/application.ts",
+      "name": "ProviderContainerOperations",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/application.ts",
+      "name": "MiddlewareAsts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/application.ts",
+      "name": "ProviderAsts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/application.ts",
+      "name": "AttributeAsts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/assignment.ts",
+      "name": "AssignmentDestructuringEntries",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/assignment.ts",
+      "name": "SourceMutation",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/assignment.ts",
+      "name": "MutationAst",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/assignment.ts",
+      "name": "AssignmentTargetVisitor",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/assignment.ts",
+      "name": "matchAssignmentTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "completeSourceProof",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/completeness.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstSequence",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstEvidence",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstEvidenceFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstEvidencePredicate",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstEvidenceValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstNodeKind",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstProvenance",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstConstraint",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstConstraints",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDependency",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDependencies",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstResolutionStatus",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDiagnostic",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDiagnostics",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstProofPremise",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDerivationStep",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDerivationTrace",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDerivation",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstSequence",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astSequenceCons",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstDerivation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astDerivationStep",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDomainSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDomainOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstRelationName",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstRelationTerm",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstRelationFact",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstRelationFacts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationRule",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationWitness",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSource",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstRelationFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstNodeSchema",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstSemanticSchemaKind",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "RouteAstSemantic",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstCompatibilityProjection",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgmentConstructor",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgmentAlgebra",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgmentInput",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgmentContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgmentBase",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgmentRegistry",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgment",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstJudgmentVisitor",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "matchAstJudgment",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "SemanticAstNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "CanonicalAstNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "AstDomainJudgmentInput",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astJudgmentAlgebra",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "SourceAst",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/completeness.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astDataflowInterface.ts",
+      "name": "AstDataflowDerivation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+      "name": "AstMappingRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+      "name": "AstMappingDerivation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+      "name": "AstMappingJudgment",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "ScannerSemanticStageInterface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "UpstreamMappingSemanticStageInterface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "ResolverGraphSemanticStageInterface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "AnalysisSemanticStageInterface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "SemanticTypeLoweringStageInterface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "TargetProjectionSemanticStageInterface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "AstSemanticAuthorityPipeline",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityPipeline",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/index.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityStage",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "createAstSemanticAuthorityPipeline",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticStage",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+        "packages/core/src/types/upstream/astSemanticStageContract.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+        "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+        "packages/core/src/types/upstream/astSemanticStageProof.ts",
+        "packages/core/src/types/upstream/astSemanticStageTransition.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticRelationName",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticFacts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticPremise",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticRule",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticDerivation",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticClosure",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticJudgment",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticProjection",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "AstSemanticInterface",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFacts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "createAstSemanticJudgment",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRuleTerm",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticWitnessTerm",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactFromRelation",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactsFromRelations",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "emptyAstSemanticFacts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "emptyAstSemanticSequence",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSequenceCons",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageContract.ts",
+      "name": "AstSemanticStageEdge",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageContract.ts",
+      "name": "AstSemanticStageGraph",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageContract.ts",
+      "name": "AST_SEMANTIC_STAGE_GRAPH",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageContract.ts",
+      "name": "stageGraphContains",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticStage",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts",
+        "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+        "packages/core/src/types/upstream/astSemanticInterface.ts",
+        "packages/core/src/types/upstream/astSemanticStageContract.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+        "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+        "packages/core/src/types/upstream/astSemanticStageProof.ts",
+        "packages/core/src/types/upstream/astSemanticStageTransition.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "ScannerEvidenceRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "UpstreamMappingRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AnalysisRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "SemanticTypeLoweringRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "TargetProjectionRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticReasoningMode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "ScannerEvidenceFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "UpstreamMappingFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AnalysisFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "SemanticTypeLoweringFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "TargetProjectionFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticStageFact",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "ScannerEvidenceFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "UpstreamMappingFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "ResolverGraphFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AnalysisFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "SemanticTypeLoweringFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "TargetProjectionFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "ScannerEvidenceContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "UpstreamMappingContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "ResolverGraphContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AnalysisContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "SemanticTypeLoweringContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "TargetProjectionContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticStageContract",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticStageContract.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+        "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+        "packages/core/src/types/upstream/astSemanticStageProof.ts",
+        "packages/core/src/types/upstream/astSemanticStageTransition.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticStageJudgment",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticStagePortKind",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticPipeline",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+        "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "AstSemanticBoundary",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "astSemanticStageFacts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "createAstSemanticStagePort",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "createAstSemanticBoundary",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "createAstSemanticPipeline",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "appendAstSemanticPort",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "pipelineFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "stageFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "astSemanticFactAtStage",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterface.ts",
+      "name": "astSemanticJudgmentPipeline",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticStageInterfaceAt",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticPipelineInterfaces",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticInterfaceFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticInterfaceProofs",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "AstSemanticPreservationFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "AstSemanticPreservationContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "preservationContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "stagePreservationFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageProof.ts",
+      "name": "AstSemanticProofStatus",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageProof.ts",
+      "name": "AstSemanticTerminalResult",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageProof.ts",
+      "name": "AstSemanticStageProofResult",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageProof.ts",
+      "name": "stageProofObligations",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticStageInterface.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageProof.ts",
+      "name": "stageProofInput",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageTransition.ts",
+      "name": "AstSemanticTransitionRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageTransition.ts",
+      "name": "AstSemanticRefinement",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageTransition.ts",
+      "name": "AstSemanticTransitionStatus",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageTransition.ts",
+      "name": "AstSemanticStageTransition",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageTransition.ts",
+      "name": "astSemanticStageTransition",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+        "packages/core/src/types/upstream/index.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "LookupVisitor",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "Discovered",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "SourceDiscoveryVisitor",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "SemanticValues",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/primitiveVocabulary.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "SqlExpressions",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/expression.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ResolvedExpressions",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "AssignmentAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "MutationAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "PropertyAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "QueryAsts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/query.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ExpressionAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "CatchHandlers",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/controller.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelRelations",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelCasts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelColumnFacts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelAccessors",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelConstants",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelMethods",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelTraits",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ModelAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ChannelAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ResourceAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "RouteAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ControllerAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ServiceAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "SchemaAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ResponseAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "DtoAsts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "PropertyPaths",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/expression.ts",
+        "packages/core/src/types/upstream/request.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ColumnNames",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/databaseVocabulary.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "RelationPaths",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/expression.ts",
+        "packages/core/src/types/upstream/resourceVocabulary.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ClosureCaptures",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/expression.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "VariableNames",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/assignment.ts",
+        "packages/core/src/types/upstream/sourceStatements.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "ServiceParameters",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/service.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/collections.ts",
+      "name": "CompletenessFailures",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/completeness.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/compilerPassFailure.ts",
+      "name": "CompilerPassFailure",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/completeness.ts",
+      "name": "SourceCategory",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/completeness.ts",
+      "name": "UpstreamStage",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/completeness.ts",
+      "name": "CompletenessFailure",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/completeness.ts",
+      "name": "CompleteManifest",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/completeness.ts",
+      "name": "IncompleteUpstream",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "RequestBinding",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerMethodVisibility",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerParameterKind",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerParameter",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerContextualAttribute",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerCustomContextualAttribute",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerResolvedContextualAttribute",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerFailureContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerMethodContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerExpressionOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerExpressionFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controller.ts",
+      "name": "ControllerHelper",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelContracts.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/databaseVocabulary.ts",
+      "name": "IntegerWidth",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/databaseVocabulary.ts",
+      "name": "ColumnDefault",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/endpointBindings.ts",
+      "name": "EndpointRequestParameter",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ConditionalExpressionBranches",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "InterpolatedStringPart",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "InterpolatedStringParts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "CollectionOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ExpressionArgumentName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureParameterPassing",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureParameterVariadic",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureParameterDefault",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureParameterType",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureParameters",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "RequestArgument",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "RequestArgumentMode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ResponseJsonStatus",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ResponseOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "RedirectOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ValidationOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "HttpClientOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "StringValueOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "PdfOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ApplicationOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "DateTimeOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "RequestOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryOrderingNullPlacement",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryHavingCondition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryHaving",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryLock",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryRelationOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryRelation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryColumnComparisons",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryColumnList",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryLikeCaseSensitivity",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryJsonCondition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryLikeNegation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryCondition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryIndexHint",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryChunkById",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryLazyById",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryIterationDirection",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryIteration",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryReturning",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryMutation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryPipeline",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryExecutionHook",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryExecutionConfiguration",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryTerminal",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryOperation",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/query.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "QueryJoinTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "JoinType",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "AggregateOperand",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ModelStaticOperation",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/query.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "AuthenticationOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "MethodOperation",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/primitiveVocabulary.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "FrameworkStaticReceiver",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "AttributeCaching",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "AttributeFactoryConfiguration",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "AttributeFactoryDefinition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ResourceStaticOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "SqlAggregate",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "SqlExpression",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "SqlBinaryOperator",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClassConstantReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ExpressionDefinition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "AnonymousClass",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "MagicConstant",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ConstantReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureCapture",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureForeachTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/expression.ts",
+      "name": "ClosureUnsupportedStatementReason",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ResponseSemanticShape",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ModelRelationSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ResourceTransformationSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "RequestValidationSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ResponseOutcomeSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "RouteSemanticSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ControllerDataflowSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ControllerDependencyFlowSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ServiceDependencySurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "RelationHighLevelContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ResponseHighLevelContract",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ControllerActionHighLevelContract",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ControllerHelperHighLevelContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ControllerHighLevelContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ServiceHighLevelContract",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ProviderContainerBindingSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ProviderBindingAttributeSurface",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ProviderHighLevelContract",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "LaravelDomainContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "LaravelSemanticContractCatalog",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "LaravelSemanticLookup",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelContracts.ts",
+      "name": "ResourceFieldSemanticContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "ModelSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "modelSemanticNodeFromAst",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "ResourceSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "RequestSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "ResponseSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "ControllerSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "ServiceSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "ChannelSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "ProviderSemanticNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "SourceModelCatalog",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "SourceModelReferenceIndex",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "sourceModelReferenceIndexFromCatalog",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "semanticContractCatalogFromSourceCatalog",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "name": "CompleteSourceModelBuildResult",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/manifest.ts",
+      "name": "ManifestVersion",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/manifest.ts",
+      "name": "ManifestSource",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/manifest.ts",
+      "name": "UpstreamBoundary",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/manifest.ts",
+      "name": "UpstreamManifestConstructionBoundary",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/migration.ts",
+      "name": "MigrationDefinition",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/migration.ts",
+      "name": "MigrationOperations",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelTable",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelKeyOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "DatabaseColumnType",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelIdentity",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelKey",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelBehaviorOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelBehaviorSetting",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelBehavior",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelVisibility",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelMassAssignment",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelConfigurationDeclaration",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelExposure",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelRelationMultiplicity",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "RelationKeyOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelSchema",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelConstantVisibility",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelMethodVisibility",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/resource.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "ModelMethodResult",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/modelVocabulary.ts",
+      "name": "ModelAccessorVisibility",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts",
+        "packages/core/src/types/upstream/modelSourceFacts.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/modelVocabulary.ts",
+      "name": "ModelConfigurationVisibility",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/modelVocabulary.ts",
+      "name": "ModelAccessorResult",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts",
+        "packages/core/src/types/upstream/modelSourceFacts.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "EnumName",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/routeConstraints.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "ServiceName",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/ast.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createExceptionName",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/compilerPassFailure.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "ChannelName",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/channel.ts",
+        "packages/core/src/types/upstream/semanticReferences.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createEnumName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "modelNameMatchesClassName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createServiceName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createConstantName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/presence.ts",
+      "name": "isAbsent",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/presence.ts",
+      "name": "FlagPresence",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/presence.ts",
+      "name": "fromBooleanFlag",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/presence.ts",
+      "name": "mapPresence",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/presence.ts",
+      "name": "bindPresence",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/primitiveVocabulary.ts",
+      "name": "SemanticScalar",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/primitiveVocabulary.ts",
+      "name": "SemanticCall",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/primitiveVocabulary.ts",
+      "name": "SemanticFlag",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "PropertyOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "AccessorBacking",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "PropertyInputOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "CastBuiltin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "CastClassRole",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "CastParameterValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "CastParameter",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "CastParameters",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "CastSpecification",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "CastDefinition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "ModelConfigurationProperty",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "ClassPropertyRole",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/property.ts",
+      "name": "PropertySurface",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/model.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/query.ts",
+      "name": "QuerySubqueryOuterReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/query.ts",
+      "name": "QueryAsts",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "ValidationRuleSource",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "ValidationRuleEntry",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestHttpMethod",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestHeaderName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestServerVariableName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestCookieName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestRouteParameterName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestPathValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestUrlValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestUriValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestFormatName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestHostValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestIpAddress",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestContentNegotiation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestPrecognitionAccess",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestPathMatch",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestSignatureAccess",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestHttpMetadataAccess",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputSource",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputReadMode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputRead",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestDataAccess",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputSelection",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputPresence",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputMutation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputFlash",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputConditionalCallback",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputCallbackParameter",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputConditionalKind",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationField",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationFields",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationInvocation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputAccess",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestInputAccesses",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestHttpContext",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestRuleCondition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "ValidationRuleArguments",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "ValidationRuleDefinition",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidatorReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationCallback",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationLifecycles",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationMessage",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationAttribute",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationFailurePolicy",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestUnknownFieldPolicyOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestUnknownFieldPolicy",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestRedirectTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestErrorBag",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "ValidatedInputSelection",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "ValidatedInputOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "UniqueTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestUniqueIgnoreTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestDefault",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestAuthorizationOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestSourceIdentity",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestSchema",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationCapability",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestValidationCapabilityVisitor",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "matchRequestValidationCapability",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/request.ts",
+      "name": "RequestFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceFieldOperation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceRequestAwareness",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceOperations",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceResponseCustomization",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceRelationProjection",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceResponsePresence",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceAction",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/collections.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/resource.ts",
+      "name": "ResourceResponse",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+      "name": "ResourceOperationValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+      "name": "ResourceOperationDefault",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+      "name": "ResourceAggregateFunction",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/resource.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+      "name": "ResourceOperationKind",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+      "name": "ResourceOperationKindVisitor",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseHeaderName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseCookieName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseJsonShape",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelContracts.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseView",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseContent",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseHeader",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseCookieAttribute",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseCookie",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseStatusOrigin",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseFailure",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseOutcome",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseFacts",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/response.ts",
+      "name": "ResponseDefinitionContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteCacheInvalidation",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteMiddlewareGroupReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteModelBindingFailure",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteModelBindingOptions",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteIdentity",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteBindings",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteProvenance",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteViewData",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteResourceRegistration",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/routeResourceFlow.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteResourceController",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteResourceMiddlewareRule",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteSignatureRequirement",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "RouteDefaultValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeConstraints.ts",
+      "name": "RouteConstraintSyntaxMethod",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/routeGroupFacts.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeConstraints.ts",
+      "name": "RouteConstraintSource",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeConstraints.ts",
+      "name": "RouteConstraintMatcher",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeConstraints.ts",
+      "name": "RouteConstraintAllowedValue",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeConstraints.ts",
+      "name": "RouteConstraintContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeConstraints.ts",
+      "name": "RouteConstraintFlow",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeGroupFacts.ts",
+      "name": "RouteGroupBindingScopeFact",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeMiddleware.ts",
+      "name": "RouteMiddlewareReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeMiddleware.ts",
+      "name": "RouteMiddlewareSource",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeMiddleware.ts",
+      "name": "RouteMiddlewareContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeMiddleware.ts",
+      "name": "RouteMiddlewareExclusionContract",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeMiddleware.ts",
+      "name": "RouteMiddlewareFlow",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "ApiResourceAction",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "ApiResourceHttpMethod",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "RouteResourceActionPlan",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "RouteResourceFlowPlan",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "RouteResourceFlowJudgment",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "singularizeLaravelResourceName",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "ResourceActionKnowledge",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "RESOURCE_ACTION_KNOWLEDGE",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "ResolveApiResourceFlowInput",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "resolveApiResourceFlowJudgment",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "resolveApiResourceFlow",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "defaultApiResourceRegistration",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/schema.ts",
+      "name": "SchemaTables",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "RouteReference",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "ChannelReference",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "SourceReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "SemanticRelationGraph",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/service.ts",
+      "name": "ServiceReturnType",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/service.ts",
+      "name": "ServiceParameterDefault",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/service.ts",
+      "name": "ResolvedServiceDependency",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/service.ts",
+      "name": "ServiceDependencyTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/service.ts",
+      "name": "resolveServiceDependencyTarget",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/highLevelSourceModel.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/service.ts",
+      "name": "ServiceMethods",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceBoundary.ts",
+      "name": "CanonicalSourceNode",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceBoundary.ts",
+      "name": "SourceBoundaryInput",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceStatements.ts",
+      "name": "SourceCatchHandlers",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceStatements.ts",
+      "name": "SourceUnsetTargets",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/assignment.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceStatements.ts",
+      "name": "SourceForEachTarget",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceStatements.ts",
+      "name": "SourceIncludeKind",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/typeVocabulary.ts",
+      "name": "TypeReference",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/typeVocabulary.ts",
+      "name": "TypeProperties",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/typeVocabulary.ts",
+      "name": "TypeParameter",
+      "upstreamProductionRefs": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/valueObjects.ts",
+      "name": "StatementIndex",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/controller.ts"
+      ]
+    },
+    {
+      "file": "packages/core/src/types/upstream/valueObjects.ts",
+      "name": "StatementPath",
+      "upstreamProductionRefs": [
+        "packages/core/src/types/upstream/controller.ts"
+      ]
+    }
+  ],
+  "knownAuthorityPipelineGap": {
+    "authorityPipelineDefinition": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+    "consumerCount": 0,
+    "createConsumerCount": 0,
+    "status": "defined but not consumed by production compiler path"
+  }
+}

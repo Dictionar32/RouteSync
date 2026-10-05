@@ -7,8 +7,8 @@
 import { project, retain } from './semanticRelationalCollections';
 import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationAtom, type SemanticRelationPattern, type SemanticRelationRewrite } from './semanticRewriteEngine';
 import type { SemanticRewriteRule, SemanticRewritePatternTerm, SemanticRewriteTerm } from './semanticRewriteInterface';
-import { relationResolve, relationFirst, relationOptionFold, relationOptionMap, relationOptionalFold, relationRefine, relationVariant, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationAny, relationGate, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../../../semantic/kernel/semanticRelations';
+import { relationResolve, relationFirst, relationOptionFold, relationOptionMap, relationOptionalFold, relationRefine, relationVariant, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationGate, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../../../semantic/foundation/semanticRelations';
 
 export type { SemanticRelation } from './semanticRewriteEngine';
 export type SemanticConstraintTerm = SemanticRelationAtom | Readonly<{ readonly variable: string }>;

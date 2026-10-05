@@ -11,8 +11,8 @@ import type { TokenDescriptor } from '../lexer/phpAstTypes';
 import { createBroadcastChannel } from "../descriptors/channel/channelFactories";
 import { RouteParameterSemanticFactory } from '../semantic/route/routeParameterSemanticFactory';
 import { channelProducer } from './channelProducer';
-import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationGate, relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationGate, relationProject } from '../../../semantic/foundation/relationalSequence';
 
 type ScannedChannelDeclaration = {
     readonly channel: BroadcastChannelDescriptor;

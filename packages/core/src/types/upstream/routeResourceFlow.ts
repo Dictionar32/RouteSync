@@ -10,8 +10,8 @@ import type { ActionName, PropertyName, RouteParameterName, RoutePath, ResourceN
 import { createActionName, createRouteParameterName, createRoutePath } from './names';
 import type { RouteResourceRegistration } from './route';
 import type { Sequence } from './collections';
-import { relationContains } from '../../semantic/kernel/relationMembership';
-import { relationVariantFold } from '../../semantic/kernel/relationalSequence';
+import { relationContains } from '../../semantic/foundation/relationMembership';
+import { relationVariantFold } from '../../semantic/foundation/relationalSequence';
 import {
   relationEqual,
   relationFirstOption,
@@ -21,15 +21,15 @@ import {
   relationResolve,
   relationSelect,
   relationExpand,
+  relationAll,
   type RelationOption,
-} from '../../semantic/kernel/relationalSequence';
+} from '../../semantic/foundation/relationalSequence';
 
-export type ApiResourceAction =
-  | 'index'
-  | 'store'
-  | 'show'
-  | 'update'
-  | 'destroy';
+export type RouteResourceAction =
+  | 'index' | 'create' | 'store' | 'show' | 'edit' | 'update' | 'destroy';
+
+export type ApiResourceAction = Exclude<RouteResourceAction, 'create' | 'edit'>;
+export type RouteResourceMode = 'resource' | 'apiResource' | 'singleton' | 'apiSingleton';
 
 export type ApiResourceHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
@@ -59,7 +59,7 @@ export interface RouteResourceFlowJudgment {
 }
 
 const sequenceToArray = <T>(sequence: Sequence<T>, output: readonly T[] = []): readonly T[] =>
-  relationVariantFold(sequence, 'empty', () => output, value => sequenceToArray(value.tail, Object.freeze([...output, value.head])));
+  sequence.kind === 'empty' ? output : sequenceToArray(sequence.tail, Object.freeze([...output, sequence.head]));
 
 /** Laravel resource naming knowledge, represented as declarative rewrite data. */
 interface ExactResourceNameRule { readonly kind: 'exact'; readonly input: string; readonly output: string }
@@ -119,38 +119,42 @@ export function singularizeLaravelResourceName(value: string): string {
 }
 
 export interface ResourceActionKnowledge {
-  readonly action: ApiResourceAction;
+  readonly action: RouteResourceAction;
   readonly methods: readonly ApiResourceHttpMethod[];
-  readonly path: 'collection' | 'item';
+  readonly modes: readonly RouteResourceMode[];
+  readonly suffix: '' | '/create' | '/edit';
   readonly parameter: 'absent' | 'leaf';
   readonly capability: 'creatable' | 'destroyable' | 'always';
 }
 
 /** Laravel resource semantics as data, not action predicates. */
 export const RESOURCE_ACTION_KNOWLEDGE: readonly ResourceActionKnowledge[] = Object.freeze([
-  Object.freeze({ action: 'index', methods: Object.freeze(['GET']), path: 'collection', parameter: 'absent', capability: 'always' }),
-  Object.freeze({ action: 'store', methods: Object.freeze(['POST']), path: 'collection', parameter: 'absent', capability: 'creatable' }),
-  Object.freeze({ action: 'show', methods: Object.freeze(['GET']), path: 'item', parameter: 'leaf', capability: 'always' }),
-  Object.freeze({ action: 'update', methods: Object.freeze(['PUT', 'PATCH']), path: 'item', parameter: 'leaf', capability: 'always' }),
-  Object.freeze({ action: 'destroy', methods: Object.freeze(['DELETE']), path: 'item', parameter: 'leaf', capability: 'destroyable' }),
+  Object.freeze({ action: 'index', methods: Object.freeze(['GET'] as const), modes: Object.freeze(['resource', 'apiResource'] as const), suffix: '', parameter: 'absent', capability: 'always' }),
+  Object.freeze({ action: 'create', methods: Object.freeze(['GET'] as const), modes: Object.freeze(['resource', 'singleton'] as const), suffix: '/create', parameter: 'absent', capability: 'creatable' }),
+  Object.freeze({ action: 'store', methods: Object.freeze(['POST'] as const), modes: Object.freeze(['resource', 'apiResource', 'singleton', 'apiSingleton'] as const), suffix: '', parameter: 'absent', capability: 'creatable' }),
+  Object.freeze({ action: 'show', methods: Object.freeze(['GET'] as const), modes: Object.freeze(['resource', 'apiResource', 'singleton', 'apiSingleton'] as const), suffix: '', parameter: 'leaf', capability: 'always' }),
+  Object.freeze({ action: 'edit', methods: Object.freeze(['GET'] as const), modes: Object.freeze(['resource', 'singleton'] as const), suffix: '/edit', parameter: 'leaf', capability: 'always' }),
+  Object.freeze({ action: 'update', methods: Object.freeze(['PUT', 'PATCH'] as const), modes: Object.freeze(['resource', 'apiResource', 'singleton', 'apiSingleton'] as const), suffix: '', parameter: 'leaf', capability: 'always' }),
+  Object.freeze({ action: 'destroy', methods: Object.freeze(['DELETE'] as const), modes: Object.freeze(['resource', 'singleton', 'apiSingleton'] as const), suffix: '', parameter: 'leaf', capability: 'destroyable' }),
 ]);
 
-const knownAction = (value: ActionName): RelationOption<ApiResourceAction> => {
+const knownAction = (value: ActionName): RelationOption<RouteResourceAction> => {
   const option = relationFirstOption(RESOURCE_ACTION_KNOWLEDGE, knowledge => relationEqual(knowledge.action, value.value.value));
   return relationOptionFold(option, () => ({ kind: 'none' }), knowledge => ({ kind: 'some', value: knowledge.action }));
 };
 
-const actionNames = (registration: RouteResourceRegistration): readonly ApiResourceAction[] =>
+const actionNames = (registration: RouteResourceRegistration): readonly RouteResourceAction[] =>
   Object.freeze(relationExpand(sequenceToArray(registration.only), item => relationOptionFold(knownAction(item), () => [], value => [value])));
 
-const exceptNames = (registration: RouteResourceRegistration): readonly ApiResourceAction[] =>
+const exceptNames = (registration: RouteResourceRegistration): readonly RouteResourceAction[] =>
   Object.freeze(relationExpand(sequenceToArray(registration.except), item => relationOptionFold(knownAction(item), () => [], value => [value])));
 
-const capabilityValue = Object.freeze({
-  always: () => true,
-  creatable: (registration: RouteResourceRegistration) => registration.creatable.value,
-  destroyable: (registration: RouteResourceRegistration) => registration.destroyable.value,
-} satisfies Record<ResourceActionKnowledge['capability'], (registration: RouteResourceRegistration) => boolean>);
+const capabilityValue = (mode: RouteResourceMode, registration: RouteResourceRegistration, capability: ResourceActionKnowledge['capability']): boolean =>
+  capability === 'always'
+    ? true
+    : capability === 'creatable'
+      ? (mode === 'resource' || mode === 'apiResource' || registration.creatable.value)
+      : (mode === 'resource' || mode === 'apiResource' ? true : registration.destroyable.value);
 
 const actionAllowed = (registration: RouteResourceRegistration, knowledge: ResourceActionKnowledge): boolean =>
   relationResolve(
@@ -162,19 +166,20 @@ const actionAllowed = (registration: RouteResourceRegistration, knowledge: Resou
 const actionExcluded = (registration: RouteResourceRegistration, knowledge: ResourceActionKnowledge): boolean =>
   relationContains(exceptNames(registration), knowledge.action);
 
-const actionsOf = (registration: RouteResourceRegistration): readonly ResourceActionKnowledge[] =>
+const actionsOf = (registration: RouteResourceRegistration, mode: RouteResourceMode): readonly ResourceActionKnowledge[] =>
   Object.freeze(relationSelect(RESOURCE_ACTION_KNOWLEDGE, knowledge =>
-    relationResolve(
+    relationAll([
+      relationContains(knowledge.modes, mode),
       actionAllowed(registration, knowledge),
-      () => relationResolve(actionExcluded(registration, knowledge), () => false, () => capabilityValue[knowledge.capability](registration)),
-      () => false,
-    ),
+      relationResolve(actionExcluded(registration, knowledge), () => false, () => capabilityValue(mode, registration, knowledge.capability)),
+    ]),
   ));
 
 const resourceSegments = (rawResourcePath: string): readonly string[] =>
   relationSelect(rawResourcePath.replace(/^\/+|\/+$/g, '').split('.'), segment => segment.length > 0);
 
 export interface ResolveApiResourceFlowInput {
+  readonly mode?: RouteResourceMode;
   readonly declarationPath: RoutePath;
   readonly prefix: readonly RoutePath[];
   readonly resource: ResourceName;
@@ -206,16 +211,22 @@ export const resolveApiResourceFlowJudgment = (input: ResolveApiResourceFlowInpu
   const itemPath = relationResolve(input.registration.shallow.value, () => shallowPath, () => nestedPath);
   const collectionPath = createRoutePath(basePath);
   const item = createRoutePath(itemPath);
-  const selected = actionsOf(input.registration);
-  const paths = Object.freeze({ collection: collectionPath, item });
+  const mode = input.mode ?? 'apiResource';
+  const selected = actionsOf(input.registration, mode);
   const parameters = Object.freeze({ absent: Object.freeze([]), leaf: Object.freeze([...parameterNames]) });
-  const plan = Object.freeze(relationExpand(selected, knowledge => relationProject(knowledge.methods, method => ({
-    action: createActionName(knowledge.action),
-    method,
-    path: paths[knowledge.path],
-    parameter: relationResolve(relationEqual(knowledge.parameter, 'leaf'), () => leafParameter, () => ({ kind: 'absent' })),
-    parameters: parameters[knowledge.parameter],
-  }))));
+  const plan = Object.freeze(relationExpand(selected, knowledge => relationProject(knowledge.methods, method => {
+    const singleton = mode === 'singleton' || mode === 'apiSingleton';
+    const hasLeafParameter = knowledge.parameter === 'leaf' && !singleton;
+    const base = hasLeafParameter ? item : collectionPath;
+    const path = createRoutePath(`${base.value.value}${knowledge.suffix}`);
+    return {
+      action: createActionName(knowledge.action),
+      method,
+      path,
+      parameter: hasLeafParameter ? leafParameter : ({ kind: 'absent' } as const),
+      parameters: hasLeafParameter ? parameters.leaf : parameters.absent,
+    };
+  })));
 
   const planResult: RouteResourceFlowPlan = Object.freeze({
     kind: 'route_resource_flow_plan',
@@ -233,8 +244,16 @@ export const resolveApiResourceFlowJudgment = (input: ResolveApiResourceFlowInpu
   });
 }
 
+export function resolveRouteResourceFlowJudgment(input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode }): RouteResourceFlowJudgment {
+  return resolveApiResourceFlowJudgment(input);
+}
+
+export function resolveRouteResourceFlow(input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode }): RouteResourceFlowPlan {
+  return resolveRouteResourceFlowJudgment(input).plan;
+}
+
 export function resolveApiResourceFlow(input: ResolveApiResourceFlowInput): RouteResourceFlowPlan {
-  return resolveApiResourceFlowJudgment(input).plan;
+  return resolveApiResourceFlowJudgment({ ...input, mode: input.mode ?? 'apiResource' }).plan;
 }
 
 export function defaultApiResourceRegistration(resource: ResourceName, controller: RouteResourceRegistration['controller']): RouteResourceRegistration {
@@ -242,13 +261,13 @@ export function defaultApiResourceRegistration(resource: ResourceName, controlle
     kind: 'route_resource_registration',
     name: resource,
     controller,
-    only: { kind: 'empty' },
-    except: { kind: 'empty' },
-    shallow: { kind: 'truth_value', value: false },
-    scoped: { kind: 'truth_value', value: false },
-    parameters: { kind: 'empty' },
-    creatable: { kind: 'truth_value', value: true },
-    destroyable: { kind: 'truth_value', value: true },
-    middleware: { kind: 'empty' },
+    only: { kind: 'empty' } as Sequence<ActionName>,
+    except: { kind: 'empty' } as Sequence<ActionName>,
+    shallow: { kind: 'truth_value' as const, value: false },
+    scoped: { kind: 'truth_value' as const, value: false },
+    parameters: { kind: 'empty' } as Sequence<PropertyName>,
+    creatable: { kind: 'truth_value' as const, value: false },
+    destroyable: { kind: 'truth_value' as const, value: false },
+    middleware: { kind: 'empty' } as Sequence<import('./route').RouteResourceMiddlewareRule>,
   });
 }

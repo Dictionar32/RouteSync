@@ -20,8 +20,8 @@ import type { ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { RuntimeReturnContract } from './controllerActionContract';
 import type { ControllerReturnSemantic } from '../../../../types/upstream/controller';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
-import { relationGate } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationGate } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 
 export type ControllerActionInfo = ScannedControllerActionParams;
 

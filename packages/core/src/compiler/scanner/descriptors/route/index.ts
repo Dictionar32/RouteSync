@@ -1,7 +1,7 @@
 /**
  * index.ts
  *
- * Re-exports all Scanned Route Sub-Domain Descriptors and the Unifying RouteSemanticFlowFactory.
+ * Re-exports canonical scanned route sub-domain descriptors.
  *
  * @module core/compiler/scanner/descriptors/route
  */
@@ -20,8 +20,4 @@ export {
     type ScannedRouteQueryParameterParams
 } from "./routeParameters";
 
-// 5. The Unifying Composite Consumer Model
-export {
-    RouteSemanticFlowFactory
-} from "./RouteSemanticFlowFactory";
 

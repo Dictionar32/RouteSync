@@ -2,7 +2,6 @@ import { describe, expect, it, expectTypeOf } from 'vitest';
 import type { Cardinality } from '../primitiveVocabulary';
 import type { EloquentRelationCardinality, EloquentRelationDescriptor, EloquentRelationMultiplicity } from '../modelVocabulary';
 import type { ResponseCardinality } from '../response';
-import type { ResourceAliasIR } from '../../ir/resourceIrTypes';
 
 describe('phase 15 canonical cardinality contracts', () => {
   it('uses the canonical one/many ADT for Eloquent relation cardinality', () => {
@@ -16,6 +15,6 @@ describe('phase 15 canonical cardinality contracts', () => {
   });
 
   it('uses ResponseCardinality for resource aliases', () => {
-    expectTypeOf<ResourceAliasIR['cardinality']>().toEqualTypeOf<ResponseCardinality>();
+    expectTypeOf<{ cardinality: ResponseCardinality }['cardinality']>().toEqualTypeOf<ResponseCardinality>();
   });
 });

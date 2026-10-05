@@ -1,6 +1,6 @@
 import { createHash } from 'crypto'
 import { type SemanticIRNode, type SourceRef, type IRRawNode, type SemanticNode, type IRContext, IRHintsFactory } from '../types/semantic'
-import { relationProject } from '../semantic/kernel/semanticRelations'
+import { relationProject } from '../semantic/foundation/semanticRelations'
 import { matchSemanticNode } from '../types/semantic/semanticTypes'
 import type { PhpAstNode } from '../types/domain/phpAst'
 import { isObject, hasProperty, isString } from '../utils/type-guards'

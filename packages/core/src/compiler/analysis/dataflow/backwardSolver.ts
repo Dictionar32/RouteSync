@@ -1,7 +1,7 @@
 /** Declarative backward dataflow fixed-point solver. */
 import type { ControlFlowGraph, BasicBlock } from '../../utils/cfg/basicBlock';
 import type { FlowState, TransferFn, MergeFn } from './types';
-import type { RelationIndex } from '../../../semantic/kernel/relationMembership';
+import type { RelationIndex } from '../../../semantic/foundation/relationMembership';
 import {
   relationEvery,
   relationFirstOption,
@@ -9,8 +9,8 @@ import {
   relationProject,
   relationResolve,
   relationFixedPoint,
-} from '../../../semantic/kernel/relationalSequence';
-import { relationNotEqual } from '../../../semantic/kernel/semanticRelations';
+} from '../../../semantic/foundation/relationalSequence';
+import { relationNotEqual } from '../../../semantic/foundation/semanticRelations';
 
 const flowEntry = <T>(id: number, state: FlowState<T>): readonly [number, FlowState<T>] => [id, state];
 

@@ -1,0 +1,5 @@
+{
+  "phase": 875,
+  "frontier": "RouteScanner -> RouteProducerInput -> canonical RouteProducer",
+  "rule": "Do not create a second RouteAst constructor; legacy files remain empty when proven dead."
+}

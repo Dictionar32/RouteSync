@@ -7,9 +7,9 @@ import { scannerSemanticType } from '../../../semanticTypeConstructionRelations'
  * not used as the semantic dispatcher.
  */
 import { relationResolve } from "../../../../relational/sequence";
-import { relationContains } from '../../../../../semantic/kernel/relationMembership';
-import { relationAll, relationEqual } from "../../../../../semantic/kernel/semanticRelations";
-import { relationFirst, relationOptionFold, relationSome, relationNone } from "../../../../../semantic/kernel/relationalSequence";
+import { relationContains } from '../../../../../semantic/foundation/relationMembership';
+import { relationAll, relationEqual } from "../../../../../semantic/foundation/semanticRelations";
+import { relationFirst, relationOptionFold, relationSome, relationNone } from "../../../../../semantic/foundation/relationalSequence";
 import type { OriginModelSymbol, ModelSymbolTable } from "../../../symbols/ModelSymbolTable";
 import type { PhpAstValue } from "../../../lexer/PhpAst";
 import { ResourceFieldExpressionFactory } from "../../../../../types/route";

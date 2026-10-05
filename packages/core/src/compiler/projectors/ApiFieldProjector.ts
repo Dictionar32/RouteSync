@@ -11,7 +11,7 @@ import type { RequestField } from '../../types/domain/request';
 import type { RequestFieldMeaning, ObjectRequestField } from '../../types/domain/requestFieldMeaning';
 import type { PropertyName } from '../../types/upstream/names';
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
-import { relationExpand } from '../../semantic/kernel/relationalSequence';
+import { relationExpand } from '../../semantic/foundation/relationalSequence';
 
 const propertyNameText = (name: PropertyName): string => name.value.value;
 

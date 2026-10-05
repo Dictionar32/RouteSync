@@ -11,8 +11,8 @@ import type { ModelAccessorComputation, ModelAccessorResult, ModelAccessorVisibi
 export type { EloquentRelationCardinality } from './modelVocabulary';
 import type { SourceStatements } from './sourceStatements';
 import type { DatabaseType } from './databaseVocabulary';
-import { relationIndexLookup, type RelationIndex } from '../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationProject } from '../../semantic/kernel/relationalSequence';
+import { relationIndexLookup, type RelationIndex } from '../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationProject } from '../../semantic/foundation/relationalSequence';
 
 export type ModelTable =
   | { readonly kind: 'conventional'; readonly name: TableName }

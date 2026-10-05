@@ -1,5 +1,5 @@
-import type { RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationResolve } from '../../../../semantic/kernel/relationalSequence';
+import type { RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationResolve } from '../../../../semantic/foundation/relationalSequence';
 
 /** Closed response-field domain model. */
 

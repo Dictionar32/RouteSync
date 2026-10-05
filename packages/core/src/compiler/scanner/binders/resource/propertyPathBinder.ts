@@ -7,7 +7,7 @@ import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import { resolvePropertyPath } from './propertyPathResolution';
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { expressionForPath, toBoundStep, unresolved } from './propertyPathBindingSupport';
-import { relationGate, relationProject, relationResolve } from "../../../../semantic/kernel/relationalSequence";
+import { relationGate, relationProject, relationResolve } from "../../../../semantic/foundation/relationalSequence";
 
 type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
 export function bindPropertyPathField(key: string, value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable): BoundResourceFieldResult {

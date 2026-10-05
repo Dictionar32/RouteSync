@@ -24,7 +24,6 @@ export {
 } from "./validationDescriptors";
 
 export {
-    RouteSemanticFlowFactory,
     RouteParameterSemanticFactory,
     type RouteSemanticFlowCompleteContracts,
     type RouteSemanticFlowConstructorInput,

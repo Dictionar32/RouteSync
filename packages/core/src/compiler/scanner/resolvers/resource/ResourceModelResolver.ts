@@ -22,8 +22,8 @@ import { absent, present, type Presence, presenceFold } from "../../../../types/
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { stringValue } from "../../../../types/upstream/valueObjects";
 import type { ResourceModelKnowledgeDataFlow } from "../../subscanners/resource/resourceModelKnowledgeDataFlow";
-import { relationAll, relationEqual } from "../../../../semantic/kernel/semanticRelations";
-import { relationFirst, relationOptionFold, relationProject } from "../../../../semantic/kernel/relationalSequence";
+import { relationAll, relationEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationFirst, relationOptionFold, relationProject } from "../../../../semantic/foundation/relationalSequence";
 import { astSemanticTextTerm } from "../../../../types/upstream/astSemanticInterface";
 import { createResolverGraphPort, resolverGraphFact, type AstSemanticStagePort } from "../../../../types/upstream/astSemanticStageInterface";
 

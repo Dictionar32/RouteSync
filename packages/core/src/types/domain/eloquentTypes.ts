@@ -4,8 +4,8 @@ import { SemanticValueFactory, type ClassName, type ColumnName, type ModelName, 
 import type { Cardinality } from '../upstream/primitiveVocabulary';
 import type { ModelAccessorFact, ModelCastFact } from '../upstream/modelSourceFacts';
 import type { ModelSemanticRelation } from '../upstream/model';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationGate, relationOptionFold, relationSome, relationRefine, relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
+import { relationGate, relationOptionFold, relationSome, relationRefine, relationResolve } from '../../semantic/foundation/relationalSequence';
 
 /**
  * EloquentCastKind
@@ -147,6 +147,10 @@ export class EloquentCastMapper {
     ['hashed', EloquentCastKind.String], ['asarrayobject', EloquentCastKind.Object], ['ascollection', EloquentCastKind.Collection],
     ['asenumcollection', EloquentCastKind.Collection], ['immutable_date', EloquentCastKind.Date], ['immutable_datetime', EloquentCastKind.DateTime]
   ]);
+
+  public static map(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly valueType: EloquentCastValueType } {
+    return this.resolve(rawTargetType);
+  }
 
   public static resolve(rawTargetType: string): { readonly castKind: EloquentCastKind; readonly valueType: EloquentCastValueType } {
     const clean = rawTargetType.split(':')[0].replace(/^\s+|\s+$/g, '').toLowerCase();

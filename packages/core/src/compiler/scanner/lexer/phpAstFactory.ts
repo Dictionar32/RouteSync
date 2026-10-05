@@ -1,4 +1,4 @@
-import { relationGate, relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationGate, relationEqual } from '../../../semantic/foundation/semanticRelations';
 /** Immutable constructors for scanner-level PHP syntax AST. */
 import type { SourceRange, AstIdentifier, PhpArgument, PhpArrayEntry, PhpAstValue, PhpAstValueNode, PhpClosureCapture, PhpParameter, PhpPropertyPath, PhpBlock, PhpArrayKey, PhpBinaryOperator, PhpUnaryOperator, PhpCastType, PhpMatchArm, PhpStatement, PhpAccessMode, PhpAssignmentOperator, PhpIfAlternative, PhpForeachTarget, PhpForClause, PhpCatchClause, PhpFinallyClause, PhpSwitchCase } from './phpAstTypes';
 

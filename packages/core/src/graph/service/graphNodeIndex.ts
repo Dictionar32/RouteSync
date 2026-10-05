@@ -1,10 +1,10 @@
 import type { Lookup } from '../../types/upstream/collections';
-import type { ModelReference, ServiceReference } from '../../types/upstream/semanticReferences';
-import { relationNotEqual, relationProject, relationSelect } from '../../semantic/kernel/relationalSequence';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/kernel/relationMembership';
-import { relationOptionFold } from '../../semantic/kernel/relationalSequence';
+import type { ClassReference, ModelReference, ServiceReference } from '../../types/upstream/semanticReferences';
+import { relationNotEqual, relationProject, relationSelect } from '../../semantic/foundation/relationalSequence';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/foundation/relationMembership';
+import { relationOptionFold } from '../../semantic/foundation/relationalSequence';
 
-export type GraphNodeReference = ModelReference | ServiceReference;
+export type GraphNodeReference = ClassReference | ModelReference | ServiceReference;
 export type GraphNodeEntry<T> = { readonly reference: GraphNodeReference; readonly value: T };
 
 type GraphNodeState<T> = Readonly<{

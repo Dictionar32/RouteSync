@@ -2,9 +2,9 @@
 import type { QueryKey, QueryFrame, ActiveQueryFrame } from './salsaTypes';
 import { createQueryCycleError } from './salsaTypes';
 import { createQueryKey } from './queryKeyFactory';
-import { relationContains } from '../../../semantic/kernel/relationMembership';
-import { relationGate } from '../../../semantic/kernel/relationalSequence';
-import { relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationContains } from '../../../semantic/foundation/relationMembership';
+import { relationGate } from '../../../semantic/foundation/relationalSequence';
+import { relationProject } from '../../../semantic/foundation/relationalSequence';
 
 export function assertNoCycle<O>(
   activeQueries: readonly string[],

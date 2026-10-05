@@ -8,7 +8,7 @@
  */
 
 import { toPascalResourceName, propertyNameText } from '../../../utils/resource-naming';
-import { relationProject } from '../../../semantic/kernel/semanticRelations';
+import { relationProject } from '../../../semantic/foundation/semanticRelations';
 import type { ResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
 import {
     indent,

@@ -1,0 +1,10 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../../../..');
+const file = path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const text = fs.readFileSync(file, 'utf8');
+const forbiddenDirectAssignment = /const producerInput:\s*RouteProducerInput\s*=\s*\{\s*declaration\s*,/;
+const hasAdapter = text.includes('routeDeclarationEvidenceFromAst(declaration)');
+const result = { phase: 914, routeProducerEvidenceAdapter: hasAdapter, directRouteDeclarationAstAssignment: forbiddenDirectAssignment.test(text), clean: hasAdapter && !forbiddenDirectAssignment.test(text) };
+process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+if (!result.clean) process.exitCode = 1;

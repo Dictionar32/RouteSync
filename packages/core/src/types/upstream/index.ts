@@ -14,7 +14,10 @@ export * from './response';
 export * from './routeNames';
 export * from './routeExecutionVocabulary';
 export * from './route';
+export * from './routeDeclarationEvidence';
 export * from './controller';
+export * from './effectiveControllerActionPolicy';
+export { resolveEffectiveControllerActionPolicyUpstream } from './effectiveControllerActionPolicyResolver';
 export * from './sourceStatements';
 export * from './ast';
 export * from './manifest';
@@ -24,6 +27,7 @@ export * from './migration';
 export * from './completeness';
 
 export * from './application';
+export * from './providerEvidence';
 export * from './typeVocabulary';
 
 export * from './sourceBoundary';
@@ -52,6 +56,10 @@ export * from './astSemanticStageProof';
 export * from './astSemanticStageInterfaceAlgebra';
 export * from './astSemanticAuthorityPipeline';
 export * from './astSemanticStageTransition';
-export * from './astDataflowInterface';
 
 export * from './compilerPassFailure';
+export * from './semanticDataflowInterface';
+export type { ControllerActionPolicyRelation, ControllerActionPolicyProvenance } from './controllerActionPolicyRelations';
+export type { RouteActionPolicyRelation } from './routeActionPolicyRelations';
+export { routeActionPolicyRelations, routeActionPolicyRelationsFromEffectivePolicy } from './routeActionPolicyRelations';
+export { controllerActionPolicyRelations, controllerActionPolicyRelationsFromEvidence } from './controllerActionPolicyRelations';

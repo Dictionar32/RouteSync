@@ -79,7 +79,7 @@ export class SemanticResolutionPass implements CompilerPass<{ manifest: RouteMan
                 const resolvedAssignments: Record<string, SemanticNode> = {};
                 const resolutionContext: ResolutionContext = {
                     layer: 'route',
-                    fileName: route.name,
+                    fileName: route.identity.coordinates.name.value.value,
                     modelMap: {},
                     relationMap: {},
                     assignments: parsedAssignments,
@@ -116,7 +116,7 @@ export class SemanticResolutionPass implements CompilerPass<{ manifest: RouteMan
                         });
                     }
                 };
-                resolveResponse(route.response);
+                resolveResponse(route.binding.response);
             });
         }
 

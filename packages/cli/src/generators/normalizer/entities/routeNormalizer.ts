@@ -29,7 +29,7 @@ export function normalizeRoutes(manifest: RouteManifest, kernel: SemanticResolut
     const resolvedAssignments: Record<string, SemanticNode> = {};
     const context: ResolutionContext = {
       layer: 'route',
-      fileName: route.name,
+      fileName: route.identity.coordinates.name.value.value,
       modelMap: {},
       relationMap: {},
       assignments: parsedAssignments,
@@ -66,17 +66,17 @@ export function normalizeRoutes(manifest: RouteManifest, kernel: SemanticResolut
         });
       }
     };
-    resolveResponse(route.response);
+    resolveResponse(route.binding.response);
 
     const visited = new Set<string>();
-    const responseDef = route.binding ? route.binding.response : route.response;
+    const responseDef = route.binding.response;
     const responseField = mapToNormalizedField(responseDef, 'response', visited);
 
-    const routeId = route.identity ? route.identity.name : (route.name || route.uri);
-    const routeUri = route.identity ? route.identity.path : (route.uri || route.path);
-    const actionName = route.binding ? route.binding.operation.name : (route.actionName || 'index');
-    const controllerName = route.binding ? route.binding.operation.controllerName : (route.controllerName || '');
-    const upperMethod = (route.identity ? route.identity.method : route.method).toUpperCase();
+    const routeId = route.identity.coordinates.name.value.value;
+    const routeUri = route.identity.coordinates.path.value.value;
+    const actionName = route.binding.operation.name.value.value;
+    const controllerName = route.binding.operation.controllerName.value.value;
+    const upperMethod = route.identity.coordinates.method;
     const method = (["GET", "POST", "PUT", "DELETE", "PATCH"].includes(upperMethod)
       ? upperMethod
       : "GET") as "GET" | "POST" | "PUT" | "DELETE" | "PATCH";

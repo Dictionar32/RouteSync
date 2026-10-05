@@ -1,6 +1,6 @@
 import { PHP_SYNTAX_OPERATOR_SPELLINGS } from './routeAst/phpAstExpressionSyntaxEvidenceRegistry';
 import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../types/upstream/astSemanticStageInterfaceAlgebra';
-import { relationNotEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationNotEqual } from '../../../semantic/foundation/semanticRelations';
 import { PHP_STATEMENT_KINDS } from './phpAstStatementKinds';
 import { tokenAt, tokenValueOr, tokenKindOr } from './tokenEvidence';
 /** Converts tokenized PHP expressions into structured Laravel scanner AST. */
@@ -9,8 +9,8 @@ import type { AstIdentifier, PhpArgument, PhpAstValue, PhpAstValueNode, PhpPrope
 import { createAstIdentifier, createSourceOffset } from './phpAstTypes';
 import { tokenizePhpSource } from './tokenizer';
 import { parsePhpMethod } from './phpMethodParser';
-import { relationEqual, relationAny, relationAll } from '../../../semantic/kernel/semanticRelations';
-import { relationGate, relationFirst, relationSelect, relationProject, relationFold, relationOptionMap, relationIndexOf, relationLastIndexOf, relationEvery, relationMapValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSlice, relationCount, relationTextLength, relationTextIsUpperIdentifier, relationTextSlice, relationSome, relationNone, relationIsNone, relationIsPresent, relationVariantValue, relationVariant, relationVariantFold, relationOptionalFold, type RelationOption, type RelationNone, type RelationMaybe } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationAny, relationAll } from '../../../semantic/foundation/semanticRelations';
+import { relationGate, relationFirst, relationSelect, relationProject, relationFold, relationOptionMap, relationIndexOf, relationLastIndexOf, relationEvery, relationMapValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSlice, relationCount, relationTextLength, relationTextIsUpperIdentifier, relationTextSlice, relationSome, relationNone, relationIsNone, relationIsPresent, relationVariantValue, relationVariant, relationVariantFold, relationOptionalFold, type RelationOption, type RelationNone, type RelationMaybe } from '../../../semantic/foundation/relationalSequence';
 import { solveCandidate, solveOptionalCandidate, requirement, type OptionalSemanticCandidate } from '../../../semantic/kernel/semanticDecisionRewriteEngine';
 import type { AstNodeIdentity } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
@@ -328,7 +328,7 @@ function findTopLevelOperator(tokens: readonly TokenDescriptor[], value: string,
         return relationGate(relationAll([relationEqual(depth, 0), relationEqual(token.value, value)]), () => index, () => findTopLevelOperator(tokens, value, relationAdvanceIndex(index, 1), nextDepth));
     }, () => -1);
 }
-function findBinaryOperator(tokens: readonly TokenDescriptor[]): import('../../../semantic/kernel/relationalSequence').RelationOption<{ readonly operator: PhpBinaryOperator; readonly index: number }> {
+function findBinaryOperator(tokens: readonly TokenDescriptor[]): import('../../../semantic/foundation/relationalSequence').RelationOption<{ readonly operator: PhpBinaryOperator; readonly index: number }> {
     const operators: readonly {
         readonly token: string;
         readonly operator: PhpBinaryOperator;

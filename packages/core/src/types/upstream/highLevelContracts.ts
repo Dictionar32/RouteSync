@@ -3,7 +3,7 @@ import type { ResourceFieldMeaning } from './resource';
 import type { RequestFieldTarget } from './request';
 import type { PropertyName } from './names';
 import type { ModelReference, PropertyReference, ResourceReference } from './semanticReferences';
-import type { ResponseJsonPayload, ResponseJsonShape, ResponseResult } from './response';
+import type { ResponseJsonPayload, ResponseJsonShape } from './response';
 import type { ValidationRules } from './collections';
 import type { ModelDefinition, ModelRelation } from './model';
 import type { ResourceDefinition } from './resource';
@@ -18,7 +18,6 @@ export type { ResourceFieldMeaning, RequestFieldTarget };
 
 export type ResponsePayloadContract = ResponseJsonPayload;
 export type ResponseSemanticShape = ResponseJsonShape;
-export type ResponseSemanticContract = ResponseResult;
 
 /**
  * Canonical high-level Laravel contracts.

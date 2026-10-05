@@ -16,8 +16,8 @@ import {
     relationNotEqual,
     relationOptionFold,
     relationResolve,
-} from '../../semantic/kernel/relationFoundation';
-import { relationContains } from '../../semantic/kernel/relationMembership';
+} from '../../semantic/foundation/relationFoundation';
+import { relationContains } from '../../semantic/foundation/relationMembership';
 import { basicBlockLookup } from '../utils/ControlFlowGraph';
 
 const instructionIsTerminator = (instruction: BasicBlock['instructions'][number]): boolean =>

@@ -1,0 +1,15 @@
+{
+  "phase": 880,
+  "audit": "route-declaration-upstream-wiring",
+  "checks": {
+    "declarationFlowHasSemanticJudgment": true,
+    "scannerConsumesDeclarationFlow": true,
+    "targetComesFromFlow": true,
+    "methodComesFromFlow": true,
+    "middlewareComesFromFlow": true,
+    "groupPrefixComesFromFlow": true,
+    "noDirectTargetSemanticRead": true,
+    "noDuplicateMiddlewareProjection": true
+  },
+  "pass": true
+}

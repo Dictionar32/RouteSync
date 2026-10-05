@@ -1,0 +1,15 @@
+{
+  "phase": 889,
+  "title": "controller model-origin resolution frontier",
+  "classification": "CANDIDATE_AUTHORITY_PROVEN_RESOLUTION_NOT_YET_WIRED",
+  "candidateProducer": true,
+  "verifier": "ModelSymbolTable.findForControllerOrigin",
+  "verifierExists": true,
+  "verifierConsumerCount": 1,
+  "verifierCurrentConsumer": "ResourceModelResolver",
+  "controllerContractReinfersFromParameterType": false,
+  "routeReinfersFromParameterType": false,
+  "controllerScannerHasModelSymbolTable": false,
+  "recommendation": "Keep ControllerVariableSemantic.model_origin as parser candidate; wire ModelSymbolTable verification at a later controller semantic boundary before claiming resolved identity.",
+  "emptyLegacyFiles": 203
+}

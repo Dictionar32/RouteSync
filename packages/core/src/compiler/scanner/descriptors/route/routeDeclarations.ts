@@ -28,8 +28,8 @@ import type { RouteSecurityDescriptor } from "../../../../types/upstream/route";
 import type { RouteMiddlewares } from "../../../../types/upstream/collections";
 import type { ControllerName } from "../../../../types/upstream/names";
 import type { RouteSemanticFlowConstructorInput } from "./routeContracts";
-import { relationGate } from "../../../../semantic/kernel/relationalSequence";
-import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationGate } from "../../../../semantic/foundation/relationalSequence";
+import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 

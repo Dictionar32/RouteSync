@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { describe, expect, expectTypeOf, test } from 'vitest';
 import { LaravelSourceLexer } from '../../../compiler/scanner/LaravelSourceLexer';
 import type { EloquentRelationAst } from '../eloquent';
@@ -7,10 +5,10 @@ import type { ModelSurfaceMemberFact } from '../modelSourceFacts';
 
 describe('model Eloquent surface ADT', () => {
   test('represents the Category hasMany source as an Eloquent relation member', () => {
-    const categorySource = readFileSync(
-      path.resolve(process.cwd(), 'examples/ecommerce-shop-source/app/Models/Category.php'),
-      'utf8'
-    );
+    const categorySource = `<?php
+final class Category {
+    public function produkItems(): HasMany { return $this->hasMany(ProdukItem::class); }
+}`;
     expect(categorySource).toContain('return $this->hasMany(ProdukItem::class);');
 
     const expression = LaravelSourceLexer.classifyAstValue('$this->hasMany(ProdukItem::class)');

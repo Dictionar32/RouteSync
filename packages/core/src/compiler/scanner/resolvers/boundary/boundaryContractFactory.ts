@@ -2,7 +2,7 @@
  * boundaryContractFactory.ts
  *
  * Origin Boundary Factory: resolves perimeter options into the canonical
- * RouteSemanticFlowCompleteContracts composite. There is one complete route
+ * canonical RouteBoundaryContract composite. There is one complete route
  * contract vocabulary; the boundary no longer owns a second flat contract.
  *
  * @module core/compiler/scanner/resolvers/boundary
@@ -15,7 +15,7 @@ import { buildRouteCapabilityContract } from "./capabilityBuilder";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
 import { resolveRouteBoundaryInput } from "./boundaryInputResolution";
 import { ScannedEndpointContract } from "../../../../types/route";
-import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
 
 export class RouteBoundaryContractFactory {
     public static create(options: RouteBoundaryOptions): RouteBoundaryContract {

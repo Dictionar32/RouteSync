@@ -1,7 +1,10 @@
-import { relationNotEqual, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationResolve, relationFirstOption, relationOptionFold, projectRelation, selectRelation, expandRelation, accumulateRelation, visitRelation } from '../../../relational/sequence';
+import { relationNotEqual, relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationResolve, relationFirstOption, relationOptionFold, relationVariantFold, projectRelation, selectRelation, expandRelation, accumulateRelation, visitRelation } from '../../../relational/sequence';
 import { absent, present, presenceOf, cardinalityOf, type Cardinality, type Presence } from '../../../../types/upstream/presence';
 import type { RouteDeclarationAst, RouteTargetAst, LaravelRouteMethod, RouteConstraintArgumentAst } from './routeDeclarationAst';
+import type { RouteFileContext } from '../../../../types/upstream/route';
+import { createSourceFile, createControllerName, createDomainTypeName, createMiddlewareName, createRouteParameterName, stringValue } from '../../../../types/upstream/names';
+import type { RouteGroupFact as RouteGroupValueFact } from '../../../../types/upstream/routeGroupFacts';
 import type { RouteResourceDeclarationAst } from './routeResourceDeclarationAst';
 
 /**
@@ -21,14 +24,7 @@ export interface RouteDataFlowProvenance {
     readonly consumer: string;
 }
 
-export interface RouteGroupData {
-    readonly prefix: readonly string[];
-    readonly namePrefix: readonly string[];
-    readonly controller: Presence<string>;
-    readonly domain: Presence<string>;
-    readonly bindingScope: string;
-    readonly constraints: readonly RouteConstraintData[];
-}
+export type RouteGroupData = RouteGroupValueFact;
 
 export interface RouteConstraintData {
     readonly method: string;
@@ -75,9 +71,12 @@ export interface RouteDataFlowGraph {
     readonly edges: readonly RouteDataFlowEdge[];
 }
 
-export type RouteDeclarationSemanticKind = 'api_resource' | 'standard';
+export type RouteDeclarationSemanticKind = 'resource' | 'api_resource' | 'singleton' | 'api_singleton' | 'standard';
 const ROUTE_DECLARATION_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, RouteDeclarationSemanticKind>> = Object.freeze({
+    resource: 'resource',
     apiResource: 'api_resource',
+    singleton: 'singleton',
+    apiSingleton: 'api_singleton',
     get: 'standard',
     post: 'standard',
     put: 'standard',
@@ -92,7 +91,10 @@ export const routeDeclarationSemanticKind = (method: LaravelRouteMethod): RouteD
 
 export type RouteMethodSemanticKind = 'all_methods' | 'match' | 'standard';
 const ROUTE_METHOD_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, RouteMethodSemanticKind>> = Object.freeze({
+    resource: 'standard',
     apiResource: 'standard',
+    singleton: 'standard',
+    apiSingleton: 'standard',
     get: 'standard',
     post: 'standard',
     put: 'standard',
@@ -105,10 +107,8 @@ const ROUTE_METHOD_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, RouteMetho
 });
 export const routeMethodSemanticKind = (method: LaravelRouteMethod): RouteMethodSemanticKind => ROUTE_METHOD_SEMANTIC_KIND[method];
 
-export type RouteSourceFileContext =
-    | { readonly kind: 'api_routes' }
-    | { readonly kind: 'web_routes' }
-    | { readonly kind: 'custom_routes'; readonly file: string };
+/** Canonical route-file context; the lexer exposes the upstream vocabulary directly. */
+export type RouteSourceFileContext = RouteFileContext;
 
 const ROUTE_SOURCE_FILE_CONTEXT_KNOWLEDGE: Readonly<Record<'api_routes' | 'web_routes', readonly string[]>> = Object.freeze({
     api_routes: Object.freeze(['routes/api.php']),
@@ -127,10 +127,10 @@ const ROUTE_SOURCE_FILE_CONTEXT_READERS = Object.freeze([
         () => absent<RouteSourceFileContext>(),
     ),
 ]);
-export const routeSourceFileContextKnowledge = (sourcePath: string): RouteSourceFileContext => {
+export const routeSourceFileContextKnowledge = (sourcePath: string): RouteFileContext => {
     const normalized = normalizeRouteSourcePath(sourcePath);
     const resolved = relationFirstOption(ROUTE_SOURCE_FILE_CONTEXT_READERS, reader => relationResolve(relationEqual(reader(normalized).kind, 'present'), () => true, () => false));
-    return relationOptionFold(resolved, () => ({ kind: 'custom_routes', file: normalized }), reader => reader(normalized).value);
+    return relationOptionFold(resolved, () => ({ kind: 'custom_routes' as const, file: createSourceFile(normalized) }), reader => reader(normalized).value);
 };
 
 export interface RouteDeclarationFlow {
@@ -174,19 +174,31 @@ const routeConstraints = (route: RouteDeclarationAst): readonly RouteConstraintD
     ...projectRelation(route.groupConstraints, item => constraintData('group', item)),
 ]);
 const routeGroup = (route: RouteDeclarationAst): RouteGroupData => Object.freeze({
-    prefix: Object.freeze([...route.prefix]),
-    namePrefix: Object.freeze([...route.groupNamePrefix]),
-    controller: presenceOf(route.groupController),
-    domain: presenceOf(route.groupDomain),
+    prefix: Object.freeze(projectRelation(route.prefix, stringValue)),
+    middleware: Object.freeze(projectRelation([...route.middleware], createMiddlewareName)),
+    namePrefix: Object.freeze(projectRelation(route.groupNamePrefix, stringValue)),
+    controller: route.groupController ? present(createControllerName(route.groupController)) : absent(),
+    domain: route.groupDomain ? present(createDomainTypeName(route.groupDomain)) : absent(),
     bindingScope: route.groupBindingScope,
-    constraints: Object.freeze(projectRelation(route.groupConstraints, item => constraintData('group', item))),
+    constraints: Object.freeze(projectRelation(route.groupConstraints, item => Object.freeze({
+        parameter: createRouteParameterName(item.parameter),
+        method: item.method,
+        argument: relationVariantFold(item.argument, 'pattern',
+            () => ({ kind: 'none' as const }),
+            rest => relationVariantFold(rest, 'values',
+                () => ({ kind: 'none' as const }),
+                values => ({ kind: 'values' as const, values: projectRelation(values.values, value => stringValue(value.value)) }),
+                () => ({ kind: 'none' as const })),
+            pattern => ({ kind: 'pattern' as const, value: stringValue(pattern.value) })),
+        source: { kind: 'group' as const },
+    }))),
 });
 
 export const routeDeclarationFlow = (route: RouteDeclarationAst): RouteDeclarationFlow => Object.freeze({
     method: route.method,
     target: targetFact(route.target, 'routeDeclarationParser', 'RouteTargetAst', 'route semantic resolver', 'non_empty'),
     bindings: bindingFact(Object.freeze([...route.bindings]), 'routeDeclarationParser', 'RouteBindingDeclarationAst[]', 'binding semantic resolver', cardinalityOf(route.bindings)),
-    group: groupFact(routeGroup(route), 'mergeRouteGroupStates', 'RouteGroupData', 'route group semantic resolver'),
+    group: groupFact(routeGroup(route), 'mergeRouteGroupStates', 'RouteGroupFact', 'route group semantic resolver'),
     constraints: constraintFact(routeConstraints(route), 'routeConstraintFact', 'RouteConstraintData[]', 'constraint semantic resolver', cardinalityOf(routeConstraints(route))),
     middleware: middlewareFact(Object.freeze([...route.middleware, ...route.routeMiddleware]), 'routeDeclarationParser', 'MiddlewareNameAst[]', 'middleware semantic resolver', cardinalityOf([...route.middleware, ...route.routeMiddleware])),
 });
@@ -215,7 +227,7 @@ export const routeDeclarationDataFlowGraph = (route: RouteDeclarationAst): Route
     const syntax = syntaxNode('route.syntax', route, 'routeDeclarationParser', 'RouteDeclarationAst', 'route semantic resolver');
     const target = semanticNode('route.target', route.target, 'routeDeclarationParser', 'RouteTargetAst', 'route semantic resolver');
     const bindings = semanticNode('route.bindings', Object.freeze([...route.bindings]), 'routeDeclarationParser', 'RouteBindingDeclarationAst[]', 'binding semantic resolver');
-    const group = semanticNode('route.group', routeGroup(route), 'mergeRouteGroupStates', 'RouteGroupData', 'route group semantic resolver');
+    const group = semanticNode('route.group', routeGroup(route), 'mergeRouteGroupStates', 'RouteGroupFact', 'route group semantic resolver');
     const constraints = semanticNode('route.constraints', routeConstraints(route), 'routeConstraintFact', 'RouteConstraintData[]', 'constraint semantic resolver');
     const middleware = semanticNode('route.middleware', Object.freeze([...route.middleware, ...route.routeMiddleware]), 'routeDeclarationParser', 'MiddlewareNameAst[]', 'middleware semantic resolver');
     const consumer = consumerNode('route.consumer', route.method, 'route semantic resolver', 'RouteSemanticModel', 'route emitter');

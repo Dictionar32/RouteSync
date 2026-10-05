@@ -14,8 +14,8 @@ import {
   type SemanticType,
   type ObjectTypeDescriptorParams,
 } from '../../compiler/types/SemanticType';
-import { relationResolve } from '../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationResolve } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
 
 export const ResolvedSemanticTypeFactory = Object.freeze({
   primitive: (type: PrimitiveKind): PrimitiveType => primitiveType(type),

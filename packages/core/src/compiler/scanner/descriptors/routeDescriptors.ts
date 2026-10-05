@@ -21,7 +21,3 @@ export {
     type ScannedRouteQueryParameterParams
 } from "./route/routeParameters";
 
-// 5. The Unifying Composite Consumer Model
-export {
-    RouteSemanticFlowFactory
-} from "./route/RouteSemanticFlowFactory";

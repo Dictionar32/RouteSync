@@ -8,12 +8,12 @@ import type { RouteActionKind, RouteParameter, RouteQueryParameter } from "../..
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath } from "../../../../types/upstream/names";
 import { HTTP_METHOD_REGISTRY, ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
-import { RouteParameterSemanticFactory } from "../../descriptors/routeDescriptors";
+import { RouteParameterSemanticFactory } from "../../semantic/route/routeParameterSemanticFactory";
 import { toCamelCase, toSnakeCase } from "../../../../utils/resource-naming";
 import { RouteDomainResolver } from "../RouteDomainResolver";
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationSome } from "../../../../semantic/kernel/semanticRelations";
-import { relationFold, relationProject, relationSelect, relationSlice, relationTextSlice, relationLookup, relationOptionFold, relationOptionValue, relationAt, relationFirstOption, relationTextEnclosedFields, relationTextFields, relationTextReplaceEnclosed, relationTextTrimChars, relationTextStartsWith, relationTextEndsWith, relationTextLower, relationTextNumber, relationLastIndexOf, relationTextTrimEndChars, relationVariant } from "../../../../semantic/kernel/relationalSequence";
-import type { RelationOption } from "../../../../semantic/kernel/relationalSequence";
+import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationSome } from "../../../../semantic/foundation/semanticRelations";
+import { relationFold, relationProject, relationSelect, relationSlice, relationTextSlice, relationLookup, relationOptionFold, relationOptionValue, relationAt, relationFirstOption, relationTextEnclosedFields, relationTextFields, relationTextReplaceEnclosed, relationTextTrimChars, relationTextStartsWith, relationTextEndsWith, relationTextLower, relationTextNumber, relationLastIndexOf, relationTextTrimEndChars, relationVariant } from "../../../../semantic/foundation/relationalSequence";
+import type { RelationOption } from "../../../../semantic/foundation/relationalSequence";
 import { presenceFold, presenceOf, type Presence } from "../../../../types/upstream/presence";
 import type {
     RouteBoundaryContract,

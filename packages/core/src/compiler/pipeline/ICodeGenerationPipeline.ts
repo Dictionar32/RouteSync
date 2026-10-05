@@ -136,7 +136,7 @@ export class PipelineError extends Error {
  * const pipeline = PipelineBuilder.create<ContractGraph, TSFile>()
  *   .withGenerator(new TypeScriptGenerator())
  *   .withFormatter(new TypeScriptFormatter())
- *   .withEmitter(new TypeScriptEmitter())
+ *   .withEmitter(new TypeScriptTargetEmitter())
  *   .withWriter(new FileWriter('./output'))
  *   .build();
  * ```

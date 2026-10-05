@@ -18,17 +18,17 @@ import {
   relationInsert,
   relationUnique,
   type RelationIndex,
-} from '../../semantic/kernel/relationMembership';
+} from '../../semantic/foundation/relationMembership';
 import {
   relationAny,
   relationEqual,
-} from '../../semantic/kernel/semanticRelations';
+} from '../../semantic/foundation/semanticRelations';
 import {
   relationOptionFold,
   relationFold,
   relationRefine,
   relationResolve,
-} from '../../semantic/kernel/relationalSequence';
+} from '../../semantic/foundation/relationalSequence';
 import {
   solveConstraintStep,
   resolveVariableFromBounds,

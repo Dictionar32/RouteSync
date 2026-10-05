@@ -18,7 +18,7 @@ import type { DescriptionText } from '../../../types/upstream/valueObjects';
 import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import { PARAMETER_TYPE_KNOWLEDGE } from '../../../types/semantic/semanticKnowledge';
 import { HTTP_METHOD_REGISTRY } from '../../../types/domain/httpVocabulary';
-import { solveSemanticRelations, type SemanticRelation } from '../../../compiler/scanner/lexer/routeAst/semanticRewriteEngine';
+import { solveSemanticRelations, type SemanticRelation } from '../../../semantic/foundation/semanticRewriteEngine';
 import { resolveResponseReferenceKind, type ResponseKind } from './responseReferenceSemanticRelations';
 
 export const PARAMETER_TYPE_RULES = PARAMETER_TYPE_KNOWLEDGE;
@@ -29,7 +29,7 @@ export function inferParamType(name: string): PrimitiveKind {
   )?.primitive ?? PrimitiveKind.STRING;
 }
 
-export function extractPathParams(path: RouteSemanticFlow['identity']['path']): ParameterIR[] {
+export function extractPathParams(path: RouteSemanticFlow['identity']['coordinates']['path']): ParameterIR[] {
   const rawPath = path.value.value;
   const paramMatches = rawPath.match(/\{([^}]+)\}/g) || [];
   return paramMatches.map(match => {
@@ -68,7 +68,7 @@ export function buildRequestReference(
   route: RouteSemanticFlow,
   requests: Map<string, RequestIR>
 ): RequestReference {
-  const method = route.identity.method;
+  const method = route.identity.coordinates.method;
   if (!hasRequestBody(method)) return { type: 'none' };
 
   const requestName = `${route.binding.operation.controllerName.value.value}${route.binding.operation.name.value.value}Request`;

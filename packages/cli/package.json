@@ -24,5 +24,8 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "audit:phase836-production-semantic-pass-isolation": "node ../../scripts/audit-phase836-production-semantic-pass-isolation.cjs"
   }
 }

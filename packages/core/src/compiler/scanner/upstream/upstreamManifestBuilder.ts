@@ -1,8 +1,8 @@
-import { relationGate } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationGate } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { scanSourceAsts } from '../orchestrator/sourceAstScanner';
 import { validateCompleteSourceAst } from '../../../types/upstream/completeness';
-import { buildCompleteLaravelSourceModel, type SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
+import { buildCompleteLaravelSourceModel, type SemanticContractSeeds, type SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import type { CompleteSourceAst } from '../../../types/upstream/ast';
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
 import type { NumberValue } from '../../../types/upstream/valueObjects';
@@ -31,12 +31,21 @@ function complete(ast: Awaited<ReturnType<typeof scanSourceAsts>>, sourceSpan: S
 export async function constructRouteSyncManifest(
   sourceProject: SourceProjectIdentity,
 ): Promise<RouteSyncManifest> {
-  const ast = await scanSourceAsts(sourceProject);
+  const scanned = await scanSourceAsts(sourceProject);
   const sourceSpan = sourceProject.source;
-  const completeAst = complete(ast, sourceSpan);
+  const completeAst = complete(scanned, sourceSpan);
+  const seeds: SemanticContractSeeds = {
+    models: scanned.modelDefinitions,
+    resources: scanned.resourceDefinitions,
+    requests: scanned.requestDefinitions,
+    providers: scanned.providerDefinitions,
+    services: scanned.serviceDefinitions,
+    responses: scanned.responseDefinitions,
+  };
   const completeLaravelSourceModelBuildResult = buildCompleteLaravelSourceModel(
     completeAst,
     sourceProject,
+    seeds,
   );
 
   return Object.freeze({

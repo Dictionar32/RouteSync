@@ -3,29 +3,31 @@ import type { ResponseDtoDeclarationAst } from '../lexer/responseDtoAstTypes';
 import type { ControllerMethodAst } from '../lexer/controllerAstTypes';
 import { controllerReturnSemanticFromMethod } from './controller/controllerAstCanonical';
 import type { ControllerReturnSemantic } from '../../../types/upstream/controller';
-import type { ResponseResult, ResponseStatus } from '../../../types/upstream/response';
+import type { ResponseDefinition, ResponseResult, ResponseStatus } from '../../../types/upstream/response';
 import { createResponseTypeName } from '../../../types/upstream/names';
 import type { Sequence } from '../../../types/upstream/collections';
 import type { TypeExpression, TypeProperty } from '../../../types/upstream/typeVocabulary';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { Lookup } from '../../../types/upstream/collections';
-import type { HttpStatusCode, StringValue } from '../../../types/upstream/valueObjects';
+import type { HttpStatusCode } from '../../../types/upstream/valueObjects';
 import { createPropertyName } from '../../../types/upstream/names';
-import { relationEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
-import { relationLookup, relationOptionFold, relationProject, relationNone, relationSome } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate } from '../../../semantic/foundation/semanticRelations';
+import { relationLookup, relationOptionFold, relationProject, relationNone, relationSome } from '../../../semantic/foundation/relationalSequence';
 
 export type ResponseProducerInput =
   | { readonly kind: 'dto'; readonly declaration: ResponseDtoDeclarationAst; readonly source: SourceSpan }
   | { readonly kind: 'controller'; readonly method: ControllerMethodAst; readonly source: SourceSpan };
 
-export interface ResponseProducer {
-  readonly produce: (input: ResponseProducerInput) => ResponseAst;
+export interface ResponseProducerResult {
+  readonly definition: ResponseDefinition;
+  readonly ast: ResponseAst;
 }
 
-const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
-const sequence = <T>(items: readonly T[], index = items.length - 1, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> => relationGate(index < 0, () => tail, () => sequence(items, index - 1, { kind: 'cons', head: items[index], tail }));
+export interface ResponseProducer {
+  readonly produce: (input: ResponseProducerInput) => ResponseProducerResult;
+}
 
-const typeExpression = (type: import('../../../types/upstream/typeVocabulary').TypeExpression): import('../../../types/upstream/typeVocabulary').TypeExpression => type;
+const sequence = <T>(items: readonly T[], index = items.length - 1, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> => relationGate(index < 0, () => tail, () => sequence(items, index - 1, { kind: 'cons', head: items[index], tail }));
 
 const defaultStatus: HttpStatusCode = {
   kind: 'http_status_code',
@@ -38,11 +40,11 @@ const emptyTransport = (): import('../../../types/upstream/response').ResponseTr
   cookies: { kind: 'empty' },
 });
 
-function dtoResponse(declaration: ResponseDtoDeclarationAst, source: SourceSpan): ResponseAst {
+function dtoResponse(declaration: ResponseDtoDeclarationAst, source: SourceSpan): ResponseProducerResult {
   const properties: readonly TypeProperty[] = relationProject(declaration.properties, property => ({
     kind: 'type_property',
     name: createPropertyName(property.name),
-    type: typeExpression(property.type),
+    type: property.type,
     source,
   }));
   const output: TypeExpression = {
@@ -54,7 +56,7 @@ function dtoResponse(declaration: ResponseDtoDeclarationAst, source: SourceSpan)
     value: defaultStatus,
     origin: { kind: 'framework_default' as const },
   };
-  const definition: ResponseAst['definition'] = {
+  const definition: ResponseDefinition = {
       kind: 'response',
       typeName: createResponseTypeName(declaration.className),
       output,
@@ -69,10 +71,11 @@ function dtoResponse(declaration: ResponseDtoDeclarationAst, source: SourceSpan)
       },
       source,
     }
-  return createDomainAstJudgment({ kind: 'response_ast', semantic: definition, source });
+  const ast = createDomainAstJudgment({ kind: 'response_ast', semantic: definition, source });
+  return { definition, ast };
 }
 
-function controllerResponse(method: ControllerMethodAst, source: SourceSpan): ResponseAst {
+function controllerResponse(method: ControllerMethodAst, source: SourceSpan): ResponseProducerResult {
   const returned = controllerReturnSemanticFromMethod(
     method,
     source.file.value.value,
@@ -80,7 +83,7 @@ function controllerResponse(method: ControllerMethodAst, source: SourceSpan): Re
   );
   const result = responseResultFromReturn(returned);
   const output: TypeExpression = { kind: 'mixed' };
-  const definition: ResponseAst['definition'] = {
+  const definition: ResponseDefinition = {
       kind: 'response',
       typeName: createResponseTypeName(`${String(method.name)}Response`),
       output,
@@ -90,7 +93,8 @@ function controllerResponse(method: ControllerMethodAst, source: SourceSpan): Re
         () => ({ kind: 'success', result: result.value })),
       source,
     }
-  return createDomainAstJudgment({ kind: 'response_ast', semantic: definition, source });
+  const ast = createDomainAstJudgment({ kind: 'response_ast', semantic: definition, source });
+  return { definition, ast };
 }
 
 function frameworkStatus(): ResponseStatus {
@@ -146,16 +150,16 @@ function foundBranchResults(branches: Sequence<ControllerReturnSemantic>, output
 
 
 
-type ProducerResolution<K extends ResponseProducerInput['kind']> = (input: Extract<ResponseProducerInput, { readonly kind: K }>) => ResponseAst;
-const producerRule = <K extends ResponseProducerInput['kind']>(kind: K, resolve: ProducerResolution<K>): readonly [K, (input: ResponseProducerInput) => ResponseAst] => [
+type ProducerResolution<K extends ResponseProducerInput['kind']> = (input: Extract<ResponseProducerInput, { readonly kind: K }>) => ResponseProducerResult;
+const producerRule = <K extends ResponseProducerInput['kind']>(kind: K, resolve: ProducerResolution<K>): readonly [K, (input: ResponseProducerInput) => ResponseProducerResult] => [
   kind,
   input => resolve(input as Extract<ResponseProducerInput, { readonly kind: K }>),
 ];
-const producerCatalog: readonly (readonly [ResponseProducerInput['kind'], (input: ResponseProducerInput) => ResponseAst])[] = Object.freeze([
+const producerCatalog: readonly (readonly [ResponseProducerInput['kind'], (input: ResponseProducerInput) => ResponseProducerResult])[] = Object.freeze([
   producerRule('dto', input => dtoResponse(input.declaration, input.source)),
   producerRule('controller', input => controllerResponse(input.method, input.source)),
 ]);
-const producerResolution = (input: ResponseProducerInput): ResponseAst => relationOptionFold(
+const producerResolution = (input: ResponseProducerInput): ResponseProducerResult => relationOptionFold(
   relationLookup(producerCatalog, input.kind),
   () => { throw Error(`Unsupported response producer input: ${input.kind}`); },
   resolver => resolver(input),

@@ -1,5 +1,5 @@
 import { toCamelPropertyName, propertyNameText } from '../../../utils/resource-naming';
-import { relationProject, relationSelect } from '../../../semantic/kernel/semanticRelations';
+import { relationProject, relationSelect } from '../../../semantic/foundation/semanticRelations';
 import type { PropertyName } from '../../../types/domain/semanticValues';
 import type {
   MappingIntent,

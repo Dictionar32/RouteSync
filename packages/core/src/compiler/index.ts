@@ -25,21 +25,6 @@
 // Utils Module
 // ============================================================================
 export { FIFOQueue } from './utils/Queue';
-export {
-    type DependencyGraph,
-    type DependencyEdge,
-    createDependencyGraph,
-    addDependency,
-    dependencyForward,
-    dependencyReverse,
-    dependencyNodes,
-    dependencyClosure,
-    invalidateDependencies,
-    stronglyConnectedComponents,
-    type GraphUnionFind,
-    createGraphUnionFind,
-    graphUnionFindUnion
-} from './utils/Graph';
 export { computeStableSymbolId, computeIRHash } from './utils/Hash';
 export {
     Arena,
@@ -63,7 +48,6 @@ export { createASTNodeData, isSameKind, hasChildren } from './ast';
 // Query Module - Incremental Compilation
 // ============================================================================
 export type {
-    QueryCell,
     MemoizedQueryKey,
     QueryDescriptor,
     QueryKey,
@@ -72,14 +56,9 @@ export type {
     QueryFrame
 } from './query';
 export {
-    createPendingCell,
-    createReadyCell,
-    isReady,
-    isPending,
     createTypedCache,
     createMemoizedQueryKey,
     createQueryDatabase,
-    createMemoizedQueryDatabase,
     createSalsaCompiler
 } from './query';
 
@@ -88,9 +67,7 @@ export {
 // ============================================================================
 export {
     type GeneratedArtifact,
-    type BackendCapability,
-    type ContractEmitter,
-    TypeScriptEmitter
+    type BackendCapability
 } from './emitters';
 
 // ============================================================================
@@ -190,7 +167,6 @@ export { TypeEnvironmentArtifact } from './artifacts/TypeEnvironmentArtifact';
 export { ExpressionIRArtifact } from './artifacts/ExpressionIRArtifact';
 export { LoweredTypeArtifact } from './artifacts/LoweredTypeArtifact';
 export { DiagnosticArtifact } from './artifacts/DiagnosticArtifact';
-export { DependencyGraphArtifact } from './artifacts/DependencyGraphArtifact';
 export { SemanticIRArtifact } from './artifacts/SemanticIRArtifact';
 export { CompilationResultArtifact } from './artifacts/CompilationResultArtifact';
 
@@ -365,7 +341,6 @@ export {
     type RouteValidationRuleSet,
     ValidationTreeBuilder,
     buildValidationTree,
-    RouteSemanticFlowFactory,
     RouteParameterSemanticFactory,
     type RouteSemanticFlowCompleteContracts,
     type RouteSemanticFlowConstructorInput,

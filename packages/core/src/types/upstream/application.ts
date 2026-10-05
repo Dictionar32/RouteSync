@@ -145,13 +145,6 @@ export interface ProviderBindingAttributes {
   readonly items: Sequence<ProviderBindingAttribute>;
 }
 
-export type ProviderSourceAst = {
-  readonly kind: 'provider_source_ast';
-  readonly attributes: readonly import('../../compiler/scanner/lexer/controllerAstTypes').ControllerParameterAttributeAst[];
-  readonly className: import('../../compiler/scanner/lexer/phpAstTypes').AstIdentifier;
-  readonly methods: readonly import('../../compiler/scanner/lexer/controllerAstTypes').ControllerMethodAst[];
-  readonly source: SourceSpan;
-};
 export interface ProviderDefinition {
   readonly kind: 'provider';
   readonly name: ClassName;

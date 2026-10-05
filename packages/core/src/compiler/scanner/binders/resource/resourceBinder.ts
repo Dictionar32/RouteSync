@@ -36,8 +36,8 @@ import { mapResourcePhpStatementsToSourceStatements } from "../../subscanners/re
 import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode, sourceSpanFromRange } from "../../subscanners/resource/resourceUpstreamExpressionMappings";
 import { ResourceModelResolver } from "../../resolvers/resource/ResourceModelResolver";
 import { matchResourceModelBinding } from "../../symbols/resource/resourceBindingTypes";
-import { relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
-import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from "../../../../semantic/kernel/relationalSequence";
+import { relationEqual, relationGate } from "../../../../semantic/foundation/semanticRelations";
+import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from "../../../../semantic/foundation/relationalSequence";
 import { resolveAstValueToExpression } from "../../subscanners/resource/resourceAstExpressionMapper";
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });

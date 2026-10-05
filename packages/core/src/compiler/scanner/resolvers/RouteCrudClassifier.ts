@@ -1,7 +1,7 @@
 /** Declarative route CRUD classification through semantic relations. */
 import { CrudRole, HttpMethod, matchHttpMethod } from "../../../types/route";
-import { relationEqual, relationGate, relationAll, relationAny } from "../../../semantic/kernel/semanticRelations";
-import { relationFirstOption, relationOptionFold, relationProject, relationSelect } from "../../../semantic/kernel/relationalSequence";
+import { relationEqual, relationGate, relationAll, relationAny } from "../../../semantic/foundation/semanticRelations";
+import { relationFirstOption, relationOptionFold, relationProject, relationSelect } from "../../../semantic/foundation/relationalSequence";
 
 const HTTP_METHODS: readonly (readonly [string, HttpMethod])[] = [
   ['GET', 'GET'], ['POST', 'POST'], ['PUT', 'PUT'], ['PATCH', 'PATCH'],

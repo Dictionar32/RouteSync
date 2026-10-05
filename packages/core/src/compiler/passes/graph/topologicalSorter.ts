@@ -1,7 +1,7 @@
 import type { ArtifactKey } from '../../artifacts/types';
 import type { ExecutablePass } from '../ExecutablePass';
-import { relationContains, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationAny, relationEqual, relationOptionFold, relationProject, relationResolve, relationSelect } from '../../../semantic/kernel/relationalSequence';
+import { relationContains, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationAny, relationEqual, relationOptionFold, relationProject, relationResolve, relationSelect } from '../../../semantic/foundation/relationalSequence';
 import { analyzePassGraph, type GraphAnalysis } from './graphAnalyzer';
 
 const passProducerPresent = (

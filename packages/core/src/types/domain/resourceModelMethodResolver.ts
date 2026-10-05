@@ -9,7 +9,7 @@ import { meaningFor } from './resourceModelMethodResolverMeaning';
 import { resolveResourceQueryProjection } from './resourceModelMethodResolverProjection';
 import { resolveResourceQueryOperation } from './resourceModelMethodResolverOperation';
 import type { ResourceResolvedQueryOperation } from './resourceQueryOperation';
-import { relationEqual, relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual, relationResolve } from '../../semantic/foundation/relationalSequence';
 
 export { meaningFor };
 export { knownMethodNames } from './resourceModelMethodResolverMeaning';

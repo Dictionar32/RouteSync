@@ -1,8 +1,8 @@
 /** Relation-backed field transformations and form projection helpers. */
 import type { TypeIR } from '../../../types/ir';
 import { resolveFieldTransform, type FieldCaseTransform } from './fieldTransformSemanticRelations';
-import { relationOptionFold, relationFirstOption } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationOptionFold, relationFirstOption } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 const FIELD_TRANSFORMERS: Readonly<Record<FieldCaseTransform, (name: string) => string>> = Object.freeze({
     camel: phpName => phpName.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()),

@@ -1,0 +1,21 @@
+{
+  "phase": 884,
+  "title": "route binding dead plumbing upstream cutover",
+  "status": "PASS",
+  "classification": {
+    "modelNames": "DEAD_PLUMBING",
+    "implicitModelBindingRefinement": "SEMANTIC_ENRICHMENT",
+    "routeParameterAuthority": "UPSTREAM_IDENTITY_PARAMETERS"
+  },
+  "assertions": {
+    "routeScannerHasNoModelNamesParameter": true,
+    "routeProducerInputHasNoModelNamesParameter": true,
+    "refineImplicitModelBindingsHasNoModelNamesParameter": true,
+    "routeScannerDoesNotForwardModelNames": true,
+    "sourceAstScannerDoesNotForwardModelNamesToRouteScanner": true,
+    "implicitBindingRefinementStillUsesControllerAction": true
+  },
+  "zeroByteLegacyFiles": 203,
+  "deletedFiles": 0,
+  "recommendation": "Keep implicit model binding refinement because it enriches canonical route parameters from controller action semantics; remove modelNames plumbing because the refinement never consumes it."
+}

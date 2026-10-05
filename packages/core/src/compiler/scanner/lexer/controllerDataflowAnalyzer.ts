@@ -4,13 +4,13 @@ import { createSourceOffset } from './phpAstCoreTypes';
 import { PHP_STATEMENT_KINDS } from './phpAstStatementKinds';
 import { PhpAstFactory } from './phpAstFactory';
 import type { ControllerDataflowAst } from './controllerBodyAstTypes';
-import { relationNone, relationOptionFold, relationSome, relationProject, relationFold, relationSelect, relationGate, relationRefine, relationAdvanceIndex, relationExpand, relationFirst, relationAll, relationAny, relationLookup, relationMapValueOr, type RelationOption } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationNone, relationOptionFold, relationSome, relationProject, relationFold, relationSelect, relationGate, relationRefine, relationAdvanceIndex, relationExpand, relationFirst, relationAll, relationAny, relationLookup, relationMapValueOr, type RelationOption } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { solveCandidate, requirement } from '../../../semantic/kernel/semanticDecisionRewriteEngine';
 import { produceSemanticKnowledgeDataFlow } from './routeAst/semanticKnowledgeDataFlowProducer';
 import { knowledgeIdKey, semanticPresenceFold, type KnowledgeId, type SemanticKnowledgeDataFlow } from './routeAst/semanticKnowledgeDataFlowRelations';
 import type { ControllerVariableSemantic, ControllerSemanticVariableFlow, ControllerVariableBinding, ControllerVariableDefinition, ControllerVariableOrigin } from '../../../types/upstream/controller';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
 import { mapResourcePhpAstToUpstream } from '../subscanners/resource/resourceUpstreamExpressionCanonical';
 
 /**

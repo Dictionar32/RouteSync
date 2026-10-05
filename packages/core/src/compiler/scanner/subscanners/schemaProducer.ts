@@ -5,7 +5,7 @@ import type { ColumnDefinition, ForeignKey, IndexDefinition } from '../../../typ
 import type { Columns, ForeignKeys, Indexes, MigrationAsts, Sequence } from '../../../types/upstream/collections';
 import type { TableName } from '../../../types/upstream/names';
 import type { SourceSpan } from '../../../types/upstream/provenance';
-import { relationEqual, relationFold, relationGate, relationOptionFold, relationProject, relationSelect, relationSome, type RelationOption } from '../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationFold, relationGate, relationOptionFold, relationProject, relationSelect, relationSome, type RelationOption } from '../../../semantic/foundation/relationalSequence';
 
 const sequence = <T>(items: readonly T[]): Sequence<T> => {
     const build = (index: number): Sequence<T> => relationGate(

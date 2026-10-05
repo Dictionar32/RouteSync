@@ -1,8 +1,8 @@
 /** Relation-native symbol reference graph. */
-import { relationIndexAdd, relationIndexLookup, type RelationIndex, relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationFold, relationResolve } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/relationFoundation';
-import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex, relationContains, relationInsert } from '../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationFold, relationResolve } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/relationFoundation';
+import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
 
 export interface SymbolReferenceGraph {
     readonly addReference: (fromId: string, toId: string) => void;

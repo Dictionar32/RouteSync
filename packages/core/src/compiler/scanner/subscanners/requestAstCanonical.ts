@@ -10,8 +10,8 @@ import type { NumberValue, StringValue, StringValues } from '../../../types/upst
 import type { PropertyReference } from '../../../types/upstream/semanticReferences';
 import { PrimitiveKind, type SemanticTypeVisitor } from '../../types/SemanticType';
 import type { RequestFieldMeaning, RequestFieldMeaningVisitor } from '../../../types/domain/requestFieldMeaning';
-import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice, relationVariantFold, relationVariantValue, type RelationVariant } from '../../../semantic/kernel/relationalSequence';
-import { relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice, relationVariantFold, relationVariantValue, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
+import { relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 const str = (value: string): StringValue => ({ kind: 'string_value', value });
 const seq = <T>(items: readonly T[], index = 0, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> =>

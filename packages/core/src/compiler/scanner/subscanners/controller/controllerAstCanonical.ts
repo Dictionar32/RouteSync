@@ -2,21 +2,23 @@ import { PHP_STATEMENT_KINDS } from '../../lexer/phpAstStatementKinds';
 import type { ControllerMethodAst, ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { PhpAstValue, PhpStatement, PhpAssignmentTarget, PhpIfAlternative, PhpForClause } from '../../lexer/phpAstTypes';
 import type { ControllerAst } from '../../../../types/upstream/ast';
-import type { ControllerAction, ControllerSemanticDataflow, ControllerResponse } from '../../../../types/upstream/controller';
+import type { QueryAst, QueryOperationAst } from '../../../../types/upstream/query';
+import type { ControllerAction, ControllerParameter, ControllerDependency, ControllerSemanticDataflow, ControllerResponse, ControllerMethodAttribute, ControllerPolicyRelation, ControllerPolicyActionScope } from '../../../../types/upstream/controller';
 import type { SourceStatement, SourceStatements } from '../../../../types/upstream/sourceStatements';
 import type { Assignment, AssignmentTarget } from '../../../../types/upstream/assignment';
-import type { Expression, ResolvedExpression } from '../../../../types/upstream/expression';
+import type { Expression, ResolvedExpression, ExpressionArgument } from '../../../../types/upstream/expression';
 import type { Sequence } from '../../../../types/upstream/collections';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { ResourceReference, ResponseReference } from '../../../../types/upstream/semanticReferences';
 import type { ResponseResult, ResponseStatus } from '../../../../types/upstream/response';
 import type { HttpStatusCode, StringValue } from '../../../../types/upstream/valueObjects';
+import type { ActionName } from '../../../../types/upstream/names';
 import type { SemanticValue } from '../../../../types/upstream/primitiveVocabulary';
 import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
 import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from '../resource/resourceUpstreamExpressionMappings';
 import { createControllerDataflowContract, createControllerReturnSet, type ControllerResourceResponseEvidence } from './controllerDataflowContract';
-import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, relationRefine, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationAny } from '../../../../semantic/kernel/semanticRelations';
+import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, relationRefine, relationSelect, relationFold, relationFoldRight, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny } from '../../../../semantic/foundation/semanticRelations';
 
 const relationCase = <T, R>(value: T, key: (value: T) => string, cases: Readonly<Record<string, (value: T) => R>>, fallback: (value: T) => R): R => relationOptionFold(relationFirstOption(Object.entries(cases), ([candidate]) => relationEqual(candidate, key(value))), () => fallback(value), ([, branch]) => branch(value));
 
@@ -364,11 +366,409 @@ export function controllerReturnSemanticFromValues(
   return returnSetSemantic(values, file, []);
 }
 
-export function controllerActionFromMethod(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse, dependencies: readonly import('../../../../types/upstream/controller').ControllerDependency[] = []): ControllerAction {
+const controllerParameterKind = (parameter: ControllerParameterAst, dependencies: readonly ControllerDependency[]): import('../../../../types/upstream/controller').ControllerParameterKind => {
+  const dependency = relationFirstOption(dependencies, candidate => relationEqual(candidate.parameter.value.value, parameter.name.value.value));
+  return relationOptionFold(dependency, () => relationCase<ControllerParameterAst['semantic'], import('../../../../types/upstream/controller').ControllerParameterKind>(
+    parameter.semantic,
+    value => value.kind,
+    {
+      request_origin: value => ({ kind: 'request' as const, request: value.name }),
+      model_origin: value => relationCase(value.origin, origin => origin.kind, {
+        model_class: model => ({ kind: 'model' as const, model: model.name }),
+        table: origin => ({ kind: 'value' as const, variable: variableName(parameter.name.value.value) }),
+      }, () => ({ kind: 'value' as const, variable: variableName(parameter.name.value.value) })),
+      expression: () => ({ kind: 'value' as const, variable: variableName(parameter.name.value.value) }),
+      external: () => ({ kind: 'value' as const, variable: variableName(parameter.name.value.value) }),
+    },
+    () => ({ kind: 'value' as const, variable: variableName(parameter.name.value.value) }),
+  ), dependency => ({ kind: 'dependency' as const, type: dependency.type }));
+};
+
+const controllerParameters = (method: ControllerMethodAst, dependencies: readonly ControllerDependency[], file: string): Sequence<ControllerParameter> =>
+  sequence(relationProject(method.parameters, parameter => ({
+    variable: variableName(parameter.name.value.value),
+    kind: controllerParameterKind(parameter, dependencies),
+    source: tokenSpan(file, parameter.source),
+  })));
+
+export function controllerMethodAttributesFromAttributes(
+  methodAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[],
+  controllerAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[],
+  file: string,
+): import('../../../../types/upstream/collections').Sequence<import('../../../../types/upstream/controller').ControllerMethodAttribute> {
+  const argument = (value: import('../lexer/controllerAstTypes').ControllerParameterAttributeArgumentAst): import('../../../../types/upstream/expression').ExpressionArgument =>
+    relationGate(Object.is(value.kind, 'named'),
+      () => ({ kind: 'named' as const, name: { kind: 'expression_argument_name' as const, value: { kind: 'string_value' as const, value: value.name.value } }, value: mapResourcePhpAstToUpstream(value.value, file) }),
+      () => relationGate(Object.is(value.kind, 'unpacked'),
+        () => ({ kind: 'unpacked' as const, value: mapResourcePhpAstToUpstream(value.value, file) }),
+        () => ({ kind: 'positional' as const, value: mapResourcePhpAstToUpstream(value.value, file) })));
+  const classAttributes: readonly ControllerMethodAttribute[] = relationProject(controllerAttributes, attribute => ({
+    kind: 'controller_method_attribute' as const,
+    scope: { kind: 'class' as const },
+    name: { kind: 'class_name' as const, value: { kind: 'string_value' as const, value: attribute.name.value } },
+    arguments: { kind: 'expression_arguments' as const, items: sequence(relationProject(attribute.arguments, argument)) },
+    source: tokenSpan(file, attribute.source),
+  }));
+  const methodAttributeEvidence: readonly ControllerMethodAttribute[] = relationProject(methodAttributes, attribute => ({
+    kind: 'controller_method_attribute' as const,
+    scope: { kind: 'method' as const },
+    name: { kind: 'class_name' as const, value: { kind: 'string_value' as const, value: attribute.name.value } },
+    arguments: { kind: 'expression_arguments' as const, items: sequence(relationProject(attribute.arguments, argument)) },
+    source: tokenSpan(file, attribute.source),
+  }));
+  return relationFoldRight(classAttributes, sequence(methodAttributeEvidence), (attribute, tail) => ({ kind: 'cons' as const, head: attribute, tail }));
+}
+
+function controllerMethodAttributesFromMethod(
+  method: ControllerMethodAst,
+  controllerAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[],
+  file: string,
+): import('../../../../types/upstream/collections').Sequence<import('../../../../types/upstream/controller').ControllerMethodAttribute> {
+  return controllerMethodAttributesFromAttributes(method.attributes, controllerAttributes, file);
+}
+
+function policyActionScope(attribute: ControllerMethodAttribute): ControllerPolicyActionScope {
+  const arguments_ = sequenceToArray(attribute.arguments.items);
+  const named = relationFirstOption(arguments_, argument => argument.kind === 'named' && (argument.name.value.value === 'only' || argument.name.value.value === 'except'));
+  return relationOptionFold(named, () => ({ kind: 'all' as const }), argument => {
+    const name = argument.kind === 'named' ? argument.name.value.value : '';
+    const value = argument.kind === 'named' ? argument.value : ({ kind: 'unsupported_expression', reason: { kind: 'unsupported' }, source: attribute.source } as Expression);
+    const actions = value.kind === 'array'
+      ? relationProject(sequenceToArray(value.entries), entry => entry.value).filter(item => item.kind === 'literal' && item.value.kind === 'string_literal').map(item => ({ kind: 'action_name' as const, value: { kind: 'string_value' as const, value: item.value.value.value } }))
+      : [];
+    return name === 'only' ? { kind: 'only' as const, actions: sequence(actions) } : { kind: 'except' as const, actions: sequence(actions) };
+  });
+}
+
+function controllerPolicyRelationsFromAttributes(attributes: Sequence<ControllerMethodAttribute>, action?: ActionName): Sequence<ControllerPolicyRelation> {
+  const values = sequenceToArray(attributes);
+  const relations = relationExpand(values, attribute => {
+    const name = attribute.name.value.value;
+    if (name !== 'Middleware' && name !== 'WithoutMiddleware' && name !== 'Authorize') return [];
+    if (name === 'Authorize') {
+      return [{ kind: 'controller_authorization_relation' as const, scope: attribute.scope, actions: action ? { kind: 'only' as const, actions: sequence([action]) } : policyActionScope(attribute), arguments: attribute.arguments, source: attribute.source }];
+    }
+    const args = sequenceToArray(attribute.arguments.items);
+    const first = relationFirstOption(args, argument => argument.kind === 'positional');
+    return relationOptionFold(first, () => [], argument => {
+      const target = argument.kind === 'positional' ? argument.value : ({ kind: 'unsupported_expression', reason: { kind: 'unsupported' }, source: attribute.source } as Expression);
+      const middleware = target.kind === 'literal' && target.value.kind === 'string_literal'
+        ? { kind: 'middleware_name' as const, value: { kind: 'string_value' as const, value: target.value.value.value } }
+        : target;
+      return [{ kind: 'controller_middleware_relation' as const, middleware, origin: { kind: 'attribute' as const }, scope: attribute.scope, actions: policyActionScope(attribute), exclusion: name === 'WithoutMiddleware', source: attribute.source }];
+    });
+  });
+  return sequence(relations);
+}
+
+
+function controllerHasMiddlewareActionScope(expression: Expression): ControllerPolicyActionScope {
+  const arguments_ = expression.kind === 'construct' ? sequenceToArray(expression.arguments.items) : [];
+  const named = relationFirstOption(arguments_, argument => argument.kind === 'named' && (argument.name.value.value === 'only' || argument.name.value.value === 'except'));
+  return relationOptionFold(named, () => ({ kind: 'all' as const }), argument => {
+    if (argument.kind !== 'named') return { kind: 'all' as const };
+    const values = argument.value.kind === 'array' ? sequenceToArray(argument.value.entries) : [];
+    const stringEntries = relationSelect(values, entry => entry.value.kind === 'literal' && entry.value.value.kind === 'string_literal');
+    const actions = relationProject(stringEntries, entry => {
+      const value = entry.value as Extract<Expression, { readonly kind: 'literal' }>;
+      return { kind: 'action_name' as const, value: { kind: 'string_value' as const, value: value.value.value.value } };
+    });
+    return argument.name.value.value === 'only' ? { kind: 'only' as const, actions: sequence(actions) } : { kind: 'except' as const, actions: sequence(actions) };
+  });
+}
+
+function controllerHasMiddlewareRelations(
+  methods: readonly ControllerMethodAst[],
+  interfaces: readonly import('../../lexer/phpAstTypes').AstIdentifier[],
+  file: string,
+): Sequence<ControllerPolicyRelation> {
+  const hasMiddleware = relationAny(relationProject(interfaces, item => relationEqual(item, 'HasMiddleware')));
+  return relationGate(hasMiddleware, () => {
+    const middlewareMethod = relationFirst(methods, method => relationAll([relationEqual(method.name, 'middleware'), relationEqual(method.storage, 'static')]));
+    return relationOptionFold(middlewareMethod, () => ({ kind: 'empty' as const }), method => {
+      const expressions = relationExpand(method.returns, returned => returned.expression.kind === 'nested_array'
+        ? relationProject(returned.expression.entries, entry => mapResourcePhpAstToUpstream(entry.value, file))
+        : [mapResourcePhpAstToUpstream(returned.expression, file)]);
+      const projected = relationProject(expressions, expression => {
+        const target = expression.kind === 'construct' && relationEqual(expression.className.value.value, 'Middleware')
+          ? relationOptionFold(relationFirstOption(sequenceToArray(expression.arguments.items), argument => argument.kind === 'positional'), () => expression, argument => argument.kind === 'positional' ? argument.value : expression)
+          : expression;
+        const middleware = target.kind === 'literal' && target.value.kind === 'string_literal'
+          ? { kind: 'middleware_name' as const, value: { kind: 'string_value' as const, value: target.value.value.value } }
+          : target;
+        return { kind: 'controller_middleware_relation' as const, middleware, origin: { kind: 'has_middleware' as const }, scope: { kind: 'class' as const }, actions: controllerHasMiddlewareActionScope(expression), exclusion: false, source: expression.source };
+      });
+      return sequence(projected);
+    });
+  }, () => ({ kind: 'empty' as const }));
+}
+
+function controllerMethodVisibilityFromMethod(method: ControllerMethodAst): import('../../../../types/upstream/controller').ControllerMethodVisibility {
+  return relationCase<ControllerMethodAst['visibility'], import('../../../../types/upstream/controller').ControllerMethodVisibility>(method.visibility, value => value, {
+    public: () => ({ kind: 'public' as const }),
+    protected: () => ({ kind: 'protected' as const }),
+    private: () => ({ kind: 'private' as const }),
+    // PHP methods without an explicit modifier are public by default.
+    implicit: () => ({ kind: 'public' as const }),
+  }, () => ({ kind: 'public' as const }));
+}
+
+function sourceOffset(value: import('../../../../types/upstream/provenance').SourceSpan, side: 'start' | 'end'): number {
+  return side === 'start' ? value.start.value : value.end.value;
+}
+
+function queryOperationIsWrite(operation: QueryOperationAst): boolean {
+  return relationGate(
+    relationEqual(operation.kind, 'model_static'),
+    () => { const modelStatic = operation as Extract<QueryOperationAst, { readonly kind: 'model_static' }>; return relationCase(modelStatic.operation, value => value.kind, {
+      create: () => true,
+      update_or_create: () => true,
+      first_or_create: () => true,
+      all: () => false,
+      query: () => false,
+      where: () => false,
+      where_key: () => false,
+      with: () => false,
+      order_by: () => false,
+      order_by_raw: () => false,
+      order_by_nulls: () => false,
+      select: () => false,
+      find_or_fail: () => false,
+    }, () => false); },
+    () => relationGate(
+      relationEqual(operation.kind, 'instance'),
+      () => { const instance = operation as Extract<QueryOperationAst, { readonly kind: 'instance' }>; return relationCase(instance.operation, value => value.kind, {
+        mutation: () => true,
+        insert: () => true,
+        insert_get_id: () => true,
+        upsert: () => true,
+        force_delete: () => true,
+        restore: () => true,
+        delete: () => true,
+        fill: () => true,
+        create: () => true,
+        update: () => true,
+        update_or_create: () => true,
+        first_or_create: () => true,
+        increment: () => true,
+        decrement: () => true,
+        save: () => true,
+        select: () => false,
+        add_select: () => false,
+        select_sub: () => false,
+        select_expression: () => false,
+        from_sub: () => false,
+        index_hint: () => false,
+        select_vector_distance: () => false,
+        explain: () => false,
+        distinct: () => false,
+        join: () => false,
+        left_join: () => false,
+        right_join: () => false,
+        cross_join: () => false,
+        join_sub: () => false,
+        join_lateral: () => false,
+        left_join_lateral: () => false,
+        straight_join: () => false,
+        union: () => false,
+        union_all: () => false,
+        having: () => false,
+        or_having: () => false,
+        lock: () => false,
+        offset: () => false,
+        in_random_order: () => false,
+        random_order: () => false,
+        chunk: () => false,
+        iteration: () => false,
+        order_by_vector_distance: () => false,
+        pipeline: () => false,
+        execution_hook: () => false,
+        execution_configuration: () => false,
+        terminal: () => false,
+        lazy: () => false,
+        lazy_by_id: () => false,
+        where: () => false,
+        or_where: () => false,
+        where_raw: () => false,
+        reorder: () => false,
+        group_limit: () => false,
+        in_order_of: () => false,
+        chunk_by_id: () => false,
+        from_raw: () => false,
+        timeout: () => false,
+        relation: () => false,
+        relation_aggregate: () => false,
+        where_has: () => false,
+        where_key: () => false,
+        with: () => false,
+        latest: () => false,
+        oldest: () => false,
+        order_by: () => false,
+        order_by_raw: () => false,
+        limit: () => false,
+        first: () => false,
+        first_or_fail: () => false,
+        find: () => false,
+        get: () => false,
+        get_with_columns: () => false,
+        find_or_fail: () => false,
+        paginate: () => false,
+        simple_paginate: () => false,
+        cursor_paginate: () => false,
+        sum: () => false,
+        avg: () => false,
+        min: () => false,
+        max: () => false,
+        count: () => false,
+        sole: () => false,
+        doesnt_exist: () => false,
+        group_by: () => false,
+        map: () => false,
+        filter: () => false,
+        values: () => false,
+        pluck: () => false,
+        value: () => false,
+        exists: () => false,
+        select_raw: () => false,
+        select_raw_expression: () => false,
+        load: () => false,
+        lock_for_update: () => false,
+        with_trashed: () => false,
+        only_trashed: () => false,
+        without_trashed: () => false,
+      }, () => false); },
+      () => false,
+    ),
+  );
+}
+
+function literalStringFromExpression(expression: Expression): string | undefined {
+  if (expression.kind === 'literal' && expression.value.kind === 'string_literal') return expression.value.value.value;
+  if (expression.kind !== 'static_method') return undefined;
+  const first = sequenceToArray<ExpressionArgument>(expression.arguments.items)[0];
+  if (!first || first.kind !== 'positional' || first.value.kind !== 'literal' || first.value.value.kind !== 'string_literal') return undefined;
+  return first.value.value.value.value;
+}
+
+export function controllerQueryOperations(
+  method: ControllerMethodAst,
+  file: string,
+  queries: readonly QueryAst[],
+): readonly import('../../../../types/upstream/controller').ControllerOperation[] {
+  const methodSource = tokenSpan(file, method.source);
+  const candidates = relationSelect(queries, query => relationAll([
+    relationEqual(query.source.file.value.value, file),
+    relationGate(sourceOffset(query.source, 'start') >= sourceOffset(methodSource, 'start'), () => sourceOffset(query.source, 'end') <= sourceOffset(methodSource, 'end'), () => false),
+  ]));
+  const queryOperations = relationProject(
+    relationSelect(candidates, query => relationEqual(query.model.kind, 'known')),
+    query => relationCase(query.model, value => value.kind, {
+      known: model => ({
+        kind: relationAny(relationProject(sequenceToArray(query.operations), queryOperationIsWrite)) ? 'model_write' as const : 'model_query' as const,
+        model: (model as Extract<QueryAst['model'], { readonly kind: 'known' }>).name,
+      }),
+      indeterminate: () => ({ kind: 'model_query' as const, model: { kind: 'model_name' as const, value: { kind: 'string_value' as const, value: '' } } }),
+    }, () => ({ kind: 'model_query' as const, model: { kind: 'string_value' as const, value: '' } as never })),
+  );
+  const databaseTables = relationProject(
+    relationSelect(relationExpand(candidates, query => sequenceToArray(query.operations)), operation => relationEqual(operation.kind, 'database_table')),
+    operation => { const tableOperation = operation as Extract<QueryOperationAst, { readonly kind: 'database_table' }>; return relationOptionFold(
+      relationFirstOption([tableOperation.expression], value => literalStringFromExpression(value) !== undefined),
+      () => ({ kind: 'database_table' as const, table: { kind: 'table_name' as const, value: { kind: 'string_value' as const, value: '' } } }),
+      value => ({ kind: 'database_table' as const, table: { kind: 'table_name' as const, value: { kind: 'string_value' as const, value: literalStringFromExpression(value) as string } } }),
+    ); },
+  );
+  const projected = relationSelect(relationExpand([queryOperations, databaseTables], value => value), operation => operation.kind !== 'model_query' || operation.model.value.value !== '');
+  return relationFold(projected, [] as import('../../../../types/upstream/controller').ControllerOperation[], (seen, operation) => {
+    const key = operation.kind === 'model_query' || operation.kind === 'model_write'
+      ? `${operation.kind}:${operation.model.value.value}`
+      : operation.kind === 'database_table'
+        ? `${operation.kind}:${operation.table.value.value}`
+        : `${operation.kind}`;
+    return relationGate(
+      relationFirst(seen, candidate => {
+        const candidateKey = candidate.kind === 'model_query' || candidate.kind === 'model_write'
+          ? `${candidate.kind}:${candidate.model.value.value}`
+          : candidate.kind === 'database_table'
+            ? `${candidate.kind}:${candidate.table.value.value}`
+            : `${candidate.kind}`;
+        return relationEqual(candidateKey, key);
+      }).kind === 'some',
+      () => seen,
+      () => [...seen, operation],
+    );
+  });
+}
+
+function controllerOperationsFromMethod(method: ControllerMethodAst, semanticDataflow: ControllerSemanticDataflow, response: ControllerResponse, file: string, queries: readonly QueryAst[]): readonly import('../../../../types/upstream/controller').ControllerOperation[] {
+  const resourceOperations = relationProject(semanticDataflow.resources, binding => ({
+    kind: 'resource' as const,
+    resource: binding.resource,
+  }));
+  const responseOperations = relationGate(relationEqual(response.kind, 'response_present'), () => [{
+    kind: 'response' as const,
+    response: response.response,
+  }], () => []);
+  const queryOperations = controllerQueryOperations(method, file, queries);
+  const withQueries = relationExpand([queryOperations, resourceOperations], value => value);
+  return relationExpand([withQueries, responseOperations], value => value);
+}
+
+export function controllerMethodContractFromMethod(
+  method: ControllerMethodAst,
+  controllerName: string,
+  file: string,
+  response: ControllerResponse,
+  dependencies: readonly ControllerDependency[] = [],
+  controllerAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[] = [],
+  queries: readonly QueryAst[] = [],
+  controllerInterfaces: readonly import('../lexer/phpAstTypes').AstIdentifier[] = [],
+  controllerMethods: readonly ControllerMethodAst[] = [],
+  controllerInheritedAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[] = [],
+): import('../../../../types/upstream/controller').ControllerMethodContract {
+  const semanticDataflow = semantic(method, file, response);
+  return {
+    attributes: controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file),
+    policy: sequence(relationExpand([sequenceToArray(controllerPolicyRelationsFromAttributes(controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file), { kind: 'action_name' as const, value: { kind: 'string_value' as const, value: method.name.value } })), sequenceToArray(controllerHasMiddlewareRelations(controllerMethods, controllerInterfaces, file))], value => value)),
+    visibility: controllerMethodVisibilityFromMethod(method),
+    parameters: controllerParameters(method, dependencies, file),
+    dependencies: sequence(dependencies),
+    operations: sequence(controllerOperationsFromMethod(method, semanticDataflow, response, file, queries)),
+    failure: controllerFailureFromMethod(method),
+    source: tokenSpan(file, method.source),
+  };
+}
+
+function controllerFailureFromMethod(method: ControllerMethodAst): import('../../../../types/upstream/controller').ControllerFailureContract {
+  const first = relationFirst(method.body.errors, () => true);
+  return relationOptionFold(
+    first,
+    () => ({ kind: 'none' as const }),
+    error => ({
+      kind: 'http_abort' as const,
+      status: defaultStatus(error.status),
+    }),
+  );
+}
+
+export const controllerFailureContractFromMethod = controllerFailureFromMethod;
+
+export function controllerActionFromMethod(
+  method: ControllerMethodAst,
+  controllerName: string,
+  file: string,
+  response: ControllerResponse,
+  dependencies: readonly ControllerDependency[] = [],
+  policy: Sequence<ControllerPolicyRelation> = { kind: 'empty' },
+  inheritedFrom: readonly import('../../../../types/upstream/names').ControllerName[] = [],
+): ControllerAction {
   const action: ControllerAction = {
     kind: 'controller_action',
     controller: { kind: 'controller_name', value: stringValue(controllerName) },
     action: { kind: 'action_name', value: stringValue(method.name) },
+    policy,
+    inheritedFrom: Object.freeze([...inheritedFrom]),
+    parameters: controllerParameters(method, dependencies, file),
     request: requestBinding(method),
     response,
     dependencies: sequence(dependencies),

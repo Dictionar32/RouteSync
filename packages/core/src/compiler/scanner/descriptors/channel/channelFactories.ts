@@ -15,7 +15,7 @@ import {
 import type { RouteParameter } from '../../../../types/upstream/route';
 import { compileBroadcastRuntimePattern } from './patternCompiler';
 import type { BroadcastChannelDescriptor } from '../../../../types/domain/channels';
-import { relationGate } from '../../../../semantic/kernel/relationalSequence';
+import { relationGate } from '../../../../semantic/foundation/relationalSequence';
 
 type BroadcastChannelDescriptorParams = { readonly name: string; readonly kind: BroadcastChannelKind; readonly pattern: string; readonly runtimePattern: string; readonly parameters: readonly RouteParameter[]; readonly isPrivate: boolean; readonly isPresence: boolean };
 

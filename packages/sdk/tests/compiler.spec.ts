@@ -251,31 +251,6 @@ describe('RouteSync Compiler Core v6.1', () => {
     expect(result.statistics.durationMs).toBe(10);
   });
 
-  it('should support Salsa-style memoization and dependency tracking in MemoizedQueryDatabase', () => {
-    const db = new v6.MemoizedQueryDatabase();
-    const queryA = v6.createMemoizedQueryKey<string>('queryA');
-
-    let computeCount = 0;
-    const mockQuery = (input: string) => {
-      computeCount++;
-      return input.toUpperCase();
-    };
-
-    const res1 = db.runQuery(queryA, mockQuery, 'hello', 'rev1');
-    expect(res1).toBe('HELLO');
-    expect(computeCount).toBe(1);
-
-    // Dynamic cached lookup
-    const res2 = db.runQuery(queryA, mockQuery, 'hello', 'rev1');
-    expect(res2).toBe('HELLO');
-    expect(computeCount).toBe(1); // Caching check
-
-    // Invalidation check with different revision
-    const res3 = db.runQuery(queryA, mockQuery, 'hello', 'rev2');
-    expect(res3).toBe('HELLO');
-    expect(computeCount).toBe(2); // Recalculated due to new revision
-  });
-
   it('should support Arena allocation and stable SymbolId calculations', () => {
     // 1. Arena allocator check
     const arena = new v6.Arena<string>();

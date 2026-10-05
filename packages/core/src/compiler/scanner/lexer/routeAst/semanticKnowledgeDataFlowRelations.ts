@@ -1,5 +1,5 @@
-import { relationContains, relationUnique } from '../../../../semantic/kernel/relationMembership';
-import { relationOptionalFold, relationVariant, relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
+import { relationContains, relationUnique } from '../../../../semantic/foundation/relationMembership';
+import { relationOptionalFold, relationVariant, relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
 import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve, relationFirstOption, relationOptionFold, relationProject } from '../../../relational/sequence';
 import { typedDefine, typedDistinct, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 import type { SemanticClosureResult } from './semanticClosureEngine';

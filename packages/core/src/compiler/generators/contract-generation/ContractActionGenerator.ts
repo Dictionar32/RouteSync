@@ -15,7 +15,7 @@ import { ResolvedObjectType } from '../../domain/common/ResolvedSemanticType';
 import { toZodSchemaExpression } from '../../domain/common/ZodSchemaLowerer';
 import { toPascalCase } from '../../../utils/resource-naming';
 import { createPropertyName } from '../../../types/upstream/names';
-import { relationProject, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationProject, relationResolve } from '../../../semantic/foundation/relationalSequence';
 
 export interface ActionField {
     readonly name: string;

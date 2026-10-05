@@ -13,9 +13,9 @@ import type { ServiceMethodResultIndex } from '../../../types/upstream/service';
 import type { ModelSymbolTable } from '../symbols/ModelSymbolTable';
 import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
 import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from './resource/resourceUpstreamExpressionMappings';
-import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, relationCount, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone, type RelationVariant } from '../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, relationCount, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
 
 type Binding = { readonly variable: VariableName; readonly value: SemanticValue };
 type Environment = RelationIndex<VariableName, Binding>;

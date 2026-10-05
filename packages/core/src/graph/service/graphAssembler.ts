@@ -2,9 +2,9 @@
 import type { ServiceGraph, ServiceNode, ControllerNode, ServiceModelNode, ServiceDependency } from '../../types/semantic';
 import { ModelServiceMap, ModelControllerMap, ModelNodeMap } from '../../types/domain/semanticCollections';
 import type { GraphNodeIndex } from './graphNodeIndex';
-import type { RelationIndex } from '../../semantic/kernel/relationMembership';
-import { relationEqual } from '../../semantic/kernel/relationFoundation';
-import { relationProject, relationSelect } from '../../semantic/kernel/relationalSequence';
+import type { RelationIndex } from '../../semantic/foundation/relationMembership';
+import { relationEqual } from '../../semantic/foundation/relationFoundation';
+import { relationProject, relationSelect } from '../../semantic/foundation/relationalSequence';
 
 export function assembleServiceGraph(
   modelsMap: GraphNodeIndex<ServiceModelNode>,
@@ -24,5 +24,10 @@ export function assembleServiceGraph(
   const controllerFacts = relationSelect(controllerEntries, entry => true);
   const controllerValues = relationProject(controllerFacts, entry => entry);
   const controllerLookup = ModelControllerMap.fromEntries(controllerValues);
-  return { models, services, controllers: controllerLookup, edges: [...edges] };
+  return Object.freeze({
+    models,
+    services,
+    controllers: controllerLookup,
+    edges: Object.freeze([...edges]),
+  });
 }

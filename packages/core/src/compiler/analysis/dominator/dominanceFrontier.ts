@@ -1,9 +1,9 @@
 /** Relation-backed dominance-frontier facts. */
 import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
 import type { DominatorTree } from './dominatorTree';
-import { relationContains, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
-import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
+import { relationContains, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationFold, relationResolve, relationEqual } from '../../../semantic/foundation/relationalSequence';
+import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
 
 export interface DominanceFrontier {
   readonly frontiers: RelationIndex<number, readonly number[]>;

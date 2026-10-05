@@ -1,6 +1,6 @@
 import { relationEqual, relationResolve } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
-import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
+import { relationFirstOption, relationOptionFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
 import { retain, visit } from './semanticRelationalCollections';
 /**
  * Indexed semantic relation store.

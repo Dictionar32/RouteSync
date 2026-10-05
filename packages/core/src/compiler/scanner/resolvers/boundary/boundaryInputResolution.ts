@@ -2,13 +2,13 @@ import type { RouteBoundaryOptions, ResolvedRouteBoundaryOptions } from "./bound
 import { routeBoundaryBasicsInterface } from "./boundaryBasics";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
-import { relationEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
 import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
 import { truthValue } from "../../../../types/upstream/valueObjects";
 import type { RouteMiddleware } from "../../../../types/upstream/route";
 import { createMiddlewareName, type PropertyName } from "../../../../types/upstream/names";
 import type { RouteMiddlewares, Sequence } from "../../../../types/upstream/collections";
-import { relationFoldRight } from "../../../../semantic/kernel/relationalSequence";
+import { relationFoldRight } from "../../../../semantic/foundation/relationalSequence";
 
 
 const sequenceCons = <T>(head: T, tail: Sequence<T>): Sequence<T> => ({ kind: "cons", head, tail });

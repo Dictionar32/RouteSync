@@ -4,7 +4,7 @@
  * Every variant has a closed discriminator and variant-specific fields.
  */
 
-import { relationGate } from '../../semantic/kernel/relationalSequence';
+import { relationGate } from '../../semantic/foundation/relationalSequence';
 
 export interface PrimitiveTypeIR {
     readonly kind: 'primitive';

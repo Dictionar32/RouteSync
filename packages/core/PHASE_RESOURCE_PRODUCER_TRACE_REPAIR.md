@@ -2,7 +2,7 @@
 
 ## Source of truth
 
-`examples/ecommerce-shop-source/app/Http/Resources/*.php`
+`packages/sdk/tests/fixtures/ecommerce-shop-source` (maintained regression corpus)
 
 Laravel API Resource semantics were checked against Laravel 13 documentation. The ecommerce source currently uses `JsonResource`, `toArray()`, `$wrap`, `@mixin`, nested resource / collection, ordinary expressions, assignments, and `whenLoaded`.
 

@@ -3,8 +3,8 @@ import type { ModelCast } from "../../../../types/upstream/model";
 import type { PhpClassPropertyAst, ModelDeclarationAst, PhpAstValue } from "../../lexer";
 import { EloquentCastMapper } from "../../../../types/domain/eloquentTypes";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
-import { relationAll, relationEqual } from "../../../../semantic/kernel/semanticRelations";
-import { relationExpand, relationFold, relationGate, relationProject, relationSelect } from "../../../../semantic/kernel/relationalSequence";
+import { relationAll, relationEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationExpand, relationFold, relationGate, relationProject, relationSelect } from "../../../../semantic/foundation/relationalSequence";
 
 const readCastValue = (value: PhpAstValue): string =>
     relationGate(

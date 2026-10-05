@@ -8,7 +8,7 @@
  */
 
 import { toPascalResourceName, propertyNameText, toPascalCase } from '../../../utils/resource-naming';
-import { relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationProject } from '../../../semantic/foundation/relationalSequence';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
 import type { PropertyName } from '../../../types/upstream/names';
 import { buildFormFieldLine } from './formFieldLineBuilder';

@@ -1,6 +1,6 @@
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationContains } from '../../../../semantic/kernel/relationMembership';
-import { relationFirstOption, relationOptionFold, relationExpand, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationContains } from '../../../../semantic/foundation/relationMembership';
+import { relationFirstOption, relationOptionFold, relationExpand, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 
 import type { TokenDescriptor } from '../phpAstTypes';
 
@@ -39,7 +39,7 @@ export type SyntaxOperation =
 
 export type SyntaxRouteMethod =
   | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options' | 'head'
-  | 'match' | 'any' | 'apiResource';
+  | 'match' | 'any' | 'resource' | 'apiResource' | 'singleton' | 'apiSingleton';
 
 export type SyntaxRouteConstraintMethod =
   | 'where' | 'whereNumber' | 'whereAlpha' | 'whereAlphaNumeric'
@@ -52,7 +52,8 @@ type Catalog<T> = readonly (readonly [string, T])[];
 
 const routeMethodValues: Catalog<SyntaxRouteMethod> = Object.freeze([
   ['get', 'get'], ['post', 'post'], ['put', 'put'], ['patch', 'patch'], ['delete', 'delete'],
-  ['options', 'options'], ['head', 'head'], ['match', 'match'], ['any', 'any'], ['apiResource', 'apiResource'],
+  ['options', 'options'], ['head', 'head'], ['match', 'match'], ['any', 'any'],
+  ['resource', 'resource'], ['apiResource', 'apiResource'], ['singleton', 'singleton'], ['apiSingleton', 'apiSingleton'],
 ]);
 
 const routeConstraintMethodValues: Catalog<SyntaxRouteConstraintMethod> = Object.freeze([

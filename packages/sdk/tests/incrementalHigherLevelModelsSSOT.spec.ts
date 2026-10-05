@@ -4,11 +4,8 @@
  * Comprehensive Level 7 SSOT Regression Suite for Incremental Scanner Models.
  * Tests:
  * 1. Nominal Branded Atoms creation & normalization (RouteSemanticFlowMethod, RouteSemanticFlowPath, etc.)
- * 2. RouteSemanticFlowFactory Complete Contract (0 ?, 0 null, entry tuples, backward-compat facade)
  * 3. ScannedResourceDescriptor Complete Contract & semantic factories (.create(), .empty(), .fromRaw())
- * 4. ScannedManifestDescriptor Complete Contract & composition
  * 5. Catamorphic matchRouteResponsePayload ADT eliminator (0 if, 0 switch)
- * 6. Deterministic integration with calculateRouteHash and resolveManifestIncrementally
  */
 
 import { describe, it, expect } from 'vitest';
@@ -16,11 +13,7 @@ import {
   NominalAtomFactory,
   matchRouteResponsePayload,
   type RouteResponsePayloadContract,
-  RouteSemanticFlowFactory,
-  ScannedResourceDescriptor,
-  ScannedManifestDescriptor,
-  calculateRouteHash,
-  resolveManifestIncrementally
+  ScannedResourceDescriptor
 } from '@routesync/cli';
 
 describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', () => {
@@ -47,53 +40,6 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
       expect(NominalAtomFactory.sourceLine(0)).toBe(1);
       expect(NominalAtomFactory.sourceLine(-5)).toBe(1);
       expect(NominalAtomFactory.sourceLine(undefined)).toBe(1);
-    });
-  });
-
-  describe('RouteSemanticFlowFactory & Complete Contracts', () => {
-    it('constructs a complete route contract with entry tuples and facade accessors', () => {
-      const route = RouteSemanticFlowFactory.create({
-        method: 'GET',
-        path: '/api/users',
-        auth: true,
-        name: 'users.index',
-        schema: { page: 'number', limit: 'number' },
-        response: { kind: 'array', element: { kind: 'resource', resource: 'UserResource' } },
-        assignments: { '$users': 'User::all()' },
-        sourceFile: 'routes/api.php',
-        sourceLine: 25
-      });
-
-      // Complete Contract verification
-      expect(route.method).toBe('GET');
-      expect(route.path).toBe('/api/users');
-      expect(route.auth).toBe(true);
-      expect(route.name).toBe('users.index');
-      expect(route.schemaEntries).toEqual([['page', 'number'], ['limit', 'number']]);
-      expect(route.assignmentEntries).toEqual([['$users', 'User::all()']]);
-      expect(route.source.file).toBe('routes/api.php');
-      expect(route.source.line).toBe(25);
-
-      // Backward-compatible facade properties
-      expect(route.sourceFile).toBe('routes/api.php');
-      expect(route.sourceLine).toBe(25);
-      expect(route.schema).toEqual({ page: 'number', limit: 'number' });
-      expect(route.assignments).toEqual({ '$users': 'User::all()' });
-    });
-
-    it('creates empty routes and parses raw route objects', () => {
-      const emptyRoute = RouteSemanticFlowFactory.empty();
-      expect(emptyRoute.method).toBe('GET');
-      expect(emptyRoute.path).toBe('/');
-      expect(emptyRoute.schemaEntries).toEqual([]);
-      expect(emptyRoute.assignmentEntries).toEqual([]);
-
-      const rawRoute = RouteSemanticFlowFactory.fromRaw({
-        method: 'delete',
-        path: 'orders/1'
-      });
-      expect(rawRoute.method).toBe('DELETE');
-      expect(rawRoute.path).toBe('/orders/1');
     });
   });
 
@@ -133,27 +79,6 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
     });
   });
 
-  describe('ScannedManifestDescriptor', () => {
-    it('assembles routes, models, and resources into a unified manifest descriptor', () => {
-      const manifest = ScannedManifestDescriptor.create({
-        routes: [{ method: 'GET', path: '/health' }],
-        models: [{ name: 'User', accessors: { fullName: { type: 'string' } } }],
-        resources: [{ name: 'UserResource', model: 'User' }]
-      });
-
-      expect(manifest.routes).toHaveLength(1);
-      expect(manifest.routes[0]).toBeInstanceOf(RouteSemanticFlowFactory);
-      expect(manifest.routes[0].path).toBe('/health');
-
-      expect(manifest.models).toHaveLength(1);
-      expect(manifest.models[0].name).toBe('User');
-
-      expect(manifest.resources).toHaveLength(1);
-      expect(manifest.resources[0]).toBeInstanceOf(ScannedResourceDescriptor);
-      expect(manifest.resources[0].name).toBe('UserResource');
-    });
-  });
-
   describe('Catamorphic Response Payload Eliminator (matchRouteResponsePayload)', () => {
     it('exhaustively matches all response payload variants with 0 if / 0 switch', () => {
       const payloads: RouteResponsePayloadContract[] = [
@@ -183,48 +108,5 @@ describe('Level 7 Higher-Level Domain Models for Incremental Scanner (SSOT)', ()
     });
   });
 
-  describe('Integration with Route Hasher & Incremental Pipeline', () => {
-    it('calculates deterministic hashes from RouteSemanticFlowFactory instances', () => {
-      const route1 = RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/v1/posts', auth: false });
-      const route2 = RouteSemanticFlowFactory.create({ method: 'GET', path: '/api/v1/posts', auth: false });
-      const route3 = RouteSemanticFlowFactory.create({ method: 'POST', path: '/api/v1/posts', auth: true });
 
-      const hash1 = calculateRouteHash(route1);
-      const hash2 = calculateRouteHash(route2);
-      const hash3 = calculateRouteHash(route3);
-
-      expect(hash1).toBe(hash2);
-      expect(hash1).not.toBe(hash3);
-      expect(hash1).toMatch(/^[a-f0-9]{64}$/);
-    });
-
-    it('seamlessly works with resolveManifestIncrementally', () => {
-      const route = RouteSemanticFlowFactory.create({
-        method: 'GET',
-        path: '/items',
-        auth: false,
-        response: { kind: 'primitive', type: 'string' }
-      });
-
-      const manifest = {
-        routes: [route],
-        models: [],
-        resources: []
-      };
-
-      const dummyKernel = {
-        resolve: () => ({ status: 'unknown' })
-      };
-
-      const result = resolveManifestIncrementally(
-        manifest,
-        '/non/existent/path/routesync.manifest.json',
-        dummyKernel,
-        []
-      );
-
-      expect(result.manifest.routes).toBeDefined();
-      expect(result.manifest.routes![0].stableHash).toMatch(/^[a-f0-9]{64}$/);
-    });
-  });
 });

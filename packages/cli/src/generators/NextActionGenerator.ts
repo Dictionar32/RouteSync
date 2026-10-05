@@ -37,22 +37,13 @@ export class NextActionGenerator {
         const TitleCaseAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
         const actionFnName = `${groupName}${TitleCaseAction}Action`
 
-        const pathParams = route.raw.pathParameters ? route.raw.pathParameters.map(p => p.propertyName) : []
+        const pathParams = route.identity.parameters.path
         const hasParams = pathParams.length > 0
-        const hasBody = Boolean(
-          (route.raw.requestContentType && route.raw.requestContentType !== 'none') ||
-          (route.raw.isMutating && route.raw.schema && route.raw.schema.rules)
-        )
-        const hasQuery = Boolean(
-          (route.raw.queryParameters && route.raw.queryParameters.length > 0) ||
-          route.method === 'GET' ||
-          route.method === 'DELETE'
-        )
+        const hasBody = route.capability.requestContentType !== 'none'
+        const hasQuery = route.identity.parameters.query.length > 0 || route.method === 'GET' || route.method === 'DELETE'
 
-        // 1. Authoritative payload mode from executionSignature SSOT
-        const effectivePayloadMode = route.raw.executionSignature
-          ? route.raw.executionSignature.payloadMode
-          : (hasParams || hasBody ? RoutePayloadMode.Required : (hasQuery ? RoutePayloadMode.Optional : RoutePayloadMode.None))
+        // Canonical payload mode from the upstream execution-signature contract.
+        const effectivePayloadMode = route.capability.executionSignature.payloadMode
 
         const callArgs: string[] = []
         switch (hasParams) {
@@ -76,7 +67,7 @@ export class NextActionGenerator {
           case false:
             break;
         }
-        switch (Boolean(route.raw.auth)) {
+        switch (route.capability.auth.value) {
           case true:
             callArgs.push(`headers: await getAuthHeaders()`)
             break;

@@ -5,9 +5,9 @@
  * longer delegates to the scanner's generic relation solver. The target layer
  * owns only its finite vocabulary and a declarative relation table.
  */
-import { relationFirstOption, relationOptionFold, relationProject } from '../../../../semantic/kernel/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationProject } from '../../../../semantic/foundation/relationalSequence';
 import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
-import { relationAll, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationAll, relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import { TypeScriptToken } from './typeScriptVocabulary';
 import { astSemanticFact, astSemanticTextTerm, astSemanticStageTerm, type AstSemanticFact } from '../../../../types/upstream/astSemanticInterface';
 import { createTargetProjectionPort, targetProjectionFact, type AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';

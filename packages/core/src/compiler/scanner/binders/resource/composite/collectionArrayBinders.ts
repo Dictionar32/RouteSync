@@ -21,8 +21,8 @@ import { matchLookup } from "../../../../../types/upstream/collections";
 import { requireResourceFieldType } from "../../../../../types/domain/resourceFieldSemantic";
 import { resolveAstValueToExpression } from "../../../subscanners/resource/resourceAstExpressionMapper";
 import { createRelationName } from "../../../../../types/upstream/names";
-import { relationEqual } from "../../../../../semantic/kernel/semanticRelations";
-import { relationGate, relationFold, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from "../../../../../semantic/kernel/relationalSequence";
+import { relationEqual } from "../../../../../semantic/foundation/semanticRelations";
+import { relationGate, relationFold, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from "../../../../../semantic/foundation/relationalSequence";
 
 export function bindResourceCollectionField(
     key: string,

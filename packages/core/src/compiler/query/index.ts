@@ -9,16 +9,6 @@
  * - Salsa compiler for demand-driven incremental compilation
  */
 
-// Query Cell
-export type { QueryCell } from './QueryCell';
-export {
-    createPendingCell,
-    createReadyCell,
-    isReady,
-    isPending,
-    addDependency
-} from './QueryCell';
-
 // Typed Cache
 export type { MemoizedQueryKey } from './TypedCache';
 export {
@@ -31,9 +21,8 @@ export type { TypedCache } from './TypedCache';
 export type { QueryDescriptor } from './QueryDatabase';
 export {
     createQueryDatabase,
-    createMemoizedQueryDatabase
 } from './QueryDatabase';
-export type { QueryDatabase, MemoizedQueryDatabase } from './QueryDatabase';
+export type { QueryDatabase } from './QueryDatabase';
 
 // Salsa Compiler
 export type {

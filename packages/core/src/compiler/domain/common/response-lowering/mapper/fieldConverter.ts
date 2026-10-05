@@ -17,8 +17,8 @@ import {
     partitionResults
 } from '../loweringContracts';
 import { resolveResponseFieldOperation, type ResponseFieldOperation } from './responseFieldSemanticRelations';
-import { relationFold, relationOptionFold, relationFirst, relationResolve, relationProject } from '../../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
+import { relationFold, relationOptionFold, relationFirst, relationResolve, relationProject } from '../../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../../semantic/foundation/semanticRelations';
 
 export function convertResolvedTypeToResponseField(
     fieldName: string,

@@ -1,8 +1,8 @@
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import type { KnowledgeId, SemanticAssignment, SemanticFact, SemanticKnowledgeDataFlow, SemanticAccess, SemanticAccessMember, SemanticMerge, SemanticPresence, SemanticSource, } from './semanticKnowledgeDataFlowRelations';
 import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
 import { typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
-import { relationVariantValue, type RelationVariant } from '../../../../semantic/kernel/relationalSequence';
+import { relationVariantValue, type RelationVariant } from '../../../../semantic/foundation/relationalSequence';
 /**
  * Phase 216 — syntax-independent state/data-flow model.
  *

@@ -1,4 +1,4 @@
-import { astTokenRelation, astValueRelation, phpBlockRelation, semanticEvidenceFold } from '../../../semantic/kernel/semanticEvidenceRelations';
+import { astTokenRelation, astValueRelation, phpBlockRelation, semanticEvidenceFold } from '../semantic/semanticEvidenceRelations';
 import * as astEvidence from './astClassifierEvidence';
 import type { PhpAstValue, TokenDescriptor, PhpBlock } from './PhpAst';
 

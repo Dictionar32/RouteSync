@@ -20,8 +20,8 @@ import type { PhpStatement } from "../lexer/phpAstTypes";
 import type { PhpMethodAst } from "../lexer/phpMethodAstTypes";
 import type { ResourceWrapping, ResourceFrameworkFeatures, ResourceCollectionFeatures, JsonApiResourceFeatures, JsonApiRelationshipDeclaration } from "../../../types/upstream/resource";
 import type { OriginModelSymbol } from "../symbols/model/originModelSymbol";
-import { relationLookup, relationOptionFold, relationProject, relationGate, relationSelect, relationFirstOption, relationExpand, relationRefine, relationSome, relationNone } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationLookup, relationOptionFold, relationProject, relationGate, relationSelect, relationFirstOption, relationExpand, relationRefine, relationSome, relationNone } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 export type ResourceProducerInput = {
     readonly resourceName: ResourceName;
@@ -45,12 +45,21 @@ export type ResourceProducerInput = {
     readonly collectsResource: ResourceReference | { readonly kind: 'collection_resource_inference' };
 };
 
+export interface ResourceProducerResult {
+    readonly definition: ResourceDefinition;
+    readonly ast: ResourceAst;
+}
+
 export interface ResourceProducer {
     readonly produce: (input: ResourceProducerInput) => ResourceAst;
+    readonly produceResult: (input: ResourceProducerInput) => ResourceProducerResult;
 }
 
 export const resourceProducer: ResourceProducer = {
     produce(input): ResourceAst {
+        return resourceProducer.produceResult(input).ast;
+    },
+    produceResult(input): ResourceProducerResult {
         const sourceFile: SourceFile = input.source.file;
         const model = input.model;
         const fields: ResourceField[] = relationExpand(input.entries, entry => relationGate(
@@ -180,7 +189,8 @@ export const resourceProducer: ResourceProducer = {
             actions: { kind: 'resource_actions', items: seq([]) }, endpoints: { kind: 'route_paths', items: seq([]) },
             synthetic: { kind: 'truth_value', value: false }, contract, framework, source: input.source,
         };
-        return createDomainAstJudgment({ kind: 'resource_ast', semantic: definition, source: input.source });
+        const ast = createDomainAstJudgment({ kind: 'resource_ast', semantic: definition, source: input.source });
+        return { definition, ast };
     },
 };
 
@@ -255,7 +265,7 @@ function hasPropertyTrue(properties: readonly PhpClassPropertyAst[], name: strin
         ),
     );
 }
-function returnExpression(method: import('../../../semantic/kernel/relationalSequence').RelationOption<PhpMethodAst>, input: ResourceProducerInput, fallback: 'default_resource_type' | 'default_resource_id'): Expression | { readonly kind: 'default_resource_type' } | { readonly kind: 'default_resource_id' } {
+function returnExpression(method: import('../../../semantic/foundation/relationalSequence').RelationOption<PhpMethodAst>, input: ResourceProducerInput, fallback: 'default_resource_type' | 'default_resource_id'): Expression | { readonly kind: 'default_resource_type' } | { readonly kind: 'default_resource_id' } {
     return relationOptionFold(
         method,
         () => ({ kind: fallback }),

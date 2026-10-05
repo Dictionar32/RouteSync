@@ -10,8 +10,8 @@ import {
     extractRouteResponseShape,
     processResponseProperties
 } from './route-response';
-import { relationAll, relationEqual, relationFold, relationGate, relationOptionFold } from '../../../../semantic/kernel/relationalSequence';
-import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
+import { relationAll, relationEqual, relationFold, relationGate, relationOptionFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
 
 export function deriveRouteResponseTypes(
     context: SemanticDerivationContext,

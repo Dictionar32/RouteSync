@@ -17,7 +17,11 @@ export { RouteContextTracker } from "./routeContextTracker";
 
 export {
     mapMethodDetails,
+    emitResourceRoutes,
+    resourceRegistrationFromDeclaration,
     emitApiResourceRoutes,
     emitStandardRoutes,
+    type ResourceRouteMethod,
+    type RouteEmission,
     type StandardRouteTarget
 } from "./routeEmitter";

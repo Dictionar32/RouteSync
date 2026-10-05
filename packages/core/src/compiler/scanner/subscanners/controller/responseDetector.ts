@@ -9,8 +9,8 @@ import { ErrorType } from '../../../types/SemanticType';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { DetectedResourceInvocation, detectResourceInvocation } from './resourceInvocationDetector';
-import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import { tokenKindAt, tokenValueAt } from '../../lexer/tokenEvidence';
 import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 

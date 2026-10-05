@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest'
 import {
   RouteHookKind,
@@ -8,7 +9,6 @@ import {
   RouteSemanticFlowCacheInvalidationDescriptor,
   RouteSemanticFlowExecutionSignature,
   ScannedSdkResponseResolution,
-  RouteSemanticFlowFactory,
   StaticLaravelScanner,
   RouteSemanticFlow,
   ParsedModel,

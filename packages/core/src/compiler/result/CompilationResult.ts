@@ -19,7 +19,6 @@ import { ConstraintGraphArtifact } from "../artifacts/ConstraintGraphArtifact";
 import { TypeEnvironmentArtifact } from "../artifacts/TypeEnvironmentArtifact";
 import { SemanticIRArtifact } from "../artifacts/SemanticIRArtifact";
 import { ContractGraph } from "../ir/ContractGraph";
-import { DependencyGraph } from "../utils";
 import { DiagnosticBag } from "../diagnostics";
 import { SymbolTable } from "../../semantic/SymbolTable";
 
@@ -39,7 +38,6 @@ export class CompilationResult {
     public readonly typeEnvironment: TypeEnvironmentArtifact,
     public readonly semanticIR: SemanticIRArtifact,
     public readonly graph: ContractGraph,
-    public readonly dependencyGraph: DependencyGraph,
     public readonly diagnostics: DiagnosticBag,
     public readonly symbolTable: SymbolTable,
     public readonly statistics: CompilationStatistics

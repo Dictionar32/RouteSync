@@ -5,7 +5,7 @@ import type { ResourceQueryProjection } from './resourceQueryOperation';
 import type { ResourceModelSurface } from './resourceModelSurface';
 import type { ModelSemanticColumn, ModelSemanticAccessor } from './models';
 import { meaningFor } from './resourceModelMethodResolverMeaning';
-import { relationEqual, relationLookup, relationOptionFold, relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual, relationLookup, relationOptionFold, relationResolve } from '../../semantic/foundation/relationalSequence';
 
 type ProjectionContext = {
   readonly state: ResourceQueryState;

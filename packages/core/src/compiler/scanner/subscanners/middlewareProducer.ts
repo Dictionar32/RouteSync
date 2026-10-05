@@ -1,5 +1,5 @@
-import { relationOptionFold, relationFirst } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationOptionFold, relationFirst } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { createDomainAstJudgment, type MiddlewareAst } from '../../../types/upstream/ast';
 import type { MiddlewareDefinition } from '../../../types/upstream/application';
 import { createClassName } from '../../../types/upstream/names';

@@ -8,8 +8,8 @@ import {
   relationSelect,
   relationSome,
   type RelationOption,
-} from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationNormalizeWhitespace } from '../../../../semantic/kernel/semanticRelations';
+} from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationNormalizeWhitespace } from '../../../../semantic/foundation/semanticRelations';
 
 /**
  * Validation rules are resolved once at the scanner origin boundary.

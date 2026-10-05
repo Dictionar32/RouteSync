@@ -1,9 +1,9 @@
 /** Immutable relation-backed SSA version state. */
 
 import type { Operand } from '../../../utils/ControlFlowGraph';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationResolve, relationEqual, type RelationOption } from '../../../../semantic/kernel/relationFoundation';
-import { relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationResolve, relationEqual, type RelationOption } from '../../../../semantic/foundation/relationFoundation';
+import { relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
 
 export interface VariableVersionScope {
     readonly count: RelationIndex<number, number>;

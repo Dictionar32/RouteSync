@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest'
 import {
   PaginationKind,
@@ -14,7 +15,6 @@ import {
   ScannedInvalidationTarget,
   RouteParameterType,
   ScannedRouteParameterDescriptor,
-  RouteSemanticFlowFactory
 } from '../../core/src'
 import { HookGenerator } from '../../cli/src/generators/HookGenerator'
 import { SDKGenerator } from '../../cli/src/generators/SDKGenerator'

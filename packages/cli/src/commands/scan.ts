@@ -3,8 +3,7 @@ import ora from 'ora'
 import chalk from 'chalk'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { validateManifestContract } from '../generators/ManifestContractValidator'
-import { ScannedModel } from '../utils/incremental'
-import { RouteManifest, StaticLaravelScanner, createLaravelSourceProjectIdentity } from '@routesync/core'
+import { StaticLaravelScanner, createLaravelSourceProjectIdentity, lowerRouteSyncManifestToRouteManifest, IRNodeRegistry } from '@routesync/core'
 
 export const scanCommand = new Command('scan')
   .description('Scan Laravel/PHP routes and output a route manifest')
@@ -25,63 +24,22 @@ export const scanCommand = new Command('scan')
         baseURL: options.baseURL,
         version: '6.0.0'
       })
-      const manifest: any = scannedManifest
-      const routes = (scannedManifest.routes || []) as any[]
-      const models = (scannedManifest.models || []) as any[]
-      const resources = (scannedManifest.resources || []) as any[]
-      
-      const { SemanticKernelV2Impl } = await import('@routesync/core')
-      const kernel = new SemanticKernelV2Impl()
+      const resolvedManifest = lowerRouteSyncManifestToRouteManifest(
+        scannedManifest,
+        options.baseURL,
+        '6.0.0',
+      )
+      const routes = resolvedManifest.routes
+      const models = resolvedManifest.models
+      const resources = resolvedManifest.resources
+      const irRegistry = new IRNodeRegistry()
 
-      const graphModels: Record<string, unknown> = {}
-      if (models) {
-        models.forEach((m) => {
-          const fields: Record<string, unknown> = {}
-          if (m.columns) {
-            m.columns.forEach((col) => {
-              const baseType = kernel.mapSqlTypeToTs(col.type)
-              let castedType = baseType
-              if (m.casts && m.casts[col.name]) {
-                castedType = kernel.mapCastToTs(m.casts[col.name], baseType)
-              }
-              fields[col.name] = { type: castedType, nullable: !!col.nullable }
-            })
-          }
-          graphModels[m.name] = {
-            kind: 'model_node',
-            name: m.name,
-            table: m.table,
-            fields: fields,
-            relations: m.relations,
-            accessors: m.accessors,
-            // casts wajib dibawa: ModelColumnResolver membaca cast via
-            // SymbolTable.cast() — tanpa ini kolom ber-cast (mis. `detail`
-            // => 'array') jatuh ke string, dan property access JSON
-            // ($detail['gateway']) tidak pernah jadi 'json-object' sehingga
-            // seluruh rantai ternary di resource tidak ter-resolve.
-            casts: m.casts,
-            layer: 'model',
-            confidence: 1.0
-          }
-        })
-      }
-
-      kernel.loadGraph({
-        services: {},
-        controllers: {},
-        models: graphModels,
-        edges: []
-      })
-      
-      const { resolveManifestIncrementally } = await import('../utils/incremental')
-      const { manifest: resolvedManifest, irRegistry } = resolveManifestIncrementally(manifest, outputPath, kernel, models as ScannedModel[] | undefined)
-
-      validateManifestContract(resolvedManifest as unknown as RouteManifest)
+      validateManifestContract(resolvedManifest)
       await ManifestGenerator.save(resolvedManifest, outputPath)
       const fs = require('fs')
       const { ServiceGraphBuilder } = await import('@routesync/core')
       const graphBuilder = new ServiceGraphBuilder()
-      const serviceGraph = graphBuilder.buildFromRouteSyncManifest(scannedManifest, resolvedManifest as unknown as RouteManifest)
+      const serviceGraph = graphBuilder.buildFromRouteSyncManifest(scannedManifest)
       fs.writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.graph.json'), JSON.stringify(serviceGraph, null, 2))
 
       // Stage 2 (IR v3) output — additive, does not change manifest/graph output above.
@@ -96,15 +54,8 @@ export const scanCommand = new Command('scan')
       )
 
       routes.forEach((r) => {
-        const routeStr = `  ${chalk.cyan(r.method.padEnd(7))} ${chalk.white(r.path)} ${r.auth ? chalk.yellow('[auth]') : ''}`
-        
-        if (!r.response) {
-          console.log(routeStr)
-          console.log(chalk.yellow(`    [RouteSync Warning] Response type could not be inferred.`))
-          console.log(chalk.yellow(`    Use: #[Response(...)] or return a JsonResource.`))
-        } else {
-          console.log(routeStr)
-        }
+        const routeStr = `  ${chalk.cyan(r.identity.coordinates.method.padEnd(7))} ${chalk.white(r.identity.coordinates.path)} ${r.capability.auth.value ? chalk.yellow('[auth]') : ''}`
+        console.log(routeStr)
       })
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)

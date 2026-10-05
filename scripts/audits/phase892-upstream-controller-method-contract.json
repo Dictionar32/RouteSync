@@ -1,0 +1,25 @@
+{
+  "phase": 892,
+  "title": "upstream controller method contract frontier correction",
+  "classification": "PARAMETER_WIRED_METHOD_CONTRACT_NOT_YET_SAFE_TO_WIRE",
+  "checks": {
+    "controllerParameterAlreadyWired": true,
+    "operationContractExists": true,
+    "operationProducerInControllerPipeline": false,
+    "failureContractExists": true,
+    "failureEvidenceExists": true,
+    "failureExceptionIdentityEvidence": false,
+    "visibilityEvidenceInControllerMethodAst": false,
+    "controllerParserProducesVisibility": false,
+    "noNewClassifierNeeded": true,
+    "noModelSymbolTableWiringNeeded": true
+  },
+  "findings": {
+    "nextSafeWiring": "ControllerErrorAst -> failure evidence adapter only after exception identity is canonical; do not invent ExceptionName.",
+    "blockedWiring": "ControllerMethodContract cannot yet be fully projected because ControllerMethodAst has no visibility and ControllerErrorAst carries status but no exception identity.",
+    "operations": "ControllerOperation remains an upstream vocabulary without a controller producer; derive it from canonical semantic operation/query/resource evidence only after a producer boundary is identified.",
+    "parameterAuthority": "ControllerParameterAst.semantic -> ControllerParameter -> ControllerAction.parameters -> ControllerActionFlowContract"
+  },
+  "emptyLegacyFiles": 203,
+  "deletedLegacyFiles": 0
+}

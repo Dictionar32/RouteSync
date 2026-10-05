@@ -1,7 +1,7 @@
 import type { Assignment } from './assignment';
 import type { ExpressionArguments } from './expression';
 import type { Expression } from './expression';
-import type { ActionName, ClassName, ControllerName, ExceptionName, MethodName, ModelName, RequestName, ResourceName, TableName, VariableName } from './names';
+import type { ActionName, ClassName, ControllerName, MethodName, ModelName, RequestName, ResourceName, TableName, VariableName, MiddlewareName } from './names';
 import type { SourceSpan } from './provenance';
 import type { CatchHandlers, SourceStatements, Sequence } from './collections';
 import type { SourceConditionalBranches } from './sourceStatements';
@@ -27,6 +27,57 @@ export type ControllerParameterKind =
 export interface ControllerParameter {
   readonly variable: VariableName;
   readonly kind: ControllerParameterKind;
+  readonly source: SourceSpan;
+}
+
+export type ControllerMethodAttributeScope =
+  | { readonly kind: 'class' }
+  | { readonly kind: 'method' };
+
+export interface ControllerMethodAttribute {
+  readonly kind: 'controller_method_attribute';
+  readonly scope: ControllerMethodAttributeScope;
+  readonly name: ClassName;
+  readonly arguments: ExpressionArguments;
+  readonly source: SourceSpan;
+}
+
+export type ControllerPolicyScope = ControllerMethodAttributeScope;
+
+export type ControllerMiddlewareOrigin =
+  | { readonly kind: 'attribute' }
+  | { readonly kind: 'has_middleware' };
+
+export type ControllerPolicyActionScope =
+  | { readonly kind: 'all' }
+  | { readonly kind: 'only'; readonly actions: Sequence<ActionName> }
+  | { readonly kind: 'except'; readonly actions: Sequence<ActionName> };
+
+export interface ControllerMiddlewareRelation {
+  readonly kind: 'controller_middleware_relation';
+  readonly middleware: MiddlewareName | Expression;
+  readonly origin: ControllerMiddlewareOrigin;
+  readonly scope: ControllerPolicyScope;
+  readonly actions: ControllerPolicyActionScope;
+  readonly exclusion: boolean;
+  readonly source: SourceSpan;
+}
+
+export interface ControllerAuthorizationRelation {
+  readonly kind: 'controller_authorization_relation';
+  readonly scope: ControllerPolicyScope;
+  /** Action applicability; class attributes are `all`, method attributes name their concrete action. */
+  readonly actions: ControllerPolicyActionScope;
+  readonly arguments: ExpressionArguments;
+  readonly source: SourceSpan;
+}
+
+export type ControllerPolicyRelation = ControllerMiddlewareRelation | ControllerAuthorizationRelation;
+
+export interface ControllerInheritanceRelation {
+  readonly kind: 'controller_inheritance_relation';
+  readonly child: ControllerName;
+  readonly parent: ControllerName;
   readonly source: SourceSpan;
 }
 
@@ -92,9 +143,20 @@ export type ControllerOperation =
 
 export type ControllerFailureContract =
   | { readonly kind: 'none' }
-  | { readonly kind: 'http_abort'; readonly status: HttpStatusCode; readonly exception: ExceptionName };
+  | { readonly kind: 'http_abort'; readonly status: HttpStatusCode };
+
+/**
+ * Failure evidence is intentionally weaker than an exception identity: `abort(status)`
+ * gives us a canonical HTTP failure status but does not prove an exception class.
+ * ExceptionName must only be introduced when source evidence actually resolves one.
+ */
+export type ControllerFailureEvidence = ControllerFailureContract;
 
 export interface ControllerMethodContract {
+  /** Generic PHP attribute evidence; Laravel-specific meaning is projected by semantic relations. */
+  readonly attributes: Sequence<ControllerMethodAttribute>;
+  /** Declarative controller policy evidence; route middleware remains a separate route authority. */
+  readonly policy: Sequence<ControllerPolicyRelation>;
   readonly visibility: ControllerMethodVisibility;
   readonly parameters: Sequence<ControllerParameter>;
   readonly dependencies: Sequence<ControllerDependency>;
@@ -183,6 +245,12 @@ export interface ControllerAction {
   readonly kind: 'controller_action';
   readonly controller: ControllerName;
   readonly action: ActionName;
+  /** Canonical controller policy evidence; route middleware is resolved separately. */
+  readonly policy: Sequence<ControllerPolicyRelation>;
+  /** Controller names contributing inherited policy evidence to this action. */
+  readonly inheritedFrom: readonly ControllerName[];
+  /** Canonical parameter semantics; PHP parameter AST remains scanner evidence. */
+  readonly parameters: Sequence<ControllerParameter>;
   readonly request: RequestBinding;
   readonly response: ControllerResponse;
   /** Resolved method-level container dependencies; route/model bindings are excluded. */

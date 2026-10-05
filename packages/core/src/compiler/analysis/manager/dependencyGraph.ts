@@ -1,9 +1,9 @@
 /** Relation-backed analysis dependency graph. */
 import type { AnalysisKey } from '../../passes/PassResult';
 import type { AnalysisKeyName, AnalysisRegistry } from '../AnalysisRegistry';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationSelect, relationProject, relationFold } from '../../../semantic/kernel/relationalSequence';
-import { relationNotEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationSelect, relationProject, relationFold } from '../../../semantic/foundation/relationalSequence';
+import { relationNotEqual } from '../../../semantic/foundation/semanticRelations';
 
 export type AnyAnalysisKey<R extends object> = AnalysisKey<R, AnalysisKeyName<R>>;
 type Adjacency<R extends object> = RelationIndex<AnyAnalysisKey<R>, readonly AnyAnalysisKey<R>[]>;

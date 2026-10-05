@@ -13,9 +13,9 @@ import { bindPropertyPathField } from "./propertyPathBinder";
 import { matchPhpAccessMode, matchPhpPropertyPath } from "../../lexer/phpAstAlgebra";
 import { matchResourceOperationKind, resourceOperationKindForMethod } from "../../../../types/upstream/resourceVocabulary";
 import { matchLookup } from "../../../../types/upstream/collections";
-import { relationAll, relationGate, relationProject, relationEqual } from "../../../../semantic/kernel/semanticRelations";
-import { relationContains, relationInsert, relationIndexLookup, type RelationMembership, type RelationIndex } from "../../../../semantic/kernel/relationMembership";
-import { relationOptionFold, relationRefine } from "../../../../semantic/kernel/relationalSequence";
+import { relationAll, relationGate, relationProject, relationEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationContains, relationInsert, relationIndexLookup, type RelationMembership, type RelationIndex } from "../../../../semantic/foundation/relationMembership";
+import { relationOptionFold, relationRefine } from "../../../../semantic/foundation/relationalSequence";
 import {
     bindResourceCollectionField,
     bindNestedArrayField,

@@ -1,4 +1,4 @@
-import { relationNotEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationNotEqual } from "../../../../semantic/foundation/semanticRelations";
 import { relationResolve } from '../../../relational/sequence';
 /**
  * Syntax/evidence boundary for PHP expression spellings.
@@ -13,8 +13,8 @@ import type { PhpInterpolatedStringPart, PhpArrayEntry, PhpArrayKey, PhpClosureR
 import type { KnowledgeId, SemanticFact, SemanticLiteral, SemanticPresence, SemanticDataFlowRelationCode, SemanticDataFlowRoleCode, SemanticFlowGuard, SemanticValueKindCode, SemanticValueKindDefinition, SemanticAccessModeCode, SemanticAccessModeDefinition, SemanticOperatorDefinition, SemanticAssignmentOperatorCode, SemanticAssignmentOperatorDefinition, SemanticAssignmentReferenceCode, SemanticAssignmentReferenceDefinition, SemanticPredicateMeaningCode, SemanticPredicateMeaningDefinition, SemanticMatchModeCode, SemanticMatchModeDefinition, SemanticOutcomeRoleCode, SemanticOutcomeRoleDefinition, SemanticCastDefinition, SemanticAbsenceReasonCode, SemanticSource, SemanticIdentifier, SemanticOperation } from './semanticKnowledgeDataFlowRelations';
 import { semanticText, semanticNumber, knowledgeId } from './semanticKnowledgeDataFlowRelations';
 import { projectRelation } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, relationVariantValue, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationVariantValue, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 type EvidenceSource = SemanticSource;
 type EvidenceCode = string;
 type EvidenceRelation = SemanticDataFlowRelationCode;

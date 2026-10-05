@@ -21,8 +21,8 @@ import {
     type ResourceRelationKnowledgeFact,
     ResourceModelResolutionOrigin,
 } from "./resourceModelKnowledgeDataFlow";
-import { relationEqual, relationGate } from "../../../../semantic/kernel/semanticRelations";
-import { relationFirst, relationOptionFold, relationProject, relationFold, relationLatticeFixedPoint } from "../../../../semantic/kernel/relationalSequence";
+import { relationEqual, relationGate } from "../../../../semantic/foundation/semanticRelations";
+import { relationFirst, relationOptionFold, relationProject, relationFold, relationLatticeFixedPoint } from "../../../../semantic/foundation/relationalSequence";
 
 export type ResourceRelationEdge = ResourceRelationKnowledgeFact;
 

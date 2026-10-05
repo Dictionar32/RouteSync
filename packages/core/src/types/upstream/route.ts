@@ -5,6 +5,7 @@ import type { EndpointRequestBinding, EndpointResponseBinding } from './endpoint
 import type { SourceSpan } from './provenance';
 import type { RouteMiddlewares, RouteMethods, RouteParameters, Sequence } from './collections';
 import type { MiddlewareName } from './names';
+import type { RouteMiddlewareScope } from './routeMiddleware';
 import type { StringValue } from './valueObjects';
 import type { Presence } from './primitiveVocabulary';
 import type { TruthValue, NumberValue, HttpStatusCode } from './valueObjects';
@@ -195,7 +196,7 @@ export type RouteResourceController =
 
 export type RouteResourceMiddlewareRule = {
   readonly kind: 'route_resource_middleware';
-  readonly actions: Sequence<ActionName>;
+  readonly scope: RouteMiddlewareScope;
   readonly include: Sequence<MiddlewareName>;
   readonly exclude: Sequence<MiddlewareName>;
 };
@@ -241,8 +242,21 @@ export type RouteTransportContract = {
  * preserved upstream rather than being removed merely to make an interface
  * artificially AST-free.
  */
+/**
+ * Canonical semantic boundary contract for route construction.
+ * This type belongs to the upstream semantic vocabulary; scanner resolver
+ * implementations must not source it from the legacy descriptor tree.
+ */
+export interface RouteBoundaryContract {
+  readonly identity: import('../route').RouteIdentityContract;
+  readonly binding: import('../route').RouteBindingContract;
+  readonly capability: import('../route').RouteCapabilityContract;
+  readonly provenance: import('../route').RouteProvenanceContract;
+  readonly contract: import('../route').EndpointContract;
+}
+
 export interface RouteProducerInput {
-  readonly declaration: import('../../compiler/scanner/lexer/routeAst/routeDeclarationAst').RouteDeclarationAst;
+  readonly declaration: import('./routeDeclarationEvidence').RouteDeclarationEvidence;
   readonly source: SourceSpan;
   readonly identity: RouteIdentity;
   readonly special: RouteSpecialKind;

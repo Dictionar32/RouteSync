@@ -18,7 +18,6 @@ export {
     type RouteValidationRuleSet,
     ValidationTreeBuilder,
     buildValidationTree,
-    RouteSemanticFlowFactory,
     RouteParameterSemanticFactory,
     type RouteSemanticFlowCompleteContracts,
     type RouteSemanticFlowConstructorInput,

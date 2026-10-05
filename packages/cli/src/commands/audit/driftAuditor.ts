@@ -12,7 +12,7 @@ import crypto from 'crypto';
 import chalk from 'chalk';
 import { StaticLaravelScanner, createLaravelSourceProjectIdentity } from '@routesync/core';
 
-import type { RouteSemanticFlow, ScannedManifest } from '../../utils/incremental/incrementalTypes';
+import type { RouteManifest, RouteSemanticFlow } from '@routesync/core';
 
 export async function auditManifestDrift(manifestOption: string, cwd: string = process.cwd()): Promise<void> {
   const manifestPath = path.resolve(cwd, manifestOption);
@@ -21,34 +21,28 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
     process.exit(1);
   }
 
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as ScannedManifest;
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as RouteManifest;
   const freshManifest = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(cwd));
   const routes = (freshManifest.routes || []) as any[];
 
-  const freshRoutes = new Map<string, RouteSemanticFlow>();
-  routes.forEach((r: RouteSemanticFlow) => {
+  const hashRoute = (r: RouteSemanticFlow): string => {
     const replacer = (key: string, value: unknown) => {
       if (key === 'resolved' || key === 'parsed_ast') return undefined;
       return value;
     };
-    const content = JSON.stringify({
-      method: r.method,
-      path: r.path,
-      auth: r.auth,
-      schema: r.schema || null,
-      response: r.response || null,
-      assignments: r.assignments || null
-    }, replacer);
-    const hash = crypto.createHash('sha256').update(content).digest('hex');
-    freshRoutes.set(`${r.method}:${r.path}`, { ...r, stableHash: hash });
+    const content = JSON.stringify(r, replacer);
+    return crypto.createHash('sha256').update(content).digest('hex');
+  };
+  const routeKey = (r: RouteSemanticFlow): string => `${r.identity.coordinates.method}:${r.identity.coordinates.path}`;
+  const freshRoutes = new Map<string, { route: RouteSemanticFlow; hash: string }>();
+  routes.forEach((r: RouteSemanticFlow) => {
+    freshRoutes.set(routeKey(r), { route: r, hash: hashRoute(r) });
   });
 
-  const manifestRoutes = new Map<string, RouteSemanticFlow>();
-  if (manifest.routes) {
-    manifest.routes.forEach((r: RouteSemanticFlow) => {
-      manifestRoutes.set(`${r.method}:${r.path}`, r);
-    });
-  }
+  const manifestRoutes = new Map<string, { route: RouteSemanticFlow; hash: string }>();
+  manifest.routes.forEach((r: RouteSemanticFlow) => {
+    manifestRoutes.set(routeKey(r), { route: r, hash: hashRoute(r) });
+  });
 
   const added: string[] = [];
   const removed: string[] = [];
@@ -57,15 +51,15 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
   for (const [key, freshRoute] of freshRoutes.entries()) {
     const mRoute = manifestRoutes.get(key);
     if (!mRoute) {
-      added.push(`  + ${freshRoute.method} ${freshRoute.path}`);
-    } else if (mRoute.stableHash !== freshRoute.stableHash) {
-      changed.push(`  ~ ${freshRoute.method} ${freshRoute.path} (stableHash changed)`);
+      added.push(`  + ${freshRoute.route.identity.coordinates.method} ${freshRoute.route.identity.coordinates.path}`);
+    } else if (mRoute.hash !== freshRoute.hash) {
+      changed.push(`  ~ ${freshRoute.route.identity.coordinates.method} ${freshRoute.route.identity.coordinates.path} (semantic hash changed)`);
     }
   }
 
   for (const [key, mRoute] of manifestRoutes.entries()) {
     if (!freshRoutes.has(key)) {
-      removed.push(`  - ${mRoute.method} ${mRoute.path}`);
+      removed.push(`  - ${mRoute.route.identity.coordinates.method} ${mRoute.route.identity.coordinates.path}`);
     }
   }
 

@@ -7,7 +7,7 @@ analysis consumes a closed upstream ADT rather than free graph payloads.
 
 ## Laravel ecommerce-shop trace
 
-The workload is the checked-in `examples/ecommerce-shop-source` application.
+The Phase 760 trace used the historical Laravel ecommerce workload concept represented by `examples/ecommerce-shop-source`. That path is not a physical authority in the current workspace; current regression evidence is test-owned under `packages/sdk/tests/fixtures/ecommerce-shop-source`.
 
 ```text
 Laravel source

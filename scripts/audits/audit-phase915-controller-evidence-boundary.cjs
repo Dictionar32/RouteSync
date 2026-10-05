@@ -1,0 +1,11 @@
+const fs = require('fs');
+const path = require('path');
+const root = path.resolve(__dirname, '../../packages/core/src');
+const producer = fs.readFileSync(path.join(root, 'compiler/scanner/subscanners/controller/controllerProducer.ts'), 'utf8');
+const forbidden = ['ControllerMethodAst', 'ControllerParameterAst', 'ControllerParameterAttributeAst', 'AstIdentifier', 'controllerAstCanonical'];
+const directLeaks = forbidden.filter(token => producer.includes(token));
+const evidenceContract = fs.readFileSync(path.join(root, 'types/upstream/controllerEvidence.ts'), 'utf8');
+const clean = directLeaks.length === 0 && evidenceContract.includes('ControllerMethodEvidence') && evidenceContract.includes('ControllerDeclarationEvidence');
+const report = { controllerProducerDirectAstLeaks: directLeaks, evidenceContractsPresent: true, clean };
+console.log(JSON.stringify(report, null, 2));
+if (!clean) process.exit(1);

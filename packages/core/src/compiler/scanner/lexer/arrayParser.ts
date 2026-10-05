@@ -8,8 +8,8 @@
 
 import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey, createSourceOffset } from './PhpAst';
 import { classifyAstTokens } from './astClassifier';
-import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { tokenValueEquals, tokenKindEquals } from './tokenEvidence';
 
 const some = <T>(value: T): RelationOption<T> => ({ kind: 'some', value });

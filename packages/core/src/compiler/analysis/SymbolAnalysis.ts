@@ -1,10 +1,10 @@
 /** Relation-backed symbol database and reference analysis. */
 import type { SymbolNode, SymbolStats } from './symbol';
 import { createSymbolReferenceGraph, type SymbolReferenceGraph, resolveClassHierarchy, filterSymbolsByKind, filterSymbolsByNamespace, filterSymbolsByParent } from './symbol';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/kernel/relationMembership';
-import { relationSelect, relationFold } from '../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../semantic/kernel/relationFoundation';
-import type { RelationOption } from '../../semantic/kernel/relationFoundation';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/foundation/relationMembership';
+import { relationSelect, relationFold } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/relationFoundation';
+import type { RelationOption } from '../../semantic/foundation/relationFoundation';
 
 export { type SymbolNode, type SymbolStats };
 

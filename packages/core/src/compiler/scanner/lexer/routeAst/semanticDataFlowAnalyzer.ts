@@ -1,26 +1,17 @@
 import { relationResolve } from '../../../relational/sequence';
 import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
-import { relationAll, relationAny, relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationFold } from '../../../../semantic/kernel/relationalSequence';
-import { semanticPresenceFold, type KnowledgeId, type SemanticDataFlowFact, type SemanticFlowGuard, type SemanticKnowledgeDataFlow, type SemanticPredicatePolarity, } from './semanticKnowledgeDataFlowRelations';
-import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
-import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
-import { typedDistinct, typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
-import { astSemanticTextTerm } from '../../../../types/upstream/astSemanticInterface';
-import { createAnalysisPort, analysisFact, type AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';
-/** A derived path through canonical semantic value/dependency facts. */
-export interface SemanticDataFlowPath {
+/** Scanner-local compatibility vocabulary. The upstream authority is SemanticDataflow*. */
+export type SemanticDataFlowPath = Readonly<{
     readonly source: KnowledgeId;
     readonly target: KnowledgeId;
     readonly steps: readonly SemanticDataFlowFact[];
     readonly guards: readonly SemanticFlowGuard[];
-}
-export interface SemanticDataFlowAnalysis {
+}>;
+export type SemanticDataFlowAnalysis = Readonly<{
     readonly paths: readonly SemanticDataFlowPath[];
     readonly reachable: readonly KnowledgeId[];
-}
-
-export interface SemanticDataFlowJudgment {
+}>;
+export type SemanticDataFlowJudgment = Readonly<{
     readonly kind: 'semantic_data_flow_judgment';
     readonly input: 'semantic_knowledge_data_flow';
     readonly analysis: SemanticDataFlowAnalysis;
@@ -28,7 +19,21 @@ export interface SemanticDataFlowJudgment {
     readonly reasoning: 'declarative_relation_rewrite_fixed_point';
     readonly derivation: 'relation_closure_saturation';
     readonly closed: true;
-}
+}>;
+export type SemanticDataFlowInterface = Readonly<{
+    readonly kind: 'semantic_data_flow_interface';
+    readonly authority: 'semantic_data_flow_judgment';
+    readonly judgment: SemanticDataFlowJudgment;
+    readonly closed: true;
+}>;
+import { relationAll, relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationFold } from '../../../../semantic/foundation/relationalSequence';
+import { semanticPresenceFold, type KnowledgeId, type SemanticDataFlowFact, type SemanticFlowGuard, type SemanticKnowledgeDataFlow, type SemanticPredicatePolarity, } from './semanticKnowledgeDataFlowRelations';
+import { knowledgeIdKey } from './semanticKnowledgeDataFlowRelations';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
+import { typedDistinct, typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
+import { astSemanticTextTerm } from '../../../../types/upstream/astSemanticInterface';
+import { createAnalysisPort, analysisFact, type AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';
 const sameId = (left: KnowledgeId, right: KnowledgeId): boolean => relationEqual(knowledgeIdKey(left), knowledgeIdKey(right));
 const appendGuard = (guards: readonly SemanticFlowGuard[], guard: SemanticDataFlowFact['guard']): readonly SemanticFlowGuard[] => semanticPresenceFold(guard, () => guards, value => [...guards, value]);
 const sameGuard = (left: SemanticFlowGuard, right: SemanticFlowGuard): boolean => relationAll([relationEqual(knowledgeIdKey(left.predicate), knowledgeIdKey(right.predicate)), relationEqual(left.polarity, right.polarity)]);
@@ -74,7 +79,15 @@ export const analyzeSemanticDataFlowJudgment = (model: SemanticKnowledgeDataFlow
     });
 };
 
+export const semanticDataFlowInterface = (judgment: SemanticDataFlowJudgment): SemanticDataFlowInterface => Object.freeze({
+    kind: 'semantic_data_flow_interface',
+    authority: 'semantic_data_flow_judgment',
+    judgment,
+    closed: true,
+});
+
 export const analyzeSemanticDataFlow = (model: SemanticKnowledgeDataFlow): SemanticDataFlowAnalysis => analyzeSemanticDataFlowJudgment(model).analysis;
+export const analyzeSemanticDataFlowInterface = (model: SemanticKnowledgeDataFlow): SemanticDataFlowInterface => semanticDataFlowInterface(analyzeSemanticDataFlowJudgment(model));
 export const pathSatisfiesGuard = (path: SemanticDataFlowPath, predicate: KnowledgeId, polarity: SemanticPredicatePolarity): boolean => typedSelect(typedRelation(path.guards), guard => sameGuard(guard, { predicate, polarity })).tuples.length > 0;
 
 export const semanticDataFlowAnalysisPort = (analysis: SemanticDataFlowAnalysis): AstSemanticStagePort => createAnalysisPort(

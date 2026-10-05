@@ -11,5 +11,5 @@ export function countResponsesByGroup(context: SemanticResolutionContext, ir: Co
 }
 
 export function deriveGroupName(route: RouteSemanticFlow): string {
-    return route.identity.groupName;
+    return route.identity.domain.group.value.value;
 }

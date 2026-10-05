@@ -1,6 +1,6 @@
 /** Declarative dominator intersection over relation-backed idom facts. */
-import { relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
+import { relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/foundation/relationalSequence';
 
 const rpoIndex = (rpo: readonly number[], value: number, index = 0): number => relationResolve(
   relationEqual(index, rpo.length),

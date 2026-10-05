@@ -13,8 +13,8 @@ import type { ModelCast } from '../../../../types/upstream/model';
 import type { PropertyName } from "../../../../types/upstream/names";
 import { createPropertyName } from "../../../../types/upstream/names";
 import type { ModelSemanticAccessor, ModelSemanticColumn, ModelSemanticProperty, ModelSemanticRelation, ModelSemanticSurface } from "../../../../types/upstream/model";
-import { relationProject, relationSelect, relationAny } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationProject, relationSelect, relationAny } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationEqual } from '../../../../semantic/foundation/semanticRelations';
 
 function semanticTypeOfColumn(column: ModelColumnFact): import('../../../../types/upstream/typeVocabulary').TypeExpression {
     return column.type.value;

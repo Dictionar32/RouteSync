@@ -11,8 +11,8 @@ import {
     relationIndexAdd,
     relationIndexLookup,
     type RelationIndex,
-} from '../../semantic/kernel/relationMembership';
-import { relationOptionFold } from '../../semantic/kernel/relationalSequence';
+} from '../../semantic/foundation/relationMembership';
+import { relationOptionFold } from '../../semantic/foundation/relationalSequence';
 
 export interface TypeInterner {
     readonly intern: (type: SemanticType) => SemanticType;

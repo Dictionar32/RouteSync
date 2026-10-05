@@ -14,7 +14,7 @@ import {
     TypeScriptPrimitiveMapping
 } from '../typeScriptVocabulary';
 import { TypeScriptSyntax } from '../typeScriptSyntax';
-import { relationProject, relationResolve } from '../../../../../semantic/kernel/relationalSequence';
+import { relationProject, relationResolve } from '../../../../../semantic/foundation/relationalSequence';
 
 export function lowerTypeExpression(type: SemanticType): string {
     return type.accept({

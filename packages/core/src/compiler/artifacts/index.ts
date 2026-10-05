@@ -35,7 +35,6 @@ export { TypeEnvironmentArtifact } from './TypeEnvironmentArtifact';
 export { ExpressionIRArtifact } from './ExpressionIRArtifact';
 export { LoweredTypeArtifact } from './LoweredTypeArtifact';
 export { DiagnosticArtifact } from './DiagnosticArtifact';
-export { DependencyGraphArtifact } from './DependencyGraphArtifact';
 export { SemanticIRArtifact } from './SemanticIRArtifact';
 export { CompilationResultArtifact } from './CompilationResultArtifact';
 

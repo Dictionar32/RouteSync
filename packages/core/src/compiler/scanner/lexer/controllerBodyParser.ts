@@ -20,9 +20,9 @@ import {
     relationSome,
     relationNone,
     type RelationOption,
-} from '../../../semantic/kernel/relationalSequence';
+} from '../../../semantic/foundation/relationalSequence';
 import type { PhpArrayEntry, PhpArrayKey } from './PhpAst';
-import type { RelationVariant } from '../../../semantic/kernel/relationalSequence';
+import type { RelationVariant } from '../../../semantic/foundation/relationalSequence';
 
 type ControllerParseState = Readonly<{
     readonly validations: readonly InlineValidationAst[];

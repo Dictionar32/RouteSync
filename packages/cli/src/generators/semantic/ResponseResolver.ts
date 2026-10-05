@@ -27,7 +27,7 @@ export class ResponseResolver {
     ): void {
         const seen = new Set<string>();
         for (const route of context.routes) {
-            const responseId = `${route.identity.name}Response`;
+            const responseId = `${route.identity.coordinates.name.value.value}Response`;
 
             if (seen.has(responseId)) {
                 continue;
@@ -37,10 +37,10 @@ export class ResponseResolver {
             try {
                 const resolved = this.resolveResponse(route, context);
                 ir.responseTypes.set(responseId, resolved);
-                ir.resourceAliases.set(route.identity.name, resolved.name);
+                ir.resourceAliases.set(route.identity.coordinates.name.value.value, resolved.name);
             } catch (error) {
                 ir.metadata.errors.push(
-                    `Failed to resolve response for route ${route.identity.name}: ${error}`
+                    `Failed to resolve response for route ${route.identity.coordinates.name.value.value}: ${error}`
                 );
             }
         }
@@ -49,7 +49,7 @@ export class ResponseResolver {
     public static resolveResponse(route: RouteSemanticFlow, context: SemanticResolutionContext): ResolvedResponse {
         const response = route.binding.response;
         const name = resolveResponseName(route, response);
-        const actionName = resolveCanonicalAction(route.identity.method);
+        const actionName = resolveCanonicalAction(route.identity.coordinates.method);
         const fields = matchResponse(response, {
             resource: (descriptor: ResourceResponseDescriptor) => {
                 const resource = context.resourcesByName.get(descriptor.resourceName.value);
@@ -68,7 +68,7 @@ export class ResponseResolver {
         const envelope = resolveResponseEnvelope(response);
         const nullability = resolveResponseNullability(response);
         return {
-            id: `${route.identity.name}Response`,
+            id: `${route.identity.coordinates.name.value.value}Response`,
             kind: deriveResponseKind(response),
             name,
             contractName: `${name}Schema`,
@@ -86,11 +86,11 @@ export class ResponseResolver {
         ir: CompilerIR
     ): void {
         for (const route of context.routes) {
-            const action = resolveCanonicalAction(route.identity.method);
-            const responseId = `${route.identity.name}Response`;
+            const action = resolveCanonicalAction(route.identity.coordinates.method);
+            const responseId = `${route.identity.coordinates.name.value.value}Response`;
             const resp = route.binding.response;
             const resolvedRoute: ResolvedRoute = {
-                name: route.identity.name,
+                name: route.identity.coordinates.name.value.value,
                 action,
                 responseId,
                 cardinality: resolveResponseCardinality(resp),

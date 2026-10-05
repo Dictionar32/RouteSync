@@ -21,9 +21,9 @@ export function buildRoutesLines(manifest: RouteManifest): string[] {
   const addedRoutes = new Set<string>();
   addedRoutes.add('/');
 
-  const getRoutes = manifest.routes.filter(r => r.method.toUpperCase() === 'GET');
+  const getRoutes = manifest.routes.filter(r => r.identity.coordinates.method === 'GET');
   for (const route of getRoutes) {
-    const cleanPath = route.path.replace(/^\/|\/$/g, '');
+    const cleanPath = route.identity.coordinates.path.value.replace(/^\/|\/$/g, '');
     if (!cleanPath || addedRoutes.has('/' + cleanPath)) continue;
 
     const contract = route.contract ?? getRouteContract(route);
@@ -35,7 +35,7 @@ export function buildRoutesLines(manifest: RouteManifest): string[] {
       return s.toUpperCase().replace(/[^A-Z0-9]/g, '_');
     }).filter(Boolean).join('_');
 
-    const hasExplicitParams = Boolean(route.pathParameters && route.pathParameters.length > 0);
+    const hasExplicitParams = route.identity.parameters.path.length > 0;
     const pathParams = contract.request.pathParameters.map(p => ({
       name: p.name,
       propertyName: p.propertyName,

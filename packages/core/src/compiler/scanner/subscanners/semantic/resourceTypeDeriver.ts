@@ -12,8 +12,8 @@ import {
 import { ScannedObjectProperty } from '../../../types/SemanticType';
 import { toCamelCase } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
-import { relationEqual, relationFold, relationGate, relationProject, relationTextSlice, relationVariantFold, relationSequenceToArray } from '../../../../semantic/kernel/relationalSequence';
-import { relationInsert, type RelationMembership } from '../../../../semantic/kernel/relationMembership';
+import { relationEqual, relationFold, relationGate, relationProject, relationTextSlice, relationVariantFold, relationSequenceToArray } from '../../../../semantic/foundation/relationalSequence';
+import { relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
 import { stringValue } from '../../../../types/upstream/valueObjects';
 
 export function deriveResourceTypes(

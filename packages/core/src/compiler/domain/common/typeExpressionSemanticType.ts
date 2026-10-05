@@ -11,7 +11,7 @@ import {
     relationSequenceToArray,
     relationResolve,
     relationVariantFold,
-} from '../../../semantic/kernel/relationalSequence';
+} from '../../../semantic/foundation/relationalSequence';
 
 /**
  * Canonical TypeExpression -> SemanticType lowering.

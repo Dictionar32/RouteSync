@@ -31,7 +31,7 @@ import {
     relationSome,
     relationNone,
     type RelationOption,
-} from "../../../../semantic/kernel/relationalSequence";
+} from "../../../../semantic/foundation/relationalSequence";
 
 export interface DerivationContext {
     readonly resourceIndex: RelationIndex<string, ResourceAst>;

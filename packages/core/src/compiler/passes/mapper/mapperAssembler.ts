@@ -4,7 +4,7 @@
 import type { GeneratedMapperArtifact } from '../../artifacts/GeneratedMapperArtifact';
 import { computeFingerprintHash, type CompilerFingerprint } from '../../fingerprint/Fingerprint';
 import type { CollectedMapperParts } from './resourceRegistry';
-import { relationResolve, relationEqual } from '../../../semantic/kernel/relationalSequence';
+import { relationResolve, relationEqual } from '../../../semantic/foundation/relationalSequence';
 
 const importBlock = (names: readonly string[], modulePath: string): string => relationResolve(
     relationEqual(names.length, 0),

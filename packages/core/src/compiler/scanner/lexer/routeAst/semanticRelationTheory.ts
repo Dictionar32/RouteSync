@@ -6,8 +6,8 @@
  */
 import { project, visit } from './semanticRelationalCollections';
 import { semanticNullAtom, type SemanticNullAtom } from './semanticRewriteEngine';
-import { relationResolve, relationFirstOption, relationOptionFold, relationOptionalFold } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationResolve, relationFirstOption, relationOptionFold, relationOptionalFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationEqual, relationNotEqual } from '../../../../semantic/foundation/semanticRelations';
 
 export type SemanticTheoryAtom = string | number | boolean | SemanticNullAtom;
 export type SemanticTheorySort = 'entity' | 'predicate' | 'value' | 'effect' | 'resource' | 'state' | 'relation-target';

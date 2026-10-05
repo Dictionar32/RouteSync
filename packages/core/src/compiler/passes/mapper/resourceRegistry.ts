@@ -12,8 +12,8 @@ import type { MappingIntent, MappingIntentField, ResourceMappingIntentGraph } fr
 import { buildReadMapperFromFields } from './readMapperBuilder';
 import { buildFormMapper } from './formMapperBuilder';
 import { createResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
-import { relationContains, relationInsert } from '../../../semantic/kernel/relationMembership';
-import { relationFold, relationResolve, relationEqual, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
+import { relationContains, relationInsert } from '../../../semantic/foundation/relationMembership';
+import { relationFold, relationResolve, relationEqual, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
 
 export interface CollectedMapperParts {
     readonly readMapperBlocks: readonly string[];

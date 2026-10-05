@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest'
 import {
   DatabaseColumnKind,
@@ -5,7 +6,6 @@ import {
   HttpStatusCode,
   RouteSecurityClassifier,
   SecuritySchemeKind,
-  RouteSemanticFlowFactory,
   ScannedModelColumnDescriptor,
   RouteParameterType,
   PrimitiveKind

@@ -21,7 +21,7 @@ import {
     scanSimpleOperator,
     scanWordOrUnknown,
 } from './tokenize';
-import { relationAny, relationEqual, relationGate, relationFirstOption, relationOptionFold } from '../../../semantic/kernel/semanticRelations';
+import { relationAny, relationEqual, relationGate, relationFirstOption, relationOptionFold } from '../../../semantic/foundation/semanticRelations';
 
 export {
     KEYWORDS,

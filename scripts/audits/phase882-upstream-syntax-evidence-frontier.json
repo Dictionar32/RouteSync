@@ -1,0 +1,26 @@
+{
+  "phase": 882,
+  "title": "upstream syntax evidence frontier",
+  "status": "PASS",
+  "authority": "token syntax relations -> RouteDeclarationAst -> RouteDeclarationFlow",
+  "classification": {
+    "parser": "DIRECT",
+    "semanticRouteSyntaxRelations": "SOURCE_EVIDENCE",
+    "RouteDeclarationAst": "SYNTAX_PROJECTION",
+    "RouteDeclarationFlow": "SEMANTIC_PROJECTION",
+    "routeGroupAstAdapter": "TEST_COMPATIBILITY_ONLY",
+    "routeDataFlowGraph": "DIAGNOSTIC_ONLY"
+  },
+  "assertions": {
+    "parser_consumes_syntax_relations": true,
+    "parser_uses_route_group_state": true,
+    "syntax_method_is_token_derived": true,
+    "syntax_target_is_token_derived": true,
+    "syntax_constraints_are_token_derived": true,
+    "syntax_group_is_token_derived": true,
+    "route_declaration_flow_is_used_by_production": true,
+    "route_group_adapter_not_used_by_production": true,
+    "route_data_flow_graph_is_diagnostic_only": true
+  },
+  "recommendation": "Do not introduce a second RouteDeclarationEvidence model. The parser already derives route method/path/target/group/constraints/middleware from syntax relations; RouteDeclarationAst is the syntax projection and RouteDeclarationFlow is the semantic projection. The next real upstream frontier is route target/binding syntax relation normalization only if a production consumer recomputes those facts independently."
+}

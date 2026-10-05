@@ -1,8 +1,8 @@
 /** Declarative assignability relation over semantic type witnesses. */
 
 import { SemanticType } from '../SemanticType';
-import { relationResolve, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationAnyMatch, relationVariantFold } from '../../../semantic/kernel/relationalSequence';
+import { relationResolve, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationAnyMatch, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
 
 export function checkAssignable(
   source: SemanticType,

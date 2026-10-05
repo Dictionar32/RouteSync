@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from "vitest"
 import {
   RouteManifest,
@@ -6,7 +7,6 @@ import {
   matchResourceGroup,
   matchFineGrainedResourceGroup,
   matchUnifiedResourceGroup,
-  RouteSemanticFlowFactory,
   RouteParameterType,
   ScannedFullCrudResourceGroupDescriptor,
   ScannedReadOnlyCrudResourceGroupDescriptor,

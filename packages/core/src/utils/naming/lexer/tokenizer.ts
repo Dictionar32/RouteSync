@@ -6,7 +6,7 @@
  * lexical state; recursive relation closure consumes the input stream.
  */
 import { CharKind, LexerState, classifyChar } from './types';
-import { relationFirstOr, relationResolve } from '../../../semantic/kernel/relationalSequence';
+import { relationFirstOr, relationResolve } from '../../../semantic/foundation/relationalSequence';
 
 type Step = Readonly<{
     readonly state: LexerState;

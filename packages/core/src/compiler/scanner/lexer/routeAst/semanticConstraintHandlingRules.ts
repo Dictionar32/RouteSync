@@ -5,10 +5,10 @@
  * relations. Matching and instantiation return witnesses rather than sentinel
  * values; saturation is recursive fixed-point closure.
  */
-import { relationContains, relationUnique } from '../../../../semantic/kernel/relationMembership';
+import { relationContains, relationUnique } from '../../../../semantic/foundation/relationMembership';
 import { accumulate, expand, project, retain } from './semanticRelationalCollections';
-import { relationResolve, relationFirst, relationOptionFold, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationAll, relationAny, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../../../semantic/kernel/semanticRelations';
+import { relationResolve, relationFirst, relationOptionFold, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../../../semantic/foundation/semanticRelations';
 import type {
   SemanticRelation,
   SemanticRelationAtom,

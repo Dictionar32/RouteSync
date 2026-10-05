@@ -1,6 +1,6 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest';
 import {
-  RouteSemanticFlowFactory,
   ScannedModelDescriptor,
   ScannedRouteParameterDescriptor,
   ValidationTreeBuilder,

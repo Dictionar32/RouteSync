@@ -8,9 +8,9 @@ import { ScannedRouteValidationRuleEntry } from '../../descriptors/validation/va
 import { RouteSemanticFlowValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
 import { TypeInterner } from '../../../types/TypeInterner';
 import { httpErrorResponseBadRequest, httpErrorResponseUnauthorized, httpErrorResponseForbidden, httpErrorResponseNotFound, httpErrorResponseValidation, httpErrorResponseServerError } from '../../../../types/domain/httpErrors';
-import { relationProject, relationExpand, relationOptionFold, relationNone, relationSome, type RelationOption } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationFirst } from '../../../../semantic/kernel/relationalSequence';
+import { relationProject, relationExpand, relationOptionFold, relationNone, relationSome, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationFirst } from '../../../../semantic/foundation/relationalSequence';
 
 export interface ControllerBodyResolution {
     readonly statements: readonly PhpStatement[];

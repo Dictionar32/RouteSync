@@ -10,15 +10,18 @@ import type { RouteParameter } from "../../../../types/upstream/route";
 import { createRoutePath, type RoutePath } from "../../../../types/upstream/names";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ResourceName } from "../../../../types/upstream/names";
-import { RouteParameterSemanticFactory } from "../../descriptors/routeDescriptors";
+import { RouteParameterSemanticFactory } from "../../semantic/route/routeParameterSemanticFactory";
 import { relationGate, relationProject, relationSelect, relationResolve, relationAll } from "../../../relational/sequence";
-import { relationTextStartsWith, relationTextFields, relationTextTrimChars, relationTextTrimEndChars } from "../../../../semantic/kernel/relationalSequence";
-import { relationNotEqual } from "../../../../semantic/kernel/semanticRelations";
+import { relationTextStartsWith, relationTextFields, relationTextTrimChars, relationTextTrimEndChars } from "../../../../semantic/foundation/relationalSequence";
+import { relationNotEqual } from "../../../../semantic/foundation/semanticRelations";
+import { deriveRouteConstantKey } from "../../resolvers/boundary/boundaryBasics";
 
 export interface ResolvedRoutePath {
     readonly path: RoutePath;
     readonly resourceName: ResourceName;
     readonly parameters: readonly RouteParameter[];
+    readonly runtimePath: RoutePath;
+    readonly constantKey: string;
 }
 
 const boundaryPath = (rawPath: string): string => relationTextTrimEndChars(relationTextTrimChars(rawPath, ['/']), ['/']);
@@ -47,11 +50,15 @@ export function resolveRoutePath(
         relationResolve(segments.length > 0, () => segments[0], () => 'general'),
     );
     const path = createRoutePath(normalizedPath);
+    const runtimePath = createRoutePath(normalizedPath.replace(/\{([^}]+)\}/g, ':$1'));
+    const constantKey = deriveRouteConstantKey(path);
 
     return Object.freeze({
         path,
         resourceName,
         parameters: extractPathParams(path),
+        runtimePath,
+        constantKey,
     });
 }
 

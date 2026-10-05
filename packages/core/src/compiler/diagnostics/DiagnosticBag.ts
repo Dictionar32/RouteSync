@@ -6,7 +6,7 @@
  * algebraic shape as the compiler's other relation stores.
  */
 import type { Diagnostic } from './Diagnostic';
-import { relationNotEqual, relationEqual, relationGate, relationProject, relationSelect } from '../../semantic/kernel/relationalSequence';
+import { relationNotEqual, relationEqual, relationGate, relationProject, relationSelect } from '../../semantic/foundation/relationalSequence';
 
 export type DiagnosticGate =
     | { readonly kind: 'accepted'; readonly stageName: string; readonly diagnostics: readonly Diagnostic[] }

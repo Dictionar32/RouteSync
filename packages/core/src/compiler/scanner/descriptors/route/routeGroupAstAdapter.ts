@@ -3,7 +3,7 @@ import type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts'
 import { createControllerName, createDomainTypeName, createMiddlewareName, createRouteParameterName, stringValue } from '../../../../types/upstream/names';
 import { mapPresenceValue } from '../../../../types/upstream/presence';
 import { projectRelation } from '../../../relational/sequence';
-import { relationVariantFold } from '../../../../semantic/kernel/relationalSequence';
+import { relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
 import type { RouteConstraintArgument } from '../../../../types/upstream/routeConstraints';
 export type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 

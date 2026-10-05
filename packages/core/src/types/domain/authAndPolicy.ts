@@ -1,7 +1,7 @@
 import type { CrudRole } from "./lifecycle";
 import { SemanticValueFactory } from "./semanticValues";
-import { relationGate, relationFoldRight, relationVariantFold, relationTextFind, relationTextFields, relationTextLower, relationTextSlice, relationTextStartsWith } from "../../semantic/kernel/relationalSequence";
-import { relationAny, relationEqual, relationNormalizeWhitespace } from "../../semantic/kernel/semanticRelations";
+import { relationGate, relationFoldRight, relationVariantFold, relationTextFind, relationTextFields, relationTextLower, relationTextSlice, relationTextStartsWith } from "../../semantic/foundation/relationalSequence";
+import { relationAny, relationEqual, relationNormalizeWhitespace } from "../../semantic/foundation/semanticRelations";
 import type { TruthValue } from "../upstream/valueObjects";
 import { truthValue, stringValue } from "../upstream/valueObjects";
 import {

@@ -42,12 +42,6 @@ export const generateCommand = new Command('generate')
       await fs.writeJson(options.manifest, manifest, { spaces: 2 })
       await fs.ensureDir(options.output)
 
-      spinner.text = 'Resolving and validating semantic types...'
-      const { SemanticResolutionKernel } = require('@routesync/core')
-      const { normalizeManifest } = require('../generators/normalizer')
-      const kernel = new SemanticResolutionKernel()
-      const normalizedManifest = normalizeManifest(manifest, kernel)
-
       spinner.text = 'Compiling and emitting full contract bundle...'
       const { CompilerBridge } = await import('../generators/CompilerBridge')
       const emitted = await CompilerBridge.emitFullBundle(manifest, options.output, options)
@@ -72,9 +66,11 @@ export const generateCommand = new Command('generate')
       if (manifest.models && manifest.models.length > 0) {
         console.log(`  ${chalk.cyan('models.ts')}  Eloquent Database Models`)
       }
-    } catch (err: any) {
-      spinner.fail(chalk.red(`Generate failed: ${err.message}`))
-      console.error(err.stack)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err)
+      const stack = err instanceof Error ? err.stack : undefined
+      spinner.fail(chalk.red(`Generate failed: ${message}`))
+      if (stack) console.error(stack)
       process.exit(1)
     }
   })

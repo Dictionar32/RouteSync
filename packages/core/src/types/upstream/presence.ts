@@ -1,5 +1,5 @@
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationOptionalFold, relationVariant } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationOptionalFold, relationVariant } from '../../semantic/foundation/relationalSequence';
 /** Explicit presence ADT. Absence is data, never represented by a host sentinel. */
 export type Presence<T> =
   | { readonly kind: 'absent' }

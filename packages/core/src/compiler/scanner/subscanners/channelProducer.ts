@@ -3,8 +3,8 @@ import { createDomainAstJudgment, type ChannelAst } from '../../../types/upstrea
 import type { ChannelDefinition, ChannelKind } from '../../../types/upstream/channel';
 import type { Sequence } from '../../../types/upstream/collections';
 import { createChannelName } from '../../../types/upstream/names';
-import { relationFoldRight, relationGate } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationFoldRight, relationGate } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 
 /**

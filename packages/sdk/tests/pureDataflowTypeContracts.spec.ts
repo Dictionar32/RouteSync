@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 /**
  * pureDataflowTypeContracts.spec.ts
  *
@@ -18,8 +19,7 @@ import {
     lowerContractsOutput,
     lowerApiFieldsOutput,
     lowerMappersOutput,
-    RouteSemanticFlowFactory,
-    ScannedRouteParameterDescriptor,
+      ScannedRouteParameterDescriptor,
     ScannedRoutePolicyDescriptor,
     ScannedRateLimitDescriptor,
     ScannedHttpErrorResponseDescriptor,

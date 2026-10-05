@@ -6,8 +6,8 @@ import {
   ObjectType
 } from '../../compiler/types/SemanticType';
 import { SemanticValueFactory, type PropertyName, type ResourceName } from './semanticValues';
-import { relationProject, relationVariantFold } from '../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../semantic/kernel/relationalSequence';
+import { relationProject, relationVariantFold } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/relationalSequence';
 
 export interface MappingIntentField {
   readonly name: PropertyName;

@@ -2,8 +2,8 @@
 import type { PhpAstValue, PhpPropertyPath } from './phpAstTypes';
 import type { PhpAccessMode, PhpMatchArm } from './phpAstExpressionTypes';
 import type { PhpStatement } from './phpAstStatementTypes';
-import { relationOptionFold, relationRefine, type RelationVariant } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationOptionFold, relationRefine, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 
 export interface PhpAstValueVisitor<R> {
     readonly literal: (node: RelationVariant<PhpAstValue, 'literal'>) => R;

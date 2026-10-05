@@ -27,7 +27,7 @@ No `CanonicalRouteSecurityDescriptor`, `ParsedRouteSecurityDescriptor`, `Resolve
 
 ## Ecommerce source workload
 
-The Laravel workload under `examples/ecommerce-shop-source` provides concrete semantic evidence:
+The Phase 770 trace used the historical Laravel ecommerce workload represented by `examples/ecommerce-shop-source`. That path is not a physical authority in the current workspace; current regression evidence is test-owned under `packages/sdk/tests/fixtures/ecommerce-shop-source`. The semantic evidence described below remains the intended coverage:
 
 - public routes: categories, products, product reviews, authentication, payment webhook;
 - authenticated routes: profile, orders, cart, checkout, buy-now, wishlist, payment and invoice;

@@ -1,3 +1,4 @@
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
 /**
  * pureRouteDomainContracts.spec.ts
  *
@@ -14,7 +15,6 @@
 
 import { describe, it, expect } from "vitest";
 import {
-  RouteSemanticFlowFactory,
   ScannedRouteParameterDescriptor,
   RouteParameterType,
   CrudRole,
@@ -29,7 +29,10 @@ import {
   RouteDomainResolver,
   RouteCrudClassifier,
   RouteSecurityResolver,
-  RouteBoundaryAdapter,
+  RouteBoundaryContractFactory,
+  SemanticValueFactory,
+  VoidResponseDescriptor,
+  type RouteBoundaryOptions,
   type RouteIdentityContract,
   type RouteBindingContract,
   type RouteCapabilityContract,
@@ -306,30 +309,55 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
     expect(Object.isFrozen(res)).toBe(true);
   });
 
-  it("8. RouteBoundaryAdapter synthesizes 4 Complete Sub-Contracts and is consumed by RouteSemanticFlowFactory", () => {
-    const contracts = RouteBoundaryAdapter.toSubcontracts({
+  it("8. RouteBoundaryContractFactory is the canonical origin-boundary constructor", () => {
+    const options: RouteBoundaryOptions = {
+      origin: "controller_reference",
       method: "POST",
-      path: "/api/articles",
-      controllerName: "ArticleController",
-      actionName: "store",
-      auth: true
-    });
+      path: SemanticValueFactory.routePath("/api/articles"),
+      name: SemanticValueFactory.routeName("articles.store"),
+      controllerName: SemanticValueFactory.controllerName("ArticleController"),
+      actionName: SemanticValueFactory.actionName("store"),
+      action: SemanticValueFactory.actionName("store"),
+      resourceName: SemanticValueFactory.resourceName("articles"),
+      domain: SemanticValueFactory.domainName("Article"),
+      auth: true,
+      middleware: [],
+      parameters: [],
+      pathParameters: [],
+      queryParameters: [],
+      response: VoidResponseDescriptor.create(),
+      errorResponses: [],
+      schema: { rules: [], messages: [], attributes: [] },
+      binding: {
+        operation: {
+          controllerName: SemanticValueFactory.controllerName("ArticleController"),
+          name: SemanticValueFactory.actionName("store"),
+          handler: Object.freeze({
+            kind: "controller_action",
+            controllerName: SemanticValueFactory.controllerName("ArticleController"),
+            actionName: SemanticValueFactory.actionName("store"),
+            target: SemanticValueFactory.className("ArticleController@store")
+          })
+        },
+        request: { kind: "no_request" }
+      },
+      runtimeReturn: { kind: "none" },
+      semanticReturn: { kind: "absent" },
+      sourceFile: SemanticValueFactory.sourceFilePath("routes/api.php"),
+      sourceLine: { kind: "number_value", value: 1 }
+    };
 
-    expect(contracts.identity).toBeDefined();
-    expect(contracts.binding).toBeDefined();
-    expect(contracts.capability).toBeDefined();
-    expect(contracts.provenance).toBeDefined();
-    expect(contracts.contract).toBeDefined();
+    const contract = RouteBoundaryContractFactory.create(options);
 
-    expect(contracts.identity.domain).toBe("Article");
-    expect(contracts.capability.crudRole).toBe(CrudRole.Create);
-    expect(contracts.capability.auth).toBe(true);
+    expect(contract.identity).toBeDefined();
+    expect(contract.binding).toBeDefined();
+    expect(contract.capability).toBeDefined();
+    expect(contract.provenance).toBeDefined();
+    expect(contract.contract).toBeDefined();
 
-    const route = RouteSemanticFlowFactory.create(contracts);
-    expect(route.identity).toBe(contracts.identity);
-    expect(route.binding).toBe(contracts.binding);
-    expect(route.capability).toBe(contracts.capability);
-    expect(route.provenance).toBe(contracts.provenance);
-    expect(route.contract).toBe(contracts.contract);
+    expect(contract.identity.domain.resource).toEqual(SemanticValueFactory.resourceName("articles"));
+    expect(contract.capability.crudRole).toBe(CrudRole.Create);
+    expect(contract.capability.auth.value).toBe(true);
+    expect(contract.identity.coordinates.path).toEqual(SemanticValueFactory.routePath("/api/articles"));
   });
 });

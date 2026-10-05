@@ -13,8 +13,8 @@ import { matchResourceFieldExpression } from '../../../../../types/domain/expres
 import { toCamelCase } from '../../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from '../SemanticDerivationContext';
 import { matchBoundSemantic } from '../../../../../types/domain/boundAst';
-import { relationEqual } from '../../../../../semantic/kernel/semanticRelations';
-import { relationFold, relationGate, relationSlice } from '../../../../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../../../../semantic/foundation/semanticRelations';
+import { relationFold, relationGate, relationSlice } from '../../../../../semantic/foundation/relationalSequence';
 
 export function processResponseProperties(
     fields: readonly ResourceFieldSemanticBinding[],

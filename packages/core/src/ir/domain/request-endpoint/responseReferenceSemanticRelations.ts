@@ -1,6 +1,6 @@
 /** Declarative response-kind -> response-projection semantics. */
-import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../../compiler/scanner/lexer/routeAst/semanticRewriteEngine';
-import { relationFirstOption, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../../semantic/foundation/semanticRewriteEngine';
+import { relationFirstOption, relationOptionFold } from '../../../semantic/foundation/relationalSequence';
 
 export type ResponseReferenceSemanticRelation = 'response_kind' | 'response_projection';
 

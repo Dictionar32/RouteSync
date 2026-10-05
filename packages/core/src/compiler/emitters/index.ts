@@ -9,8 +9,4 @@ export type { GeneratedArtifact } from './GeneratedArtifact';
 // Capability types
 export type { BackendCapability } from './BackendCapability';
 
-// Base emitter interface
-export type { ContractEmitter } from './ContractEmitter';
-
-// Concrete emitter implementations
-export { TypeScriptEmitter } from './TypeScriptEmitter';
+// Active TypeScript generation is owned by compiler/generators/typescript.

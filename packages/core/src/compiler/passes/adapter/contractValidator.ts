@@ -6,9 +6,9 @@
  */
 import type { ArtifactKey } from '../../artifacts/types';
 import type { CompilerPass } from '../CompilerPass';
-import { relationResolve, relationFold, relationProject } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationContains } from '../../../semantic/kernel/relationMembership';
+import { relationResolve, relationFold, relationProject } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationContains } from '../../../semantic/foundation/relationMembership';
 
 function sameKeys(left: readonly ArtifactKey[], right: readonly ArtifactKey[]): boolean {
   return relationFold(

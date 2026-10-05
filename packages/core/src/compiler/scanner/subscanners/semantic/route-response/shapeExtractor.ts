@@ -10,8 +10,8 @@ import { ResourceFieldExpressionFactory } from '../../../../../types/domain/expr
 import { SemanticValueFactory } from '../../../../../types/domain/semanticValues';
 import type { ResponseTypeName } from '../../../../../types/upstream/names';
 import type { ModelName, ResourceName } from '../../../../../types/domain/semanticValues';
-import { relationEqual, relationGate, relationOptionFold, relationSome, relationNone } from '../../../../../semantic/kernel/relationalSequence';
-import type { RelationOption } from '../../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationGate, relationOptionFold, relationSome, relationNone } from '../../../../../semantic/foundation/relationalSequence';
+import type { RelationOption } from '../../../../../semantic/foundation/relationalSequence';
 
 export interface RouteResponseShape {
     readonly typeName: ResponseTypeName;

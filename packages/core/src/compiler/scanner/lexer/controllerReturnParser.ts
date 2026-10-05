@@ -1,8 +1,8 @@
 import type { PhpAstValue, TokenDescriptor } from './phpAstTypes';
 import { classifyAstTokens } from './astClassifier';
 import type { ReturnStatementAst } from './controllerAstTypes';
-import { relationAll, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationGate, relationProject, relationSelect } from '../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationGate, relationProject, relationSelect } from '../../../semantic/foundation/relationalSequence';
 import { tokenValueOr } from './tokenEvidence';
 
 const returnToken = (token: TokenDescriptor): boolean => relationEqual(token.value, 'return');

@@ -1,8 +1,8 @@
 import type { ActionName, MiddlewareName } from '../../../../types/upstream/names';
 import type { RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
 import type { Presence } from '../../../../types/upstream/presence';
-import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/kernel/semanticRelations';
-import { relationGate, relationProject, relationSelect, relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationGate, relationProject, relationSelect, relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
 
 export const middlewareScopeApplicability = (
   scope: RouteMiddlewareScope,

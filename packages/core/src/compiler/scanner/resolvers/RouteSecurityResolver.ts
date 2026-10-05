@@ -5,8 +5,8 @@ import {
     relationNotEqual,
     relationGate,
     relationNormalizeWhitespace,
-} from '../../../semantic/kernel/semanticRelations';
-import { relationProject, relationVariantFold, relationFoldRight, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+} from '../../../semantic/foundation/semanticRelations';
+import { relationProject, relationVariantFold, relationFoldRight, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../../semantic/foundation/relationalSequence';
 
 import {
     RouteSecurityDescriptor,

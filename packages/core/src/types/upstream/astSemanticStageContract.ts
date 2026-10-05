@@ -5,8 +5,8 @@
  * the legal direction of semantic evidence and the authority that may derive it.
  */
 import type { AstSemanticStage, AstSemanticStageContract } from './astSemanticStageInterface';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
-import { relationResolve } from '../../semantic/kernel/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
+import { relationResolve } from '../../semantic/foundation/relationalSequence';
 
 export type AstSemanticStageEdge = Readonly<{
   readonly from: AstSemanticStageContract['stage'] | 'source_syntax';

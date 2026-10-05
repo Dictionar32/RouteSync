@@ -7,8 +7,8 @@ import { collectPhpFiles, readSourceText } from './scannerUtils';
 import { migrationProducer, type MigrationSourceAst } from './migrationProducer';
 import { parsePhpMethodOrThrow } from '../lexer/phpMethodParser';
 import * as path from 'node:path';
-import { relationAsyncFold, relationFold, relationGate } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationAsyncFold, relationFold, relationGate } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../../semantic/foundation/semanticRelations';
 
 function source(file: string): SourceSpan {
   return { kind: 'source_span', file: { kind: 'source_file', value: { kind: 'string_value', value: file } }, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: 0 } };

@@ -1,5 +1,5 @@
-import { relationNormalizeWhitespace, relationAny, relationEqual } from '../../../semantic/kernel/semanticRelations';
-import { relationFirstOption, relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+import { relationNormalizeWhitespace, relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationOptionFold } from '../../../semantic/foundation/relationalSequence';
 /**
  * typeDeriverUtils.ts
  *
@@ -11,7 +11,6 @@ import { relationFirstOption, relationOptionFold } from '../../../semantic/kerne
 
 import { RouteSemanticFlow } from "../../../types/route";
 import { PrimitiveKind } from "../../types/SemanticType";
-import { RouteSemanticFlowFactory } from "../descriptors/routeDescriptors";
 import type { DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName, RouteName } from "../../../types/upstream/names";
 
 /**
@@ -79,10 +78,6 @@ export type RouteDomainInput = {
  * Canonical SSOT is pre-resolved on route.domain at Origin Boundary.
  */
 export function resolveRouteDomain(route: RouteDomainInput): DomainTypeName {
-    return relationOptionFold(
-        relationFirstOption([route.domain, RouteSemanticFlowFactory.resolveDomain(route)], value => Boolean(value)),
-        () => RouteSemanticFlowFactory.resolveDomain(route),
-        value => value,
-    );
+    return route.domain;
 }
 

@@ -22,7 +22,7 @@ import {
     relationNone,
     relationTextSlice,
     type RelationOption
-} from "../../../../semantic/kernel/relationalSequence";
+} from "../../../../semantic/foundation/relationalSequence";
 import { toCamelCase, toPascalCase } from "../../../../utils/resource-naming";
 import type { RawScannedRouteParameterInput, ScannedRouteParameterParams } from "./types";
 

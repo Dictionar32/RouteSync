@@ -1,12 +1,12 @@
-import { relationUnique } from '../../../semantic/kernel/relationMembership';
+import { relationUnique } from '../../../semantic/foundation/relationMembership';
 import { PHP_STATEMENT_KINDS } from '../lexer/phpAstStatementKinds';
 import { ChannelScanner, ControllerScanner, FormRequestScanner, ModelScanner, ResourceScanner, RouteScanner } from "../subscanners";
-import { scanResponseAsts } from "../subscanners/responseScanner";
+import { scanResponseBundle } from "../subscanners/responseScanner";
 import { scanMigrationAsts } from "../subscanners/migrationAstCanonical";
-import { scanServiceAsts } from "../subscanners/serviceAstCanonical";
+import { scanServiceBundle } from "../subscanners/serviceAstCanonical";
 import { scanMiddlewareAsts } from "../subscanners/middlewareAstCanonical";
 import { scanDtoAsts } from "../subscanners/dtoAstCanonical";
-import { scanProviderAsts } from "../subscanners/providerAstCanonical";
+import { scanProviderBundle } from "../subscanners/providerAstCanonical";
 import { scanAttributeAsts } from "../subscanners/attributeAstCanonical";
 import { createModelSymbolTable, type ModelSymbolTable } from "../symbols/ModelSymbolTable";
 import type { FormRequestSource } from "../../../types/domain/request";
@@ -27,8 +27,8 @@ import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { parsePhpMethod } from "../lexer/phpMethodParser";
 import { schemaProducer } from "../subscanners/schemaProducer";
 import { queryProducer } from "../subscanners/queryProducer";
-import { relationAsyncFold, relationExpand, relationFirstOption, relationOptionFold, relationIndexOf, relationAdvanceIndex, relationGate, relationProject, relationSelect, relationRefine, relationVariant, relationSome, relationNone, relationFold, relationRange, type RelationOption } from "../../../semantic/kernel/relationalSequence";
-import { relationEqual, relationAll, relationAny } from "../../../semantic/kernel/semanticRelations";
+import { relationAsyncFold, relationExpand, relationFirstOption, relationOptionFold, relationIndexOf, relationAdvanceIndex, relationGate, relationProject, relationSelect, relationRefine, relationVariant, relationSome, relationNone, relationFold, relationRange, type RelationOption } from "../../../semantic/foundation/relationalSequence";
+import { relationEqual, relationAll, relationAny } from "../../../semantic/foundation/semanticRelations";
 import type { ExpressionAst, ExpressionOrigin } from "../../../types/upstream/ast";
 import type { PhpStatement, PhpBlock, PhpForClause, PhpIfAlternative, PhpFinallyClause } from "../lexer/phpAstStatementTypes";
 import type { PhpMethodAst } from "../lexer/phpMethodAstTypes";
@@ -282,13 +282,18 @@ export async function scanSourceAsts(sourceProject: SourceProjectIdentity): Prom
     const migrations = await scanMigrationAsts(sourceProject);
     const migrationDiscovery = { kind: "migration_asts" as const, items: scanned(migrations) };
     const schema = schemaProducer.produce({ migrations: migrationDiscovery, projectSource: sourceProject.source });
-    const models: readonly ModelAst[] = await ModelScanner.scanAsts(sourceProject, migrations);
+    const modelBundle = await ModelScanner.scanCanonicalBundle(sourceProject, migrations);
+    const models: readonly ModelAst[] = modelBundle.asts;
+    const modelDefinitions = modelBundle.definitions;
     const modelSymbolTable = createModelSymbolTable(models);
     const requestBundle = await FormRequestScanner.scanCanonicalBundle(sourceProject);
     const requests: readonly RequestAst[] = requestBundle.asts;
     const requestSources: readonly FormRequestSource[] = requestBundle.sources;
     const formRequestIndex = Object.freeze(relationProject(requestSources, request => [request.identity.requestClass.value.value, request] as const));
-    const modelNames = relationUnique(relationProject(models, model => model.definition.identity.name.value.value));
+    const sourceSyntax = await scanSourceExpressionAndAssignmentAsts(sourceProject);
+    const expressions = sourceSyntax.expressions;
+    const assignments = sourceSyntax.assignments;
+    const queries = queryProducer.produce({ expressions });
     const attributes = await scanAttributeAsts(sourceProject);
     const customContextualAttributeNames = relationUnique(
         relationProject(
@@ -296,36 +301,52 @@ export async function scanSourceAsts(sourceProject: SourceProjectIdentity): Prom
             attribute => attribute.definition.name.value.value,
         ),
     );
-    const controllerBundle = await ControllerScanner.scanCanonicalBundle(sourceProject, formRequestIndex, modelNames, customContextualAttributeNames);
+    const controllerBundle = await ControllerScanner.scanCanonicalBundle(sourceProject, formRequestIndex, customContextualAttributeNames, queries);
     const controllers: readonly ControllerAst[] = controllerBundle.asts;
-    const responses = await scanResponseAsts(sourceProject);
-    const services = await scanServiceAsts(sourceProject, modelSymbolTable);
+    const controllerActions = controllerBundle.actions;
+    const responseBundle = await scanResponseBundle(sourceProject);
+    const responses: readonly ResponseAst[] = responseBundle.asts;
+    const responseDefinitions = responseBundle.definitions;
+    const serviceBundle = await scanServiceBundle(sourceProject, modelSymbolTable);
+    const services: readonly ServiceAst[] = serviceBundle.asts;
+    const serviceDefinitions = serviceBundle.definitions;
     const middlewares = await scanMiddlewareAsts(sourceProject);
     const dtos = await scanDtoAsts(sourceProject);
-    const providers = await scanProviderAsts(sourceProject);
-    const resources: readonly ResourceAst[] = await ResourceScanner.scanAsts(sourceProject, modelSymbolTable);
-    const routes: readonly RouteAst[] = await RouteScanner.scanAsts(sourceProject, requestSources, controllerBundle.controllerIndex, modelNames);
+    const providerBundle = await scanProviderBundle(sourceProject);
+    const providers: readonly ProviderAst[] = providerBundle.asts;
+    const providerDefinitions = providerBundle.definitions;
+    const resourceBundle = await ResourceScanner.scanCanonicalBundle(
+        sourceProject,
+        modelSymbolTable,
+        relationSome(ControllerScanner.extractResourceDataflow(controllerBundle.controllerIndex)),
+    );
+    const resources: readonly ResourceAst[] = resourceBundle.asts;
+    const resourceDefinitions = resourceBundle.definitions;
+    const routeBundle = await RouteScanner.scanCanonicalBundle(sourceProject, relationSome(controllerBundle.controllerIndex));
+    const routes: readonly RouteAst[] = routeBundle.asts;
     const channels: readonly ChannelAst[] = await ChannelScanner.scanCanonicalAsts(sourceProject);
     const properties = await scanPropertyAsts(sourceProject);
-    const sourceSyntax = await scanSourceExpressionAndAssignmentAsts(sourceProject);
-    const expressions = sourceSyntax.expressions;
-    const assignments = sourceSyntax.assignments;
-
-    const queries = queryProducer.produce({ expressions });
-
     return {
         kind: "source_asts",
+        modelDefinitions,
+        resourceDefinitions,
+        requestDefinitions,
         models: { kind: "model_asts", items: scanned(models) },
         resources: { kind: "resource_asts", items: scanned(resources) },
         requests: { kind: "request_asts", items: scanned(requests) },
         routes: { kind: "route_asts", items: scanned(routes) },
+        routeFlows: routeBundle.flows,
         controllers: { kind: "controller_asts", items: scanned(controllers) },
+        controllerActions,
         services: { kind: "service_asts", items: scanned(services) },
+        serviceDefinitions,
         migrations: migrationDiscovery,
         schemas: { kind: "schema_asts", items: scanned([schema]) },
         responses: { kind: "response_asts", items: scanned(responses) },
+        responseDefinitions,
         dtos: { kind: "dto_asts", items: scanned(dtos) },
         middlewares: { kind: "middleware_asts", items: scanned(middlewares) },
+        providerDefinitions,
         providers: { kind: "provider_asts", items: scanned(providers) },
         attributes: { kind: "attribute_asts", items: scanned(attributes) },
         channels: { kind: "channel_asts", items: scanned(channels) },

@@ -1,7 +1,7 @@
 import { PHP_STATEMENT_KINDS } from '../../lexer/phpAstStatementKinds';
 import { solveRewriteCandidate, requirement, variantRewriteCandidate } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
-import { relationGate, relationProject, relationExpand, relationLookup, relationOptionFold, relationAdvanceIndex, relationAll, relationFold } from '../../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../../semantic/kernel/semanticRelations';
+import { relationGate, relationProject, relationExpand, relationLookup, relationOptionFold, relationAdvanceIndex, relationAll, relationFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import type { BuiltinFunction, Expression } from '../../../../types/upstream/expression';
 import type { PhpAstValue } from '../../lexer/phpAstExpressionTypes';
 import type { SourceSpan } from '../../../../types/upstream/provenance';

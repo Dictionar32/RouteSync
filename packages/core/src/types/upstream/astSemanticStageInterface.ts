@@ -19,8 +19,8 @@ import {
   type AstSemanticJudgment,
   type AstSemanticTerm,
 } from './astSemanticInterface';
-import { relationFold, relationProject, relationResolve, relationLookup, relationOptionFold } from '../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../semantic/kernel/semanticRelations';
+import { relationFold, relationProject, relationResolve, relationLookup, relationOptionFold } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/foundation/semanticRelations';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
 import { stageProofObligations } from './astSemanticStageProof';
 

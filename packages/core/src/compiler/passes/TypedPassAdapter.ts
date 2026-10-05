@@ -12,7 +12,7 @@ import type { ArtifactCache } from '../cache/ArtifactCache';
 import { readArtifacts } from './ArtifactKeyWitness';
 import type { ResolveArtifacts } from './ArtifactKeyWitness';
 import { validatePassContract, applyPassOutputs, createPassCacheDescriptor } from './adapter';
-import { relationOptionFold, relationResolve, relationSome, relationNone, relationEqual } from '../../semantic/kernel/relationalSequence';
+import { relationOptionFold, relationResolve, relationSome, relationNone, relationEqual } from '../../semantic/foundation/relationalSequence';
 import { compilerPassFailureMessage, compilerPassFailureOf } from '../../types/upstream/compilerPassFailure';
 
 export type TypedPassAdapter<

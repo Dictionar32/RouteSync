@@ -19,8 +19,8 @@ import {
   relationInsert,
   type RelationIndex,
   type RelationMembership,
-} from '../../../semantic/kernel/relationMembership';
-import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/kernel/semanticRelations';
+} from '../../../semantic/foundation/relationMembership';
+import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/foundation/semanticRelations';
 import {
   relationOptionFold,
   relationRefine,
@@ -29,7 +29,7 @@ import {
   relationProject,
   relationSelect,
   type RelationOption,
-} from '../../../semantic/kernel/relationalSequence';
+} from '../../../semantic/foundation/relationalSequence';
 
 export type ConstraintStateIndex = RelationIndex<number, VariableState>;
 export type ConstraintStep = { readonly changed: boolean; readonly states: ConstraintStateIndex; readonly unionFind: UnionFind };

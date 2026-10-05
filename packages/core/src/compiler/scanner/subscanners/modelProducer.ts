@@ -17,12 +17,21 @@ export type ModelProducerInput = {
     readonly eloquentRelations: readonly EloquentRelationAst[];
 };
 
+export interface ModelProducerResult {
+    readonly definition: import('../../../types/upstream/model').ModelDefinition;
+    readonly ast: ModelAst;
+}
+
 export interface ModelProducer {
     readonly produce: (input: ModelProducerInput) => ModelAst;
+    readonly produceResult: (input: ModelProducerInput) => ModelProducerResult;
 }
 
 const modelProducer: ModelProducer = {
     produce(input): ModelAst {
+        return modelProducer.produceResult(input).ast;
+    },
+    produceResult(input): ModelProducerResult {
         const relations = input.eloquentRelations;
         const semantic = buildModelSemanticDefinitionFromAst(
             input.sourceSpan,
@@ -34,7 +43,7 @@ const modelProducer: ModelProducer = {
             relations,
         );
         const schema = resolveModelSchema(semantic.identity.table, input.migrations);
-        return modelAstFromSemantic(
+        const ast = modelAstFromSemantic(
             semantic,
             schema,
             input.casts,
@@ -42,6 +51,7 @@ const modelProducer: ModelProducer = {
             relations,
             input.sourceSpan,
         );
+        return { definition: ast.definition, ast };
     },
 };
 

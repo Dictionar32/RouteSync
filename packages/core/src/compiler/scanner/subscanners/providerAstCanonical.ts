@@ -8,17 +8,16 @@ import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressi
 import { resolveClosureBody } from './resource/resourceUpstreamExpressionClosure';
 import type { ClosureStatement, ExpressionArgument } from '../../../types/upstream/expression';
 import { createDomainAstJudgment, type ProviderAst } from '../../../types/upstream/ast';
-import type { ProviderDefinition, ProviderContainerOperation, ProviderContainerOperationName, ProviderContextualBinding, ProviderContainerBinding, ProviderContainerBindings, ProviderContextualGive, ProviderContainerLifecycleHook, ProviderContainerResolution, ProviderContainerAlias, ProviderContainerInvocation, ProviderContainerBoundCheck, ProviderContainerTagging, ProviderContainerTaggedResolution, ProviderContainerRegistration, ProviderSourceAst, ProviderBindingAttribute, ProviderBindingAttributes, ExpressionArgumentsOption } from '../../../types/upstream/application';
+import type { ProviderDefinition, ProviderContainerOperation, ProviderContainerOperationName, ProviderContextualBinding, ProviderContainerBinding, ProviderContainerBindings, ProviderContextualGive, ProviderContainerLifecycleHook, ProviderContainerResolution, ProviderContainerAlias, ProviderContainerInvocation, ProviderContainerBoundCheck, ProviderContainerTagging, ProviderContainerTaggedResolution, ProviderContainerRegistration, ProviderBindingAttribute, ProviderBindingAttributes, ExpressionArgumentsOption } from '../../../types/upstream/application';
 import type { Expression, ExpressionArguments } from '../../../types/upstream/expression';
+import type { ProviderSourceEvidence, ProviderMethodEvidence } from '../../../types/upstream/providerEvidence';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
-import type { ControllerMethodAst } from '../lexer/controllerAstTypes';
-import type { PhpStatement } from '../lexer/phpAstTypes';
-import { relationGate, relationSome, relationNone, relationResolve, type RelationOption } from '../../../semantic/kernel/semanticRelations';
-import { RELATION_NONE, relationIsNone, relationIsPresent, type RelationMaybe, type RelationNone } from '../../../semantic/kernel/relationalSequence';
-import { relationLookup } from '../../../semantic/kernel/relationalSequence';
-import { relationContains } from '../../../semantic/kernel/relationMembership';
-import { relationOptionFold, relationAdvanceIndex, relationFirstOption, relationProject, relationSelect, relationAll, relationAny } from '../../../semantic/kernel/relationalSequence';
+import { relationGate, relationSome, relationNone, relationResolve, type RelationOption } from '../../../semantic/foundation/semanticRelations';
+import { RELATION_NONE, relationIsNone, relationIsPresent, type RelationMaybe, type RelationNone } from '../../../semantic/foundation/relationalSequence';
+import { relationLookup } from '../../../semantic/foundation/relationalSequence';
+import { relationContains } from '../../../semantic/foundation/relationMembership';
+import { relationOptionFold, relationAdvanceIndex, relationFirstOption, relationProject, relationSelect, relationAll, relationAny } from '../../../semantic/foundation/relationalSequence';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({
@@ -37,19 +36,8 @@ function className(tokens: readonly { readonly value: string }[]): string {
   return relationOptionFold(seek(0), () => { throw Error('Provider class declaration not found'); }, value => value);
 }
 
-function methodExpression(method: ControllerMethodAst, file: string): Expression {
-  const methodSource = source(file, Number(method.source.line));
-  return {
-    kind: 'closure',
-    value: {
-      kind: 'closure',
-      parameters: { kind: 'variable_names', items: { kind: 'empty' } },
-      captures: { kind: 'closure_captures', items: { kind: 'empty' } },
-      body: resolveClosureBody(method.body.statements, file, mapResourcePhpAstToUpstream),
-      source: methodSource,
-    },
-    source: methodSource,
-  };
+function methodExpression(method: ProviderMethodEvidence): Expression {
+  return method.body;
 }
 
 
@@ -172,16 +160,16 @@ function expressionArgument(argument: import('../lexer/controllerAstTypes').Cont
   );
 }
 
-function semanticBindingAttributes(source: ProviderSourceAst, file: string): ProviderBindingAttributes {
-  const accepted = relationSelect(source.attributes, attribute => relationIsPresent(semanticBindingAttributeName(lastPathSegment(attribute.name.value))));
+function semanticBindingAttributes(source: ProviderSourceEvidence, _file: string): ProviderBindingAttributes {
+  const accepted = relationSelect(source.attributes, attribute => relationIsPresent(semanticBindingAttributeName(attribute.name.value)));
   const items = relationProject(accepted, attribute => relationOptionFold(
-    semanticBindingAttributeName(lastPathSegment(attribute.name.value)),
+    semanticBindingAttributeName(attribute.name.value),
     () => { throw Error('Provider binding attribute relation became absent after selection'); },
     name => ({
       kind: 'provider_binding_attribute',
       name,
-      arguments: { kind: 'expression_arguments', items: sequence(relationProject(attribute.arguments, argument => expressionArgument(argument, file))) },
-      source: sourceSpanFromToken(attribute.source, file),
+      arguments: attribute.arguments,
+      source: attribute.source,
     }),
   ));
   return { kind: 'provider_binding_attributes', items: sequence(items) };
@@ -332,12 +320,12 @@ function collectContainerOperationsFromClosureStatement(statement: import('../..
   CLOSURE_STATEMENT_HANDLERS[statement.kind](statement, operations);
 }
 
-export function buildProviderAstFromSource(sourceAst: ProviderSourceAst, fileValue: import('../../../types/upstream/provenance').SourceFile, span: SourceSpan): ProviderAst {
+export function buildProviderSemanticResultFromSource(sourceAst: ProviderSourceEvidence, fileValue: import('../../../types/upstream/provenance').SourceFile, span: SourceSpan): { readonly definition: ProviderDefinition; readonly ast: ProviderAst } {
   const register = relationFirstOption(sourceAst.methods, method => Object.is(method.name, 'register'));
   const boot = relationFirstOption(sourceAst.methods, method => Object.is(method.name, 'boot'));
   return relationOptionFold(register, () => { throw Error(`Provider register method not found: ${fileValue.value.value}`); }, registerMethod => relationOptionFold(boot, () => { throw Error(`Provider boot method not found: ${fileValue.value.value}`); }, bootMethod => {
-    const registerExpression = methodExpression(registerMethod, fileValue.value.value);
-    const bootExpression = methodExpression(bootMethod, fileValue.value.value);
+    const registerExpression = methodExpression(registerMethod);
+    const bootExpression = methodExpression(bootMethod);
     const operations: ProviderContainerOperation[] = [];
     collectContainerOperations(registerExpression, operations);
     collectContainerOperations(bootExpression, operations);
@@ -353,18 +341,27 @@ export function buildProviderAstFromSource(sourceAst: ProviderSourceAst, fileVal
       bindingAttributes,
       source: span,
     };
-    return createDomainAstJudgment({ kind: 'provider_ast', semantic: definition, source: span });
+    return { definition, ast: createDomainAstJudgment({ kind: 'provider_ast', semantic: definition, source: span }) };
   }));
 }
 
-export async function scanProviderAsts(sourceProject: SourceProjectIdentity): Promise<readonly ProviderAst[]> {
+export function buildProviderAstFromSource(sourceAst: ProviderSourceEvidence, fileValue: import('../../../types/upstream/provenance').SourceFile, span: SourceSpan): ProviderAst {
+  return buildProviderSemanticResultFromSource(sourceAst, fileValue, span).ast;
+}
+
+export interface ProviderScanBundle {
+  readonly asts: readonly ProviderAst[];
+  readonly definitions: readonly ProviderDefinition[];
+}
+
+export async function scanProviderBundle(sourceProject: SourceProjectIdentity): Promise<ProviderScanBundle> {
   const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Providers');
   const files = await collectPhpFiles(directory);
   const { providerProducer } = await import('./providerProducer');
-  const scan = async (index: number, asts: readonly ProviderAst[]): Promise<readonly ProviderAst[]> => relationGate(
+  const scan = async (index: number, results: readonly { readonly definition: ProviderDefinition; readonly ast: ProviderAst }[]): Promise<readonly { readonly definition: ProviderDefinition; readonly ast: ProviderAst }[]> => relationGate(
     index >= files.length,
-    () => Object.freeze(asts),
+    () => Object.freeze(results),
     async () => {
       const file = files[index];
       const text = await readSourceText(file);
@@ -372,21 +369,56 @@ export async function scanProviderAsts(sourceProject: SourceProjectIdentity): Pr
       const name = className(tokens);
       const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
       const span = source(file, Number(declaration.source.line));
-      const sourceAst: ProviderSourceAst = {
-        kind: 'provider_source_ast',
-        attributes: declaration.attributes,
-        className: createAstIdentifier(name),
-        methods: declaration.methods,
+      const sourceAst: ProviderSourceEvidence = {
+        kind: 'provider_source_evidence',
+        attributes: declaration.attributes.map(attribute => ({
+          kind: 'provider_attribute_evidence',
+          name: { kind: 'class_name', value: lastPathSegment(attribute.name.value) },
+          arguments: {
+            kind: 'expression_arguments',
+            items: sequence(attribute.arguments.map(argument => ({
+              kind: Object.is(argument.kind, 'named') ? 'named' : Object.is(argument.kind, 'unpacked') ? 'unpacked' : 'positional',
+              ...(Object.is(argument.kind, 'named') ? { name: { kind: 'expression_argument_name', value: stringValue(argument.name.value) } } : {}),
+              value: mapResourcePhpAstToUpstream(argument.value, file),
+            }))),
+          },
+          source: source(file, Number(attribute.source.line)),
+        })),
+        className: { kind: 'class_name', value: name },
+        methods: declaration.methods.map(method => ({
+          kind: 'provider_method_evidence',
+          name: { kind: 'method_name', value: method.name },
+          body: {
+            kind: 'closure',
+            value: {
+              kind: 'closure',
+              parameters: { kind: 'variable_names', items: { kind: 'empty' } },
+              captures: { kind: 'closure_captures', items: { kind: 'empty' } },
+              body: resolveClosureBody(method.body.statements, file, mapResourcePhpAstToUpstream),
+              source: source(file, Number(method.source.line)),
+            },
+            source: source(file, Number(method.source.line)),
+          },
+          source: source(file, Number(method.source.line)),
+        })),
         source: span,
       };
-      const ast = providerProducer.produce({
+      const result = providerProducer.produceResult({
         source: sourceAst,
         file: { kind: 'source_file', value: stringValue(file) },
         sourceSpan: span,
       });
-      return scan(relationAdvanceIndex(index, 1), [...asts, ast]);
+      return scan(relationAdvanceIndex(index, 1), [...results, result]);
     },
   );
-  return scan(0, Object.freeze([]));
+  const results = await scan(0, Object.freeze([]));
+  return {
+    asts: Object.freeze(relationProject(results, result => result.ast)),
+    definitions: Object.freeze(relationProject(results, result => result.definition)),
+  };
 }
 
+
+export async function scanProviderAsts(sourceProject: SourceProjectIdentity): Promise<readonly ProviderAst[]> {
+  return (await scanProviderBundle(sourceProject)).asts;
+}

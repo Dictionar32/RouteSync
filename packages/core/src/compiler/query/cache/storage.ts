@@ -4,11 +4,11 @@
  * Query absence is an explicit relation option; keyed state is an immutable
  * relation rather than a host Map.
  */
-import type { RelationOption } from '../../../semantic/kernel/relationFoundation';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/kernel/relationMembership';
-import { relationEqual, relationResolve } from '../../../semantic/kernel/relationFoundation';
-import { relationFold } from '../../../semantic/kernel/relationalSequence';
-import { relationOptionFold } from '../../../semantic/kernel/relationalSequence';
+import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationEqual, relationResolve } from '../../../semantic/foundation/relationFoundation';
+import { relationFold } from '../../../semantic/foundation/relationalSequence';
+import { relationOptionFold } from '../../../semantic/foundation/relationalSequence';
 
 export interface QueryStorage {
   readonly size: number;

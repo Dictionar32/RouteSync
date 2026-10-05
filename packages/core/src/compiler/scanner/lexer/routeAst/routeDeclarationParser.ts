@@ -16,7 +16,7 @@ import {
   type RouteTargetAst,
   type RouteConstraintArgumentAst,
 } from './routeDeclarationAst';
-import { TokenCursor } from '../../../../semantic/kernel/syntax/relationalSyntaxCursor';
+import { TokenCursor } from './relationalSyntaxCursor';
 import { syntaxRange } from './syntaxRange';
 import { parseRouteBindingDeclarations } from './routeBindingDeclarationAst';
 import {
@@ -35,9 +35,11 @@ import {
 } from './semanticRouteSyntaxRelations';
 import { SYNTAX_KIND_GROUPS, SYNTAX_OPERATION_GROUPS, tokenHasKind, tokenHasOperation } from './syntaxValue';
 import { absent, present, presenceOf, presenceFold, type Presence } from '../../../../types/upstream/presence';
-import { relationAll } from '../../../../semantic/kernel/semanticRelations';
-import { relationVariantFold } from '../../../../semantic/kernel/relationalSequence';
+import { relationAll } from '../../../../semantic/foundation/semanticRelations';
+import { relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
 import { continueScan, syntaxScan } from './syntaxScan';
+import { createRouteResourceMiddlewareAst } from './routeResourceDeclarationAst';
+import { resourceMiddlewareSyntax } from './semanticRouteSyntaxRelations';
 
 type GroupState = RouteGroupStateModel;
 type ConstraintMethod = 'where' | 'whereNumber' | 'whereAlpha' | 'whereAlphaNumeric' | 'whereUuid' | 'whereUlid' | 'whereIn';
@@ -98,12 +100,19 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
     prefix: Object.freeze(projectRelation(effective.prefixes, createRoutePrefixAst)),
     middleware: Object.freeze(projectRelation(effective.middleware, createMiddlewareNameAst)),
     routeMiddleware: Object.freeze(readRouteMiddleware(cursor.callArgumentCursor, end)),
+    resourceMiddleware: Object.freeze(readResourceMiddleware(cursor.callArgumentCursor, end, false)),
+    resourceMiddlewareExclusions: Object.freeze(readResourceMiddleware(cursor.callArgumentCursor, end, true)),
     groupNamePrefix: Object.freeze(projectRelation(effective.namePrefixes, createRouteNamePrefixAst)),
     ...presenceFold(effective.controller, () => Object.freeze({}), entry => Object.freeze({ groupController: createRouteControllerAst(entry) })),
     ...presenceFold(effective.domain, () => Object.freeze({}), entry => Object.freeze({ groupDomain: createRouteDomainAst(entry) })),
     groupBindingScope: effective.bindingScope,
     missingHandler: hasMissingHandler(cursor.callArgumentCursor, end),
     withTrashed: hasWithTrashed(cursor.callArgumentCursor, end),
+    resourceActionFilter: readResourceActionFilter(cursor.callArgumentCursor, end),
+    resourceShallow: hasResourceOperation(cursor.callArgumentCursor, end, SYNTAX_OPERATION_GROUPS.shallow),
+    resourceScoped: hasResourceOperation(cursor.callArgumentCursor, end, SYNTAX_OPERATION_GROUPS.scoped),
+    resourceCreatable: hasResourceOperation(cursor.callArgumentCursor, end, SYNTAX_OPERATION_GROUPS.creatable),
+    resourceDestroyable: hasResourceOperation(cursor.callArgumentCursor, end, SYNTAX_OPERATION_GROUPS.destroyable),
     routeConstraints: Object.freeze(projectRelation(readRouteConstraints(cursor.callArgumentCursor, end), item => ({
       method: item.method,
       parameter: createRouteConstraintParameterAst(item.parameter),
@@ -122,7 +131,7 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
 function readMiddleware(call: TokenCursor): readonly MiddlewareNameAst[] {
   return presenceFold(
     call.callClosePresence,
-    () => [],
+    () => [] as readonly MiddlewareNameAst[],
     end => projectRelation(selectRelation(syntaxRange(call.callArgumentCursor, end).tokens(), token => tokenHasKind(token, SYNTAX_KIND_GROUPS.strings)), token => createMiddlewareNameAst(token.value)),
   );
 }
@@ -166,12 +175,48 @@ function hasWithTrashed(start: TokenCursor, end: TokenCursor): boolean {
   return presenceBoolean(inRangePresence(start, end, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.withTrashed)));
 }
 
+function hasResourceOperation(start: TokenCursor, end: TokenCursor, operations: readonly import('./syntaxValue').SyntaxOperation[]): boolean {
+  return presenceBoolean(inRangePresence(start, end, token => tokenHasOperation(token, operations)));
+}
+
+function resourceOperationStrings(start: TokenCursor, end: TokenCursor, operations: readonly import('./syntaxValue').SyntaxOperation[]): readonly string[] {
+  return Object.freeze(expandRelation(
+    syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, operations))),
+    cursor => presenceFold(cursor.callClosePresence, () => Object.freeze([] as readonly string[]), close =>
+      Object.freeze(projectRelation(selectRelation(syntaxRange(cursor.callArgumentCursor, close).tokens(), token => tokenHasKind(token, SYNTAX_KIND_GROUPS.strings)), token => token.value))
+    ),
+  ));
+}
+
+function readResourceActionFilter(start: TokenCursor, end: TokenCursor): RouteDeclarationAst['resourceActionFilter'] {
+  const only = resourceOperationStrings(start, end, Object.freeze(['only' as const]));
+  const except = resourceOperationStrings(start, end, Object.freeze(['except' as const]));
+  return only.length > 0
+    ? { kind: 'only' as const, actions: only }
+    : except.length > 0
+      ? { kind: 'except' as const, actions: except }
+      : undefined;
+}
+
 function readRouteConstraints(start: TokenCursor, end: TokenCursor): readonly RouteConstraintSyntaxFact[] {
   return expandRelation(syntaxRange(start, end).project((_, cursor) => routeConstraintFact(cursor)), presenceValues);
 }
 
 function readRouteMiddleware(start: TokenCursor, end: TokenCursor): readonly MiddlewareNameAst[] {
   return expandRelation(syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.middleware))), cursor => readMiddleware(cursor.callArgumentCursor));
+}
+
+function readResourceMiddleware(start: TokenCursor, end: TokenCursor, exclusion: boolean): readonly import('./routeResourceDeclarationAst').RouteResourceMiddlewareAst[] {
+  const operation = exclusion ? SYNTAX_OPERATION_GROUPS.withoutMiddlewareFor : Object.freeze([...SYNTAX_OPERATION_GROUPS.middlewareFor, 'middleware' as const]);
+  return expandRelation(
+    syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, operation))),
+    cursor => {
+      const method = exclusion ? 'withoutMiddlewareFor' as const : presenceFold(cursor.currentPresence, () => 'middleware' as const, token =>
+        tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.middlewareFor) ? 'middlewareFor' as const : 'middleware' as const);
+      const syntax = resourceMiddlewareSyntax(cursor, method);
+      return presenceFold(createRouteResourceMiddlewareAst(method, syntax), () => [], value => [value]);
+    },
+  );
 }
 
 function hasMissingHandler(start: TokenCursor, end: TokenCursor): boolean {

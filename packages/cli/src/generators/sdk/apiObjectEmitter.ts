@@ -48,9 +48,9 @@ export function emitApiObjectLines(
       apiBodyLines.push(`    ${route.actionName}: endpoint({`);
       apiBodyLines.push(`      method: '${route.method}',`);
 
-      const routeKey = ConstantsGenerator.getRouteKey(route.raw.path);
+      const routeKey = ConstantsGenerator.getRouteKey(route.identity.coordinates.path.value);
       apiBodyLines.push(`      path: API_ENDPOINTS.${routeKey},`);
-      if (route.raw.auth) apiBodyLines.push('      auth: true,');
+      if (route.contract.request.security.isProtected.value) apiBodyLines.push('      auth: true,');
 
       const hasBodyContract = Boolean(ctx.usesZod && route.contract.request.hasBody);
       const hasRespContract = Boolean(ctx.usesZod && route.contract.response.success);
@@ -71,7 +71,7 @@ export function emitApiObjectLines(
         apiBodyLines.push('      },');
       }
 
-      const hasBodyMapper = Boolean(route.raw.schema && route.raw.schema.rules && ctx.usesZod);
+      const hasBodyMapper = Boolean(route.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && ctx.usesZod);
       const hasRespMapper = Boolean(respInfo.mapper);
 
       if (hasBodyMapper || hasRespMapper) {

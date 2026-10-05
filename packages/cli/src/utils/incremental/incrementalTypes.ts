@@ -29,11 +29,7 @@ export {
   matchRouteResponsePayload
 } from './types/responsePayloadTypes';
 
-export {
-  type RouteSemanticFlowContract,
-  type RouteSemanticFlowOptions,
-  type RouteSemanticFlowLegacy
-} from './types/scannedRouteTypes';
+export type { RouteSemanticFlow } from '@routesync/core';
 
 export {
   type ScannedResourceContract,
@@ -59,20 +55,14 @@ export {
   type ResolveManifestResult
 } from './types/scannedManifestTypes';
 
-export { RouteSemanticFlowFactory } from './descriptors/scannedRouteDescriptor';
 export { ScannedResourceDescriptor } from './descriptors/scannedResourceDescriptor';
-export { ScannedManifestDescriptor } from './descriptors/scannedManifestDescriptor';
 
 // Legacy Type Aliases for 100% Backwards Compatibility
-import type { RouteSemanticFlowLegacy } from './types/scannedRouteTypes';
 import type { ScannedResourceLegacy } from './types/scannedResourceTypes';
 import type { ScannedModelLegacy } from './types/scannedModelTypes';
 import type { ScannedManifestLegacy } from './types/scannedManifestTypes';
-import type { RouteSemanticFlowFactory } from './descriptors/scannedRouteDescriptor';
 import type { ScannedResourceDescriptor } from './descriptors/scannedResourceDescriptor';
-import type { ScannedManifestDescriptor } from './descriptors/scannedManifestDescriptor';
 
-export type RouteSemanticFlow = RouteSemanticFlowLegacy | RouteSemanticFlowFactory;
 export type ScannedResource = ScannedResourceLegacy | ScannedResourceDescriptor;
 export type ScannedModel = ScannedModelLegacy;
-export type ScannedManifest = ScannedManifestLegacy | ScannedManifestDescriptor;
+export type ScannedManifest = ScannedManifestLegacy;

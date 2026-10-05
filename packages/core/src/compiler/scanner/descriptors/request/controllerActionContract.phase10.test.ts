@@ -18,7 +18,7 @@ describe('phase 10 controller request semantic resolution', () => {
     } as unknown as ControllerMethodAst;
 
     const contract = resolveControllerActionContract(method, createControllerName('PaymentController'), createSourceFile('<test>'), {
-      formRequestMap: new Map(),
+      formRequestIndex: [],
       sourceProject: {} as never,
     });
 
@@ -43,7 +43,7 @@ describe('controller constructor dependency elevation', () => {
     ] as unknown as ControllerMethodAst['parameters'];
 
     const contract = resolveControllerActionContract(method, createControllerName('UserController'), createSourceFile('<test>'), {
-      formRequestMap: new Map(),
+      formRequestIndex: [],
       sourceProject: {} as never,
       constructorParameters,
     });
@@ -79,8 +79,7 @@ describe('controller contextual attribute precedence', () => {
     } as unknown as ControllerMethodAst;
 
     const contract = resolveControllerActionContract(method, createControllerName('PhotoController'), createSourceFile('<test>'), {
-      formRequestMap: new Map(),
-      modelNames: new Set(['App\\Models\\Photo']),
+      formRequestIndex: [],
       sourceProject: {} as never,
     });
 
@@ -108,7 +107,7 @@ describe('controller contextual attribute precedence', () => {
     } as unknown as ControllerMethodAst;
 
     const contract = resolveControllerActionContract(method, createControllerName('PhotoController'), createSourceFile('<test>'), {
-      formRequestMap: new Map(),
+      formRequestIndex: [],
       sourceProject: {} as never,
     });
 

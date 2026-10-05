@@ -4,7 +4,7 @@
  */
 
 import type { ControlFlowGraph, BasicBlock } from '../utils/ControlFlowGraph';
-import type { RelationIndex } from '../../semantic/kernel/relationMembership';
+import type { RelationIndex } from '../../semantic/foundation/relationMembership';
 import {
   type FlowState,
   type TransferFn,

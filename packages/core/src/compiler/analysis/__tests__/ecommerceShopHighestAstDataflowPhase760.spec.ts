@@ -1,14 +1,26 @@
 import { describe, expect, test } from 'vitest';
+import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { classifyPhpBlock } from '../../scanner/lexer/astClassifier';
 import { tokenizePhpSource } from '../../scanner/lexer/tokenizer';
 import { producePhpAstSemanticKnowledgeDataFlow } from '../../scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter';
-import { createAstDataflowInterface } from '../astDataflowAuthority';
-import type { AstNodeIdentity } from '../../../types/upstream/ast';
+import { createSemanticDataflowJudgment } from '../astDataflowAuthority';
+import { semanticDataflowInterfaceFromJudgment } from '../../../types/upstream/semanticDataflowInterface';
+import { createSemanticDataflowInput } from '../../scanner/upstream/semanticDataflowInputAdapter';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 
-const root = `${process.cwd()}/examples/ecommerce-shop-source`;
-const sourceFile = `${root}/app/Http/Controllers/OrderController.php`;
+const fixtureRoot = path.resolve(__dirname, '../../../../../sdk/tests/fixtures/ecommerce-shop-source');
+const sourceFile = path.join(fixtureRoot, 'app/Http/Controllers/OrderController.php');
+const requestFile = path.join(fixtureRoot, 'app/Http/Requests/StoreOrderRequest.php');
+const modelFile = path.join(fixtureRoot, 'app/Models/Order.php');
+const resourceFile = path.join(fixtureRoot, 'app/Http/Resources/OrderResource.php');
+const routeFile = path.join(fixtureRoot, 'routes/web.php');
+
+const requestSource = readFileSync(requestFile, 'utf8');
+const modelSource = readFileSync(modelFile, 'utf8');
+const resourceSource = readFileSync(resourceFile, 'utf8');
+const controllerSource = readFileSync(sourceFile, 'utf8');
+const routeSource = readFileSync(routeFile, 'utf8');
 
 const sourceSpan: SourceSpan = Object.freeze({
   kind: 'source_span',
@@ -17,38 +29,33 @@ const sourceSpan: SourceSpan = Object.freeze({
   end: Object.freeze({ kind: 'number_value', value: 1000 }),
 });
 
-const node: AstNodeIdentity = Object.freeze({
-  kind: 'ast_node_identity',
-  node: 'controller_ast',
-  source: sourceSpan,
-});
-
 describe('ecommerce-shop highest AST dataflow Phase 760', () => {
   test('keeps Laravel ecommerce model/request/resource/controller facts as source workload', () => {
-    const request = readFileSync(`${root}/app/Http/Requests/StoreOrderRequest.php`, 'utf8');
-    const model = readFileSync(`${root}/app/Models/Order.php`, 'utf8');
-    const resource = readFileSync(`${root}/app/Http/Resources/OrderResource.php`, 'utf8');
-    const controller = readFileSync(sourceFile, 'utf8');
-
-    expect(request).toContain("items.*.produk_item_id");
-    expect(model).toContain('details(): HasMany');
-    expect(model).toContain('payment(): HasOne');
-    expect(resource).toContain('$this->details');
-    expect(controller).toContain('$order = $this->getOrCreatePendingOrder($request);');
-    expect(controller).toContain('new OrderResource($order->load');
+    expect(requestSource).toContain("items.*.produk_item_id");
+    expect(modelSource).toContain('recalculateTotal(): void');
+    expect(resourceSource).toContain('public readonly Order $order');
+    expect(controllerSource).toContain('$order->recalculateTotal();');
+    expect(controllerSource).toContain("#[Middleware('admin')]");
+    expect(controllerSource).toContain("#[Authorize('update', [Order::class, 'order'])]");
+    expect(routeSource).toContain("Route::middleware('auth')");
+    expect(controllerSource).toContain('new OrderResource($order)');
   });
 
   test('elevates controller dataflow evidence into a closed upstream ADT', () => {
-    const flowSource = [
-      '$order = $this->getOrCreatePendingOrder($request);',
-      '$this->recalculateTotal($order);',
-      'return new OrderResource($order);',
-    ].join(' ');
+    const flowSource = controllerSource;
     const block = classifyPhpBlock(tokenizePhpSource(flowSource));
     const knowledge = producePhpAstSemanticKnowledgeDataFlow(block, sourceFile, 'parser');
-    const dataflow = createAstDataflowInterface(node, sourceSpan, knowledge);
+    const anchor = {
+      kind: 'semantic_dataflow_identity' as const,
+      source: sourceSpan,
+      role: 'scope' as const,
+      slot: { kind: 'string_value' as const, value: 'controller' },
+    };
+    const input = createSemanticDataflowInput(anchor, sourceSpan, knowledge);
+    const judgment = createSemanticDataflowJudgment(input);
+    const dataflow = semanticDataflowInterfaceFromJudgment(judgment);
 
-    expect(dataflow.judgment.kind).toBe('ast_dataflow_judgment');
+    expect(dataflow.judgment.kind).toBe('semantic_dataflow_judgment');
     expect(dataflow.judgment.closed).toBe(true);
     expect(dataflow.judgment.fixedPoint).toBe('least_fixed_point');
     expect(dataflow.judgment.facts.length).toBeGreaterThan(0);

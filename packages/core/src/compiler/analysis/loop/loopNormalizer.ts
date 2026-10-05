@@ -1,9 +1,9 @@
 /** Relation-driven loop normalization. */
 import type { ControlFlowGraph, BasicBlock, Instruction, BasicBlockRelation } from '../../utils/ControlFlowGraph';
 import { basicBlockLookup, basicBlockReplace, basicBlockIds, createControlFlowGraph } from '../../utils/ControlFlowGraph';
-import { relationContains } from '../../../semantic/kernel/relationMembership';
-import { relationFold, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../semantic/kernel/relationalSequence';
-import { relationEqual } from '../../../semantic/kernel/relationFoundation';
+import { relationContains } from '../../../semantic/foundation/relationMembership';
+import { relationFold, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../semantic/foundation/relationFoundation';
 
 export interface LoopNormalizer {
     readonly ensurePreHeader: (cfg: ControlFlowGraph, loopBlocks: readonly number[], headerId: number) => { readonly cfg: ControlFlowGraph; readonly preHeaderId: number };

@@ -12,9 +12,9 @@ import type { RouteSecurityResolution } from './RouteSecurityResolver';
 import { RouteDomainResolver } from './RouteDomainResolver';
 import { RouteSecurityResolver } from './RouteSecurityResolver';
 import { RouteCrudClassifier } from './RouteCrudClassifier';
-import { relationEqual } from '../../../semantic/kernel/semanticRelations';
+import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { truthValue } from '../../../types/upstream/valueObjects';
-import { relationProject } from '../../../semantic/kernel/relationalSequence';
+import { relationProject } from '../../../semantic/foundation/relationalSequence';
 import { solveClosedSemanticRelations, semanticTextTerm, type SemanticRewriteFact, type SemanticRewritePattern, type SemanticRewritePatternTerm, type SemanticRewriteRule } from '../lexer/routeAst/semanticRewriteInterface';
 
 export type ResolverGraphRelation =

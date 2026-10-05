@@ -4,8 +4,8 @@ import {
   type SemanticRelation,
   type SemanticRelationRewrite,
 } from './semanticRewriteEngine';
-import { relationEqual, relationOptionFold, relationGate } from '../../../../semantic/kernel/semanticRelations';
-import { relationProject, relationVariant, relationVariantValue } from '../../../../semantic/kernel/relationalSequence';
+import { relationEqual, relationOptionFold, relationGate } from '../../../../semantic/foundation/semanticRelations';
+import { relationProject, relationVariant, relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
 
 export type SemanticRewriteTerm =
   | Readonly<{ readonly kind: 'text_term'; readonly value: string }>

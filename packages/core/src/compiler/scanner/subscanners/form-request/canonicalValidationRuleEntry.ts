@@ -28,7 +28,7 @@ import {
     relationAnyMatch,
     relationRange,
     relationVariantFold,
-} from "../../../../semantic/kernel/relationalSequence";
+} from "../../../../semantic/foundation/relationalSequence";
 
 export interface ScannedRouteValidationRuleParams {
     readonly fieldName: PropertyName;

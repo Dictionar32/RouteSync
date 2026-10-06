@@ -1,4 +1,4 @@
-import type { SemanticType } from "../../compiler/types/SemanticType";
+import type { SemanticType } from "./semanticType";
 import type { Expression } from '../upstream/expression';
 import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, ValidationParameter, ValidationRuleName, PropertyName } from "./semanticValues";
 import type { RequestField } from "./request";

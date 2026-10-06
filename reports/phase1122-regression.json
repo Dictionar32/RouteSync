@@ -1,0 +1,58 @@
+{
+  "phase": 1122,
+  "direction": "upstream => wiring => interface => downstream",
+  "structuralKinds": [
+    "resource_model",
+    "model_relation",
+    "request_property",
+    "response_resource",
+    "response_model",
+    "route_request",
+    "route_response",
+    "route_controller",
+    "controller_resource",
+    "controller_model",
+    "controller_response",
+    "controller_dependency"
+  ],
+  "policyKinds": [
+    "controller_action_middleware_policy",
+    "controller_action_authorization_policy",
+    "route_action_middleware_policy",
+    "route_action_authorization_policy"
+  ],
+  "dataflowProducers": [
+    "request",
+    "route",
+    "controller",
+    "model_relation",
+    "resource",
+    "schema"
+  ],
+  "checks": {
+    "allStructuralKindsCanonical": true,
+    "allPolicyKindsCanonical": true,
+    "relationGraphConstructedOnce": true,
+    "manifestCarriesCanonicalRelations": true,
+    "graphCarriesCanonicalRelations": true,
+    "dataflowLineageProducerClosed": true,
+    "dataflowSeedOnlyBuildsJudgment": true,
+    "dataflowDeriveDoesNotRecompute": true,
+    "dataflowCloseDoesNotRecompute": true,
+    "irReadsClosedState": true,
+    "irUsesDataflowBoundary": true,
+    "genericDataFlowInterface": true,
+    "genericDirectionalBoundary": true,
+    "noCompilerImportsIntoUpstream": true,
+    "legacyProductionEmpty": true,
+    "cliSurfaceOnly": true,
+    "ecommerceFixturePresent": true
+  },
+  "counts": {
+    "upstreamCompilerImports": 0,
+    "legacyRefs": 0,
+    "cliCoreImports": 0
+  },
+  "violations": [],
+  "passed": true
+}

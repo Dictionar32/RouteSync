@@ -7,7 +7,7 @@
  */
 
 import type { ExecutionLayer } from './modelGraphTypes';
-import { PrimitiveKind } from '../../compiler/types/SemanticType';
+import { PrimitiveKind } from '../domain/semanticType';
 
 export interface ExecutionLayerKnowledge {
   readonly layer: ExecutionLayer;

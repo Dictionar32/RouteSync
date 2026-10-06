@@ -4,7 +4,7 @@
  * downstream stages consume the binding rather than a parsed descriptor.
  */
 import type { ResourceFieldExpression } from './expressions';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import { toCamelCase } from '../../utils/resource-naming';
 import { SemanticValueFactory, type PropertyName, type ResponseFieldName } from './semanticValues';
 import type { BoundSemanticNode } from './boundAst';

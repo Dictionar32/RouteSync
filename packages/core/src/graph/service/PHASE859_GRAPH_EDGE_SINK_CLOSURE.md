@@ -6,7 +6,7 @@ The Phase 858 graph-edge relation projection is now closed at the graph material
 
 ## Authority
 
-`GraphEdgeRelationSink` remains the sole relation-to-graph-edge projection authority. `compileGraphFromSourceModel()` no longer reads the raw `GraphEdgeRelation[]` collection and no longer calls `assembleServiceGraph()` directly.
+`GraphEdgeRelationSink` remains the sole relation-to-graph-edge projection authority. `compileGraphFromSurface()` no longer reads the raw `GraphEdgeRelation[]` collection and no longer calls `assembleServiceGraph()` directly.
 
 `ServiceGraphBuilder.getGraph()` is the only builder-owned finalization path:
 

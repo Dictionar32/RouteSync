@@ -1,7 +1,7 @@
 /**
  * Relation-driven nullable wrapper resolver.
  */
-import type { ObjectType } from '../../../../types/SemanticType';
+import type { ObjectType } from '../../../../../types/domain/semanticType';
 import type { ResponseFieldProjection } from '../../../../generators/contract-generation/response-field';
 import type { SemanticTypeResolverLike } from '../../semantic-resolver';
 import type { NullableWrapperResult, StageResult } from '../loweringContracts';

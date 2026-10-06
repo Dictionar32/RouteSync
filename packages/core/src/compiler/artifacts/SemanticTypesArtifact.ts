@@ -3,7 +3,7 @@
  */
 
 import type { ArtifactMetadata } from './Artifact';
-import type { ObjectType } from '../types/SemanticType';
+import type { ObjectType } from '../../types/domain/semanticType';
 
 export interface SemanticTypesArtifact {
     readonly typeId: 'SemanticTypes';

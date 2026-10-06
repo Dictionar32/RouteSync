@@ -9,7 +9,7 @@
 import {
     type SemanticType,
     type ObjectProperty
-} from '../../../../types/SemanticType';
+} from '../../../../../types/domain/semanticType';
 import {
     TypeScriptPrimitiveMapping
 } from '../typeScriptVocabulary';
@@ -35,6 +35,6 @@ export function lowerTypeExpression(type: SemanticType): string {
 }
 
 export function lowerProperty(prop: ObjectProperty, includeJsDoc = true): string {
-    const propertyCode = prop.type.formatProperty(prop.name.value.value, lowerTypeExpression);
+    const propertyCode = `${prop.name.value.value}: ${lowerTypeExpression(prop.type)};`;
     return relationResolve(includeJsDoc, () => `${TypeScriptSyntax.formatJsDoc(prop.description)}${propertyCode}`, () => propertyCode);
 }

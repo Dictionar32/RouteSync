@@ -2,7 +2,7 @@ import type { ModelSemanticDefinition, ModelSemanticProperty, ModelPropertyMulti
 import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';
 import { eloquentRelationMultiplicity } from '../upstream/modelVocabulary';
 import type { ModelName, PropertyName, RelationName } from '../upstream/names';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import { createResourceModelMethodSurface, type ResourceModelMethodSurface } from './resourceModelMethodSurface';
 import { relationEqual, relationProject, relationResolve } from '../../semantic/foundation/relationalSequence';
 

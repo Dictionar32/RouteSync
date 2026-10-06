@@ -1,4 +1,4 @@
-import { PrimitiveKind, PrimitiveType, primitiveType } from '../compiler/types/SemanticType';
+import { PrimitiveKind, PrimitiveType, primitiveType } from '../types/domain/semanticType';
 import type { ModelName } from '../types/domain/semanticValues';
 import type { BoundCardinality } from '../types/domain/boundAst';
 import type { SemanticType } from '../types/semantic';

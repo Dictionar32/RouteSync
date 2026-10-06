@@ -1,6 +1,6 @@
 /**
  * Compatibility barrel only.
- * Canonical semantic type vocabulary is compiler/types/SemanticType.
+ * Canonical semantic type vocabulary is types/domain/semanticType.
  */
 export type {
   SemanticType as ResolvedSemanticType,
@@ -18,4 +18,4 @@ export type {
   JsonValueType as JsonValueSemanticTypeIR,
   NeverType as NeverSemanticTypeIR,
   ErrorType as ErrorSemanticTypeIR,
-} from '../../compiler/types/SemanticType';
+} from '../domain/semanticType';

@@ -6,7 +6,7 @@
  * @module compiler/domain/common/semantic-resolver
  */
 
-import type { SemanticType } from '../../../types/SemanticType';
+import type { SemanticType } from '../../../../types/domain/semanticType';
 import type { ResolvedSemanticType } from '../ResolvedSemanticType';
 
 export interface SemanticTypeResolverLike {

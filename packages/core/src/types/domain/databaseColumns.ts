@@ -1,4 +1,4 @@
-import { PrimitiveKind } from "../../compiler/types/SemanticType";
+import { PrimitiveKind } from "./semanticType";
 import type { TypeExpression } from "../upstream/typeVocabulary";
 
 /**

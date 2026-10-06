@@ -2,7 +2,7 @@ import { readSourceTextSync } from '../scannerUtils';
 /** Reads Laravel response DTOs into a verified contract boundary. */
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { ResourceFieldSemanticBinding } from '../../../../types/domain/resourceFieldSemanticBinding';
-import { type SemanticType } from '../../../types/SemanticType';
+import { type SemanticType } from '../../../../types/domain/semanticType';
 import { typeExpressionToSemanticType } from '../../../domain/common/typeExpressionSemanticType';
 import { createAstIdentifier } from '../../lexer/phpAstTypes';
 import type { TypeExpression } from '../../../../types/upstream/typeVocabulary';

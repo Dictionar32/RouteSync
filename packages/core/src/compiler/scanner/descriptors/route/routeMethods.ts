@@ -22,7 +22,7 @@ import { truthValue } from "../../../../types/upstream/valueObjects";
 import type { RouteMiddleware } from "../../../../types/upstream/route";
 import type { RouteMiddlewares, Sequence } from "../../../../types/upstream/collections";
 import { createMiddlewareName } from "../../../../types/upstream/names";
-import { relationFoldRight } from "../../../../semantic/kernel/relationalSequence";
+import { relationFoldRight } from "../../../../semantic/foundation/relationalSequence";
 
 export function resolveRouteDescriptorDomain(route: import("../../resolvers/RouteDomainResolver").RouteDomainResolutionContext): DomainTypeName {
     return RouteDomainResolver.resolve(route);

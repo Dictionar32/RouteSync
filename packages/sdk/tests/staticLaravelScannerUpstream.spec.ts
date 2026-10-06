@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { ModelScanner } from '../../core/src/compiler/scanner/subscanners/ModelScanner';
 import {
-  StaticLaravelScanner,
-  ModelScanner,
+
   ValidationRuleParser,
   ValidationRuleKind,
   InValidationRuleNode,
@@ -9,7 +9,7 @@ import {
   ExistsValidationRuleNode
 } from '@routesync/core';
 
-describe('StaticLaravelScanner Upstream Enhancements (Pillars A, B, C, D)', () => {
+describe('Laravel Upstream Enhancements (Pillars A, B, C, D)', () => {
   describe('Pilar A: Laravel 11 casts(): array & Modern Casts', () => {
     it('scans Laravel 11 casts(): array method returning modern casts and class references', () => {
       const modelSource = `<?php

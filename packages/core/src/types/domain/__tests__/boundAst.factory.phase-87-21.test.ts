@@ -4,12 +4,12 @@ import {
   matchBoundSemantic,
   type BoundSemanticNode,
 } from '../boundAst';
-import { PrimitiveKind, PrimitiveType } from '../../../compiler/types/SemanticType';
+import { PrimitiveKind, primitiveType } from '../semanticType';
 
 describe('BoundSemanticFactory contract phase 87.24', () => {
   it('creates a semantic primitive node without raw semantic payloads', () => {
     const node = BoundSemanticFactory.primitive(
-      new PrimitiveType(PrimitiveKind.NUMBER),
+      primitiveType(PrimitiveKind.NUMBER),
       { kind: 'number', value: 7 },
     );
 

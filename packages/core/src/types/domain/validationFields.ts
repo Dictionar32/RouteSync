@@ -1,5 +1,5 @@
 import type { ValidationRuleNode } from "./validationRules";
-import type { SemanticType } from "../../compiler/types/SemanticType";
+import type { SemanticType } from "./semanticType";
 import type { RequestFieldPresence } from "./requestFieldPresence";
 import type { PropertyName } from "../upstream/names";
 import { createPropertyName } from "../upstream/names";

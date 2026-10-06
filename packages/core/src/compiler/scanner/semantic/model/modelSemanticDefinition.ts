@@ -9,11 +9,16 @@
 import { modelSemanticPropertyIndexFrom, modelSemanticRelationIndexFrom, type ModelSemanticDefinition } from '../../../../types/upstream/model';
 import type { ModelColumnFact, ModelAccessorFact } from '../../../../types/upstream/modelSourceFacts';
 import type { EloquentRelationAst } from '../../../../types/upstream/eloquent';
+import type { SchemaInterface, SchemaTable } from '../../../../types/upstream/schema';
+import { schemaRelationIndexFrom, type SchemaRelationIndexInterface } from '../../../../types/upstream/schemaRelation';
+import { reconcileModelPrimaryKey } from '../../../../types/upstream/modelPrimaryKey';
+import { modelRelationInterfaceFrom } from '../../../../types/upstream/modelRelation';
+import { reconcileSemanticRelation } from '../../../../types/upstream/semanticReconciliation';
 import type { ModelCast } from '../../../../types/upstream/model';
 import type { PropertyName } from "../../../../types/upstream/names";
 import { createPropertyName } from "../../../../types/upstream/names";
-import type { ModelSemanticAccessor, ModelSemanticColumn, ModelSemanticProperty, ModelSemanticRelation, ModelSemanticSurface } from "../../../../types/upstream/model";
-import { relationProject, relationSelect, relationAny } from '../../../../semantic/foundation/relationalSequence';
+import { modelSemanticRelationIdentityOf, type ModelSemanticAccessor, type ModelSemanticColumn, type ModelSemanticProperty, type ModelSemanticRelation, type ModelSemanticSurface } from "../../../../types/upstream/model";
+import { relationProject, relationSelect, relationAny, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 import { relationAll, relationEqual } from '../../../../semantic/foundation/semanticRelations';
 
 function semanticTypeOfColumn(column: ModelColumnFact): import('../../../../types/upstream/typeVocabulary').TypeExpression {
@@ -54,6 +59,14 @@ function buildModelAccessor(accessor: ModelAccessorFact): ModelSemanticAccessor 
 function buildModelRelation(relation: EloquentRelationAst): ModelSemanticRelation {
     return Object.freeze({
         kind: 'relation' as const,
+        identity: modelSemanticRelationIdentityOf({
+            sourceModel: relation.sourceModel,
+            property: createPropertyName(relation.name.value.value),
+            relation: relation.name,
+            targetModel: relation.targetModel,
+            eloquentType: relation.eloquentType,
+            foreignKey: relation.key,
+        }),
         property: createPropertyName(relation.name.value.value),
         relation: relation.name,
         sourceModel: relation.sourceModel,
@@ -85,14 +98,38 @@ function buildModelAccessors(accessors: readonly ModelAccessorFact[]): readonly 
     return relationProject(accessors, buildModelAccessor);
 }
 
-function buildModelRelations(relations: readonly EloquentRelationAst[]): readonly ModelSemanticRelation[] {
-    return relationProject(relations, buildModelRelation);
+const schemaTableWitness = (table: ModelSemanticDefinition['identity']['table'], tables: SchemaInterface['definition']['tables']['items']): RelationOption<SchemaTable> =>
+    relationGate(
+        relationEqual(tables.kind, 'cons'),
+        () => relationGate(
+            relationEqual(tables.head.table.value.value, table.value.value),
+            () => relationSome(tables.head),
+            () => schemaTableWitness(table, tables.tail),
+        ),
+        relationNone<SchemaTable>,
+    );
+
+const modelSchemaFrom = (table: ModelSemanticDefinition['identity']['table'], schema: SchemaInterface, columnFacts: readonly ModelColumnFact[]): ModelSemanticDefinition['schema'] =>
+    relationOptionFold(
+        schemaTableWitness(table, schema.definition.tables.items),
+        () => { throw Error(`Model boundary violation: schema associated with table "${table.value.value}" was not found.`); },
+        value => ({
+            kind: 'model_schema' as const,
+            columns: { kind: 'model_column_facts' as const, items: Object.freeze([...columnFacts]) },
+            foreignKeys: value.foreignKeys,
+            indexes: value.indexes,
+        }),
+    );
+
+function buildModelRelationInterface(relations: readonly EloquentRelationAst[], schema: SchemaRelationIndexInterface) {
+    const seedSemantic = relationProject(relations, buildModelRelation);
+    return modelRelationInterfaceFrom(relations, seedSemantic, schema, reconcileSemanticRelation);
 }
 
 function buildModelProperties(
     columns: readonly ModelColumnFact[],
     accessors: readonly ModelAccessorFact[],
-    relations: readonly EloquentRelationAst[],
+    relations: readonly ModelSemanticRelation[],
     hidden: readonly PropertyName[]
 ): readonly ModelSemanticProperty[] {
     const columnProperties = buildModelColumns(columns, hidden);
@@ -102,8 +139,8 @@ function buildModelProperties(
     );
     const occupied = relationProject([...columnProperties, ...accessorProperties], property => property.property.value.value);
     const relationProperties = relationProject(
-        relationSelect(relations, relation => !relationAny(relationProject(occupied, name => relationEqual(name, relation.name.value.value)))),
-        buildModelRelation,
+        relationSelect(relations, relation => !relationAny(relationProject(occupied, name => relationEqual(name, relation.relation.value.value)))),
+        relation => relation,
     );
     return Object.freeze([...columnProperties, ...accessorProperties, ...relationProperties]);
 }
@@ -132,14 +169,24 @@ export function buildModelSemanticDefinition(params: {
     readonly casts: readonly ModelCast[];
     readonly accessors: readonly ModelAccessorFact[];
     readonly relations: readonly EloquentRelationAst[];
+    readonly schema: SchemaInterface;
 }): ModelSemanticDefinition {
     const columnFacts = Object.freeze(params.columnFacts);
     const fillable = Object.freeze(params.exposure.fillable);
     const guarded = Object.freeze(params.exposure.guarded);
     const hidden = Object.freeze(params.exposure.hidden);
     const appends = Object.freeze(params.exposure.appends);
-    const semanticProperties = buildModelProperties(params.columnFacts, params.accessors, params.relations, params.exposure.hidden);
-    const semanticRelations = buildModelRelations(params.relations);
+    const primaryKeyReconciliation = reconcileModelPrimaryKey(
+        params.schema,
+        params.identity.table,
+        params.identity.primaryKey,
+        params.key.origin,
+    );
+    const schemaRelations = schemaRelationIndexFrom(params.schema);
+    const relationInterface = buildModelRelationInterface(params.relations, schemaRelations);
+    const semanticRelations = relationInterface.semantic;
+    const semanticProperties = buildModelProperties(params.columnFacts, params.accessors, semanticRelations, params.exposure.hidden);
+    const modelSchema = modelSchemaFrom(params.identity.table, params.schema, columnFacts);
 
     return Object.freeze({
         inheritance: params.inheritance,
@@ -147,10 +194,13 @@ export function buildModelSemanticDefinition(params: {
         methods: Object.freeze([...params.methods]),
         constants: Object.freeze([...params.constants]),
         identity: Object.freeze(params.identity),
+        primaryKeyReconciliation,
         key: Object.freeze(params.key),
         behavior: Object.freeze(params.behavior),
         exposure: Object.freeze({ fillable, guarded, hidden, appends }),
         surface: buildModelSurface(semanticProperties, semanticRelations),
-        columnFacts
+        columnFacts,
+        schema: modelSchema,
+        relation: relationInterface
     });
 }

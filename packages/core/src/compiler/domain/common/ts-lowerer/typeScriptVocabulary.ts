@@ -6,7 +6,7 @@
  * @module compiler/domain/common/ts-lowerer/typeScriptVocabulary
  */
 
-import { PrimitiveKind } from '../../../types/SemanticType';
+import { PrimitiveKind } from '../../../../types/domain/semanticType';
 import { resolveTypeScriptPrimitiveToken } from './typeScriptPrimitiveSemanticRelations';
 
 /**

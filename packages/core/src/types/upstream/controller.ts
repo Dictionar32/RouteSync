@@ -8,6 +8,7 @@ import type { SourceConditionalBranches } from './sourceStatements';
 import type { ModelReference, ResourceReference, ResponseReference } from './semanticReferences';
 import type { ResponseCardinality, ResponseResult } from './response';
 import type { HttpStatusCode, StatementIndex, StatementPath } from './valueObjects';
+import type { SemanticDataflowInput } from './semanticDataflow';
 
 export type RequestBinding = { readonly kind: 'bound_request'; readonly name: RequestName } | { readonly kind: 'no_request' };
 export type ControllerResponse = { readonly kind: 'response_present'; readonly response: ResponseReference } | { readonly kind: 'response_absent' };
@@ -132,6 +133,21 @@ export interface ControllerDependency {
   readonly type: ClassName;
 }
 
+export type ControllerQueryInputRole = 'predicate' | 'key' | 'value' | 'mutation';
+
+export interface ControllerQueryInput {
+  readonly expression: Expression;
+  readonly role: ControllerQueryInputRole;
+}
+
+export interface ControllerQueryEvidence {
+  readonly kind: 'controller_query_evidence';
+  readonly operation: 'model_query' | 'model_write';
+  readonly model: ModelName;
+  readonly inputs: Sequence<ControllerQueryInput>;
+  readonly source: SourceSpan;
+}
+
 export type ControllerOperation =
   | { readonly kind: 'model_query'; readonly model: ModelName }
   | { readonly kind: 'model_write'; readonly model: ModelName }
@@ -229,6 +245,10 @@ export type ControllerReturnSemantic =
   | { readonly kind: 'expression'; readonly expression: Expression };
 
 export interface ControllerSemanticDataflow {
+  /** Source-backed Eloquent query evidence retained for semantic dataflow projection. */
+  readonly queries: Sequence<ControllerQueryEvidence>;
+  /** Canonical dataflow input emitted by scanner evidence; analysis owns closure/authority. */
+  readonly dataflow: SemanticDataflowInput;
   readonly variables: Sequence<ControllerVariableBinding>;
   readonly resources: Sequence<ControllerResourceBinding>;
   readonly returned: ControllerReturnSemantic;

@@ -1,4 +1,4 @@
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import { SemanticValueFactory } from './semanticValues';
 import type { ResourceResolvedQueryOperation } from './resourceQueryOperation';
 import type { MethodName, PropertyName } from './semanticValues';

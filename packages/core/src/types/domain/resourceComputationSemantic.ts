@@ -1,4 +1,4 @@
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { MethodName, PhpFunctionName, PropertyName, VariableName } from './semanticValues';
 
 export type ResourceComputationSource =

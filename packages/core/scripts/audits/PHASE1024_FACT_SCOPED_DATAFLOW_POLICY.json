@@ -1,0 +1,14 @@
+{
+  "phase": 1024,
+  "checks": {
+    "selectorExists": true,
+    "selectorIsFactScoped": true,
+    "selectorFiltersFacts": true,
+    "contributorRemainsAnalysisOwned": true,
+    "upstreamExecutionContractStable": true,
+    "upstreamDoesNotOwnPolicySelector": true,
+    "graphDoesNotOwnSemanticSolver": true,
+    "irDoesNotOwnSemanticSolver": true,
+    "clean": true
+  }
+}

@@ -2,7 +2,7 @@ import { createDomainAstJudgment, type ModelAst } from '../../../../types/upstre
 import type { ModelDefinition, ModelKeyKind } from '../../../../types/upstream/model';
 import type { CastType } from '../../../../types/upstream/expression';
 import type { ModelSemanticDefinition } from '../../../../types/upstream/model';
-import type { Sequence, PropertyNames, Indexes, ForeignKeys } from '../../../../types/upstream/collections';
+import type { Sequence, PropertyNames } from '../../../../types/upstream/collections';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { PrimitiveVocabulary } from '../../../../types/upstream/primitiveVocabulary';
 import type { TypeExpression } from '../../../../types/upstream/typeVocabulary';
@@ -12,7 +12,6 @@ import type { NumberValue, StringValue, TruthValue } from '../../../../types/ups
 import { accessorExpression } from './modelAccessorCanonical';
 import { relationEqual, relationAny, relationGate } from '../../../../semantic/foundation/semanticRelations';
 import { relationFirstOption, relationProject, relationOptionFold } from '../../../../semantic/foundation/relationalSequence';
-import type { EloquentRelationAst } from '../../../../types/upstream/eloquent';
 
 const str = (value: string): StringValue => ({ kind: 'string_value', value });
 const num = (value: number): NumberValue => ({ kind: 'number_value', value });
@@ -34,14 +33,12 @@ const exposure = (values: readonly string[]): PropertyNames => ({ kind: 'propert
 
 export function modelAstFromSemantic(
     model: ModelSemanticDefinition,
-    schema: { readonly indexes: Indexes; readonly foreignKeys: ForeignKeys },
     casts: readonly ModelCast[],
     accessors: readonly ModelAccessorFact[],
-    relations: readonly EloquentRelationAst[],
     sourceSpan: SourceSpan
 ): ModelAst {
     const span = sourceSpan;
-    const semanticRelations = relations;
+    const semanticRelations = model.relation.semantic;
     const semanticAccessors = accessors;
     const accessorBacking = (accessor: ModelAccessorFact) => {
         const backing = relationFirstOption(model.columnFacts, (columnFact: ModelColumnFact) => relationAny([
@@ -126,7 +123,7 @@ export function modelAstFromSemantic(
         ...model.methods,
         ...model.constants
     ];
-    const modelSchema = { kind: 'model_schema' as const, columns: { kind: 'model_column_facts' as const, items: sequence(modelColumnFacts) }, foreignKeys: schema.foreignKeys, indexes: schema.indexes };
+    const modelSchema = model.schema;
     const definition: ModelDefinition = {
         kind: 'model',
         identity: { kind: 'model_identity', name: name(model.identity.name.value.value), shortName: name(model.identity.shortName.value.value), table: table(model.identity.table.value.value), inheritance: model.inheritance },

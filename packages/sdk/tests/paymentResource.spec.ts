@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
-import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
+import { RouteManifest } from '@routesync/core'
+import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
 
 describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
   it('should process object flattening and generate correct PaymentResourceTransformed interface', async () => {
@@ -195,7 +196,7 @@ describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
       resources,
       routeGroups: [],
       requestTypes: [],
-      semanticTypes: StaticLaravelScanner.deriveSemanticTypes(resources, [])
+      semanticTypes: TypeDeriver.deriveSemanticTypes(resources, [])
     }
 
     const result = await CompilerBridge.generateTypeScript(manifest)

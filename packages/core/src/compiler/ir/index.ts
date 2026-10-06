@@ -16,3 +16,7 @@ export type { Operand } from './Operand';
 export type { Instruction } from './Instruction';
 export type { BasicBlock, BasicBlockRelation, ControlFlowGraph } from '../utils/cfg/basicBlock';
 export { createBasicBlockRelation, basicBlockLookup, basicBlockReplace, basicBlockEntries, basicBlockIds, createControlFlowGraph } from '../utils/cfg/basicBlock';
+
+export type { SemanticDataflowIRNode, SemanticDataflowIRRelation, SemanticDataflowIRProjection } from './SemanticDataflowIRProjectionTypes';
+export type { SemanticDataflowIRProjectionInterface } from './SemanticDataflowIRProjectionInterface';
+export { projectSemanticDataflowToIR, semanticDataflowIRProjection } from './SemanticDataflowIRProjection';

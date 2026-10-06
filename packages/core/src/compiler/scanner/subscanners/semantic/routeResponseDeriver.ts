@@ -4,7 +4,7 @@
  * Active Consumer: Derives canonical ObjectType instances for routes with inline or anonymous response structures.
  */
 
-import { ObjectType } from '../../../types/SemanticType';
+import { ObjectType } from '../../../../types/domain/semanticType';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
 import {
     extractRouteResponseShape,

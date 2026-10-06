@@ -7,7 +7,7 @@
  * @module generators
  */
 
-import type { RouteManifest } from '../../../core/src/types/route'
+import type { RouteManifest } from '@routesync/core'
 import {
     type CompilerOutput,
     type FormOutput,

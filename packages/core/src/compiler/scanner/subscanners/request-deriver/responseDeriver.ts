@@ -13,8 +13,8 @@ import { typeExpressionToSemanticType } from "../semantic/resourceTypeDeriver";
 import type { ResponseData } from "../../../artifacts/RequestTypesArtifact";
 import type { ResponseContract, ResponseContractField, ResponseValueContract } from "../../../../types/domain/responseContracts";
 import { createResponseFieldName, createResponseTypeName } from "../../../../types/domain/semanticValueFactories";
-import { PrimitiveKind, type SemanticType } from "../../../types/SemanticType";
-import { ScannedObjectProperty } from "../../../types/SemanticType";
+import { PrimitiveKind, type SemanticType } from "../../../../types/domain/semanticType";
+import { ScannedObjectProperty } from "../../../../types/domain/semanticType";
 import {
     relationAny,
     relationEqual,

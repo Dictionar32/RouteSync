@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
-import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
+import { RouteManifest } from '@routesync/core'
+import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
 
 describe('CompilerBridge - ProdukItem Appended Fields', () => {
   it('should process appends and accessors from manifest and generate ProdukItemTransformed', async () => {
@@ -98,7 +99,7 @@ describe('CompilerBridge - ProdukItem Appended Fields', () => {
       resources: [],
       routeGroups: [],
       requestTypes: [],
-      semanticTypes: StaticLaravelScanner.deriveSemanticTypes([], models)
+      semanticTypes: TypeDeriver.deriveSemanticTypes([], models)
     }
 
     const result = await CompilerBridge.generateTypeScript(manifest)

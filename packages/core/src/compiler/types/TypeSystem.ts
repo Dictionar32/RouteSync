@@ -1,5 +1,5 @@
 /** Relation-native type lattice operations. */
-import type { SemanticType } from './SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 import type { TypeHierarchy } from './TypeHierarchy';
 import { computeJoin, computeMeet, checkSubtype, checkAssignable } from './system';
 

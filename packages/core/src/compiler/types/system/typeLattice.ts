@@ -1,6 +1,6 @@
 /** Declarative join/meet relations over the semantic type lattice. */
 
-import { SemanticType, UnionType, NeverType } from '../SemanticType';
+import { SemanticType, UnionType, NeverType } from '../../../types/domain/semanticType';
 import { TypeHasher, HashContext } from '../TypeHasher';
 import { relationEqual, relationResolve } from '../../../semantic/foundation/semanticRelations';
 

@@ -5,7 +5,7 @@
  * @module compiler/generators/typescript/domain/CompositeTypeConverter
  */
 
-import type { SemanticType } from '../../../types/SemanticType';
+import type { SemanticType } from '../../../../types/domain/semanticType';
 import { TSArrayType } from '../../../target/typescript/nodes/TSArrayType';
 import { TSUnionType } from '../../../target/typescript/nodes/TSUnionType';
 import { TSIntersectionType } from '../../../target/typescript/nodes/TSIntersectionType';

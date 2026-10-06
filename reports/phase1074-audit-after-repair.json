@@ -1,0 +1,24 @@
+
+> @routesync/core@1.0.0 audit:phase1074-remove-static-laravel-scanner
+> node scripts/audits/audit-phase1074-remove-static-laravel-scanner.cjs
+
+{
+  "phase": 1074,
+  "checks": {
+    "legacyScannerFileRemoved": true,
+    "rootPublicSurfaceHasNoLegacyScanner": true,
+    "compilerPublicSurfaceHasNoLegacyScanner": true,
+    "artifactProducerHasNoLegacyScanner": true,
+    "noLegacyScannerRefsInTsSourcesOrTests": true,
+    "manifestProducerIsCanonical": true,
+    "dataFlowRemainsGeneric": true,
+    "boundaryRemainsDirectional": true,
+    "graphConsumesUpstreamFlow": true,
+    "irIsOnlyDataflowProjectionBoundary": true,
+    "fixtureRouteControllerEvidence": true,
+    "fixtureControllerRequestModelResourceEvidence": true,
+    "fixtureModelRelationEvidence": true,
+    "fixtureSchemaForeignKeyEvidence": true
+  },
+  "legacyRefs": []
+}

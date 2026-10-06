@@ -1,0 +1,17 @@
+{
+  "phase": 1026,
+  "checks": {
+    "concretePolicyExists": true,
+    "usesFactScopedSelector": true,
+    "separatesSourceAndSinkProducerSets": true,
+    "sourcePredicateIsPolicyDerived": true,
+    "sinkPredicateIsPolicyDerived": true,
+    "doesNotAddSemanticEdges": true,
+    "doesNotAddBarriers": true,
+    "authorityStillOwnsClosure": true,
+    "upstreamContractUnchanged": true,
+    "analysisBarrelExport": true,
+    "coreBarrelExport": true,
+    "clean": true
+  }
+}

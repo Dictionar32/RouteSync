@@ -12,7 +12,7 @@ import type {
   ResponseReference,
   RequestReference
 } from '../../../types/ir';
-import { PrimitiveKind } from '../../../compiler/types/SemanticType';
+import { PrimitiveKind } from '../../../types/domain/semanticType';
 import { createPropertyName } from '../../../types/ir/nominalVocabulary';
 import type { DescriptionText } from '../../../types/upstream/valueObjects';
 import type { RouteSemanticFlow } from '../../../types/domain/routes';

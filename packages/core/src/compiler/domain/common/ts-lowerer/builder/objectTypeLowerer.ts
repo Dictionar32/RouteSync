@@ -4,7 +4,7 @@
  * Deduplication, stream accumulation, and alias selection are relation folds;
  * no host-language iteration is semantic authority here.
  */
-import type { ObjectType, ObjectProperty } from '../../../../types/SemanticType';
+import type { ObjectType, ObjectProperty } from '../../../../../types/domain/semanticType';
 import { ControllerActionToAlias } from '../typeScriptVocabulary';
 import { TypeScriptSyntax } from '../typeScriptSyntax';
 import {

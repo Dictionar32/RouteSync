@@ -338,11 +338,12 @@ export function sourceModelReferenceIndexFromCatalog(
         } satisfies ControllerDependencyRelation];
       }),
     ]),
-    ...relationExpand(modelNodes, model => sequenceExpand(model.definition.relations.items, relation => [{
+    ...relationExpand(modelNodes, model => relationProject(model.definition.relation.semantic, relation => ({
       kind: 'model_relation' as const,
       model: model.identity,
-      target: { kind: 'model_reference' as const, name: relation.target },
-    }])),
+      target: { kind: 'model_reference' as const, name: relation.targetModel },
+      relation,
+    }))),
     ...sequenceExpand(catalog.resources, resource => [
       { kind: 'resource_model' as const, resource: resource.identity, model: resource.definition.model },
       { kind: 'response_resource' as const, response: resource.definition.response, resource: resource.identity },

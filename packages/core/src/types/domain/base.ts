@@ -1,5 +1,3 @@
-import type { RequestType } from "../../compiler/artifacts/RequestTypesArtifact";
-import type { ObjectType } from "../../compiler/types/SemanticType";
 import type { BroadcastChannelDescriptor } from "./channels";
 import type { ModelAst } from "../upstream/ast";
 import type { ResourceAst } from "../upstream/ast";
@@ -100,20 +98,24 @@ export type FrontendConfiguration =
   | { readonly kind: 'disabled' }
   | { readonly kind: 'configured'; readonly config: FrontendConfig };
 
-export interface RouteManifest {
+export interface RouteManifestDomainSurface {
   readonly version: string;
   readonly baseURL: string;
   readonly routes: readonly RouteSemanticFlow[];
   readonly resources: readonly ResourceAst[];
   readonly models: readonly ModelAst[];
   readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)
-  readonly requestTypes: readonly RequestType[];              // ✅ 100% Guaranteed directly from Upstream Scanner!
-  readonly semanticTypes: readonly ObjectType[];              // ✅ SATU ALIRAN UTUH (0 Fragmentasi, 0 Penyambungan Manual)!
   readonly generatedAt: string;
   readonly channels: readonly BroadcastChannelDescriptor[];
   readonly frontend: FrontendConfiguration;
   readonly pages: readonly PageConfig[];
 }
+
+/**
+ * Compatibility name for the domain-only manifest surface.
+ * The downstream compiler RouteManifest lives in scanner/wiring.
+ */
+export type RouteManifest = RouteManifestDomainSurface;
 
 /**
  * ParsedChannel

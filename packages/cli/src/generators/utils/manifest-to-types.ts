@@ -7,9 +7,7 @@
  * @module cli/generators/utils
  */
 
-import type { RouteManifest, RouteSemanticFlow } from '../../../../core/src/types/route';
-import type { SemanticTypesArtifact } from '../../../../core/src/compiler/artifacts/SemanticTypesArtifact';
-import type { RequestTypesArtifact } from '../../../../core/src/compiler/artifacts/RequestTypesArtifact';
+import type { RouteManifest, RouteSemanticFlow, SemanticTypesArtifact, RequestTypesArtifact } from '@routesync/core';
 
 import { SemanticTypesPipeline } from './SemanticTypesPipeline';
 import { RequestTypesPipeline } from './RequestTypesPipeline';

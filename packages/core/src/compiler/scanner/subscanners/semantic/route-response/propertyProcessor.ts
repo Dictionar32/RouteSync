@@ -7,7 +7,7 @@ import {
     ObjectProperty,
     ScannedObjectProperty,
     type SemanticType
-} from '../../../../types/SemanticType';
+} from '../../../../../types/domain/semanticType';
 import type { ResourceFieldSemanticBinding } from '../../../../../types/domain/resourceFieldSemanticBinding';
 import { matchResourceFieldExpression } from '../../../../../types/domain/expressions';
 import { toCamelCase } from '../../../../../utils/resource-naming';

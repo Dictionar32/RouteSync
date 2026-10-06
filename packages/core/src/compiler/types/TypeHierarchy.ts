@@ -6,7 +6,7 @@
  * to determine subtyping relationships between reference types.
  */
 
-import type { SemanticType } from './SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 import type { Presence } from '../../types/upstream/presence';
 
 /**

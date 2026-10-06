@@ -13,7 +13,7 @@ export {
   buildModelNode
 } from './nodeFactories';
 export { assembleServiceGraph } from './graphAssembler';
-export { compileGraphFromSourceModel, type GraphBuilderContext } from './manifestGraphCompiler';
+export { compileGraphFromSurface, type GraphBuilderContext } from './manifestGraphCompiler';
 
 export { createGraphEdgeRelation, type GraphEdgeRelation, type GraphEdgeRelationOrigin } from './graphEdgeRelation';
 export { GraphEdgeRelationSink } from './graphEdgeRelationSink';

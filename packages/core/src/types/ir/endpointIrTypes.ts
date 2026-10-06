@@ -7,7 +7,7 @@
  * @module core/types/ir/endpointIrTypes
  */
 
-import { PrimitiveKind } from '../../compiler/types/SemanticType';
+import { PrimitiveKind } from '../domain/semanticType';
 import type { HttpMethod } from '../domain/httpVocabulary';
 import type { ResourceFieldIR } from './resourceIrTypes';
 import type { ActionName, CodeExpression, ControllerName, EndpointId, HttpHeaderName, ModelName, PropertyName, RequestName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';

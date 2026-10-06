@@ -151,6 +151,13 @@ const tokenStrings = (tokens: readonly TokenDescriptor[], start: number, limit: 
         () => relationGate(tokenIsType(tokens, index, 'STRING'), () => tokenStrings(tokens, start, limit, relationAdvanceIndex(index, 1), [...output, tokens[index].value]), () => tokenStrings(tokens, start, limit, relationAdvanceIndex(index, 1), output)),
     );
 
+const findTokenIndex = (tokens: readonly TokenDescriptor[], start: number, limit: number, predicate: (index: number) => boolean, index = start): RelationOption<number> =>
+    relationGate(
+        relationAny([relationEqual(index, tokens.length), relationEqual(index, limit), tokenIs(tokens, index, ';')]),
+        () => ({ kind: 'none' }),
+        () => relationGate(predicate(index), () => relationSome(index), () => findTokenIndex(tokens, start, limit, predicate, relationAdvanceIndex(index, 1))),
+    );
+
 const findBodyOpen = (tokens: readonly TokenDescriptor[], index: number): RelationOption<number> =>
     relationGate(
         relationAny([relationEqual(index, tokens.length), tokenIs(tokens, index, '{')]),
@@ -217,11 +224,32 @@ function createRelationItems(tokens: readonly TokenDescriptor[], file: string, t
                 const nextForeignKeys = relationGate(
                     relationEqual(method, 'foreignId'),
                     () => relationOptionFold(relationGate(args.length > 0, () => relationSome(args[0]), () => ({ kind: 'none' })), () => foreignKeys, columnName => {
-                        const constrained = tokenIs(tokens, relationAdvanceIndex(index, 4), 'constrained');
-                        const deleteAction = relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'cascadeOnDelete'), () => ({ kind: 'cascade' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'nullOnDelete'), () => ({ kind: 'set_null' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'restrictOnDelete'), () => ({ kind: 'restrict' as const }), () => ({ kind: 'no_action' as const }))));
+                        const chainLimit = Math.min(tokens.length, relationAdvanceIndex(index, 40));
+                        const constrained = relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'constrained')), () => false, () => true);
+                        const deleteAction = relationGate(
+                            relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'cascadeOnDelete')), () => false, () => true),
+                            () => ({ kind: 'cascade' as const }),
+                            () => relationGate(
+                                relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'nullOnDelete')), () => false, () => true),
+                                () => ({ kind: 'set_null' as const }),
+                                () => relationGate(
+                                    relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'restrictOnDelete')), () => false, () => true),
+                                    () => ({ kind: 'restrict' as const }),
+                                    () => ({ kind: 'no_action' as const }),
+                                ),
+                            ),
+                        );
                         return relationGate(constrained, () => {
-                            const constrainedIndex = relationFirstOption(relationProject(tokenStrings(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 40))), value => value), value => relationEqual(value, 'constrained'));
-                            const target = relationOptionFold(constrainedIndex, () => '', value => value);
+                            const constrainedIndex = findTokenIndex(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 40)), cursor => tokenIs(tokens, cursor, 'constrained'));
+                            const target = relationOptionFold(
+                                constrainedIndex,
+                                () => '',
+                                cursor => relationOptionFold(
+                                    findTokenIndex(tokens, relationAdvanceIndex(cursor, 1), Math.min(tokens.length, relationAdvanceIndex(cursor, 12)), candidate => tokenIsType(tokens, candidate, 'STRING')),
+                                    () => '',
+                                    candidate => tokens[candidate].value,
+                                ),
+                            );
                             const base = relationGate(columnName.endsWith('_id'), () => relationTextSlice(columnName, 0, relationAdvanceIndex(columnName.length, -3)), () => columnName);
                             const targetTable = relationGate(target.length > 0, () => target, () => `${base}s`);
                             return [...foreignKeys, { kind: 'foreign_key', column: createColumnName(columnName), referencesModel: { kind: 'domain_type_name', value: { kind: 'string_value', value: targetTable } }, referencesColumn: createColumnName('id'), onDelete: deleteAction, onUpdate: { kind: 'no_action' }, source: span }];
@@ -230,9 +258,30 @@ function createRelationItems(tokens: readonly TokenDescriptor[], file: string, t
                     () => relationGate(
                         relationEqual(method, 'foreign'),
                         () => relationGate(args.length > 0, () => {
-                            const referencesColumn = relationOptionFold(relationFirstOption(tokenStrings(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 40))), value => relationEqual(value, 'references')), () => 'id', value => value);
-                            const referencesTable = relationOptionFold(relationFirstOption(tokenStrings(tokens, relationAdvanceIndex(index, 3), Math.min(tokens.length, relationAdvanceIndex(index, 40))), value => relationEqual(value, 'on')), () => '', value => value);
-                            const onDelete = relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'cascadeOnDelete'), () => ({ kind: 'cascade' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'nullOnDelete'), () => ({ kind: 'set_null' as const }), () => relationGate(tokenIs(tokens, relationAdvanceIndex(index, 4), 'restrictOnDelete'), () => ({ kind: 'restrict' as const }), () => ({ kind: 'no_action' as const }))));
+                            const chainLimit = Math.min(tokens.length, relationAdvanceIndex(index, 40));
+                            const referencesColumn = relationOptionFold(
+                                findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'references')),
+                                () => 'id',
+                                cursor => relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(cursor, 1), chainLimit, candidate => tokenIsType(tokens, candidate, 'STRING')), () => 'id', candidate => tokens[candidate].value),
+                            );
+                            const referencesTable = relationOptionFold(
+                                findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'on')),
+                                () => '',
+                                cursor => relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(cursor, 1), chainLimit, candidate => tokenIsType(tokens, candidate, 'STRING')), () => '', candidate => tokens[candidate].value),
+                            );
+                            const onDelete = relationGate(
+                                relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'cascadeOnDelete')), () => false, () => true),
+                                () => ({ kind: 'cascade' as const }),
+                                () => relationGate(
+                                    relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'nullOnDelete')), () => false, () => true),
+                                    () => ({ kind: 'set_null' as const }),
+                                    () => relationGate(
+                                        relationOptionFold(findTokenIndex(tokens, relationAdvanceIndex(index, 3), chainLimit, cursor => tokenIs(tokens, cursor, 'restrictOnDelete')), () => false, () => true),
+                                        () => ({ kind: 'restrict' as const }),
+                                        () => ({ kind: 'no_action' as const }),
+                                    ),
+                                ),
+                            );
                             return relationGate(referencesTable.length > 0, () => [...foreignKeys, { kind: 'foreign_key', column: createColumnName(args[0]), referencesModel: { kind: 'domain_type_name', value: { kind: 'string_value', value: referencesTable } }, referencesColumn: createColumnName(referencesColumn), onDelete, onUpdate: { kind: 'no_action' }, source: span }], () => foreignKeys);
                         }, () => foreignKeys),
                         () => foreignKeys,
@@ -252,12 +301,17 @@ function createOperations(tokens: readonly TokenDescriptor[], file: string, inde
         () => relationGate(
             relationAll([tokenIs(tokens, index, 'Schema'), tokenIs(tokens, relationAdvanceIndex(index, 1), '::'), relationAny([tokenIs(tokens, relationAdvanceIndex(index, 2), 'create'), tokenIs(tokens, relationAdvanceIndex(index, 2), 'table')]), tokenIsType(tokens, relationAdvanceIndex(index, 4), 'STRING')]),
             () => {
+                const method = tokens[relationAdvanceIndex(index, 2)].value;
                 const table = tokens[relationAdvanceIndex(index, 4)];
                 const opening = findBodyOpen(tokens, relationAdvanceIndex(index, 5));
                 return relationOptionFold(opening, () => createOperations(tokens, file, relationAdvanceIndex(index, 1), output), body => {
                     const columnItems = createColumnItems(tokens, file, body);
                     const relations = createRelationItems(tokens, file, table.value, body);
-                    const operation: MigrationOperation = { kind: 'create_table', table: createTableName(table.value), columns: { kind: 'columns', items: seq(columnItems.columns) }, indexes: { kind: 'indexes', items: seq([...columnItems.indexes, ...relations.indexes]) }, foreignKeys: { kind: 'foreign_keys', items: seq(relations.foreignKeys) } };
+                    const operation: MigrationOperation = relationGate(
+                        relationEqual(method, 'create'),
+                        () => ({ kind: 'create_table', table: createTableName(table.value), columns: { kind: 'columns', items: seq(columnItems.columns) }, indexes: { kind: 'indexes', items: seq([...columnItems.indexes, ...relations.indexes]) }, foreignKeys: { kind: 'foreign_keys', items: seq(relations.foreignKeys) } }),
+                        () => ({ kind: 'alter_table', table: createTableName(table.value), additions: { kind: 'columns', items: seq(columnItems.columns) }, indexes: { kind: 'indexes', items: seq([...columnItems.indexes, ...relations.indexes]) }, foreignKeys: { kind: 'foreign_keys', items: seq(relations.foreignKeys) } }),
+                    );
                     return createOperations(tokens, file, relationAdvanceIndex(index, 1), [...output, operation]);
                 });
             },

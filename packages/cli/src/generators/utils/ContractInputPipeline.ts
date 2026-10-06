@@ -7,8 +7,7 @@
  * @module cli/generators/utils
  */
 
-import type { RouteManifest } from '../../../../core/src/types/route';
-import type { RequestTypesArtifact } from '../../../../core/src/compiler/artifacts/RequestTypesArtifact';
+import type { RouteManifest, RequestTypesArtifact } from '@routesync/core';
 import { ArtifactMetadataFactory, ArtifactProducer, ArtifactTypeId, PipelineFlowChannel } from './ArtifactMetadataFactory';
 
 export class ContractInputPipeline {

@@ -504,7 +504,6 @@ export type {
   RouteHookKindVisitor,
   RouteIdentityContract,
   RouteKindSpecification,
-  RouteManifest,
   RouteMessageEntry,
   RouteParameter,
   RouteParameterDescriptor,
@@ -654,12 +653,17 @@ export type {
   TSFunction,
   TSConst
 } from './types/emit'
-export { ServiceGraphBuilder } from './graph/ServiceGraphBuilder'
+export { createServiceGraphBuilder } from './graph/ServiceGraphBuilder'
+export { createServiceGraphAssembly } from './graph/ServiceGraphBuilder'
+export type { ServiceGraphAssemblyInterface } from './graph/ServiceGraphAssemblyInterface'
 export { GraphEdgeRelationSink, createGraphEdgeRelation } from './graph/service'
 export type { GraphEdgeRelation, GraphEdgeRelationOrigin } from './graph/service'
 
 // IR v3 (CompilerRoadmap.md Stage 2)
 export { buildSemanticIRNode, computeStableHash, IRNodeRegistry } from './ir/buildIRNode'
+export { projectSemanticDataflowToIR, semanticDataflowIRProjection } from './compiler/ir/SemanticDataflowIRProjection'
+export type { SemanticDataflowIRNode, SemanticDataflowIRRelation, SemanticDataflowIRProjection } from './compiler/ir/SemanticDataflowIRProjectionTypes'
+export type { SemanticDataflowIRProjectionInterface } from './compiler/ir/SemanticDataflowIRProjectionInterface'
 export type { BuildIRNodeInput } from './ir/buildIRNode'
 
 // Canonical PHP AST is the sole syntax-node contract; legacy FieldNode/ParsedField exports were removed.
@@ -750,26 +754,38 @@ export {
   LaravelSourceLexer
 } from './compiler/scanner/LaravelSourceLexer'
 
-export {
-  StaticLaravelScanner,
-  createLaravelSourceProjectIdentity,
-  collectPhpFiles,
-  ChannelScanner,
-  ControllerScanner,
-  ResourceScanner,
-  FormRequestScanner,
-  ModelScanner,
-  RouteScanner,
-  InvalidationResolver,
-  resolvePrimitiveKind,
-  resolveRouteDomain,
-  ValidationRuleFieldLowerer,
-  RequestTypeDeriver,
-  deriveRequestTypes,
-  TypeDeriver
-} from './compiler/scanner/StaticLaravelScanner'
-export { scanRouteSyncManifest } from './compiler/scanner/orchestrator/upstreamManifestScanner'
-export { lowerRouteSyncManifestToRouteManifest } from './compiler/scanner/upstream/routeManifestLowerer'
+export { createLaravelSourceProjectIdentity } from './types/upstream/sourceProjectIdentity'
+export { scanRouteSyncManifest, scanRouteSyncManifestFlow, routeSyncManifestFlowFromManifest, routeSyncManifestFlowProjection } from './compiler/scanner/orchestrator/upstreamManifestScanner'
+export type { RouteSyncManifestFlowProjectionInterface } from './compiler/scanner/orchestrator/RouteSyncManifestFlowProjectionInterface'
+export { analyzeSemanticDataflowInput } from './compiler/analysis/semanticDataflowPipeline'
+export { analyzeRouteSyncManifestDataflow, analyzeRouteSyncManifestDataflowWithPolicy } from './compiler/analysis/routeSyncDataflowAnalysis'
+export { routeSyncManifestDataflowSurfaceFromFlow } from './compiler/analysis/routeSyncManifestDataflowProjection'
+export type { RouteSyncManifestDataflowSurface, RouteSyncManifestDataflowProjectionInterface, RouteSyncManifestDataflowControllerSurface } from './compiler/analysis/routeSyncManifestDataflowProjectionInterface'
+export type { SemanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeBoundary'
+export { semanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeComposition'
+export type { ControlFlowDataFlowInterface, DataFlowAnalysisInterface } from './compiler/analysis/dataflow/controlFlowDataFlowInterface'
+export type { DataFlowInterface, DataFlowSourceInterface, DataFlowStepInterface, DataFlowFixpointInterface, DataFlowStateInterface, DataFlowQueryInterface } from './types/dataflow'
+export type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowFact } from './types/upstream/semanticDataflow'
+export { semanticDataflowIdentityEqual } from './types/upstream/semanticDataflow'
+export { createSemanticDataflowJudgment } from './types/upstream/semanticDataflowAuthority'
+export type { DataFlowProjectionInterface } from './types/dataflow'
+export type { InterfaceDependencyBoundary } from './types/interfaces'
+export { createDataFlowConfig } from './compiler/analysis/dataflow/dataFlowConfigInterface'
+export { composeDataFlowConfigContributors } from './compiler/analysis/dataflow/dataFlowConfigContributorInterface'
+export { selectDataFlowFacts } from './compiler/analysis/dataflow/dataFlowFactPolicyInterface';
+export { createSemanticDataflowAnalysisPolicy, semanticDataflowFlowsUnderPolicy } from './compiler/analysis/dataflow/semanticDataflowFactAnalysisPolicy';
+export type { DataFlowFactPolicyInterface } from './compiler/analysis/dataflow/dataFlowFactPolicyInterface';
+export type { DataFlowConfigInterface, DataFlowSourcePredicateInterface, DataFlowSinkPredicateInterface, DataFlowAdditionalStepInterface, DataFlowBarrierInterface } from './compiler/analysis/dataflow/dataFlowConfigInterface'
+export { liftDataFlowConfigToState } from './compiler/analysis/dataflow/dataFlowStateConfigInterface'
+export { createSemanticDataflowRequestStateConfig, createSemanticDataflowStatePolicy } from './compiler/analysis/dataflow/semanticDataflowStatePolicy'
+export type { SemanticDataflowRequestState, SemanticDataflowStatePolicy } from './compiler/analysis/dataflow/semanticDataflowStatePolicy'
+export type { DataFlowStateConfigInterface } from './compiler/analysis/dataflow/dataFlowStateConfigInterface'
+export type { DataFlowConfigContribution, DataFlowConfigContributorInterface } from './compiler/analysis/dataflow/dataFlowConfigContributorInterface'
+
+export { lowerRouteSyncManifestToRouteManifest } from './compiler/scanner/wiring/routeManifestLowerer'
+export { projectRouteSyncManifestForRouteManifest, routeManifestProjection } from './compiler/scanner/wiring/routeManifestProjection'
+export type { RouteManifestProjection, RouteManifestProjectionInterface } from './compiler/scanner/wiring/routeManifestProjectionInterface'
+export type { RouteManifest } from './compiler/scanner/wiring/routeManifestInterface'
 export { IdentifierCase, extractClassBasename, inferLaravelTableName } from './utils/resource-naming'
 export {
   ScannedObjectProperty,
@@ -785,7 +801,7 @@ export {
   OptionalType,
   NullableType,
   CollectionKind
-} from './compiler/types/SemanticType'
+} from './types/domain/semanticType'
 
 export {
   ResolvedPhpType,
@@ -797,12 +813,6 @@ export {
   matchResolvedPhpType
 } from './compiler/types/ResolvedPhpType'
 export type { ResolvedPhpTypeVisitor } from './compiler/types/ResolvedPhpType'
-
-export {
-  SemanticTypeDeriver,
-  SemanticDerivationContext
-} from './compiler/scanner/subscanners/SemanticTypeDeriver'
-
 
 export { ContractActionGenerator } from './compiler/generators/contract-generation/ContractActionGenerator'
 export { FormActionGenerator } from './compiler/generators/form-generation/FormActionGenerator'
@@ -873,7 +883,6 @@ export {
   LaravelValidationType,
   type LaravelValidationConstraint,
   type ResourceExpressionDescriptor,
-  type StaticLaravelScannerOptions,
   ScannedRouteValidationRuleEntry,
   type ScannedRouteValidationRuleParams,
   RouteSemanticFlowValidationRuleSet,
@@ -1050,5 +1059,18 @@ export {
 
 // Canonical upstream AST/semantic lowering boundary.
 export type { ModelAst } from './types/upstream/ast';
+export type { MigrationInterface } from './types/upstream/migrationInterface';
+export type { GraphSemanticRelation, GraphSemanticNodeReference, GraphSemanticEdgeType, GraphSemanticRelationOrigin } from './graph/service/graphRelation';
+export type { SchemaInterface } from './types/upstream/schema';
+export type { ModelPrimaryKeyReconciliationInterface, ModelPrimaryKeyReconciliationStatus } from './types/upstream/modelPrimaryKey';
+export { migrationInterfaceFromAst } from './compiler/scanner/wiring/migrationInterfaceAdapter';
 export type { ResourceField } from './types/upstream/resource';
-export { typeExpressionToSemanticType } from './compiler/domain/common/typeExpressionSemanticType';
+export { typeExpressionToSemanticType } from './types/domain/typeExpressionSemanticType';
+export * from './types/upstream/semanticDataflowRouteProjection';
+export * from './types/upstream/semanticDataflowRequestProjection';
+
+export type { ManifestBuilderInterface } from './types/upstream/manifestBuilderInterface'
+export { manifestBuilder } from './compiler/scanner/wiring/upstreamManifestBuilder'
+export type { ServiceGraphBuilderInterface } from './graph/ServiceGraphBuilderInterface'
+export { routeSyncManifestGraphSurfaceFromFlow } from './graph/RouteSyncManifestGraphProjection'
+export type { RouteSyncManifestGraphSurface, RouteSyncManifestGraphProjectionInterface } from './graph/RouteSyncManifestGraphProjectionInterface'

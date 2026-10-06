@@ -3,7 +3,7 @@ import { manifestToSemanticTypes, manifestToContractInput } from '../../cli/src/
 import { TypeScriptGeneratorPass } from '../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import { MapperGeneratorPass } from '../../core/src/compiler/passes/MapperGeneratorPass'
 import { RouteManifest } from '../../core/src/types/route'
-import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/StaticLaravelScanner'
+import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/descriptors'
 
 describe('Regression Test: Structure Preserved snake_case -> camelCase Transformation (inlineModelCollectionCamelCase)', () => {
     test('should preserve object nesting & array topology while converting snake_case fields to camelCase', () => {

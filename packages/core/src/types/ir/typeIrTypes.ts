@@ -4,7 +4,7 @@
  */
 
 import type { PropertyName, TypeExpression } from './nominalVocabulary';
-import type { PrimitiveKind } from '../../compiler/types/SemanticType';
+import type { PrimitiveKind } from '../domain/semanticType';
 import type { Option } from '../upstream/collections';
 import type { LiteralValue } from '../upstream/primitiveVocabulary';
 import type { CodeExpression } from './nominalVocabulary';

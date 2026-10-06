@@ -1,0 +1,61 @@
+
+> @routesync/core@1.0.0 audit:phase1112-upstream-wiring-interface-downstream
+> node scripts/audits/audit-phase1112-upstream-wiring-interface-downstream.cjs
+
+{
+  "phase": 1112,
+  "checks": {
+    "upstreamNoCompilerOrDownstreamImports": true,
+    "upstreamDoesNotOwnBoundary": true,
+    "upstreamSemanticTargetsPresent": true,
+    "wiringManifestAndAdaptersPresent": true,
+    "noLegacyScannerImplementation": true,
+    "noStaticLaravelScanner": true,
+    "noLegacyScannerImports": true,
+    "dataFlowInterfaceGeneric": true,
+    "dependencyBoundaryGenericDirectional": true,
+    "runtimeAdapterImplementsGenericContract": true,
+    "runtimeCompositionUsesAdapter": true,
+    "cliUsesPackageSurface": true,
+    "cliSuppliesRuntimeBoundary": true,
+    "graphIsDownstreamProjection": true,
+    "irConsumesDataflowState": true,
+    "routeEvidence": true,
+    "controllerEvidence": true,
+    "modelRelationEvidence": true,
+    "resourceEvidence": true,
+    "schemaEvidence": true,
+    "domainCompilerFrontierIsExplicit": true
+  },
+  "domainCompilerImports": [
+    "packages/core/src/types/domain/boundAst.ts",
+    "packages/core/src/types/domain/databaseColumns.ts",
+    "packages/core/src/types/domain/eloquentTypes.ts",
+    "packages/core/src/types/domain/expressions.ts",
+    "packages/core/src/types/domain/mappingIntent.ts",
+    "packages/core/src/types/domain/modelEntityDefinition.ts",
+    "packages/core/src/types/domain/queryProjectionResolution.ts",
+    "packages/core/src/types/domain/request.ts",
+    "packages/core/src/types/domain/requestFieldMeaning.ts",
+    "packages/core/src/types/domain/resourceBindingModel.ts",
+    "packages/core/src/types/domain/resourceCollectionTransformation.ts",
+    "packages/core/src/types/domain/resourceComputationSemantic.ts",
+    "packages/core/src/types/domain/resourceExpressionModel.ts",
+    "packages/core/src/types/domain/resourceFieldSemantic.ts",
+    "packages/core/src/types/domain/resourceFieldSemanticBinding.ts",
+    "packages/core/src/types/domain/resourceModelMethodResolver.ts",
+    "packages/core/src/types/domain/resourceModelMethodResolverProjection.ts",
+    "packages/core/src/types/domain/resourceModelMethodSurface.ts",
+    "packages/core/src/types/domain/resourceModelSurface.ts",
+    "packages/core/src/types/domain/resourcePropertyPathModel.ts",
+    "packages/core/src/types/domain/resourceTraversalModel.ts",
+    "packages/core/src/types/domain/responseDescriptors.ts",
+    "packages/core/src/types/domain/schemaMorphism/carriers.ts",
+    "packages/core/src/types/domain/semanticCollections.ts",
+    "packages/core/src/types/domain/semanticResolution.ts",
+    "packages/core/src/types/domain/semanticResolutionFactory.ts",
+    "packages/core/src/types/domain/validationFields.ts",
+    "packages/core/src/types/domain/validationRules.ts"
+  ],
+  "passed": true
+}

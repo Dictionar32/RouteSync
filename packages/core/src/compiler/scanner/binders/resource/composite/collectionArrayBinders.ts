@@ -14,7 +14,7 @@ import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
 import { ResourceFieldSemanticBinding } from "../../../../../types/domain/resourceFieldSemanticBinding";
 import type { ResourceFieldSemanticBinding as ResourceFieldSemanticBindingType } from "../../../../../types/domain/resourceFieldSemanticBinding";
-import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } from "../../../../types/SemanticType";
+import { ObjectType, ReferenceType, ReadonlyCollectionType, CollectionKind } from "../../../../../types/domain/semanticType";
 import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 import { matchLookup } from "../../../../../types/upstream/collections";

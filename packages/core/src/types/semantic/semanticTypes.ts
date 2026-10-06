@@ -11,7 +11,7 @@ import { relationOptionFold, relationFirstOption, relationProject, relationRefin
 import { relationEqual } from '../../semantic/foundation/semanticRelations';
 import type { PropertyName } from '../domain/semanticValues';
 
-export type SemanticType = import('../../compiler/types/SemanticType').SemanticType;
+export type SemanticType = import('../domain/semanticType').SemanticType;
 
 export interface SemanticFieldEntry {
   readonly name: PropertyName;

@@ -10,9 +10,9 @@ import type {
   ServiceModelNode,
   ExecutionLayer
 } from '../../types/semantic';
-import type { ModelSemanticDefinition } from '../../types/upstream/model';
+import type { ModelDefinition } from '../../types/upstream/model';
+import type { GraphModelNodeSurface } from '../../types/semantic/modelGraphTypes';
 import type { ActionName } from '../../types/upstream/names';
-import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies, ServiceDependency } from '../../types/upstream/service';
 import type { ControllerNodeName, ServiceNodeName } from '../../types/semantic/nominalVocabulary';
 import { createConfidenceScore } from '../../types/semantic/nominalVocabulary';
 import { EXECUTION_LAYER_KNOWLEDGE } from '../../types/semantic/semanticKnowledge';
@@ -36,36 +36,28 @@ export function detectExecutionLayer(filePath: string, _code: string): Execution
 
 export function buildServiceNode(
   name: ServiceNodeName,
-  methods: ServiceMethod[],
-  dependencies: ServiceDependency[] = [],
-  dependencyFacts: ServiceDependencyFacts,
-  resolvedDependencies: ResolvedServiceDependencies,
+  methods: ActionName[],
 ): ServiceNode {
   return {
     kind: 'service_node',
     name,
-    methods,
+    methods: relationProject(methods, method => ({ name: method })),
     layer: 'service',
-    dependencies,
-    dependencyFacts,
-    resolvedDependencies,
     confidence: createConfidenceScore(1),
   };
 }
 
-export function buildControllerNode(name: ControllerNodeName, routes: string[], actions: ActionName[]): ControllerNode {
+export function buildControllerNode(name: ControllerNodeName, actions: ActionName[]): ControllerNode {
   return {
     kind: 'controller_node',
     name,
-    routes,
     actions: relationProject(actions, action => ({ name: action })),
     layer: 'controller',
-    calls: [],
     confidence: createConfidenceScore(1),
   };
 }
 
-export function buildModelNode(model: ModelSemanticDefinition): ServiceModelNode {
+export function buildModelNode(model: GraphModelNodeSurface): ServiceModelNode {
   return {
     kind: 'model_node',
     model,

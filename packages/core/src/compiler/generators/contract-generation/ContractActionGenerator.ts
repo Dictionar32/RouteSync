@@ -7,7 +7,7 @@
  * @module compiler/generators/contract-generation
  */
 
-import type { SemanticType } from '../../types/SemanticType';
+import type { SemanticType } from '../../../types/domain/semanticType';
 import type { FileValidationConstraints } from '../../../types/domain/request';
 import { type SemanticTypeResolverLike } from '../../domain/common/semantic-resolver';
 import { defaultTypeResolver } from '../../domain/common/ResponseFieldLowering';

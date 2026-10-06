@@ -2,7 +2,7 @@
  * Declarative target-semantic relations for PrimitiveKind -> TypeScript token.
  * The relation catalog owns semantic mapping; callers only consume solved facts.
  */
-import { PrimitiveKind } from '../../../types/SemanticType';
+import { PrimitiveKind } from '../../../../types/domain/semanticType';
 import { relationFirstOption, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/foundation/relationalSequence';
 import { relationAll, relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import {

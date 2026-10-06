@@ -67,6 +67,22 @@ export const projectStructuralSemanticRelationToGraphEdge = (
           'depends_on_model',
           'model_relation',
           1,
+          {
+            kind: 'model_relation',
+            relation: relation.relation,
+            ...(relation.relation.provenance === undefined ? {} : { lineage: relation.relation.provenance }),
+          },
+        ),
+      };
+    case 'route_controller':
+      return {
+        kind: 'projected',
+        relation: createGraphEdgeRelation(
+          relation.route,
+          relation.controller,
+          'routes_to_controller',
+          'route_controller',
+          1,
         ),
       };
     case 'request_property':
@@ -74,7 +90,6 @@ export const projectStructuralSemanticRelationToGraphEdge = (
     case 'response_model':
     case 'route_request':
     case 'route_response':
-    case 'route_controller':
     case 'controller_response':
       return { kind: 'not_projectable', sourceKind: relation.kind };
   }

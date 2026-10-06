@@ -5,10 +5,9 @@ import type {
   ServiceModelNode,
   ExecutionLayer,
 } from '../types/semantic';
-import type { RouteSyncManifest } from '../types/upstream/manifest';
-import type { ModelSemanticDefinition } from '../types/upstream/model';
+import type { RouteSyncManifestGraphSurface } from './RouteSyncManifestGraphProjectionInterface';
+import type { GraphModelNodeSurface } from '../types/semantic/modelGraphTypes';
 import type { ActionName } from '../types/upstream/names';
-import type { ServiceMethod, ServiceDependencyFacts, ResolvedServiceDependencies } from '../types/upstream/service';
 import type { ControllerNodeName, ServiceNodeName } from '../types/semantic/nominalVocabulary';
 import type { Lookup } from '../types/upstream/collections';
 import { GraphNodeIndex } from './service/graphNodeIndex';
@@ -21,9 +20,11 @@ import {
   buildControllerNode,
   buildModelNode,
   assembleServiceGraph,
-  compileGraphFromSourceModel,
+  compileGraphFromSurface,
 } from './service';
 import type { ResourceReference } from '../types/upstream/semanticReferences';
+import type { ServiceGraphBuilderInterface } from './ServiceGraphBuilderInterface';
+import type { ServiceGraphAssemblyInterface } from './ServiceGraphAssemblyInterface';
 import { GraphEdgeRelationSink } from './service/graphEdgeRelationSink';
 import type { GraphEdgeRelation } from './service/graphEdgeRelation';
 
@@ -37,7 +38,7 @@ const serviceReference = (name: string): GraphNodeReference => ({
   name: { kind: 'class_name', value: { kind: 'string_value', value: name } },
 });
 
-export class ServiceGraphBuilder {
+export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, ServiceGraphAssemblyInterface {
   private readonly modelsMap = GraphNodeIndex.empty<ServiceModelNode>();
   private readonly servicesMap = GraphNodeIndex.empty<ServiceNode>();
   private controllersIndex: RelationIndex<string, ControllerNode> = Object.freeze([]);
@@ -50,18 +51,16 @@ export class ServiceGraphBuilder {
 
   public buildServiceNode(
     name: ServiceNodeName,
-    methods: ServiceMethod[],
-    dependencyFacts: ServiceDependencyFacts,
-    resolvedDependencies: ResolvedServiceDependencies,
+    methods: ActionName[],
   ): ServiceNode {
-    return buildServiceNode(name, methods, [], dependencyFacts, resolvedDependencies);
+    return buildServiceNode(name, methods);
   }
 
-  public buildControllerNode(name: ControllerNodeName, routes: string[], actions: ActionName[]): ControllerNode {
-    return buildControllerNode(name, routes, actions);
+  public buildControllerNode(name: ControllerNodeName, actions: ActionName[]): ControllerNode {
+    return buildControllerNode(name, actions);
   }
 
-  public buildModelNode(model: ModelSemanticDefinition): ServiceModelNode {
+  public buildModelNode(model: GraphModelNodeSurface): ServiceModelNode {
     return buildModelNode(model);
   }
 
@@ -98,7 +97,13 @@ export class ServiceGraphBuilder {
   }
 
   public getGraph(): ServiceGraph {
-    return assembleServiceGraph(this.modelsMap, this.servicesMap, this.controllersIndex, this.edgeSink.materialize());
+    return assembleServiceGraph(
+      this.modelsMap,
+      this.servicesMap,
+      this.controllersIndex,
+      this.edgeSink.getRelations(),
+      this.edgeSink.materialize(),
+    );
   }
 
   private graphContext() {
@@ -113,7 +118,17 @@ export class ServiceGraphBuilder {
     };
   }
 
-  public buildFromRouteSyncManifest(manifest: RouteSyncManifest): ServiceGraph {
-    return compileGraphFromSourceModel(manifest.sourceModel, this.graphContext());
+  public buildFromGraphSurface(surface: RouteSyncManifestGraphSurface): ServiceGraph {
+    return compileGraphFromSurface(surface, this.graphContext());
+  }
+
+  public project(surface: RouteSyncManifestGraphSurface): ServiceGraph {
+    return this.buildFromGraphSurface(surface);
   }
 }
+
+/** Composition factory: downstream receives the graph contract, not the concrete builder class. */
+export const createServiceGraphBuilder = (): ServiceGraphBuilderInterface => new ServiceGraphBuilder();
+
+/** Downstream factory for incremental structural graph assembly. */
+export const createServiceGraphAssembly = (): ServiceGraphAssemblyInterface => new ServiceGraphBuilder();

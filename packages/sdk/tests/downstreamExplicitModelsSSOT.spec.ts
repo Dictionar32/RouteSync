@@ -1,4 +1,5 @@
 import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
+import { resolveRouteInvalidations } from '../../core/src/compiler/scanner/subscanners/InvalidationResolver'
 import { describe, it, expect } from 'vitest'
 import {
   RouteHookKind,
@@ -9,7 +10,6 @@ import {
   RouteSemanticFlowCacheInvalidationDescriptor,
   RouteSemanticFlowExecutionSignature,
   ScannedSdkResponseResolution,
-  StaticLaravelScanner,
   RouteSemanticFlow,
   ParsedModel,
   ResourceRouteGroup,
@@ -162,7 +162,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
     expect(mutateRoute.executionSignature.payloadMode).toBe(RoutePayloadMode.Required)
   })
 
-  it('7. StaticLaravelScanner.resolveRouteInvalidations builds graph at Origin Boundary', () => {
+  it('7. resolveRouteInvalidations builds graph at Origin Boundary', () => {
     const orderDetailModel = ScannedModelDescriptor.create({
       name: 'OrderDetail',
       table: 'order_details',
@@ -215,7 +215,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
       ScannedResourceRouteGroupDescriptor.create({ resourceName: 'OrderDetail', routes: [] })
     ]
 
-    const resolvedRoutes = StaticLaravelScanner.resolveRouteInvalidations(routes, models, routeGroups)
+    const resolvedRoutes = resolveRouteInvalidations(routes, models, routeGroups)
     const [resolvedOrderStore, resolvedLogout, resolvedProtectedProfile] = resolvedRoutes
 
     // orderStoreRoute should have: selfList('orderDetail') + parentList('Order') + parentDetail('Order')

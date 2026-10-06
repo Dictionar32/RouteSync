@@ -1,4 +1,5 @@
 import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
+import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
 import { describe, it, expect } from 'vitest'
 import {
   ScannedControllerActionDescriptor,
@@ -7,7 +8,6 @@ import {
   BroadcastChannelKind,
   RouteParameterType,
   ResourceResponseDescriptor,
-  StaticLaravelScanner,
   ScannedRouteValidationRuleEntry,
   ScannedRouteSchemaPayload,
   ScannedFormRequestDescriptor
@@ -71,7 +71,7 @@ describe('Ternary Elimination & ScannedControllerAction SSOT', () => {
     expect(publicChannel.kind).toBe(BroadcastChannelKind.Public)
   })
 
-  it('4. StaticLaravelScanner.deriveRequestTypes should cleanly derive request types without chained ternaries', () => {
+  it('4. TypeDeriver.deriveRequestTypes should cleanly derive request types without chained ternaries', () => {
     const routes = [
       RouteSemanticFlowFactory.create({
         method: 'POST',
@@ -87,7 +87,7 @@ describe('Ternary Elimination & ScannedControllerAction SSOT', () => {
       })
     ]
 
-    const derived = StaticLaravelScanner.deriveRequestTypes(routes as any)
+    const derived = TypeDeriver.deriveRequestTypes(routes as any)
     expect(derived.length).toBe(1)
     const orderReq = derived[0]
     expect(orderReq.resourceName).toBe('order')

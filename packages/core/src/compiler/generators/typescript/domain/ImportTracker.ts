@@ -5,7 +5,7 @@
  * @module compiler/generators/typescript/domain/ImportTracker
  */
 
-import type { SemanticType } from '../../../types/SemanticType';
+import type { SemanticType } from '../../../../types/domain/semanticType';
 import { TSImportDeclaration } from '../../../target/typescript/nodes/TSImportDeclaration';
 import { ImportCollector, type ImportSpec } from '../ImportCollector';
 

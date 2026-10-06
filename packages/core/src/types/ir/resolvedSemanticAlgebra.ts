@@ -2,7 +2,7 @@
 import type {
   SemanticType,
   SemanticTypeVisitor,
-} from '../../compiler/types/SemanticType';
+} from '../domain/semanticType';
 
 export type ResolvedSemanticType = SemanticType;
 export type ResolvedSemanticTypeVisitor<R> = SemanticTypeVisitor<R>;

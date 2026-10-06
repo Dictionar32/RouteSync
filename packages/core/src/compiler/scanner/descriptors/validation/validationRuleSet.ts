@@ -11,7 +11,7 @@ import type {
     ValidationRuleNode,
 } from '../../../../types/domain/validationRules';
 import type { TypeInterner } from '../../../types/TypeInterner';
-import { ObjectType, ReadonlyCollectionType, CollectionKind, type ObjectProperty, type SemanticType } from '../../../types/SemanticType';
+import { ObjectType, ReadonlyCollectionType, CollectionKind, type ObjectProperty, type SemanticType } from '../../../../types/domain/semanticType';
 import { createScalarValidationFieldNode, createObjectValidationFieldNode, createArrayValidationFieldNode } from '../../../../types/domain/validationFields';
 import {
     relationFold,

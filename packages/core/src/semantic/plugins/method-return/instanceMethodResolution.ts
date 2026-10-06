@@ -3,7 +3,7 @@ import type { ResolverMeta } from '../../types';
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { PrimitiveKind, PrimitiveType, primitiveType } from '../../../compiler/types/SemanticType';
+import { PrimitiveKind, PrimitiveType, primitiveType } from '../../../types/domain/semanticType';
 import { lookupEloquentMethodRelation, type EloquentReturn } from '../../EloquentRegistry';
 import { resolveSelectRawProjection } from './selectRawProjection';
 import { cardinalityFromEloquent, toBoundResolutionCardinality, resultType, scalar, indeterminate, resolveFirstQueryProjection } from './instanceMethodSupport';

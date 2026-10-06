@@ -11,7 +11,7 @@ import type { GeneratedContractAction } from '../../generators/contract-generati
 import type { ContractSchemaMapper } from '../../generators/contract-generation/ContractSchemaMapper';
 import type { ActionResponseSchema } from '../../generators/contract-generation/ResponseActionBuilder';
 import type { ResponseFieldProjection } from '../../generators/contract-generation/response-field';
-import type { SemanticType } from '../../types/SemanticType';
+import type { SemanticType } from '../../../types/domain/semanticType';
 import type { FieldCollection } from '../../domain/common/FieldCollection';
 import { ConversionResult } from '../../domain/common/ConversionResult';
 

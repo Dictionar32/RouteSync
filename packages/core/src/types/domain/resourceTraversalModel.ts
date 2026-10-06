@@ -2,7 +2,7 @@ import type { ModelName, PropertyName, RelationName, MethodName, VariableName, R
 import type { ModelSemanticDefinition } from '../upstream/model';
 import type { ResourceExpressionModel } from './resourceExpressionModel';
 import type { ResourceMethodResult } from './resourceModelMethodSurface';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';
 
 export type ResourceTraversalCardinality =

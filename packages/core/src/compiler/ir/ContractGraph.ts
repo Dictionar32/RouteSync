@@ -3,7 +3,7 @@
  * Contract graph representation and builder
  */
 
-import type { SemanticType } from '../types/SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 import { ImmutableMap } from '../utils/ImmutableCollections';
 import type { SemanticOrigin } from './SemanticIR';
 

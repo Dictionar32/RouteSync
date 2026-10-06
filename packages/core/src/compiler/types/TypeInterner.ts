@@ -5,7 +5,7 @@
  * projection over that relation rather than a host Map-backed cache.
  */
 
-import type { SemanticType } from './SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 import { TypeHasher, createHashContext } from './TypeHasher';
 import {
     relationIndexAdd,

@@ -10,7 +10,7 @@
 import type { ArtifactMetadata } from './Artifact';
 import { TypedArtifact } from './Artifact';
 import type { FileSpan,ASTBaseNode } from '../types/FileSpan';
-import type { SemanticType } from '../types/SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 
 /**
  * Reference to a symbol from a particular source location

@@ -5,7 +5,7 @@
  * @module compiler/generators/typescript/domain/generatorErrors
  */
 
-import type { SemanticType } from '../../../types/SemanticType';
+import type { SemanticType } from '../../../../types/domain/semanticType';
 
 /**
  * Error thrown during type conversion from SemanticType to TypeScript type

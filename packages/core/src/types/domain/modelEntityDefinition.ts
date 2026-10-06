@@ -9,7 +9,7 @@ import type { ModelName, PropertyName } from '../upstream/names';
 import type { ModelRelationTargetShape } from '../upstream/model';
 import type { SourceFilePath, SourceLineNumber } from './semanticValues';
 import type { EloquentRelationCardinality, EloquentRelationType, RelationForeignKey } from './eloquentTypes';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { PhpAstNode } from './phpAst';
 import type { TypeExpression } from '../upstream/typeVocabulary';
 

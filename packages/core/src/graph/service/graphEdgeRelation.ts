@@ -1,23 +1,9 @@
+import type { GraphSemanticRelation, GraphSemanticRelationOrigin } from './graphRelation';
 import type { ServiceGraphNodeReference, ServiceDependency } from '../../types/semantic/modelGraphTypes';
 
-/** Closed origin vocabulary for graph-edge derivation. */
-export type GraphEdgeRelationOrigin =
-  | 'service_dependency'
-  | 'controller_dependency'
-  | 'controller_resource_dependency'
-  | 'controller_model_dependency'
-  | 'model_relation'
-  | 'resource_model_dependency';
-
-/** Canonical semantic relation consumed by the graph materialization boundary. */
-export interface GraphEdgeRelation {
-  readonly kind: 'graph_edge_relation';
-  readonly from: ServiceGraphNodeReference;
-  readonly to: ServiceGraphNodeReference;
-  readonly type: ServiceDependency['type'];
-  readonly weight: number;
-  readonly origin: GraphEdgeRelationOrigin;
-}
+/** Graph implementation alias for the canonical upstream semantic contract. */
+export type GraphEdgeRelation = GraphSemanticRelation;
+export type GraphEdgeRelationOrigin = GraphSemanticRelationOrigin;
 
 export const createGraphEdgeRelation = (
   from: ServiceGraphNodeReference,
@@ -25,6 +11,7 @@ export const createGraphEdgeRelation = (
   type: ServiceDependency['type'],
   origin: GraphEdgeRelationOrigin,
   weight = 1,
+  provenance?: GraphEdgeRelation['provenance'],
 ): GraphEdgeRelation => Object.freeze({
   kind: 'graph_edge_relation',
   from,
@@ -32,4 +19,6 @@ export const createGraphEdgeRelation = (
   type,
   weight,
   origin,
+  closed: true,
+  ...(provenance === undefined ? {} : { provenance }),
 });

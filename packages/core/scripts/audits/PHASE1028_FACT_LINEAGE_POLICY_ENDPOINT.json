@@ -1,0 +1,11 @@
+{
+  "phase": 1028,
+  "checks": {
+    "policyMatchesLineageIdentity": true,
+    "policyDoesNotMatchFactEndpoints": true,
+    "policyStillRejectsDerivedReaches": true,
+    "upstreamStillExecutionOnly": true,
+    "factLineageStillProducerScoped": true
+  },
+  "clean": true
+}

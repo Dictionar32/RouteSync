@@ -5,7 +5,7 @@ import { ResourceFieldSemanticBinding } from '../../../../types/domain/resourceF
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { toPascalCase } from '../../../../utils/resource-naming';
 import { ResourceScanner } from '../ResourceScanner';
-import { ErrorType } from '../../../types/SemanticType';
+import { ErrorType } from '../../../../types/domain/semanticType';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { DetectedResourceInvocation, detectResourceInvocation } from './resourceInvocationDetector';

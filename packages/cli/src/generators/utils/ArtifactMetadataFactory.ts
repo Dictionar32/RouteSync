@@ -7,7 +7,7 @@
  * @module cli/generators/utils
  */
 
-import type { ArtifactMetadata } from '../../../../core/src/compiler/artifacts/Artifact';
+import type { ArtifactMetadata } from '@routesync/core';
 
 /**
  * ArtifactProducer
@@ -16,7 +16,7 @@ import type { ArtifactMetadata } from '../../../../core/src/compiler/artifacts/A
  */
 export const ArtifactProducer = Object.freeze({
     CompilerBridge: 'CompilerBridge',
-    StaticLaravelScanner: 'StaticLaravelScanner',
+    ManifestBuilder: 'ManifestBuilder',
     TypeScriptGenerator: 'TypeScriptGenerator',
     ContractGenerator: 'ContractGenerator',
     FormGenerator: 'FormGenerator',

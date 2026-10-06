@@ -53,6 +53,7 @@ export {
   type PageMetaEntry,
   type PageConfig,
   type ResourceRouteGroup,
+  type RouteManifestDomainSurface,
   type RouteManifest,
   type ParsedChannel,
 } from './base';

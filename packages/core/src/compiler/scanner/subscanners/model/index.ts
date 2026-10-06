@@ -8,10 +8,6 @@
  */
 
 export {
-    scanMigrations,
-} from "./migrationScanner";
-
-export {
     resolveModelColumns
 } from "./columnInferrer";
 

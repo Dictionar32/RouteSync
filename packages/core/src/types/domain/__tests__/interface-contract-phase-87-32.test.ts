@@ -2,7 +2,7 @@ import { describe, expect, expectTypeOf, it } from 'vitest';
 import type { BoundProjectionFieldNode, BoundQueryProjectionNode } from '../boundAst';
 import type { QueryProjectionSemanticResolution, SemanticResolution } from '../semanticResolution';
 import type { ResponseFieldName } from '../semanticValues';
-import type { SemanticType } from '../../../compiler/types/SemanticType';
+import type { SemanticType } from '../semanticType';
 
 describe('Phase 87.33 projection contract', () => {
   it('keeps query projection closed and typed', () => {

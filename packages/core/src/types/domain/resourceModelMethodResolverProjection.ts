@@ -1,4 +1,4 @@
-import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, ErrorType } from '../../compiler/types/SemanticType';
+import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, ErrorType } from './semanticType';
 import type { MethodName } from './semanticValues';
 import type { ResourceMethodResult, ResourceQueryState } from './resourceModelMethodSurface';
 import type { ResourceQueryProjection } from './resourceQueryOperation';
@@ -12,7 +12,7 @@ type ProjectionContext = {
   readonly method: MethodName;
   readonly property: import('./semanticValues').PropertyName;
   readonly semantic: ModelSemanticColumn | ModelSemanticAccessor;
-  readonly semanticType: import('../../compiler/types/SemanticType').SemanticType;
+  readonly semanticType: import('./semanticType').SemanticType;
 };
 
 type ProjectionHandler = (context: ProjectionContext) => ResourceMethodResult;

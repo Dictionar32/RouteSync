@@ -12,7 +12,7 @@ import type { TransformFunction } from './mapperIrTypes';
 import type { DescriptionText, GeneratorName } from '../upstream/valueObjects';
 import type { ResponseCardinality } from '../upstream/response';
 import type { ValidationRules } from '../upstream/collections';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from '../domain/semanticType';
 import type { CodeExpression, ControllerName, ModelName, PropertyName, ResourceId, ResourceName, RouteName, SourceFilePath } from './nominalVocabulary';
 
 export type FieldSource =

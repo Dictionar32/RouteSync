@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PrimitiveKind } from "../../../compiler/types/SemanticType";
+import { PrimitiveKind } from "../semanticType";
 import { ResourceFieldExpressionFactory, ResourceExpressionKind, type ResourceFieldExpression } from "../expressions";
 
 describe("Phase 87.18 semantic expression contract", () => {
@@ -19,7 +19,7 @@ describe("Phase 87.18 semantic expression contract", () => {
     expect(resource.resource.kind).toBe("resource_name");
     expect(property.property.kind).toBe("property_name");
     expect(method.kind).toBe(ResourceExpressionKind.NullsafeMethodCall);
-    expect(PrimitiveKind.UNKNOWN).toBe("unknown");
+    expect(PrimitiveKind.INDETERMINATE).toBe("unknown");
   });
 
   it("does not require a primitive guess for a variable expression", () => {

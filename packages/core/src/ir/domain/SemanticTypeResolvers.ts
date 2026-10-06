@@ -15,7 +15,7 @@ import type {
   GenericType,
   ObjectType,
   ObjectProperty,
-} from '../../compiler/types/SemanticType';
+} from '../../types/domain/semanticType';
 import type { TypeIR, PrimitiveTypeIR, ReferenceTypeIR, TypePropertyIR } from '../../types/ir';
 import { TypeIRUtils } from '../../types/ir';
 import { relationEqual, relationProject, relationResolve } from '../../semantic/foundation/relationalSequence';

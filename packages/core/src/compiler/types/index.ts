@@ -69,6 +69,7 @@ export {
     ObjectType,
     SemanticType
 } from './SemanticType';
+export type { ObjectProperty as SemanticObjectProperty } from './SemanticType';
 
 // Immutable collections
 export {

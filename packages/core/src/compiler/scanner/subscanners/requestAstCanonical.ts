@@ -8,7 +8,7 @@ import type { TypeExpression } from '../../../types/upstream/typeVocabulary';
 import type { PropertyName, RequestName, FormTypeName, TableName, ColumnName } from '../../../types/upstream/names';
 import type { NumberValue, StringValue, StringValues } from '../../../types/upstream/valueObjects';
 import type { PropertyReference } from '../../../types/upstream/semanticReferences';
-import { PrimitiveKind, type SemanticTypeVisitor } from '../../types/SemanticType';
+import { PrimitiveKind, type SemanticTypeVisitor } from '../../../types/domain/semanticType';
 import type { RequestFieldMeaning, RequestFieldMeaningVisitor } from '../../../types/domain/requestFieldMeaning';
 import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice, relationVariantFold, relationVariantValue, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
 import { relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';

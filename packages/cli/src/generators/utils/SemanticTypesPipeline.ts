@@ -7,9 +7,7 @@
  * @module cli/generators/utils
  */
 
-import type { RouteManifest } from '../../../../core/src/types/route';
-import type { SemanticTypesArtifact } from '../../../../core/src/compiler/artifacts/SemanticTypesArtifact';
-import type { ObjectType } from '../../../../core/src/compiler/types/SemanticType';
+import type { RouteManifest, SemanticTypesArtifact, ObjectType } from '@routesync/core';
 import { ArtifactMetadataFactory, ArtifactProducer, ArtifactTypeId, PipelineFlowChannel } from './ArtifactMetadataFactory';
 
 export class SemanticTypesArtifactFactory {

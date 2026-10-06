@@ -1,6 +1,6 @@
 /** Declarative assignability relation over semantic type witnesses. */
 
-import { SemanticType } from '../SemanticType';
+import { SemanticType } from '../../../types/domain/semanticType';
 import { relationResolve, relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { relationAnyMatch, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
 

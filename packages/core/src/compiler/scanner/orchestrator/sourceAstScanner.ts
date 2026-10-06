@@ -3,6 +3,7 @@ import { PHP_STATEMENT_KINDS } from '../lexer/phpAstStatementKinds';
 import { ChannelScanner, ControllerScanner, FormRequestScanner, ModelScanner, ResourceScanner, RouteScanner } from "../subscanners";
 import { scanResponseBundle } from "../subscanners/responseScanner";
 import { scanMigrationAsts } from "../subscanners/migrationAstCanonical";
+import { migrationInterfaceFromAst } from "../wiring/migrationInterfaceAdapter";
 import { scanServiceBundle } from "../subscanners/serviceAstCanonical";
 import { scanMiddlewareAsts } from "../subscanners/middlewareAstCanonical";
 import { scanDtoAsts } from "../subscanners/dtoAstCanonical";
@@ -281,8 +282,9 @@ const valueEndsWith = (value: string, suffix: string): boolean => relationEqual(
 export async function scanSourceAsts(sourceProject: SourceProjectIdentity): Promise<SourceAsts> {
     const migrations = await scanMigrationAsts(sourceProject);
     const migrationDiscovery = { kind: "migration_asts" as const, items: scanned(migrations) };
-    const schema = schemaProducer.produce({ migrations: migrationDiscovery, projectSource: sourceProject.source });
-    const modelBundle = await ModelScanner.scanCanonicalBundle(sourceProject, migrations);
+    const migrationInterfaces = Object.freeze(migrations.map(migrationInterfaceFromAst));
+    const schema = schemaProducer.produce({ migrations: migrationInterfaces, projectSource: sourceProject.source });
+    const modelBundle = await ModelScanner.scanCanonicalBundle(sourceProject, schema);
     const models: readonly ModelAst[] = modelBundle.asts;
     const modelDefinitions = modelBundle.definitions;
     const modelSymbolTable = createModelSymbolTable(models);
@@ -341,7 +343,7 @@ export async function scanSourceAsts(sourceProject: SourceProjectIdentity): Prom
         services: { kind: "service_asts", items: scanned(services) },
         serviceDefinitions,
         migrations: migrationDiscovery,
-        schemas: { kind: "schema_asts", items: scanned([schema]) },
+        schemas: { kind: "schema_asts", items: scanned([{ kind: "schema_ast" as const, definition: schema.definition, source: schema.source }]) },
         responses: { kind: "response_asts", items: scanned(responses) },
         responseDefinitions,
         dtos: { kind: "dto_asts", items: scanned(dtos) },

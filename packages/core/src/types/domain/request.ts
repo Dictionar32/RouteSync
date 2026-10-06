@@ -6,7 +6,7 @@
 import type { SourceFilePath } from './semanticValues';
 import type { SourceSpan } from '../upstream/provenance';
 
-import type { ObjectProperty } from "../../compiler/types/SemanticType";
+import type { ObjectProperty } from "./semanticType";
 import type { RequestFieldMeaning } from './requestFieldMeaning';
 import type { RequestFieldPresence } from './requestFieldPresence';
 import type { ValidationRuleNode } from "./validationRules";

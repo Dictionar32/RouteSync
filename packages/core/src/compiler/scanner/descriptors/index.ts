@@ -11,7 +11,6 @@ export {
     LaravelValidationType,
     type LaravelValidationConstraint,
     type ResourceExpressionDescriptor,
-    type StaticLaravelScannerOptions
 } from "./types";
 
 export {

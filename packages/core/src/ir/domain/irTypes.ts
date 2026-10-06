@@ -8,7 +8,7 @@
 import type { TypeIR, TypeProjections, TransformFunction } from '../../types/ir';
 import type { PropertyName, ModelName, TypeExpression } from '../../types/ir/nominalVocabulary';
 import type { DescriptionText } from '../../types/upstream/valueObjects';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 
 export const IR_VERSION = 'v1.0.0' as const;
 export const GENERATOR_VERSION = '1.0.0' as const;

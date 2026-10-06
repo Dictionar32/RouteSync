@@ -54,14 +54,6 @@ import {
 } from './classifier/classifierTypes';
 
 import {
-  isDynamic,
-  toRuntimePath,
-  deriveGroupName,
-  classifyCrudRole,
-  ROLE_ACTION
-} from './classifier/pathClassifier';
-
-import {
   classifyRoutes,
   buildResourceMap,
   buildGroupedRoutes
@@ -108,11 +100,6 @@ export {
   ScannedResourceGroupGraph,
   createResourceGroupGraph,
   ScannedClassifiedRouteDescriptor,
-  isDynamic,
-  toRuntimePath,
-  deriveGroupName,
-  classifyCrudRole,
-  ROLE_ACTION,
   classifyRoutes,
   buildResourceMap,
   buildGroupedRoutes,

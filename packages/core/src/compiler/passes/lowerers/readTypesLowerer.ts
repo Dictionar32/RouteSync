@@ -7,7 +7,7 @@
  */
 
 import type { SemanticTypesArtifact } from '../../artifacts/SemanticTypesArtifact';
-import type { RouteManifest } from '../../../types/route';
+import type { RouteManifest } from '../../scanner/wiring/routeManifestInterface';
 import { lowerTypeScriptArtifact } from '../TypeScriptGeneratorPass';
 import type { CompilerOutput } from './types';
 

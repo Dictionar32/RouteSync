@@ -17,7 +17,7 @@ import type {
   ValidationParameter,
   ValidationRuleName,
 } from '../semanticValues';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from '../semanticType';
 
 describe('Phase 68 validation rule interface contract', () => {
   it('uses semantic types for array element contracts', () => {

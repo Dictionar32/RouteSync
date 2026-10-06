@@ -1,6 +1,6 @@
 /** Structural witnesses for the resolved PHP type algebra. */
 
-import { PrimitiveKind, type ObjectProperty } from '../SemanticType';
+import { PrimitiveKind, type ObjectProperty } from '../../../types/domain/semanticType';
 
 export interface PrimitivePhpType {
     readonly kind: 'primitive';

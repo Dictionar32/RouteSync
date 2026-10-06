@@ -11,7 +11,7 @@ import type { ResourceIR } from './resourceIrTypes';
 import type { RequestIR } from './requestIrTypes';
 import type { EndpointIR } from './endpointIrTypes';
 import type { SharedTypeIR, EnumIR, ImportIR } from './sharedIrTypes';
-import type { RouteManifest } from '../domain/base';
+import type { RouteSyncManifestFlow } from '../upstream/manifest';
 
 export interface ContractMetadata {
     readonly version: string;
@@ -54,7 +54,7 @@ export interface GenerationContext {
     readonly projectRoot: string;
     readonly outputDir: string;
     readonly config: GenerationConfig;
-    readonly manifest: RouteManifest;
+    readonly manifest: RouteSyncManifestFlow;
 }
 
 export interface FileMetadata {

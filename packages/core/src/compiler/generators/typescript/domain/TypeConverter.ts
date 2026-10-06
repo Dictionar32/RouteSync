@@ -5,7 +5,7 @@
  * @module compiler/generators/typescript/domain/TypeConverter
  */
 
-import type { SemanticType, SemanticTypeVisitor, PrimitiveType, ReferenceType, GenericType, ObjectType } from '../../../types/SemanticType';
+import type { SemanticType, SemanticTypeVisitor, PrimitiveType, ReferenceType, GenericType, ObjectType } from '../../../../types/domain/semanticType';
 import { TSTypeReference } from '../../../target/typescript/nodes/TSTypeReference';
 import { TSArrayType } from '../../../target/typescript/nodes/TSArrayType';
 import { TSUnionType } from '../../../target/typescript/nodes/TSUnionType';

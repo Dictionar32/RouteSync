@@ -1,4 +1,4 @@
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { BoundCardinality, BoundNullability, BoundSemanticNode } from './boundAst';
 import type { ColumnName, ModelName, ResponseFieldName } from './semanticValues';
 import type { ModelSemanticDefinition } from './models';

@@ -13,7 +13,7 @@ import {
     MutableCollectionType,
     type SemanticType,
     PrimitiveKind
-} from '../../../types/SemanticType';
+} from '../../../../types/domain/semanticType';
 import {
     ResolvedPrimitiveType,
     ResolvedReferenceType,

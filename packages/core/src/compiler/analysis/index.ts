@@ -74,3 +74,14 @@ export {
 } from '../passes/PassResult';
 export * from './astAnalysisInterface';
 export * from './ssa/ssaSemanticInterface';
+
+export * from './semanticDataflowPipeline';
+
+export * from './routeSyncDataflowAnalysis';
+
+export * from './semanticDataflowRuntimeBoundary';
+export * from './semanticDataflowRuntimeComposition';
+export * from './semanticDataflowDataFlowAdapter';
+
+export * from './routeSyncManifestDataflowProjection';
+export * from './routeSyncManifestDataflowProjectionInterface';

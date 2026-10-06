@@ -1,6 +1,6 @@
-import type { PrimitiveBody, ResponseBody } from "../../compiler/ir/ResponseArtifact";
-import type { ObjectProperty } from "../../compiler/types/SemanticType";
-import type { SemanticType } from "../../compiler/types/SemanticType";
+import type { PrimitiveBody, ResponseBody } from './responseBody';
+import type { ObjectProperty } from "./semanticType";
+import type { SemanticType } from "./semanticType";
 import { relationProject } from '../../semantic/foundation/relationalSequence';
 import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldSemanticBinding } from "./resourceFieldSemanticBinding";

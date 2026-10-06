@@ -13,6 +13,7 @@ import type { ModelCast } from "../../../types/upstream/model";
 import type { ModelAccessorFact } from "../../../types/upstream/modelSourceFacts";
 import type { EloquentRelationAst } from "../../../types/upstream/eloquent";
 import type { ModelAst } from "../../../types/upstream/ast";
+import type { SchemaInterface } from "../../../types/upstream/schema";
 import type { ModelDefinition } from "../../../types/upstream/model";
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 import { createModelName } from "../../../types/upstream/names";
@@ -25,16 +26,10 @@ import { parseModelRelations } from "./model/memberRelationsParser";
 import { modelProducer, type ModelProducerResult } from "./modelProducer";
 import { collectPhpFiles } from "./scannerUtils";
 import { relationAsyncFold } from "../../../semantic/foundation/relationalSequence";
-import {
-    scanMigrations,
-    resolveModelColumns
-} from "./model";
+import { resolveModelColumns } from "./model";
 
 // Explicit named re-exports (Rule 14: 0 wildcard re-exports)
-export {
-    scanMigrations,
-    resolveModelColumns
-};
+export { resolveModelColumns };
 
 /**
  * Pure functional scanning of all Eloquent model files in app/Models.
@@ -49,7 +44,7 @@ export interface ModelScanBundle {
 
 export async function scanModelBundle(
     sourceProject: SourceProjectIdentity,
-    migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+    schema: SchemaInterface
 ): Promise<ModelScanBundle> {
     const sourceRoot = sourceProject.root.value.value;
     const modelDir = path.join(sourceRoot, "app", "Models");
@@ -66,7 +61,7 @@ export async function scanModelBundle(
         const eloquentRelations = parseModelRelations(declaration, createModelName(modelName), sourceSpan);
         parseModelCasts(propertyAsts, declaration, casts, sourceSpan);
         parseModelAccessors(declaration, accessors, sourceSpan);
-        return [...results, modelProducer.produceResult({ sourceSpan, migrations, propertyAsts, declaration, casts, accessors, eloquentRelations })];
+        return [...results, modelProducer.produceResult({ sourceSpan, schema, propertyAsts, declaration, casts, accessors, eloquentRelations })];
     });
     return {
         asts: Object.freeze(relationProject(results, result => result.ast)),
@@ -76,48 +71,41 @@ export async function scanModelBundle(
 
 export async function scanModelAsts(
     sourceProject: SourceProjectIdentity,
-    migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+    schema: SchemaInterface
 ): Promise<readonly ModelAst[]> {
-    return (await scanModelBundle(sourceProject, migrations)).asts;
+    return (await scanModelBundle(sourceProject, schema)).asts;
 }
 
 
 export class ModelScanner {
     public static async scanCanonicalBundle(
         sourceProject: SourceProjectIdentity,
-        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+        schema: SchemaInterface
     ): Promise<ModelScanBundle> {
-        return scanModelBundle(sourceProject, migrations);
+        return scanModelBundle(sourceProject, schema);
     }
 
     public static async scanAsts(
         sourceProject: SourceProjectIdentity,
-        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+        schema: SchemaInterface
     ): Promise<readonly ModelAst[]> {
-        return (await ModelScanner.scanCanonicalBundle(sourceProject, migrations)).asts;
+        return (await ModelScanner.scanCanonicalBundle(sourceProject, schema)).asts;
     }
 
     /** Canonical source boundary: PHP model source enters the upstream ADT here. */
     public static async scanSource(
         sourceProject: SourceProjectIdentity,
-        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+        schema: SchemaInterface
     ): Promise<readonly ModelAst[]> {
-        return scanModelAsts(sourceProject, migrations);
+        return scanModelAsts(sourceProject, schema);
     }
 
     public static async scan(
         sourceProject: SourceProjectIdentity,
-        migrations: readonly import("../../../types/upstream/ast").MigrationAst[]
+        schema: SchemaInterface
     ): Promise<readonly ModelAst[]> {
-        return scanModelAsts(sourceProject, migrations);
+        return scanModelAsts(sourceProject, schema);
     }
-
-    public static async scanMigrations(
-        sourceProject: SourceProjectIdentity
-    ): Promise<readonly import("../../../types/upstream/ast").MigrationAst[]> {
-        return scanMigrations(sourceProject);
-    }
-
 
 }
 

@@ -7,7 +7,7 @@
  * free-form `unknown` payloads.
  */
 import type { DatabaseType } from '../upstream/databaseVocabulary';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type {
   BoundLiteralValue,
   BoundCastType,

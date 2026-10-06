@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import type { SemanticDataflowFact } from '../../../types/upstream/semanticDataflowInterface';
+import type { SemanticDataflowFact } from '../../../types/upstream/semanticDataflow';
 import type { AstAnalysisFact } from '../astAnalysisInterface';
 
 describe('Phase 906 upstream analysis dataflow interface', () => {

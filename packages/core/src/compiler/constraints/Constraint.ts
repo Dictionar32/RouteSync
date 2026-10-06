@@ -4,7 +4,7 @@
  */
 
 import type { FileSpan } from '../types/FileSpan';
-import type { SemanticType } from '../types/SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 import type { TypeVariable } from './TypeVariable';
 
 export type Constraint =

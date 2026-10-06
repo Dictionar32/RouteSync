@@ -5,7 +5,7 @@ import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ModelSemanticRelation } from "../../../../types/upstream/model";
 import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
-import { ErrorType } from "../../../types/SemanticType";
+import { ErrorType } from "../../../../types/domain/semanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";

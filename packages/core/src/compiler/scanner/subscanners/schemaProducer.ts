@@ -1,10 +1,11 @@
-import type { MigrationAst } from '../../../types/upstream/ast';
-import type { SchemaAst, SchemaDefinition, SchemaProducer, SchemaProducerInput, SchemaTable } from '../../../types/upstream/schema';
+import type { MigrationInterface } from '../../../types/upstream/migrationInterface';
+import type { SchemaInterface, SchemaDefinition, SchemaProducer, SchemaProducerInput, SchemaTable } from '../../../types/upstream/schema';
 import type { MigrationOperation } from '../../../types/upstream/migration';
 import type { ColumnDefinition, ForeignKey, IndexDefinition } from '../../../types/upstream/databaseVocabulary';
-import type { Columns, ForeignKeys, Indexes, MigrationAsts, Sequence } from '../../../types/upstream/collections';
+import type { Columns, ForeignKeys, Indexes, Sequence } from '../../../types/upstream/collections';
 import type { TableName } from '../../../types/upstream/names';
-import type { SourceSpan } from '../../../types/upstream/provenance';
+import { numberValue } from '../../../types/upstream/valueObjects';
+import type { MigrationProvenance, SourceSpan } from '../../../types/upstream/provenance';
 import { relationEqual, relationFold, relationGate, relationOptionFold, relationProject, relationSelect, relationSome, type RelationOption } from '../../../semantic/foundation/relationalSequence';
 
 const sequence = <T>(items: readonly T[]): Sequence<T> => {
@@ -25,25 +26,14 @@ const sequenceArray = <T>(items: Sequence<T>): readonly T[] => {
     return collect(items, []);
 };
 
-const migrationsFromInput = (migrations: MigrationAsts): readonly MigrationAst[] => {
-    const scanned = relationSome(migrations.items);
-    return relationOptionFold(
-        scanned,
-        () => [],
-        item => relationGate(
-            relationEqual(item.result.kind, 'discovered_empty'),
-            () => [],
-            () => sequenceArray(item.result.items),
-        ),
-    );
-};
+const migrationsFromInput = (migrations: readonly MigrationInterface[]): readonly MigrationInterface[] => migrations;
 
 type TableState = {
     readonly table: TableName;
     readonly columns: readonly ColumnDefinition[];
     readonly indexes: readonly IndexDefinition[];
     readonly foreignKeys: readonly ForeignKey[];
-    readonly sourceMigrations: readonly MigrationAst[];
+    readonly migrationProvenance: readonly MigrationProvenance[];
     readonly source: SourceSpan;
 };
 
@@ -53,37 +43,49 @@ const addColumns = (existing: readonly ColumnDefinition[], additions: Columns): 
 const addIndexes = (existing: readonly IndexDefinition[], additions: Indexes): readonly IndexDefinition[] =>
     [...existing, ...sequenceArray(additions.items)];
 
-const addForeignKeys = (existing: readonly ForeignKey[], additions: ForeignKeys): readonly ForeignKey[] =>
-    [...existing, ...sequenceArray(additions.items)];
+const addForeignKeys = (existing: readonly ForeignKey[], additions: ForeignKeys, provenance: MigrationProvenance): readonly ForeignKey[] =>
+    [...existing, ...sequenceArray(additions.items).map(foreignKey => ({ ...foreignKey, migrationProvenance: provenance }))];
+
+const migrationProvenance = (migration: MigrationInterface, operation: MigrationOperation, index: number): MigrationProvenance => Object.freeze({
+    kind: 'migration_provenance',
+    source: migration.source,
+    operation: Object.freeze({
+        kind: 'migration_operation_provenance',
+        operation: operation.kind,
+        ...(operation.kind === 'raw' ? {} : { table: operation.table }),
+        index: numberValue(index),
+    }),
+});
 
 const sameTable = (left: TableName, right: TableName): boolean => relationEqual(left.value.value, right.value.value);
 
-const createState = (operation: Extract<MigrationOperation, { kind: 'create_table' }>, migration: MigrationAst): TableState => ({
+const createState = (operation: Extract<MigrationOperation, { kind: 'create_table' }>, migration: MigrationInterface, provenance: MigrationProvenance): TableState => ({
     table: operation.table,
     columns: sequenceArray(operation.columns.items),
     indexes: sequenceArray(operation.indexes.items),
-    foreignKeys: sequenceArray(operation.foreignKeys.items),
-    sourceMigrations: [migration],
+    foreignKeys: addForeignKeys([], operation.foreignKeys, provenance),
+    migrationProvenance: [provenance],
     source: migration.source,
 });
 
-const alterState = (state: TableState, operation: Extract<MigrationOperation, { kind: 'alter_table' }>, migration: MigrationAst): TableState => ({
+const alterState = (state: TableState, operation: Extract<MigrationOperation, { kind: 'alter_table' }>, provenance: MigrationProvenance): TableState => ({
     ...state,
     columns: addColumns(state.columns, operation.additions),
     indexes: addIndexes(state.indexes, operation.indexes),
-    foreignKeys: addForeignKeys(state.foreignKeys, operation.foreignKeys),
-    sourceMigrations: [...state.sourceMigrations, migration],
+    foreignKeys: addForeignKeys(state.foreignKeys, operation.foreignKeys, provenance),
+    migrationProvenance: [...state.migrationProvenance, provenance],
 });
 
-const applyOperation = (states: readonly TableState[], operation: MigrationOperation, migration: MigrationAst): readonly TableState[] => {
+const applyOperation = (states: readonly TableState[], operation: MigrationOperation, migration: MigrationInterface, index: number): readonly TableState[] => {
+    const provenance = migrationProvenance(migration, operation, index);
     const createCandidate: RelationOption<readonly TableState[]> = relationGate(
         relationEqual(operation.kind, 'create_table'),
-        () => relationSome([...states, createState(operation, migration)]),
+        () => relationSome([...states, createState(operation, migration, provenance)]),
         () => ({ kind: 'none' }),
     );
     const alterCandidate: RelationOption<readonly TableState[]> = relationGate(
         relationEqual(operation.kind, 'alter_table'),
-        () => relationSome(relationProject(states, state => relationGate(sameTable(state.table, operation.table), () => alterState(state, operation, migration), () => state))),
+        () => relationSome(relationProject(states, state => relationGate(sameTable(state.table, operation.table), () => alterState(state, operation, provenance), () => state))),
         () => ({ kind: 'none' }),
     );
     const dropCandidate: RelationOption<readonly TableState[]> = relationGate(
@@ -96,14 +98,15 @@ const applyOperation = (states: readonly TableState[], operation: MigrationOpera
     return relationOptionFold(createCandidate, () => altered, value => value);
 };
 
-const applyMigrations = (migrations: readonly MigrationAst[]): readonly TableState[] => relationFold(
+const applyOperations = (states: readonly TableState[], migration: MigrationInterface, operations: readonly MigrationOperation[], index = 0): readonly TableState[] =>
+    index < operations.length
+        ? applyOperations(applyOperation(states, operations[index], migration, index), migration, operations, index + 1)
+        : states;
+
+const applyMigrations = (migrations: readonly MigrationInterface[]): readonly TableState[] => relationFold(
     migrations,
     [],
-    (states, migration) => relationFold(
-        sequenceArray(migration.definition.operations.items),
-        states,
-        (current, operation) => applyOperation(current, operation, migration),
-    ),
+    (states, migration) => applyOperations(states, migration, sequenceArray(migration.definition.operations.items)),
 );
 
 
@@ -114,7 +117,7 @@ const toSchemaTable = (state: TableState): SchemaTable => ({
     columns: { kind: 'columns', items: sequence(state.columns) },
     indexes: { kind: 'indexes', items: sequence(state.indexes) },
     foreignKeys: { kind: 'foreign_keys', items: sequence(state.foreignKeys) },
-    sourceMigrations: sequence(state.sourceMigrations),
+    migrationProvenance: sequence(state.migrationProvenance),
     source: state.source,
 });
 
@@ -124,14 +127,15 @@ const toSchemaDefinition = (tables: readonly TableState[], source: SourceSpan): 
     source,
 });
 
-const produceSchema = (input: SchemaProducerInput): SchemaAst => {
+const produceSchema = (input: SchemaProducerInput): SchemaInterface => {
     const migrations = migrationsFromInput(input.migrations);
     const tables = applyMigrations(migrations);
-    return {
-        kind: 'schema_ast',
+    return Object.freeze({
+        kind: 'schema_interface' as const,
         definition: toSchemaDefinition(tables, input.projectSource),
         source: input.projectSource,
-    };
+        closed: true as const,
+    });
 };
 
 export const schemaProducer: SchemaProducer = Object.freeze({ produce: produceSchema });

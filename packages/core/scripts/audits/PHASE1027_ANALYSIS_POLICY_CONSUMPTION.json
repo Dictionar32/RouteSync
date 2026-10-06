@@ -1,0 +1,17 @@
+{
+  "phase": 1027,
+  "checks": {
+    "productionPolicyConsumerExists": true,
+    "consumerCreatesPolicy": true,
+    "callerSuppliesPolicyContext": true,
+    "policyUsesFactScopedLineage": true,
+    "configUsesContributorComposition": true,
+    "noSemanticEdgeCreation": true,
+    "noPolicyInUpstreamExecutionContract": true,
+    "semanticInterfaceStillExecutionOnly": true,
+    "manifestIsSeedOnly": true,
+    "graphDoesNotSolveDataflow": true,
+    "irConsumesJudgment": true,
+    "clean": true
+  }
+}

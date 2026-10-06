@@ -1,4 +1,4 @@
-import { ObjectType } from '../../compiler/types/SemanticType';
+import { ObjectType } from '../../types/domain/semanticType';
 import type { SemanticResolution } from '../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
 import type { SemanticTraceNode } from '../../types/domain/semanticResolution';

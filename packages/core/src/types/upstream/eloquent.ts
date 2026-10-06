@@ -30,3 +30,18 @@ export type EloquentRelationAst = {
   readonly traversalTarget: ModelRelationTraversalTarget;
   readonly key: RelationKey;
 };
+
+/**
+ * Canonical constructor for Eloquent relation evidence. The descriptor is the
+ * semantic authority; relation and eloquentType are projections of it, so a
+ * producer cannot accidentally construct an internally inconsistent relation.
+ */
+export type EloquentRelationAstInput = Omit<EloquentRelationAst, 'relation' | 'eloquentType'>;
+
+export const eloquentRelationAstFromDescriptor = (
+  input: EloquentRelationAstInput,
+): EloquentRelationAst => Object.freeze({
+  ...input,
+  relation: input.descriptor.relation,
+  eloquentType: input.descriptor.type,
+});

@@ -24,6 +24,7 @@ export * from './manifest';
 export * from './resourceVocabulary';
 export * from './service';
 export * from './migration';
+export * from './schema';
 export * from './completeness';
 
 export * from './application';
@@ -35,6 +36,7 @@ export * from './modelSourceFacts';
 export * from './semanticReferences';
 export * from './highLevelContracts';
 export * from './highLevelSourceModel';
+export * from './sourceProjectIdentity';
 export * from './endpointBindings';
 
 export type { Option, Lookup } from './collections';
@@ -57,9 +59,22 @@ export * from './astSemanticStageInterfaceAlgebra';
 export * from './astSemanticAuthorityPipeline';
 export * from './astSemanticStageTransition';
 
-export * from './compilerPassFailure';
-export * from './semanticDataflowInterface';
+export * from './semanticDataflow';
+export * from './semanticDataflowManifestSurface';
 export type { ControllerActionPolicyRelation, ControllerActionPolicyProvenance } from './controllerActionPolicyRelations';
 export type { RouteActionPolicyRelation } from './routeActionPolicyRelations';
 export { routeActionPolicyRelations, routeActionPolicyRelationsFromEffectivePolicy } from './routeActionPolicyRelations';
 export { controllerActionPolicyRelations, controllerActionPolicyRelationsFromEvidence } from './controllerActionPolicyRelations';
+
+export * from './semanticDataflowRouteProjection';
+
+export * from "./semanticDataflowControllerProjection";
+export * from "./semanticDataflowControllerQueryProjection";
+export * from './schemaRelation';
+export * from './modelRelation';
+export * from './modelRelationProvenance';
+export * from './modelPrimaryKey';
+export * from './routeBinding';
+export * from './semanticReconciliation';
+
+

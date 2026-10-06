@@ -3,7 +3,7 @@ import { BoundSemanticFactory } from '../boundAst';
 import { SemanticResolutionFactory } from '../semanticResolutionFactory';
 import { matchSemanticResolution } from '../semanticResolution';
 import { SemanticValueFactory } from '../semanticValues';
-import { PrimitiveKind, PrimitiveType } from '../../../compiler/types/SemanticType';
+import { PrimitiveKind, primitiveType } from '../semanticType';
 
 const common = {
   status: 'resolved' as const,
@@ -16,7 +16,7 @@ describe('Phase 87.26 semantic resolution ADT', () => {
   it('constructs a scalar without free semantic identity fields', () => {
     const resolution = SemanticResolutionFactory.scalar({
       ...common,
-      semanticType: new PrimitiveType(PrimitiveKind.STRING),
+      semanticType: primitiveType(PrimitiveKind.STRING),
       nullable: false,
     });
 

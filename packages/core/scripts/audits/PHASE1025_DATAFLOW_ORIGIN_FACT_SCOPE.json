@@ -1,0 +1,12 @@
+{
+  "phase": 1025,
+  "checks": {
+    "originHasNoProducerLineage": true,
+    "factRetainsProducerLineage": true,
+    "adapterDoesNotAssignInputProducer": true,
+    "upstreamContractUnchanged": true,
+    "selectorDownstream": true,
+    "contributorDownstream": true,
+    "clean": true
+  }
+}

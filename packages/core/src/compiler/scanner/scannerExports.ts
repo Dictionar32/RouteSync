@@ -1,7 +1,7 @@
 /**
  * scannerExports.ts
  *
- * Explicit re-exports of AST descriptors and subscanners.
+ * Explicit re-exports of semantic descriptors and bindings. Concrete scanner implementations remain internal.
  * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
  *
  * @module core/compiler/scanner/scannerExports
@@ -11,7 +11,6 @@ export {
     LaravelValidationType,
     type LaravelValidationConstraint,
     type ResourceExpressionDescriptor,
-    type StaticLaravelScannerOptions,
     ScannedRouteValidationRuleEntry,
     type ScannedRouteValidationRuleParams,
     RouteSemanticFlowValidationRuleSet,
@@ -40,20 +39,5 @@ export {
 
 export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from "../../types/domain/resourceFieldSemanticBinding";
 
-export {
-    collectPhpFiles,
-    ChannelScanner,
-    ControllerScanner,
-    ResourceScanner,
-    FormRequestScanner,
-    ModelScanner,
-    RouteScanner,
-    InvalidationResolver,
-    resolvePrimitiveKind,
-    resolveRouteDomain,
-    ValidationRuleFieldLowerer,
-    RequestTypeDeriver,
-    deriveRequestTypes,
-    SemanticTypeDeriver,
-    TypeDeriver
-} from "./subscanners";
+
+

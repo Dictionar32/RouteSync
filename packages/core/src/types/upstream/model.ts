@@ -8,6 +8,9 @@ import type { SourceSpan } from './provenance';
 import type { ModelAccessors, ModelCasts, ModelConstants, ModelMethods, ModelRelations, ModelTraits, Properties, PropertyNames, Columns, ForeignKeys, Lookup, Sequence, ModelColumnFacts } from './collections';
 
 import type { ModelAccessorComputation, ModelAccessorResult, ModelAccessorVisibility, ModelConfigurationVisibility, EloquentRelationCardinality } from './modelVocabulary';
+import type { ModelRelationInterface } from './modelRelation';
+import type { ModelRelationProvenance } from './modelRelationProvenance';
+import type { ModelPrimaryKeyReconciliationInterface } from './modelPrimaryKey';
 export type { EloquentRelationCardinality } from './modelVocabulary';
 import type { SourceStatements } from './sourceStatements';
 import type { DatabaseType } from './databaseVocabulary';
@@ -91,8 +94,20 @@ export type ModelSemanticAccessor = {
   readonly traversal: Extract<ModelPropertyTraversalMeaning, { readonly kind: 'scalar' }>;
 };
 
+export type ModelSemanticRelationIdentity = Readonly<{
+  readonly kind: 'model_semantic_relation_identity';
+  readonly sourceModel: ModelName;
+  readonly property: PropertyName;
+  readonly relation: RelationName;
+  readonly targetModel: ModelName;
+  readonly eloquentType: import('./modelVocabulary').EloquentRelationType;
+  readonly foreignKey: RelationKey;
+}>;
+
 export type ModelSemanticRelation = {
   readonly kind: 'relation';
+  /** Stable semantic identity; excludes source spans and provenance evidence. */
+  readonly identity: ModelSemanticRelationIdentity;
   readonly property: PropertyName;
   readonly relation: RelationName;
   readonly sourceModel: ModelName;
@@ -105,9 +120,39 @@ export type ModelSemanticRelation = {
   readonly boundCardinality: BoundCardinality;
   readonly resourceCardinality: ModelPropertyMultiplicity;
   readonly foreignKey: RelationKey;
+  /** Typed lineage when the relation reconciles against schema evidence. */
+  readonly provenance?: ModelRelationProvenance;
   readonly semanticType: TypeExpression;
   readonly source: SourceSpan;
   readonly traversal: Extract<ModelPropertyTraversalMeaning, { readonly kind: 'relation' }>;
+};
+
+export const modelSemanticRelationIdentityOf = (relation: Pick<ModelSemanticRelation, 'sourceModel' | 'property' | 'relation' | 'targetModel' | 'eloquentType' | 'foreignKey'>): ModelSemanticRelationIdentity => Object.freeze({
+  kind: 'model_semantic_relation_identity',
+  sourceModel: relation.sourceModel,
+  property: relation.property,
+  relation: relation.relation,
+  targetModel: relation.targetModel,
+  eloquentType: relation.eloquentType,
+  foreignKey: relation.foreignKey,
+});
+
+export const modelSemanticRelationIdentityKey = (identity: ModelSemanticRelationIdentity): string => {
+  const foreignKey = identity.foreignKey.kind === 'convention'
+    ? 'convention'
+    : identity.foreignKey.kind === 'explicit_foreign'
+      ? `explicit_foreign:${identity.foreignKey.foreign.value.value}`
+      : identity.foreignKey.kind === 'not_applicable'
+        ? 'not_applicable'
+        : `explicit:${identity.foreignKey.foreign.value.value}:${identity.foreignKey.local.value.value}`;
+  return [
+    identity.sourceModel.value.value,
+    identity.property.value.value,
+    identity.relation.value.value,
+    identity.targetModel.value.value,
+    identity.eloquentType.kind,
+    foreignKey,
+  ].join('|');
 };
 
 export type ModelSemanticProperty = ModelSemanticColumn | ModelSemanticAccessor | ModelSemanticRelation;
@@ -174,6 +219,7 @@ export type ModelSemanticDefinition = {
     readonly table: ModelTable;
     readonly primaryKey: ColumnName;
   };
+  readonly primaryKeyReconciliation: ModelPrimaryKeyReconciliationInterface;
   readonly key: {
     readonly type: ModelKeyKind;
     readonly semanticType: ModelKeySemanticType;
@@ -181,8 +227,12 @@ export type ModelSemanticDefinition = {
   readonly behavior: ModelBehavior;
   readonly exposure: ModelExposure;
   readonly surface: ModelSemanticSurface;
-  /** Canonical column facts produced from MigrationAst and shared by all model consumers. */
+  /** Canonical column facts produced from SchemaInterface and shared by all model consumers. */
   readonly columnFacts: ModelColumnFacts;
+  /** Canonical cumulative schema projection resolved for this model table. */
+  readonly schema: ModelSchema;
+  /** Canonical model-relation interface; reconciliation/evidence must not be reconstructed downstream. */
+  readonly relation: ModelRelationInterface;
 };
 
 export type ModelInheritance =
@@ -250,8 +300,12 @@ export type ModelRelationTargetShape =
 export type ModelRelationTraversalTarget =
   | { readonly kind: 'model'; readonly model: ModelName }
   | { readonly kind: 'collection'; readonly model: ModelName };
-export type RelationKeyOrigin = { readonly kind: 'convention' } | { readonly kind: 'explicit' };
-export type RelationKey = { readonly kind: 'convention' } | { readonly kind: 'explicit'; readonly foreign: ColumnName; readonly local: ColumnName };
+export type RelationKeyOrigin = { readonly kind: 'convention' } | { readonly kind: 'explicit_foreign' } | { readonly kind: 'explicit' } | { readonly kind: 'not_applicable' };
+export type RelationKey =
+  | { readonly kind: 'convention' }
+  | { readonly kind: 'explicit_foreign'; readonly foreign: ColumnName }
+  | { readonly kind: 'explicit'; readonly foreign: ColumnName; readonly local: ColumnName }
+  | { readonly kind: 'not_applicable' };
 export type ModelRelation = {
   readonly kind: 'model_relation';
   readonly name: RelationName;

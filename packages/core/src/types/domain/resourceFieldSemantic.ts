@@ -1,4 +1,4 @@
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { BoundSemanticNode, BoundUnsupportedNode } from './boundAst';
 
 export type VerifiedBoundSemantic = Exclude<BoundSemanticNode, BoundUnsupportedNode>;

@@ -101,7 +101,7 @@ export class ControllerScanner {
                 return {
                 kind: 'controller_method_evidence' as const,
                 controller: createControllerName(controllerName),
-                action: controllerActionFromMethod(method, controllerName, fullPath, response, dependencies ?? [], contract.policy, inheritedControllerNames),
+                action: controllerActionFromMethod(method, controllerName, fullPath, response, dependencies ?? [], contract.policy, inheritedControllerNames, queries),
                 contract,
                 source: { kind: 'source_span' as const, file: createSourceFile(fullPath), start: { kind: 'number_value' as const, value: method.source.startOffset }, end: { kind: 'number_value' as const, value: method.source.endOffset } },
             };

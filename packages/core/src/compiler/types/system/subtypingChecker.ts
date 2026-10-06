@@ -7,7 +7,7 @@
  * host-language control flow.
  */
 
-import { SemanticType, PrimitiveKind } from '../SemanticType';
+import { SemanticType, PrimitiveKind } from '../../../types/domain/semanticType';
 import { TypeHasher, HashContext } from '../TypeHasher';
 import type { TypeHierarchy } from '../TypeHierarchy';
 import { presenceFold, type Presence } from '../../../types/upstream/presence';

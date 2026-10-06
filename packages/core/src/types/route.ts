@@ -16,7 +16,6 @@ export {
     type PageMetaEntry,
     type PageConfig,
     type ResourceRouteGroup,
-    type RouteManifest,
     type ParsedChannel,
     BroadcastChannelKind,
     type BroadcastChannelDescriptor,

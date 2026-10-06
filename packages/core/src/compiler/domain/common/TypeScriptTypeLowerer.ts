@@ -10,7 +10,7 @@
  * @module compiler/domain/common/TypeScriptTypeLowerer
  */
 
-import { type ObjectType } from '../../types/SemanticType';
+import { type ObjectType } from '../../../types/domain/semanticType';
 
 import {
     TypeScriptTargetVersion,

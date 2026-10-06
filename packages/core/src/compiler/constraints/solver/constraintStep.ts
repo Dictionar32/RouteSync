@@ -4,7 +4,7 @@
  * Constraint state is an immutable relation.  A step returns a new relation
  * plus a monotone-change witness; the host language does not own solver state.
  */
-import type { SemanticType } from '../../types/SemanticType';
+import type { SemanticType } from '../../../types/domain/semanticType';
 import { checkAssignable, checkSubtype } from '../../types/system';
 import type { TypeHierarchy } from '../../types/TypeHierarchy';
 import type { Constraint, ConstraintViolation } from '../Constraint';

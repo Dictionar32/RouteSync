@@ -1,8 +1,8 @@
 /**
  * Variable bound joining and resolution for constraint satisfaction.
  */
-import type { SemanticType } from '../../types/SemanticType';
-import { SemanticTypeFactory } from '../../types/SemanticType';
+import type { SemanticType } from '../../../types/domain/semanticType';
+import { SemanticTypeFactory } from '../../../types/domain/semanticType';
 import { relationResolve, relationFirstOption, type RelationOption } from '../../../semantic/foundation/relationalSequence';
 import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { relationUnique, type RelationMembership } from '../../../semantic/foundation/relationMembership';

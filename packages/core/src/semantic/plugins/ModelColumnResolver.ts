@@ -5,7 +5,7 @@ import { SemanticValueFactory } from '../../types/domain/semanticValues';
 import { modelScope } from '../resolutionScope';
 import { resolveInScope } from '../kernel/resolveInScope';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
-import { typeExpressionToSemanticType } from '../../compiler/domain/common/typeExpressionSemanticType';
+import { typeExpressionToSemanticType } from '../../types/domain/typeExpressionSemanticType';
 import type { ModelColumnFact } from '../../types/upstream/modelSourceFacts';
 import { modelSemanticPropertyLookup, type ModelSemanticColumn } from '../../types/upstream/model';
 import { matchLookup } from '../../types/upstream/collections';

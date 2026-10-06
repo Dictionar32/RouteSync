@@ -89,42 +89,26 @@ export const explainCommand = new Command('explain')
       console.log(fieldPath)
       console.log('')
 
-      const { SemanticResolutionKernel } = require('@routesync/core')
-      const resolver = new SemanticResolutionKernel(graph.models || [], graph.resources || [])
-      const res = resolver.resolve(current)
-
+      const resolvedType = current.type ?? current.schemaType ?? current.kind ?? 'unknown'
       console.log(chalk.bold('Type:'))
-      console.log(res.type === 'unknown' ? chalk.yellow(res.type) : chalk.green(res.type))
+      console.log(resolvedType === 'unknown' ? chalk.yellow(resolvedType) : chalk.green(String(resolvedType)))
       console.log('')
 
-      console.log(chalk.bold('Confidence:'))
-      console.log(res.confidence)
+      console.log(chalk.bold('Evidence:'))
+      const evidence = current.evidence ?? current.provenance ?? current.source ?? null
+      if (evidence) {
+        console.log(JSON.stringify(evidence, null, 2))
+      } else {
+        console.log(chalk.yellow('No explicit evidence metadata on this graph node.'))
+      }
       console.log('')
 
       console.log(chalk.bold('Trace Chain:'))
-      if (res.trace && res.trace.length > 0) {
-        res.trace.forEach((node: any, idx: number) => {
-          const prefix = idx === 0 ? '✓' : '└─'
-          const indent = '  '.repeat(idx)
-          const details = []
-          if (node.input) details.push(`in: ${node.input}`)
-          if (node.output) details.push(`out: ${node.output}`)
-          const detailStr = details.length > 0 ? ` (${details.join(', ')})` : ''
-          console.log(`${indent}${prefix} [${node.source}] ${node.rule}${chalk.gray(detailStr)}`)
-        })
-      } else {
-        console.log(chalk.yellow('None (Fallback)'))
-      }
+      console.log(chalk.gray('No secondary semantic resolver is invoked; explanation uses canonical graph evidence.'))
       console.log('')
 
       console.log(chalk.bold('Reason:'))
-      if (res.status === 'unknown') {
-        console.log(chalk.red('Unresolved'))
-        const lastTrace = res.trace && res.trace.length > 0 ? res.trace[res.trace.length - 1] : null
-        console.log(chalk.gray(`Reason: ${lastTrace?.rule || 'No trace found'}`))
-      } else {
-        console.log(chalk.green('Resolved successfully based on trace.'))
-      }
+      console.log(chalk.green('Reported from canonical upstream-derived graph metadata.'))
     } catch (err: any) {
       console.error(chalk.red(`Error: ${err.message}`))
       process.exit(1)

@@ -7,7 +7,7 @@
 import { toPascalResourceName, toPascalResponseTypeName } from '../../../utils/resource-naming';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
 import type { ResourceName } from '../../../types/upstream/names';
-import type { ObjectProperty } from '../../types/SemanticType';
+import type { ObjectProperty } from '../../../types/domain/semanticType';
 import type { MappingIntent, MappingIntentField, ResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
 import { buildReadMapperFromFields } from './readMapperBuilder';
 import { buildFormMapper } from './formMapperBuilder';

@@ -6,7 +6,7 @@
  * has already established the closed semantic property judgment.
  */
 
-import { ObjectType, ScannedObjectProperty, type ObjectProperty, type SemanticType } from '../../../types/SemanticType';
+import { ObjectType, ScannedObjectProperty, type ObjectProperty, type SemanticType } from '../../../../types/domain/semanticType';
 import { toPascalCase } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
 import { relationEqual, relationFold, relationGate, relationProject, relationSequenceToArray } from '../../../../semantic/foundation/relationalSequence';

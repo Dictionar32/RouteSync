@@ -1,4 +1,4 @@
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { ModelName, MethodName, PropertyName, RelationName, ResourceName, VariableName } from '../upstream/names';
 import type { EloquentRelationCardinality } from '../upstream/model';
 import type { ModelRelationTargetShape, ModelRelationTraversalTarget } from '../upstream/model';

@@ -6,7 +6,7 @@ import type { RelationName } from "../../../../types/upstream/names";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 import { bindWhenLoadedResolution, resolveWhenLoadedRelation } from "./whenLoadedSemanticBinder";
 import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
-import { ErrorType } from "../../../types/SemanticType";
+import { ErrorType } from "../../../../types/domain/semanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 

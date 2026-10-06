@@ -6,7 +6,7 @@ import type { ResourceBindingProvenance } from './resourceBindingProvenance';
 import type { ResourceBindingOriginState } from './resourceBindingOrigin';
 import type { ResourceTraversalModel } from './resourceTraversalModel';
 import type { ResourceMethodResult } from './resourceModelMethodSurface';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 
 export interface ResourceBindingStatementIdentity {
   readonly kind: 'statement_index';

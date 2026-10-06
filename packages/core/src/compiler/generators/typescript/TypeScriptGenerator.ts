@@ -9,7 +9,7 @@
  */
 
 import type { ContractGraph } from '../../ir/ContractGraph';
-import type { SemanticType, ObjectType } from '../../types/SemanticType';
+import type { SemanticType, ObjectType } from '../../../types/domain/semanticType';
 import type { IGenerator } from '../IGenerator';
 import { TSFile } from '../../target/typescript/nodes/TSFile';
 import type { TSInterfaceDeclaration } from '../../target/typescript/nodes/TSInterfaceDeclaration';

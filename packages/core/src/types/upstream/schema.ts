@@ -1,7 +1,7 @@
 import type { Columns, ForeignKeys, Indexes, Sequence } from './collections';
+import type { MigrationInterface } from './migrationInterface';
 import type { TableName } from './names';
-import type { SourceSpan } from './provenance';
-import type { MigrationAst } from './ast';
+import type { MigrationProvenance, SourceSpan } from './provenance';
 
 export type SchemaTable = {
     readonly kind: 'schema_table';
@@ -9,7 +9,7 @@ export type SchemaTable = {
     readonly columns: Columns;
     readonly indexes: Indexes;
     readonly foreignKeys: ForeignKeys;
-    readonly sourceMigrations: Sequence<MigrationAst>;
+    readonly migrationProvenance: Sequence<MigrationProvenance>;
     readonly source: SourceSpan;
 };
 
@@ -30,11 +30,23 @@ export type SchemaAst = {
     readonly source: SourceSpan;
 };
 
+/**
+ * Canonical upstream schema semantic boundary.
+ * SchemaAst remains the compatibility evidence representation; semantic consumers
+ * cross this closed interface instead of reinterpreting migration operations.
+ */
+export interface SchemaInterface {
+    readonly kind: 'schema_interface';
+    readonly definition: SchemaDefinition;
+    readonly source: SourceSpan;
+    readonly closed: true;
+}
+
 export type SchemaProducerInput = {
-    readonly migrations: import('./collections').MigrationAsts;
+    readonly migrations: readonly MigrationInterface[];
     readonly projectSource: SourceSpan;
 };
 
 export interface SchemaProducer {
-    readonly produce: (input: SchemaProducerInput) => SchemaAst;
+    readonly produce: (input: SchemaProducerInput) => SchemaInterface;
 }

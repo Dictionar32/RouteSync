@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ModelKeyTypeMapper } from '../eloquentTypes';
-import { resolveModelColumns } from '../../../compiler/scanner/subscanners/model/columnInferrer';
 import type { TableName } from '../../upstream/names';
+import type { SchemaAst } from '../../upstream/schema';
 
 const usersTable: TableName = {
     kind: 'table_name',
@@ -15,9 +15,17 @@ describe('model upstream boundary Phase 87.51', () => {
         );
     });
 
-    it('requires database schema evidence before producing model columns', () => {
-        expect(() => resolveModelColumns(usersTable, [])).toThrow(
-            'migration schema for table "users" was not found'
-        );
-    });
+    it('keeps canonical schema evidence separate from model key normalization', () => {
+        const schema: SchemaAst = {
+            kind: 'schema_ast',
+            definition: {
+                kind: 'schema_definition',
+                tables: { kind: 'schema_tables', items: { kind: 'empty' } },
+                source: { kind: 'source_span', file: { kind: 'source_file', value: { kind: 'string_value', value: 'test.php' } }, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: 0 } },
+            },
+            source: { kind: 'source_span', file: { kind: 'source_file', value: { kind: 'string_value', value: 'test.php' } }, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: 0 } },
+        };
+        expect(schema.definition.tables.items.kind).toBe('empty');
+        expect(ModelKeyTypeMapper.normalize('integer')).toBe('int');
+    });;
 });

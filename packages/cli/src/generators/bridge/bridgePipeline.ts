@@ -6,7 +6,7 @@
  * @module generators/bridge/bridgePipeline
  */
 
-import type { RouteManifest } from '../../../../core/src/types/route'
+import type { RouteManifest, ClassifiedDomainGraph } from '@routesync/core'
 import { manifestToSemanticTypes, manifestToContractInput } from '../utils/manifest-to-types'
 import {
     lowerReadTypesOutput,
@@ -14,7 +14,7 @@ import {
     lowerContractsOutput,
     lowerApiFieldsOutput,
     lowerMappersOutput
-} from '../../../../core/src/compiler/passes/outputLowerers'
+} from '@routesync/core'
 import { classifyDomainGraph } from '../route-classifier'
 import type {
     CompiledContractsBundle,

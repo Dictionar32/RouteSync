@@ -13,7 +13,7 @@ import {
   UnionType,
   type SemanticType,
   type ObjectTypeDescriptorParams,
-} from '../../compiler/types/SemanticType';
+} from '../domain/semanticType';
 import { relationResolve } from '../../semantic/foundation/relationalSequence';
 import { relationEqual } from '../../semantic/foundation/semanticRelations';
 

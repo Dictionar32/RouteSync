@@ -3,7 +3,7 @@ import {
     RequestField,
     FileValidationConstraints
 } from "../../../artifacts/RequestTypesArtifact";
-import { SemanticType, PrimitiveType, PrimitiveKind, primitiveType } from "../../../types/SemanticType";
+import { SemanticType, PrimitiveType, PrimitiveKind, primitiveType } from "../../../../types/domain/semanticType";
 import { SemanticValueFactory, type RequestFieldName, type PropertyName } from "../../../../types/domain/semanticValues";
 import { RequestFieldMeaningFactory, type RequestFieldMeaning } from "../../../../types/domain/requestFieldMeaning";
 import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../../../types/domain/requestFieldPresence";

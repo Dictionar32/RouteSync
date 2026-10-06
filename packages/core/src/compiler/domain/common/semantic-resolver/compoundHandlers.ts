@@ -8,7 +8,7 @@
 
 import {
     type SemanticType
-} from '../../../types/SemanticType';
+} from '../../../../types/domain/semanticType';
 import {
     ResolvedNullableType,
     ResolvedObjectType,

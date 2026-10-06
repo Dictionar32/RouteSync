@@ -6,7 +6,7 @@
  * keyed cache; cycle/finalization facts live in relations.
  */
 
-import type { SemanticType, SemanticTypeVisitor } from './SemanticType';
+import type { SemanticType, SemanticTypeVisitor } from '../../types/domain/semanticType';
 import {
     relationIndexAdd,
     relationIndexLookup,

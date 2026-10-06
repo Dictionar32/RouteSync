@@ -2,7 +2,7 @@
  * Compatibility facade for the canonical resolved object domain model.
  * Property selection and identity are declarative relations.
  */
-import type { ObjectType, SemanticType } from '../../types/SemanticType';
+import type { ObjectType, SemanticType } from '../../../types/domain/semanticType';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import type { PropertyName } from '../../../types/upstream/names';
 import type { Presence } from '../../../types/upstream/primitiveVocabulary';

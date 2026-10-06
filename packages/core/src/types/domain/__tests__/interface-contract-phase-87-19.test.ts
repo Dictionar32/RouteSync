@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PrimitiveKind } from '../../../compiler/types/SemanticType';
+import { PrimitiveKind } from '../semanticType';
 import {
   ResourceFieldExpressionFactory,
   matchResourceFieldExpression,
@@ -31,6 +31,6 @@ describe('Phase 87.19 resource expression ADT contract', () => {
   });
 
   it('requires an explicit primitive semantic kind at the factory boundary', () => {
-    expect(ResourceFieldExpressionFactory.primitive(PrimitiveKind.UNKNOWN).type).toBe(PrimitiveKind.UNKNOWN);
+    expect(ResourceFieldExpressionFactory.primitive(PrimitiveKind.INDETERMINATE).type).toBe(PrimitiveKind.INDETERMINATE);
   });
 });

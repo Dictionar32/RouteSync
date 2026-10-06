@@ -31,8 +31,3 @@ export type ResourceExpressionDescriptor =
     | { readonly kind: "primitive"; readonly type: "string" | "int" | "boolean" }
     | { readonly kind: "raw"; readonly raw: string };
 
-export interface StaticLaravelScannerOptions {
-    readonly sourceProject: SourceProjectIdentity;
-    readonly baseURL: string;
-    readonly version: string;
-}

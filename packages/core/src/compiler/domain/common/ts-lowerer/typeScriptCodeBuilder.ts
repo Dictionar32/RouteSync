@@ -11,7 +11,7 @@ import type {
     ObjectType,
     SemanticType,
     ObjectProperty
-} from '../../../types/SemanticType';
+} from '../../../../types/domain/semanticType';
 import {
     TypeScriptTargetVersion,
     type TypeScriptLowererOptions

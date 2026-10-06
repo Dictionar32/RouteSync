@@ -1,7 +1,7 @@
 import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
-import { NullableType, type SemanticType } from "../../../types/SemanticType";
+import { NullableType, type SemanticType } from "../../../../types/domain/semanticType";
 import { collectMembers, relationCardinality } from "./propertyPathBindingSupport";
 import { resolveResourceMethodInvocation, type ResourceQueryState, type ResourceMethodResult } from "../../../../types/domain/resourceModelMethodSurface";
 import type { ResourcePropertyPathResult, ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";

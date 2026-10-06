@@ -1,4 +1,4 @@
-import { PrimitiveKind, type SemanticType } from "../../compiler/types/SemanticType";
+import { PrimitiveKind, type SemanticType } from "./semanticType";
 import type { ModelBinding, Nullability } from './modelContracts';
 import type { ModelName, PropertyName, ResourceName, ResponseFieldName, ResponseTypeName, MethodName, CastTypeName, SemanticOperator, VariableName, ClassName, SourceFilePath, SourceLineNumber, ActionName, RouteName } from './semanticValues';
 import type { HttpMethod } from "./security";

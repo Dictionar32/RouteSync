@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { SemanticTypeResolver } from '../../../compiler/domain/common/SemanticTypeResolver';
 import { BoundSemanticFactory } from '../boundAst';
 import { ResourceFieldSemanticBinding } from '../resourceFieldSemanticBinding';
 import { ResourceFieldExpressionFactory } from '../../route';
 import { SemanticValueFactory } from '../semanticValues';
-import { PrimitiveType } from '../../../compiler/types/SemanticType';
+import { primitiveType } from '../semanticType';
 
 describe('phase 110 semantic field boundary', () => {
     it('uses bound property-chain resultingType as the canonical field type', () => {
-        const type = new PrimitiveType('string');
+        const type = primitiveType('string');
         const bound = BoundSemanticFactory.propertyChain({
             rootModel: SemanticValueFactory.modelName('Order'),
             steps: [],
@@ -18,10 +17,12 @@ describe('phase 110 semantic field boundary', () => {
         const field = ResourceFieldSemanticBinding.fromExpression(
             'promotion',
             ResourceFieldExpressionFactory.primitive('string'),
-            new PrimitiveType('boolean'),
+            primitiveType('boolean'),
             undefined,
             bound
         );
-        expect(SemanticTypeResolver.resolveFieldSemanticType(field)).toBe(type);
+        expect(field.semantic.kind).toBe('verified');
+        if (field.semantic.kind !== 'verified') throw new Error('expected verified semantic');
+        expect(field.semantic.type).toBe(type);
     });
 });

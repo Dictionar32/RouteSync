@@ -1,4 +1,4 @@
-import type { RouteManifest } from "./base";
+import type { RouteManifestDomainSurface } from "./base";
 import type { EndpointContract } from "./contracts";
 import type { ModelSemanticDefinition } from "../upstream/model";
 import type { RouteSemanticFlow } from "./routes";
@@ -84,7 +84,7 @@ export const ScannedResourceGroupGraph = Object.freeze({
  * Top-Level Classified Domain Graph (SSOT Data Carrier).
  */
 export interface ClassifiedDomainGraph<TRoute = RouteSemanticFlow> {
-  readonly manifest: RouteManifest;
+  readonly manifest: RouteManifestDomainSurface;
   readonly contracts: readonly EndpointContract[];
   readonly resourceGroups: readonly ResourceGroupDescriptor<TRoute>[];
   readonly resourceGroupMap: ReadonlyMap<string, ResourceGroupDescriptor<TRoute>>;

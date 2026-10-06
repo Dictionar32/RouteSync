@@ -1,0 +1,16 @@
+{
+  "phase": 1123,
+  "direction": "upstream => wiring => interface => downstream",
+  "checks": {
+    "graphRelationOwnedByGraph": true,
+    "upstreamGraphRelationRemoved": true,
+    "upstreamIndexDoesNotExportGraphRelation": true,
+    "graphRelationDependsOnlyOnUpstreamSemanticInputs": true,
+    "upstreamDoesNotImportGraphLayer": true,
+    "graphEdgeUsesLocalGraphRelation": true,
+    "graphTypesUseLocalGraphRelation": true,
+    "publicExportUsesGraphLayer": true
+  },
+  "violations": [],
+  "passed": true
+}

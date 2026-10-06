@@ -1,8 +1,7 @@
 import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
+import { SemanticTypeDeriver, SemanticDerivationContext } from '../../core/src/compiler/scanner/subscanners/SemanticTypeDeriver'
 import { describe, it, expect } from 'vitest';
 import {
-    SemanticTypeDeriver,
-    SemanticDerivationContext,
     PrimitiveKind,
     ObjectType,
     ReadonlyCollectionType,

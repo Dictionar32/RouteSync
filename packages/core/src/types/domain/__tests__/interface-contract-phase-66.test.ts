@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from 'vitest';
-import type { SemanticType } from '../../../compiler/types/SemanticType';
+import type { SemanticType } from '../semanticType';
 import type { EloquentRelationType } from '../eloquentTypes';
 import type { Nullability } from '../modelContracts';
 import type { ColumnName, ModelName, RelationName } from '../semanticValues';

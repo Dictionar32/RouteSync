@@ -1,5 +1,5 @@
 /** Closed semantic property binding emitted by the model origin boundary. */
-import type { SemanticType } from '../../../types/SemanticType';
+import type { SemanticType } from '../../../../types/domain/semanticType';
 import type { ModelSemanticProperty } from '../../../../types/upstream/model';
 import type { PropertyName } from '../../../../types/upstream/names';
 

@@ -1,96 +1,31 @@
 /**
- * responseBodies.ts
- *
- * Discriminated union and type guards for HTTP response bodies.
- * Shape is a property of data, not HTTP transport.
- *
- * @module compiler/ir/response
+ * Downstream response-body facade.
+ * Semantic response-body vocabulary is owned by types/domain.
  */
-
+import type {
+  ResponseBody as DomainResponseBody,
+  ResourceBody as DomainResourceBody,
+  ModelBody as DomainModelBody,
+  ObjectBody as DomainObjectBody,
+  PrimitiveBody as DomainPrimitiveBody,
+} from '../../../types/domain/responseBody';
 import type { PropertyDescriptor, ModelAttribute, ObjectSchema } from './objectSchemas';
 
-/**
- * ResponseBody: Discriminated union with readonly type discriminator
- */
-export type ResponseBody =
-    | ResourceBody
-    | ModelBody
-    | ObjectBody
-    | PrimitiveBody;
-
-/**
- * ResourceBody: Laravel Resource transformation
- */
-export interface ResourceBody {
-    readonly type: 'resource';
-    readonly resource: string;
-    readonly model?: string;
-
-    /** Shape is DATA property, not transport */
-    readonly shape: 'single' | 'collection' | 'paginated';
-
-    readonly properties?: readonly PropertyDescriptor[];
+export interface ResourceBody extends DomainResourceBody {
+  readonly model?: string;
+  readonly properties?: readonly PropertyDescriptor[];
 }
-
-/**
- * ModelBody: Eloquent model structure
- */
-export interface ModelBody {
-    readonly type: 'model';
-    readonly model: string;
-
-    /** Shape is DATA property */
-    readonly shape: 'single' | 'collection' | 'paginated';
-
-    readonly attributes?: readonly ModelAttribute[];
+export interface ModelBody extends DomainModelBody {
+  readonly attributes?: readonly ModelAttribute[];
 }
-
-/**
- * ObjectBody: Ad-hoc object structure
- */
-export interface ObjectBody {
-    readonly type: 'object';
-    readonly schemaName?: string;
-    readonly schema: ObjectSchema;
-
-    /** Shape is DATA property */
-    readonly shape: 'single' | 'collection' | 'paginated';
+export interface ObjectBody extends Omit<DomainObjectBody, 'schema'> {
+  readonly schema: ObjectSchema;
 }
+export type PrimitiveBody = DomainPrimitiveBody;
+export type ResponseBody = ResourceBody | ModelBody | ObjectBody | PrimitiveBody;
 
-/**
- * PrimitiveBody: Scalar value
- */
-export interface PrimitiveBody {
-    readonly type: 'primitive';
-    readonly primitiveType: 'string' | 'number' | 'boolean' | 'null' | 'void';
-
-    /** Primitives always single */
-    readonly shape: 'single';
-}
-
-// ============================================================================
-// TYPE GUARDS
-// ============================================================================
-
-export function isResourceBody(body: ResponseBody): body is ResourceBody {
-    return body.type === 'resource';
-}
-
-export function isModelBody(body: ResponseBody): body is ModelBody {
-    return body.type === 'model';
-}
-
-export function isObjectBody(body: ResponseBody): body is ObjectBody {
-    return body.type === 'object';
-}
-
-export function isPrimitiveBody(body: ResponseBody): body is PrimitiveBody {
-    return body.type === 'primitive';
-}
-
-export function isCollectionResponse(body: ResponseBody): boolean {
-    if ('shape' in body) {
-        return body.shape === 'collection' || body.shape === 'paginated';
-    }
-    return false;
-}
+export function isResourceBody(body: ResponseBody): body is ResourceBody { return body.type === 'resource'; }
+export function isModelBody(body: ResponseBody): body is ModelBody { return body.type === 'model'; }
+export function isObjectBody(body: ResponseBody): body is ObjectBody { return body.type === 'object'; }
+export function isPrimitiveBody(body: ResponseBody): body is PrimitiveBody { return body.type === 'primitive'; }
+export function isCollectionResponse(body: ResponseBody): boolean { return body.shape === 'collection' || body.shape === 'paginated'; }

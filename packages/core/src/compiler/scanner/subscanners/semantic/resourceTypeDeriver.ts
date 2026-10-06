@@ -8,8 +8,8 @@ import type { TypeExpression } from '../../../../types/upstream/typeVocabulary';
 import {
     ObjectType,
     type ObjectProperty,
-} from '../../../types/SemanticType';
-import { ScannedObjectProperty } from '../../../types/SemanticType';
+} from '../../../../types/domain/semanticType';
+import { ScannedObjectProperty } from '../../../../types/domain/semanticType';
 import { toCamelCase } from '../../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
 import { relationEqual, relationFold, relationGate, relationProject, relationTextSlice, relationVariantFold, relationSequenceToArray } from '../../../../semantic/foundation/relationalSequence';

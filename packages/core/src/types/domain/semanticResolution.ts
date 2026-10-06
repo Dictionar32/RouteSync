@@ -6,7 +6,7 @@ import { relationOptionFold, relationRefine } from '../../semantic/foundation/re
  * This is the upstream semantic contract. Identity is carried by qualified
  * value objects, not by optional strings that downstream code has to guess.
  */
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { BoundSemanticNode, BoundNullability } from './boundAst';
 import type { ModelName, ResourceName } from './semanticValues';
 import type { ModelSemanticDefinition } from './models';

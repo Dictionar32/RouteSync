@@ -1,5 +1,5 @@
 import { QueryProjectionFieldIndex, SemanticObjectFieldIndex } from './queryProjectionResolution';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { BoundSemanticNode, BoundCardinality, BoundNullability } from './boundAst';
 import type { ModelName, ResourceName, ResponseFieldName } from './semanticValues';
 import type { ModelSemanticDefinition } from './models';

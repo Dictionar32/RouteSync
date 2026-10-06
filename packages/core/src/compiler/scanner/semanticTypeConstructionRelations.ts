@@ -11,8 +11,8 @@ import {
   PrimitiveKind,
   ReferenceType,
   type SemanticType,
-} from '../types/SemanticType';
-import type { ObjectProperty } from '../types/SemanticType';
+} from '../../types/domain/semanticType';
+import type { ObjectProperty } from '../../types/domain/semanticType';
 
 export const scannerSemanticType = Object.freeze({
   primitive: (kind: PrimitiveKind): SemanticType => SemanticTypeFactory.primitive(kind),

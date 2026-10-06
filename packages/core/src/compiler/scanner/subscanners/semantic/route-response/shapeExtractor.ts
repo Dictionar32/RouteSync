@@ -5,7 +5,7 @@
 
 import type { ResourceFieldSemanticBinding } from '../../../../../types/domain/resourceFieldSemanticBinding';
 import type { RouteSemanticFlow } from '../../../../../types/route';
-import { ReferenceType } from '../../../../types/SemanticType';
+import { ReferenceType } from '../../../../../types/domain/semanticType';
 import { ResourceFieldExpressionFactory } from '../../../../../types/domain/expressions';
 import { SemanticValueFactory } from '../../../../../types/domain/semanticValues';
 import type { ResponseTypeName } from '../../../../../types/upstream/names';

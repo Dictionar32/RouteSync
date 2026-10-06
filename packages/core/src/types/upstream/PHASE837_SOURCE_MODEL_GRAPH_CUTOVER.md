@@ -6,7 +6,7 @@ Move the `ServiceGraphBuilder` route-sync path from the downstream `RouteManifes
 
 ## Changes
 
-- Added `compileGraphFromSourceModel()` to the existing graph compiler module. This is a graph compilation entrypoint over the canonical upstream semantic contract catalog, not an adapter or compatibility projection.
+- Added `compileGraphFromSurface()` to the existing graph compiler module. This is a graph compilation entrypoint over the canonical upstream semantic contract catalog, not an adapter or compatibility projection.
 - `ServiceGraphBuilder.buildFromRouteSyncManifest()` now accepts only `RouteSyncManifest` and compiles directly from `manifest.sourceModel`.
 - Model, resource, route, and service graph facts are read from `sourceModel.contracts`.
 - CLI `scan` no longer casts the compatibility result to `RouteManifest` for graph construction.

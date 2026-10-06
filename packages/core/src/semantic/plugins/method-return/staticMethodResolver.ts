@@ -4,7 +4,7 @@ import type { SemanticResolution, ResolutionCardinality } from '../../../types/d
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { ReferenceType } from '../../../compiler/types/SemanticType';
+import { ReferenceType } from '../../../types/domain/semanticType';
 import { lookupEloquentMethodRelation, type EloquentCardinality, type EloquentReturn } from '../../EloquentRegistry';
 import { matchLookup } from '../../../types/upstream/collections';
 import { relationFirst, relationOptionFold, relationRefine, relationResolve } from '../../kernel/relationalSequence';

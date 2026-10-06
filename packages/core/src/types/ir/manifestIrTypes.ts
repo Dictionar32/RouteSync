@@ -1,5 +1,5 @@
 /** Canonical manifest IR vocabulary. */
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from '../domain/semanticType';
 import type { DescriptionText } from '../upstream/valueObjects';
 import type { Presence } from '../upstream/primitiveVocabulary';
 import type { ValidationRules } from '../upstream/collections';

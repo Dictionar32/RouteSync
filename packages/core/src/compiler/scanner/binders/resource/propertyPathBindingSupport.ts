@@ -1,7 +1,7 @@
 import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
 import { ResourceFieldExpressionFactory, type ResourceFieldExpression } from "../../../../types/route";
 import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/domain/boundAst";
-import { ErrorType } from "../../../types/SemanticType";
+import { ErrorType } from "../../../../types/domain/semanticType";
 import type { ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import type { ModelName } from "../../../../types/domain/semanticValues";

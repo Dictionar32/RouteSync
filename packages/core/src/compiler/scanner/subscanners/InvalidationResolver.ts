@@ -14,9 +14,9 @@ import {
     RouteSemanticFlowInvalidationPayload,
     ScannedEndpointContract,
 } from "../../../types/route";
-import type { ModelAst } from "../../../types/upstream/ast";
+import type { ModelSemanticDefinition } from "../../../types/upstream/model";
 import type { ResourceName } from "../../../types/upstream/names";
-import type { ModelRelation } from "../../../types/upstream/model";
+import type { ModelSemanticRelation } from "../../../types/upstream/model";
 import { createResourceName } from "../../../types/upstream/names";
 import {
     relationGate,
@@ -34,18 +34,9 @@ import { relationAny, relationEqual } from "../../../semantic/foundation/semanti
 
 type RouteInvalidationContext = Readonly<{
     readonly route: RouteSemanticFlow;
-    readonly models: readonly ModelAst[];
+    readonly models: readonly ModelSemanticDefinition[];
     readonly routeGroups: readonly ResourceRouteGroup[];
 }>;
-
-const isCons = <T>(value: import("../../../types/upstream/collections").Sequence<T>): value is Extract<import("../../../types/upstream/collections").Sequence<T>, { readonly kind: 'cons' }> => relationEqual(value.kind, 'cons');
-
-const sequenceToArray = <T>(items: import("../../../types/upstream/collections").Sequence<T>): readonly T[] =>
-    relationOptionFold(
-        relationRefine(items, isCons),
-        () => Object.freeze([]),
-        value => Object.freeze([value.head, ...sequenceToArray(value.tail)]),
-    );
 
 const responseModelName = (route: RouteSemanticFlow): RelationOption<string> => {
     const responseAnalysis = route.contract.response.success.descriptor.toAnalysis(
@@ -70,27 +61,27 @@ const responseModelName = (route: RouteSemanticFlow): RelationOption<string> => 
     );
 };
 
-const modelForName = (models: readonly ModelAst[], name: string): RelationOption<ModelAst> =>
-    relationFirst(models, model => relationEqual(model.definition.identity.name.value.value, name));
+const modelForName = (models: readonly ModelSemanticDefinition[], name: string): RelationOption<ModelSemanticDefinition> =>
+    relationFirst(models, model => relationEqual(model.identity.name.value.value, name));
 
-const relationTargets = (model: ModelAst): readonly InvalidationTarget[] => {
-    const relations: readonly ModelRelation[] = sequenceToArray(model.definition.relations.items);
+const relationTargets = (model: ModelSemanticDefinition): readonly InvalidationTarget[] => {
+    const relations: readonly ModelSemanticRelation[] = model.relation.semantic;
     return Object.freeze(relationFold(relations, Object.freeze([]) as readonly InvalidationTarget[], (targets, rel) => {
-        const sourceModel = model.definition.identity.name;
+        const sourceModel = model.identity.name;
         const additions = relationGate(
-            relationEqual(rel.relation.kind, 'belongs_to'),
+            relationEqual(rel.eloquentType.kind, 'belongs_to'),
             () => Object.freeze([
                 ScannedInvalidationTarget.parentList(createResourceName(sourceModel.value.value)),
                 ScannedInvalidationTarget.parentDetail(createResourceName(sourceModel.value.value)),
             ]),
             () => relationGate(
                 relationAny([
-                    relationEqual(rel.relation.kind, 'has_many'),
-                    relationEqual(rel.relation.kind, 'has_one'),
+                    relationEqual(rel.eloquentType.kind, 'has_many'),
+                    relationEqual(rel.eloquentType.kind, 'has_one'),
                 ]),
                 () => Object.freeze([ScannedInvalidationTarget.resourceItem(createResourceName(sourceModel.value.value))]),
                 () => relationGate(
-                    relationEqual(rel.relation.kind, 'belongs_to_many'),
+                    relationEqual(rel.eloquentType.kind, 'belongs_to_many'),
                     () => Object.freeze([
                         ScannedInvalidationTarget.resourceList(createResourceName(sourceModel.value.value)),
                         ScannedInvalidationTarget.resourceItem(createResourceName(sourceModel.value.value)),
@@ -194,7 +185,7 @@ const applyInvalidation = (
 
 export const resolveRouteInvalidations = (
     routes: readonly RouteSemanticFlow[],
-    models: readonly ModelAst[],
+    models: readonly ModelSemanticDefinition[],
     routeGroups: readonly ResourceRouteGroup[],
 ): readonly RouteSemanticFlow[] => Object.freeze(relationProject(
     routes,

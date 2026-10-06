@@ -3,7 +3,8 @@ import type { ControllerMethodAst, ControllerParameterAst } from '../../lexer/co
 import type { PhpAstValue, PhpStatement, PhpAssignmentTarget, PhpIfAlternative, PhpForClause } from '../../lexer/phpAstTypes';
 import type { ControllerAst } from '../../../../types/upstream/ast';
 import type { QueryAst, QueryOperationAst } from '../../../../types/upstream/query';
-import type { ControllerAction, ControllerParameter, ControllerDependency, ControllerSemanticDataflow, ControllerResponse, ControllerMethodAttribute, ControllerPolicyRelation, ControllerPolicyActionScope } from '../../../../types/upstream/controller';
+import type { QueryCondition } from '../../../../types/upstream/expression';
+import type { ControllerAction, ControllerParameter, ControllerDependency, ControllerSemanticDataflow, ControllerResponse, ControllerMethodAttribute, ControllerPolicyRelation, ControllerPolicyActionScope, ControllerQueryEvidence, ControllerQueryInput } from '../../../../types/upstream/controller';
 import type { SourceStatement, SourceStatements } from '../../../../types/upstream/sourceStatements';
 import type { Assignment, AssignmentTarget } from '../../../../types/upstream/assignment';
 import type { Expression, ResolvedExpression, ExpressionArgument } from '../../../../types/upstream/expression';
@@ -19,6 +20,7 @@ import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReference
 import { createControllerDataflowContract, createControllerReturnSet, type ControllerResourceResponseEvidence } from './controllerDataflowContract';
 import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, relationRefine, relationSelect, relationFold, relationFoldRight, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 import { relationAll, relationAny } from '../../../../semantic/foundation/semanticRelations';
+import { createSemanticDataflowInput } from '../../wiring/semanticDataflowInputAdapter';
 
 const relationCase = <T, R>(value: T, key: (value: T) => string, cases: Readonly<Record<string, (value: T) => R>>, fallback: (value: T) => R): R => relationOptionFold(relationFirstOption(Object.entries(cases), ([candidate]) => relationEqual(candidate, key(value))), () => fallback(value), ([, branch]) => branch(value));
 
@@ -168,7 +170,7 @@ function requestBinding(method: ControllerMethodAst): ControllerAction['request'
   );
 }
 
-function semantic(method: ControllerMethodAst, file: string, response: ControllerResponse): ControllerSemanticDataflow {
+function semantic(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse, queries: readonly QueryAst[] = []): ControllerSemanticDataflow {
   const contract = createControllerDataflowContract(
     method.body.dataflow,
     method.parameters,
@@ -191,7 +193,15 @@ function semantic(method: ControllerMethodAst, file: string, response: Controlle
     () => returnSetSemantic(relationProject(method.returns, item => item.expression), file, contract.resourceBindings),
   );
 
-  return { variables, resources: sequence(resources), returned };
+  const source = tokenSpan(file, method.source);
+  const node = {
+    kind: 'semantic_dataflow_identity' as const,
+    source,
+    role: 'scope' as const,
+    slot: stringValue(`${controllerName}.${method.name}`),
+  };
+  const dataflow = createSemanticDataflowInput(node, source, method.body.dataflow.semanticKnowledgeDataFlow, 'controller');
+  return { dataflow, variables, resources: sequence(resources), returned, queries: sequence(controllerQueryEvidence(method, file, queries)) };
 }
 
 
@@ -356,7 +366,7 @@ function toUpstreamModel(origin: import('./controllerDataflowContract').Controll
 }
 
 export function controllerReturnSemanticFromMethod(method: ControllerMethodAst, file: string, response: ControllerResponse): import('../../../../types/upstream/controller').ControllerReturnSemantic {
-  return semantic(method, file, response).returned;
+  return semantic(method, 'Controller', file, response).returned;
 }
 
 export function controllerReturnSemanticFromValues(
@@ -650,6 +660,126 @@ function literalStringFromExpression(expression: Expression): string | undefined
   return first.value.value.value.value;
 }
 
+function queryConditionInputs(condition: QueryCondition): readonly ControllerQueryInput[] {
+  return relationCase(condition, value => value.kind, {
+    basic: value => [{ expression: value.value, role: 'predicate' as const }],
+    between: value => [
+      { expression: value.lower, role: 'predicate' as const },
+      { expression: value.upper, role: 'predicate' as const },
+    ],
+    value_between: value => [
+      { expression: value.value, role: 'predicate' as const },
+    ],
+    in: value => [{ expression: value.values, role: 'predicate' as const }],
+    null_safe_equals: value => [{ expression: value.value, role: 'predicate' as const }],
+    date_part: value => [{ expression: value.value, role: 'predicate' as const }],
+    like: value => [{ expression: value.value, role: 'predicate' as const }],
+    full_text: value => [{ expression: value.value, role: 'predicate' as const }],
+    vector_similarity: value => [{ expression: value.vector, role: 'predicate' as const }, ...optionExpression(value.threshold, 'predicate'), ...optionExpression(value.order, 'predicate')],
+    vector_distance: value => [{ expression: value.vector, role: 'predicate' as const }, { expression: value.maxDistance, role: 'predicate' as const }],
+    row_values: value => [{ expression: value.values, role: 'predicate' as const }],
+    nested: value => [{ expression: value.expression, role: 'predicate' as const }],
+    not: value => [{ expression: value.expression, role: 'predicate' as const }],
+    raw: value => [{ expression: value.expression, role: 'predicate' as const }, ...optionExpression(value.bindings, 'predicate')],
+    any: value => [{ expression: value.value, role: 'predicate' as const }],
+    all: value => [{ expression: value.value, role: 'predicate' as const }],
+    none: value => [{ expression: value.value, role: 'predicate' as const }],
+    exists: value => [{ expression: value.query, role: 'predicate' as const }],
+    relation: () => [],
+    json: value => queryJsonConditionInputs(value.condition),
+    date_relative: () => [],
+    null: () => [],
+    between_columns: () => [],
+    column: () => [],
+    column_group: () => [],
+  }, () => []);
+}
+
+function optionExpression(value: import('../../../../types/upstream/collections').Option<Expression>, role: ControllerQueryInput['role']): readonly ControllerQueryInput[] {
+  return value.kind === 'none' ? [] : [{ expression: value.value, role }];
+}
+
+function queryJsonConditionInputs(condition: import('../../../../types/upstream/expression').QueryJsonCondition): readonly ControllerQueryInput[] {
+  return relationCase(condition, value => value.kind, {
+    contains: value => [{ expression: value.path, role: 'predicate' as const }, { expression: value.value, role: 'predicate' as const }],
+  }, () => []);
+}
+
+function queryOperationInputs(operation: QueryOperationAst): readonly ControllerQueryInput[] {
+  if (operation.kind !== 'model_static' && operation.kind !== 'instance') return [];
+  const value = operation.operation;
+  return relationCase(value, current => current.kind, {
+    where: current => queryConditionInputs(current.condition),
+    or_where: current => queryConditionInputs(current.condition),
+    where_raw: current => [{ expression: current.condition.expression, role: 'predicate' as const }, ...optionExpression(current.condition.bindings, 'predicate')],
+    where_key: current => [{ expression: current.value, role: 'key' as const }],
+    find: current => [{ expression: current.key, role: 'key' as const }],
+    find_or_fail: current => [{ expression: current.key, role: 'key' as const }],
+    create: current => [{ expression: current.values, role: 'mutation' as const }],
+    update: current => [{ expression: current.values, role: 'mutation' as const }],
+    fill: current => [{ expression: current.values, role: 'mutation' as const }],
+    update_or_create: current => [{ expression: current.lookup, role: 'mutation' as const }, { expression: current.values, role: 'mutation' as const }],
+    first_or_create: current => [{ expression: current.attributes, role: 'mutation' as const }, { expression: current.values, role: 'mutation' as const }],
+    update_or_insert: current => [{ expression: current.lookup, role: 'mutation' as const }, { expression: current.values, role: 'mutation' as const }],
+    insert: current => [{ expression: current.values, role: 'mutation' as const }],
+    insert_get_id: current => [{ expression: current.values, role: 'mutation' as const }, ...optionExpression(current.sequence, 'mutation')],
+    upsert: current => [{ expression: current.values, role: 'mutation' as const }, { expression: current.uniqueBy, role: 'mutation' as const }, { expression: current.update, role: 'mutation' as const }],
+    get_with_columns: current => [{ expression: current.columns, role: 'value' as const }],
+    select: current => current.projection.kind === 'columns' ? expressionArgumentsInputs(current.projection.arguments) : [],
+    add_select: current => current.projection.kind === 'columns' ? expressionArgumentsInputs(current.projection.arguments) : [],
+    order_by: current => current.target.kind === 'expression' ? [{ expression: current.target.expression, role: 'value' as const }] : [],
+    order_by_raw: current => [{ expression: current.target.expression, role: 'value' as const }, ...optionExpression(current.target.bindings, 'value')],
+    group_by: current => current.grouping.kind === 'raw' ? [{ expression: current.grouping.expression, role: 'value' as const }, ...optionExpression(current.grouping.bindings, 'value')] : [],
+    limit: current => [{ expression: current.value, role: 'value' as const }],
+    offset: current => [{ expression: current.value, role: 'value' as const }],
+    paginate: current => [{ expression: current.perPage, role: 'value' as const }, ...optionExpression(current.page, 'value')],
+    simple_paginate: current => [{ expression: current.perPage, role: 'value' as const }],
+    cursor_paginate: current => [{ expression: current.perPage, role: 'value' as const }, ...optionExpression(current.cursor, 'value')],
+  }, () => []);
+}
+
+function expressionArgumentsInputs(argumentsValue: import('../../../../types/upstream/expression').ExpressionArguments): readonly ControllerQueryInput[] {
+  const output: ControllerQueryInput[] = [];
+  let current = argumentsValue.items;
+  while (current.kind !== 'empty') {
+    output.push({ expression: current.head.value, role: 'value' });
+    current = current.tail;
+  }
+  return output;
+}
+
+export function controllerQueryEvidence(
+  method: ControllerMethodAst,
+  file: string,
+  queries: readonly QueryAst[],
+): readonly ControllerQueryEvidence[] {
+  const methodSource = tokenSpan(file, method.source);
+  return relationProject(
+    relationSelect(queries, query => relationAll([
+      relationEqual(query.source.file.value.value, file),
+      relationGate(sourceOffset(query.source, 'start') >= sourceOffset(methodSource, 'start'), () => sourceOffset(query.source, 'end') <= sourceOffset(methodSource, 'end'), () => false),
+      relationEqual(query.model.kind, 'known'),
+    ])),
+    query => ({
+      kind: 'controller_query_evidence' as const,
+      operation: relationAny(relationProject(sequenceToArray(query.operations), queryOperationIsWrite)) ? 'model_write' as const : 'model_query' as const,
+      model: (query.model as Extract<QueryAst['model'], { readonly kind: 'known' }>).name,
+      inputs: sequence(queryOperationsInputs(query.operations)),
+      source: query.source,
+    }),
+  );
+}
+
+function queryOperationsInputs(operations: Sequence<QueryOperationAst>): readonly ControllerQueryInput[] {
+  const output: ControllerQueryInput[] = [];
+  let current = operations;
+  while (current.kind !== 'empty') {
+    output.push(...queryOperationInputs(current.head));
+    current = current.tail;
+  }
+  return output;
+}
+
 export function controllerQueryOperations(
   method: ControllerMethodAst,
   file: string,
@@ -726,7 +856,7 @@ export function controllerMethodContractFromMethod(
   controllerMethods: readonly ControllerMethodAst[] = [],
   controllerInheritedAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[] = [],
 ): import('../../../../types/upstream/controller').ControllerMethodContract {
-  const semanticDataflow = semantic(method, file, response);
+  const semanticDataflow = semantic(method, file, response, queries);
   return {
     attributes: controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file),
     policy: sequence(relationExpand([sequenceToArray(controllerPolicyRelationsFromAttributes(controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file), { kind: 'action_name' as const, value: { kind: 'string_value' as const, value: method.name.value } })), sequenceToArray(controllerHasMiddlewareRelations(controllerMethods, controllerInterfaces, file))], value => value)),
@@ -734,6 +864,7 @@ export function controllerMethodContractFromMethod(
     parameters: controllerParameters(method, dependencies, file),
     dependencies: sequence(dependencies),
     operations: sequence(controllerOperationsFromMethod(method, semanticDataflow, response, file, queries)),
+    queries: sequence(controllerQueryEvidence(method, file, queries)),
     failure: controllerFailureFromMethod(method),
     source: tokenSpan(file, method.source),
   };
@@ -761,6 +892,7 @@ export function controllerActionFromMethod(
   dependencies: readonly ControllerDependency[] = [],
   policy: Sequence<ControllerPolicyRelation> = { kind: 'empty' },
   inheritedFrom: readonly import('../../../../types/upstream/names').ControllerName[] = [],
+  queries: readonly QueryAst[] = [],
 ): ControllerAction {
   const action: ControllerAction = {
     kind: 'controller_action',
@@ -773,7 +905,7 @@ export function controllerActionFromMethod(
     response,
     dependencies: sequence(dependencies),
     statements: controllerStatements(method.body.statements, file, method),
-    semantic: semantic(method, file, response),
+    semantic: semantic(method, controllerName, file, response, queries),
     source: tokenSpan(file, method.source),
   };
   return action;

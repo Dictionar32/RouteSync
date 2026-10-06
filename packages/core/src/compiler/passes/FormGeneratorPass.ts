@@ -16,7 +16,7 @@ import { FormActionGenerator } from '../generators/form-generation/FormActionGen
 import { FormCodeBuilder, type FormTypeDefinition } from '../generators/form-generation/FormCodeBuilder';
 import { type SemanticTypeResolverLike } from '../domain/common/semantic-resolver';
 import { defaultTypeResolver } from '../domain/common/ResponseFieldLowering';
-import { RouteManifest } from '../../types/domain';
+import type { RouteManifest } from '../scanner/wiring/routeManifestInterface';
 
 export interface FormGeneratorPassDependencies {
     readonly indentSize?: number;

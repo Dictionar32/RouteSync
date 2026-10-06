@@ -52,7 +52,7 @@ describe('TypeScriptGeneratorPass (Structured Pipeline)', () => {
                 ],
                 metadata: {
                     hash: 'test-hash',
-                    producer: 'StaticLaravelScanner',
+                    producer: 'ManifestBuilder',
                     dependencies: [],
                     timestamp: Date.now(),
                     revision: '1.0.0'

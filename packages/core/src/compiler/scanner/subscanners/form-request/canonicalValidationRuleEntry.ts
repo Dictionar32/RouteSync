@@ -14,7 +14,7 @@ import {
     CollectionKind,
     type SemanticType,
     ObjectType
-} from "../../../types/SemanticType";
+} from "../../../../types/domain/semanticType";
 import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../../../types/domain/requestFieldPresence";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ValidationRuleParser } from "../../../../types/domain/validationRules";

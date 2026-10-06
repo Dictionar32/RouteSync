@@ -1,3 +1,4 @@
+import type { ModelSemanticRelation } from './model';
 import type { ControllerModelOrigin } from './controller';
 import type { ControllerActionPolicyRelation } from './controllerActionPolicyRelations';
 import type { RouteActionPolicyRelation } from './routeActionPolicyRelations';
@@ -30,7 +31,7 @@ export type SourceReference = { readonly kind: 'source_reference'; readonly file
 
 export type StructuralSemanticRelation =
   | { readonly kind: 'resource_model'; readonly resource: ResourceReference; readonly model: ModelReference }
-  | { readonly kind: 'model_relation'; readonly model: ModelReference; readonly target: ModelReference }
+  | { readonly kind: 'model_relation'; readonly model: ModelReference; readonly target: ModelReference; readonly relation: ModelSemanticRelation }
   | { readonly kind: 'request_property'; readonly request: RequestReference; readonly property: PropertyReference }
   | { readonly kind: 'response_resource'; readonly response: ResponseReference; readonly resource: ResourceReference }
   | { readonly kind: 'response_model'; readonly response: ResponseReference; readonly model: ModelReference }

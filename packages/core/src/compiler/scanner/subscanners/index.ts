@@ -18,4 +18,3 @@ export { resolvePrimitiveKind, resolveRouteDomain } from "./typeDeriverUtils";
 export { ValidationRuleFieldLowerer } from "./ValidationRuleFieldLowerer";
 export { RequestTypeDeriver, deriveRequestTypes } from "./RequestTypeDeriver";
 export { SemanticTypeDeriver } from "./SemanticTypeDeriver";
-export { TypeDeriver } from "./TypeDeriver";

@@ -6,8 +6,8 @@
  * @module generators/bridge/bridgeTypes
  */
 
-import type { RouteManifest } from '../../../../core/src/types/route'
-import type { ClassifiedDomainGraph } from '../../../../core/src/types/domain/domainGraph'
+import type { RouteManifest, ClassifiedDomainGraph } from '@routesync/core'
+
 import type { ClassifiedRoute } from '../route-classifier'
 import {
     type CompilerOutput,
@@ -15,7 +15,7 @@ import {
     type ContractOutput,
     type ApiFieldOutput,
     type MapperOutput
-} from '../../../../core/src/compiler/passes/outputLowerers'
+} from '@routesync/core'
 
 export type { CompilerOutput, FormOutput, ContractOutput, ApiFieldOutput, MapperOutput }
 

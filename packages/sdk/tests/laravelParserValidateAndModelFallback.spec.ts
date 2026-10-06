@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { ModelScanner } from '@routesync/core'
+import { ModelScanner } from '../../core/src/compiler/scanner/subscanners/ModelScanner'
 
 /**
  * Regression tests for LaravelRouteParser:

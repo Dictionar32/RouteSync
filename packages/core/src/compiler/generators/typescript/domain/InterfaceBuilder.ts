@@ -6,7 +6,7 @@
  */
 
 import type { EntityNode, ContractGraph } from '../../../ir/ContractGraph';
-import type { ObjectType } from '../../../types/SemanticType';
+import type { ObjectType } from '../../../../types/domain/semanticType';
 import { TSInterfaceDeclaration } from '../../../target/typescript/nodes/TSInterfaceDeclaration';
 import { TSPropertySignature } from '../../../target/typescript/nodes/TSPropertySignature';
 import { TSComment } from '../../../target/typescript/nodes/TSComment';

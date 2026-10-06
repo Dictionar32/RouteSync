@@ -1,6 +1,6 @@
 /** Relation-native incremental query compiler facade. */
-import type { SemanticType } from '../types/SemanticType';
-import { PrimitiveKind, primitiveType } from '../types/SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
+import { PrimitiveKind, primitiveType } from '../../types/domain/semanticType';
 import type { SymbolDatabase } from '../analysis';
 import {
   type QueryKey, type QueryNode, type QueryContext, type QueryFrame, type QueryCycleError, createQueryCycleError,

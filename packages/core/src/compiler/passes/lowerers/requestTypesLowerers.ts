@@ -7,7 +7,7 @@
  */
 
 import type { RequestTypesArtifact } from '../../artifacts/RequestTypesArtifact';
-import type { RouteManifest } from '../../../types/route';
+import type { RouteManifest } from '../../scanner/wiring/routeManifestInterface';
 import { lowerFormArtifact } from '../FormGeneratorPass';
 import { lowerContractArtifact } from '../ContractGeneratorPass';
 import { lowerApiFieldArtifact } from '../ApiFieldGeneratorPass';

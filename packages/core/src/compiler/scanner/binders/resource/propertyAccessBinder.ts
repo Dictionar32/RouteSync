@@ -7,7 +7,7 @@ import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
 import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
-import type { SemanticType } from "../../../types/SemanticType";
+import type { SemanticType } from "../../../../types/domain/semanticType";
 import type { BoundNullability } from "../../../../types/domain/boundAst";
 import type { ResourceFieldExpression } from "../../../../types/domain/expressions";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";

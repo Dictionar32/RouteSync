@@ -1,4 +1,4 @@
-import type { RouteManifest } from '../../types/route';
+import type { RouteManifest } from '../scanner/wiring/routeManifestInterface';
 import { TypedArtifact, type ArtifactMetadata } from './Artifact';
 
 /**

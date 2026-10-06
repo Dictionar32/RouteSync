@@ -1,5 +1,5 @@
 /** Relational semantic type derivation facade. */
-import type { ObjectType } from '../../types/SemanticType';
+import type { ObjectType } from '../../../types/domain/semanticType';
 import type { RouteSemanticFlow } from '../../../types/route';
 import type { ModelAst, ResourceAst } from '../../../types/upstream/ast';
 import { TypeInterner } from '../../types/TypeInterner';

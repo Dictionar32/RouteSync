@@ -4,7 +4,7 @@
  * Bindings are immutable keyed facts.  Absence is represented by
  * RelationOption, never by host null/undefined or a mutable Map.
  */
-import type { SemanticType } from '../types/SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 import {
   relationIndexAdd,
   relationIndexLookup,

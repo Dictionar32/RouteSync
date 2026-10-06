@@ -7,7 +7,7 @@ import type {
   BoundUnsupportedNode,
   BoundNullability,
 } from '../boundAst';
-import type { SemanticType } from '../../../compiler/types/SemanticType';
+import type { SemanticType } from '../semanticType';
 
 describe('Bound Laravel semantic AST contract', () => {
   it('uses first-class SemanticType for resolved results', () => {

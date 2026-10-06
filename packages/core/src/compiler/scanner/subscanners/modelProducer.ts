@@ -1,15 +1,15 @@
 import type { ModelCast } from '../../../types/upstream/model';
 import type { ModelAccessorFact } from '../../../types/upstream/modelSourceFacts';
 import type { EloquentRelationAst } from '../../../types/upstream/eloquent';
-import type { ModelAst, MigrationAst } from '../../../types/upstream/ast';
+import type { ModelAst } from '../../../types/upstream/ast';
+import type { SchemaInterface } from '../../../types/upstream/schema';
 import type { PhpClassPropertyAst, ModelDeclarationAst } from '../lexer';
 import { buildModelSemanticDefinitionFromAst } from './model/modelParser';
 import { modelAstFromSemantic } from './model/modelCanonical';
-import { resolveModelSchema } from './model';
 
 export type ModelProducerInput = {
     readonly sourceSpan: import('../../../types/upstream/provenance').SourceSpan;
-    readonly migrations: readonly MigrationAst[];
+    readonly schema: SchemaInterface;
     readonly propertyAsts: readonly PhpClassPropertyAst[];
     readonly declaration: ModelDeclarationAst;
     readonly casts: readonly ModelCast[];
@@ -35,20 +35,17 @@ const modelProducer: ModelProducer = {
         const relations = input.eloquentRelations;
         const semantic = buildModelSemanticDefinitionFromAst(
             input.sourceSpan,
-            input.migrations,
+            input.schema,
             input.propertyAsts,
             input.declaration,
             input.casts,
             input.accessors,
             relations,
         );
-        const schema = resolveModelSchema(semantic.identity.table, input.migrations);
         const ast = modelAstFromSemantic(
             semantic,
-            schema,
             input.casts,
             input.accessors,
-            relations,
             input.sourceSpan,
         );
         return { definition: ast.definition, ast };

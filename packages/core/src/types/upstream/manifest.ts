@@ -3,6 +3,9 @@ import type { SourceFile } from './names';
 import type { NumberValue } from './valueObjects';
 import type { SourceSpan } from './provenance';
 import type { CompleteLaravelSourceModel } from './highLevelSourceModel';
+import type { LaravelSemanticContractCatalog } from './highLevelContracts';
+import type { SemanticRelationGraph } from './semanticReferences';
+import type { ManifestDataflowSeedSurface } from './semanticDataflowManifestSurface';
 
 export interface ManifestVersion {
   readonly kind: 'manifest_version';
@@ -25,16 +28,22 @@ export interface ManifestSource {
  * AST remains an upstream construction artifact carried only by the concrete
  * manifest implementation.
  */
-export interface RouteSyncManifestFlow {
-  readonly kind: 'route_sync_manifest_flow' | 'route_sync_manifest';
+export interface RouteSyncManifestFlow extends ManifestDataflowSeedSurface {
+  readonly kind: 'route_sync_manifest_flow';
+  readonly version: ManifestVersion;
+  readonly source: ManifestSource;
+  readonly contracts: LaravelSemanticContractCatalog;
+  readonly relations: SemanticRelationGraph;
+}
+
+
+/** Canonical validated manifest contract produced upstream. */
+export interface RouteSyncManifest {
+  readonly kind: 'route_sync_manifest';
   readonly version: ManifestVersion;
   readonly source: ManifestSource;
   readonly sourceModel: CompleteLaravelSourceModel;
-}
-
-/** Canonical validated manifest contract produced upstream. */
-export interface RouteSyncManifest extends RouteSyncManifestFlow {
-  readonly kind: 'route_sync_manifest';
+  readonly dataflowInputs: RouteSyncManifestFlow['dataflowInputs'];
   readonly ast: CompleteSourceAst;
 }
 

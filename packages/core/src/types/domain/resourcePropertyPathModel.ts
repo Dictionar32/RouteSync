@@ -1,7 +1,7 @@
 import type { ModelSemanticProperty, ModelSemanticDefinition } from './models';
 import type { ModelName, PropertyName, MethodName } from './semanticValues';
 import type { ResourceAccessMode } from './resourceExpressionModel';
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { ResourceMethodResult } from './resourceModelMethodSurface';
 import type { BoundCardinality } from './boundAst';
 

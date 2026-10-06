@@ -1,4 +1,4 @@
-import type { SemanticType } from '../../compiler/types/SemanticType';
+import type { SemanticType } from './semanticType';
 import type { ResourceArrayEntry, ResourceFieldExpression } from './expressions';
 import type { MethodName, ModelName, PropertyName, PhpFunctionName, VariableName, ResponseFieldName, ResourceName, CastTypeName, SemanticOperator, ClassName } from './semanticValues';
 import type { ResourceClosureStatement, ResourceMatchArm, ResourceUnaryOperator } from './expressions';

@@ -3,7 +3,7 @@ import { manifestToSemanticTypes, manifestToContractInput } from '../../cli/src/
 import { TypeScriptGeneratorPass } from '../../core/src/compiler/passes/TypeScriptGeneratorPass'
 import { MapperGeneratorPass } from '../../core/src/compiler/passes/MapperGeneratorPass'
 import { RouteManifest } from '../../core/src/types/route'
-import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/StaticLaravelScanner'
+import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/descriptors'
 
 describe('Regression Test: Object Flattening ALLOWED & Array Preservation MANDATORY (inlineResponseObjectFlattenArrayPreserve)', () => {
     test('should flatten nested scalar objects into summaryAvgRating while preserving array topology reviewsData T[]', () => {

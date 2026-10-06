@@ -10,7 +10,7 @@ import {
   ReadonlyCollectionType,
   CollectionKind,
   type SemanticType
-} from '../../../types/SemanticType';
+} from '../../../../types/domain/semanticType';
 import {
   matchValidationRule,
   ValidationRuleNodeFactory,

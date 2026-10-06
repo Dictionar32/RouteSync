@@ -330,11 +330,9 @@ export {
 } from './scanner/LaravelSourceLexer';
 
 export {
-    StaticLaravelScanner,
     LaravelValidationType,
     type LaravelValidationConstraint,
     type ResourceExpressionDescriptor,
-    type StaticLaravelScannerOptions,
     ScannedRouteValidationRuleEntry,
     type ScannedRouteValidationRuleParams,
     RouteSemanticFlowValidationRuleSet,
@@ -359,22 +357,7 @@ export {
     type ControllerActionInfo,
     type RequestActionDefinition,
     buildRequestTypeWithActions,
-    collectPhpFiles,
-    ChannelScanner,
-    ControllerScanner,
-    ResourceScanner,
-    FormRequestScanner,
-    ModelScanner,
-    RouteScanner,
-    InvalidationResolver,
-    resolvePrimitiveKind,
-    resolveRouteDomain,
-    ValidationRuleFieldLowerer,
-    RequestTypeDeriver,
-    deriveRequestTypes,
-    SemanticTypeDeriver,
-    TypeDeriver
-} from './scanner/StaticLaravelScanner';
+} from './scanner/scannerExports';
 
 export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from '../types/domain/resourceFieldSemanticBinding';
 

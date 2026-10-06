@@ -1,6 +1,11 @@
 /** Declarative graph compilation from canonical route/source relations. */
-import type { CompleteLaravelSourceModel } from '../../types/upstream/highLevelSourceModel';
-import type { ServiceSemanticContract, ModelHighLevelContract, RouteHighLevelContract, ControllerActionFlowContract } from '../../types/upstream/highLevelContracts';
+import type {
+  RouteSyncManifestGraphSurface,
+  GraphServiceSurface,
+  GraphServiceMethodSurface,
+  GraphModelSurface,
+  GraphControllerSurface,
+} from '../RouteSyncManifestGraphProjectionInterface';
 import type { ServiceGraph, ServiceNode, ControllerNode, ServiceModelNode, ServiceDependency } from '../../types/semantic';
 import { createGraphEdgeRelation, type GraphEdgeRelation } from './graphEdgeRelation';
 import { buildModelNode, buildServiceNode, buildControllerNode } from './nodeFactories';
@@ -9,14 +14,12 @@ import type { ModelReference, ServiceReference, DependencyTargetReference } from
 import { isStructuralSemanticRelation } from '../../types/upstream/semanticReferences';
 import { GraphNodeIndex } from './graphNodeIndex';
 import { createControllerNodeName, createServiceNodeName } from '../../types/semantic/nominalVocabulary';
-import type { ServiceMethod } from '../../types/upstream/service';
 import type { RelationIndex } from '../../semantic/foundation/relationMembership';
 import { relationIndexLookup, relationIndexAdd } from '../../semantic/foundation/relationMembership';
 import { relationContains } from '../../semantic/foundation/relationMembership';
 import { relationEqual } from '../../semantic/foundation/relationFoundation';
 import { relationOptionFold, relationProject, relationVariantFold, relationFold } from '../../semantic/foundation/relationalSequence';
 import { relationResolve } from '../../semantic/foundation/relationFoundation';
-import { relationSome, type RelationOption } from '../../semantic/foundation/relationFoundation';
 import { projectStructuralSemanticRelationToGraphEdge } from './structuralSemanticRelationProjection';
 import type { Sequence } from '../../types/upstream/collections';
 
@@ -35,12 +38,15 @@ const sequenceToArray = <T>(items: Sequence<T>): readonly T[] => relationResolve
   () => [items.head, ...sequenceToArray(items.tail)],
 );
 
-const serviceMethods = (service: ServiceSemanticContract): readonly ServiceMethod[] => sequenceToArray(service.methods.items);
+const serviceMethods = (service: GraphServiceSurface): readonly import('../../types/upstream/names').ActionName[] => relationProject(
+  sequenceToArray(service.methods),
+  (method: GraphServiceMethodSurface) => method.name,
+);
 
-const serviceDependencies = (service: ServiceSemanticContract): readonly ServiceDependency[] => {
-  const from: ServiceReference = { kind: 'service_reference', name: service.identity.name };
+const serviceDependencies = (service: GraphServiceSurface): readonly ServiceDependency[] => {
+  const from: ServiceReference = { kind: 'service_reference', name: { kind: 'class_name', value: { kind: 'string_value', value: service.name.value.value } } };
   return relationProject(
-    sequenceToArray(service.resolvedDependencies.items),
+    sequenceToArray(service.dependencyTargets),
     resolved => relationVariantFold<DependencyTargetReference, 'model_reference', ServiceDependency>(
       resolved.target,
       'model_reference',
@@ -55,16 +61,13 @@ const serviceDependencies = (service: ServiceSemanticContract): readonly Service
   );
 };
 
-export function registerServicesFromSourceModel(sourceModel: CompleteLaravelSourceModel, builder: GraphBuilderContext): void {
-  const services = sequenceToArray(sourceModel.contracts.services);
+export function registerServicesFromGraphSurface(surface: RouteSyncManifestGraphSurface, builder: GraphBuilderContext): void {
+  const services = sequenceToArray(surface.services);
   relationProject(services, service => {
     const reference: ServiceReference = { kind: 'service_reference', name: service.name };
     builder.servicesMap.set(reference, buildServiceNode(
       createServiceNodeName(reference.name.value.value),
       [...serviceMethods(service)],
-      [],
-      service.dependencies,
-      service.resolvedDependencies,
     ));
   });
   relationProject(services, service => {
@@ -75,26 +78,17 @@ export function registerServicesFromSourceModel(sourceModel: CompleteLaravelSour
   });
 }
 
-const routeControllerTarget = (route: RouteHighLevelContract): RelationOption<import('../../types/upstream/semanticReferences').ControllerReference> =>
-  relationVariantFold(route.bindings.target, 'controller_action', () =>
-    relationVariantFold(route.bindings.target, 'controller_invokable', () => ({ kind: 'none' } as const), value =>
-      relationSome(value.controller),
-    ),
-    value => relationSome(value.controller),
-  );
-
-const controllerNodeFromAction = (action: ControllerActionFlowContract): ControllerNode => buildControllerNode(
+const controllerNodeFromAction = (action: GraphControllerSurface): ControllerNode => buildControllerNode(
   createControllerNodeName(action.controller.value.value),
-  [],
   [createActionName(action.action)],
 );
 
 /** Seed graph controller nodes from canonical contracts, then consume the canonical relation graph for dependency edges. */
-const registerControllersFromSourceModel = (
-  sourceModel: CompleteLaravelSourceModel,
+const registerControllersFromGraphSurface = (
+  surface: RouteSyncManifestGraphSurface,
   builder: GraphBuilderContext,
 ): void => {
-  const controllers = sequenceToArray(sourceModel.contracts.controllers);
+  const controllers = sequenceToArray(surface.controllers);
   const seeded = relationFold(controllers, builder.controllersIndex, (index, action) => {
     const controllerName = action.controller.value.value;
     const current = relationOptionFold(
@@ -116,11 +110,11 @@ const registerControllersFromSourceModel = (
 };
 
 const projectStructuralRelations = (
-  sourceModel: CompleteLaravelSourceModel,
+  surface: RouteSyncManifestGraphSurface,
   builder: GraphBuilderContext,
 ): void => {
   relationProject(
-    sequenceToArray(sourceModel.relations.relations),
+    sequenceToArray(surface.relations.relations),
     relation => {
       if (!isStructuralSemanticRelation(relation)) return;
       const projection = projectStructuralSemanticRelationToGraphEdge(relation);
@@ -129,48 +123,20 @@ const projectStructuralRelations = (
   );
 };
 
-const addRouteFact = (route: RouteHighLevelContract, builder: GraphBuilderContext): void => {
-  relationOptionFold(
-    routeControllerTarget(route),
-    () => undefined,
-    controller => relationOptionFold(
-      relationIndexLookup(builder.controllersIndex, controller.name.value.value),
-      () => undefined,
-      current => relationResolve(
-        relationContains(relationProject(current.actions, action => action.name.value.value), controller.action.value.value),
-        () => undefined,
-        () => {
-          const path = route.identity.path.value.value;
-          const routeAddition = relationResolve(
-            relationContains(current.routes, path),
-            () => [],
-            () => [path],
-          );
-          builder.setController(controller.name.value.value, {
-            ...current,
-            routes: [...current.routes, ...routeAddition],
-          });
-        },
-      ),
-    ),
-  );
-};
-
-const registerModelContract = (model: ModelHighLevelContract, builder: GraphBuilderContext): void => {
-  const modelNode = buildModelNode(model.semantic);
+const registerModelContract = (model: GraphModelSurface, builder: GraphBuilderContext): void => {
+  const modelNode = buildModelNode({ identity: model.identity });
   const modelReference: ModelReference = { kind: 'model_reference', name: model.identity.name };
   builder.modelsMap.set(modelReference, modelNode);
 };
 
-/** Compile the graph directly from the canonical upstream semantic contract catalog. */
-export function compileGraphFromSourceModel(
-  sourceModel: CompleteLaravelSourceModel,
+/** Compile the graph from the canonical graph-specific downstream surface. */
+export function compileGraphFromSurface(
+  surface: RouteSyncManifestGraphSurface,
   builder: GraphBuilderContext,
 ): ServiceGraph {
-  relationProject(sequenceToArray(sourceModel.contracts.models), model => registerModelContract(model, builder));
-  registerServicesFromSourceModel(sourceModel, builder);
-  registerControllersFromSourceModel(sourceModel, builder);
-  projectStructuralRelations(sourceModel, builder);
-  relationProject(sequenceToArray(sourceModel.contracts.routes), route => addRouteFact(route, builder));
+  relationProject(sequenceToArray(surface.models), model => registerModelContract(model, builder));
+  registerServicesFromGraphSurface(surface, builder);
+  registerControllersFromGraphSurface(surface, builder);
+  projectStructuralRelations(surface, builder);
   return builder.buildGraph();
 }

@@ -1,0 +1,17 @@
+{
+  "phase": 1029,
+  "checks": {
+    "ecommerceFixtureUsed": true,
+    "productionPolicyBoundaryUsed": true,
+    "routeExplicitlySelectedAsSource": true,
+    "resourceExplicitlySelectedAsSink": true,
+    "sourceAssertionsAreLineageScoped": true,
+    "sinkAssertionsAreLineageScoped": true,
+    "canonicalReachabilityQueried": true,
+    "policyDoesNotCreateEdges": true,
+    "routeAnalysisStillAppliesPolicyAfterClosure": true,
+    "upstreamExecutionOnly": true,
+    "manifestRemainsSeedAssembly": true
+  },
+  "clean": true
+}

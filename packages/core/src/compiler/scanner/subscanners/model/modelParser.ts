@@ -8,7 +8,7 @@
  * ModelScanner. This module does not re-scan source text or classify tokens.
  */
 
-import type { MigrationAst } from "../../../../types/upstream/ast";
+import type { SchemaInterface } from "../../../../types/upstream/schema";
 import type { ColumnDefinition } from "../../../../types/upstream/databaseVocabulary";
 import { inferLaravelTableName } from "../../../../utils/resource-naming";
 import { buildModelSemanticDefinition } from "../../semantic/model/modelSemanticDefinition";
@@ -132,7 +132,7 @@ function inferKeyTypeFromSchema(columns: import("../../../../types/upstream/coll
  */
 export function buildModelSemanticDefinitionFromAst(
     sourceSpan: SourceSpan,
-    migrations: readonly MigrationAst[],
+    schema: SchemaInterface,
     propertyAsts: readonly PhpClassPropertyAst[],
     declaration: ModelDeclarationAst,
     casts: readonly ModelCast[],
@@ -157,7 +157,7 @@ export function buildModelSemanticDefinitionFromAst(
 
     relationFold(propertyAsts, propState, (state, property) => { applyModelPropertyAst(property, state); return state; });
 
-    const columns = resolveModelColumns(propState.table, migrations);
+    const columns = resolveModelColumns(propState.table, schema);
     const keyType = relationGate(relationEqual(propState.keyType.kind, 'declared'), () => propState.keyType.value, () => inferKeyTypeFromSchema(columns, propState.primaryKey));
     const span = sourceSpan;
 
@@ -192,6 +192,7 @@ export function buildModelSemanticDefinitionFromAst(
         columnFacts: buildModelColumnFacts(correlateModelColumnFacts(columns, casts, span)),
         casts: [...casts],
         accessors: [...accessors],
-        relations: [...relations]
+        relations: [...relations],
+        schema
     });
 }

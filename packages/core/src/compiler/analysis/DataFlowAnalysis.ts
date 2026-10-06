@@ -12,10 +12,11 @@ import {
   runForwardAnalysis,
   runBackwardAnalysis
 } from './dataflow';
+import type { ControlFlowDataFlowInterface } from './dataflow/controlFlowDataFlowInterface';
 
 export type { FlowState, TransferFn, MergeFn };
 
-export class DataFlowAnalysis<T> {
+export class DataFlowAnalysis<T> implements ControlFlowDataFlowInterface<T> {
   public analyze(
     cfg: ControlFlowGraph,
     initialState: T,

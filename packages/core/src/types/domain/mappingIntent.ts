@@ -4,7 +4,7 @@ import {
   type SemanticTypeVisitor,
   ReferenceType,
   ObjectType
-} from '../../compiler/types/SemanticType';
+} from './semanticType';
 import { SemanticValueFactory, type PropertyName, type ResourceName } from './semanticValues';
 import { relationProject, relationVariantFold } from '../../semantic/foundation/relationalSequence';
 import { relationEqual } from '../../semantic/foundation/relationalSequence';

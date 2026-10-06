@@ -3,7 +3,6 @@ import ora from 'ora'
 import chalk from 'chalk'
 import { ManifestGenerator } from '../generators/ManifestGenerator'
 import { SDKGenerator } from '../generators/SDKGenerator'
-import { TypeGenerator } from '../generators/TypeGenerator'
 import { HookGenerator } from '../generators/HookGenerator'
 import { ValuesGenerator } from '../generators/ValuesGenerator'
 import { NextActionGenerator } from '../generators/NextActionGenerator'
@@ -15,7 +14,8 @@ import { ModelGenerator } from '../generators/ModelGenerator'
 import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
 import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
-import { StaticLaravelScanner, createLaravelSourceProjectIdentity, lowerRouteSyncManifestToRouteManifest, IRNodeRegistry } from '@routesync/core'
+import { manifestBuilder, createLaravelSourceProjectIdentity, routeSyncManifestFlowFromManifest, routeSyncManifestDataflowSurfaceFromFlow, lowerRouteSyncManifestToRouteManifest, projectRouteSyncManifestForRouteManifest, IRNodeRegistry, analyzeRouteSyncManifestDataflow, projectSemanticDataflowToIR } from '@routesync/core'
+import { cliSemanticDataflowRuntimeBoundary } from '../dataflow/semanticDataflowRuntimeBoundary'
 
 import fs from 'fs-extra'
 
@@ -44,17 +44,18 @@ export const syncCommand = new Command('sync')
     const spinner = ora(steps[0].text).start()
 
     try {
-      // Step 1: Scan via StaticLaravelScanner (0 PHP subprocess)
+      // Step 1: Build the upstream manifest through its producer interface (0 PHP subprocess)
       const targetDir = process.cwd()
       const sourceProject = createLaravelSourceProjectIdentity(targetDir)
-      const scannedManifest = await StaticLaravelScanner.scan(sourceProject, {
-        baseURL: options.baseURL,
-        version: '6.0.0'
-      })
+      const scannedManifest = await manifestBuilder.build(sourceProject)
+      const manifestFlow = routeSyncManifestFlowFromManifest(scannedManifest)
+      const dataflowSurface = routeSyncManifestDataflowSurfaceFromFlow(manifestFlow)
+      const routeManifestProjection = projectRouteSyncManifestForRouteManifest(scannedManifest)
       const resolvedManifest = lowerRouteSyncManifestToRouteManifest(
         scannedManifest,
         options.baseURL,
         '6.0.0',
+        routeManifestProjection,
       )
       const routes = resolvedManifest.routes
       const models = resolvedManifest.models
@@ -66,6 +67,19 @@ export const syncCommand = new Command('sync')
 
       // Save the resolved manifest locally
       await ManifestGenerator.save(resolvedManifest, localManifestPath)
+      const dataflowAnalysis = analyzeRouteSyncManifestDataflow(dataflowSurface, cliSemanticDataflowRuntimeBoundary)
+      await fs.writeJson(
+        pathModule.resolve(process.cwd(), 'routesync.dataflow.json'),
+        dataflowAnalysis,
+        { spaces: 2 }
+      )
+
+      const dataflowIR = dataflowAnalysis.map(result => projectSemanticDataflowToIR(result.analysis.interface))
+      await fs.writeJson(
+        pathModule.resolve(process.cwd(), 'routesync.dataflow.ir.json'),
+        dataflowIR,
+        { spaces: 2 }
+      )
 
       // Stage 2 (IR v3) output — additive, does not change any generator input above.
       await fs.writeJson(
@@ -78,10 +92,6 @@ export const syncCommand = new Command('sync')
 
       await fs.ensureDir(options.output)
 
-      // Step 2: Types
-      spinner.start(steps[1].text)
-      await TypeGenerator.generate(resolvedManifest, options.output)
-      
       spinner.start('Compiling and emitting full contract bundle...')
       const { CompilerBridge } = require('../generators/CompilerBridge')
       const emitted = await CompilerBridge.emitFullBundle(resolvedManifest, options.output, options)

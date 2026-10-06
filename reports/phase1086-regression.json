@@ -1,0 +1,16 @@
+{
+  "graphInterfaceUsesSurface": true,
+  "graphProjectionIsDirectional": true,
+  "graphProjectionConsumesCanonicalFlowSlice": true,
+  "graphSurfaceIsConstructionFree": true,
+  "graphCompilerConsumesSurface": true,
+  "graphCompilerDoesNotConsumeCompleteSourceModel": true,
+  "graphBuilderConsumesSurface": true,
+  "scanProjectsFlowToGraphSurface": true,
+  "scanPassesGraphSurface": true,
+  "genericDataFlowRemainsDomainNeutral": true,
+  "boundaryRemainsDirectional": true,
+  "flowDoesNotExposeAst": true,
+  "failed": [],
+  "allPassed": true
+}

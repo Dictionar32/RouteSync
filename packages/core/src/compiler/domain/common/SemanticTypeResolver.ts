@@ -10,7 +10,7 @@
 
 import {
     type SemanticType
-} from '../../types/SemanticType';
+} from '../../../types/domain/semanticType';
 import { relationFirst, relationOptionFold, relationRefine } from '../../../semantic/foundation/relationalSequence';
 import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import type { ResourceFieldSemanticBinding } from '../../../types/domain/resourceFieldSemanticBinding';

@@ -1,11 +1,16 @@
 import type { ServiceDependency } from '../../types/semantic/modelGraphTypes';
+import { modelSemanticRelationIdentityKey } from '../../types/upstream/model';
 import type { GraphEdgeRelation } from './graphEdgeRelation';
 
 const referenceKey = (reference: GraphEdgeRelation['from']): string =>
   `${reference.kind}:${reference.name.value.value}`;
 
-const relationKey = (relation: GraphEdgeRelation): string =>
-  `${referenceKey(relation.from)}|${referenceKey(relation.to)}|${relation.type}|${relation.weight}`;
+const relationKey = (relation: GraphEdgeRelation): string => {
+  const semanticIdentity = relation.provenance?.kind === 'model_relation'
+    ? modelSemanticRelationIdentityKey(relation.provenance.relation.identity)
+    : '';
+  return `${referenceKey(relation.from)}|${referenceKey(relation.to)}|${relation.type}|${relation.weight}|${relation.origin}|${semanticIdentity}`;
+};
 
 /** The sole graph-edge materialization authority. */
 export class GraphEdgeRelationSink {

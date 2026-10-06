@@ -9,7 +9,7 @@
 
 import type { ArtifactMetadata } from './Artifact';
 import { TypedArtifact } from './Artifact';
-import type { SemanticType } from '../types/SemanticType';
+import type { SemanticType } from '../../types/domain/semanticType';
 
 /**
  * Artifact containing lowered types

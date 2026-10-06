@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
-import { RouteManifest, StaticLaravelScanner } from '@routesync/core'
+import { RouteManifest } from '@routesync/core'
+import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
 
 describe('RouteSync - Toko Online Demo', () => {
   it('should compile online store models and generate type-safe frontend APIs', async () => {
@@ -106,7 +107,7 @@ describe('RouteSync - Toko Online Demo', () => {
       resources: [],
       routeGroups: [],
       requestTypes: [],
-      semanticTypes: StaticLaravelScanner.deriveSemanticTypes([], models)
+      semanticTypes: TypeDeriver.deriveSemanticTypes([], models)
     }
 
     const result = await CompilerBridge.generateTypeScript(manifest)

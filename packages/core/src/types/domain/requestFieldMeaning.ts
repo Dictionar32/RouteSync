@@ -6,7 +6,7 @@ import {
   type IntersectionType,
   type ErrorType,
   type ReferenceType
-} from '../../compiler/types/SemanticType';
+} from './semanticType';
 import { SemanticValueFactory, type PropertyName, type ResourceName, type VariableName } from './semanticValues';
 import type { StringValue } from '../upstream/valueObjects';
 
@@ -185,30 +185,30 @@ class GenericMeaning implements GenericRequestMeaning {
   readonly accept = <T>(visitor: RequestFieldMeaningVisitor<T>): T => visitor.generic(this);
 }
 
-const objectMeaningFactories: Readonly<{ [K in import('../../compiler/types/SemanticType').ObjectTypeRole]: (value: import('../../compiler/types/SemanticType').ObjectType) => RequestFieldMeaning }> = Object.freeze({
+const objectMeaningFactories: Readonly<{ [K in import('./semanticType').ObjectTypeRole]: (value: import('./semanticType').ObjectType) => RequestFieldMeaning }> = Object.freeze({
   plain: value => objectMeaning(value),
   resource: value => resourceMeaning(value),
   model: value => objectMeaning(value),
   response: value => objectMeaning(value)
 });
 
-const referenceMeaningFactories: Readonly<{ [K in import('../../compiler/types/SemanticType').ObjectTypeRole]: (value: ReferenceType) => RequestFieldMeaning }> = Object.freeze({
+const referenceMeaningFactories: Readonly<{ [K in import('./semanticType').ObjectTypeRole]: (value: ReferenceType) => RequestFieldMeaning }> = Object.freeze({
   plain: value => objectReferenceMeaning(value),
   resource: value => resourceReferenceMeaning(value),
   model: value => objectReferenceMeaning(value),
   response: value => objectReferenceMeaning(value)
 });
 
-const fieldsOf = (value: import('../../compiler/types/SemanticType').ObjectType): readonly ObjectRequestField[] =>
+const fieldsOf = (value: import('./semanticType').ObjectType): readonly ObjectRequestField[] =>
   value.properties.map(property => ({
     name: property.name,
     meaning: resolve(property.type)
   }));
 
-const objectMeaning = (value: import('../../compiler/types/SemanticType').ObjectType): RequestFieldMeaning =>
+const objectMeaning = (value: import('./semanticType').ObjectType): RequestFieldMeaning =>
   new ObjectMeaning(fieldsOf(value));
 
-const resourceMeaning = (value: import('../../compiler/types/SemanticType').ObjectType): RequestFieldMeaning =>
+const resourceMeaning = (value: import('./semanticType').ObjectType): RequestFieldMeaning =>
   new ResourceMeaning(SemanticValueFactory.resourceName(value.name), fieldsOf(value));
 
 const objectReferenceMeaning = (_value: ReferenceType): RequestFieldMeaning =>

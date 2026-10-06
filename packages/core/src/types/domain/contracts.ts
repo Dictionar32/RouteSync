@@ -1,6 +1,6 @@
 import { ROUTE_ACTION_KIND_REGISTRY } from "./httpVocabulary";
 
-import type { RouteManifest } from "./base";
+import type { RouteManifestDomainSurface } from "./base";
 import type { RouteExecutionSignature } from "./lifecycle";
 import type { RouteParameter } from "./parameters";
 import type { RouteParameterSpecification } from "./routes";
@@ -214,7 +214,7 @@ export function getRouteContract(route: RouteSemanticFlow): EndpointContract {
 /**
  * Builds an O(1) Map of contracts keyed by contract id / action name.
  */
-export function getManifestContractMap(manifest: RouteManifest): Map<RouteName, EndpointContract> {
+export function getManifestContractMap(manifest: RouteManifestDomainSurface): Map<RouteName, EndpointContract> {
   const map = new Map<RouteName, EndpointContract>();
   const contracts = manifest.routes.map(route => route.contract);
   for (const c of contracts) {

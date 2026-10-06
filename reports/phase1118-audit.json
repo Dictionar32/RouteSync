@@ -1,0 +1,32 @@
+{
+  "phase": 1118,
+  "direction": "upstream => wiring => interface => downstream",
+  "checks": {
+    "typeVocabularyCanonicalUpstream": true,
+    "semanticTypeCanonicalDomain": true,
+    "domainProductionNoCompilerImports": true,
+    "upstreamProductionNoCompilerImports": true,
+    "semanticProductionNoCompilerSemanticFacade": true,
+    "irProductionNoCompilerSemanticFacade": true,
+    "graphProductionNoCompilerImports": true,
+    "dataFlowGeneric": true,
+    "dependencyBoundaryGeneric": true,
+    "cliUsesPackageSurface": true,
+    "legacyProductionEmpty": true,
+    "ecommerceRoute": true,
+    "ecommerceController": true,
+    "ecommerceModelRelation": true,
+    "ecommerceResource": true,
+    "ecommerceSchema": true
+  },
+  "violations": {
+    "domainProductionCompiler": [],
+    "upstreamProductionCompiler": [],
+    "semanticProductionCompilerFacade": [],
+    "irProductionCompilerFacade": [],
+    "graphProductionCompiler": [],
+    "cliDirectSourceImports": [],
+    "legacyProduction": []
+  },
+  "passed": true
+}

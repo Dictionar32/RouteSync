@@ -1,6 +1,6 @@
 /** Projects the canonical SemanticType ADT without semantic reclassification. */
 import type { TypeIR } from '../../../types/ir';
-import type { SemanticType } from '../../../compiler/types/SemanticType';
+import type { SemanticType } from '../../../types/domain/semanticType';
 import { SemanticTypeResolvers } from '../SemanticTypeResolvers';
 
 export function convertSemanticToTypeIR(semanticType: SemanticType): TypeIR {

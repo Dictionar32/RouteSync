@@ -1,4 +1,4 @@
-import { PrimitiveKind } from '../../types/SemanticType';
+import { PrimitiveKind } from '../../../types/domain/semanticType';
 /**
  * FormActionGenerator.ts
  *

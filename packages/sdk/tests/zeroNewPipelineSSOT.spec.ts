@@ -4,7 +4,7 @@ import { TypeScriptGeneratorPass } from '../../core/src/compiler/passes/TypeScri
 import { MapperGeneratorPass } from '../../core/src/compiler/passes/MapperGeneratorPass';
 import { UnionType, IntersectionType, ObjectType, PrimitiveType, PrimitiveKind } from '../../core/src/compiler/types/SemanticType';
 import type { RouteManifest } from '../../core/src/types/route';
-import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/StaticLaravelScanner';
+import { ScannedRouteManifestDescriptor } from '../../core/src/compiler/scanner/descriptors';
 
 describe('Zero New Pipeline SSOT Specification', () => {
     it('1. should instantiate UnionType and IntersectionType using static of() factory without new', () => {

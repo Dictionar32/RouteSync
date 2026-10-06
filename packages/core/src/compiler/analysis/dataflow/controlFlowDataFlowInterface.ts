@@ -1,4 +1,5 @@
-import type { ControlFlowGraph, FlowState, MergeFn, TransferFn } from './types';
+import type { ControlFlowGraph } from '../../utils/cfg/basicBlock';
+import type { FlowState, MergeFn, TransferFn } from './types';
 import type { RelationIndex } from '../../../semantic/foundation/relationMembership';
 
 /** Forward CFG data-flow capability. */

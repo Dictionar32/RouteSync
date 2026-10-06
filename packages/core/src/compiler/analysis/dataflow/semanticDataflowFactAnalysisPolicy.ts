@@ -76,10 +76,10 @@ export const createSemanticDataflowAnalysisPolicy = (
     readonly sinkFacts: readonly SemanticDataflowFact[];
   }> = Object.freeze({
     contribute: contributionContext => Object.freeze({
-      isSource: node => factContains(contributionContext.sourceFacts, node),
-      isSink: node => factContains(contributionContext.sinkFacts, node),
-      isAdditionalFlowStep: () => false,
-      isBarrier: () => false,
+      isSource: (node: SemanticDataflowIdentity) => factContains(contributionContext.sourceFacts, node),
+      isSink: (node: SemanticDataflowIdentity) => factContains(contributionContext.sinkFacts, node),
+      isAdditionalFlowStep: (_source: SemanticDataflowIdentity, _target: SemanticDataflowIdentity) => false,
+      isBarrier: (node: SemanticDataflowIdentity) => false,
     }),
   });
   const config = composeDataFlowConfigContributors([contributor], { sourceFacts, sinkFacts });

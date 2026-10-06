@@ -7,9 +7,9 @@ import {
   isTopLevelDelimiter,
   emptyDelimiterState,
 } from './delimiterNavigation';
-import { relationGate, relationFirstOption, relationOptionFold, relationSelect, relationResolve, relationRange, relationNone, relationSome, type RelationOption } from '../../../semantic/foundation/relationalSequence';
+import { relationGate, relationFirstOption, relationOptionFold, relationSelect, relationResolve, relationRange, relationNone, relationSome, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 import { presenceOf, presenceFold, type Presence } from '../../../../types/upstream/presence';
-import { relationAll, relationAny } from '../../../semantic/foundation/semanticRelations';
+import { relationAll, relationAny } from '../../../../semantic/foundation/semanticRelations';
 
 export type CursorPresence<T> = Presence<T>;
 

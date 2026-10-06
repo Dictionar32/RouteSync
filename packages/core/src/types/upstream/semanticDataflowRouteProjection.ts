@@ -50,9 +50,7 @@ const modelBinding = (parameter: RouteParameter): RouteParameter['binding'] => p
 const boundModelName = (parameter: RouteParameter): string | undefined => {
   const binding = modelBinding(parameter);
   return binding.kind === 'implicit_model' || binding.kind === 'explicit' || binding.kind === 'custom'
-    ? binding.model.kind === 'model_class'
-      ? binding.model.name.value.value
-      : undefined
+    ? binding.model.name.value.value
     : undefined;
 };
 

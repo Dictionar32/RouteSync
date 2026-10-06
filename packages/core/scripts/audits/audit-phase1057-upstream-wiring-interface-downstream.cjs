@@ -26,10 +26,10 @@ const result = {
   projectionSpecializesGenericBoundary: /extends InterfaceDependencyBoundary<\s*DataFlowInterface<Input, State, Node>,\s*Output\s*>/.test(projection),
   authorityOwnsClosure: /createSemanticDataflowJudgment/.test(authority) && /reachClosure/.test(authority) && !/DataFlowInterface/.test(authority),
   authorityDoesNotConsumeDownstreamWiring: !/DataFlowInterface|InterfaceDependencyBoundary|DataFlowProjectionInterface|SemanticDataflowRuntimeBoundary/.test(authority),
-  adapterOwnsRuntimeWiring: /export const createSemanticDataflowDataFlowInterface/.test(adapter) && /DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>/.test(adapter),
+  adapterOwnsRuntimeWiring: /export const createSemanticDataflowDataFlowInterface/.test(adapter) && /DataFlowInterface<\s*SemanticDataflowInput,\s*SemanticDataflowJudgment,\s*SemanticDataflowIdentity\s*>/.test(adapter),
   compositionUsesAdapter: /createSemanticDataflowDataFlowInterface/.test(composition) && /semanticDataflowDataFlowAdapter/.test(composition),
   irConsumesGenericProjection: /DataFlowProjectionInterface/.test(irInterface) && /SemanticDataflowInput/.test(irInterface) && /SemanticDataflowJudgment/.test(irInterface) && /SemanticDataflowIdentity/.test(irInterface),
-  graphUsesGenericDependencyBoundary: /InterfaceDependencyBoundary<RouteSyncManifestFlow, ServiceGraph>/.test(read('src/graph/ServiceGraphBuilderInterface.ts')) && !/DataFlowProjectionInterface/.test(graph) && !/DataFlowProjectionInterface/.test(graph),
+  graphUsesGenericDependencyBoundary: /InterfaceDependencyBoundary<RouteSyncManifestGraphSurface, ServiceGraph>/.test(read('src/graph/ServiceGraphBuilderInterface.ts')) && !/DataFlowProjectionInterface/.test(graph) && !/DataFlowProjectionInterface/.test(graph),
   cfgContractRenamedByResponsibility: /export type ControlFlowDataFlowInterface/.test(cfg) && !fs.existsSync(oldCfg),
   upstreamDoesNotImportDownstreamContracts: upstream.every(({text}) => !/InterfaceDependencyBoundary|DataFlowProjectionInterface|SemanticDataflowRuntimeBoundary/.test(text)),
 };

@@ -484,20 +484,19 @@ function refineImplicitModelBindings(
 }
 
 function controllerModelReference(semantic: import('../../../types/upstream/controller').ControllerVariableSemantic): RelationOption<ModelReference> {
-    return relationGate(
-        relationEqual(semantic.kind, 'model_origin'),
-        () => {
-            const modelOrigin = semantic as Extract<typeof semantic, { readonly kind: 'model_origin' }>;
-            return relationGate(
-                relationEqual(modelOrigin.origin.kind, 'model_class'),
-                () => relationSome({
-                    kind: 'model_reference' as const,
-                    name: modelOrigin.origin.name as Extract<typeof modelOrigin.origin, { readonly kind: 'model_class' }>['name'],
-                }),
-                () => relationNone<ModelReference>(),
-            );
-        },
+    return relationVariantFold(
+        semantic,
+        'model_origin',
         () => relationNone<ModelReference>(),
+        modelOrigin => relationVariantFold(
+            modelOrigin.origin,
+            'model_class',
+            () => relationNone<ModelReference>(),
+            model => relationSome({
+                kind: 'model_reference' as const,
+                name: model.name,
+            }),
+        ),
     );
 }
 

@@ -10,6 +10,7 @@ import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { ControllerParameter, ControllerResourceBinding } from './controller';
 import { semanticDataflowFactWithLineage, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
 import { stringValue } from './valueObjects';
+import { relationVariantFold } from '../../semantic/foundation/relationalSequence';
 
 const controllerName = (controller: ControllerActionFlowContract): string => controller.controller.value.value;
 const actionName = (controller: ControllerActionFlowContract): string => controller.action.value.value;
@@ -39,7 +40,12 @@ const modelName = (parameter: ControllerParameter): string | undefined =>
   parameter.kind.kind === 'model' ? parameter.kind.model.value.value : undefined;
 
 const bindingModelName = (binding: ControllerResourceBinding): string | undefined =>
-  binding.model.kind === 'model_class' ? binding.model.name.value.value : undefined;
+  relationVariantFold(
+    binding.model,
+    'model_class',
+    () => undefined,
+    model => model.name.value.value,
+  );
 
 const modelParameter = (
   controller: ControllerActionFlowContract,

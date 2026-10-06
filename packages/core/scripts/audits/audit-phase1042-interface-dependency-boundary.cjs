@@ -37,7 +37,7 @@ const checks = {
   projectionSpecializesGenericBoundary: /extends InterfaceDependencyBoundary<\s*DataFlowInterface<Input, State, Node>,\s*Output\s*>/.test(projection),
   irConsumesGenericDataflow: /DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>/.test(ir) || (/DataFlowProjectionInterface/.test(irInterface) && /SemanticDataflowInput/.test(irInterface)),
   irUsesCanonicalState: /dataflow\.state\.closure/.test(ir) && /dataflow\.state\.authority/.test(ir) && !/dataflow\.judgment\.closure/.test(ir),
-  graphUsesGenericBoundary: /InterfaceDependencyBoundary<RouteSyncManifestFlow, ServiceGraph>/.test(graphInterface) && !/DataFlowProjectionInterface/.test(graph),
+  graphUsesDirectionalStructuralBoundary: /InterfaceDependencyBoundary<RouteSyncManifestGraphSurface, ServiceGraph>/.test(graphInterface) && !/DataFlowProjectionInterface/.test(graph),
   manifestIsSeedOnly: /ManifestDataflowSeedSurface/.test(manifest) && !/readonly reaches/.test(manifest) && !/kind:\s*['\"]reaches['\"]/.test(manifest),
   upstreamDoesNotImportBoundary: upstreamProduction.every(({ text }) => !/InterfaceDependencyBoundary/.test(text)),
   noNonIRDataflowProjectionConsumers: coreProduction.filter(({ file, text }) => /DataFlowProjectionInterface/.test(text) && !file.includes('SemanticDataflowIRProjection.ts') && !file.includes('SemanticDataflowIRProjectionInterface.ts') && !file.includes('dataFlowProjectionInterface.ts') && !file.includes('types/dataflow/index.ts') && !file.endsWith('src/index.ts')).length === 0,

@@ -60,10 +60,10 @@ const channelDescriptorsFromManifest = (manifest: RouteSyncManifest): readonly B
         const isPresence = relationEqual(kind, 'presence');
         const isPrivate = relationResolve(relationEqual(kind, 'public'), () => false, () => true);
         return Object.freeze({
-            name: channel.semantic.name.value,
+            name: channel.semantic.name.value.value,
             kind,
-            pattern: channel.semantic.pattern.value,
-            runtimePattern: channel.semantic.runtimePattern.value,
+            pattern: channel.semantic.pattern.value.value,
+            runtimePattern: channel.semantic.runtimePattern.value.value,
             parameters,
             isPrivate,
             isPresence,

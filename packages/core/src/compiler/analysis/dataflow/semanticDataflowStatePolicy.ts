@@ -34,7 +34,12 @@ export const createSemanticDataflowStatePolicy = <State>(
   stateConfig: DataFlowStateConfigInterface<SemanticDataflowIdentity, State>,
 ): SemanticDataflowStatePolicy<State> => Object.freeze({
   stateConfig,
-  flows: (source, target, sourceState, targetState) =>
+  flows: (
+    source: SemanticDataflowIdentity,
+    target: SemanticDataflowIdentity,
+    sourceState: State,
+    targetState: State,
+  ) =>
     stateConfig.isSource(source, sourceState)
     && stateConfig.isSink(target, targetState)
     && dataflow.reaches(dataflow.state, source, target),

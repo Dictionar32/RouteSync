@@ -1,6 +1,6 @@
 {
   "phase": 1096,
-  "upstreamFileCount": 83,
+  "upstreamFileCount": 81,
   "activeByReference": [
     "application.ts",
     "assignment.ts",
@@ -21,7 +21,6 @@
     "eloquent.ts",
     "endpointBindings.ts",
     "expression.ts",
-    "graphRelation.ts",
     "highLevelContracts.ts",
     "highLevelSourceModel.ts",
     "manifest.ts",
@@ -31,6 +30,7 @@
     "model.ts",
     "modelPrimaryKey.ts",
     "modelRelation.ts",
+    "modelRelationProvenance.ts",
     "modelSourceFacts.ts",
     "modelVocabulary.ts",
     "names.ts",
@@ -54,6 +54,7 @@
     "schemaRelation.ts",
     "semanticDataflow.ts",
     "semanticDataflowAuthority.ts",
+    "semanticDataflowInterface.ts",
     "semanticDataflowManifestSurface.ts",
     "semanticDataflowRequestProjection.ts",
     "semanticDataflowRouteProjection.ts",
@@ -72,7 +73,6 @@
     "astSemanticStageTransition.ts",
     "controllerActionPolicyRelations.ts",
     "effectiveControllerActionPolicyResolver.ts",
-    "modelRelationProvenance.ts",
     "routeActionPolicyRelations.ts",
     "routeBinding.ts",
     "routeExecutionVocabulary.ts",
@@ -81,11 +81,7 @@
     "semanticDataflowControllerQueryProjection.ts",
     "sourceBoundary.ts"
   ],
-  "trueVacuumCandidates": [
-    "routeMissing.ts",
-    "routeResource.ts",
-    "routeResourceMode.ts"
-  ],
+  "trueVacuumCandidates": [],
   "targetPresence": {
     "manifest": true,
     "graph": true,
@@ -100,10 +96,6 @@
   "staticLaravelScannerFiles": [],
   "staticLaravelScannerReferences": [],
   "cliInternalImports": [],
-  "expectedVacuum": [
-    "routeMissing.ts",
-    "routeResource.ts",
-    "routeResourceMode.ts"
-  ],
+  "expectedVacuum": [],
   "passed": true
 }

@@ -94,7 +94,7 @@ const report = {
   staticLaravelScannerFiles: scannerFiles,
   staticLaravelScannerReferences: scannerRefs,
   cliInternalImports,
-  expectedVacuum: ['routeMissing.ts', 'routeResource.ts', 'routeResourceMode.ts'],
+  expectedVacuum: [],
 };
 report.passed =
   report.trueVacuumCandidates.join(',') === report.expectedVacuum.join(',') &&

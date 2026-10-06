@@ -33,8 +33,8 @@ export const liftDataFlowConfigToState = <Node, State>(
     readonly isBarrier: (node: Node) => boolean;
   },
 ): DataFlowStateConfigInterface<Node, State> => Object.freeze({
-  isSource: node => config.isSource(node),
-  isSink: node => config.isSink(node),
-  isAdditionalFlowStep: (source, target) => config.isAdditionalFlowStep(source, target),
-  isBarrier: node => config.isBarrier(node),
+  isSource: (node: Node) => config.isSource(node),
+  isSink: (node: Node) => config.isSink(node),
+  isAdditionalFlowStep: (source: Node, target: Node) => config.isAdditionalFlowStep(source, target),
+  isBarrier: (node: Node) => config.isBarrier(node),
 });

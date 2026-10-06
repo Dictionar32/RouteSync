@@ -64,7 +64,7 @@ export const createSemanticDataflowAnalysisPolicy = (
   context: SemanticDataflowFactPolicyContext,
 ): SemanticDataflowAnalysisPolicy => {
   const factPolicy: DataFlowFactPolicyInterface<SemanticDataflowFact, SemanticDataflowFactPolicyContext> = Object.freeze({
-    select: (fact, policyContext) =>
+    select: (fact: SemanticDataflowFact, policyContext: SemanticDataflowFactPolicyContext) =>
       hasProducer(fact, policyContext.sourceProducers)
       || hasProducer(fact, policyContext.sinkProducers),
   });
@@ -75,11 +75,14 @@ export const createSemanticDataflowAnalysisPolicy = (
     readonly sourceFacts: readonly SemanticDataflowFact[];
     readonly sinkFacts: readonly SemanticDataflowFact[];
   }> = Object.freeze({
-    contribute: contributionContext => Object.freeze({
+    contribute: (contributionContext: {
+      readonly sourceFacts: readonly SemanticDataflowFact[];
+      readonly sinkFacts: readonly SemanticDataflowFact[];
+    }) => Object.freeze({
       isSource: (node: SemanticDataflowIdentity) => factContains(contributionContext.sourceFacts, node),
       isSink: (node: SemanticDataflowIdentity) => factContains(contributionContext.sinkFacts, node),
       isAdditionalFlowStep: (_source: SemanticDataflowIdentity, _target: SemanticDataflowIdentity) => false,
-      isBarrier: (node: SemanticDataflowIdentity) => false,
+      isBarrier: (_node: SemanticDataflowIdentity) => false,
     }),
   });
   const config = composeDataFlowConfigContributors([contributor], { sourceFacts, sinkFacts });

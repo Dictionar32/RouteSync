@@ -7,6 +7,8 @@
  */
 
 export type { FlowState, TransferFn, MergeFn } from './types';
+export { runForwardAnalysis } from './forwardSolver';
+export { runBackwardAnalysis } from './backwardSolver';
 
 export type { ControlFlowDataFlowInterface, DataFlowAnalysisInterface, DataFlowForwardInterface, DataFlowBackwardInterface } from './controlFlowDataFlowInterface';
 

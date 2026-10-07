@@ -1,5 +1,4 @@
-import { relationGate } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationVariantFold } from '../../../semantic/foundation/relationalSequence';
 import { scanSourceAsts } from '../orchestrator/sourceAstScanner';
 import { validateCompleteSourceAst } from '../../../types/upstream/completeness';
 import { buildCompleteLaravelSourceModel, type SemanticContractSeeds, type SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
@@ -21,7 +20,12 @@ const version = () => ({
 
 function complete(ast: Awaited<ReturnType<typeof scanSourceAsts>>, sourceSpan: SourceSpan): CompleteSourceAst {
   const result = validateCompleteSourceAst(ast, sourceSpan);
-  return relationGate(relationEqual(result.kind, 'complete_source_ast'), () => result, () => { throw Error(`Incomplete upstream source AST: ${result.failures.kind}`); });
+  return relationVariantFold(
+    result,
+    'complete_source_ast',
+    incomplete => { throw Error(`Incomplete upstream source AST: ${incomplete.failures.kind}`); },
+    completeAst => completeAst,
+  );
 }
 
 /**

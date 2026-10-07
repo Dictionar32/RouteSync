@@ -1,5 +1,5 @@
-import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
-import type { RouteSyncManifest } from '../../../types/upstream/manifest';
+import type { SourceProjectIdentity } from './highLevelSourceModel';
+import type { RouteSyncManifest } from './manifest';
 
 /** Canonical construction contract for the concrete upstream manifest. */
 export interface ManifestBuilderInterface {

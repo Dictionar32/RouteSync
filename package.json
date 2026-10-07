@@ -53,11 +53,11 @@
     "audit:phase852-controller-route-closure": "node scripts/audits/audit-phase852-controller-route-closure.cjs",
     "audit:phase829-route-canonical-consumers": "node scripts/audit-phase829-route-canonical-consumers.cjs",
     "audit:phase849-response-contract-boundary": "node scripts/audits/audit-phase849-response-contract-boundary.cjs",
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsdown",
+    "dev": "tsdown --watch",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "clean": "tsup --clean",
+    "clean": "tsdown --clean",
     "audit:phase728-type-expression-variant-boundary": "node scripts/audit-phase728-type-expression-variant-boundary.cjs",
     "audit:phase729-semantic-relation-calculus-frontier": "node scripts/audit-phase729-semantic-relation-calculus-frontier.cjs",
     "audit:relational-authority": "node scripts/audit-relational-authority-strict.cjs",
@@ -293,11 +293,11 @@
     "@types/react": "^19.2.17",
     "react": "^19.2.7",
     "react-hook-form": "^7.71.2",
-    "tsup": "^8.0.0",
     "turbo": "^2.9.16",
     "typescript": "7.0.2",
     "vitest": "^4.1.7",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "tsdown": "^0.23.0"
   },
   "engines": {
     "node": ">=20.0.0"

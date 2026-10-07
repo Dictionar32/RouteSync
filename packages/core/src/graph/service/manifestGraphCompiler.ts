@@ -9,7 +9,6 @@ import type {
 import type { ServiceGraph, ServiceNode, ControllerNode, ServiceModelNode, ServiceDependency } from '../../types/semantic';
 import { createGraphEdgeRelation, type GraphEdgeRelation } from './graphEdgeRelation';
 import { buildModelNode, buildServiceNode, buildControllerNode } from './nodeFactories';
-import { createActionName } from '../../types/upstream/names';
 import type { ModelReference, ServiceReference, DependencyTargetReference } from '../../types/upstream/semanticReferences';
 import { isStructuralSemanticRelation } from '../../types/upstream/semanticReferences';
 import { GraphNodeIndex } from './graphNodeIndex';
@@ -32,10 +31,11 @@ export interface GraphBuilderContext {
   addGraphEdgeRelation(relation: GraphEdgeRelation): void;
 }
 
-const sequenceToArray = <T>(items: Sequence<T>): readonly T[] => relationResolve(
-  relationEqual(items.kind, 'empty'),
+const sequenceToArray = <T>(items: Sequence<T>): readonly T[] => relationVariantFold(
+  items,
+  'empty',
+  cons => [cons.head, ...sequenceToArray(cons.tail)],
   () => [],
-  () => [items.head, ...sequenceToArray(items.tail)],
 );
 
 const serviceMethods = (service: GraphServiceSurface): readonly import('../../types/upstream/names').ActionName[] => relationProject(
@@ -47,16 +47,16 @@ const serviceDependencies = (service: GraphServiceSurface): readonly ServiceDepe
   const from: ServiceReference = { kind: 'service_reference', name: { kind: 'class_name', value: { kind: 'string_value', value: service.name.value.value } } };
   return relationProject(
     sequenceToArray(service.dependencyTargets),
-    resolved => relationVariantFold<DependencyTargetReference, 'model_reference', ServiceDependency>(
-      resolved.target,
+    target => relationVariantFold<DependencyTargetReference, 'model_reference', ServiceDependency>(
+      target,
       'model_reference',
-      () => ({ from, to: resolved.target, type: 'depends_on_model', weight: 1 }),
-      serviceTarget => relationVariantFold<DependencyTargetReference, 'service_reference', ServiceDependency>(
-        resolved.target,
+      rest => relationVariantFold<DependencyTargetReference, 'service_reference', ServiceDependency>(
+        rest,
         'service_reference',
-        () => ({ from, to: serviceTarget, type: 'depends_on_service', weight: 1 }),
         classTarget => ({ from, to: classTarget, type: 'depends_on_class', weight: 1 }),
+        serviceTarget => ({ from, to: serviceTarget, type: 'depends_on_service', weight: 1 }),
       ),
+      modelTarget => ({ from, to: modelTarget, type: 'depends_on_model', weight: 1 }),
     ),
   );
 };
@@ -80,7 +80,7 @@ export function registerServicesFromGraphSurface(surface: RouteSyncManifestGraph
 
 const controllerNodeFromAction = (action: GraphControllerSurface): ControllerNode => buildControllerNode(
   createControllerNodeName(action.controller.value.value),
-  [createActionName(action.action)],
+  [action.action],
 );
 
 /** Seed graph controller nodes from canonical contracts, then consume the canonical relation graph for dependency edges. */
@@ -101,7 +101,7 @@ const registerControllersFromGraphSurface = (
     const next = relationResolve(
       relationContains(actionNames, actionName),
       () => current,
-      () => ({ ...current, actions: [...current.actions, { name: createActionName(action.action) }] }),
+      () => ({ ...current, actions: [...current.actions, { name: action.action }] }),
     );
     return relationIndexAdd(index, controllerName, next);
   });

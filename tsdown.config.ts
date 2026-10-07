@@ -36,13 +36,32 @@ const shared = {
   clean: false,
   sourcemap: false,
   tsconfig: 'tsconfig.json',
-  onSuccess: rewriteDeclarationImports
+  deps: {
+    neverBundle: [
+      'axios',
+      'chalk',
+      'commander',
+      'fs-extra',
+      'ora',
+      'react',
+      'vue',
+      '@tanstack/react-query',
+      '@tanstack/vue-query',
+      'zod'
+    ]
+  },
+  onSuccess: rewriteDeclarationImports,
+  hooks: {
+    'build:done': rewriteDeclarationImports
+  }
 } satisfies Options
 
 const cliShared = {
   ...shared,
-  external: ['axios', 'react', 'vue', '@tanstack/react-query', '@tanstack/vue-query', 'zod'],
-  
+  deps: {
+    neverBundle: ['axios', 'react', 'vue', '@tanstack/react-query', '@tanstack/vue-query', 'zod'],
+    alwaysBundle: ['chalk', 'commander', 'fs-extra', 'ora']
+  }
 } satisfies Options
 
 export default defineConfig([

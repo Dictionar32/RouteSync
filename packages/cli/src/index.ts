@@ -8,7 +8,7 @@ import { annotateCommand } from './commands/annotate';
 import { explainCommand } from './commands/explain';
 import { auditCommand } from './commands/audit';
 
-const program = new Command();
+const program: Command = new Command();
 
 program
   .name('routesync')

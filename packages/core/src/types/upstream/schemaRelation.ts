@@ -15,6 +15,7 @@ export interface SchemaRelationInterface {
   readonly kind: 'schema_relation_interface';
   readonly table: TableName;
   readonly source: SourceSpan;
+  readonly primaryColumns: Sequence<ColumnName>;
   readonly foreignKeys: Sequence<ForeignKey>;
   readonly migrationProvenance: Sequence<MigrationProvenance>;
   readonly findByColumn: (column: ColumnName) => Sequence<ForeignKey>;
@@ -41,17 +42,18 @@ export const schemaRelationIndexFrom = (schema: SchemaInterface): SchemaRelation
     kind: 'schema_relation_interface' as const,
     table: table.table,
     source: table.source,
-    foreignKeys: table.foreignKeys,
+    primaryColumns: sequence(items(table.columns.items).filter(column => column.primary.value).map(column => column.name)),
+    foreignKeys: table.foreignKeys.items,
     migrationProvenance: table.migrationProvenance,
-    findByColumn: column => sequence(items(table.foreignKeys).filter(foreignKey => foreignKey.column.value.value === column.value.value)),
-    findToTable: target => sequence(items(table.foreignKeys).filter(foreignKey => foreignKey.referencesModel.value.value === target.value.value)),
+    findByColumn: (column: ColumnName) => sequence(items(table.foreignKeys.items).filter((foreignKey: ForeignKey) => foreignKey.column.value.value === column.value.value)),
+    findToTable: (target: TableName) => sequence(items(table.foreignKeys.items).filter((foreignKey: ForeignKey) => foreignKey.referencesModel.value.value === target.value.value)),
     closed: true as const,
   }));
   const incoming = (target: TableName): Sequence<ForeignKey> => sequence(tables.flatMap(table => items(table.findToTable(target))));
   return Object.freeze({
     kind: 'schema_relation_index_interface' as const,
     tables: sequence(tables),
-    table: table => tables.find(candidate => candidate.table.value.value === table.value.value),
+    table: (table: TableName) => tables.find(candidate => candidate.table.value.value === table.value.value),
     incoming,
     closed: true as const,
   });

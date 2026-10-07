@@ -1,4 +1,4 @@
-/** @deprecated Use semanticDataflowInterface.ts. Compatibility surface only. */
+/** @deprecated Use semanticDataflow.ts. Compatibility surface only. */
 export type {
   SemanticDataflowEntityRole as AstDataflowEntityRole,
   SemanticDataflowRole as AstDataflowRole,
@@ -8,4 +8,4 @@ export type {
   SemanticDataflowJudgment as AstDataflowJudgment,
   SemanticDataflowOrigin as AstDataflowOrigin,
   SemanticDataflowInterface as AstDataflowInterface,
-} from './semanticDataflowInterface';
+} from './semanticDataflow';

@@ -60,7 +60,9 @@ export * from './astSemanticAuthorityPipeline';
 export * from './astSemanticStageTransition';
 
 export * from './semanticDataflow';
+export * from './semanticDataflowKnowledge';
 export * from './semanticDataflowManifestSurface';
+export * from './semanticDataflowInputFactory';
 export type { ControllerActionPolicyRelation, ControllerActionPolicyProvenance } from './controllerActionPolicyRelations';
 export type { RouteActionPolicyRelation } from './routeActionPolicyRelations';
 export { routeActionPolicyRelations, routeActionPolicyRelationsFromEffectivePolicy } from './routeActionPolicyRelations';

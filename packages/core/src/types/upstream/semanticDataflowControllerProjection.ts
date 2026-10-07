@@ -10,7 +10,7 @@ import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { ControllerParameter, ControllerResourceBinding } from './controller';
 import { semanticDataflowFactWithLineage, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
 import { stringValue } from './valueObjects';
-import { relationVariantFold } from '../../semantic/foundation/relationalSequence';
+import { relationVariantFold, relationExpand, type Sequence } from '../../semantic/foundation/relationalSequence';
 
 const controllerName = (controller: ControllerActionFlowContract): string => controller.controller.value.value;
 const actionName = (controller: ControllerActionFlowContract): string => controller.action.value.value;
@@ -71,8 +71,18 @@ const resourceIdentity = (
 ): SemanticDataflowIdentity => identity(
   binding.source,
   'resource-access',
-  `controller:${controllerName(controller)}.${actionName(controller)}:resource:${binding.resourceName.value.value}:model`,
+  `controller:${controllerName(controller)}.${actionName(controller)}:resource:${binding.resource.name.value.value}:model`,
 );
+
+const parametersSequence = (bindings: Sequence<ControllerResourceBinding>): readonly ControllerResourceBinding[] => {
+  const values: ControllerResourceBinding[] = [];
+  let current = bindings;
+  while (current.kind !== 'empty') {
+    values.push(current.head);
+    current = current.tail;
+  }
+  return Object.freeze(values);
+};
 
 const responseIdentity = (
   controller: ControllerActionFlowContract,
@@ -94,7 +104,7 @@ const responseIdentity = (
 export const semanticDataflowControllerFacts = (
   controller: ControllerActionFlowContract,
 ): readonly SemanticDataflowInputFact[] => Object.freeze(
-  controller.semantic.resources.flatMap(binding => {
+  relationExpand(parametersSequence(controller.semantic.resources), binding => {
     const parameter = modelParameter(controller, binding);
     if (!parameter) return [];
     const model = modelIdentity(controller, parameter);

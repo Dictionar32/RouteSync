@@ -763,7 +763,7 @@ export { routeSyncManifestDataflowSurfaceFromFlow } from './compiler/analysis/ro
 export type { RouteSyncManifestDataflowSurface, RouteSyncManifestDataflowProjectionInterface, RouteSyncManifestDataflowControllerSurface } from './compiler/analysis/routeSyncManifestDataflowProjectionInterface'
 export type { SemanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeBoundary'
 export { semanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeComposition'
-export type { ControlFlowDataFlowInterface, DataFlowAnalysisInterface } from './compiler/analysis/dataflow/controlFlowDataFlowInterface'
+export type { ControlFlowSolverInterface, ControlFlowDataFlowInterface, DataFlowAnalysisInterface } from './compiler/analysis/dataflow/controlFlowDataFlowInterface'
 export type { DataFlowInterface, DataFlowSourceInterface, DataFlowStepInterface, DataFlowFixpointInterface, DataFlowStateInterface, DataFlowQueryInterface } from './types/dataflow'
 export type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowFact } from './types/upstream/semanticDataflow'
 export { semanticDataflowIdentityEqual } from './types/upstream/semanticDataflow'

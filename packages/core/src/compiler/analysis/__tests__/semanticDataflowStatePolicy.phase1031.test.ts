@@ -32,6 +32,8 @@ const dataflow = Object.freeze({
   close: (state: SemanticDataflowJudgment) => state,
   reaches: (_state: SemanticDataflowJudgment, from: SemanticDataflowIdentity, to: SemanticDataflowIdentity) =>
     JSON.stringify(from) === JSON.stringify(source) && JSON.stringify(to) === JSON.stringify(target),
+  kind: 'data_flow_interface',
+},
 }) satisfies DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>;
 
 describe('Phase 1031 semantic dataflow state policy', () => {

@@ -1,6 +1,6 @@
 import type { EloquentRelationAst } from './eloquent';
 import { modelSemanticRelationIdentityOf, type ModelSemanticRelation, type RelationKey } from './model';
-import { schemaForeignKeyEvidence, type SchemaRelationIndexInterface, type SchemaForeignKeyEvidence } from './schemaRelation';
+import { schemaForeignKeyEvidence, type SchemaRelationIndexInterface, type SchemaRelationInterface, type SchemaForeignKeyEvidence } from './schemaRelation';
 import type { ForeignKey } from './databaseVocabulary';
 import type { TableName } from './names';
 import { createTableName } from './names';
@@ -36,8 +36,8 @@ const items = <T>(value: import('./collections').Sequence<T>, output: readonly T
 
 const modelTable = (model: string): TableName => createTableName(inferLaravelTableName(model));
 
-const primaryColumns = (table: import('./schema').SchemaTable | undefined): readonly string[] =>
-  table === undefined ? [] : items(table.columns.items).filter(column => column.primary.value).map(column => column.name.value.value);
+const primaryColumns = (table: SchemaRelationInterface | undefined): readonly string[] =>
+  table === undefined ? [] : items(table.primaryColumns).map(column => column.value.value);
 
 const conventionForeignColumn = (model: string): string =>
   model.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase() + '_id';

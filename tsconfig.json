@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2025",
     "module": "ESNext",
     "lib": [
-      "ES2020",
+      "ES2025",
       "DOM"
     ],
     "strict": true,
@@ -32,7 +32,12 @@
     "types": [
       "node",
       "vitest/globals"
-    ]
+    ],
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "rootDir": "."
   },
   "include": [
     "packages/**/*.ts"

@@ -17,12 +17,18 @@
     "zod": ">=3.0.0"
   },
   "peerDependenciesMeta": {
-    "react-hook-form": { "optional": true },
-    "@hookform/resolvers": { "optional": true },
-    "zod": { "optional": true }
+    "react-hook-form": {
+      "optional": true
+    },
+    "@hookform/resolvers": {
+      "optional": true
+    },
+    "zod": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "typescript": "^5.4.0",
+    "typescript": "^7.0.0",
     "tsup": "^8.0.0"
   },
   "license": "MIT",

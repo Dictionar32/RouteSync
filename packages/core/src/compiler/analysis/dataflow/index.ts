@@ -10,7 +10,7 @@ export type { FlowState, TransferFn, MergeFn } from './types';
 export { runForwardAnalysis } from './forwardSolver';
 export { runBackwardAnalysis } from './backwardSolver';
 
-export type { ControlFlowDataFlowInterface, DataFlowAnalysisInterface, DataFlowForwardInterface, DataFlowBackwardInterface } from './controlFlowDataFlowInterface';
+export type { ControlFlowSolverInterface, ControlFlowDataFlowInterface, DataFlowAnalysisInterface, DataFlowForwardInterface, DataFlowBackwardInterface } from './controlFlowDataFlowInterface';
 
 export { createDataFlowConfig } from './dataFlowConfigInterface';
 export { liftDataFlowConfigToState } from './dataFlowStateConfigInterface';

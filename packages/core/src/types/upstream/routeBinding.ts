@@ -1,4 +1,5 @@
-import type { RouteParameter, RouteParameters } from './route';
+import type { RouteParameter } from './route';
+import type { RouteParameters } from './collections';
 import type { Sequence } from './collections';
 
 export interface RouteBindingInterface {
@@ -17,7 +18,7 @@ const sequence = <T>(values: readonly T[], index = 0): Sequence<T> =>
   index < values.length ? { kind: 'cons', head: values[index], tail: sequence(values, index + 1) } : { kind: 'empty' };
 
 export const routeBindingInterfaceFrom = (parameters: RouteParameters): RouteBindingInterface => {
-  const all = items(parameters);
+  const all = items(parameters.items);
   const modelParameters = all.filter(parameter => parameter.type.kind === 'model');
   const implicitModelParameters = all.filter(parameter => parameter.binding.kind === 'implicit_model');
   const explicitBindings = all.filter(parameter => parameter.binding.kind === 'explicit' || parameter.binding.kind === 'custom');

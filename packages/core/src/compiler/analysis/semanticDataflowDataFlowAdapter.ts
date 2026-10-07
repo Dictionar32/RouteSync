@@ -28,6 +28,7 @@ export const createSemanticDataflowDataFlowInterface = (
   const state = createSemanticDataflowJudgment(input);
 
   return Object.freeze({
+    kind: 'data_flow_interface',
     seed: (nextInput: SemanticDataflowInput) => createSemanticDataflowJudgment(nextInput),
     state,
     // The upstream judgment is already closed. Downstream execution must not

@@ -22,9 +22,20 @@ export interface DataFlowBackwardInterface<T> {
   ) => RelationIndex<number, FlowState<T>>;
 }
 
-/** Aggregate CFG contract; solver implementation may provide both capabilities. */
-export type ControlFlowDataFlowInterface<T> =
+/**
+ * CFG solver contract.
+ *
+ * This is deliberately named as a solver contract, not the canonical
+ * `DataFlowInterface` from `types/dataflow`. The two operate at different
+ * layers: this one consumes a concrete CFG and computes block states; the
+ * canonical interface transports an already-domain-typed data-flow state
+ * across the downstream wiring boundary.
+ */
+export type ControlFlowSolverInterface<T> =
   DataFlowForwardInterface<T> & DataFlowBackwardInterface<T>;
 
 /** Compatibility name retained for callers that imported the old contract. */
-export type DataFlowAnalysisInterface<T> = ControlFlowDataFlowInterface<T>;
+export type ControlFlowDataFlowInterface<T> = ControlFlowSolverInterface<T>;
+
+/** Compatibility name retained for callers that imported the old contract. */
+export type DataFlowAnalysisInterface<T> = ControlFlowSolverInterface<T>;

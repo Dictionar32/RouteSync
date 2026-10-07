@@ -122,13 +122,11 @@ export type SemanticDataflowFact =
       readonly target: SemanticDataflowIdentity;
     }>;
 
-export const semanticDataflowFactWithLineage = <
-  T extends Exclude<SemanticDataflowFact, { readonly kind: 'reaches' }>,
->(
-  fact: T,
+export const semanticDataflowFactWithLineage = (
+  fact: SemanticDataflowInputFact,
   producer: SemanticDataflowLineage['producer'],
   identity: SemanticDataflowIdentity = fact.source,
-): T => Object.freeze({
+): SemanticDataflowInputFact => Object.freeze({
   ...fact,
   lineage: Object.freeze({
     kind: 'semantic_dataflow_fact_lineage',
@@ -137,7 +135,7 @@ export const semanticDataflowFactWithLineage = <
     source: identity.source,
     closed: true,
   }),
-}) as T;
+});
 
 export type SemanticDataflowDerivation = Readonly<{
   readonly kind: 'semantic_dataflow_derivation';
@@ -198,4 +196,34 @@ export type SemanticDataflowInput = Readonly<{
   readonly origin: SemanticDataflowOrigin;
   readonly closed: true;
 }>;
+
+/**
+ * Canonical semantic dataflow interface.
+ *
+ * This is the upstream semantic contract. The generic DataFlowInterface is a
+ * downstream execution/state/query projection and must not redefine this ADT.
+ */
+export type SemanticDataflowInterface = Readonly<{
+  readonly kind: 'semantic_dataflow_interface';
+  readonly authority: 'semantic_dataflow_judgment';
+  readonly origin: SemanticDataflowOrigin;
+  readonly judgment: SemanticDataflowJudgment;
+  readonly closed: true;
+}>;
+
+/** Reconnect an authoritative judgment without re-encoding its semantics. */
+export const semanticDataflowInterfaceFromJudgment = (
+  judgment: SemanticDataflowJudgment,
+): SemanticDataflowInterface => Object.freeze({
+  kind: 'semantic_dataflow_interface',
+  authority: 'semantic_dataflow_judgment',
+  origin: Object.freeze({
+    kind: 'semantic_dataflow_origin',
+    source: 'semantic_dataflow_input',
+    identity: judgment.origin.identity,
+    closed: true,
+  }),
+  judgment,
+  closed: true,
+});
 

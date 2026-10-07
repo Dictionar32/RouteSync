@@ -31,6 +31,7 @@ async function rewriteDeclarationImports() {
 
 const shared = {
   outDir,
+  target: 'es2025',
   dts: true,
   clean: false,
   external: [

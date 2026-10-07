@@ -328,8 +328,8 @@ export function sourceModelReferenceIndexFromCatalog(
         { kind: 'controller_response' as const, controller: controller.identity, response: resource.response },
       ]),
       ...sequenceExpand(controller.action.dependencies, dependency => {
-        const modelNames = sequenceProject(sequenceToArray(catalog.models), model => model.identity.name);
-        const serviceNames = sequenceProject(sequenceToArray(catalog.services), service => service.name);
+        const modelNames = sequenceProject(catalog.models, model => model.identity.name);
+        const serviceNames = sequenceProject(catalog.services, service => service.identity.name);
         const resolved = resolveServiceDependencyTarget(dependency.type, modelNames, serviceNames);
         return [{
           kind: 'controller_dependency' as const,
@@ -338,7 +338,7 @@ export function sourceModelReferenceIndexFromCatalog(
         } satisfies ControllerDependencyRelation];
       }),
     ]),
-    ...relationExpand(modelNodes, model => relationProject(model.definition.relation.semantic, relation => ({
+    ...relationExpand(modelNodes, model => relationProject(model.definition.semantic.relation.semantic, relation => ({
       kind: 'model_relation' as const,
       model: model.identity,
       target: { kind: 'model_reference' as const, name: relation.targetModel },
@@ -452,26 +452,26 @@ export function buildCompleteLaravelSourceModel(
 
   const catalog: SourceModelCatalog = {
     kind: 'source_model_catalog',
-    providers: sequenceFromArray(sequenceProject(providers, definition => ({
+    providers: sequenceFromArray(relationProject(providers, definition => ({
       kind: 'provider_semantic_node' as const,
       identity: definition.name,
       definition,
       source: definition.source,
     }))),
-    controllers: sequenceFromArray(sequenceProject(controllers, action => ({
+    controllers: sequenceFromArray(relationProject(controllers, action => ({
       kind: 'controller_semantic_node' as const,
       identity: { kind: 'controller_reference' as const, name: action.controller, action: action.action },
       action,
       source: action.source,
     }))),
-    models: sequenceFromArray(sequenceProject(seeds.models, definition => ({
+    models: sequenceFromArray(relationProject(seeds.models, definition => ({
       kind: 'model_semantic_node' as const,
       identity: { kind: 'model_reference' as const, name: definition.identity.name },
       definition,
       source: definition.source,
     }))),
     resources: sequenceFromArray(
-      sequenceProject(seeds.resources, definition => ({
+      relationProject(seeds.resources, definition => ({
             kind: 'resource_semantic_node' as const,
             identity: { kind: 'resource_reference' as const, name: definition.name },
             definition,
@@ -479,22 +479,22 @@ export function buildCompleteLaravelSourceModel(
           })),
     ),
     requests: sequenceFromArray(
-      sequenceProject(seeds.requests, definition => ({
+      relationProject(seeds.requests, definition => ({
             kind: 'request_semantic_node' as const,
             identity: { kind: 'request_reference' as const, name: definition.identity.request },
             definition,
             source: definition.source,
           })),
     ),
-    responses: sequenceFromArray(sequenceProject(responses, definition => ({
+    responses: sequenceFromArray(relationProject(responses, definition => ({
       kind: 'response_semantic_node' as const,
       identity: { kind: 'response_reference' as const, name: definition.typeName },
       definition,
       source: definition.source,
     }))),
-    services: sequenceFromArray(sequenceProject(services, definition => {
-      const modelNames = sequenceProject(sequenceToArray(models), model => model.definition.identity.name);
-      const serviceNames = sequenceProject(sequenceToArray(services), service => service.name);
+    services: sequenceFromArray(relationProject(services, definition => {
+      const modelNames = sequenceProject(models, model => model.definition.identity.name);
+      const serviceNames = services.map(service => service.name);
       const resolved = sequenceProject(definition.dependencies.items, fact => ({
         kind: 'resolved_service_dependency' as const,
         fact,

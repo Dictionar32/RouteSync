@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { defineConfig, type Options } from 'tsup'
+import { defineConfig, type Options } from 'tsdown'
 
 const outDir = 'dist'
 
@@ -34,18 +34,6 @@ const shared = {
   target: 'es2025',
   dts: true,
   clean: false,
-  external: [
-    'axios',
-    'chalk',
-    'commander',
-    'fs-extra',
-    'ora',
-    'react',
-    'vue',
-    '@tanstack/react-query',
-    '@tanstack/vue-query',
-    'zod'
-  ],
   sourcemap: false,
   tsconfig: 'tsconfig.json',
   onSuccess: rewriteDeclarationImports
@@ -54,7 +42,7 @@ const shared = {
 const cliShared = {
   ...shared,
   external: ['axios', 'react', 'vue', '@tanstack/react-query', '@tanstack/vue-query', 'zod'],
-  noExternal: ['chalk', 'commander', 'fs-extra', 'ora']
+  
 } satisfies Options
 
 export default defineConfig([

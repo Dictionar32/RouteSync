@@ -3,6 +3,7 @@ import type { RouteSyncManifestDataflowSurface } from './routeSyncManifestDatafl
 import type { SemanticDataflowAnalysisResult } from './semanticDataflowPipeline';
 import { analyzeSemanticDataflowInput } from './semanticDataflowPipeline';
 import type { SemanticDataflowRuntimeBoundary } from './semanticDataflowRuntimeBoundary';
+import { semanticDataflowIdentityEqual } from '../../types/upstream/semanticDataflow';
 import type { Sequence } from '../../types/upstream/collections';
 import type { SemanticDataflowFactPolicyContext, SemanticDataflowAnalysisPolicy } from './dataflow/semanticDataflowFactAnalysisPolicy';
 import { createSemanticDataflowAnalysisPolicy } from './dataflow/semanticDataflowFactAnalysisPolicy';
@@ -34,12 +35,11 @@ export const analyzeRouteSyncManifestDataflow = (
     action: controller.action,
     analysis: analyzeSemanticDataflowInput(
       (() => {
-        const controllerSlot = `${controller.controller}.${controller.action}`;
         const input = sequenceToArray(manifest.dataflowInputs).find(
-          candidate => candidate.node.slot.value === controllerSlot,
+          candidate => semanticDataflowIdentityEqual(candidate.node, controller.dataflowNode),
         );
         if (!input) {
-          throw new Error(`Missing canonical manifest dataflow input for controller action: ${controllerSlot}`);
+          throw new Error(`Missing canonical manifest dataflow input for controller action: ${controller.controller}.${controller.action}`);
         }
         return input;
       })(),

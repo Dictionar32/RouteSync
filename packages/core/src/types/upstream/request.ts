@@ -467,10 +467,12 @@ export type RequestValidationCapabilityVisitor<T> = {
 export const matchRequestValidationCapability = <T>(
   value: RequestValidationCapability,
   visitor: RequestValidationCapabilityVisitor<T>
-): T => ({
-  no_form_request_validation: () => visitor.no_form_request_validation(),
-  form_request_validation: () => visitor.form_request_validation(value as Extract<RequestValidationCapability, { readonly kind: 'form_request_validation' }>),
-}[value.kind])();
+): T => {
+  switch (value.kind) {
+    case 'no_form_request_validation': return visitor.no_form_request_validation();
+    case 'form_request_validation': return visitor.form_request_validation(value);
+  }
+};
 
 export type RequestFacts = {
   readonly kind: 'request_facts';

@@ -38,9 +38,7 @@
     "forceConsistentCasingInFileNames": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
-    "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "isolatedDeclarations": true
+    "verbatimModuleSyntax": true
   },
   "include": [
     "next-env.d.ts",

@@ -5,7 +5,7 @@
  * represented as a relation (an immutable tuple stream) and queried through
  * relation predicates.
  */
-import { relationEqual, relationResolve, relationNone, relationSome, type RelationOption } from './relationFoundation';
+import { relationEqual, relationResolve, relationNone, relationSome, relationOptionFold, relationAll, type RelationOption } from './relationFoundation';
 
 export type RelationMembership<T> = readonly T[];
 
@@ -13,11 +13,18 @@ export const relationContains = <T>(values: RelationMembership<T>, value: T, ind
   relationResolve(
     relationEqual(index, values.length),
     () => false,
-    () => relationResolve(
-      relationEqual(values[index], value),
-      () => true,
-      () => relationContains(values, value, index + 1),
+    () => relationOptionFold(
+      relationAt(values, index),
+      () => false,
+      candidate => relationResolve(relationEqual(candidate, value), () => true, () => relationContains(values, value, index + 1)),
     ),
+  );
+
+export const relationAt = <T>(values: readonly T[], index: number): RelationOption<T> =>
+  relationResolve(
+    relationAll([index >= 0, index < values.length]),
+    () => values.slice(index, index + 1).reduce<RelationOption<T>>((_, candidate) => relationSome(candidate), relationNone<T>()),
+    () => relationNone<T>(),
   );
 
 export const relationInsert = <T>(values: RelationMembership<T>, value: T): RelationMembership<T> =>
@@ -31,14 +38,14 @@ export const relationUnique = <T>(values: readonly T[], index = 0, output: Relat
   relationResolve(
     relationEqual(index, values.length),
     () => Object.freeze(output),
-    () => relationUnique(values, index + 1, relationInsert(output, values[index])),
+    () => relationOptionFold(relationAt(values, index), () => output, value => relationUnique(values, index + 1, relationInsert(output, value))),
   );
 
 export const relationRemove = <T>(values: RelationMembership<T>, value: T, index = 0, output: T[] = []): RelationMembership<T> =>
   relationResolve(
     relationEqual(index, values.length),
     () => Object.freeze(output),
-    () => relationRemove(values, value, index + 1, relationResolve(relationEqual(values[index], value), () => output, () => [...output, values[index]])),
+    () => relationOptionFold(relationAt(values, index), () => output, candidate => relationRemove(values, value, index + 1, relationResolve(relationEqual(candidate, value), () => output, () => [...output, candidate]))),
   );
 
 /**
@@ -55,11 +62,8 @@ export const relationIndexLookup = <K, V>(
 ): RelationOption<V> => relationResolve(
   relationEqual(index, entries.length),
   () => relationNone<V>(),
-  () => relationResolve(
-    relationEqual(entries[index][0], key),
-    () => relationSome(entries[index][1]),
-    () => relationIndexLookup(entries, key, index + 1),
-  ),
+  () => relationOptionFold(relationAt(entries, index), () => relationNone<V>(), entry =>
+    relationResolve(relationEqual(entry[0], key), () => relationSome(entry[1]), () => relationIndexLookup(entries, key, index + 1))),
 );
 
 
@@ -75,11 +79,8 @@ const relationIndexWithout = <K, V>(
     entries,
     key,
     index + 1,
-    relationResolve(
-      relationEqual(entries[index][0], key),
-      () => output,
-      () => [...output, entries[index]],
-    ),
+    relationOptionFold(relationAt(entries, index), () => output, entry =>
+      relationResolve(relationEqual(entry[0], key), () => output, () => [...output, entry])),
   ),
 );
 

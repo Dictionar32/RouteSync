@@ -5,11 +5,9 @@
  * derivations, and path closure are semantic dataflow meaning and therefore
  * belong to this upstream authority rather than a compiler-local analyzer.
  */
-import type { SourceSpan } from './provenance';
-import type { StringValue } from './valueObjects';
 import { stringValue } from './valueObjects';
 import { relationEqual, relationResolve } from '../../semantic/foundation/semanticRelations';
-import { relationFixedPoint, relationProject, relationExpand, relationFirstOption, relationOptionFold, relationVariantFold } from '../../semantic/foundation/relationalSequence';
+import { relationFixedPoint, relationProject, relationExpand, relationFirstOption, relationOptionFold, relationVariantFold, relationAt } from '../../semantic/foundation/relationalSequence';
 import type {
   SemanticDataflowFact,
   SemanticDataflowIdentity,
@@ -20,7 +18,6 @@ import type {
   SemanticDataflowInput,
   SemanticDataflowGuard,
   SemanticDataflowPath,
-  SemanticDataflowOrigin,
 } from './semanticDataflow';
 import { semanticDataflowIdentityKey } from './semanticDataflow';
 
@@ -33,11 +30,15 @@ const factKey = (fact: SemanticDataflowFact): string => JSON.stringify(
       : { kind: fact.kind, source: semanticDataflowIdentityKey(fact.source), target: semanticDataflowIdentityKey(fact.target), role: fact.role, guard: fact.guard },
 );
 const uniqueFacts = (facts: readonly SemanticDataflowFact[], index = 0, output: readonly SemanticDataflowFact[] = []): readonly SemanticDataflowFact[] =>
-  relationResolve(relationEqual(index, facts.length), () => Object.freeze(output), () => uniqueFacts(facts, index + 1, relationOptionFold(
-    relationFirstOption(output, candidate => relationEqual(factKey(candidate), factKey(facts[index]))),
-    () => Object.freeze([...output, facts[index]]),
+  relationResolve(relationEqual(index, facts.length), () => Object.freeze(output), () => relationOptionFold(
+    relationAt(facts, index),
     () => output,
-  )));
+    fact => uniqueFacts(facts, index + 1, relationOptionFold(
+      relationFirstOption(output, candidate => relationEqual(factKey(candidate), factKey(fact))),
+      () => Object.freeze([...output, fact]),
+      () => output,
+    )),
+  ));
 
 const reachFact = (source: SemanticDataflowIdentity, target: SemanticDataflowIdentity): SemanticDataflowFact =>
   Object.freeze({ kind: 'reaches', source, target });
@@ -104,8 +105,6 @@ const pathClosure = (facts: readonly SemanticDataflowFact[]): readonly SemanticD
 const ruleName = (value: string): SemanticDataflowRuleName => Object.freeze({ kind: 'semantic_dataflow_rule', value: stringValue(value) });
 const witnessName = (value: string): SemanticDataflowWitnessName => Object.freeze({ kind: 'semantic_dataflow_witness', value: stringValue(value) });
 const derivationKey = (derivation: SemanticDataflowDerivation): string => JSON.stringify(derivation);
-const flowFacts = (judgment: SemanticDataflowJudgment): readonly Exclude<SemanticDataflowFact, { readonly kind: 'reaches' }>[] =>
-  judgment.facts.filter((fact): fact is Exclude<SemanticDataflowFact, { readonly kind: 'reaches' }> => fact.kind !== 'reaches');
 
 const factIn = (facts: readonly SemanticDataflowFact[], candidate: SemanticDataflowFact): boolean => facts.some(fact => relationEqual(factKey(fact), factKey(candidate)));
 const sameReach = (left: SemanticDataflowFact, right: SemanticDataflowFact): boolean =>

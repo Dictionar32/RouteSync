@@ -16,7 +16,7 @@ export function assembleServiceGraph(
   edgeRelations: readonly GraphEdgeRelation[],
   edges: readonly ServiceDependency[],
 ): ServiceGraph {
-  const models = ModelNodeMap.fromEntries(relationProject(
+  const models = ModelNodeMap.fromEntries<ServiceModelNode>(relationProject(
     relationSelect(
       [...modelsMap],
       (entry): entry is GraphNodeEntry<ServiceModelNode> & { readonly reference: ModelReference } =>
@@ -24,14 +24,14 @@ export function assembleServiceGraph(
     ),
     (entry: GraphNodeEntry<ServiceModelNode> & { readonly reference: ModelReference }) => ({ name: entry.reference.name, node: entry.value }),
   ));
-  const services = ModelServiceMap.fromEntries(relationProject(
+  const services = ModelServiceMap.fromEntries<ServiceNode>(relationProject(
     relationSelect([...servicesMap], (entry): entry is GraphNodeEntry<ServiceNode> & { readonly reference: import('../../types/upstream/semanticReferences').ServiceReference } => relationEqual(entry.reference.kind, 'service_reference')),
     (entry: GraphNodeEntry<ServiceNode> & { readonly reference: import('../../types/upstream/semanticReferences').ServiceReference }) => ({ name: SemanticValueFactory.propertyName(entry.reference.name.value.value), service: entry.value }),
   ));
   const controllerEntries = relationProject(controllers, entry => ({ name: SemanticValueFactory.variableName(entry[0]), controller: entry[1] }));
   const controllerFacts = relationSelect(controllerEntries, entry => true);
   const controllerValues = relationProject(controllerFacts, entry => entry);
-  const controllerLookup = ModelControllerMap.fromEntries(controllerValues);
+  const controllerLookup = ModelControllerMap.fromEntries<ControllerNode>(controllerValues);
   return Object.freeze({
     models,
     services,

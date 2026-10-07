@@ -295,7 +295,7 @@
     "react-hook-form": "^7.71.2",
     "tsup": "^8.0.0",
     "turbo": "^2.9.16",
-    "typescript": "^7.0.0",
+    "typescript": "7.0.2",
     "vitest": "^4.1.7",
     "zod": "^4.4.3"
   },

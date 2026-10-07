@@ -26,16 +26,22 @@ const check = <T>(category: SourceCategory, discovery: SourceDiscovery<T>, sourc
   not_scanned: (): Check => ({ kind: 'failure', failures: cons(categoryFailure(category, source), empty()) }),
   scanned: (): Check => ({ kind: 'valid', failures: empty() })
 }[discovery.kind]());
-const concat = (left: Sequence<CompletenessFailure>, right: Sequence<CompletenessFailure>): Sequence<CompletenessFailure> => ({
-  empty: (): Sequence<CompletenessFailure> => right,
-  cons: (): Sequence<CompletenessFailure> => concatCons(left as Extract<Sequence<CompletenessFailure>, { kind: 'cons' }>, right)
-}[left.kind]());
-const concatCons = (left: Extract<Sequence<CompletenessFailure>, { kind: 'cons' }>, right: Sequence<CompletenessFailure>): Sequence<CompletenessFailure> => cons(left.head, concat(left.tail, right));
-const collect = (checks: Sequence<Check>): Sequence<CompletenessFailure> => ({
-  empty: (): Sequence<CompletenessFailure> => empty(),
-  cons: (): Sequence<CompletenessFailure> => collectCons(checks as Extract<Sequence<Check>, { kind: 'cons' }>)
-}[checks.kind]());
-const collectCons = (checks: Extract<Sequence<Check>, { kind: 'cons' }>): Sequence<CompletenessFailure> => concat(checks.head.failures, collect(checks.tail));
+const concat = (left: Sequence<CompletenessFailure>, right: Sequence<CompletenessFailure>): Sequence<CompletenessFailure> => {
+  switch (left.kind) {
+    case 'empty':
+      return right;
+    case 'cons':
+      return cons(left.head, concat(left.tail, right));
+  }
+};
+const collect = (checks: Sequence<Check>): Sequence<CompletenessFailure> => {
+  switch (checks.kind) {
+    case 'empty':
+      return empty();
+    case 'cons':
+      return concat(checks.head.failures, collect(checks.tail));
+  }
+};
 const completeResult = (failures: Sequence<CompletenessFailure>, ast: SourceAst): CompleteSourceAst | IncompleteUpstream => ({
   empty: (): CompleteSourceAst => ({ kind: 'complete_source_ast', ast, [completeSourceProof]: 'complete' }),
   cons: (): IncompleteUpstream => ({ kind: 'incomplete_upstream', stage: { kind: 'source_ast' }, failures: { kind: 'completeness_failures', items: failures } })

@@ -1,6 +1,7 @@
 import type { InterfaceDependencyBoundary } from '../../types/interfaces/interfaceDependencyBoundary';
 import type { RouteSyncManifestFlow } from '../../types/upstream/manifest';
 import type { ManifestDataflowSeedSurface } from '../../types/upstream/semanticDataflowManifestSurface';
+import type { SemanticDataflowIdentity } from '../../types/upstream/semanticDataflow';
 
 /**
  * Downstream-owned wiring boundary from the upstream manifest flow into the
@@ -13,6 +14,8 @@ export interface RouteSyncManifestDataflowProjectionInterface
 export interface RouteSyncManifestDataflowControllerSurface {
   readonly controller: string;
   readonly action: string;
+  /** Canonical upstream identity; downstream matching must not reconstruct controller slots. */
+  readonly dataflowNode: SemanticDataflowIdentity;
 }
 
 export interface RouteSyncManifestDataflowSurface extends ManifestDataflowSeedSurface {

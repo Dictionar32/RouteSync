@@ -61,6 +61,8 @@ export interface RouteResourceFlowJudgment {
 const sequenceToArray = <T>(sequence: Sequence<T>, output: readonly T[] = []): readonly T[] =>
   sequence.kind === 'empty' ? output : sequenceToArray(sequence.tail, Object.freeze([...output, sequence.head]));
 
+const emptySequence = <T>(): Sequence<T> => ({ kind: 'empty' });
+
 /** Laravel resource naming knowledge, represented as declarative rewrite data. */
 interface ExactResourceNameRule { readonly kind: 'exact'; readonly input: string; readonly output: string }
 interface SuffixResourceNameRule { readonly kind: 'suffix'; readonly pattern: RegExp; readonly transform: (value: string) => string }
@@ -261,13 +263,13 @@ export function defaultApiResourceRegistration(resource: ResourceName, controlle
     kind: 'route_resource_registration',
     name: resource,
     controller,
-    only: { kind: 'empty' } as Sequence<ActionName>,
-    except: { kind: 'empty' } as Sequence<ActionName>,
+    only: emptySequence<ActionName>(),
+    except: emptySequence<ActionName>(),
     shallow: { kind: 'truth_value' as const, value: false },
     scoped: { kind: 'truth_value' as const, value: false },
-    parameters: { kind: 'empty' } as Sequence<PropertyName>,
+    parameters: emptySequence<PropertyName>(),
     creatable: { kind: 'truth_value' as const, value: false },
     destroyable: { kind: 'truth_value' as const, value: false },
-    middleware: { kind: 'empty' } as Sequence<import('./route').RouteResourceMiddlewareRule>,
+    middleware: emptySequence<import('./route').RouteResourceMiddlewareRule>(),
   });
 }

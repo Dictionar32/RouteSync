@@ -88,12 +88,14 @@ export type AssignmentTargetVisitor<R> = {
   readonly append: (target: Extract<AssignmentTarget, { readonly kind: 'append' }>) => R;
 };
 
-export const matchAssignmentTarget = <R>(target: AssignmentTarget, visitor: AssignmentTargetVisitor<R>): R => ({
-  variable: () => visitor.variable(target as Extract<AssignmentTarget, { readonly kind: 'variable' }>),
-  variables: () => visitor.variables(target as Extract<AssignmentTarget, { readonly kind: 'variables' }>),
-  destructuring: () => visitor.destructuring(target as Extract<AssignmentTarget, { readonly kind: 'destructuring' }>),
-  property: () => visitor.property(target as Extract<AssignmentTarget, { readonly kind: 'property' }>),
-  static_property: () => visitor.static_property(target as Extract<AssignmentTarget, { readonly kind: 'static_property' }>),
-  index: () => visitor.index(target as Extract<AssignmentTarget, { readonly kind: 'index' }>),
-  append: () => visitor.append(target as Extract<AssignmentTarget, { readonly kind: 'append' }>),
-}[target.kind])();
+export const matchAssignmentTarget = <R>(target: AssignmentTarget, visitor: AssignmentTargetVisitor<R>): R => {
+  switch (target.kind) {
+    case 'variable': return visitor.variable(target);
+    case 'variables': return visitor.variables(target);
+    case 'destructuring': return visitor.destructuring(target);
+    case 'property': return visitor.property(target);
+    case 'static_property': return visitor.static_property(target);
+    case 'index': return visitor.index(target);
+    case 'append': return visitor.append(target);
+  }
+};

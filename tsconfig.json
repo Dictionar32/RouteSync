@@ -48,8 +48,8 @@
     "allowUnusedLabels": false,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "moduleDetection": "force",
-    "isolatedDeclarations": true
+    "isolatedDeclarations": true,
+    "moduleDetection": "force"
   },
   "include": [
     "packages/**/*.ts"

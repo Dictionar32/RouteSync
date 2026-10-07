@@ -31,11 +31,13 @@ const relationOf = (fact: SemanticDataflowFact): SemanticDataflowIRRelation => {
         target: identityId(fact.target),
         role: fact.role,
         guards: fact.guard ? [identityId(fact.guard.predicate)] : [],
-        lineage: fact.lineage ? Object.freeze({
-          producer: fact.lineage.producer,
-          identity: identityId(fact.lineage.identity),
-          source: fact.lineage.source,
-        }) : undefined,
+        ...(fact.lineage ? {
+          lineage: Object.freeze({
+            producer: fact.lineage.producer,
+            identity: identityId(fact.lineage.identity),
+            source: fact.lineage.source,
+          }),
+        } : {}),
       });
     case 'reaches':
       return Object.freeze({

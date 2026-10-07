@@ -97,9 +97,9 @@ const registerControllersFromGraphSurface = (
       value => value,
     );
     const actionName = action.action.value.value;
-    const actionNames = relationProject(current.actions, value => value.name.value.value);
+    const actionNames = relationProject(current.actions, value => value.name);
     const next = relationResolve(
-      relationContains(actionNames, actionName),
+      relationContains(actionNames, action.action),
       () => current,
       () => ({ ...current, actions: [...current.actions, { name: action.action }] }),
     );

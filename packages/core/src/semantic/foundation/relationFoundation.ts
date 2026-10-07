@@ -6,23 +6,22 @@ export type RelationOption<T> =
 export function relationResolve<T>(condition: boolean, whenTrue: () => T, whenFalse: () => T): T;
 export function relationResolve<T, U>(condition: boolean, whenTrue: () => T, whenFalse: () => U): T | U;
 export function relationResolve<T, U>(condition: boolean, whenTrue: () => T, whenFalse: () => U): T | U {
-  const branches: readonly [() => U, () => T] = [whenFalse, whenTrue];
-  return branches[Number(condition)]();
+  return condition ? whenTrue() : whenFalse();
 }
 
 export function relationGate<T>(condition: boolean, whenTrue: () => T, whenFalse: () => T): T;
 export function relationGate<T, U>(condition: boolean, whenTrue: () => T, whenFalse: () => U): T | U;
 export function relationGate<T, U>(condition: boolean, whenTrue: () => T, whenFalse: () => U): T | U {
-  return [whenFalse, whenTrue][Number(condition)]();
+  return condition ? whenTrue() : whenFalse();
 }
 
 export const relationAny = (predicates: readonly boolean[], index = 0): boolean =>
   relationGate(index >= predicates.length, () => false, () =>
-    relationGate(predicates[index], () => true, () => relationAny(predicates, index + 1)));
+    relationGate(Boolean(predicates[index]), () => true, () => relationAny(predicates, index + 1)));
 
 export const relationAll = (predicates: readonly boolean[], index = 0): boolean =>
   relationGate(index >= predicates.length, () => true, () =>
-    relationGate(predicates[index], () => relationAll(predicates, index + 1), () => false));
+    relationGate(Boolean(predicates[index]), () => relationAll(predicates, index + 1), () => false));
 
 export const relationEqual = <T>(left: T, right: T): boolean => {
   const leftNumber = Object.is(typeof left, 'number');
@@ -44,17 +43,6 @@ export type RelationNone = { readonly kind: 'none' };
 export const relationIsSome = <T>(option: RelationOption<T>): option is RelationSome<T> => relationEqual(option.kind, 'some');
 export const relationIsNone = <T>(option: RelationOption<T>): option is RelationNone => relationEqual(option.kind, 'none');
 
-function relationRefineSingleton<T, U extends T>(
-  value: T,
-  predicate: (candidate: T) => candidate is U,
-): readonly U[];
-function relationRefineSingleton<T>(
-  value: T,
-  predicate: (candidate: T) => boolean,
-): readonly T[] {
-  return relationResolve(predicate(value), () => [value], () => []);
-}
-
 export function relationOptionFold<T, R>(
   option: RelationOption<T>,
   noneBranch: () => R,
@@ -70,8 +58,8 @@ export function relationOptionFold<T, R1, R2>(
   noneBranch: () => R1,
   someBranch: (value: T) => R2,
 ): R1 | R2 {
-  const witnesses = relationRefineSingleton(option, relationIsSome);
-  return relationResolve(witnesses.length > 0, () => someBranch(witnesses[0].value), noneBranch);
+  if (relationIsSome(option)) return someBranch(option.value);
+  return noneBranch();
 }
 
 export const RELATION_NONE: unique symbol = Symbol('relation-none');

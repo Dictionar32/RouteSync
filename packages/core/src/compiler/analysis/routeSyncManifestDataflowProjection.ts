@@ -12,6 +12,7 @@ const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): read
 const controllerSurface = (controller: ControllerActionFlowContract) => Object.freeze({
   controller: controller.controller.value.value,
   action: controller.action.value.value,
+  dataflowNode: controller.semantic.dataflow.node,
 });
 
 export const routeSyncManifestDataflowProjection: RouteSyncManifestDataflowProjectionInterface = Object.freeze({

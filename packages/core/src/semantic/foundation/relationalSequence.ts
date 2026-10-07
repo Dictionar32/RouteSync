@@ -22,13 +22,13 @@ import {
   type RelationNone,
   type RelationSome,
 } from './relationFoundation';
-import { relationUnique, relationIndexAdd, relationIndexLookup, type RelationIndex } from './relationMembership';
+import { relationUnique, relationIndexAdd, relationIndexLookup, relationAt, type RelationIndex } from './relationMembership';
 export type Sequence<T> = { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: Sequence<T> };
 
 export {
   RELATION_NONE, relationAny, relationEqual, relationGate, relationResolve,
   relationNone, relationSome, relationOptionFold, relationIsSome, relationIsNone, relationIsPresent, relationNotEqual,
-  relationUnique, relationIndexAdd, relationIndexLookup,
+  relationUnique, relationIndexAdd, relationIndexLookup, relationAt,
 };
 export type { RelationOption, RelationMaybe, RelationNone, RelationSome, RelationIndex };
 
@@ -444,13 +444,6 @@ export const relationTextFields = (source: string, delimiter: string, index = 0,
       () => relationTextFields(source, delimiter, relationAdvanceIndex(index, delimiter.length), relationAdvanceIndex(index, delimiter.length), [...output, relationTextSlice(source, start, index)]),
       () => relationTextFields(source, delimiter, relationAdvanceIndex(index, 1), start, output),
     ),
-  );
-
-export const relationAt = <T>(source: readonly T[], index: number): RelationOption<T> =>
-  relationResolve(
-    relationAll([index >= 0, index < source.length]),
-    () => relationSome(source[index]),
-    () => relationNone(),
   );
 
 export const relationTextNumber = (source: string, fallback = 0): number => {

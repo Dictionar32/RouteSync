@@ -24,7 +24,7 @@ export {
     EloquentCastMapper,
     type ModelCastFact,
     type ModelAccessorFact,
-    EloquentRelationType,
+    type EloquentRelationType,
     type EloquentRelationCardinality,
     type EloquentRelationDescriptor,
           type ModelSemanticRelation,

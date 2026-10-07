@@ -29,7 +29,18 @@
     },
     "types": [
       "node"
-    ]
+    ],
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "isolatedDeclarations": true
   },
   "include": [
     "next-env.d.ts",

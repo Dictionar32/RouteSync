@@ -1,5 +1,6 @@
 import type { SemanticType } from "./semanticType";
-import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType, primitiveType } from "./semanticType";
+import { PrimitiveKind, ReadonlyCollectionType, CollectionKind, JsonValueType, ReferenceType, primitiveType } from "./semanticType";
+import type { PrimitiveType } from "./semanticType";
 import { SemanticValueFactory, type ClassName, type ColumnName, type ModelName, type PropertyName, type CastTypeName, type SemanticOperator } from './semanticValues';
 import type { Cardinality } from '../upstream/primitiveVocabulary';
 import type { ModelAccessorFact, ModelCastFact } from '../upstream/modelSourceFacts';

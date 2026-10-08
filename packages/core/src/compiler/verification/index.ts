@@ -14,7 +14,8 @@
 // Verification infrastructure
 export { Verifier } from './Verifier';
 export { VerifierManager } from './VerifierManager';
-export { VerifierPhase, VerificationContext } from './VerificationContext';
+export { VerifierPhase } from './VerificationContext';
+export type { VerificationContext } from './VerificationContext';
 
 // Concrete verifiers
 export { CFGVerifier } from './CFGVerifier';
@@ -22,4 +23,5 @@ export { SSAVerifier } from './SSAVerifier';
 
 // Analysis components
 export { AliasAnalysis } from './AliasAnalysis';
-export { EffectAnalysis, DefaultEffectAnalysis } from './EffectAnalysis';
+export { DefaultEffectAnalysis } from './EffectAnalysis';
+export type { EffectAnalysis } from './EffectAnalysis';

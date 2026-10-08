@@ -9,7 +9,7 @@
 
 import type { ArtifactMetadata } from './Artifact';
 import { TypedArtifact } from './Artifact';
-import { SemanticType } from '../../types/semantic';
+import type { SemanticType } from '../../types/domain/semanticType';
 
 /**
  * Symbol definition with type information

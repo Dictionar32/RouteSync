@@ -2869,3 +2869,11 @@ Verification is limited to the targeted source audit, JSON validity, and ZIP int
 - Changed the compiler and artifacts barrels to export `ASTNode` type-only; changed `Hash.ts` to import `FileSpan` and `Instruction` type-only; changed the analysis barrel to export `SymbolDatabase` type-only; and changed the optimization barrel to export `OptimizationPass` type-only.
 - Added `audit:phase1338-ast-analysis-optimization-type-boundaries` to guard these contracts and retain the invariant that `StaticLaravelScanner.ts` remains empty.
 - Verification is limited to targeted static audits, package JSON parsing, and archive integrity. The user log exposes only five of the 69 diagnostics and this workspace has no installed local dependencies; this phase does not claim the complete build passes or that all remaining diagnostics are resolved.
+
+
+## Phase 1339 — Semantic and analysis type-export boundaries (2026-10-08)
+
+- Kept `PrimitiveType`, `ASTNode`, `InstructionEffect`, `SymbolNode`, `SymbolDatabase`, `VerificationContext`, and `EffectAnalysis` on type-only import/export paths.
+- Changed `SymbolGraphArtifact` to consume `SemanticType` from its canonical domain definition (`types/domain/semanticType`) rather than a compatibility barrel that does not re-export this algebra.
+- Split `ASTNode`, `SymbolDatabase`, `VerificationContext`, and `EffectAnalysis` into standalone `export type` declarations to keep erased type contracts out of runtime export graphs.
+- Added `audit:phase1339-semantic-analysis-type-boundaries`. This phase addresses the latest visible diagnostics only; the complete build is not claimed because the user's log shows only 5 of 64 diagnostics and this workspace does not include the local `node_modules` used by `tsdown`.

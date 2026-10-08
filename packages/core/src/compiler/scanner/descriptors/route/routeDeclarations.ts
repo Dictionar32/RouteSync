@@ -32,6 +32,7 @@ import { relationGate } from "../../../../semantic/foundation/relationalSequence
 import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
+import { operationIdentityCapabilityFromRoute } from "../../../../types/upstream/operationIdentityCapabilityAuthority";
 
 export type RouteSemanticFlowFields = RouteSemanticFlow & {
     readonly name: RouteIdentityContract["coordinates"]["name"];
@@ -98,6 +99,7 @@ export const createRouteSemanticFlowFields = (
         identity,
         binding,
         capability,
+        operationIdentityCapability: operationIdentityCapabilityFromRoute(capability),
         provenance,
         contract,
         name: identity.coordinates.name,

@@ -50,6 +50,11 @@ requireText('packages/core/src/types/upstream/routeParameterCapability.ts', 'Rou
 requireText('packages/core/src/types/upstream/routeParameterCapability.ts', 'routeParameterCapabilityReferenceFromRoute', 'route parameter upstream projection');
 requireText('packages/core/src/types/dataflow/dataFlowInterface.ts', 'DataFlowProducerInterface', 'dataflow producer/consumer separation');
 requireText('packages/core/src/types/interfaces/operationIdentityProjectionInterface.ts', 'UpstreamWiringInterface', 'operation identity upstream wiring');
+requireText('packages/core/src/types/domain/routes.ts', 'operationIdentityCapability: OperationIdentityCapabilityContract', 'canonical route flow carries closed operation identity capability');
+requireText('packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts', 'operationIdentityCapabilityFromRoute(capability)', 'route semantic producer owns operation identity capability construction');
+requireText('packages/cli/src/generators/sdk/apiObjectEmitter.ts', 'operationIdentityReferenceFromCapability(route.raw.operationIdentityCapability)', 'CLI projects the closed upstream identity capability');
+forbidText('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /operationIdentityReferenceFromCapability\(route\.raw\.capability\)/, 'CLI does not pass route capability in place of operation identity capability');
+forbidText('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /operationIdentityCapabilityFromRoute\s*\(/, 'CLI does not construct semantic operation identity');
 requireText('packages/core/src/types/dataflow/dataFlowProjectionInterface.ts', 'UpstreamWiringInterface', 'dataflow upstream wiring');
 requireText('packages/sdk/src/api-runtime/types.ts', '$queryKey', 'typed endpoint query-key projection');
 requireText('packages/sdk/src/defineApi.ts', 'missing the upstream operation identity projection', 'operation identity fail-closed boundary');

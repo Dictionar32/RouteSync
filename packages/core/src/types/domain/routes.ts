@@ -23,6 +23,7 @@ import type { RouteHandlerDescriptor } from "./routeHandlers";
 import type { ActionName, DomainName, ResourceName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, PropertyName, ControllerName } from "./semanticValues";
 import type { RouteRequestBinding } from "./request";
 import type { RouteCapabilityContract } from "../upstream/route";
+import type { OperationIdentityCapabilityContract } from "../upstream/operationIdentityCapability";
 
 /**
  * Route Parameter Specification Contract.
@@ -107,6 +108,8 @@ export interface RouteSemanticFlow {
   readonly identity: RouteIdentityContract;
   readonly binding: RouteBindingContract;
   readonly capability: RouteCapabilityContract;
+  /** Closed upstream operation identity; generators project this contract and never mint it. */
+  readonly operationIdentityCapability: OperationIdentityCapabilityContract;
   readonly provenance: RouteProvenanceContract;
   readonly contract: EndpointContract;
 }

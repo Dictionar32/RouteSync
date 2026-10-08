@@ -16,7 +16,7 @@ function forbidPattern(rel, pattern, label) {
 requirePattern('packages/core/src/types/upstream/operationIdentityCapability.ts', /OperationIdentityCapabilityContract/, 'operation identity is a closed upstream contract');
 requirePattern('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts', /operationIdentityCapabilityFromRoute/, 'identity contract is constructed by upstream authority');
 requirePattern('packages/cli/src/generators/classifier/routeGrouper.ts', /route\.capability\.actionName\.value\.value/, 'CLI grouping consumes upstream action name');
-requirePattern('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /operationIdentityReferenceFromCapability\(route\.raw\.capability\)/, 'SDK emitter projects upstream operation identity');
+requirePattern('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /operationIdentityReferenceFromCapability\(route\.raw\.operationIdentityCapability\)/, 'SDK emitter projects upstream operation identity capability');
 requirePattern('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /route\.raw\.capability\.hookKind/, 'SDK emitter projects upstream hook capability');
 requirePattern('packages/core/src/types/dataflow/dataFlowInterface.ts', /DataFlowConsumerInterface/, 'dataflow consumer interface exists');
 requirePattern('packages/core/src/types/interfaces/interfaceDependencyBoundary.ts', /upstream_to_downstream/, 'wiring direction is explicit');

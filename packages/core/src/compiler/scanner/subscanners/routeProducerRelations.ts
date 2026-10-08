@@ -21,6 +21,7 @@ import type { EndpointRequestBinding, EndpointResponseBinding, EndpointResponseS
 import type { ResponseCardinality } from '../../../types/upstream/response';
 import { matchRouteHandler } from '../../../types/domain/routeHandlers';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
+import { operationIdentityCapabilityFromRoute } from '../../../types/upstream/operationIdentityCapabilityAuthority';
 import { createRequestName, createMiddlewareName, createActionName } from '../../../types/upstream/names';
 import { routeMethodSemanticKind, routeDeclarationSemanticKind, routeSourceFileContextKnowledge, routeDeclarationFlow } from '../lexer/routeAst/routeDataFlow';
 import { type ControllerActionInfo } from '../descriptors/requestDescriptors';
@@ -223,6 +224,7 @@ export const routeSemanticFlowFromRouteBoundary = (
     identity: boundary.identity,
     binding: boundary.binding,
     capability: boundary.capability,
+    operationIdentityCapability: operationIdentityCapabilityFromRoute(boundary.capability),
     provenance: boundary.provenance,
     contract: boundary.contract,
 });

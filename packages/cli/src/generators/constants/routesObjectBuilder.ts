@@ -21,7 +21,7 @@ export function buildRoutesLines(manifest: RouteManifest): string[] {
   const addedRoutes = new Set<string>();
   addedRoutes.add('/');
 
-  const getRoutes = manifest.routes.filter(r => r.identity.coordinates.method === 'GET');
+  const getRoutes = manifest.routes.filter(r => r.capability.actionKind === 'read');
   for (const route of getRoutes) {
     const cleanPath = route.identity.coordinates.path.value.replace(/^\/|\/$/g, '');
     if (!cleanPath || addedRoutes.has('/' + cleanPath)) continue;

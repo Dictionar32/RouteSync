@@ -2,6 +2,5 @@
 
 export const runtimeManifest = {
   resources: {},
-  domains: {},
-  intents: {}
+  domainIntentCapabilities: {},
 } as const

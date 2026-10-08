@@ -1,4 +1,4 @@
-import type { InterfaceDependencyBoundary } from '../../../types/interfaces/interfaceDependencyBoundary';
+import type { UpstreamWiringInterface } from '../../../types/interfaces/interfaceDependencyBoundary';
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
 import type { ObjectType } from '../../../types/domain/semanticType';
@@ -15,4 +15,4 @@ export interface RouteManifestProjection {
 
 /** Downstream-owned boundary: upstream manifest -> RouteManifest projection data. */
 export interface RouteManifestProjectionInterface
-  extends InterfaceDependencyBoundary<RouteSyncManifest, RouteManifestProjection> {}
+  extends UpstreamWiringInterface<RouteSyncManifest, RouteManifestProjection> {}

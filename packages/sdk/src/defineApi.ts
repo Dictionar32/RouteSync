@@ -7,7 +7,7 @@
  * @module sdk/defineApi
  */
 
-import { PathResolver, type ApiDefinition, type ServiceConfig } from '@routesync/core';
+import { PathResolver, type ApiDefinition, type ServiceConfig, type OperationIdentityReference } from '@routesync/core';
 import {
   type CallOptions,
   type EndpointCallableOptions,
@@ -122,10 +122,17 @@ export function defineApi<T extends ApiDefinition>(
 
       // Attach metadata to the callable
       const callableObj = callable as unknown as Record<string, unknown>;
+      if (!route.operationIdentity) {
+        throw new Error(`RouteSync endpoint ${group}.${action} is missing the upstream operation identity projection`);
+      }
+      if (!route.hookKind) {
+        throw new Error(`RouteSync endpoint ${group}.${action} is missing the upstream hook-kind projection`);
+      }
+      const operationIdentity = route.operationIdentity as OperationIdentityReference;
       callableObj.$def = route;
-      callableObj.$key = [group, action];
+      callableObj.$key = [operationIdentity];
       callableObj.$queryKey = (options?: EndpointCallableOptions<unknown, unknown>) => {
-        return options ? [group, action, options] : [group, action];
+        return options ? [operationIdentity, options] : [operationIdentity];
       };
 
       const groupProxyObj = groupProxy as unknown as Record<string, unknown>;

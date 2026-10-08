@@ -1,7 +1,7 @@
 import { RouteManifest, RoutePayloadMode, matchRoutePayloadMode } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
-import { classifyRoutes } from './route-classifier'
+import { projectRoutes } from './route-capability-projection'
 
 export class NextActionGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {
@@ -22,7 +22,7 @@ export class NextActionGenerator {
     lines.push(`}`)
     lines.push(``)
 
-    const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases)
+    const classified = projectRoutes(manifest.routes, manifest.frontend?.groupAliases)
 
     const grouped: Record<string, typeof classified> = {}
     for (const route of classified) {
@@ -40,7 +40,7 @@ export class NextActionGenerator {
         const pathParams = route.identity.parameters.path
         const hasParams = pathParams.length > 0
         const hasBody = route.capability.requestContentType !== 'none'
-        const hasQuery = route.identity.parameters.query.length > 0 || route.method === 'GET' || route.method === 'DELETE'
+        const hasQuery = route.identity.parameters.query.length > 0 || route.capability.actionKind === 'read' || route.capability.actionKind === 'delete'
 
         // Canonical payload mode from the upstream execution-signature contract.
         const effectivePayloadMode = route.capability.executionSignature.payloadMode

@@ -6,7 +6,7 @@
  * changes semantic closure; SemanticDataflowAuthority remains the sole
  * fixed-point authority.
  */
-import type { DataFlowInterface } from '../../../types/dataflow/dataFlowInterface';
+import type { DataFlowAuthorityInterface } from '../../../types/dataflow/dataFlowInterface';
 import type {
   SemanticDataflowFact,
   SemanticDataflowIdentity,
@@ -60,7 +60,7 @@ const factContains = (
  * sources or sinks.
  */
 export const createSemanticDataflowAnalysisPolicy = (
-  dataflow: DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
+  dataflow: DataFlowAuthorityInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
   context: SemanticDataflowFactPolicyContext,
 ): SemanticDataflowAnalysisPolicy => {
   const factPolicy: DataFlowFactPolicyInterface<SemanticDataflowFact, SemanticDataflowFactPolicyContext> = Object.freeze({
@@ -92,7 +92,7 @@ export const createSemanticDataflowAnalysisPolicy = (
 
 /** Query the canonical closed result using the same explicit policy scope. */
 export const semanticDataflowFlowsUnderPolicy = (
-  dataflow: DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
+  dataflow: DataFlowAuthorityInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
   policy: SemanticDataflowAnalysisPolicy,
   source: SemanticDataflowIdentity,
   target: SemanticDataflowIdentity,

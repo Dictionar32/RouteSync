@@ -16,9 +16,10 @@ import {
     RouteSemanticFlowCacheInvalidationDescriptor
 } from "../../../../types/route";
 import type {
-    RouteIdentityContract, RouteBindingContract, RouteCapabilityContract, RouteProvenanceContract,
+    RouteIdentityContract, RouteBindingContract, RouteProvenanceContract,
     HttpMethod, RouteParameter, RouteQueryParameter, RouteCacheInvalidationDescriptor, ResponseDescriptor
 } from "../../../../types/route";
+import type { RouteCapabilityContract } from '../../../../types/upstream/route';
 import { RouteBoundaryContractFactory, type RouteBoundaryOptions } from "../../resolvers";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";

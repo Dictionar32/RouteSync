@@ -10,7 +10,7 @@ import type { ActionName, ControllerName, DomainTypeName, PropertyName, Resource
 import { HTTP_METHOD_REGISTRY, ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 import { RouteParameterSemanticFactory } from "../../semantic/route/routeParameterSemanticFactory";
 import { toCamelCase, toSnakeCase } from "../../../../utils/resource-naming";
-import { RouteDomainResolver } from "../RouteDomainResolver";
+import { routeDomainAuthority } from "../../../../types/upstream/routeDomainAuthority";
 import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationSome } from "../../../../semantic/foundation/semanticRelations";
 import { relationFold, relationProject, relationSelect, relationSlice, relationTextSlice, relationLookup, relationOptionFold, relationOptionValue, relationAt, relationFirstOption, relationTextEnclosedFields, relationTextFields, relationTextReplaceEnclosed, relationTextTrimChars, relationTextStartsWith, relationTextEndsWith, relationTextLower, relationTextNumber, relationLastIndexOf, relationTextTrimEndChars, relationVariant } from "../../../../semantic/foundation/relationalSequence";
 import type { RelationOption } from "../../../../semantic/foundation/relationalSequence";
@@ -125,7 +125,7 @@ export const resolveRouteBoundaryBasicsJudgment = (input: RouteBoundaryBasicsSem
     );
     const resolvedDomain = relationOptionValue(
         boundaryPresence(input.domain),
-        RouteDomainResolver.resolve({
+        routeDomainAuthority.resolve({
             domain: boundaryPresence(input.domain),
             resourceName: boundaryPresence(input.resourceName),
             controllerName: relationSome(inferredController),

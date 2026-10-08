@@ -23,7 +23,7 @@ export function partitionGroupSubRoutes(
   const customQueries: ClassifiedRoute[] = [];
 
   for (const route of allRoutes) {
-    if (route.method === 'GET') {
+    if (route.capability.actionKind === 'read') {
       const hasKey = !isCrud || route.crudRole === 'custom';
       if (hasKey) customQueries.push(route);
     } else {

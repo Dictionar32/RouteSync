@@ -3,7 +3,7 @@ import { SchemaLike, parseWithSchema } from './mappers/schema'
 import { toCamelCase, toSnakeCase } from './mappers/case'
 
 export type Id = string | number
-export type QueryParams = Record<string, any>
+export type QueryParams = Record<string, unknown>
 
 export interface GenericServiceOptions<
   TEntity,
@@ -30,7 +30,7 @@ export interface GenericServiceOptions<
 }
 
 export class GenericService<
-  TEntity = any,
+  TEntity = unknown,
   TCreateInput = Partial<TEntity>,
   TUpdateInput = Partial<TCreateInput>,
   TBackendEntity = unknown
@@ -135,7 +135,7 @@ export class GenericService<
 }
 
 export function createService<
-  TEntity = any,
+  TEntity = unknown,
   TCreateInput = Partial<TEntity>,
   TUpdateInput = Partial<TCreateInput>,
   TBackendEntity = unknown

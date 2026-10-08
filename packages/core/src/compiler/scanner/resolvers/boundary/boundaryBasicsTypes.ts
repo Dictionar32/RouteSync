@@ -21,6 +21,7 @@ import type { ControllerReturnSemantic } from "../../../../types/upstream/contro
 import type {
     ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath, SourceFile
 } from "../../../../types/upstream/names";
+import type { RouteCapabilityCrudEvidence } from "../../../../types/upstream/route";
 
 export type { RouteBoundaryContract } from "../../../../types/upstream/route";
 
@@ -131,6 +132,7 @@ export interface ResolvedRouteBoundaryOptions {
     readonly requestContentType: RequestContentType;
     readonly hookKind: RouteHookKind;
     readonly crudRole: CrudRole;
+    readonly crudEvidence: RouteCapabilityCrudEvidence;
     readonly constantKey: PropertyName;
     readonly runtimePath: RoutePath;
     readonly groupName: DomainTypeName;

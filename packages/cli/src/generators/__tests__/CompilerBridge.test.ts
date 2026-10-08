@@ -73,6 +73,7 @@ describe('CompilerBridge - Refactored', () => {
                 }
             ],
             routeGroups: [],
+            resourceModelKeyCapabilities: [],
             requestTypes: [],
             semanticTypes: [
                 {

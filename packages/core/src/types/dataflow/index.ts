@@ -1,4 +1,17 @@
-export type { DataFlowInterface, DataFlowSourceInterface, DataFlowStepInterface, DataFlowFixpointInterface, DataFlowStateInterface, DataFlowQueryInterface } from './dataFlowInterface';
-export type { DataFlowProjectionInterface } from './dataFlowProjectionInterface';
+export type {
+  DataFlowInterface,
+  DataFlowSourceInterface,
+  DataFlowStepInterface,
+  DataFlowFixpointInterface,
+  DataFlowExecutionInterface,
+  DataFlowInputInterface,
+  DataFlowStateInterface,
+  DataFlowQueryInterface,
+  DataFlowClosureInterface,
+  DataFlowAuthorityContractInterface, DataFlowAuthorityInterface,
+  DataFlowCapabilityAuthorityInterface,
+  DataFlowConsumerInterface,
+} from './dataFlowInterface';
+export type { DataFlowProjectionAlgebraInterface, DataFlowProjectionContract, DataFlowProjectionInterface } from './dataFlowProjectionInterface';
 
-export type { DataFlowExecutionInterface } from './dataFlowInterface';
+export type { DataFlowCapabilityProjectionAlgebraInterface, DataFlowCapabilityProjectionContract, DataFlowCapabilityProjectionInterface } from './dataFlowCapabilityProjectionInterface';

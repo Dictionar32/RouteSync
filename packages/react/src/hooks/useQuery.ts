@@ -23,7 +23,7 @@ export function useApiQuery<TResponse, TParams, TBody, TError = ApiError, TData 
   options?: LooseEndpointOptions,
   queryOptions?: ApiQueryOptions<TResponse, TError, TData>
 ) {
-  const queryKey = options ? [...endpoint.$key, options] : endpoint.$key
+  const queryKey = endpoint.$queryKey(options)
 
   return useQuery<TResponse, TError, TData>({
     queryKey,
@@ -43,7 +43,7 @@ export function useApiSuspenseQuery<
   options?: LooseEndpointOptions,
   queryOptions?: Omit<UseSuspenseQueryOptions<TResponse, TError, TData>, 'queryKey' | 'queryFn'>
 ) {
-  const queryKey = options ? [...endpoint.$key, options] : endpoint.$key
+  const queryKey = endpoint.$queryKey(options)
 
   return useSuspenseQuery<TResponse, TError, TData>({
     queryKey,
@@ -66,7 +66,7 @@ export function useApiInfiniteQuery<
     getNextPageParam: UseInfiniteQueryOptions<TResponse, TError, TData, readonly unknown[], TPageParam>['getNextPageParam']
   }
 ) {
-  const queryKey = options ? [...endpoint.$key, options] : endpoint.$key
+  const queryKey = endpoint.$queryKey(options)
 
   return useInfiniteQuery<TResponse, TError, TData, readonly unknown[], TPageParam>({
     queryKey,

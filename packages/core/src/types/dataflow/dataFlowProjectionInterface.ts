@@ -1,19 +1,28 @@
-import type { InterfaceDependencyBoundary } from '../interfaces/interfaceDependencyBoundary';
-import type { DataFlowInterface } from './dataFlowInterface';
+import type { UpstreamWiringInterface } from '../interfaces/interfaceDependencyBoundary';
+import type { DataFlowAuthorityInterface } from './dataFlowInterface';
+import type { SemanticReasoningContract, SemanticReasoningEvidence, SemanticReasoningStrategy } from '../upstream/semanticReasoning';
 
-/**
- * Downstream materialization capability for a canonical data-flow result.
- *
- * The four data-flow parameters stay explicit so this specialization never
- * widens or erases its upstream contract. A projection is valid only when
- * its upstream satisfies the canonical DataFlowInterface<Input, State, Node> contract.
- */
-export interface DataFlowProjectionInterface<
+/** Downstream projection boundary: consumers receive only closed upstream authority. */
+export interface DataFlowProjectionAlgebraInterface<
   Input,
   State,
   Node,
   Output,
-> extends InterfaceDependencyBoundary<
-  DataFlowInterface<Input, State, Node>,
+  ReasoningEvidence extends SemanticReasoningEvidence = SemanticReasoningEvidence,
+  Reasoning extends SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence> = SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence>,
+> extends UpstreamWiringInterface<
+  DataFlowAuthorityInterface<Input, State, Node, ReasoningEvidence, Reasoning>,
   Output
 > {}
+
+export interface DataFlowProjectionContract<
+  Input, State, Node, Output,
+  ReasoningEvidence extends SemanticReasoningEvidence = SemanticReasoningEvidence,
+  Reasoning extends SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence> = SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence>
+> extends DataFlowProjectionAlgebraInterface<Input, State, Node, Output, ReasoningEvidence, Reasoning> {}
+
+export interface DataFlowProjectionInterface<
+  Input, State, Node, Output,
+  ReasoningEvidence extends SemanticReasoningEvidence = SemanticReasoningEvidence,
+  Reasoning extends SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence> = SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence>
+> extends DataFlowProjectionContract<Input, State, Node, Output, ReasoningEvidence, Reasoning> {}

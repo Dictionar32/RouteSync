@@ -1,6 +1,7 @@
 import type { RouteBoundaryOptions, ResolvedRouteBoundaryOptions } from "./boundaryBasicsTypes";
 import { routeBoundaryBasicsInterface } from "./boundaryBasics";
 import { resolveRouteCapability } from "./capabilityResolution";
+import { routeCapabilityAuthority } from "../../../../types/upstream/routeCapabilityAuthority";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
 import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
 import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
@@ -30,11 +31,18 @@ export function resolveRouteBoundaryInput(
     const basics = basicsJudgment.result;
     const binding = params.binding;
     const authInput = params.auth;
+    const crudResolution = routeCapabilityAuthority.crudRoleResolution(
+        params.method,
+        params.path,
+        basics.resolvedAction,
+        params.crudRole,
+    );
     const capabilityInput = Object.freeze({
         hookKind: params.hookKind,
         executionSignature: params.executionSignature,
         requestContentType: params.requestContentType,
-        crudRole: params.crudRole,
+        crudRole: params.crudRole ?? crudResolution.role,
+        crudEvidence: crudResolution.evidence,
         errorResponses: params.errorResponses,
         invalidation: params.invalidation,
         schema: params.schema,
@@ -73,6 +81,7 @@ export function resolveRouteBoundaryInput(
         requestContentType: capability.requestContentType,
         hookKind: capability.hookKind,
         crudRole: capability.crudRole,
+        crudEvidence: capability.crudEvidence,
         constantKey: basics.resolvedConstantKey,
         runtimePath: basics.resolvedRuntimePath,
         groupName: basics.resolvedGroupName,

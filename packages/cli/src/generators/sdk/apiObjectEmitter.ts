@@ -6,7 +6,8 @@
  * @module cli/generators/sdk
  */
 
-import type { ClassifiedRoute } from '../route-classifier';
+import { routeParameterCapabilityReferenceFromRoute, routeTargetScopeFromRoute } from '@routesync/core';
+import type { ClassifiedRoute } from '../route-capability-projection';
 import { ConstantsGenerator } from '../ConstantsGenerator';
 import { CANONICAL_ACTION_MAP } from '../canonical-names';
 import { resolveEndpointResponseInfo } from './endpointResolver';
@@ -47,6 +48,21 @@ export function emitApiObjectLines(
 
       apiBodyLines.push(`    ${route.actionName}: endpoint({`);
       apiBodyLines.push(`      method: '${route.method}',`);
+      apiBodyLines.push(`      operationIdentity: ${JSON.stringify({
+        kind: 'operation_identity_reference',
+        identity: {
+          key: route.identity.coordinates.name.value.value,
+          method: route.identity.coordinates.method,
+          path: route.identity.coordinates.path.value.value,
+        },
+      })},`);
+      apiBodyLines.push(`      hookKind: '${route.raw.capability.hookKind}',`);
+      apiBodyLines.push(`      crudRole: '${route.raw.capability.crudRole}',`);
+      apiBodyLines.push(`      targetScope: '${routeTargetScopeFromRoute(route.raw)}',`);
+      const routeParameter = routeParameterCapabilityReferenceFromRoute(route.raw);
+      if (routeParameter) {
+        apiBodyLines.push(`      routeParameter: ${JSON.stringify(routeParameter)},`);
+      }
 
       const routeKey = ConstantsGenerator.getRouteKey(route.identity.coordinates.path.value);
       apiBodyLines.push(`      path: API_ENDPOINTS.${routeKey},`);

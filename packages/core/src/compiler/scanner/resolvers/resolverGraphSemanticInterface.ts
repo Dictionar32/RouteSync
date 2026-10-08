@@ -7,11 +7,11 @@
 import type { CrudRole, HttpMethod, RouteSecurityDescriptor } from '../../../types/route';
 import type { PropertyName, RoutePath } from '../../../types/upstream/names';
 import type { AstMappingInterface } from '../../../types/upstream/astMappingInterface';
-import type { RouteDomainResolutionContext, RouteDomainResolutionJudgment } from './RouteDomainResolver';
+import type { RouteDomainResolutionContext, RouteDomainResolutionJudgment } from '../../../types/upstream/routeDomainAuthority';
 import type { RouteSecurityResolution } from './RouteSecurityResolver';
-import { RouteDomainResolver } from './RouteDomainResolver';
-import { RouteSecurityResolver } from './RouteSecurityResolver';
-import { RouteCrudClassifier } from './RouteCrudClassifier';
+import { routeDomainAuthority } from '../../../types/upstream/routeDomainAuthority';
+import { routeSecurityAuthority } from '../../../types/upstream/routeSecurityAuthority';
+import type { RouteCapabilityContract } from '../../../types/upstream/route';
 import { relationEqual } from '../../../semantic/foundation/semanticRelations';
 import { truthValue } from '../../../types/upstream/valueObjects';
 import { relationProject } from '../../../semantic/foundation/relationalSequence';
@@ -68,6 +68,7 @@ export type ResolverGraphInput = Readonly<{
   readonly method: HttpMethod;
   readonly path: RoutePath;
   readonly mapping: AstMappingInterface;
+  readonly capability: RouteCapabilityContract;
 }>;
 
 const resolverGraphPattern = (relation: ResolverGraphRelation, polarity: 'positive' | 'negative', route: string): SemanticRewritePattern<ResolverGraphRelation> => Object.freeze({
@@ -107,9 +108,9 @@ const relation = <R extends ResolverGraphRelation>(name: R, route: string): Sema
 
 export const resolveResolverGraphJudgment = (input: ResolverGraphInput): ResolverGraphSemanticJudgment => {
   const route = 'route';
-  const domain = RouteDomainResolver.resolveJudgment(input.domain);
-  const security = RouteSecurityResolver.resolve(input.middleware, input.auth);
-  const crudRole = RouteCrudClassifier.classify(input.method, input.path.value.value);
+  const domain = routeDomainAuthority.resolveJudgment(input.domain);
+  const security = routeSecurityAuthority.resolve(input.middleware, input.auth);
+  const crudRole = input.capability.crudRole;
   const mapping = input.mapping.judgment;
   const seeds: readonly SemanticRewriteFact<ResolverGraphRelation>[] = Object.freeze([
     relation('route_input', route), relation('mapping_input', route), relation('domain_input', route),

@@ -9,27 +9,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getClient } from '@routesync/sdk';
 import type { CrudHooksConfig, ExtraEndpoint } from '../crudTypes';
-import { isEndpoint } from '../crudCallers';
 import { getSuccessMessage, getErrorMessage } from '../crudNotifications';
 
 export function buildExtraHooks<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
 ): Record<string, (...args: unknown[]) => unknown> {
-  const { queryKey, groupName, extras } = config;
+  const { groupName, extras } = config;
   const extraHooks: Record<string, (...args: unknown[]) => unknown> = {};
 
   if (!extras) return extraHooks;
 
   for (const [name, extra] of Object.entries(extras)) {
     const hookName = `use${name.charAt(0).toUpperCase()}${name.slice(1)}`;
-    const method = extra.method ?? (isEndpoint(extra.service) ? (extra.service as { $def?: { method?: string } }).$def?.method : 'POST');
+    const hookKind = extra.hookKind;
+    if (!hookKind) throw new Error(`RouteSync extra endpoint ${name} is missing the upstream hook-kind capability`);
 
-    if (method === 'GET') {
+    if (hookKind === 'query' || hookKind === 'infinite_query') {
       extraHooks[hookName] = (options?: unknown, queryOptions?: unknown) => {
+        const svc = extra.service as { (opts?: unknown): Promise<unknown>; $queryKey?: (opt?: unknown) => readonly unknown[] };
         const resolvedKey = extra.queryKey
-          ? (extra.queryKey as (opt?: unknown) => readonly unknown[])(options)
-          : [...queryKey.list(), name, options].filter(Boolean);
-        const svc = extra.service as (opts?: unknown) => Promise<unknown>;
+          ? extra.queryKey(options)
+          : svc.$queryKey?.(options);
+        if (!resolvedKey) throw new Error(`RouteSync extra endpoint ${name} is missing an upstream query-key projection`);
         return useQuery({
           ...(queryOptions as Record<string, unknown>),
           queryKey: resolvedKey,
@@ -48,7 +49,7 @@ export function buildExtraHooks<ReadIndexList, ReadShow, CreateForm, UpdateForm>
           },
           onSuccess: (data: unknown, variables: unknown, context: unknown) => {
             if (extra.queryKey) {
-              qc.invalidateQueries({ queryKey: (extra.queryKey as (opt?: unknown) => readonly unknown[])(variables) });
+              qc.invalidateQueries({ queryKey: extra.queryKey(variables) });
             }
             if (extra.invalidate) {
               extra.invalidate.forEach(inv => {
@@ -59,10 +60,13 @@ export function buildExtraHooks<ReadIndexList, ReadShow, CreateForm, UpdateForm>
 
             try {
               const client = getClient();
-              const action: 'create' | 'update' | 'remove' | '' =
-                name.startsWith('create') || name.startsWith('add') || name.startsWith('apply') ? 'create' :
-                name.startsWith('update') || name.startsWith('set') || name.startsWith('change') ? 'update' :
-                name.startsWith('remove') || name.startsWith('delete') || name.startsWith('clear') ? 'remove' : '';
+              const action = extra.crudRole === 'create'
+                ? 'create'
+                : extra.crudRole === 'update'
+                  ? 'update'
+                  : extra.crudRole === 'delete'
+                    ? 'remove'
+                    : '';
               if (action) {
                 const msg = getSuccessMessage(data, action, groupName || '');
                 if (msg) client.config.toast?.success?.(msg);
@@ -75,10 +79,13 @@ export function buildExtraHooks<ReadIndexList, ReadShow, CreateForm, UpdateForm>
           onError: (error: unknown, variables: unknown, context: unknown) => {
             try {
               const client = getClient();
-              const action: 'create' | 'update' | 'remove' | '' =
-                name.startsWith('create') || name.startsWith('add') || name.startsWith('apply') ? 'create' :
-                name.startsWith('update') || name.startsWith('set') || name.startsWith('change') ? 'update' :
-                name.startsWith('remove') || name.startsWith('delete') || name.startsWith('clear') ? 'remove' : '';
+              const action = extra.crudRole === 'create'
+                ? 'create'
+                : extra.crudRole === 'update'
+                  ? 'update'
+                  : extra.crudRole === 'delete'
+                    ? 'remove'
+                    : '';
               if (action) {
                 const msg = getErrorMessage(error, action, groupName || '');
                 if (msg) client.config.toast?.error?.(msg);

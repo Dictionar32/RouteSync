@@ -1,6 +1,6 @@
 import { ApiResponse } from '../types/response'
 
-export class Response<T = any> {
+export class Response<T = unknown> {
   constructor(private raw: ApiResponse<T>) {}
 
   get data(): T {

@@ -59,6 +59,7 @@ export * from './astSemanticStageInterfaceAlgebra';
 export * from './astSemanticAuthorityPipeline';
 export * from './astSemanticStageTransition';
 
+export type { SemanticDataflowAlgebraInterface } from './semanticDataflow';
 export * from './semanticDataflow';
 export * from './semanticDataflowKnowledge';
 export * from './semanticDataflowManifestSurface';
@@ -80,3 +81,30 @@ export * from './routeBinding';
 export * from './semanticReconciliation';
 
 
+
+export * from './semanticCapability';
+export * from './routeCapabilityAuthority';
+export * from './routeCapabilitySemanticAuthority';
+
+export type { SemanticCapabilityDerivation, SemanticCapabilityProvenance } from './semanticCapability';
+
+export * from './routeSecurityAuthority';
+
+export * from './routeDomainAuthority';
+
+export * from './semanticReasoning';
+export type {
+  ResourceModelCandidateSource,
+  ResourceModelCandidate,
+  ResourceModelReasoningInput,
+  ResourceModelReasoningEvidence,
+  ResourceModelJudgment,
+} from './resourceModelReasoning';
+export { reasonResourceModel } from './resourceModelReasoning';
+
+export * from './resourceModelKeyCapability';
+
+export * from './operationIdentityCapability';
+
+export * from './domainIntentCapability';
+export * from './routeParameterCapability';

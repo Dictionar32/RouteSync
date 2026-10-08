@@ -276,7 +276,8 @@
     "audit:phase941-upstream-ownership-wiring": "node scripts/audits/audit-phase941-upstream-ownership-wiring.cjs",
     "audit:phase943-laravel-upstream-dataflow-wiring": "node scripts/audits/audit-phase943-laravel-upstream-dataflow-wiring.cjs",
     "audit:phase944-upstream-consumer-closure": "node scripts/audits/audit-phase944-upstream-consumer-closure.cjs",
-    "audit:phase945-current-upstream-provenance": "node scripts/audits/audit-phase945-current-upstream-provenance.cjs"
+    "audit:phase945-current-upstream-provenance": "node scripts/audits/audit-phase945-current-upstream-provenance.cjs",
+    "audit:architecture": "node scripts/audit/routesync-architecture.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

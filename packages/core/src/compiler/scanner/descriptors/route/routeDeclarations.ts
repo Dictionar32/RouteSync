@@ -21,9 +21,9 @@ import type {
     RouteHandlerDescriptor,
     RouteIdentityContract,
     RouteBindingContract,
-    RouteCapabilityContract,
     RouteProvenanceContract
 } from "../../../../types/route";
+import type { RouteCapabilityContract } from "../../../../types/upstream/route";
 import type { RouteSecurityDescriptor } from "../../../../types/upstream/route";
 import type { RouteMiddlewares } from "../../../../types/upstream/collections";
 import type { ControllerName } from "../../../../types/upstream/names";

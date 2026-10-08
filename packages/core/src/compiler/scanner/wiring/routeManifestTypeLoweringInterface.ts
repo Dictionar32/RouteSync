@@ -1,4 +1,4 @@
-import type { InterfaceDependencyBoundary } from '../../../types/interfaces/interfaceDependencyBoundary';
+import type { UpstreamWiringInterface } from '../../../types/interfaces/interfaceDependencyBoundary';
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
 import type { RequestType } from '../../artifacts/RequestTypesArtifact';
 import type { ObjectType } from '../../../types/domain/semanticType';
@@ -18,4 +18,4 @@ export interface RouteManifestTypeLowering {
 }
 
 export interface RouteManifestTypeLoweringInterface
-  extends InterfaceDependencyBoundary<RouteSyncManifest, RouteManifestTypeLowering> {}
+  extends UpstreamWiringInterface<RouteSyncManifest, RouteManifestTypeLowering> {}

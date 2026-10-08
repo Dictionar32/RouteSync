@@ -38,21 +38,21 @@ export function buildCustomOrSingletonGroupDescriptor(
 
   let detailRes = res.show ? resolveRouteResponseType(res.show) : null;
   if (!detailRes) {
-    const customGet = res.all.find(r => r.method === 'GET' && r.crudRole === 'custom');
+    const customGet = res.all.find(r => r.capability.actionKind === 'read' && r.crudRole === 'custom');
     detailRes = customGet ? resolveRouteResponseType(customGet) : { typeName: 'never', importedType: null };
   }
 
   let createRes = res.create ? resolveRouteFormType(res.create) : null;
   if (!createRes) {
-    const customPost = res.all.find(r => r.method === 'POST' && r.crudRole === 'custom' && hasSchema(r));
-    const customGet = res.all.find(r => r.method === 'GET' && r.crudRole === 'custom' && hasSchema(r));
+    const customPost = res.all.find(r => r.capability.actionKind === 'create' && r.crudRole === 'custom' && hasSchema(r));
+    const customGet = res.all.find(r => r.capability.actionKind === 'read' && r.crudRole === 'custom' && hasSchema(r));
     const fallback = customPost || customGet;
     createRes = fallback ? resolveRouteFormType(fallback) : { typeName: 'never', importedType: null, contractImportedType: null };
   }
 
   let updateRes = res.update ? resolveRouteFormType(res.update) : null;
   if (!updateRes) {
-    const customUpdate = res.all.find(r => ['PUT', 'PATCH'].includes(r.method) && r.crudRole === 'custom' && hasSchema(r));
+    const customUpdate = res.all.find(r => r.capability.actionKind === 'update' && r.crudRole === 'custom' && hasSchema(r));
     updateRes = customUpdate ? resolveRouteFormType(customUpdate) : { typeName: 'never', importedType: null, contractImportedType: null };
   }
 

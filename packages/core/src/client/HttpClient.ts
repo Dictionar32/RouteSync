@@ -52,17 +52,20 @@ export class HttpClient {
       (response: AxiosResponse) => {
         return response;
       },
-      (error: any) => {
-        const message =
-          error.response?.data?.message ??
-          error.message ??
-          'Unknown error';
-
+      (error: unknown) => {
+        if (axios.isAxiosError(error)) {
+          const data = error.response?.data;
+          const payload = data && typeof data === 'object' ? data as Record<string, unknown> : undefined;
+          return Promise.reject({
+            success: false,
+            message: typeof payload?.message === 'string' ? payload.message : error.message ?? 'Unknown error',
+            status: error.response?.status,
+            errors: payload?.errors
+          });
+        }
         return Promise.reject({
           success: false,
-          message,
-          status: error.response?.status,
-          errors: error.response?.data?.errors
+          message: error instanceof Error ? error.message : 'Unknown error'
         });
       }
     );
@@ -81,19 +84,19 @@ export class HttpClient {
     return response.data;
   }
 
-  async post<T>(url: string, body?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const { processedBody, processedConfig } = prepareRequest(body, config);
     const response = await this.client.post<T>(url, processedBody, processedConfig);
     return response.data;
   }
 
-  async put<T>(url: string, body?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const { processedBody, processedConfig } = prepareRequest(body, config);
     const response = await this.client.put<T>(url, processedBody, processedConfig);
     return response.data;
   }
 
-  async patch<T>(url: string, body?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
     const { processedBody, processedConfig } = prepareRequest(body, config);
     const response = await this.client.patch<T>(url, processedBody, processedConfig);
     return response.data;

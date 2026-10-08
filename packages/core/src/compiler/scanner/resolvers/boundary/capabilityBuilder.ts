@@ -4,8 +4,9 @@
  * Builds the canonical capability contract from already-resolved boundary data.
  */
 
-import type { RouteCapabilityContract } from "../../../../types/route";
-import { RouteSecurityResolver } from "../RouteSecurityResolver";
+import type { RouteCapabilityContract, RouteIdentity } from '../../../../types/upstream/route';
+import { semanticReasoningContract } from '../../../../types/upstream/semanticReasoning';
+import { routeSecurityAuthority } from '../../../../types/upstream/routeSecurityAuthority';
 import { toUpstreamHttpErrorResponse, type HttpErrorResponseDescriptor } from "../../../../types/domain/httpErrors";
 import type { ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
 import type { Sequence } from "../../../../types/upstream/collections";
@@ -26,9 +27,18 @@ export function buildRouteCapabilityContract(
     basics: IntermediateRouteBoundaryBasics,
 ): RouteCapabilityContract {
     const middleware = params.middleware;
-    const security = RouteSecurityResolver.resolve(middleware, params.auth);
+    const identity: RouteIdentity = Object.freeze({
+        kind: 'route_identity',
+        key: basics.resolvedRouteName,
+        declaredName: { kind: 'some', value: basics.resolvedRouteName },
+        method: params.method,
+        path: params.path,
+    });
+    const security = routeSecurityAuthority.resolve(middleware, params.auth);
+    const reasoning = semanticReasoningContract('evidence_resolution');
 
     return Object.freeze({
+        identity,
         auth: security.auth,
         security: security.security,
         middleware,
@@ -39,6 +49,16 @@ export function buildRouteCapabilityContract(
             queryKeyExpressions: sequenceFromArray(params.invalidation.queryKeyExpressions),
         }),
         crudRole: params.crudRole,
+        kind: 'route_capability',
+        authority: 'upstream',
+        reasoning,
+        closed: true,
+        derivation: Object.freeze({ kind: 'semantic_capability_derivation', strategy: reasoning.strategy, closed: true }),
+        provenance: Object.freeze({ kind: 'semantic_capability_provenance', lane: 'upstream', closed: true }),
+        evidence: Object.freeze({
+            kind: 'route_capability_evidence',
+            crud: params.crudEvidence,
+        }),
         hookKind: params.hookKind,
         actionKind: basics.resolvedActionKind,
         requestContentType: params.requestContentType,

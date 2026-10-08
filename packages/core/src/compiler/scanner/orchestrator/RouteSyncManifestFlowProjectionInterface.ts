@@ -1,5 +1,5 @@
 import type { RouteSyncManifest, RouteSyncManifestFlow } from '../../../types/upstream/manifest';
-import type { InterfaceDependencyBoundary } from '../../../types/interfaces/interfaceDependencyBoundary';
+import type { UpstreamWiringInterface } from '../../../types/interfaces/interfaceDependencyBoundary';
 
 /**
  * Downstream-owned wiring boundary that projects the validated construction
@@ -9,4 +9,4 @@ import type { InterfaceDependencyBoundary } from '../../../types/interfaces/inte
  * This boundary owns the decision to expose only the semantic flow surface.
  */
 export interface RouteSyncManifestFlowProjectionInterface
-  extends InterfaceDependencyBoundary<RouteSyncManifest, RouteSyncManifestFlow> {}
+  extends UpstreamWiringInterface<RouteSyncManifest, RouteSyncManifestFlow> {}

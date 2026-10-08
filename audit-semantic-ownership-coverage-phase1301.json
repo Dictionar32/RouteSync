@@ -1,0 +1,7 @@
+{
+  "audit": "semantic-ownership-coverage",
+  "topology": "upstream semantic reasoning -> capability contract/interface -> upstream wiring -> downstream projection",
+  "passed": true,
+  "passedChecks": 15,
+  "failures": []
+}

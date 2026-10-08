@@ -19,10 +19,11 @@ export function createHooks<T extends Record<string, unknown>>(
   const hooks: Record<string, (...args: never) => unknown> = {}
 
   for (const [action, endpoint] of Object.entries(group)) {
-    const method = (endpoint as EndpointCallable).$def.method
+    const hookKind = (endpoint as EndpointCallable).$def.hookKind
+    if (!hookKind) throw new Error(`RouteSync endpoint ${action} is missing the upstream hook-kind capability`)
     const hookName = `use${action.charAt(0).toUpperCase()}${action.slice(1)}`
 
-    if (method === 'GET') {
+    if (hookKind === 'query' || hookKind === 'infinite_query') {
       hooks[hookName] = (options?: unknown, queryOptions?: unknown) =>
         useApiQuery(endpoint as EndpointCallable, options as never, queryOptions as never)
     } else {
@@ -33,9 +34,9 @@ export function createHooks<T extends Record<string, unknown>>(
 
   return hooks as {
     [K in keyof T as `use${Capitalize<string & K>}`]: T[K] extends {
-      $def: RouteDefinition<infer R, infer P, infer B, infer M>
+      $def: RouteDefinition<infer R, infer P, infer B>
     }
-      ? M extends 'GET'
+      ? T[K] extends { $def: { hookKind: 'query' | 'infinite_query' } }
         ? T[K] extends (...args: never[]) => unknown
           ? (...args: [...args: Parameters<T[K]>, queryOptions?: ApiQueryOptions<R>]) => ReturnType<typeof useApiQuery<R, P, B>>
           : never

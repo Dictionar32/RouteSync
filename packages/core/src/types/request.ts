@@ -181,6 +181,15 @@ export type RouteDefinition<
 > = {
   method: TMethod;
   path: string | Function;
+  /** Closed upstream semantic operation identity projected into the SDK boundary. */
+  operationIdentity?: OperationIdentityReference;
+  /** Closed upstream route execution capability projected into the SDK boundary. */
+  hookKind?: import('./upstream/routeExecutionVocabulary').RouteHookKind;
+  crudRole?: import('./upstream/routeExecutionVocabulary').CrudRole;
+  /** Closed upstream route target scope; React must not infer it from the path. */
+  targetScope?: 'collection' | 'member';
+  /** Closed upstream route-parameter projection; React must not parse the path. */
+  routeParameter?: import('./upstream/routeParameterCapability').RouteParameterCapabilityReference;
   auth?: boolean;
   schema?: RouteSchema;
   responseSchema?: ResponseSchema<TResponse>;
@@ -395,3 +404,4 @@ export {
   type RouteQueryEntry,
   type PayloadPropertyEntry
 };
+import type { OperationIdentityReference } from './upstream/operationIdentityCapability';

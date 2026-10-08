@@ -8,7 +8,7 @@
 
 import type { RouteManifest, ClassifiedDomainGraph } from '@routesync/core'
 
-import type { ClassifiedRoute } from '../route-classifier'
+import type { ClassifiedRoute } from '../route-capability-projection'
 import {
     type CompilerOutput,
     type FormOutput,

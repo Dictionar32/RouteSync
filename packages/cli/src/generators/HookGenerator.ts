@@ -1,6 +1,6 @@
 import type { RouteManifest } from '@routesync/core';
 import path from 'path';
-import { type ClassifiedRoute, classifyDomainGraph, type ClassifiedDomainGraph } from './route-classifier';
+import { type ClassifiedRoute, projectDomainGraph, type ClassifiedDomainGraph } from './route-capability-projection';
 import { CodeWriter } from './code-writer';
 import {
   lowerRuntimeManifestSource,
@@ -23,7 +23,7 @@ export class HookGenerator {
     outputDir?: string,
     domainGraph?: ClassifiedDomainGraph<ClassifiedRoute>
   ): Promise<string> {
-    const graph = domainGraph ?? classifyDomainGraph(manifest);
+    const graph = domainGraph ?? projectDomainGraph(manifest);
 
     if (outputDir) {
       const runtimeWriter = new CodeWriter();

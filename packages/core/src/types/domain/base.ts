@@ -104,6 +104,8 @@ export interface RouteManifestDomainSurface {
   readonly routes: readonly RouteSemanticFlow[];
   readonly resources: readonly ResourceAst[];
   readonly models: readonly ModelAst[];
+  /** Closed upstream Resource -> Model -> primary-key capability. */
+  readonly resourceModelKeyCapabilities: readonly import('../upstream/resourceModelKeyCapability').ResourceModelKeyCapabilityContract[];
   readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)
   readonly generatedAt: string;
   readonly channels: readonly BroadcastChannelDescriptor[];

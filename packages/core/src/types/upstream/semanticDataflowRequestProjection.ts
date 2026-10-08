@@ -17,7 +17,7 @@ import type { SemanticDataflowIdentity, SemanticDataflowInputFact } from './sema
 import { semanticDataflowFactWithLineage } from './semanticDataflow';
 import { stringValue } from './valueObjects';
 import type { Sequence } from './collections';
-import type { Expression, RequestArgument } from './expression';
+import type { Expression, RequestArgument, RequestOperation } from './expression';
 
 const sequenceItems = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>
   items.kind === 'empty' ? output : sequenceItems(items.tail, [...output, items.head]);
@@ -91,31 +91,50 @@ const requestArgumentFields = (argument: RequestArgument): readonly string[] => 
   return [];
 };
 
+type RequestAccessEvidenceMode = 'raw' | 'validated' | 'argument';
+
+type RequestAccessRelation = {
+  readonly mode: RequestAccessEvidenceMode;
+};
+
+/**
+ * Request-operation semantics are declared as relations rather than encoded
+ * as a procedural classifier. The traversal only applies this already-owned
+ * upstream relation to an operation value.
+ */
+const requestAccessRelationByKind: Readonly<Partial<Record<RequestOperation['kind'], RequestAccessRelation>>> = Object.freeze({
+  all: { mode: 'raw' },
+  boolean: { mode: 'argument' },
+  filled: { mode: 'argument' },
+  get: { mode: 'argument' },
+  input: { mode: 'argument' },
+  integer: { mode: 'argument' },
+  only: { mode: 'argument' },
+  query: { mode: 'argument' },
+  safe: { mode: 'validated' },
+  string: { mode: 'argument' },
+  validated: { mode: 'validated' },
+});
+
 const requestAccessFields = (expression: Expression, boundName: string): readonly { readonly field: string | undefined; readonly validated: boolean; readonly source: import('./provenance').SourceSpan }[] => {
   const output: { readonly field: string | undefined; readonly validated: boolean; readonly source: import('./provenance').SourceSpan }[] = [];
+  const emitRequestAccess = (operation: RequestOperation, source: import('./provenance').SourceSpan): void => {
+    const relation = requestAccessRelationByKind[operation.kind];
+    if (!relation) return;
+    if (relation.mode === 'raw' || relation.mode === 'validated') {
+      output.push({ field: undefined, validated: relation.mode === 'validated', source });
+      return;
+    }
+    if (operation.kind === 'safe') return;
+    if (!('argument' in operation)) return;
+    const fields = requestArgumentFields(operation.argument);
+    if (fields.length === 0) output.push({ field: undefined, validated: false, source });
+    else fields.forEach(field => output.push({ field, validated: false, source }));
+  };
   const visit = (value: Expression): void => {
     if (value.kind === 'method') {
       const operation = value.operation;
-      if (operation.kind === 'request') {
-        const request = operation.operation;
-        const validated = request.kind === 'validated' || request.kind === 'safe';
-        if (request.kind === 'all') {
-          output.push({ field: undefined, validated: false, source: value.source });
-        } else if (request.kind === 'safe') {
-          if (request.argument.kind === 'absent') output.push({ field: undefined, validated: true, source: value.source });
-          else if (request.argument.kind === 'present') {
-            const fields = requestArgumentFields(request.argument.value);
-            if (fields.length === 0) output.push({ field: undefined, validated: true, source: value.source });
-            else fields.forEach(field => output.push({ field, validated: true, source: value.source }));
-          }
-        } else if (request.kind === 'validated') {
-          output.push({ field: undefined, validated: true, source: value.source });
-        } else if ('argument' in request) {
-          const fields = requestArgumentFields(request.argument);
-          if (fields.length === 0) output.push({ field: undefined, validated, source: value.source });
-          else fields.forEach(field => output.push({ field, validated, source: value.source }));
-        }
-      }
+      if (operation.kind === 'request') emitRequestAccess(operation.operation, value.source);
       visit(value.receiver);
       expressionItems(value.arguments.items).forEach(visit);
       return;

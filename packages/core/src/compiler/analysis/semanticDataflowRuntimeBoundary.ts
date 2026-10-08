@@ -1,5 +1,5 @@
 import type { DataFlowInterface } from '../../types/dataflow/dataFlowInterface';
-import type { InterfaceDependencyBoundary } from '../../types/interfaces/interfaceDependencyBoundary';
+import type { UpstreamWiringInterface } from '../../types/interfaces/interfaceDependencyBoundary';
 import type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
 
 export type SemanticDataflowRuntimeDataFlow = DataFlowInterface<
@@ -13,7 +13,7 @@ export type SemanticDataflowRuntimeDataFlow = DataFlowInterface<
  * canonical generic DataFlowInterface. The generic dependency boundary owns
  * the direction: upstream is consumed by downstream wiring, never reversed.
  */
-export interface SemanticDataflowRuntimeBoundary extends InterfaceDependencyBoundary<
+export interface SemanticDataflowRuntimeBoundary extends UpstreamWiringInterface<
   SemanticDataflowInput,
   SemanticDataflowRuntimeDataFlow
 > {}

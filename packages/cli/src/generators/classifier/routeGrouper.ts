@@ -18,6 +18,7 @@ import {
   ScannedClassifiedRouteDescriptor,
   type ResourceCrudMap
 } from './classifierTypes'
+import type { RouteCapabilityProjectionInterface } from './routeCapabilityProjectionInterface'
 
 /**
  * Project resolved routes into the legacy ClassifiedRoute surface.
@@ -26,13 +27,11 @@ import {
  * RouteSemanticFlow.capability.crudRole is authoritative.
  * No path inspection, HTTP-method classification, or fallback role exists here.
  */
-export function classifyRoutes(
-  routes: readonly RouteSemanticFlow[],
-  groupAliases?: Readonly<Record<string, string>>
-): ClassifiedRoute[] {
-  const usedActions = new Map<string, Set<string>>()
-
-  return routes.map(route => {
+function projectRoute(
+  route: RouteSemanticFlow,
+  groupAliases?: Readonly<Record<string, string>>,
+  usedActions: Map<string, Set<string>> = new Map<string, Set<string>>(),
+): ClassifiedRoute {
     const method = route.identity.coordinates.method
     const sourceGroupName = route.identity.domain.group.value.value
     const groupName = groupAliases?.[sourceGroupName] ?? sourceGroupName
@@ -61,18 +60,31 @@ export function classifyRoutes(
     }
     used.add(actionName)
 
-    return ScannedClassifiedRouteDescriptor.fromRoute(route, {
-      groupName,
-      actionName,
-      runtimePath,
-      method,
-      hasParams,
-      hasTrailingParam,
-      crudRole: role,
-      contract: route.contract
-    })
+  return ScannedClassifiedRouteDescriptor.fromRoute(route, {
+    groupName,
+    actionName,
+    runtimePath,
+    method,
+    hasParams,
+    hasTrailingParam,
+    crudRole: role,
+    contract: route.contract
   })
 }
+
+export function projectRoutes(
+  routes: readonly RouteSemanticFlow[],
+  groupAliases?: Readonly<Record<string, string>>
+): ClassifiedRoute[] {
+  const usedActions = new Map<string, Set<string>>()
+  return routes.map(route => projectRoute(route, groupAliases, usedActions))
+}
+
+/**
+ * @deprecated Compatibility alias. Semantic classification is upstream; this
+ * name remains only for callers that still use the historical projection API.
+ */
+export const classifyRoutes = projectRoutes;
 
 /**
  * Group already-classified routes into resource capability slots.
@@ -119,3 +131,10 @@ export function buildGroupedRoutes(classified: readonly ClassifiedRoute[]): Reco
   }
   return result
 }
+
+/** Concrete downstream wiring for the already-closed upstream route capability. */
+export const routeCapabilityProjection: RouteCapabilityProjectionInterface = Object.freeze({
+  direction: 'upstream_to_downstream',
+  upstreamAuthority: 'upstream',
+  project: (route) => projectRoute(route),
+});

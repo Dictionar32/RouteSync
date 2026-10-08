@@ -11,33 +11,23 @@ import {
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
   ROUTE_PARAMETER_TYPE_REGISTRY,
-  type ModelAst
+  type ResourceModelKeyCapabilityContract
 } from '@routesync/core'
 import { toTypeName } from '../names'
-import { CANONICAL_ACTION_MAP } from '../canonical-names'
+import { matchCrudRole } from '@routesync/core'
 import type { ClassifiedRoute, ResolvedTypeInfo, ResourceCrudMap } from './classifierTypes'
 
 export function resolveItemPrimaryKeyType(
   targetRoute: ClassifiedRoute,
-  models?: readonly ModelAst[],
-  titleName?: string
+  capabilities: readonly ResourceModelKeyCapabilityContract[] = [],
 ): string {
   const primaryParam = targetRoute.contract.request.pathParameters[0];
   const paramTsType = primaryParam?.type ? ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type]?.tsType : undefined;
-
-  const matchedModel = (models && titleName)
-    ? models.find(m => {
-        const semantic = m.definition.semantic;
-        const mTitle = toTypeName(semantic.identity.name.value.value);
-        const mShort = toTypeName(semantic.identity.shortName.value.value);
-        return mTitle === titleName || mShort === titleName
-          || mTitle + 's' === titleName || mShort + 's' === titleName
-          || titleName + 's' === mTitle || titleName.replace(/s$/, '') === mTitle.replace(/s$/, '');
-      })
-    : undefined;
-
-  const modelKeyType = matchedModel?.definition.semantic.key.semanticType.kind === 'number' || matchedModel?.definition.semantic.key.semanticType.kind === 'string'
-    ? matchedModel.definition.semantic.key.semanticType.kind
+  const resourceCapability = capabilities.find(capability =>
+    capability.identity.resource.value.value === targetRoute.identity.domain.resource.value.value
+  );
+  const modelKeyType = resourceCapability?.key.kind === 'number' || resourceCapability?.key.kind === 'string'
+    ? resourceCapability.key.kind
     : undefined;
 
   return paramTsType ?? modelKeyType ?? RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType;
@@ -64,9 +54,18 @@ const STANDARD_FORM_ACTIONS: ReadonlySet<string> = new Set(['Create', 'Update', 
 
 export function resolveRouteFormType(route?: ClassifiedRoute): ResolvedTypeInfo {
   const hasSchema = Boolean(route?.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && Object.keys(route.contract.request.body.schema.rules).length > 0);
-  const rawAction = route?.actionName ?? '';
-  const actionKey = (CANONICAL_ACTION_MAP as Readonly<Record<string, string>>)[rawAction]
-    || (rawAction ? rawAction.charAt(0).toUpperCase() + rawAction.slice(1) : '');
+  const actionKey = route
+    ? matchCrudRole(route.crudRole, {
+        index: () => 'Get',
+        show: () => 'Get',
+        create: () => 'Create',
+        update: () => 'Update',
+        delete: () => 'Delete',
+        custom: () => route.actionName
+          ? route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1)
+          : '',
+      })
+    : '';
 
   const groupTypeName = toTypeName(route?.groupName ?? '');
   const formName = `${groupTypeName}Form`;

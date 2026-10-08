@@ -2,12 +2,12 @@
  * Stateful query policy over an already-closed semantic data-flow judgment.
  *
  * This is deliberately a query-time policy view, not a second solver. The
- * canonical DataFlowInterface remains the only owner of derive/close
+ * canonical DataFlowAuthorityInterface remains the only owner of derive/close
  * and reaches(). State can refine source/sink decisions, while additional
  * steps and barriers are descriptive policy capabilities until a future
  * stateful solver explicitly consumes them.
  */
-import type { DataFlowInterface } from '../../../types/dataflow/dataFlowInterface';
+import type { DataFlowAuthorityInterface } from '../../../types/dataflow/dataFlowInterface';
 import type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowJudgment } from '../../../types/upstream/semanticDataflow';
 import type { DataFlowStateConfigInterface } from './dataFlowStateConfigInterface';
 
@@ -30,7 +30,7 @@ export interface SemanticDataflowStatePolicy<State> {
  * future state-aware solver but are intentionally not interpreted here.
  */
 export const createSemanticDataflowStatePolicy = <State>(
-  dataflow: DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
+  dataflow: DataFlowAuthorityInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
   stateConfig: DataFlowStateConfigInterface<SemanticDataflowIdentity, State>,
 ): SemanticDataflowStatePolicy<State> => Object.freeze({
   stateConfig,

@@ -9,6 +9,7 @@
 import { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { EndpointCallable, ApiError, RouteDefinition } from '@routesync/sdk'
 import { HttpMethod } from '@routesync/core'
+import type { DomainIntentCapabilityReference } from '@routesync/core'
 
 export type InferResponse<T> = T extends { $def: RouteDefinition<infer R, unknown, unknown, HttpMethod> } ? R : unknown
 export type InferBody<T> = T extends { $def: RouteDefinition<unknown, unknown, infer B, HttpMethod> } ? B : unknown
@@ -127,5 +128,8 @@ export interface HookConfig {
     [action: string]: unknown
   }
   domain?: string
+  /** Closed upstream domain-intent capability; semantic config is not reconstructed in React. */
+  domainIntentCapability?: DomainIntentCapabilityReference
+  /** @deprecated legacy semantic input; consumers must use domainIntentCapability. */
   intent?: unknown
 }

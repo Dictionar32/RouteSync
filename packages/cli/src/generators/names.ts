@@ -1,5 +1,5 @@
 import { RouteSemanticFlow } from '@routesync/core'
-import { classifyRoutes } from './route-classifier'
+import { projectRoutes } from './route-capability-projection'
 
 export type GeneratedRoute = RouteSemanticFlow & {
   groupName: string
@@ -11,7 +11,7 @@ export function buildGeneratedRoutes(
   routes: RouteSemanticFlow[],
   groupAliases?: Record<string, string>
 ): Record<string, GeneratedRoute[]> {
-  const classified = classifyRoutes(routes, groupAliases)
+  const classified = projectRoutes(routes, groupAliases)
   const grouped: Record<string, GeneratedRoute[]> = {}
 
   for (const route of classified) {

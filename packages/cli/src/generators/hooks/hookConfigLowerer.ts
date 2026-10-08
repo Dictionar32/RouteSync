@@ -7,7 +7,7 @@
  */
 
 import { matchCrudRole, type ResourceGroupDescriptor } from '@routesync/core';
-import type { ClassifiedRoute } from '../route-classifier';
+import type { ClassifiedRoute } from '../route-capability-projection';
 
 export function pushUnique(items: string[], item: string): void {
   if (!items.includes(item)) items.push(item);

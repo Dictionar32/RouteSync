@@ -1,4 +1,4 @@
-import type { InterfaceDependencyBoundary } from '../types/interfaces/interfaceDependencyBoundary';
+import type { UpstreamWiringInterface } from '../types/interfaces/interfaceDependencyBoundary';
 import type {
   ServiceSemanticContract,
   ControllerActionFlowContract,
@@ -44,7 +44,7 @@ export interface GraphControllerSurface {
  * not inherit the whole LaravelSemanticContractCatalog.
  */
 export interface RouteSyncManifestGraphProjectionInterface
-  extends InterfaceDependencyBoundary<RouteSyncManifestFlow, RouteSyncManifestGraphSurface> {}
+  extends UpstreamWiringInterface<RouteSyncManifestFlow, RouteSyncManifestGraphSurface> {}
 
 export interface RouteSyncManifestGraphSurface {
   readonly kind: 'route_sync_manifest_graph_surface';

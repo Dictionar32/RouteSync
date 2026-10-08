@@ -7,14 +7,26 @@
  */
 
 import { EndpointCallable } from '@routesync/sdk'
-import { PathResolver, HttpMethod } from '@routesync/core'
+import { HttpMethod } from '@routesync/core'
 import { HookConfig, InvalidateList } from './hookTypes'
+import { hasKey } from './unifiedHookBuilder'
 
 export function extractParamKey(endpoint: unknown): string {
-  const path = (endpoint as { $def?: { path?: string } })?.$def?.path
-  if (!path) return 'id'
-  const params = PathResolver.extractParams(path)
-  return params[0] ?? 'id'
+  if (typeof endpoint !== 'function' || !hasKey(endpoint, '$def')) {
+    throw new Error('Route parameter capability is missing from the endpoint')
+  }
+  const definition = endpoint.$def
+  if (!hasKey(definition, 'routeParameter')) {
+    throw new Error('Route parameter capability is missing from the endpoint')
+  }
+  const parameter = definition.routeParameter
+  if (!hasKey(parameter, 'kind') || parameter.kind !== 'route_parameter_capability_reference') {
+    throw new Error('Route parameter capability is missing from the endpoint')
+  }
+  if (!hasKey(parameter, 'name') || typeof parameter.name !== 'string') {
+    throw new Error('Route parameter capability is missing from the endpoint')
+  }
+  return parameter.name
 }
 
 export interface ResolvedGroupSlots {
@@ -30,20 +42,32 @@ export interface ResolvedGroupSlots {
   readonly deleteParamKey: string
 }
 
+const firstByRole = (
+  group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>,
+  role: 'index' | 'show' | 'update' | 'delete',
+  targetScope?: 'collection' | 'member',
+): EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined => {
+  for (const endpoint of Object.values(group)) {
+    if (!endpoint || typeof endpoint !== 'function' || !endpoint.$def) continue
+    if (endpoint.$def.crudRole !== role) continue
+    if (targetScope && endpoint.$def.targetScope !== targetScope) continue
+    return endpoint
+  }
+  return undefined
+}
+
 export function resolveGroupSlots(
   group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>
 ): ResolvedGroupSlots {
-  const indexService  = group.list
-  const showService   = group.get ?? group.show
-  const updateService = group.update
-  const updateSelfService = !updateService ? (group.put ?? group.patch) : undefined
-  const resolvedUpdateSelf = group.put ?? group.patch
-  const deleteService     = group.remove ?? ((group.delete?.$def?.path as string)?.includes(':') ? group.delete : undefined)
-  const deleteSelfService = !deleteService
-    ? (group.delete?.$def && !(group.delete?.$def?.path as string)?.includes(':') ? group.delete : undefined)
-    : undefined
+  const indexService = firstByRole(group, 'index')
+  const showService = firstByRole(group, 'show')
+  const updateService = firstByRole(group, 'update', 'member')
+  const resolvedUpdateSelf = firstByRole(group, 'update', 'collection')
+  const updateSelfService = resolvedUpdateSelf
+  const deleteService = firstByRole(group, 'delete', 'member')
+  const deleteSelfService = firstByRole(group, 'delete', 'collection')
 
-  const showParamKey   = showService   ? extractParamKey(showService)   : 'id'
+  const showParamKey = showService ? extractParamKey(showService) : 'id'
   const updateParamKey = updateService ? extractParamKey(updateService) : 'id'
   const deleteParamKey = deleteService ? extractParamKey(deleteService) : 'id'
 
@@ -63,12 +87,11 @@ export function resolveGroupSlots(
 
 export type ExtraEndpointDescriptor = {
   service: unknown
-  method?: string
+  hookKind?: 'query' | 'mutation' | 'infinite_query'
+  crudRole?: 'index' | 'show' | 'create' | 'update' | 'delete' | 'custom'
   queryKey?: (...args: never[]) => readonly unknown[]
   invalidate?: InvalidateList
 }
-
-const CRUD_KEYS = new Set(['list', 'get', 'show', 'create', 'update', 'put', 'patch', 'delete', 'remove'])
 
 export function resolveGroupExtras(
   group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>,
@@ -78,17 +101,17 @@ export function resolveGroupExtras(
   const extras: Record<string, ExtraEndpointDescriptor> = {}
 
   for (const action in group) {
-    if (CRUD_KEYS.has(action)) continue
     const endpoint = group[action]
     if (typeof endpoint !== 'function' || !endpoint.$def) continue
+    if (endpoint.$def.crudRole !== 'custom') continue
 
-    const method = endpoint.$def.method as string
     const actionCache = groupConfig.cache?.[action] as { invalidate?: InvalidateList } | undefined
     const actionKeyFn = groupConfig.actionKeys?.[action] ?? groupQueryKeys?.[action]
 
     extras[action] = {
       service: endpoint,
-      method,
+      hookKind: endpoint.$def.hookKind,
+      crudRole: endpoint.$def.crudRole,
       queryKey: typeof actionKeyFn === 'function' ? (actionKeyFn as (...args: never[]) => readonly unknown[]) : undefined,
       invalidate: actionCache?.invalidate,
     }

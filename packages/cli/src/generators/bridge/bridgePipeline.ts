@@ -15,7 +15,7 @@ import {
     lowerApiFieldsOutput,
     lowerMappersOutput
 } from '@routesync/core'
-import { classifyDomainGraph } from '../route-classifier'
+import { projectDomainGraph } from '../route-capability-projection'
 import type {
     CompiledContractsBundle,
     FullBundleEmittedArtifacts,
@@ -72,7 +72,7 @@ export async function emitFullBundle(
     console.log('[CompilerBridge] Emitting full CDA contract & client bundle...')
 
     const contractsBundle = compileManifest(manifest)
-    const domainGraph = classifyDomainGraph(manifest)
+    const domainGraph = projectDomainGraph(manifest)
 
     const context: CompilerEmitContext = Object.freeze({
         manifest,

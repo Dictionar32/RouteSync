@@ -14,12 +14,25 @@ import type { InvalidationTarget } from './routeInvalidationVocabulary';
 import type { HttpErrorResponse } from './routeErrorVocabulary';
 import type { CrudRole, RouteHookKind, RouteActionKind, RequestContentType, RouteExecutionSignature } from './routeExecutionVocabulary';
 import type { RouteAst } from './ast';
+import type { SemanticCapabilityContract, SemanticCapabilityContractInterface, SemanticCapabilityEvidence } from './semanticCapability';
 export interface RouteCacheInvalidation {
   readonly targets: Sequence<InvalidationTarget>;
   readonly queryKeyExpressions: Sequence<StringValue>;
 }
 
-export interface RouteCapabilityContract {
+export interface RouteCapabilityEvidence extends SemanticCapabilityEvidence {
+  readonly kind: 'route_capability_evidence';
+  readonly crud: RouteCapabilityCrudEvidence;
+}
+
+export type RouteCapabilityCrudEvidence =
+  | { readonly kind: 'route_capability_crud_evidence'; readonly source: 'explicit'; readonly role: CrudRole; readonly closed: true }
+  | { readonly kind: 'route_capability_crud_evidence'; readonly source: 'resource_action'; readonly action: ActionName; readonly role: CrudRole; readonly closed: true }
+  | { readonly kind: 'route_capability_crud_evidence'; readonly source: 'route_shape'; readonly method: import('./routeExecutionVocabulary').HttpMethod; readonly path: RoutePath; readonly role: CrudRole; readonly closed: true };
+
+/** Route-specific semantic capability algebra. */
+export interface RouteCapabilityAlgebraInterface
+  extends SemanticCapabilityContractInterface<'route_capability', RouteCapabilityEvidence, RouteIdentity> {
   readonly auth: TruthValue;
   readonly security: RouteSecurityDescriptor;
   readonly middleware: RouteMiddlewares;
@@ -33,6 +46,12 @@ export interface RouteCapabilityContract {
   readonly executionSignature: RouteExecutionSignature;
   readonly errorResponses: Sequence<HttpErrorResponse>;
 }
+
+/** Closed upstream route-capability contract. */
+export interface RouteCapabilityContract extends RouteCapabilityAlgebraInterface {}
+
+/** Consumer-facing closed route-capability interface. */
+export interface RouteCapabilityInterface extends RouteCapabilityContract {}
 
 /**
  * Complete semantic target of a Laravel route.

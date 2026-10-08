@@ -15,7 +15,6 @@ import fs from 'fs-extra'
 import { RouteManifest } from '@routesync/core'
 import { ModelGenerator } from '../generators/ModelGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
-import { IntentResolver } from '../resolvers/IntentResolver'
 
 
 export const generateCommand = new Command('generate')
@@ -38,8 +37,6 @@ export const generateCommand = new Command('generate')
       }
 
       let manifest: RouteManifest = await fs.readJson(options.manifest)
-      manifest = IntentResolver.resolve(manifest)
-      await fs.writeJson(options.manifest, manifest, { spaces: 2 })
       await fs.ensureDir(options.output)
 
       spinner.text = 'Compiling and emitting full contract bundle...'

@@ -6,8 +6,8 @@
  * @module cli/generators/hooks
  */
 
-import type { RouteManifest } from '@routesync/core';
-import type { ClassifiedDomainGraph, ClassifiedRoute } from '../route-classifier';
+import { domainIntentCapabilitiesFromFrontend, type RouteManifest } from '@routesync/core';
+import type { ClassifiedDomainGraph, ClassifiedRoute } from '../route-capability-projection';
 import { lowerGroupHookConfig, addRouteInvalidations } from './hookConfigLowerer';
 
 export function* lowerRuntimeManifestSource(manifest: RouteManifest): Iterable<string> {
@@ -15,8 +15,7 @@ export function* lowerRuntimeManifestSource(manifest: RouteManifest): Iterable<s
   yield ``;
   yield `export const runtimeManifest = {`;
   yield `  resources: {},`;
-  yield `  domains: ${JSON.stringify(manifest.frontend?.domains || {}, null, 2)},`;
-  yield `  intents: {}`;
+  yield `  domainIntentCapabilities: ${JSON.stringify(domainIntentCapabilitiesFromFrontend(manifest.frontend), null, 2)},`;
   yield `} as const`;
   yield ``;
 }

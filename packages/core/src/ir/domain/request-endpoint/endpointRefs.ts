@@ -16,6 +16,7 @@ import { PrimitiveKind } from '../../../types/domain/semanticType';
 import { createPropertyName } from '../../../types/ir/nominalVocabulary';
 import type { DescriptionText } from '../../../types/upstream/valueObjects';
 import type { RouteSemanticFlow } from '../../../types/domain/routes';
+import type { RouteParameter } from '../../../types/upstream/route';
 import { PARAMETER_TYPE_KNOWLEDGE } from '../../../types/semantic/semanticKnowledge';
 import { HTTP_METHOD_REGISTRY } from '../../../types/domain/httpVocabulary';
 import { solveSemanticRelations, type SemanticRelation } from '../../../semantic/foundation/semanticRewriteEngine';
@@ -23,25 +24,50 @@ import { resolveResponseReferenceKind, type ResponseKind } from './responseRefer
 
 export const PARAMETER_TYPE_RULES = PARAMETER_TYPE_KNOWLEDGE;
 
+/**
+ * Legacy name-based inference is intentionally retained only as an isolated
+ * compatibility helper. Production IR projection must consume the closed
+ * upstream RouteParameter semantic type instead of rediscovering meaning from
+ * a parameter name.
+ */
 export function inferParamType(name: string): PrimitiveKind {
   return PARAMETER_TYPE_RULES.find(rule =>
     rule.fragments.some(fragment => name.includes(fragment))
   )?.primitive ?? PrimitiveKind.STRING;
 }
 
-export function extractPathParams(path: RouteSemanticFlow['identity']['coordinates']['path']): ParameterIR[] {
-  const rawPath = path.value.value;
-  const paramMatches = rawPath.match(/\{([^}]+)\}/g) || [];
-  return paramMatches.map(match => {
-    const name = match.slice(1, -1);
-    return {
-      name: createPropertyName(name),
-      type: inferParamType(name),
-      required: true,
-      description: { kind: 'description_text', value: `Path parameter: ${name}` } satisfies DescriptionText,
-      validation: { kind: 'validation_rules', items: { kind: 'empty' } }
-    };
-  });
+const primitiveKindFromRouteParameter = (parameter: RouteParameter): PrimitiveKind => {
+  switch (parameter.type.kind) {
+    case 'integer':
+    case 'number':
+      return PrimitiveKind.NUMBER;
+    case 'boolean':
+      return PrimitiveKind.BOOLEAN;
+    case 'string':
+    case 'uuid':
+    case 'ulid':
+    case 'date':
+    case 'slug':
+    case 'model':
+      return PrimitiveKind.STRING;
+  }
+};
+
+/**
+ * Projects the already-resolved upstream route parameters into IR.
+ * No name-based semantic classification occurs here.
+ */
+export function extractPathParams(route: RouteSemanticFlow): ParameterIR[] {
+  return route.identity.parameters.path.map((parameter) => ({
+    name: createPropertyName(parameter.propertyName.value.value),
+    type: primitiveKindFromRouteParameter(parameter),
+    required: parameter.presence.kind === 'required',
+    description: {
+      kind: 'description_text',
+      value: `Path parameter: ${parameter.propertyName.value.value}`
+    } satisfies DescriptionText,
+    validation: { kind: 'validation_rules', items: { kind: 'empty' } }
+  }));
 }
 
 export const REQUEST_BODY_METHODS = Object.values(HTTP_METHOD_REGISTRY)

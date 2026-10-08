@@ -30,10 +30,9 @@ export class Request {
     if (opts instanceof RequestOptionsDescriptor) {
       this._options = opts
     } else {
-      const anyOpts = opts as any
-      const timeoutMs = typeof anyOpts.timeoutMs === 'number'
-        ? anyOpts.timeoutMs
-        : (typeof anyOpts.timeout === 'number' ? anyOpts.timeout : 0)
+      const timeoutMs = 'timeoutMs' in opts && typeof opts.timeoutMs === 'number'
+        ? opts.timeoutMs
+        : ('timeout' in opts && typeof opts.timeout === 'number' ? opts.timeout : 0)
       this._options = new RequestOptionsDescriptor(
         opts.params,
         opts.headers,

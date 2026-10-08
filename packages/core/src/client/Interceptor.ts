@@ -8,7 +8,7 @@ export type ResponseInterceptor = (
   response: AxiosResponse
 ) => AxiosResponse | Promise<AxiosResponse>
 
-export type ErrorInterceptor = (error: any) => any
+export type ErrorInterceptor = (error: unknown) => unknown
 
 export class Interceptor {
   constructor(private client: AxiosInstance) {}

@@ -14,13 +14,13 @@ import {
 } from '@routesync/core';
 import { toTypeName } from '../names';
 import type { ClassifiedRoute } from './classifierTypes';
-import { classifyRoutes, buildResourceMap } from './routeGrouper';
+import { projectRoutes, buildResourceMap } from './routeGrouper';
 import { resolveGroupErrorType, getStandardMutationKeys } from './typeResolver';
 import { buildCrudGroupDescriptor, buildCustomOrSingletonGroupDescriptor } from './builders';
 
 export function buildClassifiedDomainGraph(manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute> {
   const groupAliases = manifest.frontend && manifest.frontend.groupAliases ? manifest.frontend.groupAliases : undefined;
-  const classified = classifyRoutes(manifest.routes, groupAliases);
+  const classified = projectRoutes(manifest.routes, groupAliases);
   const rawResources = buildResourceMap(classified);
 
   const resourceGroups: ResourceGroupDescriptor<ClassifiedRoute>[] = [];
@@ -33,7 +33,7 @@ export function buildClassifiedDomainGraph(manifest: RouteManifest): ClassifiedD
 
     if (res.index && res.show) {
       resourceGroups.push(
-        buildCrudGroupDescriptor(groupName, KEY, Title, res, errorRes, standardKeys, manifest.models)
+        buildCrudGroupDescriptor(groupName, KEY, Title, res, errorRes, standardKeys, manifest.resourceModelKeyCapabilities)
       );
     } else {
       resourceGroups.push(

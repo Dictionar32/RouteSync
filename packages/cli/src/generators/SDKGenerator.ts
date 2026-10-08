@@ -1,7 +1,7 @@
 import type { RouteManifest } from '@routesync/core';
 import path from 'path';
 import fs from 'fs-extra';
-import { classifyRoutes, buildGroupedRoutes } from './route-classifier';
+import { projectRoutes, buildGroupedRoutes } from './route-capability-projection';
 import { emitApiObjectLines } from './sdk';
 
 export class SDKGenerator {
@@ -10,7 +10,7 @@ export class SDKGenerator {
     outputDir?: string,
     options: Record<string, unknown> = {}
   ): Promise<string> {
-    const classified = classifyRoutes(manifest.routes, manifest.frontend?.groupAliases);
+    const classified = projectRoutes(manifest.routes, manifest.frontend?.groupAliases);
     const grouped = buildGroupedRoutes(classified);
 
     const usesZod = Boolean(options.zod);

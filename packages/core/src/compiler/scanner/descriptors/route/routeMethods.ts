@@ -7,11 +7,8 @@
  * @module core/compiler/scanner/descriptors/route/routeMethods
  */
 
-import {
-    RouteDomainResolver,
-    RouteSecurityResolver,
-    type RouteBoundaryOptions
-} from "../../resolvers";
+import { RouteSecurityResolver, type RouteBoundaryOptions } from "../../resolvers";
+import { routeDomainAuthority } from "../../../../types/upstream/routeDomainAuthority";
 import type {
     RouteSecurityDescriptor,
     RoutePolicyDescriptor
@@ -24,8 +21,8 @@ import type { RouteMiddlewares, Sequence } from "../../../../types/upstream/coll
 import { createMiddlewareName } from "../../../../types/upstream/names";
 import { relationFoldRight } from "../../../../semantic/foundation/relationalSequence";
 
-export function resolveRouteDescriptorDomain(route: import("../../resolvers/RouteDomainResolver").RouteDomainResolutionContext): DomainTypeName {
-    return RouteDomainResolver.resolve(route);
+export function resolveRouteDescriptorDomain(route: import("../../../../types/upstream/routeDomainAuthority").RouteDomainResolutionContext): DomainTypeName {
+    return routeDomainAuthority.resolve(route);
 }
 
 export function resolveRouteDescriptorSecurity(
@@ -34,5 +31,5 @@ export function resolveRouteDescriptorSecurity(
 ): import("../../resolvers/RouteSecurityResolver").RouteSecurityResolution {
     const empty: Sequence<RouteMiddleware> = { kind: "empty" };
     const items: Sequence<RouteMiddleware> = relationFoldRight<PropertyName, Sequence<RouteMiddleware>>(middleware, empty, (item, tail) => ({ kind: "cons", head: Object.freeze({ kind: "direct", name: createMiddlewareName(item.value.value) }), tail }));
-    return RouteSecurityResolver.resolve(Object.freeze({ kind: "route_middlewares", items }), truthValue(auth));
+    return routeSecurityAuthority.resolve(Object.freeze({ kind: "route_middlewares", items }), truthValue(auth));
 }

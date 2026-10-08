@@ -1,4 +1,4 @@
-import type { InterfaceDependencyBoundary } from '../../types/interfaces/interfaceDependencyBoundary';
+import type { UpstreamWiringInterface } from '../../types/interfaces/interfaceDependencyBoundary';
 import type { RouteSyncManifestFlow } from '../../types/upstream/manifest';
 import type { ManifestDataflowSeedSurface } from '../../types/upstream/semanticDataflowManifestSurface';
 import type { SemanticDataflowIdentity } from '../../types/upstream/semanticDataflow';
@@ -9,7 +9,7 @@ import type { SemanticDataflowIdentity } from '../../types/upstream/semanticData
  * the complete Laravel source model merely to recover controller identity.
  */
 export interface RouteSyncManifestDataflowProjectionInterface
-  extends InterfaceDependencyBoundary<RouteSyncManifestFlow, RouteSyncManifestDataflowSurface> {}
+  extends UpstreamWiringInterface<RouteSyncManifestFlow, RouteSyncManifestDataflowSurface> {}
 
 export interface RouteSyncManifestDataflowControllerSurface {
   readonly controller: string;

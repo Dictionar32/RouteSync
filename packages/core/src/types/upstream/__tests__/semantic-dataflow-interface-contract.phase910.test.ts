@@ -25,6 +25,16 @@ const judgment = {
 const semanticInterface = {
   kind: 'semantic_dataflow_interface',
   authority: 'semantic_dataflow_judgment',
+  reasoning: {
+    kind: 'semantic_reasoning_contract',
+    authority: 'upstream',
+    strategy: 'declarative_relation_rewrite_fixed_point',
+    closed: true,
+    evidence: { kind: 'semantic_relation_fixed_point', closed: true },
+    derivation: { kind: 'semantic_reasoning_derivation', strategy: 'declarative_relation_rewrite_fixed_point', closed: true },
+    provenance: { kind: 'semantic_reasoning_provenance', authority: 'upstream', closed: true },
+    closure: { kind: 'semantic_reasoning_closure', closed: true },
+  },
   origin: {
     kind: 'semantic_dataflow_origin',
     source: 'semantic_dataflow_input',

@@ -15,6 +15,7 @@ import type {
 } from '../../types/upstream/semanticDataflow';
 import { createSemanticDataflowJudgment } from '../../types/upstream/semanticDataflowAuthority';
 import { semanticDataflowIdentityEqual } from '../../types/upstream/semanticDataflow';
+import { semanticReasoningContract } from '../../types/upstream/semanticReasoning';
 
 export type SemanticDataflowDataFlowInterface = DataFlowInterface<
   SemanticDataflowInput,
@@ -29,12 +30,17 @@ export const createSemanticDataflowDataFlowInterface = (
 
   return Object.freeze({
     kind: 'data_flow_interface',
+    authority: 'upstream',
+    reasoning: semanticReasoningContract('declarative_relation_rewrite_fixed_point'),
+    closed: true,
+    input,
     seed: (nextInput: SemanticDataflowInput) => createSemanticDataflowJudgment(nextInput),
     state,
     // The upstream judgment is already closed. Downstream execution must not
     // re-run semantic closure; derive/close therefore preserve the canonical state.
     derive: (current: SemanticDataflowJudgment) => current,
     close: (current: SemanticDataflowJudgment) => current,
+    judge: (current: SemanticDataflowJudgment) => current,
     reaches: (
       current: SemanticDataflowJudgment,
       source: SemanticDataflowIdentity,

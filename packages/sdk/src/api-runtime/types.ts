@@ -6,7 +6,7 @@
  * @module sdk/api-runtime/types
  */
 
-import type { HttpMethod, RouteDefinition, ApiDefinition } from '@routesync/core';
+import type { HttpMethod, RouteDefinition, ApiDefinition, OperationIdentityReference } from '@routesync/core';
 
 export type CallOptions<TParams = unknown, TBody = unknown> = {
   params?: TParams;
@@ -54,9 +54,9 @@ export interface EndpointCallable<TResponse = unknown, TParams = unknown, TBody 
   /** Original RouteDefinition — used by useApiQuery / useApiMutation */
   $def: RouteDefinition<TResponse, TParams, TBody, TMethod>;
   /** Stable TanStack query key: [group, action] */
-  $key: string[];
+  $key: readonly [OperationIdentityReference];
   /** Consistent query key builder that incorporates params/query if provided */
-  $queryKey: (options?: EndpointCallableOptions<TParams, TBody>) => unknown[];
+  $queryKey: (options?: EndpointCallableOptions<TParams, TBody>) => readonly [OperationIdentityReference] | readonly [OperationIdentityReference, EndpointCallableOptions<TParams, TBody>];
 }
 
 export type ApiGroupProxy<G extends Record<string, RouteDefinition<unknown, unknown, unknown, HttpMethod>>> = {

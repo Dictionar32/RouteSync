@@ -1,6 +1,6 @@
 import { RouteManifest } from '@routesync/core'
 import path from 'path'
-import { classifyDomainGraph, ClassifiedDomainGraph, ClassifiedRoute } from './route-classifier'
+import { projectDomainGraph, ClassifiedDomainGraph, ClassifiedRoute } from './route-capability-projection'
 import { CodeWriter } from './code-writer'
 
 /**
@@ -72,7 +72,7 @@ export class QueryKeyGenerator {
     outputDir: string,
     domainGraph?: ClassifiedDomainGraph<ClassifiedRoute>
   ): Promise<void> {
-    const graph = domainGraph ?? classifyDomainGraph(manifest)
+    const graph = domainGraph ?? projectDomainGraph(manifest)
     const writer = new CodeWriter()
     writer.write(lowerQueryKeySource(graph))
     await writer.writeToFile(path.join(outputDir, 'query-key.ts'))

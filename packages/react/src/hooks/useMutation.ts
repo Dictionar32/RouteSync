@@ -32,18 +32,13 @@ export function useApiMutation<
   options?: ApiMutationOptions<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>
 ) {
   const queryClient = useQueryClient()
-  const [group] = endpoint.$key
-
   return useMutation<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>({
     ...options,
     mutationFn: (variables: EndpointCallableOptions<TParams, TBody>) => endpoint(variables as never),
     onSuccess: (data: TResponse, variables: EndpointCallableOptions<TParams, TBody>, onMutateResult: TContext, context) => {
-      // Auto-invalidate the endpoint's own group
-      queryClient.invalidateQueries({ queryKey: [group] })
-
       // Invalidate any extra endpoints specified
       options?.invalidate?.forEach((ep) => {
-        queryClient.invalidateQueries({ queryKey: ep.$key })
+        queryClient.invalidateQueries({ queryKey: ep.$queryKey() })
       })
 
       options?.onSuccess?.(data, variables, onMutateResult, context)

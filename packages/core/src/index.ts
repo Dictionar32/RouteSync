@@ -764,12 +764,18 @@ export type { RouteSyncManifestDataflowSurface, RouteSyncManifestDataflowProject
 export type { SemanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeBoundary'
 export { semanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeComposition'
 export type { ControlFlowSolverInterface, ControlFlowDataFlowInterface, DataFlowAnalysisInterface } from './compiler/analysis/dataflow/controlFlowDataFlowInterface'
-export type { DataFlowInterface, DataFlowSourceInterface, DataFlowStepInterface, DataFlowFixpointInterface, DataFlowStateInterface, DataFlowQueryInterface } from './types/dataflow'
-export type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowFact } from './types/upstream/semanticDataflow'
+export type { DataFlowInterface, DataFlowSourceInterface, DataFlowStepInterface, DataFlowFixpointInterface, DataFlowExecutionInterface, DataFlowInputInterface, DataFlowStateInterface, DataFlowQueryInterface, DataFlowClosureInterface, DataFlowAuthorityInterface, DataFlowAuthorityContractInterface, DataFlowProducerContractInterface, DataFlowProducerInterface, DataFlowCapabilityAuthorityInterface, DataFlowConsumerInterface, DataFlowProjectionAlgebraInterface, DataFlowProjectionContract, DataFlowProjectionInterface, DataFlowCapabilityProjectionAlgebraInterface, DataFlowCapabilityProjectionContract, DataFlowCapabilityProjectionInterface } from './types/dataflow'
+export type { SemanticCapabilityAuthority, SemanticCapabilityKind, SemanticCapabilityEvidence, SemanticCapabilityIdentityInterface, SemanticCapabilityEvidenceInterface, SemanticCapabilityAlgebraInterface, SemanticCapabilityContractInterface, SemanticCapabilityDerivationInterface, SemanticCapabilityProvenanceInterface, SemanticCapabilityClosureInterface, SemanticCapabilityDerivation, SemanticCapabilityProvenance, SemanticCapabilityContract, SemanticCapabilityConsumerInterface, SemanticCapabilityInterface, SemanticCapabilityAuthorityInterface, SemanticCapabilityConsumerAlgebraInterface, SemanticCapabilityConsumerContractInterface } from './types/upstream/semanticCapability'
+export type { SemanticReasoningAuthority, SemanticReasoningStrategy, SemanticReasoningEvidenceKind, SemanticReasoningExecutionInterface, SemanticReasoningRelationInterface, SemanticReasoningRewriteInterface, SemanticReasoningFixedPointInterface, SemanticReasoningJudgmentInterface, SemanticReasoningAlgebraInterface, SemanticReasoningInterface, SemanticReasoningEvidenceInterface, SemanticReasoningDerivationInterface, SemanticReasoningProvenanceInterface, SemanticReasoningClosureInterface, SemanticReasoningProofInterface, SemanticReasoningAuthorityInterface, SemanticReasoningConsumerAlgebraInterface, SemanticReasoningConsumerContractInterface, SemanticReasoningConsumerInterface, SemanticReasoningContractInterface, SemanticReasoningContract } from './types/upstream/semanticReasoning'
+export { routeCapabilityAuthority } from './types/upstream/routeCapabilityAuthority'
+export { routeCapabilitySemanticAuthority } from './types/upstream/routeCapabilitySemanticAuthority'
+export type { RouteCapabilitySemanticAuthorityAlgebraInterface, RouteCapabilitySemanticAuthorityContractInterface, RouteCapabilitySemanticAuthorityInterface, RouteCapabilitySemanticEvidence, RouteCapabilitySemanticOverrides, RouteCapabilitySemanticInput, RouteCapabilitySemanticResolution } from './types/upstream/routeCapabilitySemanticAuthority'
+export type { RouteCapabilityAuthorityAlgebraInterface, RouteCapabilityAuthorityContractInterface, RouteCapabilityAuthorityInterface, RouteCrudRoleResolution } from './types/upstream/routeCapabilityAuthority'
+export type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowAlgebraInterface, SemanticDataflowContractInterface, SemanticDataflowInterface, SemanticDataflowJudgment, SemanticDataflowJudgmentInterface, SemanticDataflowJudgmentIdentityInterface, SemanticDataflowJudgmentEvidenceInterface, SemanticDataflowJudgmentFixpointInterface, SemanticDataflowJudgmentAuthorityInterface, SemanticDataflowJudgmentClosureInterface, SemanticDataflowFact } from './types/upstream/semanticDataflow'
 export { semanticDataflowIdentityEqual } from './types/upstream/semanticDataflow'
 export { createSemanticDataflowJudgment } from './types/upstream/semanticDataflowAuthority'
-export type { DataFlowProjectionInterface } from './types/dataflow'
-export type { InterfaceDependencyBoundary } from './types/interfaces'
+export type { InterfaceDependencyAlgebraInterface, InterfaceDependencyContractInterface, InterfaceDependencyBoundary, UpstreamWiringInterface, InterfaceCompositionAlgebra, InterfaceCompositionContract, InterfaceComposition, SemanticCapabilityProjectionAlgebraInterface, SemanticCapabilityProjectionContract, SemanticCapabilityProjectionInterface } from './types/interfaces';
+export { composeUpstreamWiring } from './types/interfaces';
 export { createDataFlowConfig } from './compiler/analysis/dataflow/dataFlowConfigInterface'
 export { composeDataFlowConfigContributors } from './compiler/analysis/dataflow/dataFlowConfigContributorInterface'
 export { selectDataFlowFacts } from './compiler/analysis/dataflow/dataFlowFactPolicyInterface';
@@ -1074,3 +1080,22 @@ export { manifestBuilder } from './compiler/scanner/wiring/upstreamManifestBuild
 export type { ServiceGraphBuilderInterface } from './graph/ServiceGraphBuilderInterface'
 export { routeSyncManifestGraphSurfaceFromFlow } from './graph/RouteSyncManifestGraphProjection'
 export type { RouteSyncManifestGraphSurface, RouteSyncManifestGraphProjectionInterface } from './graph/RouteSyncManifestGraphProjectionInterface'
+
+export type { InterfaceComposition } from './types/interfaces/interfaceComposition';
+export type { DataFlowExecutionAlgebraInterface, DataFlowAuthorityAlgebraInterface } from './types/dataflow/dataFlowInterface';
+
+export * from './types/upstream/routeDomainAuthority';
+export type { ResourceModelCandidateSource, ResourceModelCandidate, ResourceModelReasoningInput, ResourceModelReasoningEvidence, ResourceModelJudgment } from './types/upstream/resourceModelReasoning'
+export { reasonResourceModel } from './types/upstream/resourceModelReasoning'
+
+export type { ResourceModelKeyCapabilityEvidence, ResourceModelKeyCapabilityIdentity, ResourceModelKeyCapabilityContract } from './types/upstream/resourceModelKeyCapability';
+export { resourceModelKeyCapabilitiesFromAsts, resourceModelKeyCapabilityFor } from './types/upstream/resourceModelKeyCapability';
+export type { OperationIdentityCapabilityEvidence, OperationIdentity, OperationIdentityCapabilityAlgebraInterface, OperationIdentityCapabilityContract, OperationIdentityCapabilityInterface, OperationIdentityCapabilityConsumerInterface, OperationIdentityReference } from './types/upstream/operationIdentityCapability';
+export type { DomainIntentCapabilityKind, DomainIntentCapabilityEvidence, DomainIntentOperationReference, AggregateCollectionIntentCapability, GenericDomainIntentCapability, DomainIntentCapabilityAlgebraInterface, DomainIntentCapabilityContract, DomainIntentCapabilityInterface, DomainIntentCapabilityConsumerInterface, DomainIntentCapabilityReference } from './types/upstream/domainIntentCapability';
+export { domainIntentCapabilityFromRuntimeConfig, domainIntentCapabilitiesFromFrontend, domainIntentCapabilityReferenceFromCapability } from './types/upstream/domainIntentCapability';
+export type { RouteParameterCapabilityEvidence, RouteParameterCapabilityAlgebraInterface, RouteParameterCapabilityContract, RouteParameterCapabilityInterface, RouteParameterCapabilityConsumerInterface, RouteParameterCapabilityReference } from './types/upstream/routeParameterCapability';
+export { routeParameterCapabilityFromRoute, routeParameterCapabilityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeTargetScopeFromRoute } from './types/upstream/routeParameterCapability';
+export { operationIdentityCapabilityFromRoute, operationIdentityReferenceFromCapability } from './types/upstream/operationIdentityCapability';
+export type { ResourceModelKeyCapabilityProjectionInterface } from './types/upstream/resourceModelKeyCapability';
+
+export type { OperationIdentityProjectionAlgebraInterface, OperationIdentityProjectionContract, OperationIdentityProjectionInterface } from './types/interfaces/operationIdentityProjectionInterface';

@@ -2,7 +2,7 @@
  * Canonical downstream projection of the closed semantic dataflow interface.
  *
  * This is intentionally a projection, not a second dataflow authority: all
- * reachability facts come from DataFlowInterface.state. The IR
+ * reachability facts come from the read-only DataFlowAuthorityInterface.state. The IR
  * layer may consume the interface, but it must not reconstruct closure.
  */
 import type {
@@ -12,7 +12,7 @@ import type {
   SemanticDataflowJudgment,
 } from '../../types/upstream/semanticDataflow';
 import { semanticDataflowIdentityKey } from '../../types/upstream/semanticDataflow';
-import type { DataFlowInterface } from '../../types/dataflow/dataFlowInterface';
+import type { DataFlowAuthorityInterface } from '../../types/dataflow/dataFlowInterface';
 import type { SemanticDataflowIRProjectionInterface } from './SemanticDataflowIRProjectionInterface';
 
 import type { SemanticDataflowIRProjection, SemanticDataflowIRRelation, SemanticDataflowIRNode } from './SemanticDataflowIRProjectionTypes';
@@ -49,7 +49,7 @@ const relationOf = (fact: SemanticDataflowFact): SemanticDataflowIRRelation => {
 };
 
 export const projectSemanticDataflowToIR = (
-  dataflow: DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
+  dataflow: DataFlowAuthorityInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>,
 ): SemanticDataflowIRProjection => {
   const facts = dataflow.state.closure;
   const identities = new Map<string, SemanticDataflowIdentity>();

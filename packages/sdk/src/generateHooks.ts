@@ -1,27 +1,23 @@
-import { EndpointCallable } from './defineApi'
+import type { EndpointCallable } from './defineApi'
 
-type HookMap = Record<string, (...args: any[]) => any>
+type HookMap = Record<string, (...args: never[]) => unknown>
 
 /**
- * generateHooks — auto-generate TanStack hooks from a full defineApi result.
- *
- * Reads method from endpoint.$def.method — no heuristics, no string matching.
- *
- * Usage:
- *   const api = defineApi({ cart: { list: endpoint({...}), create: endpoint({...}) } })
- *   const hooks = generateHooks(api)
- *   const { useCartList, useCartCreate } = hooks
+ * generateHooks is a pure consumer of closed upstream route execution
+ * capability. It never classifies an endpoint from HTTP method/action names.
  */
 export function generateHooks(
   api: Record<string, Record<string, EndpointCallable>>
 ): HookMap {
-  let useQuery: any
-  let useMutation: any
-  let useQueryClient: any
+  let useQuery: typeof import('@tanstack/react-query').useQuery
+  let useInfiniteQuery: typeof import('@tanstack/react-query').useInfiniteQuery
+  let useMutation: typeof import('@tanstack/react-query').useMutation
+  let useQueryClient: typeof import('@tanstack/react-query').useQueryClient
 
   try {
-    const rq = require('@tanstack/react-query')
+    const rq = require('@tanstack/react-query') as typeof import('@tanstack/react-query')
     useQuery = rq.useQuery
+    useInfiniteQuery = rq.useInfiniteQuery
     useMutation = rq.useMutation
     useQueryClient = rq.useQueryClient
   } catch {
@@ -35,31 +31,47 @@ export function generateHooks(
 
   for (const [group, actions] of Object.entries(api)) {
     for (const [action, endpoint] of Object.entries(actions)) {
-      const method = endpoint.$def.method
+      const hookKind = endpoint.$def.hookKind
+      if (!hookKind) {
+        throw new Error(`RouteSync endpoint ${group}.${action} is missing the upstream hook-kind capability`)
+      }
       const hookName = toHookName(group, action)
 
-      if (method === 'GET' || method === 'DELETE') {
-        hooks[hookName] = (options?: any, queryOptions?: any) =>
+      if (hookKind === 'query') {
+        hooks[hookName] = ((options?: never, queryOptions?: never) =>
           useQuery({
-            queryKey: options ? [...endpoint.$key, options] : endpoint.$key,
+            queryKey: endpoint.$queryKey(options),
             queryFn: () => endpoint(options),
-            ...queryOptions,
-          })
-      } else {
-        hooks[hookName] = (mutationOptions?: any) => {
+            ...(queryOptions as object | undefined),
+          })) as (...args: never[]) => unknown
+      } else if (hookKind === 'infinite_query') {
+        hooks[hookName] = ((options?: never, queryOptions?: never) =>
+          useInfiniteQuery({
+            queryKey: endpoint.$queryKey(options),
+            initialPageParam: undefined,
+            queryFn: ({ pageParam }) => endpoint({ ...(options as object | undefined), pageParam } as never),
+            ...(queryOptions as object | undefined),
+          })) as (...args: never[]) => unknown
+      } else if (hookKind === 'mutation') {
+        hooks[hookName] = ((mutationOptions?: never) => {
           const qc = useQueryClient()
+          const options = mutationOptions as object & {
+            onSuccess?: (...args: never[]) => void
+            invalidate?: EndpointCallable[]
+          } | undefined
           return useMutation({
-            ...mutationOptions,
-            mutationFn: (options: any) => endpoint(options),
-            onSuccess: (...args: any[]) => {
-              qc.invalidateQueries({ queryKey: [group] })
-              mutationOptions?.invalidate?.forEach((ep: EndpointCallable) => {
-                qc.invalidateQueries({ queryKey: ep.$key })
+            ...options,
+            mutationFn: (options: never) => endpoint(options),
+            onSuccess: (...args: never[]) => {
+              options?.invalidate?.forEach((ep) => {
+                qc.invalidateQueries({ queryKey: ep.$queryKey() })
               })
-              mutationOptions?.onSuccess?.(...args)
+              options?.onSuccess?.(...args)
             },
           })
-        }
+        }) as (...args: never[]) => unknown
+      } else {
+        throw new Error(`RouteSync endpoint ${group}.${action} has an unsupported upstream hook-kind capability`)
       }
     }
   }

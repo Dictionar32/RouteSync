@@ -1,6 +1,6 @@
 import type { ServiceGraph } from '../types/semantic';
 import type { RouteSyncManifestGraphSurface } from './RouteSyncManifestGraphProjectionInterface';
-import type { InterfaceDependencyBoundary } from '../types/interfaces/interfaceDependencyBoundary';
+import type { UpstreamWiringInterface } from '../types/interfaces/interfaceDependencyBoundary';
 
 /**
  * Public graph construction boundary.
@@ -9,5 +9,5 @@ import type { InterfaceDependencyBoundary } from '../types/interfaces/interfaceD
  * manifest flow. The concrete ServiceGraphBuilder implementation is private
  * to graph composition.
  */
-export interface ServiceGraphBuilderInterface extends InterfaceDependencyBoundary<RouteSyncManifestGraphSurface, ServiceGraph> {
+export interface ServiceGraphBuilderInterface extends UpstreamWiringInterface<RouteSyncManifestGraphSurface, ServiceGraph> {
 }

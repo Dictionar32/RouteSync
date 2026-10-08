@@ -8,6 +8,7 @@
  */
 import type { SourceSpan } from './provenance';
 import type { StringValue } from './valueObjects';
+import { semanticReasoningContract, type SemanticReasoningContract, type SemanticReasoningEvidence, type SemanticReasoningAuthorityInterface } from './semanticReasoning';
 
 export type SemanticDataflowRuleName = Readonly<{ readonly kind: 'semantic_dataflow_rule'; readonly value: StringValue }>;
 export type SemanticDataflowWitnessName = Readonly<{ readonly kind: 'semantic_dataflow_witness'; readonly value: StringValue }>;
@@ -147,19 +148,42 @@ export type SemanticDataflowDerivation = Readonly<{
 
 export type SemanticDataflowInputFact = Exclude<SemanticDataflowFact, { readonly kind: 'reaches' }>;
 
-export type SemanticDataflowJudgment = Readonly<{
-  readonly kind: 'semantic_dataflow_judgment';
+export interface SemanticDataflowJudgmentIdentityInterface {
   readonly node: SemanticDataflowIdentity;
   readonly source: SourceSpan;
+}
+
+export interface SemanticDataflowJudgmentEvidenceInterface {
   readonly facts: readonly SemanticDataflowFact[];
   readonly closure: readonly SemanticDataflowFact[];
-  readonly origin: SemanticDataflowOrigin;
   readonly derivations: readonly SemanticDataflowDerivation[];
   readonly paths: readonly SemanticDataflowPath[];
+}
+
+export interface SemanticDataflowJudgmentFixpointInterface {
   readonly fixedPoint: 'least_fixed_point';
   readonly reasoning: 'declarative_relation_rewrite_fixed_point';
+  readonly reasoningContract: SemanticReasoningContract;
+}
+
+export interface SemanticDataflowJudgmentAuthorityInterface {
   readonly authority: 'semantic_dataflow_judgment';
+}
+
+export interface SemanticDataflowJudgmentClosureInterface {
   readonly closed: true;
+}
+
+export interface SemanticDataflowJudgmentInterface extends
+  SemanticDataflowJudgmentIdentityInterface,
+  SemanticDataflowJudgmentEvidenceInterface,
+  SemanticDataflowJudgmentFixpointInterface,
+  SemanticDataflowJudgmentAuthorityInterface,
+  SemanticDataflowJudgmentClosureInterface {}
+
+export type SemanticDataflowJudgment = SemanticDataflowJudgmentInterface & Readonly<{
+  readonly kind: 'semantic_dataflow_judgment';
+  readonly origin: SemanticDataflowOrigin;
 }>;
 
 export type SemanticDataflowOrigin = Readonly<{
@@ -203,13 +227,31 @@ export type SemanticDataflowInput = Readonly<{
  * This is the upstream semantic contract. The generic DataFlowInterface is a
  * downstream execution/state/query projection and must not redefine this ADT.
  */
-export type SemanticDataflowInterface = Readonly<{
+/**
+ * Semantic dataflow algebra: the closed judgment, origin, and proof authority
+ * are composed before a concrete contract name is introduced. This mirrors
+ * the reasoning/capability algebra and prevents the interface from becoming
+ * an unstructured semantic bag.
+ */
+export interface SemanticDataflowAlgebraInterface<
+  ReasoningEvidence extends SemanticReasoningEvidence = SemanticReasoningEvidence,
+  Reasoning extends SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence> = SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence>,
+> extends SemanticReasoningAuthorityInterface<Reasoning['strategy'], ReasoningEvidence, Reasoning> {
   readonly kind: 'semantic_dataflow_interface';
   readonly authority: 'semantic_dataflow_judgment';
   readonly origin: SemanticDataflowOrigin;
   readonly judgment: SemanticDataflowJudgment;
   readonly closed: true;
-}>;
+}
+
+/** Named upstream contract composed from the semantic dataflow algebra. */
+export interface SemanticDataflowContractInterface<
+  ReasoningEvidence extends SemanticReasoningEvidence = SemanticReasoningEvidence,
+  Reasoning extends SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence> = SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence>,
+> extends SemanticDataflowAlgebraInterface<ReasoningEvidence, Reasoning> {}
+
+/** Concrete closed specialization carried across downstream boundaries. */
+export interface SemanticDataflowInterface extends SemanticDataflowContractInterface {}
 
 /** Reconnect an authoritative judgment without re-encoding its semantics. */
 export const semanticDataflowInterfaceFromJudgment = (
@@ -224,6 +266,7 @@ export const semanticDataflowInterfaceFromJudgment = (
     closed: true,
   }),
   judgment,
+  reasoning: judgment.reasoningContract,
   closed: true,
 });
 

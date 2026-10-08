@@ -108,7 +108,6 @@ export function defineHooks<TConfig extends Record<string, HookConfig>, TManifes
 
     const finalHook = resolveAndWrapIntent({
       groupName,
-      groupConfig,
       runtimeManifest,
       unifiedHook,
       crudHooks,

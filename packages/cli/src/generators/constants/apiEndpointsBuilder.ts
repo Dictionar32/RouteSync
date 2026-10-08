@@ -7,7 +7,7 @@
  */
 
 import {
-  RouteManifest,
+  type RouteManifest,
   ROUTE_PARAMETER_TYPE_REGISTRY,
   getRouteContract
 } from '@routesync/core';

@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/subscanners/request-deriver
  */
 
-import { RouteSemanticFlow, matchRouteActionKind } from "../../../../types/route";
+import { type RouteSemanticFlow, matchRouteActionKind } from "../../../../types/route";
 import { FormActionName, type FormAction, type RequestField } from "../../../../types/domain/request";
 import type { Option } from "../../../../types/upstream/collections";
 import { ScannedFormActionDescriptor } from "../../descriptors/requestDescriptors";

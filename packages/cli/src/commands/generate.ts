@@ -12,7 +12,7 @@ import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
 import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import path from 'path'
 import fs from 'fs-extra'
-import { RouteManifest } from '@routesync/core'
+import { type RouteManifest } from '@routesync/core'
 import { ModelGenerator } from '../generators/ModelGenerator'
 import { RoutesGenerator } from '../generators/RoutesGenerator'
 

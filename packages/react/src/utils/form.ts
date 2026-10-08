@@ -1,4 +1,4 @@
-import { ApiError } from '@routesync/sdk'
+import { type ApiError } from '@routesync/sdk'
 
 export interface UseFormSetError<TFieldValues extends Record<string, unknown>> {
   (name: keyof TFieldValues | string, error: { type: string; message?: string }): void

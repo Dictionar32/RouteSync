@@ -8,7 +8,7 @@ import type {
 } from "../../../../types/domain/validationRules";
 import {
     PrimitiveKind,
-    PrimitiveType,
+    type PrimitiveType,
     primitiveType,
     ReadonlyCollectionType,
     CollectionKind,

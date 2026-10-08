@@ -7,7 +7,7 @@
  * @module cli/utils/incremental/descriptors
  */
 
-import { SourceRef, SourceRefFactory } from '@routesync/core';
+import { type SourceRef, SourceRefFactory } from '@routesync/core';
 import type {
   ScannedResourceContract,
   ScannedResourceOptions

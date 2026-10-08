@@ -9,8 +9,8 @@
 
 import { IRNodeRegistry } from '@routesync/core';
 import {
-  ScannedModel, ScannedResource, ScannedManifest,
-  KernelResolver, ResolveManifestResult,
+  type ScannedModel, type ScannedResource, type ScannedManifest,
+  type KernelResolver, type ResolveManifestResult,
   NominalAtomFactory, matchRouteResponsePayload,
   ScannedResourceDescriptor,
   type RouteSemanticFlowMethod, type RouteSemanticFlowPath, type RouteSemanticFlowName,

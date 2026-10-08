@@ -8,7 +8,7 @@
  */
 
 import {
-  RouteManifest,
+  type RouteManifest,
   ValidationRuleKind,
   ValidationRuleParser,
   toCamelCase,

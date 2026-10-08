@@ -1,9 +1,9 @@
 import { toCamelCase } from "../../../../utils/resource-naming";
 import {
-    RequestField,
-    FileValidationConstraints
+    type RequestField,
+    type FileValidationConstraints
 } from "../../../artifacts/RequestTypesArtifact";
-import { SemanticType, PrimitiveType, PrimitiveKind, primitiveType } from "../../../../types/domain/semanticType";
+import { type SemanticType, type PrimitiveType, PrimitiveKind, primitiveType } from "../../../../types/domain/semanticType";
 import { SemanticValueFactory, type RequestFieldName, type PropertyName } from "../../../../types/domain/semanticValues";
 import { RequestFieldMeaningFactory, type RequestFieldMeaning } from "../../../../types/domain/requestFieldMeaning";
 import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../../../types/domain/requestFieldPresence";

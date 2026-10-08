@@ -1,4 +1,4 @@
-import { RouteManifest, RoutePayloadMode, matchRoutePayloadMode } from '@routesync/core'
+import { type RouteManifest, RoutePayloadMode, matchRoutePayloadMode } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { projectRoutes } from './route-capability-projection'

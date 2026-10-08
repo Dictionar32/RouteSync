@@ -7,7 +7,7 @@
  * @module cli/generators/ConstantsGenerator
  */
 
-import { RouteManifest } from '@routesync/core';
+import { type RouteManifest } from '@routesync/core';
 import path from 'path';
 import fs from 'fs-extra';
 import {

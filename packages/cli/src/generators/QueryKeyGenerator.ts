@@ -1,6 +1,6 @@
-import { RouteManifest } from '@routesync/core'
+import { type RouteManifest } from '@routesync/core'
 import path from 'path'
-import { projectDomainGraph, ClassifiedDomainGraph, ClassifiedRoute } from './route-capability-projection'
+import { projectDomainGraph, type ClassifiedDomainGraph, type ClassifiedRoute } from './route-capability-projection'
 import { CodeWriter } from './code-writer'
 
 /**

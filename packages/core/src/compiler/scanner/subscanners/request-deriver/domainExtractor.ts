@@ -6,7 +6,7 @@
  * to RequestType assembly.
  */
 
-import { RouteSemanticFlow } from "../../../../types/route";
+import { type RouteSemanticFlow } from "../../../../types/route";
 
 export interface RouteDomainInfo {
     readonly rawDomain: string;

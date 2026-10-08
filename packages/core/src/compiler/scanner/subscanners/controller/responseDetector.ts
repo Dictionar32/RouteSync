@@ -1,6 +1,6 @@
 /* Relational response descriptor boundary. */
-import type { Token } from '../lexer/types';
-import { ResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor } from '../../../../types/route';
+import type Token from '../../lexer/token';
+import { type ResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor } from '../../../../types/route';
 import { ResourceFieldSemanticBinding } from '../../../../types/domain/resourceFieldSemanticBinding';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { toPascalCase } from '../../../../utils/resource-naming';
@@ -8,13 +8,13 @@ import { ResourceScanner } from '../ResourceScanner';
 import { ErrorType } from '../../../../types/domain/semanticType';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
-import { DetectedResourceInvocation, detectResourceInvocation } from './resourceInvocationDetector';
+import { type DetectedResourceInvocation, detectResourceInvocation } from './resourceInvocationDetector';
 import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
 import { relationAll, relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
 import { tokenKindAt, tokenValueAt } from '../../lexer/tokenEvidence';
 import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
-export { DetectedResourceInvocation, detectResourceInvocation };
+export { type DetectedResourceInvocation, detectResourceInvocation };
 
 export function detectResourceResponse(tokens: readonly Token[], k: number): RelationOption<ResponseDescriptor> {
   return relationOptionFold(detectResourceInvocation(tokens, k), () => relationNone(), invocation => relationSome(invocation.descriptor));

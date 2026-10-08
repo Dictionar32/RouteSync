@@ -1,4 +1,4 @@
-import { EndpointCallable } from '@routesync/sdk'
+import { type EndpointCallable } from '@routesync/sdk'
 
 /**
  * Wrap a no-param GET EndpointCallable into `() => Promise<TResponse>`.

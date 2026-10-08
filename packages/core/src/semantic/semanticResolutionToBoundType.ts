@@ -1,6 +1,6 @@
 import type { SemanticResolution } from '../types/domain/semanticResolution';
 import { matchSemanticResolution } from '../types/domain/semanticResolution';
-import { ObjectType, PrimitiveKind, PrimitiveType, ReferenceType, ScannedObjectProperty } from '../types/domain/semanticType';
+import { ObjectType, PrimitiveKind, type PrimitiveType, ReferenceType, ScannedObjectProperty } from '../types/domain/semanticType';
 import type { SemanticType } from '../types/domain/semanticType';
 import { SemanticValueFactory } from '../types/domain/semanticValues';
 import { relationProject } from './kernel/relationalSequence';

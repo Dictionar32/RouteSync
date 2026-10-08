@@ -1,4 +1,4 @@
-import { PrimitiveKind, PrimitiveType, ReadonlyCollectionType, CollectionKind, ErrorType } from './semanticType';
+import { PrimitiveKind, type PrimitiveType, ReadonlyCollectionType, CollectionKind, ErrorType } from './semanticType';
 import type { MethodName } from './semanticValues';
 import type { ResourceMethodResult, ResourceQueryState } from './resourceModelMethodSurface';
 import type { ResourceQueryProjection } from './resourceQueryOperation';

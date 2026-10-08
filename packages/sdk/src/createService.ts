@@ -1,5 +1,5 @@
 import { HttpClient } from '@routesync/core'
-import { SchemaLike, parseWithSchema } from './mappers/schema'
+import { type SchemaLike, parseWithSchema } from './mappers/schema'
 import { toCamelCase, toSnakeCase } from './mappers/case'
 
 export type Id = string | number

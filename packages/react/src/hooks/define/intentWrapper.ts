@@ -8,7 +8,7 @@
  */
 
 import type { DomainIntentCapabilityReference, DomainIntentOperationReference } from '@routesync/core'
-import { EndpointCallable } from '@routesync/sdk'
+import { type EndpointCallable } from '@routesync/sdk'
 import { HttpMethod } from '@routesync/core'
 import { useAggregateCollectionIntent } from '../createCrudHooks'
 import { hasKey } from './unifiedHookBuilder'

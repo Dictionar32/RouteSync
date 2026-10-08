@@ -1,4 +1,4 @@
-import { RouteSemanticFlow } from '@routesync/core'
+import { type RouteSemanticFlow } from '@routesync/core'
 import { projectRoutes } from './route-capability-projection'
 
 export type GeneratedRoute = RouteSemanticFlow & {

@@ -1,12 +1,12 @@
 import {
-  RouteSemanticFlow,
-  RouteManifest,
-  ParsedChannel,
-  ResourceAst,
-  ModelAst,
-  ResourceRouteGroup,
-  FrontendConfig,
-  PageConfig
+  type RouteSemanticFlow,
+  type RouteManifest,
+  type ParsedChannel,
+  type ResourceAst,
+  type ModelAst,
+  type ResourceRouteGroup,
+  type FrontendConfig,
+  type PageConfig
 } from '@routesync/core'
 import type { RequestType } from '@routesync/core'
 import type { ObjectType } from '@routesync/core'

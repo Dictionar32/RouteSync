@@ -1,6 +1,6 @@
-import { EndpointCallable, EndpointCallableOptions, OptionalIfEmpty, ApiError, RouteDefinition } from '@routesync/sdk'
-import { useApiQuery, ApiQueryOptions } from './useQuery'
-import { useApiMutation, ApiMutationOptions } from './useMutation'
+import { type EndpointCallable, type EndpointCallableOptions, type OptionalIfEmpty, type ApiError, type RouteDefinition } from '@routesync/sdk'
+import { useApiQuery, type ApiQueryOptions } from './useQuery'
+import { useApiMutation, type ApiMutationOptions } from './useMutation'
 
 /**
  * createHooks — generate typed hooks from an api group.

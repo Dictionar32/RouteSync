@@ -6,7 +6,7 @@
  * @module compiler/generators/contract-generation/builder/responseSectionBuilder
  */
 
-import { ResponseSchema, capitalize } from './contractBuilderTypes';
+import { type ResponseSchema, capitalize } from './contractBuilderTypes';
 
 /**
  * Build Response Schemas Section (show/index at top of file)

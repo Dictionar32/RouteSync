@@ -6,7 +6,7 @@
  * @module core/compiler/scanner/resolvers/boundary
  */
 
-import { RouteProvenanceContract } from "../../../../types/route";
+import type { RouteProvenanceContract } from "../../../../types/route";
 type RouteProvenanceInput = Readonly<{
     readonly sourceFile: RouteProvenanceContract["sourceFile"];
     readonly sourceLine: RouteProvenanceContract["sourceLine"];

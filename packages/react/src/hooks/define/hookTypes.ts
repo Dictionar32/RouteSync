@@ -6,8 +6,8 @@
  * @module react/hooks/define/hookTypes
  */
 
-import { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
-import { EndpointCallable, ApiError, RouteDefinition } from '@routesync/sdk'
+import { type UseQueryResult, type UseMutationResult } from '@tanstack/react-query'
+import { type EndpointCallable, type ApiError, type RouteDefinition } from '@routesync/sdk'
 import { HttpMethod, type RouteHookKind } from '@routesync/core'
 import type { DomainIntentCapabilityReference } from '@routesync/core'
 

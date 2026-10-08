@@ -6,7 +6,7 @@
  * @module compiler/generators/contract-generation/builder/exportsSectionBuilder
  */
 
-import { GeneratedContract, ResponseSchema, capitalize } from './contractBuilderTypes';
+import { type GeneratedContract, type ResponseSchema, capitalize } from './contractBuilderTypes';
 
 /**
  * Build Section 4: Exports

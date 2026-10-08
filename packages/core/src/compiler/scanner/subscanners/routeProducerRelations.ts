@@ -23,7 +23,7 @@ import { matchRouteHandler } from '../../../types/domain/routeHandlers';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
 import { createRequestName, createMiddlewareName, createActionName } from '../../../types/upstream/names';
 import { routeMethodSemanticKind, routeDeclarationSemanticKind, routeSourceFileContextKnowledge, routeDeclarationFlow } from '../lexer/routeAst/routeDataFlow';
-import { ControllerActionInfo } from '../descriptors/requestDescriptors';
+import { type ControllerActionInfo } from '../descriptors/requestDescriptors';
 import type { ModelReference } from '../../../types/upstream/semanticReferences';
 import { buildRouteHandler } from '../descriptors/request/controllerActionTypes';
 import { emptyRouteSchemaPayload } from '../../../types/domain/validationRules';

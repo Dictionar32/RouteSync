@@ -1,7 +1,7 @@
 import type { SemanticResolution, QueryProjectionSemanticResolution } from '../../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
-import { PrimitiveKind, PrimitiveType, ReferenceType } from '../../../types/domain/semanticType';
+import { PrimitiveKind, type PrimitiveType, ReferenceType } from '../../../types/domain/semanticType';
 import { semanticResolutionToBoundType } from '../../semanticResolutionToBoundType';
 import type { EloquentCardinality, EloquentReturn } from '../../EloquentRegistry';
 import type { ResolutionCardinality } from '../../../types/domain/semanticResolution';

@@ -10,10 +10,10 @@
  */
 
 import {
-    GeneratedContract,
-    ResponseSchema,
-    BuiltContractCode,
-    SectionInfo,
+    type GeneratedContract,
+    type ResponseSchema,
+    type BuiltContractCode,
+    type SectionInfo,
     buildResponseSchemasSection,
     buildResponseTypesSection,
     buildResponseValidatorsSection,
@@ -141,7 +141,7 @@ export function formatContractFile(
     return defaultContractCodeBuilder.buildContractFile(contracts, responseSchemas);
 }
 
-export {
+export type {
     GeneratedContract,
     ResponseSchema,
     BuiltContractCode,

@@ -1,4 +1,4 @@
-import { RouteManifest } from '@routesync/core'
+import { type RouteManifest } from '@routesync/core'
 
 export class ValuesGenerator {
   static async generate(manifest: RouteManifest, outputDir: string): Promise<void> {

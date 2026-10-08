@@ -9,7 +9,7 @@
  * @module compiler/generators/contract-generation
  */
 
-import { PrimitiveType, PrimitiveKind, primitiveType } from '../../../types/domain/semanticType';
+import { type PrimitiveType, PrimitiveKind, primitiveType } from '../../../types/domain/semanticType';
 
 /**
  * Error thrown when primitive type is not supported

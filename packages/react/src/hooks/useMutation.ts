@@ -1,6 +1,6 @@
 // @ts-ignore TanStack Query is a peer dependency provided by consumers.
 import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query'
-import { EndpointCallable, EndpointCallableOptions, ApiError } from '@routesync/sdk'
+import { type EndpointCallable, type EndpointCallableOptions, type ApiError } from '@routesync/sdk'
 
 /**
  * useApiMutation — accepts an endpoint callable directly.

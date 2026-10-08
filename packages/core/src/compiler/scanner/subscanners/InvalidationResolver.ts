@@ -6,13 +6,13 @@
  * construct is authoritative for the semantic decision.
  */
 import {
-    RouteSemanticFlow,
-    ResourceRouteGroup,
-    RouteHookKind,
-    InvalidationTarget,
-    ScannedInvalidationTarget,
-    RouteSemanticFlowInvalidationPayload,
-    ScannedEndpointContract,
+    type RouteSemanticFlow,
+    type ResourceRouteGroup,
+    type RouteHookKind,
+    type InvalidationTarget,
+    type ScannedInvalidationTarget,
+    type RouteSemanticFlowInvalidationPayload,
+    type ScannedEndpointContract,
 } from "../../../types/route";
 import type { ModelSemanticDefinition } from "../../../types/upstream/model";
 import type { ResourceName } from "../../../types/upstream/names";

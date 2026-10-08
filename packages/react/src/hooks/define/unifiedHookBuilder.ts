@@ -6,9 +6,9 @@
  * @module react/hooks/define/unifiedHookBuilder
  */
 
-import { EndpointCallable } from '@routesync/sdk'
+import { type EndpointCallable } from '@routesync/sdk'
 import { HttpMethod } from '@routesync/core'
-import { ResolvedGroupSlots } from './groupSlotResolver'
+import { type ResolvedGroupSlots } from './groupSlotResolver'
 
 export const hasKey = <K extends string>(obj: unknown, key: K): obj is Record<K, unknown> => {
   return (typeof obj === 'object' || typeof obj === 'function') && obj !== null && key in obj

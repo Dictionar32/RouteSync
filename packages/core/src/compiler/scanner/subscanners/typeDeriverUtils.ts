@@ -9,7 +9,7 @@ import { relationFirstOption, relationOptionFold } from '../../../semantic/found
  * @module core/compiler/scanner/subscanners/typeDeriverUtils
  */
 
-import { RouteSemanticFlow } from "../../../types/route";
+import { type RouteSemanticFlow } from "../../../types/route";
 import { PrimitiveKind } from "../../../types/domain/semanticType";
 import type { DomainTypeName, ResourceName, ControllerName, RoutePath, ActionName, RouteName } from "../../../types/upstream/names";
 

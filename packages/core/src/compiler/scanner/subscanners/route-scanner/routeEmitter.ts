@@ -11,9 +11,9 @@ import {
     HttpMethod,
     HTTP_METHOD_REGISTRY,
     RouteActionKind,
-    ResponseDescriptor,
+    type ResponseDescriptor,
 } from "../../../../types/route";
-import { ControllerActionInfo } from "../../descriptors/requestDescriptors";
+import { type ControllerActionInfo } from "../../descriptors/requestDescriptors";
 import { resolveRoutePath, type ResolvedRoutePath } from "./routePathParser";
 import { createActionName } from "../../../../types/upstream/names";
 import { defaultApiResourceRegistration, resolveRouteResourceFlow, type RouteResourceMode } from "../../../../types/upstream/routeResourceFlow";

@@ -4,15 +4,15 @@
  */
 import {
     VoidResponseDescriptor,
-    RouteSchemaPayload,
-    ResponseDescriptor,
-    HttpErrorResponseDescriptor
+    type RouteSchemaPayload,
+    type ResponseDescriptor,
+    type HttpErrorResponseDescriptor
 } from "../../../../types/route";
 import { emptyRouteSchemaPayload } from "../../../../types/domain/validationRules";
 import {
-    ControllerActionInfo,
-    ScannedControllerActionParams,
-    ControllerActionCreateOptions,
+    type ControllerActionInfo,
+    type ScannedControllerActionParams,
+    type ControllerActionCreateOptions,
     buildRouteHandler
 } from "./controllerActionTypes";
 import { emptyControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
@@ -21,7 +21,7 @@ import type { ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { ControllerRequestBinding } from './controllerActionContract';
 import { createActionName, createControllerName, createSourceFile } from "../../../../types/domain/semanticValues";
 
-export { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCreateOptions };
+export type { ControllerActionInfo, ScannedControllerActionParams, ControllerActionCreateOptions };
 
 export type ScannedControllerActionDescriptor = ControllerActionInfo;
 

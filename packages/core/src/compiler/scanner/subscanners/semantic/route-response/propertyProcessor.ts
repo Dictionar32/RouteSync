@@ -4,7 +4,7 @@
  */
 
 import {
-    ObjectProperty,
+    type ObjectProperty,
     ScannedObjectProperty,
     type SemanticType
 } from '../../../../../types/domain/semanticType';

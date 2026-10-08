@@ -7,7 +7,7 @@
  */
 
 import { toPascalCase } from '../../../../utils/resource-naming';
-import { GeneratedContract, capitalize } from './contractBuilderTypes';
+import { type GeneratedContract, capitalize } from './contractBuilderTypes';
 
 /**
  * Build Section 1: Zod Request Schemas

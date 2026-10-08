@@ -18,9 +18,9 @@ import { relationGate, relationLookup, relationOptionFold, relationEqual, relati
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 
 import {
-    RouteParameter,
-    VoidResponseDescriptor,
-    HttpMethod,
+    type RouteParameter,
+    type VoidResponseDescriptor,
+    type HttpMethod,
 } from "../../../types/route";
 import type { RouteAst } from "../../../types/upstream/ast";
 import type { RouteDeclarationAst } from "../lexer/routeAst";
@@ -38,7 +38,7 @@ import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { routeDeclarationFlow, routeDeclarationSemanticKind, routeMethodSemanticKind, routeSourceFileContextKnowledge, type RouteDeclarationFlow } from "../lexer/routeAst/routeDataFlow";
 import { readSourceText } from './scannerUtils';
 import { ControllerScanner } from "./ControllerScanner";
-import { ControllerActionInfo } from "../descriptors/requestDescriptors";
+import { type ControllerActionInfo } from "../descriptors/requestDescriptors";
 import {
     extractPathParams,
     resolveRoutePath,

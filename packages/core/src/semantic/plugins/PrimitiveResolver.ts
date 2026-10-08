@@ -1,6 +1,6 @@
 import type { SemanticResolution } from '../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../types/domain/semanticResolutionFactory';
-import { PrimitiveKind, PrimitiveType, primitiveType } from '../../types/domain/semanticType';
+import { PrimitiveKind, type PrimitiveType, primitiveType } from '../../types/domain/semanticType';
 import type { ResolverPlugin, ResolutionContext, ResolverMeta } from '../types';
 import { resolveInScope } from '../kernel/resolveInScope';
 import { indeterminateResolution } from '../semanticResolutionSupport';

@@ -7,7 +7,7 @@
  */
 
 import type { RouteDefinition } from '@routesync/core';
-import { SchemaLike, parseWithSchema } from '../mappers/schema';
+import { type SchemaLike, parseWithSchema } from '../mappers/schema';
 import type { RouteSchemaPart } from './types';
 
 const routeSchemaKeys = ['params', 'query', 'body', 'request', 'response'];

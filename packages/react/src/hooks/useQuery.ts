@@ -1,5 +1,5 @@
-import { useQuery, useSuspenseQuery, useInfiniteQuery, UseQueryOptions, UseSuspenseQueryOptions, UseInfiniteQueryOptions, InfiniteData, type QueryFunctionContext } from '@tanstack/react-query'
-import { EndpointCallable, EndpointCallableOptions, LooseEndpointOptions, ApiError, CallOptions } from '@routesync/sdk'
+import { useQuery, useSuspenseQuery, useInfiniteQuery, type UseQueryOptions, type UseSuspenseQueryOptions, type UseInfiniteQueryOptions, type InfiniteData, type QueryFunctionContext } from '@tanstack/react-query'
+import { type EndpointCallable, type EndpointCallableOptions, type LooseEndpointOptions, type ApiError, type CallOptions } from '@routesync/sdk'
 
 export type ApiQueryOptions<TResponse, TError = ApiError, TData = TResponse> = Omit<UseQueryOptions<TResponse, TError, TData>, 'queryKey' | 'queryFn'>
 

@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import {
-  RouteManifest,
+  type RouteManifest,
   SemanticTypeResolver,
   toTypeScriptTypeExpression,
   typeExpressionToSemanticType,

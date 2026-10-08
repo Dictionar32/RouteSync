@@ -9,7 +9,7 @@ import type {
 } from "../../../../types/domain/validationRules";
 import {
     PrimitiveKind,
-    PrimitiveType,
+    type PrimitiveType,
     ReadonlyCollectionType,
     CollectionKind,
     type SemanticType,

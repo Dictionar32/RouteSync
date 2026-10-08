@@ -1,4 +1,4 @@
-import { HttpClient, ServiceConfig, TokenManager } from '@routesync/core'
+import { HttpClient, type ServiceConfig, TokenManager } from '@routesync/core'
 
 export function createClient(config: ServiceConfig) {
   const client = new HttpClient(config)

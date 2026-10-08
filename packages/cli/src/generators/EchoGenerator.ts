@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import {
-  BroadcastChannelDescriptor,
+  type BroadcastChannelDescriptor,
   BROADCAST_CHANNEL_REGISTRY,
   matchRouteParameterType,
   compileBroadcastRuntimePattern

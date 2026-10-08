@@ -1,5 +1,5 @@
 import { useQueryClient, QueryClient } from '@tanstack/react-query'
-import { EndpointCallable, EndpointCallableOptions } from '@routesync/sdk'
+import { type EndpointCallable, type EndpointCallableOptions } from '@routesync/sdk'
 
 export function useApiQueryClient() {
   const queryClient = useQueryClient()

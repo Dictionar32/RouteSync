@@ -1,5 +1,5 @@
 import fs from 'fs-extra'
-import { ParsedChannel, RouteParameterSemanticFactory, ScannedBroadcastChannelDescriptor } from '@routesync/core'
+import { type ParsedChannel, RouteParameterSemanticFactory, type ScannedBroadcastChannelDescriptor } from '@routesync/core'
 
 export class LaravelChannelParser {
   async parse(channelFilePath: string = 'routes/channels.php'): Promise<ParsedChannel[]> {

@@ -20,7 +20,7 @@ import { TypeEnvironmentArtifact } from "../artifacts/TypeEnvironmentArtifact";
 import { SemanticIRArtifact } from "../artifacts/SemanticIRArtifact";
 import { ContractGraph } from "../ir/ContractGraph";
 import { DiagnosticBag } from "../diagnostics";
-import { SymbolTable } from "../../semantic/SymbolTable";
+import type { SymbolTable } from "../../semantic/SymbolTable";
 
 export interface CompilationStatistics {
   readonly durationMs: number;

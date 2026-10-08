@@ -1,7 +1,7 @@
 import type { SemanticResolution } from '../../../types/domain/semanticResolution';
 import { SemanticResolutionFactory } from '../../../types/domain/semanticResolutionFactory';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
-import { PrimitiveKind, PrimitiveType, primitiveType } from '../../../types/domain/semanticType';
+import { PrimitiveKind, type PrimitiveType, primitiveType } from '../../../types/domain/semanticType';
 import type { BoundLiteralValue } from '../../../types/domain/semanticValues';
 import type { ResolverMeta } from '../../types';
 import { relationFirstOption, relationOptionFold, relationResolve, relationRefine } from '../../kernel/relationalSequence';

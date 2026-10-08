@@ -10,32 +10,32 @@
  * @module react/hooks/defineHooks
  */
 
-import { EndpointCallable } from '@routesync/sdk'
+import { type EndpointCallable } from '@routesync/sdk'
 import { HttpMethod } from '@routesync/core'
 import { createCrudHooks } from './createCrudHooks'
 import { toIndexFn, toShowFn } from './endpointAdapters'
 
 import {
-  HookConfig,
-  InvalidateList,
-  InferResponse,
-  InferBody,
-  InferMethod,
-  FlattenOptions,
-  ResolveError,
-  HookForEndpoint,
-  EndpointHooks,
-  CrudHooks
+  type HookConfig,
+  type InvalidateList,
+  type InferResponse,
+  type InferBody,
+  type InferMethod,
+  type FlattenOptions,
+  type ResolveError,
+  type HookForEndpoint,
+  type EndpointHooks,
+  type CrudHooks
 } from './define/hookTypes'
 
 import {
-  UnifiedGroupHookResult,
-  ResolveActionMutation,
-  ResolveOpPath,
-  ResolveMutationType,
-  ResolveIntentFromObj,
-  GetIntentActions,
-  HooksForGroup
+  type UnifiedGroupHookResult,
+  type ResolveActionMutation,
+  type ResolveOpPath,
+  type ResolveMutationType,
+  type ResolveIntentFromObj,
+  type GetIntentActions,
+  type HooksForGroup
 } from './define/intentTypes'
 
 import {
@@ -126,24 +126,24 @@ export function defineHooks<TConfig extends Record<string, HookConfig>, TManifes
 // ============================================================================
 
 export {
-  HookConfig,
-  InvalidateList,
-  InferResponse,
-  InferBody,
-  InferMethod,
-  FlattenOptions,
-  ResolveError,
-  HookForEndpoint,
-  EndpointHooks,
-  CrudHooks,
-  UnifiedGroupHookResult,
-  ResolveActionMutation,
-  ResolveOpPath,
-  ResolveMutationType,
-  ResolveIntentFromObj,
-  GetIntentActions,
-  HooksForGroup,
-  hasKey,
-  getHookMethodResult,
-  resolveMutation
+  type HookConfig,
+  type InvalidateList,
+  type InferResponse,
+  type InferBody,
+  type InferMethod,
+  type FlattenOptions,
+  type ResolveError,
+  type HookForEndpoint,
+  type EndpointHooks,
+  type CrudHooks,
+  type UnifiedGroupHookResult,
+  type ResolveActionMutation,
+  type ResolveOpPath,
+  type ResolveMutationType,
+  type ResolveIntentFromObj,
+  type GetIntentActions,
+  type HooksForGroup,
+   hasKey,
+   getHookMethodResult,
+   resolveMutation
 }

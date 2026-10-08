@@ -1,4 +1,4 @@
-import { RouteManifest, matchResponseShape, getRouteContract } from '@routesync/core'
+import { type RouteManifest, matchResponseShape, getRouteContract } from '@routesync/core'
 import path from 'path'
 import fs from 'fs-extra'
 import { toMethodName } from './names'

@@ -1,5 +1,5 @@
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { PrimitiveKind, PrimitiveType, primitiveType } from '../../../types/domain/semanticType';
+import { PrimitiveKind, type PrimitiveType, primitiveType } from '../../../types/domain/semanticType';
 import type { SemanticType } from '../../../types/domain/semanticType';
 import type { ModelSemanticDefinition } from '../../../types/upstream/model';
 import { relationAll, relationAny, relationEqual, relationResolve } from '../../../semantic/foundation/semanticRelations';

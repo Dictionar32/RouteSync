@@ -1,5 +1,5 @@
 import { PHP_STATEMENT_KINDS } from '../../lexer/phpAstStatementKinds';
-import { CollectionKind, PrimitiveKind, PrimitiveType, ReadonlyCollectionType, ReferenceType } from '../../../../types/domain/semanticType';
+import { CollectionKind, PrimitiveKind, type PrimitiveType, ReadonlyCollectionType, ReferenceType } from '../../../../types/domain/semanticType';
 import { ResourceFieldExpressionFactory, resourceNullLiteralValue, type ResourceFieldExpression } from '../../../../types/domain/expressions';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { PhpAstValue } from '../../lexer/PhpAst';

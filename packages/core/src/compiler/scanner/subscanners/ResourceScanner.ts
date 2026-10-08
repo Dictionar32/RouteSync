@@ -18,7 +18,7 @@ import { matchLookup } from '../../../types/upstream/collections';
 
 import path from "path";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
-import { LaravelSourceLexer, PhpAstValue, PhpArrayEntry } from "../LaravelSourceLexer";
+import { LaravelSourceLexer, type PhpAstValue, type PhpArrayEntry } from "../LaravelSourceLexer";
 import { classifyPhpBlock } from "../lexer/astClassifier";
 import { parsePhpMethodOrThrow } from "../lexer/phpMethodParser";
 import type { PhpStatement } from "../lexer/phpAstTypes";

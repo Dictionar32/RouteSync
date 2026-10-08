@@ -1,4 +1,4 @@
-import { RouteDefinition } from '@routesync/core'
+import { type RouteDefinition } from '@routesync/core'
 
 export type EndpointDefinition = RouteDefinition
 

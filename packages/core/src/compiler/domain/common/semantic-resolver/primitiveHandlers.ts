@@ -7,12 +7,12 @@
  */
 
 import {
-    PrimitiveType,
-    ReferenceType,
-    ReadonlyCollectionType,
-    MutableCollectionType,
+    type PrimitiveType,
+    type ReferenceType,
+    type ReadonlyCollectionType,
+    type MutableCollectionType,
     type SemanticType,
-    PrimitiveKind
+    type PrimitiveKind
 } from '../../../../types/domain/semanticType';
 import {
     ResolvedPrimitiveType,

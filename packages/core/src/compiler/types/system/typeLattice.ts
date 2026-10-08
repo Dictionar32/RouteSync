@@ -1,7 +1,7 @@
 /** Declarative join/meet relations over the semantic type lattice. */
 
-import { SemanticType, UnionType, NeverType } from '../../../types/domain/semanticType';
-import { TypeHasher, HashContext } from '../TypeHasher';
+import { type SemanticType, UnionType, NeverType } from '../../../types/domain/semanticType';
+import { TypeHasher, type HashContext } from '../TypeHasher';
 import { relationEqual, relationResolve } from '../../../semantic/foundation/semanticRelations';
 
 const structuralEqual = (a: SemanticType, b: SemanticType, ctx: HashContext): boolean =>

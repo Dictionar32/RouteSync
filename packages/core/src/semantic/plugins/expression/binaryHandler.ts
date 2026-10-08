@@ -4,7 +4,7 @@ import type { ResolutionContext, ResolverMeta } from '../../types';
 import type { ResolutionScope } from '../../resolutionScope';
 import { BoundSemanticFactory } from '../../../types/domain/boundAst';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { PrimitiveKind, PrimitiveType, primitiveType } from '../../../types/domain/semanticType';
+import { PrimitiveKind, type PrimitiveType, primitiveType } from '../../../types/domain/semanticType';
 import { resolveInScope } from '../../kernel/resolveInScope';
 import { relationFirstOption, relationOptionFold, relationResolve, relationRefine } from '../../kernel/relationalSequence';
 import { relationAll, relationAny, relationEqual } from '../../kernel/semanticRelations';

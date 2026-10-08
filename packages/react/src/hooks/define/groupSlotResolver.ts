@@ -6,9 +6,9 @@
  * @module react/hooks/define/groupSlotResolver
  */
 
-import { EndpointCallable } from '@routesync/sdk'
+import { type EndpointCallable } from '@routesync/sdk'
 import { HttpMethod } from '@routesync/core'
-import { HookConfig, InvalidateList } from './hookTypes'
+import { type HookConfig, type InvalidateList } from './hookTypes'
 import { hasKey } from './unifiedHookBuilder'
 
 export function extractParamKey(endpoint: unknown): string {

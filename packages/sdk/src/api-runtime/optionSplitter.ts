@@ -6,7 +6,7 @@
  * @module sdk/api-runtime/optionSplitter
  */
 
-import { PathResolver, type RouteDefinition, type HttpMethod } from '@routesync/core';
+import type { RouteDefinition, HttpMethod } from '@routesync/core';
 
 export function splitFlatOptions(
   route: RouteDefinition<unknown, unknown, unknown, HttpMethod>,
@@ -23,14 +23,18 @@ export function splitFlatOptions(
     return variables;
   }
 
-  const paramKeys = PathResolver.extractParams(route.path);
-  const method = route.method ?? 'POST';
+  const paramKeys = (route.routeParameters ?? (route.routeParameter ? [route.routeParameter] : []))
+    .map((parameter) => parameter.name);
+  const payloadLocation = route.payloadLocation;
+  if (!payloadLocation) {
+    throw new Error('RouteSync endpoint is missing the upstream payload-location projection');
+  }
 
   if (paramKeys.length === 0) {
-    if (method === 'GET') {
-      return { query: variables };
+    if (payloadLocation === 'none') {
+      return variables;
     }
-    return { body: variables };
+    return payloadLocation === 'query' ? { query: variables } : { body: variables };
   }
 
   const params: Record<string, unknown> = {};
@@ -44,8 +48,10 @@ export function splitFlatOptions(
     }
   }
 
-  if (method === 'GET') {
-    return { params, query: rest };
+  if (payloadLocation === 'none') {
+    return { params };
   }
-  return { params, body: rest };
+  return payloadLocation === 'query'
+    ? { params, query: rest }
+    : { params, body: rest };
 }

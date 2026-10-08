@@ -4,8 +4,10 @@
  */
 
 export {
-    DominatorTree,
-    DominanceFrontier,
+    type DominatorTree,
+    type DominanceFrontier,
+    createDominatorTree,
+    createDominanceFrontier,
 } from './DominatorAnalysis';
 
 export {
@@ -22,6 +24,7 @@ export {
 } from './SSAAnalysis';
 
 export {
+    SSARenamer,
     type SSARenamer,
     createSSARenamer,
     renameSSA,

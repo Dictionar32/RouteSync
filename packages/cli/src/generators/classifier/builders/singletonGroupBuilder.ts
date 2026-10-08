@@ -29,7 +29,8 @@ export function buildCustomOrSingletonGroupDescriptor(
   titleName: string,
   res: ResourceCrudMap,
   errorRes: ErrorResolutionResult,
-  standardKeys: readonly string[]
+  standardKeys: readonly string[],
+  shape: 'custom' | 'singleton' = 'singleton'
 ): ResourceGroupDescriptor<ClassifiedRoute> {
   const hasSchema = (route?: ClassifiedRoute): boolean =>
     Boolean(route && route.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && Object.keys(route.contract.request.body.schema.rules).length > 0);
@@ -68,9 +69,7 @@ export function buildCustomOrSingletonGroupDescriptor(
   });
 
   const subRoutes = partitionGroupSubRoutes(res.all, standardKeys, false);
-  const hasAnyTrailingParam = res.all.some(r => r.hasTrailingParam);
-
-  if (hasAnyTrailingParam) {
+  if (shape === 'custom') {
     const detailKeyFn = res.show ? res.show.actionName : RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Custom].defaultDetailKeyFn;
     return new ScannedCustomResourceGroupDescriptor<ClassifiedRoute>({
       groupName,

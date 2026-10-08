@@ -47,23 +47,6 @@ export function toRuntimePath(path: string): string {
   return path.replace(/{([^}/]+)}/g, ':$1')
 }
 
-function toActionName(route: RouteSemanticFlow, restSegments: string[]): string {
-  const method = route.identity.coordinates.method.toLowerCase()
-  const suffix = restSegments.map(normalizeSegment).filter(Boolean).map(toTypeName).join('')
-  return toIdentifier(suffix ? `${method}-${suffix}` : method)
-}
-
-function normalizeSegment(segment: string): string {
-  if (segment.startsWith('{') && segment.endsWith('}')) {
-    return segment.slice(1, -1);
-  }
-  return segment;
-}
-
-function getPathSegments(path: string): string[] {
-  return path.split('/').filter(Boolean);
-}
-
 function splitWords(value: string): string[] {
   return value
     .replace(/^{([^}/]+)}$/, '$1')

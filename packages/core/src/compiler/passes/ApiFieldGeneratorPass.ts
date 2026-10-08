@@ -18,7 +18,7 @@ import {
     buildApiFieldArtifact
 } from './api-field-domain';
 import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
-import { ApiFieldOutput } from './outputLowerers';
+import type { ApiFieldOutput } from './outputLowerers';
 
 export interface ApiFieldGeneratorPassDependencies {
     readonly exportConstName?: string;

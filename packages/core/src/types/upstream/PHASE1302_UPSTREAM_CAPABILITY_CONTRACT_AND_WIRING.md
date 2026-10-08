@@ -60,3 +60,6 @@ The design follows the interface boundary principle used by MLIR: generic
 consumers operate through semantic interfaces rather than encoding concrete
 operation knowledge. Data-flow ownership follows the same source/flow/consumer
 separation used by data-flow analysis systems such as CodeQL.
+
+- Route parameter projection now carries all upstream path-parameter references through `RouteDefinition.routeParameters`; SDK option splitting consumes those references and never parses the route path.
+- `DataFlowInterface` remains the producer/composite surface; downstream consumers are constrained to `DataFlowConsumerInterface`/`DataFlowWiringInterface`.

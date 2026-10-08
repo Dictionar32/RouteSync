@@ -3,40 +3,24 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-
-const contract = read('packages/core/src/types/upstream/semanticDataflowInterface.ts');
-const analysisInterface = read('packages/core/src/compiler/analysis/astAnalysisInterface.ts');
-const authority = read('packages/core/src/compiler/analysis/astDataflowAuthority.ts');
-
-const productionFiles = [];
-function walk(dir) {
-  for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
-    const rel = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(rel);
-    else if (entry.isFile() && rel.endsWith('.ts') && !rel.includes('/__tests__/') && !rel.includes('PHASE')) productionFiles.push(rel);
-  }
-}
-walk('packages/core/src');
-
-const interfaceConstructors = productionFiles.filter(file =>
-  read(file).includes("kind: 'semantic_dataflow_interface'")
-);
-const manualAnalysisConstruction = /dataflow:\s*Object\.freeze\(\{[\s\S]*?semantic_dataflow_interface/.test(analysisInterface);
+const authority = read('packages/core/src/types/upstream/semanticDataflowAuthority.ts');
+const judgment = read('packages/core/src/types/upstream/semanticDataflow.ts');
+const adapter = read('packages/core/src/compiler/analysis/semanticDataflowDataFlowAdapter.ts');
+const runtimeBoundary = read('packages/core/src/compiler/analysis/semanticDataflowRuntimeBoundary.ts');
+const runtimeComposition = read('packages/core/src/compiler/analysis/semanticDataflowRuntimeComposition.ts');
+const dataflow = read('packages/core/src/types/dataflow/dataFlowInterface.ts');
 
 const checks = {
-  canonicalInterfaceFactoryExists: contract.includes('semanticDataflowInterfaceFromJudgment'),
-  factoryPreservesJudgmentIdentity: contract.includes('  judgment,') && contract.includes("authority: 'semantic_dataflow_judgment'"),
-  analysisUsesCanonicalFactory: analysisInterface.includes('semanticDataflowInterfaceFromJudgment(judgment.dataflow)'),
-  analysisNoLongerReconstructsInterface: !manualAnalysisConstruction,
-  authorityRemainsInterfaceProducer: authority.includes("kind: 'semantic_dataflow_interface'") && authority.includes('origin: input.origin'),
-  onlyExpectedProductionConstructors: interfaceConstructors.length === 2 && interfaceConstructors.some(file => file.replaceAll('\\', '/') === 'packages/core/src/compiler/analysis/astDataflowAuthority.ts') && interfaceConstructors.some(file => file.replaceAll('\\', '/') === 'packages/core/src/types/upstream/semanticDataflowInterface.ts'),
+  canonicalJudgmentAuthorityExists: /createSemanticDataflowJudgment/.test(authority),
+  judgmentCarriesProofContract: /reasoningContract:\s*SemanticReasoningContract/.test(judgment),
+  adapterCallsUpstreamAuthority: /createSemanticDataflowJudgment\(input\)/.test(adapter),
+  adapterPreservesExactProof: /reasoning:\s*state\.reasoningContract/.test(adapter),
+  adapterDoesNotMintSecondProof: !/semanticReasoningContract\s*\(/.test(adapter),
+  adapterUsesGenericDataFlowContract: /DataFlowInterface</.test(adapter),
+  runtimeBoundaryIsDirectionalWiring: /extends UpstreamWiringInterface</.test(runtimeBoundary),
+  runtimeCompositionUsesAdapter: /createSemanticDataflowDataFlowInterface\(input\)/.test(runtimeComposition),
+  consumerSurfaceIsAuthorityOnly: /DataFlowConsumerInterface/.test(dataflow) && /DataFlowAuthorityInterface/.test(dataflow),
 };
-
-const result = {
-  ...checks,
-  interfaceConstructors,
-  clean: Object.values(checks).every(Boolean),
-};
-
-console.log(JSON.stringify(result, null, 2));
-if (!result.clean) process.exit(1);
+const result = { audit: 'phase940-upstream-dataflow-interface-wiring', topology: 'upstream judgment authority -> proof-preserving wiring adapter -> generic DataFlow contract -> authority-only consumers', checks, passed: Object.values(checks).every(Boolean) };
+process.stdout.write(JSON.stringify(result, null, 2) + '\n');
+process.exitCode = result.passed ? 0 : 1;

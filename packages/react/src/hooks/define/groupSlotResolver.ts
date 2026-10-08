@@ -37,9 +37,9 @@ export interface ResolvedGroupSlots {
   readonly resolvedUpdateSelf: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
   readonly deleteService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
   readonly deleteSelfService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
-  readonly showParamKey: string
-  readonly updateParamKey: string
-  readonly deleteParamKey: string
+  readonly showParamKey: string | undefined
+  readonly updateParamKey: string | undefined
+  readonly deleteParamKey: string | undefined
 }
 
 const firstByRole = (
@@ -67,9 +67,9 @@ export function resolveGroupSlots(
   const deleteService = firstByRole(group, 'delete', 'member')
   const deleteSelfService = firstByRole(group, 'delete', 'collection')
 
-  const showParamKey = showService ? extractParamKey(showService) : 'id'
-  const updateParamKey = updateService ? extractParamKey(updateService) : 'id'
-  const deleteParamKey = deleteService ? extractParamKey(deleteService) : 'id'
+  const showParamKey = showService ? extractParamKey(showService) : undefined
+  const updateParamKey = updateService ? extractParamKey(updateService) : undefined
+  const deleteParamKey = deleteService ? extractParamKey(deleteService) : undefined
 
   return {
     indexService,

@@ -9,7 +9,7 @@
 
 import type { RouteSemanticFlow } from "../../../types/route";
 import type { ResourceAst, RequestAst } from "../../../types/upstream/ast";
-import { RequestType } from "../../artifacts/RequestTypesArtifact";
+import type { RequestType } from "../../artifacts/RequestTypesArtifact";
 import { TypeInterner } from "../../types/TypeInterner";
 import {
     createDerivationContext,

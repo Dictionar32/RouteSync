@@ -12,7 +12,7 @@ import type { TruthValue, NumberValue, HttpStatusCode } from './valueObjects';
 import type { ControllerReference, ModelReference } from './semanticReferences';
 import type { InvalidationTarget } from './routeInvalidationVocabulary';
 import type { HttpErrorResponse } from './routeErrorVocabulary';
-import type { CrudRole, RouteHookKind, RouteActionKind, RequestContentType, RouteExecutionSignature } from './routeExecutionVocabulary';
+import type { CrudRole, RouteHookKind, RouteActionKind, RequestContentType, RouteExecutionSignature, RoutePayloadLocation, RoutePayloadLocationDecision } from './routeExecutionVocabulary';
 import type { RouteAst } from './ast';
 import type { SemanticCapabilityContract, SemanticCapabilityContractInterface, SemanticCapabilityEvidence } from './semanticCapability';
 export interface RouteCacheInvalidation {
@@ -40,10 +40,18 @@ export interface RouteCapabilityAlgebraInterface
   readonly rateLimit: RouteRateLimit;
   readonly invalidation: RouteCacheInvalidation;
   readonly crudRole: CrudRole;
+  /** Canonical semantic action name; downstream must not derive it from HTTP method/path. */
+  readonly actionName: ActionName;
   readonly hookKind: RouteHookKind;
   readonly actionKind: RouteActionKind;
   readonly requestContentType: RequestContentType;
   readonly executionSignature: RouteExecutionSignature;
+  /** Closed request payload placement for flattened endpoint variables. */
+  readonly payloadLocation: RoutePayloadLocation;
+  /** Provenance for payload placement; consumers use location, audits inspect its source. */
+  readonly payloadLocationDecision: RoutePayloadLocationDecision;
+  /** Closed role for an unkeyed route schema; consumers must not infer it from hook kind. */
+  readonly schemaRole: 'request' | 'response';
   readonly errorResponses: Sequence<HttpErrorResponse>;
 }
 

@@ -2703,3 +2703,128 @@ Bagian yang **belum** disentuh mendalam dan butuh sesi lanjutan:
 - **[§39 — PENTING]** `SemanticResolver` sekarang jadi single source of truth beneran untuk `ContractEmitter` (field-resolution dipindah dari emitter ke resolver, wiring `SemanticResolver.resolve()` → `context.ir` sudah dipasang di `ZodTierGeneratorRefactored`). Tapi **belum** dikonsumsi oleh `MapperEmitter`/`FieldEmitter`/`ReadEmitter`/`SchemaEmitter` — 4 emitter itu masih resolve sendiri-sendiri.
 - **[Keputusan besar, belum dieksekusi]** `sync.ts` (CLI entrypoint produksi) masih memanggil `ZodTierGenerator` lama, bukan `ZodTierGeneratorRefactored` yang sudah diperbaiki sepanjang §30-39. Perlu review terpisah sebelum switch — cek dependency `SDKGenerator`/`HookGenerator` terhadap path/nama file persis dari generator lama.
 - Satukan `mapSqlTypeToTs`/`mapSqlTypeToZod` (dipakai `MapperEmitter`/`FieldEmitter`) dengan `mapSqlTypeToMapping` (`helpers.ts`, kini dipakai `resolveField`) — masih 2 sistem paralel terpisah, persis pola duplikasi §6 yang belum sepenuhnya disatukan.
+
+## Phase 1319 — Fix duplicate relational import (2026-10-08)
+
+The build reported a Rolldown `PARSE_ERROR` because `packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts` imported `relationResolve` twice from `../../../relational/sequence`: once as a standalone import and again in the grouped relation import. This is a source-level duplicate binding, not a `MODULE_TYPELESS_PACKAGE_JSON` warning.
+
+- Removed the standalone import and retained `relationResolve` in the existing grouped import with `projectRelation`, `selectRelation`, `expandRelation`, and `relationGate`.
+- Added `audit:phase1319-syntax-range-import-deduplication` to guard against reintroducing the duplicate.
+- No build scripts, module type settings, or runtime semantics were changed.
+- The reported local build failure is addressed at the reported parse-error site. A full build result must still be confirmed by running `npm run build` in the repository's configured local environment.
+
+## Phase 1321 — Public export runtime/type boundary repair (2026-10-08)
+
+The follow-up `tsdown` log still reports Rolldown `MISSING_EXPORT` errors. The visible failures indicate that the package entrypoint advertises several TypeScript-only interfaces/types as runtime values, and that the `types/interfaces` barrel does not re-export the runtime composition function.
+
+- `ResponseDescriptorBase`, `PrimitiveType`, `ResolvedPhpType`, and `CompilerValidationError` are exported through explicit type-only exports from the core entrypoint. Runtime exports remain runtime exports.
+- `composeUpstreamWiring` is re-exported from its value-owning `interfaceComposition` module, including through `types/interfaces/index.ts`.
+- `PrimitiveType` and related semantic-type interfaces are separated from runtime values (`PrimitiveKind`, `CollectionKind`, and actual constructors/factories).
+- Added `audit:phase1321-public-export-runtime-type-boundaries` to protect the visible export boundaries.
+- No package build script or `type: module` setting was changed. The `MODULE_TYPELESS_PACKAGE_JSON` notice is a performance warning and is not the cause of the missing exports.
+- Verification scope: static audit only. The full `npm run build` has not been run in this workspace because the local build dependencies are not available here. The user's excerpt shows 202 errors but omits most of the diagnostics, so additional missing-export boundaries may remain; resolve them from the complete log rather than claiming the entire build is fixed.
+
+
+## Phase 1322 — Follow-up Rolldown missing-export boundaries (2026-10-08)
+
+The user's next `tsdown` output fell from 202 to 197 errors, with the visible cluster including `ModelSymbolTable`, `OriginModelSymbol`, `HttpMethod`, `RequestOptions`, `RequestOptionsContract`, and `ResponseDescriptorBase`. These are contract/interface exports, not runtime constructors.
+
+- Marked model-symbol interfaces as type-only in the model sub-barrel and public symbol barrel; retained `createModelSymbolTable` as the runtime factory.
+- Split type-only request imports from the runtime `RequestOptionsDescriptor` import in `client/Request.ts`.
+- Marked `ResponseDescriptorBase` as type-only through the response/domain barrels.
+- Added `audit:phase1322-followup-missing-export-boundaries` to guard these source-level boundaries.
+- The user also reported a missing `composeUpstreamWiring` re-export from `types/interfaces`; the current workspace has the owning runtime export in `interfaceComposition.ts` and re-exports it from the interfaces barrel. If the local source still reports it, verify the user is building this archive/source revision.
+- Verification is limited to static boundary audit and archive integrity; no claim is made that all 197 errors or the complete build are fixed, because the full diagnostics are truncated and dependencies are unavailable in this workspace.
+
+
+## Phase 1323 — Type-only lexer and response import boundaries (2026-10-08)
+
+- Changed `Response.ts` to import `ApiResponse` with `import type`, since it is a compile-time contract and has no runtime binding.
+- Changed `TokenType` in the lexer barrel to an explicit type export.
+- Changed `LaravelSourceLexer.ts` to import lexer AST/token contracts through `import type`, leaving only runtime factories and functions in value imports.
+- This phase addresses the visible Phase 1322 follow-up build errors; it does not claim the complete build passes until `tsdown` is run against the workspace with dependencies installed.
+
+
+## Phase 1324 — Remove duplicate lexer type import (2026-10-08)
+
+- Removed `ParsedPhpArrayResult` from the runtime import list in `LaravelSourceLexer.ts`; it remains in the type-only import and public type export.
+- Added `audit:phase1324-duplicate-type-import` to prevent a name from being imported simultaneously as a runtime value and as a type from the same lexer barrel.
+- This addresses the current Rolldown parse error reported by the user. It does not claim the full build passes; rerun the build to expose any subsequent errors.
+
+## Phase 1326 — Follow-up type-only import boundaries (2026-10-08)
+
+The user's next build output shows 160 remaining Rolldown missing-export errors. The visible diagnostics identify several TypeScript contracts imported as runtime values:
+
+- `ApiFieldOutput` in `ApiFieldGeneratorPass.ts` is imported with `import type`.
+- `TypeScriptLowererOptions` in `typeScriptNodeLowerer.ts` is imported with `import type`.
+- `ResolvedSemanticType`, `ResolvedObjectType`, and `ResolvedPrimitiveKind` in `ZodSchemaLowerer.ts` are type-only imports; `matchResolvedSemanticType` remains a runtime value import.
+- `PrimitiveType` and `ScannedObjectProperty` in `typeExpressionSemanticType.ts` are marked type-only while constructors and semantic operations remain runtime imports.
+- Added `audit:phase1326-type-only-import-boundaries` for these specific source boundaries.
+
+Verification scope: source audit only. The complete `tsdown` build was not run in this workspace because build dependencies are unavailable here. The user's log is truncated after the first five diagnostics, so these changes address the visible cluster, not an unobserved claim that all 160 errors are fixed.
+
+
+## Phase 1327 — Compiler Analysis Public Export Boundaries (2026-10-08)
+
+- `ControlFlowGraph` from `compiler/utils/ControlFlowGraph` is a type-only facade; export it with `export type` from `compiler/index.ts`.
+- `DominatorTree`, `DominanceFrontier`, and `SSARepresentation` are contracts and must be re-exported as types. Runtime factories/engines remain runtime exports.
+- `SSARenamer` has both an interface and a runtime facade value in `analysis/ssa/ssaRenamer.ts`; preserve both namespaces at the analysis barrel and compiler public entry.
+- This phase addresses the currently visible Rolldown missing-export group; it does not claim that unseen build errors are resolved until a full build is executed.
+
+## Phase 1328 — Follow-up type import and artifact public export boundaries (2026-10-08)
+
+The user's next `tsdown` run reports 148 errors, but the captured log only contains the first five diagnostics. The visible group points to two repeatable boundary mistakes:
+
+- `ScannedRouteValidationRuleParams` is a type exported by the validation barrel, so `validationDescriptors.ts` now imports it using `type` and leaves runtime imports as values.
+- `ArtifactMetadata`, `ArtifactRegistry`, `ArtifactKey`, and `ArtifactStorage` are compile-time contracts; the compiler public entry now exports them using explicit type-only exports. Runtime artifact classes remain value exports.
+- Added `audit:phase1328-followup-type-export-boundaries` to check these five source boundaries.
+
+Verification scope: the new source audit, JSON parse, and ZIP integrity are checked locally. This workspace has no `node_modules`, and the uploaded build log omits the remaining diagnostics, so this phase does not claim the full build passes or that all 148 errors are resolved. Run the build again on the user's installed workspace to reveal the next error group.
+
+
+## Phase 1329 — Artifact contract public exports (2026-10-08)
+
+The next user build log reports 143 remaining errors. Its visible diagnostics are all from `compiler/index.ts` re-exporting artifact contract interfaces as runtime values.
+
+- Kept `ScopeGraphArtifact`, `BoundASTArtifact`, and `SymbolGraphArtifact` as runtime exports.
+- Marked `ScopeNode`, `BoundASTNode`, `SymbolReference` (public alias `BoundSymbolReference`), `Symbol`, and `SymbolTable` as type-only exports.
+- Added `audit:phase1329-artifact-contract-export-boundaries` to check the exact declarations and ensure artifact constructors remain value exports.
+
+Verification is limited to the focused source audit, JSON validity, and ZIP integrity. The uploaded log includes only five diagnostics even though Rolldown reports 143 errors; the remaining errors are not visible in this excerpt, and this workspace does not have the local build dependencies. No claim is made that the complete build passes.
+
+## Phase 1330 — RequestType consumer type boundary (2026-10-08)
+
+- Corrected `RequestTypeDeriver.ts` to import `RequestType` with `import type`, matching the domain contract and the type-only re-export from `RequestTypesArtifact.ts`.
+- Added `audit:phase1330-request-type-consumer-boundary` to verify this consumer boundary together with the artifact barrel type/runtime boundaries addressed in Phase 1329.
+- This audit is a targeted source-contract check; it does not claim the full tsdown build passes. If build diagnostics still show `ScopeNode`, `BoundASTNode`, or `Symbol` as non-type exports from `compiler/index.ts`, the build was run against a workspace that does not contain the Phase 1329 barrel changes.
+
+## Phase 1331 — TypeScript lowerer type/runtime boundary (2026-10-08)
+
+The next local `tsdown` log reports 138 missing exports. Its visible diagnostics cluster around `TypeScriptTypeLowerer.ts` importing compile-time contracts as runtime values.
+
+- Marked `TypeScriptLowererOptions` and `TypeScriptPrimitiveToken` as type-only imports and re-exports.
+- Marked `GeneratedInterfaceMetadata`, `LoweredTypeDeclaration`, and `TypeScriptBuildResult` as type-only imports and re-exports.
+- Kept runtime vocabulary, `SourceLineRange`, `TypeScriptSyntax`, and `TypeScriptCodeBuilder` as value imports/exports.
+- Added `audit:phase1331-typescript-lowerer-type-boundary` for these consumer/public API boundaries.
+
+Verification is limited to targeted source audit, JSON validity, and archive integrity. The captured user log shows only the first five of 138 diagnostics; the rest are not visible here, and this workspace has no local dependency installation to execute the complete `tsdown` build. No full-build success is claimed.
+
+
+## Phase 1332 — Compiler pass contract export boundary (2026-10-08)
+
+- Corrected the compiler-pass barrels so interface/type contracts (`PassDescriptor`, `PassDependency`, `CompilerPass`, `ExecutablePass`, `CompilerOptions`, `VirtualFileWriter`, `ResolveArtifacts`, and `PassResult`) are explicitly exported as types.
+- Kept runtime-bearing constructs (`createTypedPassAdapter`, `PassGraph`, `PassManager`, `CompilationState`, `CompilationContext`, `ArtifactKeyWitness`, `readArtifacts`, `tupleAt`, and `AnalysisKey`) as value exports.
+- Updated both `compiler/passes/index.ts` and the public `compiler/index.ts` pass export surface, so the boundary is consistent through the barrel chain rather than patched only at one consumer.
+- Added `audit:phase1332-pass-contract-export-boundaries`. This is a targeted source-contract audit; it does not claim that the full tsdown build succeeds.
+- The latest user build showed 132 `MISSING_EXPORT` errors, beginning with type contracts re-exported as values by these pass barrels. Continue with the next build's first diagnostics to find the next source boundary; do not assume this one correction resolves all errors.
+
+## Phase 1333 — Lexer and diagnostic type/runtime boundaries (2026-10-08)
+
+The next user build reports 117 `MISSING_EXPORT` errors. The first visible group shows lexer AST contracts imported as runtime values even though `PhpAst.ts` explicitly re-exports them with `export type`; another visible group shows diagnostic contracts re-exported from `compiler/index.ts` as runtime values even though `diagnostics/index.ts` declares them type-only.
+
+- Changed `arrayParser.ts` to import `TokenDescriptor`, `PhpArrayEntry`, `ParsedPhpArrayResult`, and `PhpArrayKey` using `import type`, retaining `createSourceOffset` as a runtime import.
+- Changed `SourceStream.ts` to import `TokenType` and `TokenDescriptor` as types while retaining source-location factories as runtime values.
+- Changed `compiler/index.ts` to re-export `Diagnostic`, `DiagnosticSeverity`, `DiagnosticFix`, and `TextEdit` type-only while keeping `DiagnosticBag` as a runtime export.
+- Added `audit:phase1333-lexer-diagnostic-type-boundaries` for the visible source-boundary regressions.
+
+Verification is limited to the targeted source audit, JSON validity, and ZIP integrity. The build log excerpt exposes only the first five of 117 errors and the workspace has no installed local dependencies, so this phase does not claim full build success or resolution of all 117 errors.

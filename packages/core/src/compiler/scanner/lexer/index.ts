@@ -8,7 +8,7 @@
  */
 
 export {
-    TokenType,
+    type TokenType,
     type TokenDescriptor,
     type SourceOffset,
     type SourceLineNumber,
@@ -31,9 +31,7 @@ export {
     type ParsedPhpArrayResult
 } from "./PhpAst";
 
-export {
-    SourceStream
-} from "./SourceStream";
+export type { SourceStream } from "./SourceStream";
 
 export {
     tokenizePhpSource

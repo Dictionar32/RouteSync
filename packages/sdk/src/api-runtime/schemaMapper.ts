@@ -12,8 +12,12 @@ import type { RouteSchemaPart } from './types';
 
 const routeSchemaKeys = ['params', 'query', 'body', 'request', 'response'];
 
-function defaultSchemaPart(method: RouteDefinition['method']): RouteSchemaPart {
-  return method === 'GET' || method === 'DELETE' ? 'response' : 'body';
+function defaultSchemaPart(route: RouteDefinition): RouteSchemaPart {
+  const schemaRole = route.schemaRole;
+  if (!schemaRole) {
+    throw new Error('RouteSync endpoint is missing the upstream schema-role capability required for an unkeyed schema');
+  }
+  return schemaRole === 'response' ? 'response' : 'body';
 }
 
 function hasRouteSchemaKeys(value: unknown): value is Record<string, unknown> {
@@ -32,7 +36,7 @@ export function pickRouteSchema(route: RouteDefinition, part: RouteSchemaPart): 
     return schema[part] ?? (part === 'body' ? schema.request : undefined);
   }
 
-  return defaultSchemaPart(route.method) === part ? schema : undefined;
+  return defaultSchemaPart(route) === part ? schema : undefined;
 }
 
 export function parseRouteSchema(

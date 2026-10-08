@@ -21,9 +21,9 @@
  */
 
 // Core pass interfaces
-export { PassDescriptor, PassDependency } from './PassDescriptor';
-export { CompilerPass } from './CompilerPass';
-export { ExecutablePass } from './ExecutablePass';
+export type { PassDescriptor, PassDependency } from './PassDescriptor';
+export type { CompilerPass } from './CompilerPass';
+export type { ExecutablePass } from './ExecutablePass';
 
 // Pass adaptation
 export { createTypedPassAdapter } from './TypedPassAdapter';
@@ -39,22 +39,22 @@ export { PassManager } from './PassManager';
 export { CompilationState } from './CompilationState';
 export {
     CompilationContext,
-    CompilerOptions,
-    VirtualFileWriter,
+    type CompilerOptions,
+    type VirtualFileWriter,
     InMemoryFileWriter
 } from './CompilationContext';
 
 // Artifact key witnesses and helpers
 export {
     ArtifactKeyWitness,
-    ResolveArtifacts,
+    type ResolveArtifacts,
     readArtifacts,
     tupleAt
 } from './ArtifactKeyWitness';
 
 // Pass result types
 export {
-    PassResult,
+    type PassResult,
     AnalysisKey
 } from './PassResult';
 

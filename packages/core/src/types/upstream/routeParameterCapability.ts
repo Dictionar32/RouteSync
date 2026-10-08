@@ -68,14 +68,21 @@ export function routeParameterCapabilityReferenceFromCapability(
 
 
 /** Projection helper: resolve the canonical path parameter once upstream. */
+export function routeParameterCapabilityReferencesFromRoute(
+  route: RouteSemanticFlow,
+): readonly RouteParameterCapabilityReference[] {
+  const targetScope = routeTargetScopeFromRoute(route);
+  return route.identity.parameters.path.map((parameter) =>
+    routeParameterCapabilityReferenceFromCapability(
+      routeParameterCapabilityFromRoute(parameter, targetScope),
+    ),
+  );
+}
+
 export function routeParameterCapabilityReferenceFromRoute(
   route: RouteSemanticFlow,
 ): RouteParameterCapabilityReference | undefined {
-  const parameter = route.identity.parameters.path[0];
-  if (!parameter) return undefined;
-  return routeParameterCapabilityReferenceFromCapability(
-    routeParameterCapabilityFromRoute(parameter, 'member'),
-  );
+  return routeParameterCapabilityReferencesFromRoute(route)[0];
 }
 
 

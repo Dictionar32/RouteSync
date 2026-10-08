@@ -1,5 +1,6 @@
 /** Declarative scanner cursor backed by relation-driven transitions. */
-import { TokenType, TokenDescriptor, createSourceLineNumber, createSourceOffset } from './PhpAst';
+import { createSourceLineNumber, createSourceOffset } from './PhpAst';
+import type { TokenType, TokenDescriptor } from './PhpAst';
 import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/foundation/semanticRelations';
 import { relationTextSlice } from '../../../semantic/foundation/relationalSequence';
 

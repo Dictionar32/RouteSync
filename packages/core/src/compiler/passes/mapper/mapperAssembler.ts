@@ -52,7 +52,7 @@ export function buildMapperArtifact(code: string, producerName: string): Generat
         metadata: {
             hash: computeFingerprintHash(fingerprint),
             producer: producerName,
-            dependencies: ['RequestTypes'],
+            dependencies: ['ResourceMappers'],
             timestamp: Date.now(),
             revision: '1.0.0',
         },

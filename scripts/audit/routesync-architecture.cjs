@@ -168,8 +168,8 @@ check('semantic reasoning exposes relation algebra explicitly',
 check('semantic reasoning exposes rewrite and fixed-point algebra',
   /SemanticReasoningRewriteInterface<State, Relation>/.test(reasoning)
     && /SemanticReasoningFixedPointInterface<State>/.test(reasoning)
-    && /SemanticReasoningRewriteInterface<State, Relation>/.test(reasoning.split('SemanticReasoningAlgebraInterface')[1] || '')
-    && /SemanticReasoningFixedPointInterface<State>/.test(reasoning.split('SemanticReasoningAlgebraInterface')[1] || ''),
+    && /interface SemanticReasoningAlgebraInterface<Input, State, Relation, Judgment>[\s\S]*extends SemanticReasoningExecutionAlgebraInterface<Input, State, Relation, Judgment>/.test(reasoning)
+    && /SemanticReasoningExecutionAlgebraInterface<Input, State, Relation, Judgment>[\s\S]*SemanticReasoningRewriteInterface<State, Relation>[\s\S]*SemanticReasoningFixedPointInterface<State>/.test(reasoning),
   'semantic reasoning algebra must expose relation rewrite and least-fixed-point closure as explicit interface facets.');
 
 check('semantic reasoning contract factory is relation-table driven',
@@ -371,7 +371,8 @@ check('semantic capability derivation strategy is coupled to reasoning strategy'
     && /interface SemanticCapabilityAlgebraInterface<[\s\S]*SemanticCapabilityDerivationInterface<Reasoning\['strategy'\]>/.test(capability)
     && /const reasoning = semanticReasoningContract\('evidence_resolution'\)/.test(read('packages/core/src/types/upstream/resourceModelKeyCapability.ts'))
     && /strategy: reasoning\.strategy/.test(read('packages/core/src/types/upstream/resourceModelKeyCapability.ts'))
-    && /const reasoning = semanticReasoningContract\('evidence_resolution'\)/.test(read('packages/core/src/compiler/scanner/resolvers/boundary/capabilityBuilder.ts'))
+    && /const reasoning = params\.reasoning/.test(read('packages/core/src/compiler/scanner/resolvers/boundary/capabilityBuilder.ts'))
+    && !/semanticReasoningContract\(/.test(read('packages/core/src/compiler/scanner/resolvers/boundary/capabilityBuilder.ts'))
     && /strategy: reasoning\.strategy/.test(read('packages/core/src/compiler/scanner/resolvers/boundary/capabilityBuilder.ts')),
   'capability derivation cannot drift from the proof-carrying reasoning strategy.');
 
@@ -439,7 +440,8 @@ check('dataflow authority carries reasoning contract',
   /SemanticReasoningAuthorityInterface<Reasoning\['strategy'\], ReasoningEvidence, Reasoning>/.test(dataflow)
     && /Reasoning extends SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence>/.test(dataflow)
     && /DataFlowAuthorityInterface<Input, State, Node, ReasoningEvidence, Reasoning>/.test(dataflow)
-    && /semanticReasoningContract/.test(read('packages/core/src/compiler/analysis/semanticDataflowDataFlowAdapter.ts')),
+    && /reasoning:\s*state\.reasoningContract/.test(read('packages/core/src/compiler/analysis/semanticDataflowDataFlowAdapter.ts'))
+    && !/semanticReasoningContract\s*\(/.test(read('packages/core/src/compiler/analysis/semanticDataflowDataFlowAdapter.ts')),
   'the read-only dataflow authority records the upstream reasoning contract without exposing re-solving downstream.');
 
 check('dataflow execution and authority algebras are explicit',
@@ -644,9 +646,23 @@ check('interface composition is itself an algebra-contract boundary',
   'upstream -> wiring -> downstream composition must have an explicit algebra, contract, and compositional projection operation.');
 
 const reasoningContractSurface = read('packages/core/src/types/upstream/semanticReasoning.ts');
+check('semantic reasoning has explicit producer/consumer/wiring algebra',
+  /interface SemanticReasoningProducerContractInterface/.test(reasoningContractSurface)
+    && /interface SemanticReasoningProducerInterface/.test(reasoningContractSurface)
+    && /interface SemanticReasoningConsumerContractInterface/.test(reasoningContractSurface)
+    && /interface SemanticReasoningConsumerInterface/.test(reasoningContractSurface)
+    && /interface SemanticReasoningWiringInterface/.test(reasoningContractSurface)
+    && /SemanticReasoningWiringInterface[\s\S]*extends UpstreamWiringInterface/.test(reasoningContractSurface),
+  'semantic reasoning must expose producer, closed consumer, and directional wiring surfaces.');
+
+check('operation identity preserves upstream reasoning lineage',
+  /OperationIdentityCapabilityAlgebraInterface[\s\S]*readonly reasoning: SemanticReasoningContract/.test(read('packages/core/src/types/upstream/operationIdentityCapability.ts'))
+    && /operationIdentityCapabilityFromRoute[\s\S]*route: Pick<RouteCapabilityContract,[^;]*reasoning/.test(read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts'))
+    && /const reasoning: SemanticReasoningContract = route\.reasoning/.test(read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts')),
+  'operation identity must inherit the route capability proof instead of opening a second reasoning authority.');
 check('semantic reasoning execution interface remains separate from closed contract',
   /interface SemanticReasoningInterface/.test(reasoningContractSurface)
-    && /SemanticReasoningInterface[\s\S]*extends SemanticReasoningAlgebraInterface/.test(reasoningContractSurface)
+    && /SemanticReasoningInterface[\s\S]*extends SemanticReasoningConsumerInterface/.test(reasoningContractSurface)
     && /interface SemanticReasoningContractInterface/.test(reasoningContractSurface)
     && /SemanticReasoningContractInterface[\s\S]*extends SemanticReasoningProofInterface/.test(reasoningContractSurface)
     && !/SemanticReasoningInterface[\s\S]*SemanticReasoningContractInterface/.test(reasoningContractSurface.slice(reasoningContractSurface.indexOf('interface SemanticReasoningInterface'), reasoningContractSurface.indexOf('interface SemanticReasoningEvidenceInterface'))),

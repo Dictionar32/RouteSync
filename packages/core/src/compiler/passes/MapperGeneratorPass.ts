@@ -1,7 +1,7 @@
 /**
  * MapperGeneratorPass.ts
  *
- * Active Consumer Orchestrator for transforming RequestTypes into mapper functions:
+ * Active Consumer Orchestrator for transforming a closed ResourceMappers semantic contract into mapper functions:
  *   - Read mappers: API response (snake_case) -> frontend Transformed model (camelCase).
  *   - Form mappers: form values -> API payload (snake_case, via ApiApiField bracket notation).
  *
@@ -15,7 +15,7 @@ import type { CompilerPass } from './CompilerPass';
 import type { PassDescriptor, PassDependency } from './PassDescriptor';
 import { ArtifactKeyWitness, type ResolveArtifacts } from './ArtifactKeyWitness';
 import type { GeneratedMapperArtifact } from '../artifacts/GeneratedMapperArtifact';
-import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
+import type { ResourceMappersArtifact } from '../artifacts/ResourceMappersArtifact';
 import {
     buildReadMapperFromFields,
     buildFieldMappingLine,
@@ -44,27 +44,27 @@ export {
 };
 
 export class MapperGeneratorPass
-    implements CompilerPass<readonly ['RequestTypes'], readonly ['GeneratedMapper']> {
+    implements CompilerPass<readonly ['ResourceMappers'], readonly ['GeneratedMapper']> {
 
     public readonly name = 'MapperGenerator';
 
     public readonly inputWitnesses = [
-        new ArtifactKeyWitness('RequestTypes')
+        new ArtifactKeyWitness('ResourceMappers')
     ] as const;
 
     public readonly outputKeys = ['GeneratedMapper'] as const;
 
     public readonly descriptor: PassDescriptor<
-        readonly ['RequestTypes'],
+        readonly ['ResourceMappers'],
         readonly ['GeneratedMapper']
     > = {
-            consumes: ['RequestTypes'],
+            consumes: ['ResourceMappers'],
             produces: ['GeneratedMapper']
         };
 
-    public readonly requires: readonly PassDependency<'RequestTypes'>[] = [
+    public readonly requires: readonly PassDependency<'ResourceMappers'>[] = [
         {
-            artifact: 'RequestTypes',
+            artifact: 'ResourceMappers',
             producer: undefined
         }
     ];
@@ -73,31 +73,31 @@ export class MapperGeneratorPass
     private static readonly defaultPass = new MapperGeneratorPass();
 
     public static run(
-        artifact: RequestTypesArtifact
+        artifact: ResourceMappersArtifact
     ): ResolveArtifacts<readonly ['GeneratedMapper']> {
         return MapperGeneratorPass.defaultPass.run([artifact]);
     }
 
     public run(
-        inputs: ResolveArtifacts<readonly ['RequestTypes']>
+        inputs: ResolveArtifacts<readonly ['ResourceMappers']>
     ): ResolveArtifacts<readonly ['GeneratedMapper']> {
-        const [requestTypesArtifact] = inputs;
-        const requestTypes = requestTypesArtifact.requestTypes;
+        const [resourceMappersArtifact] = inputs;
+        const mapping = resourceMappersArtifact.mapping;
 
-        if (requestTypes.length === 0) {
+        if (mapping.read.length === 0 && mapping.write.length === 0) {
             return [buildEmptyMapperArtifact(this.name)];
         }
 
-        const parts = collectMapperParts(requestTypes);
+        const parts = collectMapperParts(mapping);
         const code = assembleMapperCode(parts);
         return [buildMapperArtifact(code, this.name)];
     }
 }
 
 /**
- * Pure Dataflow Transform: RequestTypesArtifact → GeneratedMapperArtifact
+ * Pure Dataflow Transform: ResourceMappersArtifact → GeneratedMapperArtifact
  * 1 Input, 1 Output, 0 '?', 0 'new' in call site, 0 array wrapping.
  */
-export function lowerMapperArtifact(artifact: RequestTypesArtifact): GeneratedMapperArtifact {
+export function lowerMapperArtifact(artifact: ResourceMappersArtifact): GeneratedMapperArtifact {
     return MapperGeneratorPass.run(artifact)[0];
 }

@@ -1,8 +1,11 @@
 /**
  * actionMap.ts
  *
- * Canonical HTTP method → semantic action mappings and helpers.
+ * Legacy compatibility vocabulary only. Semantic action classification belongs
+ * to the upstream route-capability authority; active generator pipelines must
+ * consume route.actionName / closed capability instead of these helpers.
  *
+ * @deprecated Do not use this module for route classification or generation.
  * @module cli/generators/canonical/actionMap
  */
 
@@ -43,11 +46,13 @@ export function isValidHttpMethod(method: string): method is keyof typeof CANONI
     return method.toLowerCase() in CANONICAL_ACTION_MAP;
 }
 
+/** @deprecated Compatibility helper only; never use in active compiler/generator flows. */
 export function getActionFromMethod(method: string): ActionType {
     const normalized = method.toLowerCase() as keyof typeof CANONICAL_ACTION_MAP;
     return CANONICAL_ACTION_MAP[normalized] || 'Get';
 }
 
+/** @deprecated Compatibility helper only; consume the closed upstream hook/CRUD capability. */
 export function isMutationAction(action: ActionType): boolean {
     return action !== 'Get' && (action as string) !== 'Read';
 }

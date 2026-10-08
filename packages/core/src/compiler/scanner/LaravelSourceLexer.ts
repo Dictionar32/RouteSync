@@ -8,29 +8,13 @@
  */
 
 import {
-    TokenType,
-    TokenDescriptor,
-    SourceOffset,
-    SourceLineNumber,
-    AstIdentifier,
     createSourceOffset,
     createSourceLineNumber,
     createAstIdentifier,
-    PhpLiteralValue,
-    PhpAstValue,
     PhpAstFactory,
-    PhpAstValueVisitor,
-    PhpMicroAstVisitor,
-    matchPhpAstValue,
-    PhpArrayEntry,
-    PhpArgument,
-    PhpParameter,
-    PhpClosureCapture,
-    PhpStatement,
-    PhpBlock,
-    ParsedPhpArrayResult,
-    SourceStream
+    matchPhpAstValue
 } from "./lexer";
+import type { TokenType, TokenDescriptor, SourceOffset, SourceLineNumber, AstIdentifier, PhpLiteralValue, PhpAstValue, PhpAstValueVisitor, PhpMicroAstVisitor, PhpArrayEntry, PhpArgument, PhpParameter, PhpClosureCapture, PhpStatement, PhpBlock, ParsedPhpArrayResult, SourceStream } from "./lexer";
 import { tokenizePhpSource } from "./lexer/tokenizer";
 import { parsePhpArray } from "./lexer/arrayParser";
 import { classifyAstTokens, classifyAstValue, classifyPhpBlock } from "./lexer/astClassifier";
@@ -59,6 +43,7 @@ export type {
     PhpStatement,
     PhpBlock,
     ParsedPhpArrayResult,
+    SourceStream,
     RouteDeclarationAst,
     ControllerDeclarationAst,
     ResponseDtoDeclarationAst
@@ -69,7 +54,6 @@ export {
     createAstIdentifier,
     PhpAstFactory,
     matchPhpAstValue,
-    SourceStream,
     tokenizePhpSource,
     parsePhpArray,
     classifyAstTokens,

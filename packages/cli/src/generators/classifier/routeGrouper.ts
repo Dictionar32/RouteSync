@@ -10,8 +10,7 @@
 
 import {
   type RouteSemanticFlow,
-  CRUD_ROLE_REGISTRY,
-  matchCrudRole
+  CRUD_ROLE_REGISTRY
 } from '@routesync/core'
 import {
   type ClassifiedRoute,
@@ -40,14 +39,9 @@ function projectRoute(
     const hasParams = route.identity.parameters.all.length > 0
     const hasTrailingParam = CRUD_ROLE_REGISTRY[role].affectsSingleResource
 
-    const baseAction = matchCrudRole(role, {
-      index: spec => spec.defaultActionName,
-      show: spec => spec.defaultActionName,
-      create: spec => spec.defaultActionName,
-      update: spec => spec.defaultActionName,
-      delete: spec => spec.defaultActionName,
-      custom: () => method.toLowerCase(),
-    })
+    // actionName is a closed upstream capability. HTTP method is transport
+    // metadata only and must never become semantic action naming here.
+    const baseAction = route.capability.actionName.value.value
 
     const used = usedActions.get(groupName) ?? new Set<string>()
     usedActions.set(groupName, used)

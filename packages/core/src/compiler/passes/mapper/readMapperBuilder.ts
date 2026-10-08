@@ -1,45 +1,44 @@
-/**
- * readMapperBuilder.ts
- *
- * Generates read mappers: API response (snake_case) -> transformed frontend model (camelCase).
- * Active Consumer orchestrating read mapper function generation.
- *
- * @module compiler/passes/mapper/readMapperBuilder
- */
+import type { SemanticMappingField, SemanticReadMapperContract } from '../../../types/upstream/semanticMapping';
 
-import { toPascalResourceName, propertyNameText } from '../../../utils/resource-naming';
-import { relationProject } from '../../../semantic/foundation/semanticRelations';
-import type { ResourceMappingIntentGraph } from '../../../types/domain/mappingIntent';
-import {
-    indent,
-    buildFieldMappingLine
-} from './readFieldLineBuilder';
-
-export { indent, buildFieldMappingLine };
-
-/**
- * Builds toXRead and toXReadList mappers from a set of semantic fields.
- */
-export function buildReadMapperFromFields(
-    graph: ResourceMappingIntentGraph,
-    apiResponseType: string
-): string {
-    const resource = toPascalResourceName(graph.resourceName);
-    const returnType = `${resource}Transformed`;
-    const apiType = apiResponseType;
-
-    const fieldLines = relationProject(
-        graph.fields,
-        field => buildFieldMappingLine(field.name, field.intent, `api.${propertyNameText(field.name)}`),
-    ).join('\n');
-
-    const readFn =
-        `export const to${resource}Read = (api: ${apiType}): ${returnType} => ({\n` +
-        `${fieldLines}\n` +
-        `})`;
-
-    const readListFn =
-        `export const to${resource}ReadList = (api: ${apiType}[]): ${returnType}[] => api.map(to${resource}Read)`;
-
-    return `${readFn}\n\n${readListFn}`;
+export function indent(block: string): string {
+    return block.split('\n').map(line => `  ${line}`).join('\n');
 }
+
+function render(field: SemanticMappingField, path: string): string {
+    switch (field.kind) {
+        case 'direct':
+            return `  ${field.target}: ${path},`;
+        case 'object':
+        case 'resource':
+            return field.fields
+                .filter(child => !child.source.startsWith('__'))
+                .map(child => render(child, `${path}.${child.source}`))
+                .join('\n');
+        case 'collection': {
+            if (!field.element) return `  ${field.target}: ${path},`;
+            if (field.element.kind === 'direct') return `  ${field.target}: ${path},`;
+            const body = render(field.element, 'item');
+            return `  ${field.target}: ${path}?.map(item => ({\n${indent(body)}\n  })),`;
+        }
+        case 'resource_collection':
+            return `  ${field.target}: ${path}.map(${field.mapperName}),`;
+    }
+}
+
+export function buildReadMapperFromContract(contract: SemanticReadMapperContract): string {
+    const fieldLines = contract.fields
+        .filter(field => !field.source.startsWith('__'))
+        .map(field => render(field, `api.${field.source}`))
+        .join('\n');
+
+    return [
+        `export const ${contract.mapperName} = (api: ${contract.apiResponseType}): ${contract.transformedType} => ({`,
+        fieldLines,
+        `})`,
+        '',
+        `export const ${contract.listMapperName} = (api: ${contract.apiResponseType}[]): ${contract.transformedType}[] => api.map(${contract.mapperName})`,
+    ].join('\n');
+}
+
+/** Compatibility name retained; it now accepts only a closed semantic contract. */
+export const buildReadMapperFromFields = buildReadMapperFromContract;

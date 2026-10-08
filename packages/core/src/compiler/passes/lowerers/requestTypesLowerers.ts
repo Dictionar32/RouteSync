@@ -12,6 +12,8 @@ import { lowerFormArtifact } from '../FormGeneratorPass';
 import { lowerContractArtifact } from '../ContractGeneratorPass';
 import { lowerApiFieldArtifact } from '../ApiFieldGeneratorPass';
 import { lowerMapperArtifact } from '../MapperGeneratorPass';
+import { deriveSemanticMappingContract } from '../../scanner/subscanners/request-deriver/semanticMappingDeriver';
+import type { ResourceMappersArtifact } from '../../artifacts/ResourceMappersArtifact';
 import type {
     FormOutput,
     ContractOutput,
@@ -83,7 +85,16 @@ export function lowerApiFieldsOutput(artifact: RequestTypesArtifact): ApiFieldOu
 }
 
 export function lowerMappersOutput(artifact: RequestTypesArtifact): MapperOutput {
-    const mapperArtifact = lowerMapperArtifact(artifact);
+    const mappingArtifact: ResourceMappersArtifact = {
+        typeId: 'ResourceMappers',
+        mapping: deriveSemanticMappingContract(artifact.requestTypes),
+        metadata: {
+            ...artifact.metadata,
+            producer: 'SemanticMappingDeriver',
+            dependencies: [...artifact.metadata.dependencies, 'ResourceMappers'],
+        },
+    };
+    const mapperArtifact = lowerMapperArtifact(mappingArtifact);
     return {
         code: mapperArtifact.code,
         metadata: {

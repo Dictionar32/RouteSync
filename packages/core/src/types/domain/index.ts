@@ -156,6 +156,8 @@ export {
   type ClassifiedDomainGraph,
 } from './domainGraph';
 
+export { EloquentRelationType } from '../upstream/modelVocabulary';
+
 export {
   EloquentCastKind,
   type EloquentCastKindSpecification,
@@ -166,7 +168,6 @@ export {
   EloquentCastMapper,
   type ModelCastFact,
   type ModelAccessorFact,
-  EloquentRelationType,
   type EloquentRelationCardinality,
   type EloquentRelationDescriptor,
   type ModelSemanticRelation,
@@ -456,7 +457,7 @@ export {
 
 export {
   type RouteResponseAnalysis,
-  ResponseDescriptorBase,
+  type ResponseDescriptorBase,
   type ResourceResponseParams,
   ResourceResponseDescriptor,
   type ModelResponseParams,

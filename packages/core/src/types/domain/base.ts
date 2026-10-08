@@ -106,6 +106,8 @@ export interface RouteManifestDomainSurface {
   readonly models: readonly ModelAst[];
   /** Closed upstream Resource -> Model -> primary-key capability. */
   readonly resourceModelKeyCapabilities: readonly import('../upstream/resourceModelKeyCapability').ResourceModelKeyCapabilityContract[];
+  /** Upstream-composed group shape; CLI generators must consume rather than infer it. */
+  readonly resourceGroupCapabilities?: readonly import('../upstream/resourceGroupCapability').ResourceGroupCapabilityContract[];
   readonly routeGroups: readonly ResourceRouteGroup[];       // ✅ Murni native readonly array (0 wrapper class)
   readonly generatedAt: string;
   readonly channels: readonly BroadcastChannelDescriptor[];

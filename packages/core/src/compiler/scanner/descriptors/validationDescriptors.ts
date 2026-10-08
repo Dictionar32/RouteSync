@@ -14,7 +14,7 @@ import {
 } from "./validation/validationRuleSet";
 import {
     ScannedRouteValidationRuleEntry,
-    ScannedRouteValidationRuleParams,
+    type ScannedRouteValidationRuleParams,
     ValidationTreeBuilder
 } from "./validation";
 

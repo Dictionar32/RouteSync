@@ -15,6 +15,7 @@ import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
 import type { ModelAst, ResourceAst } from '../../../types/upstream/ast';
 import { resourceModelKeyCapabilitiesFromAsts } from '../../../types/upstream/resourceModelKeyCapability';
+import { resourceGroupCapabilitiesFromRoutes } from '../../../types/upstream/resourceGroupCapability';
 import { matchDiscovered, matchSourceDiscovery } from '../../../types/upstream/collections';
 import type { Sequence, SourceDiscovery } from '../../../types/upstream/collections';
 import { relationEqual } from '../../../semantic/foundation/semanticRelations';
@@ -91,6 +92,7 @@ export function lowerRouteSyncManifestToRouteManifest(
         resources,
         models,
         resourceModelKeyCapabilities,
+        resourceGroupCapabilities: resourceGroupCapabilitiesFromRoutes(routes),
         routeGroups: Object.freeze([]),
         requestTypes: projection.requestTypes,
         semanticTypes: projection.semanticTypes,

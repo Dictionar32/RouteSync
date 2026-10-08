@@ -9,11 +9,9 @@ export {
     type ResolvedPropertyBinding
 } from './types';
 
-export {
+export type {
     OriginModelSymbol
 } from './originModelSymbol';
 
-export {
-    ModelSymbolTable,
-    createModelSymbolTable
-} from './modelSymbolTableClass';
+export type { ModelSymbolTable } from './modelSymbolTableClass';
+export { createModelSymbolTable } from './modelSymbolTableClass';

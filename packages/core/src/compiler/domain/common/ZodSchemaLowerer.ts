@@ -16,9 +16,9 @@
  */
 
 import {
-    ResolvedSemanticType,
-    ResolvedObjectType,
-    ResolvedPrimitiveKind,
+    type ResolvedSemanticType,
+    type ResolvedObjectType,
+    type ResolvedPrimitiveKind,
     matchResolvedSemanticType
 } from './ResolvedSemanticType';
 import { relationFold, relationProject, relationResolve, relationSlice } from '../../../semantic/foundation/relationalSequence';

@@ -17,3 +17,4 @@ export {
     aggregateRequestTypeGroups,
     type DerivationContext
 } from "./groupAggregator";
+export { deriveSemanticMappingContract } from './semanticMappingDeriver';

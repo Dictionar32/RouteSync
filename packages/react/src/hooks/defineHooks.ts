@@ -81,14 +81,14 @@ export function defineHooks<TConfig extends Record<string, HookConfig>, TManifes
       queryKey: { list: listKey, detail: detailKey },
       service: {
         index:      slots.indexService      ? toIndexFn(slots.indexService) : undefined,
-        show:       slots.showService       ? toShowFn(slots.showService as EndpointCallable<unknown, Record<string, unknown>, unknown, HttpMethod>, slots.showParamKey) : undefined,
+        show:       slots.showService       ? toShowFn(slots.showService as EndpointCallable<unknown, Record<string, unknown>, unknown, HttpMethod>, slots.showParamKey!) : undefined,
         create:     group.create            ?? undefined,
         update:     slots.updateService
-          ? (id: number, data: unknown) => slots.updateService!({ params: { [slots.updateParamKey]: id }, body: data })
+          ? (id: number, data: unknown) => slots.updateService!({ params: { [slots.updateParamKey!]: id }, body: data })
           : undefined,
         updateSelf: slots.resolvedUpdateSelf ?? undefined,
         delete:     slots.deleteService
-          ? async (id: number) => { await slots.deleteService!({ params: { [slots.deleteParamKey]: id } }) }
+          ? async (id: number) => { await slots.deleteService!({ params: { [slots.deleteParamKey!]: id } }) }
           : undefined,
         deleteSelf: slots.deleteSelfService
           ? async () => { await slots.deleteSelfService!() }

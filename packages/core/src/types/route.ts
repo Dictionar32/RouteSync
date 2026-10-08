@@ -1,4 +1,5 @@
 export type { ResourceAst } from "./upstream/ast";
+export { EloquentRelationType } from "./upstream/modelVocabulary";
 
 /**
  * RouteSync Domain Types & Contracts.
@@ -57,7 +58,6 @@ export {
     EloquentCastMapper,
     type ModelCastFact,
     type ModelAccessorFact,
-    EloquentRelationType,
     type EloquentRelationCardinality,
     type EloquentRelationDescriptor,
           type ModelSemanticRelation,
@@ -281,7 +281,7 @@ export {
     type ScannedPolymorphicRelationParams,
     ScannedPolymorphicRelationDescriptor,
     type RouteResponseAnalysis,
-    ResponseDescriptorBase,
+    type ResponseDescriptorBase,
     type ResourceResponseParams,
     ResourceResponseDescriptor,
     type ModelResponseParams,

@@ -5,7 +5,7 @@
  */
 import type { ResolvedSemanticType, ResolvedObjectType } from '../ResolvedSemanticType';
 import { matchResolvedSemanticType } from '../ResolvedSemanticType';
-import { TypeScriptLowererOptions } from './typeScriptVocabulary';
+import type { TypeScriptLowererOptions } from './typeScriptVocabulary';
 import { resolveTypeScriptLoweringFromType } from './typeScriptLoweringSemanticRelations';
 import { resolveTypeScriptPrimitiveToken } from './typeScriptPrimitiveSemanticRelations';
 import type { ResolvedPrimitiveKind } from '../resolved-types';

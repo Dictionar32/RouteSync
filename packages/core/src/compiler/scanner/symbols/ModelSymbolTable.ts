@@ -7,9 +7,5 @@
  * @module core/compiler/scanner/symbols
  */
 
-export {
-    type ResolvedPropertyBinding,
-    OriginModelSymbol,
-    ModelSymbolTable,
-    createModelSymbolTable
-} from './model';
+export type { ResolvedPropertyBinding, OriginModelSymbol, ModelSymbolTable } from './model';
+export { createModelSymbolTable } from './model';

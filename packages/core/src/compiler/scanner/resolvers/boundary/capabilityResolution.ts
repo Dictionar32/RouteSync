@@ -7,6 +7,7 @@
 import type {
     HttpMethod,
     RouteExecutionSignature,
+    RoutePayloadLocation,
     CrudRole,
     RouteSchemaPayload,
     HttpErrorResponseDescriptor,
@@ -23,9 +24,14 @@ import type { RouteSemanticFlowCacheInvalidationDescriptor } from "../../../../t
 export interface ResolvedRouteCapability {
     readonly hookKind: RouteHookKindType;
     readonly crudRole: CrudRole;
+    readonly actionName: import("../../../../types/upstream/names").ActionName;
     readonly crudEvidence: RouteCapabilityCrudEvidence;
     readonly requestContentType: RequestContentTypeType;
     readonly executionSignature: RouteExecutionSignature;
+    readonly payloadLocation: RoutePayloadLocation;
+    readonly payloadLocationDecision: import('../../../../types/upstream/routeExecutionVocabulary').RoutePayloadLocationDecision;
+    readonly schemaRole: 'request' | 'response';
+    readonly reasoning: import("../../../../types/upstream/semanticReasoning").SemanticReasoningContract<'evidence_resolution'>;
     readonly invalidation: ReturnType<typeof RouteSemanticFlowCacheInvalidationDescriptor.none>;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
@@ -66,6 +72,8 @@ export function resolveRouteCapabilityJudgment(
     const semanticOverrides: RouteCapabilitySemanticOverrides = Object.freeze({
         hookKind: input.hookKind,
         executionSignature: input.executionSignature,
+        payloadLocation: input.payloadLocation,
+        schemaRole: input.schemaRole,
         requestContentType: input.requestContentType,
         errorResponses: input.errorResponses,
         invalidation: input.invalidation,
@@ -76,6 +84,8 @@ export function resolveRouteCapabilityJudgment(
 type RouteCapabilityResolutionInput = Readonly<{
     readonly hookKind: RouteHookKindType | void;
     readonly executionSignature: RouteExecutionSignature | void;
+    readonly payloadLocation: RoutePayloadLocation | void;
+    readonly schemaRole: 'request' | 'response' | void;
     readonly requestContentType: RequestContentTypeType | void;
     readonly crudRole: CrudRole | void;
     readonly crudEvidence: RouteCapabilityCrudEvidence | void;
@@ -97,6 +107,8 @@ export function resolveRouteCapability(
         Object.freeze({
             hookKind: presenceOf(params.hookKind),
             executionSignature: presenceOf(params.executionSignature),
+            payloadLocation: presenceOf(params.payloadLocation),
+            schemaRole: presenceOf(params.schemaRole),
             requestContentType: presenceOf(params.requestContentType),
             crudRole: presenceOf(params.crudRole),
             crudEvidence: presenceOf(params.crudEvidence),

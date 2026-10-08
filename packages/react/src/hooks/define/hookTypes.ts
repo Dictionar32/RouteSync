@@ -8,7 +8,7 @@
 
 import { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
 import { EndpointCallable, ApiError, RouteDefinition } from '@routesync/sdk'
-import { HttpMethod } from '@routesync/core'
+import { HttpMethod, type RouteHookKind } from '@routesync/core'
 import type { DomainIntentCapabilityReference } from '@routesync/core'
 
 export type InferResponse<T> = T extends { $def: RouteDefinition<infer R, unknown, unknown, HttpMethod> } ? R : unknown
@@ -31,14 +31,27 @@ export type ResolveError<TTypes> = [TTypes] extends [{ error: infer E }]
     : E
   : ApiError
 
+/**
+ * Consumer signatures indexed by an already-closed upstream hook capability.
+ * This registry does not infer hook semantics from HTTP method, action names,
+ * endpoint paths, or CRUD conventions; it only supplies the TS signature for
+ * a closed capability value.
+ */
+export type HookSignatureByClosedKind<TResponse, TOptions, TError> = {
+  readonly query: (options?: TOptions) => UseQueryResult<TResponse, TError>
+  readonly infinite_query: (options?: TOptions) => UseQueryResult<TResponse, TError>
+  readonly mutation: (options?: TOptions) => UseMutationResult<TResponse, TError, TOptions>
+}
+
+/** Reads the closed capability carried by $def; no method/name classifier. */
+export type ClosedHookKind<T> = T extends { $def: { hookKind: infer K } }
+  ? K extends RouteHookKind
+    ? K
+    : never
+  : never
+
 export type HookForEndpoint<T, TError = ApiError> =
-  InferMethod<T> extends 'GET'
-    ? (options?: FlattenOptions<T>) => UseQueryResult<InferResponse<T>, TError>
-    : () => UseMutationResult<
-        InferResponse<T>,
-        TError,
-        FlattenOptions<T>
-      >
+  HookSignatureByClosedKind<InferResponse<T>, FlattenOptions<T>, TError>[ClosedHookKind<T>]
 
 export type EndpointHooks<TEndpoint, TError = ApiError> = {
   [K in keyof TEndpoint as `use${Capitalize<string & K>}`]: HookForEndpoint<TEndpoint[K], TError>
@@ -73,7 +86,7 @@ export type CrudHooks<TTypes, TEndpoint, TGroupName extends string, TError = Res
 
   useUpdateSelf: [TTypes] extends [{ update: infer U }]
     ? [U] extends [never] ? never : () => UseMutationResult<
-        TEndpoint extends { updateSelf: infer TU } ? InferResponse<TU> : TEndpoint extends { update: infer TU } ? InferResponse<TU> : TEndpoint extends { put: infer TU } ? InferResponse<TU> : TEndpoint extends { patch: infer TU } ? InferResponse<TU> : unknown,
+        TEndpoint extends { updateSelf: infer TU } ? InferResponse<TU> : unknown,
         TError,
         U
       >

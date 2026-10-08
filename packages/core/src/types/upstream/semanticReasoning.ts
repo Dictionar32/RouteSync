@@ -1,3 +1,5 @@
+import type { UpstreamWiringInterface } from '../interfaces/interfaceDependencyBoundary';
+
 /**
  * Upstream semantic-reasoning algebra.
  *
@@ -54,15 +56,38 @@ export interface SemanticReasoningJudgmentInterface<State, Judgment> {
 }
 
 /** Operational reasoning algebra: execution, relation derivation, and judgment are explicit. */
-export interface SemanticReasoningAlgebraInterface<Input, State, Relation, Judgment>
+export interface SemanticReasoningExecutionAlgebraInterface<Input, State, Relation, Judgment>
   extends SemanticReasoningExecutionInterface<Input, State>,
     SemanticReasoningRelationInterface<State, Relation>,
     SemanticReasoningRewriteInterface<State, Relation>,
     SemanticReasoningFixedPointInterface<State>,
     SemanticReasoningJudgmentInterface<State, Judgment> {}
 
-export interface SemanticReasoningInterface<Input, State, Judgment, Relation = never>
-  extends SemanticReasoningAlgebraInterface<Input, State, Relation, Judgment> {}
+/**
+ * Producer-facing reasoning surface. Execution, relation derivation, rewrite,
+ * fixed-point closure, and judgment are upstream-owned.
+ */
+export interface SemanticReasoningAlgebraInterface<Input, State, Relation, Judgment>
+  extends SemanticReasoningExecutionAlgebraInterface<Input, State, Relation, Judgment> {}
+
+export interface SemanticReasoningProducerContractInterface<Input, State, Relation, Judgment>
+  extends SemanticReasoningExecutionAlgebraInterface<Input, State, Relation, Judgment> {}
+
+export interface SemanticReasoningProducerInterface<Input, State, Relation, Judgment>
+  extends SemanticReasoningProducerContractInterface<Input, State, Relation, Judgment> {}
+
+/**
+ * Public semantic reasoning boundary.
+ *
+ * The named `SemanticReasoningInterface` is intentionally consumer-facing:
+ * execution/relation/rewrite/fixed-point operations belong to the producer
+ * algebra above. Downstream code receives only the closed proof contract.
+ */
+export interface SemanticReasoningInterface<
+  Strategy extends SemanticReasoningStrategy = SemanticReasoningStrategy,
+  Evidence extends SemanticReasoningEvidenceForStrategy<Strategy> = SemanticReasoningEvidenceForStrategy<Strategy>,
+  Contract extends SemanticReasoningContract<Strategy, Evidence> = SemanticReasoningContract<Strategy, Evidence>,
+> extends SemanticReasoningConsumerInterface<Strategy, Evidence, Contract> {}
 
 export interface SemanticReasoningEvidenceInterface<
   Evidence extends SemanticReasoningEvidence = SemanticReasoningEvidence,
@@ -143,6 +168,19 @@ export interface SemanticReasoningConsumerInterface<
   Evidence extends SemanticReasoningEvidenceForStrategy<Strategy> = SemanticReasoningEvidenceForStrategy<Strategy>,
   Contract extends SemanticReasoningContract<Strategy, Evidence> = SemanticReasoningContract<Strategy, Evidence>,
 > extends SemanticReasoningConsumerContractInterface<Strategy, Evidence, Contract> {}
+
+/**
+ * Directional projection of a closed reasoning proof. The wiring layer may
+ * transport proof authority, but cannot execute or recompute reasoning.
+ */
+export interface SemanticReasoningWiringInterface<Downstream,
+  Strategy extends SemanticReasoningStrategy = SemanticReasoningStrategy,
+  Evidence extends SemanticReasoningEvidenceForStrategy<Strategy> = SemanticReasoningEvidenceForStrategy<Strategy>,
+  Contract extends SemanticReasoningContract<Strategy, Evidence> = SemanticReasoningContract<Strategy, Evidence>,
+> extends UpstreamWiringInterface<
+  SemanticReasoningConsumerInterface<Strategy, Evidence, Contract>,
+  Downstream
+> {}
 
 /**
  * Contract algebra: the proof facets are interfaces first, while the concrete

@@ -44,7 +44,7 @@ export {
 
 export {
     type RouteResponseAnalysis,
-    ResponseDescriptorBase,
+    type ResponseDescriptorBase,
     type ResourceResponseParams,
     ResourceResponseDescriptor,
     type ModelResponseParams,

@@ -43,7 +43,7 @@ export type UnifiedGroupHookResult<TTypes, TEndpoint, TGroupName extends string,
 
   updateSelf: [TTypes] extends [{ update: infer U }]
     ? [U] extends [never] ? undefined : UseMutationResult<
-        TEndpoint extends { updateSelf: infer TU } ? InferResponse<TU> : TEndpoint extends { update: infer TU } ? InferResponse<TU> : TEndpoint extends { put: infer TU } ? InferResponse<TU> : TEndpoint extends { patch: infer TU } ? InferResponse<TU> : unknown,
+        TEndpoint extends { updateSelf: infer TU } ? InferResponse<TU> : unknown,
         TError,
         U
       >

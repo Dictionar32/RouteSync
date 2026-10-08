@@ -7,15 +7,19 @@
  * @module compiler/passes/mapper
  */
 
+export { buildFieldMappingLine } from './readFieldLineBuilder';
+
 export {
+    buildReadMapperFromContract,
     buildReadMapperFromFields,
-    buildFieldMappingLine,
     indent
 } from './readMapperBuilder';
 
+export { buildFormFieldLine } from './formFieldLineBuilder';
+
 export {
+    buildFormMapperFromContract,
     buildFormMapper,
-    buildFormFieldLine,
     toApiFieldKey
 } from './formMapperBuilder';
 

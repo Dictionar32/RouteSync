@@ -1,9 +1,5 @@
-import {
-  HttpMethod,
-  RequestOptions,
-  RequestOptionsContract,
-  RequestOptionsDescriptor
-} from '../types/request'
+import { RequestOptionsDescriptor } from '../types/request'
+import type { HttpMethod, RequestOptions, RequestOptionsContract } from '../types/request'
 
 export class Request {
   private _url: string = ''

@@ -15,7 +15,6 @@ import type {
 } from '../../types/upstream/semanticDataflow';
 import { createSemanticDataflowJudgment } from '../../types/upstream/semanticDataflowAuthority';
 import { semanticDataflowIdentityEqual } from '../../types/upstream/semanticDataflow';
-import { semanticReasoningContract } from '../../types/upstream/semanticReasoning';
 
 export type SemanticDataflowDataFlowInterface = DataFlowInterface<
   SemanticDataflowInput,
@@ -31,7 +30,8 @@ export const createSemanticDataflowDataFlowInterface = (
   return Object.freeze({
     kind: 'data_flow_interface',
     authority: 'upstream',
-    reasoning: semanticReasoningContract('declarative_relation_rewrite_fixed_point'),
+    // Preserve the exact proof produced by upstream; wiring must not mint a second reasoning contract.
+    reasoning: state.reasoningContract,
     closed: true,
     input,
     seed: (nextInput: SemanticDataflowInput) => createSemanticDataflowJudgment(nextInput),

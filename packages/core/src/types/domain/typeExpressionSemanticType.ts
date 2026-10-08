@@ -3,8 +3,8 @@ import type { PrimitiveVocabulary } from '../upstream/primitiveVocabulary';
 import { resolvePrimitiveProjection, resolveTypeExpressionProjection, type TypeExpressionProjection } from './typeExpressionSemanticRelations';
 import {
     CollectionKind, ErrorType, GenericType, JsonValueType, NeverType, NullableType, OptionalType, primitiveType,
-    ObjectType, PrimitiveKind, PrimitiveType, ReadonlyCollectionType, ReferenceType, UnionType, IntersectionType,
-    type GenericParameter, type SemanticType, ScannedObjectProperty
+    ObjectType, PrimitiveKind, ReadonlyCollectionType, ReferenceType, UnionType, IntersectionType,
+    type PrimitiveType, type GenericParameter, type SemanticType, type ScannedObjectProperty
 } from './semanticType';
 import {
     relationProject,

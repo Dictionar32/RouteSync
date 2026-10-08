@@ -78,4 +78,5 @@ export {
     isRequestTypesArtifact
 } from './RequestTypesArtifact';
 export { RouteManifestArtifact } from './RouteManifestArtifact';
+export { type ResourceMappersArtifact } from './ResourceMappersArtifact';
 export { ResponseAnalysisArtifact } from './ResponseAnalysisArtifact';

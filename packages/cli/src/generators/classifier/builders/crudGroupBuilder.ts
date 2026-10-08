@@ -34,7 +34,8 @@ export function buildCrudGroupDescriptor(
   res: ResourceCrudMap,
   errorRes: ErrorResolutionResult,
   standardKeys: readonly string[],
-  resourceModelKeyCapabilities?: readonly ResourceModelKeyCapabilityContract[]
+  resourceModelKeyCapabilities?: readonly ResourceModelKeyCapabilityContract[],
+  shape: 'full_crud' | 'read_only_crud' | 'flexible_crud' = 'flexible_crud'
 ): ResourceGroupDescriptor<ClassifiedRoute> {
   const primaryKeyType = resolveItemPrimaryKeyType(res.show!, resourceModelKeyCapabilities);
   const listRes = resolveRouteResponseType(res.index);
@@ -43,7 +44,7 @@ export function buildCrudGroupDescriptor(
   const updateRes = res.update ? resolveRouteFormType(res.update) : { typeName: 'never', importedType: null, contractImportedType: null };
   const subRoutes = partitionGroupSubRoutes(res.all, standardKeys, true);
 
-  if (res.create && res.update && res.delete) {
+  if (shape === 'full_crud') {
     const types: FullCrudTypeSignature = new ScannedResourceGroupTypeSignature({
       list: listRes.typeName,
       detail: detailRes.typeName,
@@ -72,7 +73,7 @@ export function buildCrudGroupDescriptor(
     });
   }
 
-  if (!res.create && !res.update && !res.delete) {
+  if (shape === 'read_only_crud') {
     const types: ReadOnlyCrudTypeSignature = new ScannedResourceGroupTypeSignature({
       list: listRes.typeName,
       detail: detailRes.typeName,

@@ -6,10 +6,9 @@
  * @module cli/generators/sdk
  */
 
-import { routeParameterCapabilityReferenceFromRoute, routeTargetScopeFromRoute } from '@routesync/core';
+import { operationIdentityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeParameterCapabilityReferencesFromRoute, routeTargetScopeFromRoute } from '@routesync/core';
 import type { ClassifiedRoute } from '../route-capability-projection';
 import { ConstantsGenerator } from '../ConstantsGenerator';
-import { CANONICAL_ACTION_MAP } from '../canonical-names';
 import { resolveEndpointResponseInfo } from './endpointResolver';
 
 export interface ApiObjectEmitterContext {
@@ -31,7 +30,8 @@ export function emitApiObjectLines(
 
     for (const route of routes) {
       const TitleCaseGroup = groupName.charAt(0).toUpperCase() + groupName.slice(1);
-      const rawAction = (CANONICAL_ACTION_MAP as Record<string, string>)[route.actionName] || (route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1));
+      // Action identity is already closed upstream. This is output identifier casing only.
+      const rawAction = route.actionName.charAt(0).toUpperCase() + route.actionName.slice(1);
       const KeyName = `${TitleCaseGroup}${rawAction}`;
 
       const respInfo = resolveEndpointResponseInfo(route.contract, ctx.usesZod, ctx.usedMappers);
@@ -48,20 +48,19 @@ export function emitApiObjectLines(
 
       apiBodyLines.push(`    ${route.actionName}: endpoint({`);
       apiBodyLines.push(`      method: '${route.method}',`);
-      apiBodyLines.push(`      operationIdentity: ${JSON.stringify({
-        kind: 'operation_identity_reference',
-        identity: {
-          key: route.identity.coordinates.name.value.value,
-          method: route.identity.coordinates.method,
-          path: route.identity.coordinates.path.value.value,
-        },
-      })},`);
+      apiBodyLines.push(`      operationIdentity: ${JSON.stringify(operationIdentityReferenceFromCapability(route.raw.capability))},`);
       apiBodyLines.push(`      hookKind: '${route.raw.capability.hookKind}',`);
+      apiBodyLines.push(`      payloadLocation: '${route.raw.capability.payloadLocation}',`);
+      apiBodyLines.push(`      schemaRole: '${route.raw.capability.schemaRole}',`);
       apiBodyLines.push(`      crudRole: '${route.raw.capability.crudRole}',`);
       apiBodyLines.push(`      targetScope: '${routeTargetScopeFromRoute(route.raw)}',`);
       const routeParameter = routeParameterCapabilityReferenceFromRoute(route.raw);
+      const routeParameters = routeParameterCapabilityReferencesFromRoute(route.raw);
       if (routeParameter) {
         apiBodyLines.push(`      routeParameter: ${JSON.stringify(routeParameter)},`);
+      }
+      if (routeParameters.length > 0) {
+        apiBodyLines.push(`      routeParameters: ${JSON.stringify(routeParameters)},`);
       }
 
       const routeKey = ConstantsGenerator.getRouteKey(route.identity.coordinates.path.value);

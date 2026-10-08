@@ -186,10 +186,16 @@ export type RouteDefinition<
   /** Closed upstream route execution capability projected into the SDK boundary. */
   hookKind?: import('./upstream/routeExecutionVocabulary').RouteHookKind;
   crudRole?: import('./upstream/routeExecutionVocabulary').CrudRole;
+  /** Closed upstream placement for flattened endpoint variables. */
+  payloadLocation?: import('./upstream/routeExecutionVocabulary').RoutePayloadLocation;
+  /** Closed upstream role for an unkeyed route schema; consumers do not infer it from hook kind. */
+  schemaRole?: 'request' | 'response';
   /** Closed upstream route target scope; React must not infer it from the path. */
   targetScope?: 'collection' | 'member';
-  /** Closed upstream route-parameter projection; React must not parse the path. */
+  /** Closed upstream route-parameter projection; React/SDK must not parse the path. */
   routeParameter?: import('./upstream/routeParameterCapability').RouteParameterCapabilityReference;
+  /** All closed upstream path-parameter projections for request option splitting. */
+  routeParameters?: readonly import('./upstream/routeParameterCapability').RouteParameterCapabilityReference[];
   auth?: boolean;
   schema?: RouteSchema;
   responseSchema?: ResponseSchema<TResponse>;

@@ -130,7 +130,7 @@ export {
   PhpAstKind,
   ResourceGroupKind,
   ResourceResponseDescriptor,
-  ResponseDescriptorBase,
+  type ResponseDescriptorBase,
   ResponseKind,
   ResponseShape,
   RouteActionKind,
@@ -700,7 +700,7 @@ export type {
 } from './types/semantic';
 
 // SymbolTable — O(1) model/member lookup (roadmap: next after ResolverMeta unification)
-export { SymbolTable, ModelSymbol } from './semantic/SymbolTable'
+export type { SymbolTable, ModelSymbol } from './semantic/SymbolTable'
 
 // RouteSync Compiler Core v6.0
 export * as v6 from './compiler'
@@ -746,7 +746,7 @@ export {
   type PhpArrayEntry,
   type ParsedPhpArrayResult,
   PhpAstFactory,
-  SourceStream,
+  type SourceStream,
   tokenizePhpSource,
   parsePhpArray,
   classifyAstTokens,
@@ -766,7 +766,7 @@ export { semanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDat
 export type { ControlFlowSolverInterface, ControlFlowDataFlowInterface, DataFlowAnalysisInterface } from './compiler/analysis/dataflow/controlFlowDataFlowInterface'
 export type { DataFlowInterface, DataFlowSourceInterface, DataFlowStepInterface, DataFlowFixpointInterface, DataFlowExecutionInterface, DataFlowInputInterface, DataFlowStateInterface, DataFlowQueryInterface, DataFlowClosureInterface, DataFlowAuthorityInterface, DataFlowAuthorityContractInterface, DataFlowProducerContractInterface, DataFlowProducerInterface, DataFlowCapabilityAuthorityInterface, DataFlowConsumerInterface, DataFlowProjectionAlgebraInterface, DataFlowProjectionContract, DataFlowProjectionInterface, DataFlowCapabilityProjectionAlgebraInterface, DataFlowCapabilityProjectionContract, DataFlowCapabilityProjectionInterface } from './types/dataflow'
 export type { SemanticCapabilityAuthority, SemanticCapabilityKind, SemanticCapabilityEvidence, SemanticCapabilityIdentityInterface, SemanticCapabilityEvidenceInterface, SemanticCapabilityAlgebraInterface, SemanticCapabilityContractInterface, SemanticCapabilityDerivationInterface, SemanticCapabilityProvenanceInterface, SemanticCapabilityClosureInterface, SemanticCapabilityDerivation, SemanticCapabilityProvenance, SemanticCapabilityContract, SemanticCapabilityConsumerInterface, SemanticCapabilityInterface, SemanticCapabilityAuthorityInterface, SemanticCapabilityConsumerAlgebraInterface, SemanticCapabilityConsumerContractInterface } from './types/upstream/semanticCapability'
-export type { SemanticReasoningAuthority, SemanticReasoningStrategy, SemanticReasoningEvidenceKind, SemanticReasoningExecutionInterface, SemanticReasoningRelationInterface, SemanticReasoningRewriteInterface, SemanticReasoningFixedPointInterface, SemanticReasoningJudgmentInterface, SemanticReasoningAlgebraInterface, SemanticReasoningInterface, SemanticReasoningEvidenceInterface, SemanticReasoningDerivationInterface, SemanticReasoningProvenanceInterface, SemanticReasoningClosureInterface, SemanticReasoningProofInterface, SemanticReasoningAuthorityInterface, SemanticReasoningConsumerAlgebraInterface, SemanticReasoningConsumerContractInterface, SemanticReasoningConsumerInterface, SemanticReasoningContractInterface, SemanticReasoningContract } from './types/upstream/semanticReasoning'
+export type { SemanticReasoningAuthority, SemanticReasoningStrategy, SemanticReasoningEvidenceKind, SemanticReasoningExecutionInterface, SemanticReasoningRelationInterface, SemanticReasoningRewriteInterface, SemanticReasoningFixedPointInterface, SemanticReasoningJudgmentInterface, SemanticReasoningExecutionAlgebraInterface, SemanticReasoningAlgebraInterface, SemanticReasoningProducerContractInterface, SemanticReasoningProducerInterface, SemanticReasoningInterface, SemanticReasoningEvidenceInterface, SemanticReasoningDerivationInterface, SemanticReasoningProvenanceInterface, SemanticReasoningClosureInterface, SemanticReasoningProofInterface, SemanticReasoningAuthorityInterface, SemanticReasoningConsumerAlgebraInterface, SemanticReasoningConsumerContractInterface, SemanticReasoningConsumerInterface, SemanticReasoningWiringInterface, SemanticReasoningContractInterface, SemanticReasoningContract } from './types/upstream/semanticReasoning'
 export { routeCapabilityAuthority } from './types/upstream/routeCapabilityAuthority'
 export { routeCapabilitySemanticAuthority } from './types/upstream/routeCapabilitySemanticAuthority'
 export type { RouteCapabilitySemanticAuthorityAlgebraInterface, RouteCapabilitySemanticAuthorityContractInterface, RouteCapabilitySemanticAuthorityInterface, RouteCapabilitySemanticEvidence, RouteCapabilitySemanticOverrides, RouteCapabilitySemanticInput, RouteCapabilitySemanticResolution } from './types/upstream/routeCapabilitySemanticAuthority'
@@ -775,7 +775,7 @@ export type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowA
 export { semanticDataflowIdentityEqual } from './types/upstream/semanticDataflow'
 export { createSemanticDataflowJudgment } from './types/upstream/semanticDataflowAuthority'
 export type { InterfaceDependencyAlgebraInterface, InterfaceDependencyContractInterface, InterfaceDependencyBoundary, UpstreamWiringInterface, InterfaceCompositionAlgebra, InterfaceCompositionContract, InterfaceComposition, SemanticCapabilityProjectionAlgebraInterface, SemanticCapabilityProjectionContract, SemanticCapabilityProjectionInterface } from './types/interfaces';
-export { composeUpstreamWiring } from './types/interfaces';
+export { composeUpstreamWiring } from './types/interfaces/interfaceComposition';
 export { createDataFlowConfig } from './compiler/analysis/dataflow/dataFlowConfigInterface'
 export { composeDataFlowConfigContributors } from './compiler/analysis/dataflow/dataFlowConfigContributorInterface'
 export { selectDataFlowFacts } from './compiler/analysis/dataflow/dataFlowFactPolicyInterface';
@@ -796,6 +796,9 @@ export { IdentifierCase, extractClassBasename, inferLaravelTableName } from './u
 export {
   ScannedObjectProperty,
   PrimitiveKind,
+  CollectionKind
+} from './types/domain/semanticType'
+export type {
   PrimitiveType,
   JsonValueType,
   ObjectType,
@@ -805,12 +808,10 @@ export {
   ReadonlyCollectionType,
   MutableCollectionType,
   OptionalType,
-  NullableType,
-  CollectionKind
+  NullableType
 } from './types/domain/semanticType'
 
 export {
-  ResolvedPhpType,
   PrimitivePhpType,
   EloquentModelPhpType,
   ResourceWrapperPhpType,
@@ -818,7 +819,7 @@ export {
   UnknownPhpType,
   matchResolvedPhpType
 } from './compiler/types/ResolvedPhpType'
-export type { ResolvedPhpTypeVisitor } from './compiler/types/ResolvedPhpType'
+export type { ResolvedPhpType, ResolvedPhpTypeVisitor } from './compiler/types/ResolvedPhpType'
 
 export { ContractActionGenerator } from './compiler/generators/contract-generation/ContractActionGenerator'
 export { FormActionGenerator } from './compiler/generators/form-generation/FormActionGenerator'
@@ -851,11 +852,11 @@ export type {
 // Compiler Diagnostics (Stage 2: Validation Gatekeeper)
 export {
   DiagnosticBag,
-  CompilerValidationError,
   DiagnosticCategory,
   DIAGNOSTIC_CATEGORY_REGISTRY,
   matchDiagnosticCategory
 } from './compiler/diagnostics'
+export type { CompilerValidationError } from './compiler/diagnostics'
 export type {
   Diagnostic,
   DiagnosticSeverity,
@@ -926,7 +927,7 @@ export {
   type RouteBoundaryOptions,
   RouteBoundaryContractFactory
 } from './compiler/scanner/resolvers'
-export { ModelSymbolTable, OriginModelSymbol } from './compiler/scanner/symbols/ModelSymbolTable'
+export type { ModelSymbolTable, OriginModelSymbol } from './compiler/scanner/symbols/ModelSymbolTable'
 export { SemanticResourceBinder } from './compiler/scanner/binders/SemanticResourceBinder'
 export { ResourceModelResolver } from './compiler/scanner/resolvers/resource'
 export {
@@ -1094,8 +1095,15 @@ export type { OperationIdentityCapabilityEvidence, OperationIdentity, OperationI
 export type { DomainIntentCapabilityKind, DomainIntentCapabilityEvidence, DomainIntentOperationReference, AggregateCollectionIntentCapability, GenericDomainIntentCapability, DomainIntentCapabilityAlgebraInterface, DomainIntentCapabilityContract, DomainIntentCapabilityInterface, DomainIntentCapabilityConsumerInterface, DomainIntentCapabilityReference } from './types/upstream/domainIntentCapability';
 export { domainIntentCapabilityFromRuntimeConfig, domainIntentCapabilitiesFromFrontend, domainIntentCapabilityReferenceFromCapability } from './types/upstream/domainIntentCapability';
 export type { RouteParameterCapabilityEvidence, RouteParameterCapabilityAlgebraInterface, RouteParameterCapabilityContract, RouteParameterCapabilityInterface, RouteParameterCapabilityConsumerInterface, RouteParameterCapabilityReference } from './types/upstream/routeParameterCapability';
-export { routeParameterCapabilityFromRoute, routeParameterCapabilityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeTargetScopeFromRoute } from './types/upstream/routeParameterCapability';
-export { operationIdentityCapabilityFromRoute, operationIdentityReferenceFromCapability } from './types/upstream/operationIdentityCapability';
+export { routeParameterCapabilityFromRoute, routeParameterCapabilityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeParameterCapabilityReferencesFromRoute, routeTargetScopeFromRoute } from './types/upstream/routeParameterCapability';
+export { operationIdentityCapabilityFromRoute } from './types/upstream/operationIdentityCapabilityAuthority';
+export { operationIdentityReferenceFromCapability } from './compiler/scanner/wiring/operationIdentityProjection';
 export type { ResourceModelKeyCapabilityProjectionInterface } from './types/upstream/resourceModelKeyCapability';
+export type { ResourceGroupShape, ResourceGroupCapabilityEvidence, ResourceGroupCapabilityContract } from './types/upstream/resourceGroupCapability';
+export { resourceGroupCapabilitiesFromRoutes } from './types/upstream/resourceGroupCapability';
 
 export type { OperationIdentityProjectionAlgebraInterface, OperationIdentityProjectionContract, OperationIdentityProjectionInterface } from './types/interfaces/operationIdentityProjectionInterface';
+
+export type { SemanticMappingDirection, SemanticMappingKind, SemanticMappingField, SemanticReadMapperContract, SemanticWriteMapperField, SemanticWriteMapperContract, SemanticMappingEvidence, SemanticMappingContractInterface, SemanticMappingContract, MapperContract, MapperInterface, MapperConsumerInterface, MapperWiringInterface, SemanticMappingConsumerInterface, SemanticMappingWiringInterface } from './types/upstream/semanticMapping'
+
+export type { MapperProjectionTarget, MapperProjectionAlgebraInterface, MapperProjectionContract, MapperProjectionInterface } from './types/interfaces/mapperProjectionInterface'

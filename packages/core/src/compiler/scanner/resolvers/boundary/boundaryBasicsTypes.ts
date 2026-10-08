@@ -10,7 +10,7 @@
 import type {
     HttpMethod, RouteActionKind, CrudRole, RouteHookKind, RequestContentType,
     RouteParameter, RouteQueryParameter, ResponseDescriptor, HttpErrorResponseDescriptor,
-    RouteCacheInvalidationDescriptor, RouteExecutionSignature, RouteSchemaPayload,
+    RouteCacheInvalidationDescriptor, RouteExecutionSignature, RoutePayloadLocation, RouteSchemaPayload,
     FormRequestDescriptor, RouteHandlerDescriptor
 } from "../../../../types/route";
 
@@ -39,6 +39,9 @@ export interface RouteBoundaryCommonOptions {
     readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
     readonly invalidation?: RouteCacheInvalidationDescriptor;
     readonly executionSignature?: RouteExecutionSignature;
+    readonly payloadLocation?: RoutePayloadLocation;
+    /** Explicit role for an unkeyed schema; absent means Laravel request-validation schema. */
+    readonly schemaRole?: 'request' | 'response';
     readonly requestContentType?: RequestContentType;
     readonly hookKind?: RouteHookKind;
     readonly crudRole?: CrudRole;
@@ -129,6 +132,11 @@ export interface ResolvedRouteBoundaryOptions {
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
     readonly invalidation: RouteCacheInvalidationDescriptor;
     readonly executionSignature: RouteExecutionSignature;
+    readonly payloadLocation: RoutePayloadLocation;
+    readonly payloadLocationDecision: import('../../../../types/upstream/routeExecutionVocabulary').RoutePayloadLocationDecision;
+    readonly schemaRole: 'request' | 'response';
+    /** Exact proof contract produced by the upstream capability authority. */
+    readonly reasoning: import("../../../../types/upstream/semanticReasoning").SemanticReasoningContract<'evidence_resolution'>;
     readonly requestContentType: RequestContentType;
     readonly hookKind: RouteHookKind;
     readonly crudRole: CrudRole;

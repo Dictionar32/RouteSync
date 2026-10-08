@@ -36,8 +36,8 @@ check('reasoning algebra has interface facets',
 
 check('reasoning contract refines proof algebra',
   /interface SemanticReasoningProofInterface/.test(reasoning) &&
-  /interface SemanticReasoningContractInterface<[\s\S]*extends SemanticReasoningProofInterface<Evidence>/.test(reasoning) &&
-  /interface SemanticReasoningContract<[\s\S]*extends SemanticReasoningContractInterface<Evidence>/.test(reasoning),
+  /interface SemanticReasoningContractInterface<[\s\S]*extends SemanticReasoningProofInterface<Strategy, Evidence>/.test(reasoning) &&
+  /interface SemanticReasoningContract<[\s\S]*extends SemanticReasoningContractInterface<Strategy, Evidence>/.test(reasoning),
   'reasoning must follow interface algebra -> proof algebra -> contract specialization.');
 
 check('reasoning authority is read-only and upstream',
@@ -53,8 +53,8 @@ check('capability contract composes capability algebra',
   'capability meaning must be closed upstream before wiring.');
 
 check('capability carries reasoning authority',
-  /SemanticReasoningAuthorityInterface<ReasoningEvidence, Reasoning>/.test(capability) &&
-  /readonly capability: Capability/.test(capability),
+  /SemanticReasoningAuthorityInterface<Reasoning\['strategy'\], ReasoningEvidence, Reasoning>/.test(capability) &&
+  /interface SemanticCapabilityAlgebraInterface[\s\S]*SemanticReasoningAuthorityInterface/.test(capability),
   'capability must carry the proof-bearing reasoning contract.');
 
 check('dataflow contract composes dataflow algebra',
@@ -78,7 +78,8 @@ check('wiring is a distinct directional lane',
   'wiring must encode direction and ownership without becoming semantic authority.');
 
 check('route capability is closed upstream',
-  /extends SemanticCapabilityContract<'route_capability', RouteCapabilityEvidence, RouteIdentity>/.test(route) &&
+  /interface RouteCapabilityAlgebraInterface[\s\S]*extends SemanticCapabilityContractInterface<'route_capability', RouteCapabilityEvidence, RouteIdentity>/.test(route) &&
+  /interface RouteCapabilityContract extends RouteCapabilityAlgebraInterface/.test(route) &&
   /readonly crudRole: CrudRole/.test(route) &&
   /readonly actionKind: RouteActionKind/.test(route),
   'route CRUD/action meaning must cross the boundary as capability values.');

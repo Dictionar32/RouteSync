@@ -54,3 +54,4 @@ export const createSymbolTable = (models: readonly ModelNode[]): SymbolTable => 
         findFirst: (predicate: (node: ModelNode) => boolean): Lookup<ModelSymbol> => relationOptionFold(relationFirst<ModelSymbol>(symbols, symbol => predicate(symbol.node)), missing<ModelSymbol>, found<ModelSymbol>),
     });
 };
+

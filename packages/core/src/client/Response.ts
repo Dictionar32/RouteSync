@@ -1,4 +1,4 @@
-import { ApiResponse } from '../types/response'
+import type { ApiResponse } from '../types/response'
 
 export class Response<T = unknown> {
   constructor(private raw: ApiResponse<T>) {}

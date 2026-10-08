@@ -5,7 +5,6 @@
  */
 
 import type { RouteCapabilityContract, RouteIdentity } from '../../../../types/upstream/route';
-import { semanticReasoningContract } from '../../../../types/upstream/semanticReasoning';
 import { routeSecurityAuthority } from '../../../../types/upstream/routeSecurityAuthority';
 import { toUpstreamHttpErrorResponse, type HttpErrorResponseDescriptor } from "../../../../types/domain/httpErrors";
 import type { ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
@@ -35,7 +34,9 @@ export function buildRouteCapabilityContract(
         path: params.path,
     });
     const security = routeSecurityAuthority.resolve(middleware, params.auth);
-    const reasoning = semanticReasoningContract('evidence_resolution');
+    // Preserve the exact proof produced by RouteCapabilitySemanticAuthority.
+    // This builder composes the closed contract; it must not mint a second proof.
+    const reasoning = params.reasoning;
 
     return Object.freeze({
         identity,
@@ -49,6 +50,7 @@ export function buildRouteCapabilityContract(
             queryKeyExpressions: sequenceFromArray(params.invalidation.queryKeyExpressions),
         }),
         crudRole: params.crudRole,
+        actionName: params.actionName,
         kind: 'route_capability',
         authority: 'upstream',
         reasoning,
@@ -63,6 +65,9 @@ export function buildRouteCapabilityContract(
         actionKind: basics.resolvedActionKind,
         requestContentType: params.requestContentType,
         executionSignature: params.executionSignature,
+        payloadLocation: params.payloadLocation,
+        payloadLocationDecision: params.payloadLocationDecision,
+        schemaRole: params.schemaRole,
         errorResponses: sequenceMap<HttpErrorResponseDescriptor, import("../../../../types/upstream/routeErrorVocabulary").HttpErrorResponse>(params.errorResponses, toUpstreamHttpErrorResponse)
     });
 }

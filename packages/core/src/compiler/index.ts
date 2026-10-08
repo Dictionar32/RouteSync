@@ -32,7 +32,7 @@ export {
     type ASTNodeId,
     type ASTNodeData
 } from './utils/Arena';
-export { ControlFlowGraph } from './utils/ControlFlowGraph';
+export type { ControlFlowGraph } from './utils/ControlFlowGraph';
 export {
     ImmutableMap as ImmutableMapUtil,
     ImmutableSet as ImmutableSetUtil
@@ -75,17 +75,18 @@ export {
 // ============================================================================
 export {
     // Dominator analysis
-    DominatorTree,
-    DominanceFrontier,
+    type DominatorTree,
+    type DominanceFrontier,
     // Loop analysis
     type LoopInfo,
     LoopAnalysis,
     LoopNormalizer,
     // SSA analysis
     type SSABasicBlock,
-    SSARepresentation,
+    type SSARepresentation,
     SSABuilder,
     SSARenamer,
+    type SSARenamer,
     // Use-def analysis
     UseDefGraph,
     // Symbol analysis
@@ -149,19 +150,19 @@ export {
 export {
     CompilerArtifact,
     TypedArtifact,
-    ArtifactMetadata
+    type ArtifactMetadata
 } from './artifacts/Artifact';
 
-export {
+export type {
     ArtifactRegistry,
     ArtifactKey,
     ArtifactStorage
 } from './artifacts/types';
 
 export { ASTArtifact } from './artifacts/ASTArtifact';
-export { ScopeGraphArtifact, ScopeNode } from './artifacts/ScopeGraphArtifact';
-export { BoundASTArtifact, BoundASTNode, SymbolReference as BoundSymbolReference } from './artifacts/BoundASTArtifact';
-export { SymbolGraphArtifact, Symbol, SymbolTable } from './artifacts/SymbolGraphArtifact';
+export { ScopeGraphArtifact, type ScopeNode } from './artifacts/ScopeGraphArtifact';
+export { BoundASTArtifact, type BoundASTNode, type SymbolReference as BoundSymbolReference } from './artifacts/BoundASTArtifact';
+export { SymbolGraphArtifact, type Symbol, type SymbolTable } from './artifacts/SymbolGraphArtifact';
 export { ConstraintGraphArtifact } from './artifacts/ConstraintGraphArtifact';
 export { TypeEnvironmentArtifact } from './artifacts/TypeEnvironmentArtifact';
 export { ExpressionIRArtifact } from './artifacts/ExpressionIRArtifact';
@@ -174,21 +175,21 @@ export { CompilationResultArtifact } from './artifacts/CompilationResultArtifact
 // Passes Module
 // ============================================================================
 export {
-    PassDescriptor,
-    PassDependency,
-    CompilerPass,
-    ExecutablePass,
+    type PassDescriptor,
+    type PassDependency,
+    type CompilerPass,
+    type ExecutablePass,
     createTypedPassAdapter,
     PassGraph,
     PassManager,
     CompilationState,
     CompilationContext,
-    CompilerOptions,
+    type CompilerOptions,
     ArtifactKeyWitness,
-    ResolveArtifacts,
+    type ResolveArtifacts,
     readArtifacts,
     tupleAt,
-    PassResult,
+    type PassResult,
     AnalysisKey
 } from './passes';
 
@@ -196,11 +197,13 @@ export {
 // Diagnostics Module
 // ============================================================================
 export {
+    DiagnosticBag
+} from './diagnostics';
+export type {
     Diagnostic,
     DiagnosticSeverity,
     DiagnosticFix,
-    TextEdit,
-    DiagnosticBag
+    TextEdit
 } from './diagnostics';
 
 // ============================================================================
@@ -321,7 +324,7 @@ export {
     type PhpArrayEntry,
     type ParsedPhpArrayResult,
     PhpAstFactory,
-    SourceStream,
+    type SourceStream,
     tokenizePhpSource,
     parsePhpArray,
     classifyAstTokens,

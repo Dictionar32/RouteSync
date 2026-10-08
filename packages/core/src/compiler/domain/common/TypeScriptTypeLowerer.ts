@@ -14,8 +14,8 @@ import { type ObjectType } from '../../../types/domain/semanticType';
 
 import {
     TypeScriptTargetVersion,
-    TypeScriptLowererOptions,
-    TypeScriptPrimitiveToken,
+    type TypeScriptLowererOptions,
+    type TypeScriptPrimitiveToken,
     TypeScriptPrimitiveMapping,
     TypeScriptAliasSuffix,
     ControllerActionToAlias,
@@ -26,9 +26,9 @@ import { TypeScriptSyntax } from './ts-lowerer/typeScriptSyntax';
 
 import {
     SourceLineRange,
-    GeneratedInterfaceMetadata,
-    LoweredTypeDeclaration,
-    TypeScriptBuildResult
+    type GeneratedInterfaceMetadata,
+    type LoweredTypeDeclaration,
+    type TypeScriptBuildResult
 } from './ts-lowerer/typeScriptMetadata';
 
 import { TypeScriptCodeBuilder } from './ts-lowerer/typeScriptCodeBuilder';
@@ -69,17 +69,17 @@ export function lowerTypeScriptTypes(
 
 export {
     TypeScriptTargetVersion,
-    TypeScriptLowererOptions,
-    TypeScriptPrimitiveToken,
+    type TypeScriptLowererOptions,
+    type TypeScriptPrimitiveToken,
     TypeScriptPrimitiveMapping,
     TypeScriptAliasSuffix,
     ControllerActionToAlias,
     TypeScriptToken,
     TypeScriptSyntax,
     SourceLineRange,
-    GeneratedInterfaceMetadata,
-    LoweredTypeDeclaration,
-    TypeScriptBuildResult,
+    type GeneratedInterfaceMetadata,
+    type LoweredTypeDeclaration,
+    type TypeScriptBuildResult,
     TypeScriptCodeBuilder,
     toTypeScriptTypeExpression,
     buildTopLevelDeclaration

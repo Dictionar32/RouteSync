@@ -1,4 +1,3 @@
-import { relationResolve } from '../../../relational/sequence';
 import type { TokenDescriptor } from '../phpAstTypes';
 import { TokenCursor } from './relationalSyntaxCursor';
 import { presenceFold, type Presence } from '../../../../types/upstream/presence';

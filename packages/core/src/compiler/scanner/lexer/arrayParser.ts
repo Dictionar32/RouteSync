@@ -6,7 +6,8 @@
  * @module core/compiler/scanner/lexer/arrayParser
  */
 
-import { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey, createSourceOffset } from './PhpAst';
+import { createSourceOffset } from './PhpAst';
+import type { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey } from './PhpAst';
 import { classifyAstTokens } from './astClassifier';
 import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/foundation/relationalSequence';
 import { relationEqual } from '../../../semantic/foundation/semanticRelations';

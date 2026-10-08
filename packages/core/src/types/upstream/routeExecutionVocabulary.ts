@@ -52,6 +52,38 @@ export const RoutePayloadMode = Object.freeze({
 } as const);
 export type RoutePayloadMode = typeof RoutePayloadMode[keyof typeof RoutePayloadMode];
 
+/** Closed upstream placement for unwrapped endpoint variables. Runtime consumers must not infer this from HTTP method. */
+export const RoutePayloadLocation = Object.freeze({
+  None: 'none',
+  Query: 'query',
+  Body: 'body'
+} as const);
+export type RoutePayloadLocation = typeof RoutePayloadLocation[keyof typeof RoutePayloadLocation];
+
+/**
+ * Proof-carrying resolution of payload placement. The method convention is an
+ * explicit fallback policy, not evidence masquerading as a source fact.
+ */
+export type RoutePayloadLocationDecision =
+  | {
+      readonly kind: 'explicit_boundary';
+      readonly location: RoutePayloadLocation;
+      readonly closed: true;
+    }
+  | {
+      readonly kind: 'http_method_fallback_policy';
+      readonly method: HttpMethod;
+      readonly policy: 'laravel_http_method_payload_convention';
+      readonly location: RoutePayloadLocation;
+      readonly closed: true;
+    };
+
+export function routePayloadLocationFromMethod(method: HttpMethod): RoutePayloadLocation {
+  return method === HttpMethod.GET || method === HttpMethod.HEAD
+    ? RoutePayloadLocation.Query
+    : RoutePayloadLocation.Body;
+}
+
 export interface NoPayloadExecutionSignature {
   readonly payloadMode: 'none';
   readonly parameterDeclaration: '';

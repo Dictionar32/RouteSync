@@ -8,7 +8,7 @@
  */
 
 import type { CodeSink } from '../sink/CodeSink';
-import type { RequestTypesArtifact } from '../artifacts/RequestTypesArtifact';
+import type { ResourceMappersArtifact } from '../artifacts/ResourceMappersArtifact';
 import type { GeneratedMapperArtifact } from '../artifacts/GeneratedMapperArtifact';
 import {
     collectMapperParts,
@@ -18,16 +18,16 @@ import {
 } from '../passes/mapper';
 
 export class MapperProjector {
-    public project(artifact: RequestTypesArtifact, sink: CodeSink): GeneratedMapperArtifact {
-        const requestTypes = artifact.requestTypes;
+    public project(artifact: ResourceMappersArtifact, sink: CodeSink): GeneratedMapperArtifact {
+        const mapping = artifact.mapping;
 
-        if (requestTypes.length === 0) {
+        if (mapping.read.length === 0 && mapping.write.length === 0) {
             const emptyArtifact = buildEmptyMapperArtifact('MapperProjector');
             sink.writeBlock(emptyArtifact.code);
             return emptyArtifact;
         }
 
-        const parts = collectMapperParts(requestTypes);
+        const parts = collectMapperParts(mapping);
         const code = assembleMapperCode(parts);
         sink.writeBlock(code);
 

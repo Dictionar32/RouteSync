@@ -6,6 +6,7 @@
  * downstream consumers that must not reconstruct semantic meaning.
  */
 import type { SemanticCapabilityAuthorityInterface, SemanticCapabilityContractInterface } from '../upstream/semanticCapability';
+import type { UpstreamWiringInterface } from '../interfaces/interfaceDependencyBoundary';
 import type { SemanticReasoningAuthorityInterface, SemanticReasoningContract, SemanticReasoningEvidence, SemanticReasoningExecutionInterface, SemanticReasoningStrategy } from '../upstream/semanticReasoning';
 
 export type DataFlowInterfaceKind = 'data_flow_interface';

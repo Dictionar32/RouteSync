@@ -9,6 +9,7 @@ export * from './assignment';
 export * from './databaseVocabulary';
 export * from './model';
 export * from './resource';
+export * from './resourceGroupCapability';
 export * from './request';
 export * from './response';
 export * from './routeNames';
@@ -108,3 +109,5 @@ export * from './operationIdentityCapability';
 
 export * from './domainIntentCapability';
 export * from './routeParameterCapability';
+
+export * from "./semanticMapping";

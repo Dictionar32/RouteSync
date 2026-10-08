@@ -46,6 +46,10 @@ export function endpoint<
     method: TMethod
     path: TPath
     auth?: boolean
+    /** Closed upstream payload placement; runtime must not infer it from HTTP method. */
+    payloadLocation?: 'none' | 'query' | 'body'
+    /** Closed upstream role for an unkeyed schema. */
+    schemaRole?: 'request' | 'response'
     schema?: unknown
     contract?: {
       body?: (payload: unknown) => unknown

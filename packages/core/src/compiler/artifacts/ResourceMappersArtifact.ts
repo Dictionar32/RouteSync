@@ -1,27 +1,15 @@
 /**
- * ResourceMappersArtifact.ts
+ * Closed upstream mapper contract artifact.
  *
- * Upstream Intermediate Representation for API Read Mappers.
- * Produced by upstream semantic analysis passes, consumed by MapperGeneratorPass.
- * Complete Contract (0 '?', 0 '??', 0 'undefined').
- *
- * @module compiler/artifacts
+ * The artifact carries semantic mapping meaning, not generated source code.
+ * Downstream mapper generation is a projection only.
  */
-
 import type { ArtifactMetadata } from './Artifact';
-import type { ResolvedProperty } from '../domain/common/ResolvedSemanticType';
+import type { MapperConsumerInterface } from '../../types/upstream/semanticMapping';
+import type { MapperProjectionTarget } from '../../types/interfaces/mapperProjectionInterface';
 
-export interface ResourceMapperDefinition {
-    readonly resourceName: string;
-    readonly functionName: string;
-    readonly apiType: string;
-    readonly transformedType: string;
-    readonly body: string;
-    readonly fields: readonly ResolvedProperty[];
-}
-
-export interface ResourceMappersArtifact {
+export interface ResourceMappersArtifact extends MapperProjectionTarget {
     readonly typeId: 'ResourceMappers';
-    readonly mappers: readonly ResourceMapperDefinition[];
+    readonly mapping: MapperConsumerInterface;
     readonly metadata: ArtifactMetadata;
 }

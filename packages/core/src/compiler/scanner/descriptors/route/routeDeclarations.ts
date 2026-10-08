@@ -51,6 +51,9 @@ export type RouteSemanticFlowFields = RouteSemanticFlow & {
     readonly hookKind: RouteHookKind;
     readonly invalidation: RouteCapabilityContract["invalidation"];
     readonly executionSignature: RouteExecutionSignature;
+    readonly payloadLocation: RouteCapabilityContract['payloadLocation'];
+    readonly payloadLocationDecision: RouteCapabilityContract['payloadLocationDecision'];
+    readonly schemaRole: RouteCapabilityContract['schemaRole'];
     readonly requestContentType: RequestContentType;
     readonly auth: RouteCapabilityContract["auth"];
     readonly security: RouteSecurityDescriptor;
@@ -109,7 +112,7 @@ export const createRouteSemanticFlowFields = (
         queryParameters: identity.parameters.query,
         handler,
         action: binding.operation.name,
-        actionName: binding.operation.name,
+        actionName: capability.actionName,
         controllerName,
         schema: binding.schema,
         runtimeReturn: binding.runtimeReturn,
@@ -129,6 +132,9 @@ export const createRouteSemanticFlowFields = (
         isMutating: ROUTE_ACTION_KIND_REGISTRY[capability.actionKind].isMutating,
         requestContentType: capability.requestContentType,
         executionSignature: capability.executionSignature,
+        payloadLocation: capability.payloadLocation,
+        payloadLocationDecision: capability.payloadLocationDecision,
+        schemaRole: capability.schemaRole,
         errorResponses: capability.errorResponses,
         sourceFile: provenance.sourceFile,
         sourceLine: provenance.sourceLine,

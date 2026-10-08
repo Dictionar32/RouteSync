@@ -13,29 +13,29 @@
  */
 
 export {
-    Diagnostic,
-    DiagnosticTraceNode,
-    DiagnosticTrace,
-    DiagnosticSuggestion,
-    DiagnosticSuggestions,
-    DiagnosticSeverity,
     DiagnosticCategory,
     DIAGNOSTIC_CATEGORY_REGISTRY,
     matchDiagnosticCategory,
-    DiagnosticFix,
-    TextEdit,
     DiagnosticLocation,
     DiagnosticFixState,
     createDiagnostic,
 } from './Diagnostic';
 
 export type {
+    Diagnostic,
+    DiagnosticTraceNode,
+    DiagnosticTrace,
+    DiagnosticSuggestion,
+    DiagnosticSuggestions,
+    DiagnosticSeverity,
+    DiagnosticFix,
+    TextEdit,
     DiagnosticCategorySpecification,
     DiagnosticCategoryRegistry,
     DiagnosticCategoryVisitor,
-    DiagnosticInput
+    DiagnosticInput,
 } from './Diagnostic';
 
-export { DiagnosticBag, CompilerValidationError } from './DiagnosticBag';
-export type { DiagnosticGate } from './DiagnosticBag';
+export { DiagnosticBag } from './DiagnosticBag';
+export type { CompilerValidationError, DiagnosticBag as DiagnosticBagContract, DiagnosticGate } from './DiagnosticBag';
 

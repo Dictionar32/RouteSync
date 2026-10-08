@@ -313,7 +313,10 @@
     "audit:phase1338-ast-analysis-optimization-type-boundaries": "node scripts/audits/audit-phase1338-ast-analysis-optimization-type-boundaries.cjs",
     "audit:phase1339-semantic-analysis-type-boundaries": "node scripts/audits/audit-phase1339-semantic-analysis-type-boundaries.cjs",
     "audit:phase1341-unreferenced-source-vacuum": "node scripts/audits/audit-phase1341-unreferenced-source-vacuum.cjs",
-    "audit:phase1344-semantic-interface-wiring-and-bridge-exports": "node scripts/audits/audit-phase1344-semantic-interface-wiring-and-bridge-exports.cjs"
+    "audit:phase1344-semantic-interface-wiring-and-bridge-exports": "node scripts/audits/audit-phase1344-semantic-interface-wiring-and-bridge-exports.cjs",
+    "audit:phase1345-dts-generator-boundary": "node scripts/audits/audit-phase1345-dts-generator-boundary.cjs",
+    "audit:phase1346-dts-generator-portable-boundary": "node scripts/audits/audit-phase1346-dts-generator-portable-boundary.cjs",
+    "audit:phase1347-upstream-wiring-consumer-trace": "node scripts/audits/audit-phase1347-upstream-wiring-consumer-trace.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

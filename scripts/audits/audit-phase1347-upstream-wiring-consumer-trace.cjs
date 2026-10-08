@@ -1,0 +1,38 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = (name) => fs.readFileSync(path.join(root, name), 'utf8');
+const checks = [];
+const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
+const capability = read('packages/core/src/types/upstream/operationIdentityCapability.ts');
+const authority = read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts');
+const identityWiring = read('packages/core/src/types/interfaces/operationIdentityProjectionInterface.ts');
+const dataflow = read('packages/core/src/types/dataflow/dataFlowInterface.ts');
+const judgment = read('packages/core/src/types/upstream/semanticDataflow.ts');
+const dataflowFacade = read('packages/core/src/types/upstream/semanticDataflowInterface.ts');
+const irProjection = read('packages/core/src/compiler/ir/SemanticDataflowIRProjection.ts');
+const cliEmitter = read('packages/cli/src/generators/sdk/apiObjectEmitter.ts');
+const reactIntent = read('packages/react/src/hooks/define/intentWrapper.ts');
+const retiredActionMap = read('packages/cli/src/generators/canonical/actionMap.ts');
+const retiredAdapter = read('packages/core/src/compiler/scanner/upstream/semanticDataflowInputAdapter.ts');
+const wiringAdapter = read('packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts');
+const packageJson = JSON.parse(read('package.json'));
+check('operation identity contract is type-only and algebraic', /OperationIdentityCapabilityAlgebraInterface/.test(capability) && !/export function|export const/.test(capability));
+check('operation identity construction remains upstream-owned', /operationIdentityCapabilityFromRoute/.test(authority));
+check('identity projection is an explicit upstream-wiring contract', /UpstreamWiringInterface/.test(identityWiring));
+check('generic DataFlowInterface is domain-neutral and exposes separated producer/consumer/wiring surfaces', /DataFlowProducerInterface/.test(dataflow) && /DataFlowConsumerInterface/.test(dataflow) && /DataFlowWiringInterface/.test(dataflow) && !/Laravel|Zod|Axios|TanStack/.test(dataflow));
+check('semantic judgment owns the reasoning contract and closure', /reasoningContract/.test(judgment) && /closed: true/.test(judgment));
+check('semantic dataflow facade reuses the closed judgment rather than creating reasoning', /semanticDataflowInterfaceFromJudgment/.test(dataflowFacade) && !/semanticReasoningContract\(/.test(dataflowFacade));
+check('IR consumes read-only authority rather than full execution surface', /DataFlowAuthorityInterface/.test(irProjection) && !/DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>/.test(irProjection));
+check('CLI projects operation identity from closed capability', /operationIdentityReferenceFromCapability\(route\.raw\.operationIdentityCapability\)/.test(cliEmitter) && !/operationIdentityCapabilityFromRoute\s*\(/.test(cliEmitter));
+check('React does not split operation IDs or derive semantic identity from HTTP method', !/operationId\.split\(/.test(reactIntent) && !/getActionFromMethod|isMutationAction|RouteCrudClassifier/.test(reactIntent));
+check('legacy action map remains retired in place and has no production consumer', retiredActionMap.trim().startsWith('/** @deprecated') && !/export\s+(?:const|function)|function\s+/.test(retiredActionMap) && !/getActionFromMethod\s*\(|isMutationAction\s*\(/.test(cliEmitter));
+check('legacy scanner adapter is explicitly retired and canonical wiring adapter remains', /intentionally empty historical path/.test(retiredAdapter) && /semanticDataflowInputProducer\.create/.test(wiringAdapter));
+check('phase 1347 audit is registered without removing build script', packageJson.scripts.build === 'tsdown' && packageJson.scripts['audit:phase1347-upstream-wiring-consumer-trace'] === 'node scripts/audits/audit-phase1347-upstream-wiring-consumer-trace.cjs');
+let failures = 0;
+for (const result of checks) {
+  process.stdout.write(`${result.passed ? 'PASS' : 'FAIL'} ${result.name}\n`);
+  if (!result.passed) failures += 1;
+}
+process.stdout.write(`\n${checks.length - failures}/${checks.length} checks passed\n`);
+if (failures) process.exitCode = 1;

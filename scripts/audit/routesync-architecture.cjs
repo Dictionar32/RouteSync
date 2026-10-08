@@ -730,11 +730,11 @@ const actionMapConsumers = filesUnder('packages/cli/src').filter(file => {
   if (/(^|\/)(__tests__|canonical\/actionMap\.ts)(\/|$)/.test(rel)) return false;
   return /getActionFromMethod\s*\(|isMutationAction\s*\(/.test(source(file));
 });
-check('legacy HTTP action helpers are not semantic authorities',
-  /getActionFromMethod\s*\(method/.test(actionMap)
-    && /isMutationAction\s*\(action/.test(actionMap)
+check('legacy HTTP action map remains retired and has no production consumers',
+  actionMap.trim().startsWith('/** @deprecated')
+    && !/function\s+(?:getActionFromMethod|isMutationAction)|export\s+(?:const|function)\s+(?:getActionFromMethod|isMutationAction)/.test(actionMap)
     && actionMapConsumers.length === 0,
-  actionMapConsumers.map(relative).join(', ') || 'legacy HTTP helpers remain compatibility vocabulary only; no production semantic consumer calls them.');
+  actionMapConsumers.map(relative).join(', ') || 'the historical action map remains a deprecation marker only; semantic action ownership stays upstream.');
 
 const manifestFlow = read('packages/core/src/types/upstream/manifest.ts');
 const manifestProjection = read('packages/core/src/compiler/analysis/routeSyncManifestDataflowProjectionInterface.ts');

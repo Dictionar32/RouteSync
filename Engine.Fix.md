@@ -3165,3 +3165,14 @@ Trace the actual ownership path before editing downstream consumers: Laravel sou
 
 
 Phase 1344 references: TypeScript module/type-only boundaries, Laravel route/controller declarations, Next.js Route Handlers, MLIR generic interfaces, CodeQL data-flow graph/source-sink separation, TanStack Query key identity, Axios type imports, and Zod schema inference. These external patterns inform layer separation; they do not substitute for a local build. See `packages/core/src/types/upstream/PHASE1344_SEMANTIC_INTERFACE_WIRING_AND_BRIDGE_EXPORTS.md`.
+
+## Phase 1347 — Upstream wiring and consumer trace
+
+- Traced the concrete ownership path: Laravel source evidence → upstream route/capability reasoning → closed operation identity and semantic dataflow judgment → explicit wiring/projection → manifest/graph/IR → CLI SDK endpoint and React/TanStack consumers.
+- Kept the structural graph lane separate from semantic dataflow closure; `GraphEdgeRelation` is a graph projection input, not a replacement for the semantic judgment.
+- Updated the architecture audit to recognize `packages/cli/src/generators/canonical/actionMap.ts` as a retired-in-place empty path rather than requiring dead HTTP-action helper definitions. The no-production-consumer requirement remains.
+- Added an explicit comment to the empty historical `scanner/upstream/semanticDataflowInputAdapter.ts`; the canonical adapter remains `scanner/wiring/semanticDataflowInputAdapter.ts`.
+- Added `scripts/audits/audit-phase1347-upstream-wiring-consumer-trace.cjs` and `npm run audit:phase1347-upstream-wiring-consumer-trace` to guard identity authority, dataflow closure, read-only IR consumption, and downstream non-reclassification.
+- No upstream source files were emptied or deleted. Existing scripts were preserved; only the new audit script was added.
+- Declaration boundary remains an open issue: Phase 1346 uses `isolatedDeclarations: false` only in `tsconfig.dts.json` to avoid the TypeScript 7 native binary path. This is not considered the target contract; strict declaration generation should be restored after explicit source annotations and native toolchain availability are verified.
+- Build was not run in this workspace because project dependencies are not installed here. Static audits are not a substitute for `npm run build`.

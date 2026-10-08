@@ -53,8 +53,6 @@ export {
     PrimitiveKind,
     CollectionKind,
     SemanticTypeKind,
-    SemanticTypeBase,
-    PrimitiveType,
     NeverType,
     ErrorType,
     ReferenceType,
@@ -62,14 +60,14 @@ export {
     IntersectionType,
     ReadonlyCollectionType,
     MutableCollectionType,
-    GenericVariance,
-    GenericParameter,
     GenericType,
     ObjectProperty,
-    ObjectType,
-    SemanticType
+    ObjectType
 } from './SemanticType';
-export type { ObjectProperty as SemanticObjectProperty } from './SemanticType';
+export type {
+    SemanticTypeBase, PrimitiveType, GenericVariance, GenericParameter, SemanticType,
+    ObjectProperty as SemanticObjectProperty
+} from './SemanticType';
 
 // Immutable collections
 export {
@@ -79,7 +77,7 @@ export {
 
 // Type hashing
 export {
-    HashContext,
+    type HashContext,
     TypeHasher
 } from './TypeHasher';
 
@@ -90,7 +88,7 @@ export {
 
 // Type hierarchy
 export {
-    TypeHierarchy
+    type TypeHierarchy
 } from './TypeHierarchy';
 
 // Type system operations
@@ -101,11 +99,7 @@ export {
 } from './TypeSystem';
 
 // File spans and source locations
-export {
-    FileSpan,
-    SourceRange,
-    ASTBaseNode
-} from './FileSpan';
+export type { FileSpan, SourceRange, ASTBaseNode } from './FileSpan';
 
 // Source location utilities
 export {
@@ -120,8 +114,6 @@ export {
 
 // Resolved PHP Types (TTD ADT)
 export {
-    ResolvedPhpType,
-    ResolvedPhpTypeVisitor,
     PrimitivePhpType,
     EloquentModelPhpType,
     ResourceWrapperPhpType,
@@ -129,4 +121,5 @@ export {
     UnknownPhpType,
     matchResolvedPhpType
 } from './ResolvedPhpType';
+export type { ResolvedPhpType, ResolvedPhpTypeVisitor } from './ResolvedPhpType';
 

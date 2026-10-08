@@ -24,7 +24,6 @@ export {
 } from './SSAAnalysis';
 
 export {
-    SSARenamer,
     type SSARenamer,
     createSSARenamer,
     renameSSA,
@@ -42,7 +41,7 @@ export {
 
 export {
     type SymbolNode,
-    SymbolDatabase,
+    type SymbolDatabase,
     createSymbolDatabase,
 } from './SymbolAnalysis';
 

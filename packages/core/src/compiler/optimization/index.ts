@@ -19,11 +19,11 @@ export { CopyCoalescer } from './CopyCoalescing';
 export { LICMOptimizer, LoopNormalizer } from './LICM';
 
 // Optimization pass interface
-export { OptimizationPass } from './OptimizationPass';
+export type { OptimizationPass } from './OptimizationPass';
 
 // Instruction effect analysis
 export {
-    InstructionEffect,
+    type InstructionEffect,
     getInstructionEffect,
     isSpeculatable,
     hasSideEffects

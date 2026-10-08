@@ -85,7 +85,6 @@ export {
     type SSABasicBlock,
     type SSARepresentation,
     SSABuilder,
-    SSARenamer,
     type SSARenamer,
     // Use-def analysis
     UseDefGraph,
@@ -229,8 +228,6 @@ export {
     PrimitiveKind,
     CollectionKind,
     SemanticTypeKind,
-    SemanticTypeBase,
-    PrimitiveType,
     NeverType,
     ErrorType,
     ReferenceType,
@@ -238,21 +235,25 @@ export {
     IntersectionType,
     ReadonlyCollectionType,
     MutableCollectionType,
-    GenericVariance,
-    GenericParameter,
     GenericType,
     ObjectProperty,
     ObjectType,
-    SemanticType,
     ImmutableMap,
     ImmutableSet,
-    HashContext,
     TypeHasher,
     TypeInterner,
-    TypeHierarchy,
     createTypeSystem,
     isSubtype,
     isAssignable
+} from './types';
+export type {
+    SemanticTypeBase,
+    PrimitiveType,
+    GenericVariance,
+    GenericParameter,
+    SemanticType,
+    HashContext,
+    TypeHierarchy
 } from './types';
 
 // ============================================================================
@@ -267,9 +268,13 @@ export {
     type TypeVariable,
     type Constraint,
     type ConstraintViolation,
-    TypeEnvironment,
+    type TypeEnvironment,
     type VariableState,
-    UnionFind as ConstraintUnionFind,
+    type UnionFind as ConstraintUnionFind,
+    createTypeEnvironment,
+    createUnionFind,
+    unionFindFind,
+    unionFindUnion,
     solveConstraints,
     type ConstraintSolveResult
 } from './constraints';
@@ -304,7 +309,7 @@ export {
 // Re-export AST node types from artifacts for convenience
 // ============================================================================
 export {
-    ASTNode,
+    type ASTNode,
     ClassDeclaration,
     MethodDeclaration,
     PropertyDeclaration,

@@ -11,14 +11,14 @@
 export {
     CompilerArtifact,
     TypedArtifact,
-    ArtifactMetadata,
-    ArtifactOrigin,
-    ArtifactOriginKind,
-    ArtifactEdge
+    type  ArtifactMetadata,
+    type ArtifactOrigin,
+    type ArtifactOriginKind,
+    type ArtifactEdge
 } from './Artifact';
 
 // Type registry
-export {
+export type {
     ArtifactRegistry,
     ArtifactKey,
     ArtifactTypeId,
@@ -26,10 +26,11 @@ export {
 } from './types';
 
 // Concrete artifacts
-export { ASTArtifact, ASTNode, ClassDeclaration, MethodDeclaration, PropertyDeclaration, CallExpression } from './ASTArtifact';
-export { ScopeGraphArtifact, ScopeNode } from './ScopeGraphArtifact';
-export { BoundASTArtifact, BoundASTNode, SymbolReference } from './BoundASTArtifact';
-export { SymbolGraphArtifact, Symbol, SymbolTable } from './SymbolGraphArtifact';
+export { ASTArtifact, ClassDeclaration, MethodDeclaration, PropertyDeclaration, CallExpression } from './ASTArtifact';
+export type { ASTNode } from './ASTArtifact';
+export { ScopeGraphArtifact, type ScopeNode } from './ScopeGraphArtifact';
+export { BoundASTArtifact, type BoundASTNode, type SymbolReference } from './BoundASTArtifact';
+export { SymbolGraphArtifact, type Symbol, type SymbolTable } from './SymbolGraphArtifact';
 export { ConstraintGraphArtifact } from './ConstraintGraphArtifact';
 export { TypeEnvironmentArtifact } from './TypeEnvironmentArtifact';
 export { ExpressionIRArtifact } from './ExpressionIRArtifact';

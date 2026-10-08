@@ -2846,3 +2846,26 @@ Verification is limited to the targeted source audit, JSON validity, and ZIP int
 - Updated the Phase 1334 audit to expect retirement and added `audit:phase1335-retire-static-laravel-scanner`.
 - This phase deliberately keeps the legacy file path present but zero-byte, following the workspace convention to empty obsolete files in place rather than deleting/renaming them. Historical phase notes may still mention the former facade and are not executable authority.
 - Build status: not claimed; verify on the user's installed-dependency workspace after extracting this archive.
+
+## Phase 1336 — Semantic type export boundaries (2026-10-08)
+
+- Converted semantic algebra contracts (`SemanticTypeBase`, `PrimitiveType`, `GenericVariance`, `GenericParameter`, `SemanticType`), source spans, and resolved-PHP type unions/visitors to explicit type-only re-exports in `compiler/types/index.ts`.
+- Converted the corresponding compiler public barrel entries to `export type` while preserving runtime enum/constants, semantic constructors, immutable collection utilities, hash/interner values, and type-system operations.
+- Added `audit:phase1336-semantic-type-export-boundaries` to guard the type/runtime split and ensure the retired `StaticLaravelScanner.ts` remains empty.
+- Scope is based on the visible Phase 1335 build diagnostics (96 errors, first five shown). Full `npm run build` has not been run in this workspace because project dependencies are not installed here; this phase does not claim the remaining diagnostics are resolved.
+
+
+## Phase 1337 — Constraint and IR export boundaries (2026-10-08)
+
+- The visible Phase 1336 build group showed `TypeEnvironment` and `UnionFind` interfaces being re-exported as runtime values. The constraints barrel now exports those contracts as types while preserving their runtime factory/operation functions.
+- The IR compatibility module `Expression.ts` intentionally exports `ArrayConstant`, `ClassConstant`, and `EnumCase` as types only, while their runtime classes are defined in `utils/cfg/constants.ts`; the IR barrel now exports those classes from their runtime-defining module.
+- The compiler public barrel marks constraint contracts type-only and exposes factory/union operations as runtime values.
+- Added `audit:phase1337-constraint-ir-export-boundaries` to guard the source-of-truth and runtime/type split, and ensure the retired `StaticLaravelScanner.ts` remains empty.
+- Verification scope: focused static audit, package JSON parse, and ZIP integrity. The user's latest build reports 79 errors but only the first five diagnostics are shown; this phase addresses the visible constraint/IR cluster and does not claim the full build passes.
+
+## Phase 1338 — AST, analysis, and optimization type/runtime boundaries (2026-10-08)
+
+- The next build reports 69 errors; the first visible group identifies `ASTNode` exported as a runtime value despite being a type alias, `FileSpan` and `Instruction` imported as runtime values by `Hash.ts`, `SymbolDatabase` re-exported as a value despite being an interface, and `OptimizationPass` re-exported as a value despite being an interface.
+- Changed the compiler and artifacts barrels to export `ASTNode` type-only; changed `Hash.ts` to import `FileSpan` and `Instruction` type-only; changed the analysis barrel to export `SymbolDatabase` type-only; and changed the optimization barrel to export `OptimizationPass` type-only.
+- Added `audit:phase1338-ast-analysis-optimization-type-boundaries` to guard these contracts and retain the invariant that `StaticLaravelScanner.ts` remains empty.
+- Verification is limited to targeted static audits, package JSON parsing, and archive integrity. The user log exposes only five of the 69 diagnostics and this workspace has no installed local dependencies; this phase does not claim the complete build passes or that all remaining diagnostics are resolved.

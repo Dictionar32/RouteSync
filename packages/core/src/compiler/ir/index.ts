@@ -4,7 +4,7 @@
  */
 
 export type { SymbolReference, ConstantValue, Expression } from './Expression';
-export { ArrayConstant, ClassConstant, EnumCase } from './Expression';
+export { ArrayConstant, ClassConstant, EnumCase } from '../utils/cfg/constants';
 
 export type { SemanticIRNodeKind, IRNodeId, SemanticOrigin, SemanticIRNode } from './SemanticIR';
 export { SemanticIRArena } from './SemanticIR';

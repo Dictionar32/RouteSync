@@ -307,7 +307,10 @@
     "audit:phase1332-pass-contract-export-boundaries": "node scripts/audits/audit-phase1332-pass-contract-export-boundaries.cjs",
     "audit:phase1333-lexer-diagnostic-type-boundaries": "node scripts/audits/audit-phase1333-lexer-diagnostic-type-boundaries.cjs",
     "audit:phase1334-upstream-semantic-capability-dataflow-boundary": "node scripts/audits/audit-phase1334-upstream-semantic-capability-dataflow-boundary.cjs",
-    "audit:phase1335-retire-static-laravel-scanner": "node scripts/audits/audit-phase1335-retire-static-laravel-scanner.cjs"
+    "audit:phase1335-retire-static-laravel-scanner": "node scripts/audits/audit-phase1335-retire-static-laravel-scanner.cjs",
+    "audit:phase1336-semantic-type-export-boundaries": "node scripts/audits/audit-phase1336-semantic-type-export-boundaries.cjs",
+    "audit:phase1337-constraint-ir-export-boundaries": "node scripts/audits/audit-phase1337-constraint-ir-export-boundaries.cjs",
+    "audit:phase1338-ast-analysis-optimization-type-boundaries": "node scripts/audits/audit-phase1338-ast-analysis-optimization-type-boundaries.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

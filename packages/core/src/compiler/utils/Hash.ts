@@ -2,8 +2,8 @@
  * Hash utilities for compiler
  */
 import { createHash } from 'crypto';
-import  { FileSpan } from '../types/FileSpan';
-import { Instruction } from '../ir';
+import type { FileSpan } from '../types/FileSpan';
+import type { Instruction } from '../ir';
 
 export function computeStableSymbolId(namespace: string, qualifiedName: string, span: FileSpan): string {
   const data = `${namespace}\\${qualifiedName}:${span.filePath}`;

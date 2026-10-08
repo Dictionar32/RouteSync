@@ -1,12 +1,5 @@
 /**
- * Compiler Fingerprint Module
- * 
- * This module provides compiler fingerprinting for cache invalidation
- * and build reproducibility.
- * 
- * Key components:
- * - CompilerFingerprint: Captures compiler settings and versions
- * - computeFingerprintHash: Stable hash computation
+ * Compiler fingerprint public surface.
  */
-
-export { CompilerFingerprint, computeFingerprintHash } from './Fingerprint';
+export type { CompilerFingerprint } from './Fingerprint';
+export { computeFingerprintHash } from './Fingerprint';

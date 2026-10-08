@@ -1,18 +1,5 @@
 /**
- * Compiler Cache Module
- * 
- * This module provides caching infrastructure for incremental compilation.
- * 
- * Key components:
- * - ArtifactCache: Cache interface for pass outputs
- * - CacheDescriptor: Cache key computation
- * - LRUCache: In-memory LRU cache implementation
+ * Compiler cache public surface. Contracts are erased; cache implementations remain runtime values.
  */
-
-export {
-    ArtifactCache,
-    CacheDescriptor,
-    CacheInputDescriptor
-} from './ArtifactCache';
-
+export type { ArtifactCache, CacheDescriptor, CacheInputDescriptor } from './ArtifactCache';
 export { LRUCache } from './LRUCache';

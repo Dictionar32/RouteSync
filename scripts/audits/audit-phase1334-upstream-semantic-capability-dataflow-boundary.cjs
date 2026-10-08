@@ -1,0 +1,42 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const exists = (relative) => fs.existsSync(path.join(root, relative));
+const checks = [];
+const check = (label, condition) => checks.push({ label, passed: Boolean(condition) });
+
+const diagnostic = read('packages/core/src/compiler/diagnostics/Diagnostic.ts');
+const astArtifact = read('packages/core/src/compiler/artifacts/ASTArtifact.ts');
+const cacheIndex = read('packages/core/src/compiler/cache/index.ts');
+const fingerprintIndex = read('packages/core/src/compiler/fingerprint/index.ts');
+const compilerIndex = read('packages/core/src/compiler/index.ts');
+const manifestBuilder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
+const staticScanner = read('packages/core/src/compiler/scanner/StaticLaravelScanner.ts');
+const semanticCapability = read('packages/core/src/types/upstream/semanticCapability.ts');
+const dataFlow = read('packages/core/src/types/dataflow/dataFlowInterface.ts');
+const cliProjection = read('packages/cli/src/generators/classifier/routeGrouper.ts');
+const graphTrace = read('packages/core/src/types/upstream/PHASE1045_UPSTREAM_DOWNSTREAM_DATAFLOW_TRACE.md');
+
+check('Diagnostic.FileSpan is a type-only import', /import type \{ FileSpan \} from ["']\.\.\/types\/FileSpan["']/.test(diagnostic));
+check('ASTArtifact.FileSpan and ASTBaseNode are type-only imports', /import type \{ ASTBaseNode, FileSpan \} from ['"]\.\.\/types\/FileSpan['"]/.test(astArtifact));
+check('cache barrel exports contracts as types', /export type \{\s*ArtifactCache,\s*CacheDescriptor,\s*CacheInputDescriptor\s*\} from ['"]\.\/ArtifactCache['"]/.test(cacheIndex));
+check('LRUCache remains a runtime export', /export \{ LRUCache \} from ['"]\.\/LRUCache['"]/.test(cacheIndex));
+check('compiler public barrel exports cache contracts as types', /export type \{\s*ArtifactCache,\s*CacheDescriptor,\s*CacheInputDescriptor\s*\} from ['"]\.\/cache['"]/.test(compilerIndex));
+check('compiler public barrel retains LRUCache runtime export', /export \{ LRUCache \} from ['"]\.\/cache['"]/.test(compilerIndex));
+check('fingerprint barrel exports CompilerFingerprint as a type', /export type \{ CompilerFingerprint \} from ['"]\.\/Fingerprint['"]/.test(fingerprintIndex));
+check('fingerprint hashing remains runtime-exported', /export \{ computeFingerprintHash \} from ['"]\.\/Fingerprint['"]/.test(fingerprintIndex));
+check('compiler public barrel keeps fingerprint type/runtime split', /export type \{ CompilerFingerprint \} from ['"]\.\/fingerprint['"]/.test(compilerIndex) && /export \{ computeFingerprintHash \} from ['"]\.\/fingerprint['"]/.test(compilerIndex));
+check('upstream manifest construction validates AST and creates complete source model', /scanSourceAsts/.test(manifestBuilder) && /validateCompleteSourceAst/.test(manifestBuilder) && /buildCompleteLaravelSourceModel/.test(manifestBuilder));
+check('manifest seeds dataflow from the complete source model', /semanticDataflowInputsFromSourceModel\(completeLaravelSourceModelBuildResult\.value\)/.test(manifestBuilder));
+check('legacy StaticLaravelScanner implementation is retired in place', staticScanner.length === 0);
+check('semantic capability contract encodes upstream authority and closed evidence', /SemanticCapabilityAuthority/.test(semanticCapability) && /readonly closed: true/.test(semanticCapability) && /SemanticCapabilityContractInterface/.test(semanticCapability));
+check('generic DataFlowInterface includes read-only state/query/authority facets', /DataFlowAuthorityInterface/.test(dataFlow) && /DataFlowQueryInterface/.test(dataFlow) && /readonly reaches:/.test(dataFlow) && /readonly authority: 'upstream'/.test(dataFlow));
+check('CLI route projection consumes upstream capability instead of method/path classification', /route\.capability\.crudRole/.test(cliProjection) && /route\.capability\.actionName/.test(cliProjection) && /No path inspection, HTTP-method classification/.test(cliProjection));
+check('source fixture contains Laravel route/controller/request/model evidence', exists('examples/ecommerce-shop-source/routes/api.php') && exists('examples/ecommerce-shop-source/app/Http/Controllers/ProdukController.php') && exists('examples/ecommerce-shop-source/app/Http/Requests/StoreCartItemRequest.php') && exists('examples/ecommerce-shop-source/app/Models/ProdukItem.php'));
+check('upstream/dataflow and structural graph lanes are explicitly separated', /Separate structural lane/.test(graphTrace) && /GraphEdgeRelation/.test(graphTrace) && /DataFlowInterface/.test(graphTrace));
+
+const failures = checks.filter((entry) => !entry.passed);
+for (const entry of checks) process.stdout.write(`${entry.passed ? 'PASS' : 'FAIL'} ${entry.label}\n`);
+process.stdout.write(`\n${checks.length - failures.length}/${checks.length} checks passed\n`);
+if (failures.length) process.exitCode = 1;

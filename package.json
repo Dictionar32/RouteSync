@@ -305,7 +305,9 @@
     "audit:phase1330-request-type-consumer-boundary": "node scripts/audits/audit-phase1330-request-type-consumer-boundary.cjs",
     "audit:phase1331-typescript-lowerer-type-boundary": "node scripts/audits/audit-phase1331-typescript-lowerer-type-boundary.cjs",
     "audit:phase1332-pass-contract-export-boundaries": "node scripts/audits/audit-phase1332-pass-contract-export-boundaries.cjs",
-    "audit:phase1333-lexer-diagnostic-type-boundaries": "node scripts/audits/audit-phase1333-lexer-diagnostic-type-boundaries.cjs"
+    "audit:phase1333-lexer-diagnostic-type-boundaries": "node scripts/audits/audit-phase1333-lexer-diagnostic-type-boundaries.cjs",
+    "audit:phase1334-upstream-semantic-capability-dataflow-boundary": "node scripts/audits/audit-phase1334-upstream-semantic-capability-dataflow-boundary.cjs",
+    "audit:phase1335-retire-static-laravel-scanner": "node scripts/audits/audit-phase1335-retire-static-laravel-scanner.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

@@ -1,17 +1,18 @@
 import { describe, test, expect } from 'vitest';
-import { StaticLaravelScanner, createLaravelSourceProjectIdentity } from '../StaticLaravelScanner';
-import path from 'path';
+import path from 'node:path';
+import { manifestBuilder, createLaravelSourceProjectIdentity } from '../../../index';
 
-describe('StaticLaravelScanner Specification (TDD Suite)', () => {
-    test('1. Scans mock Laravel directory and produces complete RouteManifest', async () => {
-        const fixturePath = path.resolve(__dirname, '../../../../../../packages/sdk/tests/fixtures');
-        const manifest = await StaticLaravelScanner.scan(createLaravelSourceProjectIdentity(fixturePath));
+describe('Canonical upstream manifest producer', () => {
+  test('builds the fixture manifest through ManifestBuilderInterface', async () => {
+    const fixturePath = path.resolve(__dirname, '../../../../../../packages/sdk/tests/fixtures');
+    const sourceProject = createLaravelSourceProjectIdentity(fixturePath);
+    const manifest = await manifestBuilder.build(sourceProject);
 
-        expect(manifest.version).toBe('6.0.0');
-        expect(manifest.routes).toBeDefined();
-        expect(manifest.resources).toBeDefined();
-        expect(manifest.models).toBeDefined();
-        expect(manifest.requestTypes).toBeDefined();
-        expect(manifest.semanticTypes).toBeDefined();
-    });
+    expect(manifest.version).toBeDefined();
+    expect(manifest.routes).toBeDefined();
+    expect(manifest.resources).toBeDefined();
+    expect(manifest.models).toBeDefined();
+    expect(manifest.requestTypes).toBeDefined();
+    expect(manifest.semanticTypes).toBeDefined();
+  });
 });

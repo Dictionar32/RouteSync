@@ -2828,3 +2828,21 @@ The next user build reports 117 `MISSING_EXPORT` errors. The first visible group
 - Added `audit:phase1333-lexer-diagnostic-type-boundaries` for the visible source-boundary regressions.
 
 Verification is limited to the targeted source audit, JSON validity, and ZIP integrity. The build log excerpt exposes only the first five of 117 errors and the workspace has no installed local dependencies, so this phase does not claim full build success or resolution of all 117 errors.
+
+## Phase 1334 — Upstream semantic capability / dataflow contract trace (2026-10-08)
+
+- Fixed the next visible `MISSING_EXPORT` family: `FileSpan` is imported type-only in `Diagnostic.ts` and `ASTArtifact.ts`; cache descriptor/interface contracts are type-only through both cache and compiler barrels; `CompilerFingerprint` is type-only through fingerprint and compiler barrels.
+- Preserved `LRUCache` and `computeFingerprintHash` as runtime exports.
+- Added `PHASE1334_UPSTREAM_SEMANTIC_CAPABILITY_DATAFLOW_TRACE.md` tracing the Laravel fixture through source AST validation, `CompleteLaravelSourceModel`, manifest dataflow seeds, semantic capability/dataflow interfaces, graph, IR, and CLI projection. It records scanner/interface ownership and recommends one semantic authority, provenance-carrying facts, generic `DataFlowInterface`, and a distinct structural graph lane.
+- Added `audit:phase1334-upstream-semantic-capability-dataflow-boundary` to check the visible export errors and main upstream/wiring/downstream ownership contracts.
+- External research consulted: official TypeScript type-only module syntax guidance, CodeQL data-flow analysis documentation, and MLIR interface documentation. These are design references, not substitutes for local build evidence.
+- Verification scope: focused static audit, JSON parsing, and archive integrity. The user's build log is truncated to five diagnostics out of 107 errors, and this environment has no installed `node_modules`; no full build success is claimed.
+
+## Phase 1335 — Retire StaticLaravelScanner implementation in place
+
+- `packages/core/src/compiler/scanner/StaticLaravelScanner.ts` is intentionally empty. It no longer contains a facade, scan orchestration, request/semantic type derivation, invalidation resolution, identity construction, or legacy scanner behavior.
+- CLI scan/sync already consume `manifestBuilder.build(sourceProject)`; canonical source identity remains owned by `types/upstream/sourceProjectIdentity.ts`, and manifest construction remains owned by `ManifestBuilderInterface` / `upstreamManifestBuilder`.
+- Updated the historical scanner spec to exercise the canonical producer rather than importing the retired implementation.
+- Updated the Phase 1334 audit to expect retirement and added `audit:phase1335-retire-static-laravel-scanner`.
+- This phase deliberately keeps the legacy file path present but zero-byte, following the workspace convention to empty obsolete files in place rather than deleting/renaming them. Historical phase notes may still mention the former facade and are not executable authority.
+- Build status: not claimed; verify on the user's installed-dependency workspace after extracting this archive.

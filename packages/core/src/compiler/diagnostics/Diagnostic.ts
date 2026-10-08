@@ -6,7 +6,7 @@
  * explicit variants so downstream passes never need host-language optional
  * fields to interpret a diagnostic.
  */
-import { FileSpan } from "../types/FileSpan";
+import type { FileSpan } from "../types/FileSpan";
 
 export interface TextEdit {
     readonly span: FileSpan;

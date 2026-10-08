@@ -209,20 +209,18 @@ export type {
 // ============================================================================
 // Cache Module
 // ============================================================================
-export {
+export type {
     ArtifactCache,
     CacheDescriptor,
-    CacheInputDescriptor,
-    LRUCache
+    CacheInputDescriptor
 } from './cache';
+export { LRUCache } from './cache';
 
 // ============================================================================
 // Fingerprint Module
 // ============================================================================
-export {
-    CompilerFingerprint,
-    computeFingerprintHash
-} from './fingerprint';
+export type { CompilerFingerprint } from './fingerprint';
+export { computeFingerprintHash } from './fingerprint';
 
 // ============================================================================
 // Types Module

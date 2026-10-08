@@ -13,12 +13,11 @@ import { TypedArtifact } from './Artifact';
 /**
  * Source location information for AST nodes
 */
-import { FileSpan } from '../types/FileSpan';
+import type { ASTBaseNode, FileSpan } from '../types/FileSpan';
 
 /**
  * Base interface for all AST nodes
  */
-import { ASTBaseNode } from '../types/FileSpan';
 
 /**
  * Class declaration node

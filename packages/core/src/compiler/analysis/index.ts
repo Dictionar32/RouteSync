@@ -39,11 +39,8 @@ export {
     UseDefGraph,
 } from './UseDefAnalysis';
 
-export {
-    type SymbolNode,
-    type SymbolDatabase,
-    createSymbolDatabase,
-} from './SymbolAnalysis';
+export type { SymbolNode, SymbolDatabase } from './SymbolAnalysis';
+export { createSymbolDatabase } from './SymbolAnalysis';
 
 export {
     type FlowState,

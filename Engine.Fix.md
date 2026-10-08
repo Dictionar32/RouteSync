@@ -3157,3 +3157,11 @@ Audit coverage now explicitly rejects `schemaRole`/`hookKind` coupling and verif
 - Operation identity capability continues to reuse the route capability proof lineage. Any new `semanticReasoningContract('evidence_resolution')` in route wiring/builders is a semantic proof fork and must be reviewed.
 - Audit command: `npm run audit:phase1316-proof-preserving-route-capability`.
 - Build policy: do not run `npm run build` or `npm install` in the analysis workspace; the repository owner runs the configured local build.
+
+
+## Phase 1344 — Semantic interface wiring and bridge export closure
+
+Trace the actual ownership path before editing downstream consumers: Laravel source evidence → upstream semantic reasoning/capability contract → RouteSemanticFlow → explicit wiring/projection → SDK endpoint/query key → React/TanStack Query. Axios in the ecommerce example is transport-only; generic hooks consume service/query-key contracts supplied by the caller. `DataFlowInterface` remains domain-neutral, while `InterfaceDependencyBoundary`/`UpstreamWiringInterface` express direction. The route identity projection now consumes `route.raw.operationIdentityCapability`; the bridge barrel exports only concrete source-backed symbols. AST and symbol-analysis type contracts are exported type-only; the ecommerce Axios annotation imports and TanStack QueryKey contract are explicit. See `packages/core/src/types/upstream/PHASE1344_SEMANTIC_INTERFACE_WIRING_AND_BRIDGE_EXPORTS.md` and `npm run audit:phase1344-semantic-interface-wiring-and-bridge-exports`.
+
+
+Phase 1344 references: TypeScript module/type-only boundaries, Laravel route/controller declarations, Next.js Route Handlers, MLIR generic interfaces, CodeQL data-flow graph/source-sink separation, TanStack Query key identity, Axios type imports, and Zod schema inference. These external patterns inform layer separation; they do not substitute for a local build. See `packages/core/src/types/upstream/PHASE1344_SEMANTIC_INTERFACE_WIRING_AND_BRIDGE_EXPORTS.md`.

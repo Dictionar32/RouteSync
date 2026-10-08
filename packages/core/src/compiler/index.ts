@@ -73,6 +73,7 @@ export {
 // ============================================================================
 // Analysis Module
 // ============================================================================
+export type { SymbolNode, SymbolDatabase } from './analysis';
 export {
     // Dominator analysis
     type DominatorTree,
@@ -89,8 +90,6 @@ export {
     // Use-def analysis
     UseDefGraph,
     // Symbol analysis
-    type SymbolNode,
-    type SymbolDatabase,
     createSymbolDatabase,
     // Data flow framework
     type FlowState,
@@ -308,8 +307,8 @@ export {
 // ============================================================================
 // Re-export AST node types from artifacts for convenience
 // ============================================================================
+export type { ASTNode } from './artifacts/ASTArtifact';
 export {
-    type ASTNode,
     ClassDeclaration,
     MethodDeclaration,
     PropertyDeclaration,

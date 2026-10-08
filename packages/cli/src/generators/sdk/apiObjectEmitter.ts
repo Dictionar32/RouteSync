@@ -48,7 +48,7 @@ export function emitApiObjectLines(
 
       apiBodyLines.push(`    ${route.actionName}: endpoint({`);
       apiBodyLines.push(`      method: '${route.method}',`);
-      apiBodyLines.push(`      operationIdentity: ${JSON.stringify(operationIdentityReferenceFromCapability(route.raw.capability))},`);
+      apiBodyLines.push(`      operationIdentity: ${JSON.stringify(operationIdentityReferenceFromCapability(route.raw.operationIdentityCapability))},`);
       apiBodyLines.push(`      hookKind: '${route.raw.capability.hookKind}',`);
       apiBodyLines.push(`      payloadLocation: '${route.raw.capability.payloadLocation}',`);
       apiBodyLines.push(`      schemaRole: '${route.raw.capability.schemaRole}',`);

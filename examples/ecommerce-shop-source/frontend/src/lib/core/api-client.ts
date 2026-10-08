@@ -2,7 +2,7 @@
  * API Client with axios - HTTP layer for API communication
  * Using single HTTP client pattern (no duplicate layer)
  */
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from 'axios'
 import { API_URL } from './constants'
 import useAuthStore from '../stores/auth-store';
 

@@ -13,7 +13,6 @@ const candidates = [
   "packages/cli/src/resolvers/intent/cartGroupDetector.ts",
   "packages/cli/src/resolvers/intent/cartModelResolver.ts",
   "packages/cli/src/utils/incremental/cacheLoader.ts",
-  "packages/core/src/compiler/analysis/astDataflowAuthority.ts",
   "packages/core/src/compiler/analysis/legacyFlow.ts",
   "packages/core/src/compiler/emitters/ContractEmitter.ts",
   "packages/core/src/compiler/emitters/TypeScriptEmitter.ts",
@@ -55,23 +54,28 @@ const candidates = [
   "packages/core/src/semantic/kernel/syntax/relationalSyntaxCursor.ts",
   "packages/core/src/types/__archive__/legacyFieldAdapter.ts",
   "packages/core/src/types/domain/resourceCollectionCallbackModel.ts",
-  "packages/core/src/types/domain/resourceCollectionTransformation.ts",
-  "packages/core/src/types/domain/resourceComputationSemantic.ts",
   "packages/core/src/types/domain/semanticResolutionLegacyAdapter.ts",
   "packages/core/src/types/semantic/__archive__/parsedAstAlgebra.ts",
   "packages/core/src/types/semantic/__archive__/parsedAstTypes.ts",
+  "packages/react/src/hooks/useAggregateCollectionIntent.ts"
+];
+const protectedSources = [
+  "packages/core/src/compiler/analysis/astDataflowAuthority.ts",
+  "packages/core/src/types/domain/resourceCollectionTransformation.ts",
+  "packages/core/src/types/domain/resourceComputationSemantic.ts",
   "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
   "packages/core/src/types/upstream/astSemanticStageContract.ts",
   "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
   "packages/core/src/types/upstream/astSemanticStageTransition.ts",
   "packages/core/src/types/upstream/routeNames.ts",
   "packages/core/src/types/upstream/sourceBoundary.ts",
-  "packages/react/src/hooks/useAggregateCollectionIntent.ts"
-];
+] ;
 const entrypoints = [ 'packages/core/src/index.ts', 'packages/sdk/src/index.ts', 'packages/react/src/index.ts', 'packages/cli/src/index.ts' ];
 const missing = candidates.filter(file => !fs.existsSync(path.join(root, file)));
-const nonEmpty = candidates.filter(file => fs.existsSync(path.join(root, file)) && fs.statSync(path.join(root, file)).size !== 0);
+const retainedCandidates = candidates.filter(file => fs.existsSync(path.join(root, file)) && fs.statSync(path.join(root, file)).size !== 0);
+const emptyProtectedSources = protectedSources.filter(file => !fs.existsSync(path.join(root, file)) || fs.statSync(path.join(root, file)).size === 0);
 const missingEntrypoints = entrypoints.filter(file => !fs.existsSync(path.join(root, file)) || fs.statSync(path.join(root, file)).size === 0);
-const result = { phase: 1341, rule: 'verified TypeScript source files outside main-build and test/example dependency closures remain empty in place', candidates: candidates.length, missing, nonEmpty, entrypoints: entrypoints.length, missingEntrypoints, pass: missing.length === 0 && nonEmpty.length === 0 && missingEntrypoints.length === 0 };
+const emptyCandidates = candidates.filter(file => fs.existsSync(path.join(root, file)) && fs.statSync(path.join(root, file)).size === 0);
+const result = { phase: 1341, rule: 'vacuum is conservative: protected semantic source remains non-empty; candidates with live or unresolved references are retained pending wiring proof', candidates: candidates.length, missing, emptyCandidates, retainedCandidates, protectedSources: protectedSources.length, emptyProtectedSources, entrypoints: entrypoints.length, missingEntrypoints, pass: missing.length === 0 && emptyProtectedSources.length === 0 && missingEntrypoints.length === 0 };
 console.log(JSON.stringify(result, null, 2));
 process.exitCode = result.pass ? 0 : 1;

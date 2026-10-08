@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { requireValidId } from "@/lib/core/validation";
 
 export const createCrudHooks = <
@@ -8,8 +8,8 @@ export const createCrudHooks = <
   UpdateForm
 >(config: {
   queryKey: {
-    list: () => readonly unknown[];
-    detail: (id: number) => readonly unknown[];
+    list: () => QueryKey;
+    detail: (id: number) => QueryKey;
   };
   service: {
     index: () => Promise<ReadIndex[]>;

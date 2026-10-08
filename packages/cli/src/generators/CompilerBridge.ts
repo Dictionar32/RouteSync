@@ -54,6 +54,10 @@ export {
  * CompilerBridge const namespace — 100% backward-compatible with existing tests
  * that call CompilerBridge.compileAll(), CompilerBridge.emitAll(), etc.
  */
+function isCompilerEmitter(value: CompilerEmitter | CompilerBundleOptions | undefined): value is CompilerEmitter {
+    return typeof value === 'object' && value !== null && 'emit' in value && typeof value.emit === 'function'
+}
+
 export const CompilerBridge = Object.freeze({
     compileAll: compileManifest,
     emitAll: emitCoreArtifacts,
@@ -64,10 +68,10 @@ export const CompilerBridge = Object.freeze({
         clientEmitters?: readonly CompilerEmitter[],
         options?: CompilerBundleOptions
     ): Promise<FullBundleEmittedArtifacts> => {
-        if (arg3 && typeof (arg3 as any).emit !== 'function') {
+        if (arg3 !== undefined && !isCompilerEmitter(arg3)) {
             return emitFullBundle(manifest, outputDir, CoreFilesEmitter, DEFAULT_CLIENT_EMITTERS, arg3 as CompilerBundleOptions);
         }
-        return emitFullBundle(manifest, outputDir, arg3 as CompilerEmitter, clientEmitters, options);
+        return emitFullBundle(manifest, outputDir, arg3 ?? CoreFilesEmitter, clientEmitters, options);
     },
     generateTypeScript: async (manifest: RouteManifest): Promise<CompilerOutput> => {
         return compileManifest(manifest).readTypes

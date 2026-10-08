@@ -2877,3 +2877,13 @@ Verification is limited to the targeted source audit, JSON validity, and ZIP int
 - Changed `SymbolGraphArtifact` to consume `SemanticType` from its canonical domain definition (`types/domain/semanticType`) rather than a compatibility barrel that does not re-export this algebra.
 - Split `ASTNode`, `SymbolDatabase`, `VerificationContext`, and `EffectAnalysis` into standalone `export type` declarations to keep erased type contracts out of runtime export graphs.
 - Added `audit:phase1339-semantic-analysis-type-boundaries`. This phase addresses the latest visible diagnostics only; the complete build is not claimed because the user's log shows only 5 of 64 diagnostics and this workspace does not include the local `node_modules` used by `tsdown`.
+
+
+## Phase 1341 — Unreferenced source vacuum from uploaded RouteSync archive
+
+- Base archive: `RouteSync-main (41).zip`; workspace is normalized to the `RouteSync/` root for the next archive.
+- Traced TypeScript import/export, dynamic import, and `require` edges with the TypeScript compiler API across repository TypeScript sources, using `tsconfig.json` path aliases. Build reachability starts at the four configured `tsdown.config.ts` entries: core, sdk, react, and cli.
+- Emptied 65 non-test, non-index production source files in place: 24 had no incoming source reference, and 41 more were isolated from the four build entries and from all test/example/source roots. Existing empty candidates remain untouched; files are emptied in place, not deleted.
+- Preserved test/spec files, package entry barrels, and any file with a source importer. Preserved the public React hook implementation reachable through the React entry barrel; test and external-source dependency closures were retained.
+- Added `audit:phase1341-unreferenced-source-vacuum` to assert the 65 newly retired files stay empty and all four build entrypoints remain present and non-empty.
+- This is an import-graph vacuum only; it does not claim a full package build.

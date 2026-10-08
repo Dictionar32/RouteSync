@@ -311,7 +311,8 @@
     "audit:phase1336-semantic-type-export-boundaries": "node scripts/audits/audit-phase1336-semantic-type-export-boundaries.cjs",
     "audit:phase1337-constraint-ir-export-boundaries": "node scripts/audits/audit-phase1337-constraint-ir-export-boundaries.cjs",
     "audit:phase1338-ast-analysis-optimization-type-boundaries": "node scripts/audits/audit-phase1338-ast-analysis-optimization-type-boundaries.cjs",
-    "audit:phase1339-semantic-analysis-type-boundaries": "node scripts/audits/audit-phase1339-semantic-analysis-type-boundaries.cjs"
+    "audit:phase1339-semantic-analysis-type-boundaries": "node scripts/audits/audit-phase1339-semantic-analysis-type-boundaries.cjs",
+    "audit:phase1341-unreferenced-source-vacuum": "node scripts/audits/audit-phase1341-unreferenced-source-vacuum.cjs"
   },
   "dependencies": {
     "axios": "^1.6.0",

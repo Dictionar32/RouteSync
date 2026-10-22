@@ -9,9 +9,9 @@ import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import { matchLookup } from "../../../../types/upstream/collections";
 import { createPropertyName, type PropertyName } from "../../../../types/upstream/names";
 import { present, absent, type Presence } from "../../../../types/upstream/presence";
-import { relationEqual, relationAny } from "../../../../semantic/foundation/semanticRelations";
-import { relationResolve, relationFold } from "../../../../semantic/foundation/relationalSequence";
-import { relationContains } from "../../../../semantic/foundation/relationMembership";
+import { relationEqual, relationAny } from "../../../../semantic/relations/semanticRelations";
+import { relationResolve, relationFold } from "../../../../semantic/relations/relationalSequence";
+import { relationContains } from "../../../../semantic/relations/relationMembership";
 
 const GENERIC_COLUMNS = Object.freeze([
     'id', 'created_at', 'updated_at', 'deleted_at', 'status', 'name',

@@ -29,7 +29,7 @@ import {
     relationRange,
     relationResolve,
     relationVariantFold,
-} from "../../../../semantic/foundation/relationalSequence";
+} from "../../../../semantic/relations/relationalSequence";
 import { solveCandidate } from "../../../../semantic/kernel/semanticDecisionRewriteEngine";
 
 export interface ScannedRouteValidationRuleParams {

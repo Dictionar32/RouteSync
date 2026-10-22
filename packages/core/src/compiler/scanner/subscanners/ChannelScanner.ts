@@ -1,4 +1,4 @@
-import { readSourceText } from './scannerUtils';
+import { sourceFileAcquisition } from '../sourceFiles';
 import path from "path";
 import * as fs from "node:fs";
 import { BroadcastChannelKind, type BroadcastChannelDescriptor } from '../../../types/domain/channels';
@@ -11,8 +11,8 @@ import type { TokenDescriptor } from '../lexer/phpAstTypes';
 import { createBroadcastChannel } from "../descriptors/channel/channelFactories";
 import { RouteParameterSemanticFactory } from '../semantic/route/routeParameterSemanticFactory';
 import { channelProducer } from './channelProducer';
-import { relationAll, relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationGate, relationProject } from '../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';
+import { relationGate, relationProject } from '../../../semantic/relations/relationalSequence';
 
 type ScannedChannelDeclaration = {
     readonly channel: BroadcastChannelDescriptor;
@@ -89,7 +89,7 @@ export class ChannelScanner {
         return relationGate(
             fs.existsSync(channelsFile),
             async () => {
-                const sourceText = await readSourceText(channelsFile);
+                const sourceText = await sourceFileAcquisition.readSourceText(channelsFile);
                 const tokens = LaravelSourceLexer.tokenize(sourceText);
                 return Object.freeze(scanTokens(channelsFile, tokens));
             },

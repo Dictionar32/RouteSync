@@ -27,7 +27,7 @@ check('IR consumes read-only authority rather than full execution surface', /Dat
 check('CLI projects operation identity from closed capability', /operationIdentityReferenceFromCapability\(route\.raw\.operationIdentityCapability\)/.test(cliEmitter) && !/operationIdentityCapabilityFromRoute\s*\(/.test(cliEmitter));
 check('React does not split operation IDs or derive semantic identity from HTTP method', !/operationId\.split\(/.test(reactIntent) && !/getActionFromMethod|isMutationAction|RouteCrudClassifier/.test(reactIntent));
 check('legacy action map remains retired in place and has no production consumer', retiredActionMap.trim().startsWith('/** @deprecated') && !/export\s+(?:const|function)|function\s+/.test(retiredActionMap) && !/getActionFromMethod\s*\(|isMutationAction\s*\(/.test(cliEmitter));
-check('legacy scanner adapter is explicitly retired and canonical wiring adapter remains', /intentionally empty historical path/.test(retiredAdapter) && /semanticDataflowInputProducer\.create/.test(wiringAdapter));
+check('legacy scanner adapter is explicitly retired and canonical wiring adapter delegates to injected producer', /intentionally empty historical path/.test(retiredAdapter) && /semanticDataflowInputProducer/.test(wiringAdapter) && /return producer\.create\(evidence\)/.test(wiringAdapter));
 check('phase 1347 audit is registered without removing build script', packageJson.scripts.build === 'tsdown' && packageJson.scripts['audit:phase1347-upstream-wiring-consumer-trace'] === 'node scripts/audits/audit-phase1347-upstream-wiring-consumer-trace.cjs');
 let failures = 0;
 for (const result of checks) {

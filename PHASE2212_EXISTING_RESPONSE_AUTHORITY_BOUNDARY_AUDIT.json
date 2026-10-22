@@ -1,0 +1,42 @@
+{
+  "phase": 2212,
+  "title": "Existing Response Authority Boundary",
+  "baseline": "RouteSync-Phase2211-Action-Body-Judgment-Provenance-Preservation.zip",
+  "interfaceFirst": true,
+  "runtimeSemanticInference": false,
+  "changes": [
+    "Corrected the response descriptor derivation obligation to target the existing integrated Laravel response pipeline",
+    "Named existing DTO declaration resolution and DTO ResponseContract projection judgments as required upstream products",
+    "Explicitly classified the legacy ResponseDescriptor as a compatibility projection rather than semantic authority",
+    "Advanced and synchronized the existing controller action judgment contract to version 23",
+    "Added regression tests against introducing a parallel response descriptor authority"
+  ],
+  "trace": {
+    "legacyActionPath": "scanControllerAction -> resolveControllerActionContract -> resolveResponseAttributeAst",
+    "existingIntegratedPath": "LaravelControllerResponseSemanticPipelineInterface -> DTO declaration resolution -> DTO property type binding -> DTO ResponseContract projection",
+    "criticalGap": "The integrated DTO products are not yet consumed to replace the legacy action descriptor derivation; parity and method/DTO ownership must be proven before retirement",
+    "relationUsage": "semantic/relations remains in responseAttributeScanner.ts and requires call-by-call semantic ownership trace"
+  },
+  "openBoundaries": [
+    "scanControllerAction remains the legacy action production path",
+    "resolveResponseAttributeAst still resolves class files and merges observed fields",
+    "resource-binding publication still traverses the legacy action adapter",
+    "ChannelScanner still lacks authoritative client-subscription evidence",
+    "semantic/relations remains in use"
+  ],
+  "forbiddenShortcutsAvoided": [
+    "no semantic/foundation layer",
+    "no replacement relation layer",
+    "no new subscanner layer",
+    "no parallel response descriptor authority",
+    "no claim that legacy response descriptor derivation has been retired"
+  ],
+  "validation": {
+    "fullTypecheck": "not-run",
+    "vitest": "not-run",
+    "packageBuild": "not-run",
+    "syntaxTranspilation": "3/3 changed TypeScript files passed with zero syntax diagnostics",
+    "structuralAssertions": "7/7 passed",
+    "zipIntegrity": "verified after archive creation"
+  }
+}

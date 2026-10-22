@@ -1,0 +1,40 @@
+{
+  "phase": 1551,
+  "title": "Route-domain closed judgment and scanner reasoning ownership",
+  "passed": 7,
+  "total": 8,
+  "checks": [
+    {
+      "name": "judgment-distinguishes-selected-candidate-from-default",
+      "passed": true
+    },
+    {
+      "name": "judgment-exposes-precedence-and-authority-identity",
+      "passed": true
+    },
+    {
+      "name": "selected-evidence-is-returned-by-canonical-authority",
+      "passed": true
+    },
+    {
+      "name": "scanner-route-domain-resolver-is-compatibility-facade",
+      "passed": true
+    },
+    {
+      "name": "all-scanner-source-files-remain-accounted-for",
+      "passed": true
+    },
+    {
+      "name": "audit-does-not-claim-all-scanner-reasoning-is-migrated",
+      "passed": true
+    },
+    {
+      "name": "ownership-map-preserves-open-migration-frontiers",
+      "passed": true
+    },
+    {
+      "name": "ownership-map-covers-all-inventory-candidates",
+      "passed": false
+    }
+  ]
+}

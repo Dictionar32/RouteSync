@@ -8,8 +8,8 @@ import { SemanticValueFactory, type RequestFieldName, type PropertyName } from "
 import { RequestFieldMeaningFactory, type RequestFieldMeaning } from "../../../../types/domain/requestFieldMeaning";
 import { RequestFieldPresenceFactory, type RequestFieldPresence } from "../../../../types/domain/requestFieldPresence";
 import type { SourceSpan } from "../../../../types/upstream/provenance";
-import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
-import { relationGate } from "../../../../semantic/foundation/relationalSequence";
+import { relationEqual } from "../../../../semantic/relations/semanticRelations";
+import { relationGate } from "../../../../semantic/relations/relationalSequence";
 
 export interface ScannedFormFieldParams {
     readonly name: RequestFieldName;

@@ -1,0 +1,20 @@
+PASS operation input is a named exported interface
+PASS operation input carries a closed inventory receipt
+PASS operation input carries explicit route-selection intent
+PASS operation contract has explicit discriminant and version
+PASS flow completion result is named and exported
+PASS flow result is an explicit discriminated union
+PASS scanFlow return type is explicit
+PASS scanManifest return type is explicit
+PASS factory takes explicit preparation dependency
+PASS builder input forwards route selection without hardcoded default
+PASS flow operation uses typed named judgment output
+PASS manifest operation uses typed named judgment output
+PASS blocked builder judgment is propagated unchanged
+PASS runtime operation value is explicitly interface-typed
+PASS runtime operation injects canonical builder preparation
+PASS public facade has explicit result and input contracts
+PASS no public ReturnType-derived scanner output remains
+PASS factory, binding, input and result contracts are exported from core entry points
+PASS CLI runtime continues to use its manifest scan operation interface
+RESULT 19/19

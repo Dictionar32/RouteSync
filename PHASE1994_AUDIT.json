@@ -1,0 +1,66 @@
+{
+  "phase": 1994,
+  "title": "Response Producer Declaration Source Correlation Interface First",
+  "checks": [
+    {
+      "name": "producer input requires source-correlation receipt",
+      "passed": true
+    },
+    {
+      "name": "correlation receipt records invocation source and declaration source",
+      "passed": true
+    },
+    {
+      "name": "correlation receipt uses existing same-source identity judgment",
+      "passed": true
+    },
+    {
+      "name": "source correlation is not declared as a new identity authority",
+      "passed": true
+    },
+    {
+      "name": "empty inventory retains source correlation",
+      "passed": true
+    },
+    {
+      "name": "present inventory retains source correlation",
+      "passed": true
+    },
+    {
+      "name": "producer contract version is 3",
+      "passed": true
+    },
+    {
+      "name": "producer obligations require upstream identity correlation",
+      "passed": false
+    },
+    {
+      "name": "producer obligations preserve exact correlation receipt",
+      "passed": true
+    },
+    {
+      "name": "candidate remains descriptor-derived rather than direct PHP return evidence",
+      "passed": false
+    },
+    {
+      "name": "new correlation type is publicly exported",
+      "passed": true
+    },
+    {
+      "name": "scanner implementation remains untouched and producer is not wired yet",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner was added",
+      "passed": true
+    },
+    {
+      "name": "existing relation/foundation references are not silently deleted",
+      "passed": true
+    }
+  ],
+  "passed": 12,
+  "total": 14,
+  "runtimeMigration": "not-performed",
+  "typecheck": "not-run"
+}

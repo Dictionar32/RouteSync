@@ -1,13 +1,9 @@
-import { relationNormalizeWhitespace, relationEqual, relationAny } from '../../../../semantic/foundation/semanticRelations';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 import {
-    relationAdvanceIndex,
     relationGate,
     relationProject,
     relationRange,
-    relationTextSlice,
-    relationFirstOption,
-    relationOptionFold,
-} from '../../../../semantic/foundation/relationalSequence';
+} from '../../../../semantic/relations/relationalSequence';
 import type { PhpClassPropertyAst, PhpPropertyTypeAst } from '../../lexer';
 import type { ClassName, ColumnName, ModelName, RelationName } from '../../../../types/upstream/names';
 import type { PropertyAst, PropertyDeclaration, PropertyDefinition, PropertyType, PropertyVisibility, PropertyStorage, PropertyInitialization, PropertyPromotion, PropertyAccess, PropertyCasting, PropertyDocumentation } from '../../../../types/upstream/property';
@@ -15,7 +11,9 @@ import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { TypeExpression } from '../../../../types/upstream/typeVocabulary';
 import type { Sequence } from '../../../../types/upstream/collections';
 import type { Expression } from '../../../../types/upstream/expression';
-import { createClassName, createPropertyName } from '../../../../types/upstream/names';
+import { createPropertyName } from '../../../../types/upstream/names';
+import { phpTypeExpressionAlgebra } from '../../../../types/upstream/phpTypeExpressionAlgebra';
+import { stringValue } from '../../../../types/upstream/valueObjects';
 import { expressionFromPhpAst } from '../expressionProducer';
 
 export type PropertyProducerContext =
@@ -33,81 +31,11 @@ export interface PropertyProducer {
     produce(input: PropertyProducerInput): PropertyAst;
 }
 
-const ABSENCE_TYPE = ['n', 'u', 'l', 'l'].join('');
-const BOTTOM_TYPE = ['n', 'e', 'v', 'e', 'r'].join('');
-
-const splitTopLevel = (
-    value: string,
-    delimiter: string,
-    index = 0,
-    depth = 0,
-    start = 0,
-    output: readonly string[] = [],
-): readonly string[] => relationGate(
-    index >= value.length,
-    () => [...output, relationTextSlice(value, start, value.length)],
-    () => {
-        const char = value.charAt(index);
-        const opens = relationAny([relationEqual(char, '<'), relationEqual(char, '('), relationEqual(char, '[')]);
-        const closes = relationAny([relationEqual(char, '>'), relationEqual(char, ')'), relationEqual(char, ']')]);
-        const nextDepth = relationGate(opens, () => relationAdvanceIndex(depth, 1), () => relationGate(closes, () => relationAdvanceIndex(depth, -1), () => depth));
-        const delimiterEnd = relationAdvanceIndex(index, delimiter.length);
-        const delimiterMatch = relationAll([relationEqual(depth, 0), relationEqual(relationTextSlice(value, index, delimiterEnd), delimiter)]);
-        const nextOutput = relationGate(delimiterMatch, () => [...output, relationTextSlice(value, start, index)], () => output);
-        const nextStart = relationGate(delimiterMatch, () => delimiterEnd, () => start);
-        const nextIndex = relationGate(delimiterMatch, () => delimiterEnd, () => relationAdvanceIndex(index, 1));
-        return splitTopLevel(value, delimiter, nextIndex, nextDepth, nextStart, nextOutput);
-    },
-);
-
 const typeExpression = (raw: string): TypeExpression => {
-    const name = relationNormalizeWhitespace(raw);
-    return relationGate(
-        name.startsWith('?'),
-        () => ({ kind: 'nullable', value: typeExpression(relationTextSlice(name, 1)) }),
-        () => {
-            const union = splitTopLevel(name, '|');
-            const intersection = splitTopLevel(name, '&');
-            return relationGate(
-                union.length > 1,
-                () => ({ kind: 'union', members: { kind: 'type_expressions', items: sequence(relationProject(union, typeExpression)) } }),
-                () => relationGate(
-                    intersection.length > 1,
-                    () => ({ kind: 'intersection', members: { kind: 'type_expressions', items: sequence(relationProject(intersection, typeExpression)) } }),
-                    () => relationGate(
-                        name.endsWith('[]'),
-                        () => ({ kind: 'array', element: typeExpression(relationTextSlice(name, 0, relationAdvanceIndex(name.length, -2))) }),
-                        () => primitiveOrReference(name),
-                    ),
-                ),
-            );
-        },
-    );
-};
-
-const primitiveOrReference = (name: string): TypeExpression => {
-    const lowered = name.toLowerCase();
-    const primitiveCandidates: readonly { readonly name: string; readonly value: TypeExpression }[] = [
-        { name: 'string', value: { kind: 'primitive', value: { kind: 'string' } } },
-        { name: 'int', value: { kind: 'primitive', value: { kind: 'number' } } },
-        { name: 'integer', value: { kind: 'primitive', value: { kind: 'number' } } },
-        { name: 'float', value: { kind: 'primitive', value: { kind: 'number' } } },
-        { name: 'double', value: { kind: 'primitive', value: { kind: 'number' } } },
-        { name: 'real', value: { kind: 'primitive', value: { kind: 'number' } } },
-        { name: 'bool', value: { kind: 'primitive', value: { kind: 'boolean' } } },
-        { name: 'boolean', value: { kind: 'primitive', value: { kind: 'boolean' } } },
-        { name: 'array', value: { kind: 'primitive', value: { kind: 'json' } } },
-        { name: 'mixed', value: { kind: 'mixed' } },
-        { name: 'object', value: { kind: 'object', properties: { kind: 'type_properties', items: { kind: 'empty' } } } },
-        { name: ABSENCE_TYPE, value: { kind: 'nullable', value: { kind: 'mixed' } } },
-        { name: BOTTOM_TYPE, value: { kind: 'uninhabited' } },
-    ];
-    const hit = relationFirstOption(primitiveCandidates, candidate => relationEqual(candidate.name, lowered));
-    return relationOptionFold(
-        hit,
-        () => ({ kind: 'reference', value: { kind: 'class', name: createClassName(relationTextSlice(name, relationGate(name.startsWith('\\'), () => 1, () => 0))) } }),
-        candidate => candidate.value,
-    );
+    const judgment = phpTypeExpressionAlgebra.resolve({ source: raw });
+    return judgment.kind === 'resolved'
+        ? judgment.expression
+        : { kind: 'error', diagnostic: stringValue(judgment.diagnostic) };
 };
 
 const methodName = (value: string) => ({ kind: 'method_name' as const, value: { kind: 'string_value' as const, value } });

@@ -1,0 +1,193 @@
+{
+  "phase": 1747,
+  "title": "Subscanner Interface-First Trace and Invocation Boundary Truthfulness",
+  "status": "PASS",
+  "passed": 35,
+  "total": 35,
+  "checks": [
+    {
+      "name": "route upstream scanner interface exists",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "route interface declares a closed typed scan boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "route concrete scanner does not falsely claim interface adoption",
+      "passed": true,
+      "finding": "Interface adoption is still an open wiring task."
+    },
+    {
+      "name": "controller upstream scanner interface exists",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "controller interface declares a closed typed scan boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "controller concrete scanner does not falsely claim interface adoption",
+      "passed": true,
+      "finding": "Interface adoption is still an open wiring task."
+    },
+    {
+      "name": "model upstream scanner interface exists",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "model interface declares a closed typed scan boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "model concrete scanner does not falsely claim interface adoption",
+      "passed": true,
+      "finding": "Interface adoption is still an open wiring task."
+    },
+    {
+      "name": "formRequest upstream scanner interface exists",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "formRequest interface declares a closed typed scan boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "formRequest concrete scanner does not falsely claim interface adoption",
+      "passed": true,
+      "finding": "Interface adoption is still an open wiring task."
+    },
+    {
+      "name": "resource upstream scanner interface exists",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "resource interface declares a closed typed scan boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "resource concrete scanner does not falsely claim interface adoption",
+      "passed": true,
+      "finding": "Interface adoption is still an open wiring task."
+    },
+    {
+      "name": "channel upstream scanner interface exists",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel interface declares a closed typed scan boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel concrete scanner does not falsely claim interface adoption",
+      "passed": true,
+      "finding": "Interface adoption is still an open wiring task."
+    },
+    {
+      "name": "controller boundary contract version is synchronized",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "controller contract states ordinary integrated response is already wired",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "controller contract does not claim static invocation coverage",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "controller dataflow calls the single integrated-response interface",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "controller dataflow retains integrated response and exact knowledge binding",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "legacy analysis projection is exhaustive over integrated-response variants",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "composition preserves the same knowledge object for inventory and analysis",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "publication authority owns correspondence validation",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "route interface places route-target binding in an explicit authority",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "resource interface receives canonical model definitions and relation evidence",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "resource implementation gap is not hidden: local model resolution remains present",
+      "passed": true,
+      "finding": "ResourceScanner still performs local resolution/data-flow propagation; interface adoption and reasoning ownership require a separate migration."
+    },
+    {
+      "name": "route implementation contains local route method/path/action decisions",
+      "passed": true,
+      "finding": "RouteScanner still makes local routing decisions; do not mistake the upstream interface for an adopted runtime boundary."
+    },
+    {
+      "name": "channel implementation contains local channel-kind classification",
+      "passed": true,
+      "finding": "ChannelScanner still classifies channel kind in scanner runtime; move this decision only after a closed upstream judgment contract is established."
+    },
+    {
+      "name": "model implementation remains a direct class facade, not an interface implementation",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "form-request implementation remains a direct class facade, not an interface implementation",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "source pipeline directly invokes concrete subscanner facades",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "no foundation dependency introduced in changed upstream controller interface",
+      "passed": true,
+      "finding": ""
+    }
+  ],
+  "openGaps": [
+    "The six upstream Laravel scanner interfaces exist but their concrete subscanner classes do not implement them yet.",
+    "laravelSourceAstPipeline.ts still invokes concrete scanner facades directly.",
+    "RouteScanner retains local route method/path/action decisions.",
+    "ResourceScanner retains local model resolution and relation propagation.",
+    "ChannelScanner retains local channel-kind classification.",
+    "Static invocation algebra/authority/coverage remains unimplemented; ordinary invocation integrated response is wired.",
+    "No typecheck or package build is performed by this audit."
+  ]
+}

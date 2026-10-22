@@ -1,0 +1,152 @@
+{
+  "phase": 1373,
+  "title": "Reasoning Judgment Interface Composition",
+  "scope": [
+    "upstream SemanticDataflowReasoningAuthorityInterface and generic SemanticReasoningJudgmentInterface",
+    "runtime adapter/composition/boundary and AST ADT aliases",
+    "operation identity algebra/authority/projection",
+    "manifest/graph/IR and React/SDK/CLI consumer boundaries"
+  ],
+  "checks": 24,
+  "passed": 19,
+  "failed": 5,
+  "results": [
+    {
+      "name": "generic semantic reasoning owns the reusable judgment operation",
+      "passed": true,
+      "detail": "The judge operation is a shared reasoning contract rather than duplicated by each domain contract."
+    },
+    {
+      "name": "dataflow authority composes the generic judgment contract",
+      "passed": true,
+      "detail": "The semantic-dataflow contract specializes the existing reasoning judgment interface for canonical input and judgment ADTs."
+    },
+    {
+      "name": "dataflow authority contract retains upstream ownership marker",
+      "passed": true,
+      "detail": "The shared judge shape does not weaken the semantic ownership boundary."
+    },
+    {
+      "name": "dataflow authority contract retains a domain-specific discriminant",
+      "passed": true,
+      "detail": "Runtime composition can identify the concrete authority contract without exposing its solver."
+    },
+    {
+      "name": "canonical authority remains the only binding to the concrete solver",
+      "passed": true,
+      "detail": "The implementation constructor is bound once behind the upstream authority object."
+    },
+    {
+      "name": "runtime adapter depends on the authority interface",
+      "passed": false,
+      "detail": "The runtime adapter invokes the contract rather than importing the concrete solver."
+    },
+    {
+      "name": "runtime adapter exposes the closed consumer authority, not fake execution methods",
+      "passed": true,
+      "detail": "The runtime consumer surface exposes closed state/query/closure and does not imitate producer execution."
+    },
+    {
+      "name": "runtime adapter does not import the concrete solver",
+      "passed": true,
+      "detail": "The wiring adapter cannot bypass the upstream authority contract."
+    },
+    {
+      "name": "composition root binds the canonical authority",
+      "passed": false,
+      "detail": "Concrete implementation selection remains in the explicit composition root."
+    },
+    {
+      "name": "runtime boundary expresses upstream-to-runtime wiring",
+      "passed": true,
+      "detail": "The contract direction remains upstream evidence to downstream read-only authority projection."
+    },
+    {
+      "name": "analysis pipeline consumes the injected runtime boundary",
+      "passed": true,
+      "detail": "Analysis orchestration does not choose a solver or construct a second judgment."
+    },
+    {
+      "name": "AST dataflow input and judgment remain canonical aliases",
+      "passed": false,
+      "detail": "AST-facing dataflow does not introduce a parallel input or judgment representation."
+    },
+    {
+      "name": "operation identity has a domain-specific runtime algebra contract",
+      "passed": true,
+      "detail": "Operation identity construction is typed separately from the closed result ADT."
+    },
+    {
+      "name": "operation identity authority delegates to its algebra",
+      "passed": false,
+      "detail": "The authority does not reconstruct identity capability fields."
+    },
+    {
+      "name": "operation identity algebra preserves semantic proof",
+      "passed": true,
+      "detail": "Capability construction retains the original proof, derivation, and provenance."
+    },
+    {
+      "name": "operation identity projection consumes the closed capability",
+      "passed": true,
+      "detail": "The downstream projection serializes identity without reclassification."
+    },
+    {
+      "name": "manifest projection forwards canonical inputs",
+      "passed": false,
+      "detail": "Manifest wiring transports semantic evidence but does not solve it."
+    },
+    {
+      "name": "IR projects closed closure and canonical identity",
+      "passed": true,
+      "detail": "IR consumes the canonical closed state instead of creating a parallel solver."
+    },
+    {
+      "name": "structural graph has a distinct relation-to-edge projection",
+      "passed": true,
+      "detail": "Structural graph reasoning remains distinct from runtime value dataflow."
+    },
+    {
+      "name": "React and SDK remain consumers of endpoint capability",
+      "passed": true,
+      "detail": "React and SDK do not infer endpoint identity from raw method/path data."
+    },
+    {
+      "name": "CLI consumes the upstream operation identity reference",
+      "passed": true,
+      "detail": "The emitter projects a closed capability instead of recreating identity."
+    },
+    {
+      "name": "semantic ownership and prior audit chain remain available",
+      "passed": true,
+      "detail": "The focused contract audit supplements rather than replaces broad ownership and phase audits."
+    },
+    {
+      "name": "Laravel example and frontend targets remain present",
+      "passed": true,
+      "detail": "The source-to-target example remains available for cross-layer trace."
+    },
+    {
+      "name": "package script is registered without changing release/build contract",
+      "passed": true,
+      "detail": "Audit is reproducible and the package version/build command remain unchanged."
+    }
+  ],
+  "decisions": [
+    {
+      "area": "Semantic dataflow reasoning contract",
+      "decision": "Compose the domain authority interface from the shared SemanticReasoningJudgmentInterface.",
+      "reason": "The domain contract should specialize the existing reasoning operation rather than redeclare the same judge signature."
+    },
+    {
+      "area": "Runtime execution",
+      "decision": "Keep the concrete solver binding in semanticDataflowRuntimeComposition and make adapters depend on the contract.",
+      "reason": "Runtime wiring selects the implementation; adapters execute the upstream contract without owning closure."
+    },
+    {
+      "area": "AST/ADT and downstream projection",
+      "decision": "Preserve canonical SemanticDataflowInput/Judgment aliases and existing consumer projections.",
+      "reason": "AST syntax, semantic dataflow, structural graph, and IR are related but not interchangeable models."
+    }
+  ]
+}

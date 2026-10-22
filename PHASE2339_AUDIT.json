@@ -1,0 +1,10 @@
+{
+  "phase": 2339,
+  "title": "Existing Upstream Policy Authority Contract",
+  "scope": "interface-first contract audit and clarification",
+  "checks": 12,
+  "passed": 12,
+  "runtime_wiring_changed": false,
+  "known_gap": "two policy resolver implementations still independently calculate complete/blocked judgment",
+  "not_run": ["TypeScript typecheck", "Vitest", "build", "CLI end-to-end", "npm run build"]
+}

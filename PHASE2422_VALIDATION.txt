@@ -1,0 +1,11 @@
+Phase2422 RequestType Producer Root-Cause Audit
+
+Repository trace checks:
+- Active routeManifestTypeLowering direct legacy solver call: confirmed.
+- Projection pipeline delegates to createDerivationContext + aggregateRequestTypeGroups: confirmed.
+- Legacy solver returns RequestType[] rather than a proof-backed RequestTypeDerivationJudgment: confirmed.
+- Semantic pipeline assembler has injected reasoning/verifier/decision/authority dependencies: confirmed.
+- No concrete production composition of those four capability interfaces found under packages/core/src: confirmed by rg search.
+- Route occurrence location carries file+line, while source-span coordinates are not available in RouteSemanticFlow provenance: confirmed by type trace.
+
+No production source files changed. No typecheck, Vitest, build, or CLI execution claimed.

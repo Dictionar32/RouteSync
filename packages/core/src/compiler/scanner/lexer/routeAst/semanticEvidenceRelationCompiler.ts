@@ -1,7 +1,7 @@
-import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
+import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/relations/relationMembership';
 import { relationResolve } from '../../../relational/sequence';
-import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
+import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationVariantValue } from '../../../../semantic/relations/relationalSequence';
 import { semanticPresenceFold } from './semanticKnowledgeDataFlowRelations';
 /**
  * Phase 287 — relation-native semantic evidence compiler.

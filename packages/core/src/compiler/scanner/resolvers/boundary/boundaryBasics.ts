@@ -6,14 +6,15 @@
  */
 import type { RouteActionKind, RouteParameter, RouteQueryParameter } from "../../../../types/route";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
+import { deriveRouteConstantKey } from "../../../../types/upstream/names";
 import type { ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath } from "../../../../types/upstream/names";
 import { HTTP_METHOD_REGISTRY, ROUTE_ACTION_KIND_REGISTRY } from "../../../../types/route";
 import { RouteParameterSemanticFactory } from "../../semantic/route/routeParameterSemanticFactory";
 import { toCamelCase, toSnakeCase } from "../../../../utils/resource-naming";
 import { routeDomainAuthority } from "../../../../types/upstream/routeDomainAuthority";
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationSome } from "../../../../semantic/foundation/semanticRelations";
-import { relationFold, relationProject, relationSelect, relationSlice, relationTextSlice, relationLookup, relationOptionFold, relationOptionValue, relationAt, relationFirstOption, relationTextEnclosedFields, relationTextFields, relationTextReplaceEnclosed, relationTextTrimChars, relationTextStartsWith, relationTextEndsWith, relationTextLower, relationTextNumber, relationLastIndexOf, relationTextTrimEndChars, relationVariant } from "../../../../semantic/foundation/relationalSequence";
-import type { RelationOption } from "../../../../semantic/foundation/relationalSequence";
+import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationSome } from "../../../../semantic/relations/semanticRelations";
+import { relationFold, relationProject, relationSelect, relationSlice, relationTextSlice, relationLookup, relationOptionFold, relationOptionValue, relationAt, relationFirstOption, relationTextEnclosedFields, relationTextFields, relationTextReplaceEnclosed, relationTextTrimChars, relationTextStartsWith, relationTextEndsWith, relationTextLower, relationTextNumber, relationLastIndexOf, relationTextTrimEndChars, relationVariant } from "../../../../semantic/relations/relationalSequence";
+import type { RelationOption } from "../../../../semantic/relations/relationalSequence";
 import { presenceFold, presenceOf, type Presence } from "../../../../types/upstream/presence";
 import type {
     RouteBoundaryContract,
@@ -218,30 +219,6 @@ export const resolveRouteBoundaryBasicsJudgment = (input: RouteBoundaryBasicsSem
 export const resolveRouteBoundaryBasics = (params: RouteBoundaryOptions): IntermediateRouteBoundaryBasics => resolveRouteBoundaryBasicsJudgment(semanticInputFromAuthoring(params)).result;
 
 export const routeBoundaryBasicsInterface = (params: RouteBoundaryOptions): RouteBoundaryBasicsJudgment => resolveRouteBoundaryBasicsJudgment(semanticInputFromAuthoring(params));
-
-export function deriveRouteConstantKey(routePath: RoutePath): string {
-    const segments = relationTextFields(relationTextTrimChars(routePath.value.value, ["/"]), "/");
-    const state = relationFold(segments, { keys: [] as readonly string[] }, (current, segment) => {
-        const parameter = relationAll([
-            relationEqual(relationTextSlice(segment, 0, 1), "{"),
-            relationTextEndsWith(segment, "}"),
-        ]);
-        const colonParameter = relationTextStartsWith(segment, ":");
-        return relationGate(relationAny([parameter, colonParameter]), () => {
-            const parameterName = relationGate(colonParameter, () => relationTextSlice(segment, 1), () => relationTextTrimEndChars(relationTextSlice(segment, 1), ["}"]));
-            return relationGate(relationEqual(relationTextLower(parameterName), "id"), () => ({ keys: [...current.keys, "DETAIL"] }), () => {
-                const previousIndex = relationLastIndexOf(current.keys, () => true);
-                const previous = relationOptionValue(relationAt(current.keys, previousIndex), "");
-                const plural = relationTextEndsWith(previous, "S");
-                const normalizedPrevious = relationGate(plural, () => relationTextTrimEndChars(previous, ["S"]), () => previous);
-                const cleanParameter = toSnakeCase(parameterName).toUpperCase();
-                const nextKeys = relationGate(plural, () => [...relationSlice(current.keys, 0, previousIndex), normalizedPrevious, cleanParameter], () => [...current.keys, cleanParameter]);
-                return { keys: nextKeys };
-            });
-        }, () => ({ keys: [...current.keys, toSnakeCase(segment).toUpperCase()] }));
-    });
-    return state.keys.join("_");
-}
 
 function resolveActionKindFromActionName(actionName: ActionName, fallback: RouteActionKind): RouteActionKind {
     const catalog: readonly (readonly [string, RouteActionKind])[] = [

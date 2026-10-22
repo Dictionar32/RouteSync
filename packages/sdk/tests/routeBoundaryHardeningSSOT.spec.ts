@@ -16,7 +16,7 @@ const minimalBoundary = (method: RouteBoundaryOptions['method'], path: string): 
   name: SemanticValueFactory.routeName('boundary.test'),
   resourceName: SemanticValueFactory.resourceName('users'),
   domain: SemanticValueFactory.domainName('users'),
-  auth: false,
+  authorization: { kind: 'laravel_route_authorization_middleware_absent', middleware: Object.freeze([]) },
   middleware: [],
   parameters: [],
   pathParameters: [],
@@ -73,7 +73,6 @@ describe('Route Boundary Hardening & Level 7 Contract SSOT', () => {
   it('RouteBoundaryContractFactory resolves mutation semantics without a legacy route facade', () => {
     const contract = RouteBoundaryContractFactory.create({
       ...minimalBoundary('POST', '/api/v1/orders'),
-      auth: true,
       middleware: [SemanticValueFactory.propertyName('auth:sanctum')]
     });
 

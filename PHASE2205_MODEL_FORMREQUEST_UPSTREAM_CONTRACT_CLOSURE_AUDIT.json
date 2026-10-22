@@ -1,0 +1,69 @@
+{
+  "phase": 2205,
+  "title": "Model and FormRequest Upstream Contract Closure",
+  "status": "implemented_with_explicit_remaining_gaps",
+  "root": "RouteSync/",
+  "contractVersionChanges": [
+    {
+      "contract": "LaravelModelScannerInterface",
+      "from": 2,
+      "to": 3
+    },
+    {
+      "contract": "LaravelFormRequestScannerInterface",
+      "from": 2,
+      "to": 3
+    },
+    {
+      "contract": "LaravelSourceAstPipelineInterface",
+      "from": 6,
+      "to": 7
+    }
+  ],
+  "closedDependencies": [
+    "LaravelModelScannerInterface",
+    "LaravelFormRequestScannerInterface",
+    "SchemaProducer",
+    "SourceAstSemanticProducerInterface"
+  ],
+  "semanticContractImprovements": [
+    "model AST, definition, and exact PHP class identity are retained in one model artifact",
+    "FormRequest source inventory remains distinct from completed AST/definition artifacts",
+    "each completed FormRequest artifact binds source, AST, and definition without positional reconstruction",
+    "source-AST pipeline invokes these producers through the dependency contract"
+  ],
+  "remainingDirectDependencies": [
+    "migration scanner and migration interface adapter",
+    "query producer",
+    "attribute scanner",
+    "DTO declaration inventory scanner",
+    "service scanner",
+    "middleware scanner",
+    "provider scanner",
+    "channel scanner",
+    "collection and sequence shaping",
+    "legacy semantic/relations helpers"
+  ],
+  "architectureConstraints": {
+    "newRelationLayer": false,
+    "newFoundationLayer": false,
+    "newSubscannerLayer": false,
+    "duplicateInvocationSemanticAuthority": false,
+    "runtimeSemanticReclassification": false,
+    "positionalPairingForModelOrFormRequestArtifacts": false
+  },
+  "validation": {
+    "syntaxTranspilation": {
+      "status": "passed",
+      "files": 7
+    },
+    "structuralAssertions": {
+      "status": "passed",
+      "assertions": 13
+    },
+    "zipIntegrity": "passed",
+    "fullTypecheck": "notRun",
+    "vitest": "notRun",
+    "packageBuild": "notRun"
+  }
+}

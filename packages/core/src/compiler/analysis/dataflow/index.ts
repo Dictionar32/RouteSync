@@ -7,10 +7,10 @@
  */
 
 export type { FlowState, TransferFn, MergeFn } from './types';
-export { runForwardAnalysis } from './forwardSolver';
-export { runBackwardAnalysis } from './backwardSolver';
+export { runForwardAnalysis, runForwardAnalysisWithJudgment } from './forwardSolver';
+export { runBackwardAnalysis, runBackwardAnalysisWithJudgment } from './backwardSolver';
 
-export type { ControlFlowSolverInterface, ControlFlowDataFlowInterface, DataFlowAnalysisInterface, DataFlowForwardInterface, DataFlowBackwardInterface } from './controlFlowDataFlowInterface';
+export type { ControlFlowSolverInterface, ControlFlowDataFlowInterface, DataFlowAnalysisInterface, DataFlowForwardInterface, DataFlowBackwardInterface, DataFlowSolveJudgment } from './controlFlowDataFlowInterface';
 
 export { createDataFlowConfig } from './dataFlowConfigInterface';
 export { liftDataFlowConfigToState } from './dataFlowStateConfigInterface';
@@ -21,5 +21,8 @@ export type { DataFlowConfigContribution, DataFlowConfigContributorInterface } f
 export type { DataFlowFactPolicyInterface } from './dataFlowFactPolicyInterface';
 export { selectDataFlowFacts } from './dataFlowFactPolicyInterface';
 export { createSemanticDataflowAnalysisPolicy, semanticDataflowFlowsUnderPolicy } from './semanticDataflowFactAnalysisPolicy';
+export type { SemanticDataflowAnalysisPolicy } from './semanticDataflowFactAnalysisPolicy';
 export { createSemanticDataflowStatePolicy } from './semanticDataflowStatePolicy';
 export type { SemanticDataflowStatePolicy } from './semanticDataflowStatePolicy';
+
+export { DataFlowFixedPointIncompleteError } from './dataFlowSolveJudgment';

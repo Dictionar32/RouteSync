@@ -1,0 +1,17 @@
+{
+  "phase": 2070,
+  "title": "AST Static-Call Class-Reference Evidence, Interface First",
+  "status": "implemented",
+  "primaryFinding": "Controller dataflow reclassified PHP static-call class-name spelling from raw strings after the parser had already seen the source tokens",
+  "contractChange": "PhpAstValue.static_call now carries PhpClassReferenceSourceEvidence as a discriminated union instead of a raw className field",
+  "semanticBoundary": "The AST preserves source spelling form; existing phpClassNameResolutionAuthority remains the only canonical name resolver",
+  "regression": "packages/core/src/compiler/scanner/lexer/phpAstStaticCallClassReference.phase2070.test.ts",
+  "audit": "scripts/audits/audit-phase2070-ast-static-call-class-reference-evidence-interface-first.cjs",
+  "structuralAuditResult": "13/13; selected prior audits 172/172; combined 185/185",
+  "runtimeSmokeResult": "5/5",
+  "newRelationFoundationSubscanner": false,
+  "typescriptParserInspection": "12 files, zero syntax/transpile diagnostics",
+  "fullTypecheck": "not-run",
+  "build": "not-run",
+  "vitest": "not-run unless binary becomes available"
+}

@@ -1,0 +1,62 @@
+{
+  "phase": 2705,
+  "title": "Fully Typed Runtime Scanner Operations — Domain Model Audit",
+  "scope": [
+    "routeDomainEvidence runtime operation",
+    "request-deriver export boundary",
+    "existing manifest semantic pipeline"
+  ],
+  "checks": [
+    {
+      "name": "route domain evidence retains ResourceName and DomainName semantic values",
+      "pass": true
+    },
+    {
+      "name": "route domain model no longer flattens semantic identity to rawDomain/bareDomain strings",
+      "pass": true
+    },
+    {
+      "name": "route domain extraction is an interface-typed runtime operation object",
+      "pass": true
+    },
+    {
+      "name": "route domain evidence is copied from canonical route identity without string round-tripping",
+      "pass": true
+    },
+    {
+      "name": "request-deriver public boundary exports the operation object and semantic contract types",
+      "pass": true
+    },
+    {
+      "name": "changed domain source contains no exported function declaration or loose exported callable constant",
+      "pass": true
+    },
+    {
+      "name": "proof verifier remains fail-closed for laws not independently verified",
+      "pass": true
+    },
+    {
+      "name": "semantic reasoning and proof verifier remain wired into typed runtime operations",
+      "pass": true
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "total": 8
+  },
+  "syntaxTranspilation": {
+    "passed": 3,
+    "total": 3,
+    "diagnostics": 0
+  },
+  "knownRemainingLowLevelModels": [
+    "request type semantic keys and source occurrence keys are still string-encoded template literal types",
+    "external CLI environment/module specifier boundary still consumes strings"
+  ],
+  "knownUnverified": [
+    "full workspace typecheck",
+    "CLI scan/sync runtime integration",
+    "unit tests",
+    "independent proof verification of all 34 canonical laws"
+  ]
+}

@@ -1,29 +1,30 @@
 /* Relational response descriptor boundary. */
-import type Token from '../../lexer/token';
+import type { TokenDescriptor } from '../../lexer/PhpAst';
 import { type ResponseDescriptor, ModelResponseDescriptor, InlineResponseDescriptor } from '../../../../types/route';
 import { ResourceFieldSemanticBinding } from '../../../../types/domain/resourceFieldSemanticBinding';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { toPascalCase } from '../../../../utils/resource-naming';
-import { ResourceScanner } from '../ResourceScanner';
+import { mapResourceAstExpression } from '../../operations/resourceAstExpressionMapper';
+import type { SourceFile } from '../../../../types/upstream/names';
 import { ErrorType } from '../../../../types/domain/semanticType';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { type DetectedResourceInvocation, detectResourceInvocation } from './resourceInvocationDetector';
-import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
-import { relationAll, relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/relations/relationalSequence';
+import { relationAll, relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';
 import { tokenKindAt, tokenValueAt } from '../../lexer/tokenEvidence';
 import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 export { type DetectedResourceInvocation, detectResourceInvocation };
 
-export function detectResourceResponse(tokens: readonly Token[], k: number): RelationOption<ResponseDescriptor> {
+export function detectResourceResponse(tokens: readonly TokenDescriptor[], k: number): RelationOption<ResponseDescriptor> {
   return relationOptionFold(detectResourceInvocation(tokens, k), () => relationNone(), invocation => relationSome(invocation.descriptor));
 }
 
 const modelCollectionMethods = Object.freeze([['all', true], ['paginate', true], ['get', true], ['cursor', true]] as const);
 const modelSingleMethods = Object.freeze([['find', true], ['findOrFail', true], ['first', true], ['firstOrFail', true], ['create', true]] as const);
 
-export function detectModelResponse(tokens: readonly Token[], k: number): RelationOption<ResponseDescriptor> {
+export function detectModelResponse(tokens: readonly TokenDescriptor[], k: number): RelationOption<ResponseDescriptor> {
   const modelIndex = relationAdvanceIndex(k, 1);
   const separatorIndex = relationAdvanceIndex(k, 2);
   const methodIndex = relationAdvanceIndex(k, 3);
@@ -38,7 +39,7 @@ export function detectModelResponse(tokens: readonly Token[], k: number): Relati
   ]);
 }
 
-export function detectInlineResponse(source: string, tokens: readonly Token[], k: number, controllerName: string, actionName: string): RelationOption<ResponseDescriptor> {
+export function detectInlineResponse(source: string, tokens: readonly TokenDescriptor[], k: number, controllerName: string, actionName: string, sourceFile: SourceFile): RelationOption<ResponseDescriptor> {
   const shape = relationAll([
     relationEqual(relationOptionFold(tokenValueAt(tokens, k), () => '', value => value), 'return'),
     relationEqual(relationOptionFold(tokenValueAt(tokens, relationAdvanceIndex(k, 1)), () => '', value => value), 'response'),
@@ -51,12 +52,12 @@ export function detectInlineResponse(source: string, tokens: readonly Token[], k
     ]), () => ({ index, found: true, parsed: LaravelSourceLexer.parseArray(source, tokens, relationAdvanceIndex(index, 1)) }), () => state))
   );
   const fields: ResourceFieldSemanticBinding[] = relationProject(json.parsed.entries, entry => {
-    const mapped = ResourceScanner.resolveAstValueToExpression(entry.value);
+    const mapped = mapResourceAstExpression({ value: entry.value, sourceFile });
     const semanticType = relationGate(relationEqual(mapped.semantic.kind, 'known'), () => mapped.semantic.type, () => ErrorType('Inline response field requires verified semantic binding'));
     return ResourceFieldSemanticBinding.fromExpression(entry.key, mapped.expression, semanticType, entry.key, BoundSemanticFactory.unsupported('parser_gap'));
   });
   const domain = resolveInlineDomain(controllerName, actionName);
-  return relationGate(relationAll([shape, json.found, json.parsed.entries.length > 0]), () => relationSome(InlineResponseDescriptor.create({ domain, baseName: toPascalCase(domain), typeName: `${toPascalCase(domain)}Transformed`, fields, shape: 'single', origin: { kind: 'inferred', sourceFile: SemanticValueFactory.sourceFilePath('<inline>'), trace: Object.freeze([]) }, semanticContract: { kind: 'object', name: `${toPascalCase(domain)}Transformed`, shape: 'single', fields: Object.freeze([]) } })), () => relationNone());
+  return relationGate(relationAll([shape, json.found, json.parsed.entries.length > 0]), () => relationSome(InlineResponseDescriptor.create({ domain, baseName: toPascalCase(domain), typeName: `${toPascalCase(domain)}Transformed`, fields, shape: 'single', origin: { kind: 'inferred', sourceFile: SemanticValueFactory.sourceFilePath(sourceFile.value.value), trace: Object.freeze([]) }, semanticContract: { kind: 'object', name: `${toPascalCase(domain)}Transformed`, shape: 'single', fields: Object.freeze([]) } })), () => relationNone());
 }
 
 function resolveInlineDomain(controllerName: string, actionName: string): string {

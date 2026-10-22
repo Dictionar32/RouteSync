@@ -12,8 +12,6 @@ import type { RelationName, PropertyName, VariableName, TraitName } from './name
 import type { SemanticValue } from './primitiveVocabulary';
 import type { ServiceParameter } from './service';
 import type { CompletenessFailure } from './completeness';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
-import { relationOptionFold, relationRefine, type Sequence } from '../../semantic/foundation/relationalSequence';
 
 export type Option<T> =
   | { readonly kind: 'none' }
@@ -28,26 +26,36 @@ export type LookupVisitor<T, R> = {
   readonly found: (lookup: Extract<Lookup<T>, { readonly kind: 'found' }>) => R;
 };
 
-const isFoundLookup = <T>(value: Lookup<T>): value is Extract<Lookup<T>, { readonly kind: 'found' }> => relationEqual(value.kind, 'found');
-const isScannedDiscovery = <T>(value: SourceDiscovery<T>): value is Extract<SourceDiscovery<T>, { readonly kind: 'scanned' }> => relationEqual(value.kind, 'scanned');
-const isDiscoveredMany = <T>(value: Discovered<T>): value is Extract<Discovered<T>, { readonly kind: 'discovered_many' }> => relationEqual(value.kind, 'discovered_many');
+export type Sequence<T> =
+  | Readonly<{ readonly kind: 'empty' }>
+  | Readonly<{ readonly kind: 'cons'; readonly head: T; readonly tail: Sequence<T> }>;
 
 export function matchLookup<T, R>(lookup: Lookup<T>, visitor: LookupVisitor<T, R>): R {
-  return relationOptionFold(relationRefine(lookup, isFoundLookup), () => visitor.missing({ kind: 'missing' }), visitor.found);
+  if (lookup.kind === 'missing') {
+    return visitor.missing(lookup);
+  }
+
+  return visitor.found(lookup);
 }
 
 export function matchSourceDiscovery<T, R>(discovery: SourceDiscovery<T>, visitor: SourceDiscoveryVisitor<T, R>): R {
-  return relationOptionFold(relationRefine(discovery, isScannedDiscovery), () => visitor.notScanned({ kind: 'not_scanned' }), visitor.scanned);
+  if (discovery.kind === 'not_scanned') {
+    return visitor.notScanned(discovery);
+  }
+
+  return visitor.scanned(discovery);
 }
 
 export function matchDiscovered<T, R>(discovery: Discovered<T>, visitor: {
   readonly empty: (value: Extract<Discovered<T>, { readonly kind: 'discovered_empty' }>) => R;
   readonly many: (value: Extract<Discovered<T>, { readonly kind: 'discovered_many' }>) => R;
 }): R {
-  return relationOptionFold(relationRefine(discovery, isDiscoveredMany), () => visitor.empty({ kind: 'discovered_empty' }), visitor.many);
-}
+  if (discovery.kind === 'discovered_empty') {
+    return visitor.empty(discovery);
+  }
 
-export type { Sequence } from '../../semantic/foundation/relationalSequence';
+  return visitor.many(discovery);
+}
 export type Discovered<T> = { readonly kind: 'discovered_empty' } | { readonly kind: 'discovered_many'; readonly items: Sequence<T> };
 export type SourceDiscovery<T> = { readonly kind: 'not_scanned' } | { readonly kind: 'scanned'; readonly result: Discovered<T> };
 
@@ -102,7 +110,7 @@ export type SchemaAsts = { readonly kind: 'schema_asts'; readonly items: SourceD
 export type ResponseAsts = { readonly kind: 'response_asts'; readonly items: SourceDiscovery<ResponseAst> };
 export type DtoAsts = { readonly kind: 'dto_asts'; readonly items: SourceDiscovery<DtoAst> };
 import type { MiddlewareAsts, ProviderAsts, AttributeAsts } from './application';
-export type SourceAsts = { readonly kind: 'source_asts'; readonly modelDefinitions: readonly import('./model').ModelDefinition[]; readonly resourceDefinitions: readonly import('./resource').ResourceDefinition[]; readonly requestDefinitions: readonly import('./request').RequestDefinition[]; readonly providerDefinitions: readonly import('./application').ProviderDefinition[]; readonly serviceDefinitions: readonly import('./service').ServiceDefinition[]; readonly responseDefinitions: readonly import('./response').ResponseDefinition[]; readonly schemas: SchemaAsts; readonly models: ModelAsts; readonly resources: ResourceAsts; readonly requests: RequestAsts; readonly routes: RouteAsts; readonly routeFlows: readonly import('../domain/routes').RouteSemanticFlow[]; readonly controllers: ControllerAsts; readonly controllerActions: readonly import('./highLevelContracts').ControllerActionFlowContract[]; readonly services: ServiceAsts; readonly migrations: MigrationAsts; readonly responses: ResponseAsts; readonly dtos: DtoAsts; readonly middlewares: MiddlewareAsts; readonly providers: ProviderAsts; readonly attributes: AttributeAsts; readonly channels: ChannelAsts; readonly properties: PropertyAsts; readonly assignments: AssignmentAsts; readonly expressions: ExpressionAsts; readonly queries: QueryAsts };
+export type SourceAsts = { readonly kind: 'source_asts'; /** Exact authority-closed controller invocation inventory, including each source-correlated integrated response; downstream projection must not reconstruct it from controller ASTs. */ readonly controllerInvocationSemanticInventory: import('./laravelControllerInvocationSemanticJudgmentInventoryInterface').LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt; /** Canonical controller scan judgment retains source-correlated AST/action/invocation artifacts for downstream scanners. */ readonly controllerScan: import('./laravelControllerScannerInterface').LaravelControllerScanJudgment; readonly modelDefinitions: readonly import('./model').ModelDefinition[]; readonly resourceDefinitions: readonly import('./resource').ResourceDefinition[]; readonly resourceScan: import('./laravelResourceScannerInterface').LaravelResourceScanJudgment; readonly requestDefinitions: readonly import('./request').RequestDefinition[]; readonly providerDefinitions: readonly import('./application').ProviderDefinition[]; readonly serviceDefinitions: readonly import('./service').ServiceDefinition[]; readonly responseDefinitions: readonly import('./response').ResponseDefinition[]; /** Canonical per-method response projection judgments retained across AST projection into CLI-facing SourceAsts. */ readonly responseProjectionJudgments: readonly import('./laravelControllerResponseSemanticJudgmentInterface').LaravelControllerMethodResponseAstProjectionJudgment[]; readonly schemas: SchemaAsts; readonly models: ModelAsts; readonly resources: ResourceAsts; readonly requests: RequestAsts; readonly routes: RouteAsts; readonly routeFlows: readonly import('../domain/routes').RouteSemanticFlow[]; readonly routeScan: import('./laravelRouteScannerInterface').LaravelRouteScanJudgment; readonly controllers: ControllerAsts; readonly controllerActions: readonly import('./highLevelContracts').ControllerActionFlowContract[]; readonly services: ServiceAsts; readonly migrations: MigrationAsts; readonly responses: ResponseAsts; readonly dtos: DtoAsts; readonly middlewares: MiddlewareAsts; readonly providers: ProviderAsts; readonly attributes: AttributeAsts; readonly channels: ChannelAsts; readonly properties: PropertyAsts; readonly assignments: AssignmentAsts; readonly expressions: ExpressionAsts; readonly queries: QueryAsts };
 export type PropertyPaths = { readonly kind: 'property_paths'; readonly items: Sequence<PropertyPath> };
 export type ColumnNames = { readonly kind: 'column_names'; readonly items: Sequence<import('./names').ColumnName> };
 export type RelationPaths = { readonly kind: 'relation_paths'; readonly items: Sequence<RelationPath> };
@@ -112,3 +120,40 @@ export type ClosureCaptures = { readonly kind: 'closure_captures'; readonly item
 export type VariableNames = { readonly kind: 'variable_names'; readonly items: Sequence<VariableName> };
 export type ServiceParameters = { readonly kind: 'service_parameters'; readonly items: Sequence<ServiceParameter> };
 export type CompletenessFailures = { readonly kind: 'completeness_failures'; readonly items: Sequence<CompletenessFailure> };
+
+/** Canonical operations for the upstream closed Sequence ADT. */
+export interface SequenceAlgebraInterface {
+  readonly kind: 'upstream_sequence_algebra';
+  readonly contractVersion: 1;
+  readonly toArray: <T>(items: Sequence<T>) => readonly T[];
+  readonly project: <T, R>(items: Sequence<T>, projection: (item: T) => R) => readonly R[];
+  readonly expand: <T, R>(items: Sequence<T>, expansion: (item: T) => readonly R[]) => readonly R[];
+  readonly fromArray: <T>(items: readonly T[]) => Sequence<T>;
+}
+
+const sequenceArrayFromTail = <T>(items: Sequence<T>, output: readonly T[]): readonly T[] => {
+  if (items.kind === 'empty') return output;
+  return sequenceArrayFromTail(items.tail, Object.freeze([...output, items.head]));
+};
+
+const sequenceProjectionFromTail = <T, R>(items: Sequence<T>, projection: (item: T) => R, output: readonly R[]): readonly R[] => {
+  if (items.kind === 'empty') return output;
+  return sequenceProjectionFromTail(items.tail, projection, Object.freeze([...output, projection(items.head)]));
+};
+
+const sequenceExpansionFromTail = <T, R>(items: Sequence<T>, expansion: (item: T) => readonly R[], output: readonly R[]): readonly R[] => {
+  if (items.kind === 'empty') return output;
+  return sequenceExpansionFromTail(items.tail, expansion, Object.freeze([...output, ...expansion(items.head)]));
+};
+
+export const sequenceAlgebra: SequenceAlgebraInterface = Object.freeze({
+  kind: 'upstream_sequence_algebra',
+  contractVersion: 1,
+  toArray: <T>(items: Sequence<T>): readonly T[] => sequenceArrayFromTail(items, Object.freeze([])),
+  project: <T, R>(items: Sequence<T>, projection: (item: T) => R): readonly R[] => sequenceProjectionFromTail(items, projection, Object.freeze([])),
+  expand: <T, R>(items: Sequence<T>, expansion: (item: T) => readonly R[]): readonly R[] => sequenceExpansionFromTail(items, expansion, Object.freeze([])),
+  fromArray: <T>(items: readonly T[]): Sequence<T> => items.reduceRight<Sequence<T>>(
+    (tail, head) => ({ kind: 'cons', head, tail }),
+    { kind: 'empty' },
+  ),
+});

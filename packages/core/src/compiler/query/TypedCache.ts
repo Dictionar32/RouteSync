@@ -1,8 +1,8 @@
 /** Relation-backed type-safe memoized query cache. */
 import { type QueryStorage, type MemoizedQueryKey, createMemoizedQueryKey } from './cache';
-import type { RelationOption } from '../../semantic/foundation/relationFoundation';
-import { relationContains } from '../../semantic/foundation/relationMembership';
-import { relationFold, relationOptionFold, relationResolve } from '../../semantic/foundation/relationalSequence';
+import type { RelationOption } from '../../semantic/relations/relationFoundation';
+import { relationContains } from '../../semantic/relations/relationMembership';
+import { relationFold, relationOptionFold, relationResolve } from '../../semantic/relations/relationalSequence';
 
 export { type QueryStorage, type MemoizedQueryKey, createMemoizedQueryKey };
 

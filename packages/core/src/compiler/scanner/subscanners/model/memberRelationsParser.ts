@@ -6,8 +6,8 @@ import type { ModelName } from '../../../../types/upstream/names';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { ModelDeclarationAst } from '../../lexer';
 import type { EloquentRelationAst } from '../../../../types/upstream/eloquent';
-import { relationFold, relationGate } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationFold, relationGate } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 import { eloquentRelationProducer } from './eloquentProducer';
 
 export function parseModelRelations(

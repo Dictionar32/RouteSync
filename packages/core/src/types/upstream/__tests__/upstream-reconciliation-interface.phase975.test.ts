@@ -3,7 +3,7 @@ import type { SchemaInterface } from '../schema';
 import type { EloquentRelationAst } from '../eloquent';
 import { createTableName, createModelName, createRelationName, createClassName } from '../names';
 import { schemaRelationIndexFrom } from '../schemaRelation';
-import { reconcileSemanticRelation } from '../semanticReconciliation';
+import { reconcileSemanticRelation } from '../semanticReconciliationAuthority';
 
 describe('phase975 upstream reconciliation interface', () => {
   it('matches belongsTo against the source table foreign key', () => {

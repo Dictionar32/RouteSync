@@ -10,8 +10,8 @@ import type { NumberValue, StringValue, StringValues } from '../../../types/upst
 import type { PropertyReference } from '../../../types/upstream/semanticReferences';
 import { PrimitiveKind, type SemanticTypeVisitor } from '../../../types/domain/semanticType';
 import type { RequestFieldMeaning, RequestFieldMeaningVisitor } from '../../../types/domain/requestFieldMeaning';
-import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice, relationVariantFold, relationVariantValue, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
-import { relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice, relationVariantFold, relationVariantValue, type RelationVariant } from '../../../semantic/relations/relationalSequence';
+import { relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';
 
 const str = (value: string): StringValue => ({ kind: 'string_value', value });
 const seq = <T>(items: readonly T[], index = 0, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> =>
@@ -228,6 +228,7 @@ function field(fieldSource: RequestField, request: FormRequestSource): UpstreamR
         rules: rules(fieldSource),
         fileConstraints,
         default: { kind: 'none' },
+        sources: Object.freeze([...fieldSource.sources]),
         source: fieldSource.source,
     };
 }
@@ -256,6 +257,7 @@ function buildRequestField(fieldSource: RequestField): UpstreamRequestField {
         rules: rules(fieldSource),
         fileConstraints,
         default: { kind: 'none' },
+        sources: Object.freeze([...fieldSource.sources]),
         source: fieldSource.source,
     };
 }

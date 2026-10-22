@@ -1,0 +1,67 @@
+{
+  "phase": 1632,
+  "title": "Scanner thin facade and upstream semantic rule ownership",
+  "scannerProductionFileCount": 385,
+  "directSolverCallFiles": [],
+  "runtimeFactoryCallFiles": [],
+  "checks": [
+    {
+      "name": "scanner-identity-module-is-upstream-facade",
+      "passed": true
+    },
+    {
+      "name": "alias-inference-rules-are-upstream-contract-data",
+      "passed": true
+    },
+    {
+      "name": "authority-delegates-to-canonical-runtime-executor",
+      "passed": false
+    },
+    {
+      "name": "closed-and-incomplete-analysis-preserve-proof",
+      "passed": true
+    },
+    {
+      "name": "typed-relation-algebra-is-upstream-owned",
+      "passed": true
+    },
+    {
+      "name": "upstream-authority-does-not-import-scanner",
+      "passed": true
+    },
+    {
+      "name": "constraint-handling-scanner-is-thin-facade",
+      "passed": true
+    },
+    {
+      "name": "constraint-handling-contract-has-closed-and-incomplete-results",
+      "passed": true
+    },
+    {
+      "name": "constraint-handling-authority-enforces-round-budget",
+      "passed": true
+    },
+    {
+      "name": "interprocedural-rules-and-analysis-are-upstream-owned",
+      "passed": false
+    },
+    {
+      "name": "scanner-rewrite-facade-is-type-only",
+      "passed": true
+    },
+    {
+      "name": "production-scanner-has-no-direct-generic-solver-calls",
+      "passed": true
+    },
+    {
+      "name": "executor-factories-are-confined-to-scanner-wiring-composition",
+      "passed": false
+    },
+    {
+      "name": "regression-tests-cover-closed-alias-and-round-limit",
+      "passed": true
+    }
+  ],
+  "passed": 11,
+  "total": 14
+}

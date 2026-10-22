@@ -1,0 +1,95 @@
+{
+  "phase": 1406,
+  "audit": "runtime-contract-migration",
+  "status": "passed_with_residuals",
+  "passed": 9,
+  "total": 9,
+  "checks": [
+    {
+      "name": "Upstream route reference carries normalized cache-operation identity",
+      "pass": true
+    },
+    {
+      "name": "Upstream group contract carries complete route references",
+      "pass": true
+    },
+    {
+      "name": "CLI projects cache operation key without classifying CRUD role",
+      "pass": true
+    },
+    {
+      "name": "React CRUD slots require closed contract",
+      "pass": true
+    },
+    {
+      "name": "React resolver has no CRUD-role or target-scope scanning fallback",
+      "pass": true
+    },
+    {
+      "name": "React orchestrator passes only the contract to slot resolver",
+      "pass": true
+    },
+    {
+      "name": "All hand-authored ecommerce groups explicitly declare no-slot contract",
+      "pass": true,
+      "detail": "18/18 endpoint groups declare crudSlots"
+    },
+    {
+      "name": "Removed generator helper is not re-exported",
+      "pass": true
+    },
+    {
+      "name": "Package version and build command remain unchanged",
+      "pass": true
+    }
+  ],
+  "completedMigrations": [
+    "React runtime no longer classifies CRUD slots from endpoint metadata.",
+    "HookConfig requires an explicit closed CRUD execution contract.",
+    "Upstream resource-group algebra publishes cacheOperationKey for every route reference.",
+    "CLI projects action keys from upstream cacheOperationKey and canonical route identity.",
+    "Hand-authored ecommerce hook groups declare explicit empty slot contracts rather than depending on runtime inference."
+  ],
+  "residuals": [
+    {
+      "id": "R1",
+      "severity": "medium",
+      "owner": "packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts",
+      "detail": "Source file discovery and reading have moved behind a typed acquisition contract; syntax parsing and semantic judgment production remain coupled."
+    },
+    {
+      "id": "R2",
+      "severity": "closed",
+      "owner": "packages/core/src/types/upstream/routeActionIdentityCapabilityAuthority.ts",
+      "detail": "Closed in Phase 1408: final duplicate action-name resolution is an upstream capability; routeGrouper only projects the result."
+    },
+    {
+      "id": "R3",
+      "severity": "medium",
+      "owner": "packages/core/src/types/domain/resourceGroupDescriptors.ts",
+      "detail": "Legacy role-based descriptor helpers still need call-site trace and retirement."
+    },
+    {
+      "id": "R4",
+      "severity": "medium",
+      "owner": "packages/core/src/types/upstream/semanticDataflowManifestSurface.ts",
+      "detail": "Audit every dataflow consumer to ensure judgments are consumed without independently rebuilding semantic relations."
+    },
+    {
+      "id": "R5",
+      "severity": "high",
+      "owner": "scripts/audits/audit-phase729-semantic-relation-calculus-frontier.cjs",
+      "detail": "Relational calculus stratum closure audit remains failing."
+    },
+    {
+      "id": "R6",
+      "severity": "high",
+      "owner": "scripts/audit-relational-authority-strict.cjs",
+      "detail": "Strict relational authority audit still reports legacy violations."
+    }
+  ],
+  "package": {
+    "version": "1.0.49",
+    "build": "tsdown"
+  }
+}

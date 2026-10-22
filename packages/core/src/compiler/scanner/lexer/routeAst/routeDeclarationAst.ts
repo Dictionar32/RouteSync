@@ -2,11 +2,9 @@
 import type { AstIdentifier, TokenDescriptor, PhpAstValue } from "../phpAstTypes";
 import type { RouteBindingDeclarationAst } from "./routeBindingDeclarationAst";
 import type { RouteResourceMiddlewareAst } from "./routeResourceDeclarationAst";
+import type { LaravelRouteMethod, LaravelRouteTargetMethod } from "../../../../types/upstream/laravelRouteScannerInterface";
 
-export type LaravelRouteMethod =
-  | "get" | "post" | "put" | "patch" | "delete"
-  | "options" | "head" | "match" | "any"
-  | "resource" | "apiResource" | "singleton" | "apiSingleton";
+export type { LaravelRouteMethod, LaravelRouteTargetMethod } from "../../../../types/upstream/laravelRouteScannerInterface";
 
 export type RoutePathLiteralAst = string & { readonly __routePathAst: unique symbol };
 export type MiddlewareNameAst = string & { readonly __middlewareAst: unique symbol };
@@ -38,7 +36,7 @@ export type RouteTargetAst =
 
 export interface RouteDeclarationAst {
   readonly method: LaravelRouteMethod;
-  readonly targetMethods: readonly LaravelRouteMethod[];
+  readonly targetMethods: readonly LaravelRouteTargetMethod[];
   readonly path: RoutePathLiteralAst;
   readonly target: RouteTargetAst;
   /** Route URI binding syntax, including Laravel {parameter:key} custom keys. */

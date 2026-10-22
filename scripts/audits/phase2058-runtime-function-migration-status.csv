@@ -1,0 +1,5 @@
+file,symbol,classification,phase2058_disposition
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,databaseTableOrigin,semantic orchestration,delegates to declared argument subrule registry
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,databaseTableLiteralArgumentRule,typed judgment rule,retained as the literal evidence judgment implementation
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,staticCallOriginInput,structural evidence projection,retained; no authority call in scanner
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,judgeModelOrigin,semantic composition,retained as the existing resource binding authority

@@ -16,14 +16,15 @@ import { matchStructuralFields } from "./structuralFieldMatcher";
 import { findControllerResourceBinding, type ControllerResourceDataflow } from "../../subscanners/controller/resourceDataflowAggregator";
 import { matchLookup, type Lookup, type Option } from "../../../../types/upstream/collections";
 import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
-import type { ResourceModelKnowledgeDataFlow } from "../../subscanners/resource/resourceModelKnowledgeDataFlow";
+import type { ResourceModelKnowledgeDataFlow } from "../../../semantic/resourceModelKnowledgeDataFlowAuthority";
 import { absent, present, type Presence, presenceFold } from "../../../../types/upstream/presence";
-import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
-import { relationFirst, relationOptionFold } from "../../../../semantic/foundation/relationalSequence";
+import { relationEqual } from "../../../../semantic/relations/semanticRelations";
+import { relationFirst, relationOptionFold, relationProject } from "../../../../semantic/relations/relationalSequence";
 import { astSemanticTextTerm } from "../../../../types/upstream/astSemanticInterface";
 import { stringValue } from "../../../../types/upstream/valueObjects";
 import { matchResourceModelBinding } from "../../symbols/resource/resourceBindingTypes";
-import { createResolverGraphPort, resolverGraphFact, type AstSemanticStagePort } from "../../../../types/upstream/astSemanticStageInterface";
+import { createResolverGraphPort, resolverGraphFact } from "../../../../types/upstream/astSemanticStageAuthority";
+import type { AstSemanticStagePort } from "../../../../types/upstream/astSemanticStageInterface";
 import {
     reasonResourceModel,
     type ResourceModelCandidate,
@@ -142,7 +143,7 @@ export const resolveResourceModelPort = (input: ResourceModelResolutionInput): A
             astSemanticTextTerm(input.resourceName.value.value),
             astSemanticTextTerm(value.model.name.value.value),
         )],
-        poly: value => value.models.map(model => resolverGraphFact(
+        poly: value => relationProject(value.models, model => resolverGraphFact(
             'resolver_candidate',
             astSemanticTextTerm(input.resourceName.value.value),
             astSemanticTextTerm(model.name.value.value),

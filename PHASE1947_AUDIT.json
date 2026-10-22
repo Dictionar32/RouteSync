@@ -1,0 +1,56 @@
+{
+  "phase": 1947,
+  "audit": "controller-semantic-reasoning-interface-first",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "name": "existing semantic authority interface owns a closed declarative reasoning contract",
+      "passed": true
+    },
+    {
+      "name": "reasoning rules are data-only ADT variants and expose no executable applies/derive callbacks",
+      "passed": true
+    },
+    {
+      "name": "precedence and duplicate-binding cardinality are explicit in the contract",
+      "passed": true
+    },
+    {
+      "name": "duplicate matching parameter bindings produce an explicit ambiguous semantic judgment",
+      "passed": true
+    },
+    {
+      "name": "parameter resolution collects all canonical-name matches rather than choosing the first",
+      "passed": true
+    },
+    {
+      "name": "closed judgments retain the exact sourceExpression reference and integrated expression value",
+      "passed": true
+    },
+    {
+      "name": "runtime executor forwards to the existing authority and identifies the declarative reasoning contract",
+      "passed": true
+    },
+    {
+      "name": "invocation semantic model contract includes the variable reasoning closure and current version 18",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner boundary version 109 preserves ambiguous outcomes without scanner-side reclassification",
+      "passed": true
+    },
+    {
+      "name": "PHP definition projection remains a wiring adapter and delegates semantic resolution to the existing executor",
+      "passed": true
+    },
+    {
+      "name": "regression test covers declarative contract and duplicate-binding ambiguity",
+      "passed": true
+    },
+    {
+      "name": "Phase 1947 audit is registered in package scripts",
+      "passed": true
+    }
+  ]
+}

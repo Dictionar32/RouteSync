@@ -2,16 +2,17 @@ import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSym
 import { BoundSemanticFactory, type BoundStepEdge } from "../../../../types/domain/boundAst";
 import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceFieldSemanticBinding";
 import type { ResourcePropertyPathResult } from "../../../../types/domain/resourcePropertyPathModel";
+import type { SourceFile } from "../../../../types/upstream/names";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import { resolvePropertyPath } from './propertyPathResolution';
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { expressionForPath, toBoundStep, unresolved } from './propertyPathBindingSupport';
-import { relationGate, relationProject, relationResolve } from "../../../../semantic/foundation/relationalSequence";
+import { relationGate, relationProject, relationResolve } from "../../../../semantic/relations/relationalSequence";
 
 type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
-export function bindPropertyPathField(key: string, value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable): BoundResourceFieldResult {
-  const semanticPath: ResourcePropertyPathResult = resolvePropertyPath(value, rootModel, table);
+export function bindPropertyPathField(key: string, value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable, sourceFile: SourceFile): BoundResourceFieldResult {
+  const semanticPath: ResourcePropertyPathResult = resolvePropertyPath(value, rootModel, table, sourceFile);
   return relationGate(Object.is(semanticPath.kind, 'resolved'), () => {
     const resolved = semanticPath as Extract<ResourcePropertyPathResult, { kind: 'resolved' }>;
     const steps: readonly BoundStepEdge[] = relationProject(resolved.steps, toBoundStep);

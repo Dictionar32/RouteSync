@@ -8,9 +8,9 @@
  */
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { StringValue } from '../../../../types/upstream/valueObjects';
-import { relationEqual, relationAll, relationFixedPoint, relationGate, relationFirst, relationOptionFold, relationCount } from '../../../../semantic/foundation/relationalSequence';
-import { relationUnique } from '../../../../semantic/foundation/relationMembership';
-import { relationExpand, relationProject, relationSelect } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationAll, relationFixedPoint, relationGate, relationFirst, relationOptionFold, relationCount } from '../../../../semantic/relations/relationalSequence';
+import { relationUnique } from '../../../../semantic/relations/relationMembership';
+import { relationExpand, relationProject, relationSelect } from '../../../../semantic/relations/relationalSequence';
 
 export type SyntaxErrorRelation =
   | 'expected'

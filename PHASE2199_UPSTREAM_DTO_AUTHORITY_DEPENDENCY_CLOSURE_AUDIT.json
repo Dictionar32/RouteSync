@@ -1,0 +1,38 @@
+{
+  "phase": 2199,
+  "title": "Upstream DTO Authority Dependency Closure",
+  "status": "implemented_with_explicit_remaining_gaps",
+  "root_cause": "DTO declaration resolution and DTO type-reference binding interfaces were exposed through the integrated response dependency contract, but their implementations still captured concrete singleton dependencies internally. The outer pipeline could therefore select an authority whose transitive dependencies were not the ones declared by the upstream contract.",
+  "changes": [
+    "Added sourceIdentitySemantics dependency to LaravelControllerResponseDtoDeclarationResolutionAuthorityInterface and made its implementation consume that dependency.",
+    "Added classNameResolutionAuthority and declarationResolutionAuthority dependencies to LaravelDtoTypeReferenceBindingAuthorityInterface and made its implementation consume those dependencies.",
+    "Added explicit factories for both existing authorities while retaining compatibility singleton exports.",
+    "Removed duplicate top-level class-name and DTO declaration authority slots from LaravelControllerResponseSemanticPipelineDependenciesInterface.",
+    "Integrated response now reads class-name and DTO declaration authorities from the DTO type-reference binding dependency contract.",
+    "Removed hidden default authority selection from source-correlation, evidence-binding, and DTO-property-binding internal helpers.",
+    "Bound the composition root to one shared source identity semantics instance for response judgment and DTO declaration resolution.",
+    "Bumped response pipeline contract to 29, DTO declaration resolution contract to 4, and DTO type-reference binding contract/runtime executor to 2.",
+    "Added focused dependency-coherence tests and upstream design documentation."
+  ],
+  "validation": {
+    "typescript_syntax_transpilation": "8/8 changed TypeScript files passed",
+    "structural_assertions": "10/10 passed",
+    "zip_integrity": "pending final archive validation",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run"
+  },
+  "remaining_gaps": [
+    "projectDtoResponseContracts still matches DTO declaration judgments back to method response attributes through source-span lookup; method ownership should be carried explicitly in upstream provenance instead.",
+    "Compatibility singleton exports remain for existing consumers, so direct legacy call sites still require an independent audit.",
+    "Static TypeScript typecheck and runtime tests have not been executed in this environment."
+  ],
+  "architecture_constraints": {
+    "new_relation_layer": false,
+    "new_foundation_layer": false,
+    "new_subscanner_layer": false,
+    "parallel_semantic_authority_added": false,
+    "runtime_executor_reclassifies_semantics": false,
+    "direct_relation_or_foundation_import_in_modified_pipeline": false
+  }
+}

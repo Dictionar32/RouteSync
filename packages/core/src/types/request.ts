@@ -22,8 +22,11 @@ import {
   type RouteQueryEntry,
   type PayloadPropertyEntry
 } from './domain/requestModels';
+import type { RouteParserSchema } from './upstream/runtimeSchemaParser';
+import type { RetryConfig } from './config';
+export type { RouteParserSchema, SafeParseResult } from './upstream/runtimeSchemaParser';
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD';
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'QUERY';
 
 export type RouteTransformFn<TInput = unknown, TOutput = unknown> = (value: TInput) => TOutput;
 export type RouteTransform<TInput = unknown, TOutput = unknown> = RouteTransformFn<TInput, TOutput>;
@@ -50,15 +53,6 @@ export class RouteTransformMapFactory {
 }
 
 export type RouteMapper = RouteTransformFn | RouteTransformMap;
-
-export type SafeParseResult<T = unknown> =
-  | { readonly success: true; readonly data: T }
-  | { readonly success: false; readonly error: unknown };
-
-export interface RouteParserSchema<T = unknown> {
-  readonly parse: (input: unknown) => T;
-  readonly safeParse: (input: unknown) => SafeParseResult<T>;
-}
 
 export interface RouteSchemaMap {
   readonly params: RouteSchemaValue;
@@ -160,8 +154,8 @@ export interface RouteDefinitionContract<
   readonly contract: RouteContractConfig;
   readonly mapper: RouteMapper;
   readonly headers: RequestHeaders;
-  readonly cache: unknown;
-  readonly retry: unknown;
+  readonly cache: boolean;
+  readonly retry: boolean | RetryConfig;
   readonly body: RequestPayload;
   readonly params: RouteParameters;
   readonly query: RouteQueryParameters;
@@ -202,8 +196,8 @@ export type RouteDefinition<
   contract?: RouteContractConfig;
   mapper?: RouteMapper;
   headers?: RequestHeaders;
-  cache?: unknown;
-  retry?: unknown;
+  cache?: boolean;
+  retry?: boolean | RetryConfig;
   body?: RequestPayload;
   params?: RouteParameters;
   query?: RouteQueryParameters;
@@ -229,8 +223,8 @@ export interface RouteDefinitionDescriptorParams<
   readonly contract: RouteContractConfig;
   readonly mapper: RouteMapper;
   readonly headers: RequestHeaders;
-  readonly cache: unknown;
-  readonly retry: unknown;
+  readonly cache: boolean;
+  readonly retry: boolean | RetryConfig;
   readonly body: RequestPayload;
   readonly params: RouteParameters;
   readonly query: RouteQueryParameters;
@@ -253,8 +247,8 @@ export type MinimalRouteDefinitionParams<
   readonly contract?: RouteContractConfig;
   readonly mapper?: RouteMapper;
   readonly headers?: RequestHeaders;
-  readonly cache?: unknown;
-  readonly retry?: unknown;
+  readonly cache?: boolean;
+  readonly retry?: boolean | RetryConfig;
   readonly body?: RequestPayload;
   readonly params?: RouteParameters;
   readonly query?: RouteQueryParameters;
@@ -278,8 +272,8 @@ export class RouteDefinitionDescriptor<
   public readonly contract: RouteContractConfig;
   public readonly mapper: RouteMapper;
   public readonly headers: RequestHeaders;
-  public readonly cache: unknown;
-  public readonly retry: unknown;
+  public readonly cache: boolean;
+  public readonly retry: boolean | RetryConfig;
   public readonly body: RequestPayload;
   public readonly params: RouteParameters;
   public readonly query: RouteQueryParameters;

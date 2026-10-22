@@ -85,6 +85,16 @@ export const HTTP_METHOD_REGISTRY: HttpMethodRegistry = Object.freeze({
     hasBody: false,
     defaultCrudRole: 'show',
     description: 'Same as GET but returns headers only without response body'
+  },
+  [HttpMethod.QUERY]: {
+    method: HttpMethod.QUERY,
+    actionKind: RouteActionKind.Read,
+    isMutating: false,
+    isSafe: true,
+    isIdempotent: true,
+    hasBody: true,
+    defaultCrudRole: 'index',
+    description: 'Safe, idempotent query request that carries input in its body'
   }
 });
 
@@ -96,6 +106,7 @@ export type HttpMethodVisitor<R> = {
   readonly DELETE: (spec: HttpMethodSpecification<'DELETE'>) => R;
   readonly OPTIONS: (spec: HttpMethodSpecification<'OPTIONS'>) => R;
   readonly HEAD: (spec: HttpMethodSpecification<'HEAD'>) => R;
+  readonly QUERY: (spec: HttpMethodSpecification<'QUERY'>) => R;
 };
 
 /**

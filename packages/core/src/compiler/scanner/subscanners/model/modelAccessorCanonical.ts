@@ -1,6 +1,6 @@
 import type { ModelAccessorComputation } from '../../../../types/upstream/modelVocabulary';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationGate } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationGate } from '../../../../semantic/relations/relationalSequence';
 import type { ResolvedExpression, Expression } from '../../../../types/upstream/expression';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 import type { SemanticValue } from '../../../../types/upstream/primitiveVocabulary';

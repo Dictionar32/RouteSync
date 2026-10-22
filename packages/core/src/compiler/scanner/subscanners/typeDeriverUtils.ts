@@ -1,5 +1,5 @@
-import { relationNormalizeWhitespace, relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationFirstOption, relationOptionFold } from '../../../semantic/foundation/relationalSequence';
+import { relationNormalizeWhitespace, relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';
+import { relationFirstOption, relationOptionFold } from '../../../semantic/relations/relationalSequence';
 /**
  * typeDeriverUtils.ts
  *

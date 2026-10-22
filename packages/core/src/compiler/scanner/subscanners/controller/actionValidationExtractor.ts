@@ -1,6 +1,6 @@
-import { relationNormalizeWhitespace, relationAll } from '../../../../semantic/foundation/semanticRelations';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationNormalizeWhitespace, relationAll } from '../../../../semantic/relations/semanticRelations';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';
 /**
  * actionValidationExtractor.ts
  *
@@ -11,12 +11,9 @@ import { relationGate, relationProject, relationSelect, relationOptionFold, rela
  */
 
 import type { Token } from '../lexer/types';
-import type { RouteValidationRuleEntry, RouteSchemaPayload } from '../../../../types/route';
-import type { RequestField } from '../../../../types/domain/request';
-import type { ControllerRequestBinding } from '../../descriptors/request/controllerActionContract';
+import type { RouteValidationRuleEntry } from '../../../../types/route';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { ScannedRouteValidationRuleEntry } from '../../descriptors/validation/validationRuleEntry';
-import { createRouteSchemaPayload } from '../../../../types/domain/validationRules';
 
 export type InlineValidationExtraction = { readonly rules: readonly RouteValidationRuleEntry[]; readonly nextIndex: number };
 
@@ -77,34 +74,4 @@ export function extractInlineValidation(
     k: number,
 ): RelationOption<InlineValidationExtraction> {
     return inlineExtraction(source, tokens, k);
-}
-
-const formRequestFields = (request: ControllerRequestBinding): readonly RequestField[] =>
-    relationGate(
-        relationEqual(request.kind, 'form_request'),
-        () => request.source.fields,
-        () => [],
-    );
-
-const schemaIsEmpty = (schema: RouteSchemaPayload): boolean =>
-    relationEqual(schema.fields.length + schema.messages.length + schema.attributes.length, 0);
-
-export function resolveActionSchema(
-    request: ControllerRequestBinding,
-    inlineSchema: RouteSchemaPayload,
-): RouteSchemaPayload {
-    const formFields = formRequestFields(request);
-    return relationGate(
-        relationEqual(formFields.length, 0),
-        () => inlineSchema,
-        () => relationGate(
-            schemaIsEmpty(inlineSchema),
-            () => createRouteSchemaPayload(formFields),
-            () => createRouteSchemaPayload(
-                [...formFields, ...inlineSchema.fields],
-                inlineSchema.messages,
-                inlineSchema.attributes,
-            ),
-        ),
-    );
 }

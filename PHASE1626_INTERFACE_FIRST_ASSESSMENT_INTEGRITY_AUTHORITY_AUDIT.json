@@ -1,0 +1,25 @@
+{
+  "phase": 1626,
+  "title": "Interface-first assessment integrity authority",
+  "status": "static_audits_passed_typecheck_unverified",
+  "changed": [
+    "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "packages/core/src/types/upstream/requestTypeDerivationAssessmentIntegrityRuntime.ts",
+    "packages/core/src/types/upstream/index.ts",
+    "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationRuntimeExecutor.ts",
+    "scripts/audits/audit-phase1626-interface-first-assessment-integrity-authority.cjs",
+    "package.json",
+    "PHASE1626_INTERFACE_FIRST_ASSESSMENT_INTEGRITY_AUTHORITY.md"
+  ],
+  "checks": [
+    { "name": "phase1626-interface-first-assessment-integrity-authority", "passed": 8, "failed": 0 },
+    { "name": "phase1624-interface-first-judgment-variant-preservation", "passed": 5, "failed": 0 },
+    { "name": "phase1587-interface-first-runtime-executor", "passed": 6, "failed": 0 },
+    { "name": "phase1589-runtime-proof-binding", "passed": 6, "failed": 0 }
+  ],
+  "typecheck": {
+    "status": "not_verified",
+    "reason": "Root node_modules, @types/node, and Vitest dependencies are absent. Global TypeScript 5.8.3 is older than configured TypeScript 7.0.2 and fails on project target/lib settings before checking source files."
+  },
+  "design_note": "Pipeline construction sites must provide validateAssessment, preferably using createRequestTypeDerivationSemanticAssessmentValidator(contract)."
+}

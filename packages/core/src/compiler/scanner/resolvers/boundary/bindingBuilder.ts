@@ -22,6 +22,7 @@ export function buildRouteBindingContract(
     return Object.freeze({
         schema: params.schema,
         response: params.response,
+        responseProjection: params.responseProjection,
         responseTypeName,
         operation: resolved.operation,
         request,

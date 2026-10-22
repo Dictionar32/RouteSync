@@ -1,0 +1,20 @@
+{
+  "phase": 1436,
+  "title": "Expression Evidence Provider Boundary",
+  "root": "RouteSync",
+  "checks": {
+    "phase1436": { "passed": 10, "total": 10 },
+    "phase1435": { "passed": 9, "total": 9 },
+    "phase1434": { "passed": 10, "total": 10 },
+    "phase1433": { "passed": 9, "total": 9 }
+  },
+  "build": {
+    "status": "not_verified",
+    "reason": "npm run build could not execute because tsdown is not installed in the workspace"
+  },
+  "remaining_frontier": [
+    "Replace malformed conditional and unary exceptions with typed source-evidence outcomes",
+    "Close typed source-evidence outcomes into upstream judgment variants",
+    "Continue removing semantic applicability decisions from runtime-adjacent adapter callbacks"
+  ]
+}

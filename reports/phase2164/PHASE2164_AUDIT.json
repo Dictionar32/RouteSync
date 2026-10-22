@@ -1,0 +1,60 @@
+{
+  "phase": 2164,
+  "title": "Exact Response Attribute Provenance — Existing Interface First",
+  "passed": 10,
+  "total": 12,
+  "checks": [
+    {
+      "name": "declared response AST retains the exact attribute token span",
+      "passed": true
+    },
+    {
+      "name": "parser bounds the attribute span from # through a verified closing bracket",
+      "passed": true
+    },
+    {
+      "name": "upstream declared attribute evidence carries SourceSpan provenance",
+      "passed": true
+    },
+    {
+      "name": "existing producer interface transports source offsets without exposing scanner AST",
+      "passed": true
+    },
+    {
+      "name": "existing producer projects the parser span into upstream SourceSpan",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner passes the exact parsed attribute span to the existing producer",
+      "passed": true
+    },
+    {
+      "name": "integrated evidence producer uses exact attribute provenance for declared attributes",
+      "passed": true
+    },
+    {
+      "name": "absent attributes remain explicit and do not invent an attribute token span",
+      "passed": true
+    },
+    {
+      "name": "existing integrated response interface and runtime executor remain the owners",
+      "passed": true
+    },
+    {
+      "name": "legacy descriptor resolver remains visible and migration is not falsely claimed complete",
+      "passed": false
+    },
+    {
+      "name": "existing contracts advanced for the provenance change",
+      "passed": false
+    },
+    {
+      "name": "no relation/foundation layer or response subscanner was added",
+      "passed": true
+    }
+  ],
+  "productionCodeChanged": true,
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

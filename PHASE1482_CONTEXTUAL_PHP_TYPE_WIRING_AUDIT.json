@@ -1,0 +1,23 @@
+{
+  "phase": 1482,
+  "name": "Contextual PHP Type Evidence Wiring",
+  "sourceOfTruth": "packages/core/src/types/upstream/phpTypeAtomAlgebra.ts",
+  "evidenceContract": "PhpTypeClassContext",
+  "changes": [
+    "resourceProducer supplies enclosing resource class and declared base class context to method statement projection",
+    "context is forwarded through expression mapping, closure parameter/return type resolution, nullable parameter evidence, and nested statements",
+    "anonymous class bodies use their own context boundary and do not inherit the enclosing named class as self",
+    "static remains unsupported until late-static binding has a faithful target representation"
+  ],
+  "verification": {
+    "contextualTypeRegressionCases": 4,
+    "staticAudit": "8/8 passed: tools/audit-contextual-php-type-wiring-phase1482.mjs",
+    "strictTypeScript": "failed with 662 diagnostics across dependency graph; unrelated existing scanner/domain diagnostics also affect changed entrypoints",
+    "vitest": "not run: local dependencies unavailable",
+    "packageBuild": "not run: tsdown unavailable"
+  },
+  "limitations": [
+    "Resource class and parent context use the scanner's current class/base-class names; namespace/import resolution is not introduced in this phase.",
+    "Other scanner consumers without class declaration evidence intentionally remain context-free and fail closed for contextual types."
+  ]
+}

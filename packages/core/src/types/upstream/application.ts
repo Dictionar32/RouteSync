@@ -5,13 +5,14 @@ import type { PropertyDefinition } from './property';
 import type { ClassName, MethodName, SourceFile } from './names';
 import type { SourceSpan } from './provenance';
 import type { DeclaredType } from './typeVocabulary';
+import type { DtoPropertyTypeEvidence } from './dtoPropertyTypeEvidenceInterface';
 
 export type ExpressionArgumentsOption =
   | { readonly kind: 'absent' }
   | { readonly kind: 'present'; readonly value: ExpressionArguments };
 
 export type DtoDefinition = { readonly kind: 'dto'; readonly name: ClassName; readonly file: SourceFile; readonly properties: DtoProperties; readonly methods: DtoMethods; readonly source: SourceSpan };
-export type DtoProperty = { readonly kind: 'dto_property'; readonly property: PropertyDefinition; readonly declared: DeclaredType; readonly source: SourceSpan };
+export type DtoProperty = { readonly kind: 'dto_property'; readonly property: PropertyDefinition; readonly declared: DeclaredType; readonly typeEvidence: DtoPropertyTypeEvidence; readonly source: SourceSpan };
 export type DtoMethod = { readonly kind: 'dto_method'; readonly name: MethodName; readonly action: ControllerAction; readonly source: SourceSpan };
 export type MiddlewareDefinition = { readonly kind: 'middleware'; readonly name: ClassName; readonly file: SourceFile; readonly handle: ControllerAction; readonly source: SourceSpan };
 export type ProviderContainerOperationName =

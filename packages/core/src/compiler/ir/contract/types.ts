@@ -94,7 +94,7 @@ export interface EndpointParameterIR {
 export interface EndpointIR {
     readonly kind: 'endpoint';
     readonly id: string;
-    readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
+    readonly method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS' | 'QUERY';
     readonly path: string;
     readonly controller: string;
     readonly action: string;

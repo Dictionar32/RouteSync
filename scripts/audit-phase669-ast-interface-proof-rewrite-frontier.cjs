@@ -11,7 +11,7 @@ const files = [
   'packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts',
   'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts',
   'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts',
+  'packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts',
   'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptNodeLowerer.ts',

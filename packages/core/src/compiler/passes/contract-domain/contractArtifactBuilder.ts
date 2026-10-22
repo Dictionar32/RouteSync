@@ -11,7 +11,7 @@ import type {
     GeneratedContractCode,
 } from './contractTypes';
 import { EMPTY_WARNINGS } from './contractTypes';
-import { relationFold, relationProject } from '../../../semantic/foundation/relationalSequence';
+import { relationFold, relationProject } from '../../../semantic/relations/relationalSequence';
 
 const capitalize = (value: string): string => value.charAt(0).toUpperCase() + value.slice(1);
 

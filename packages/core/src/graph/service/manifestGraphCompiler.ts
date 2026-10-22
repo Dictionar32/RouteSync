@@ -13,12 +13,12 @@ import type { ModelReference, ServiceReference, DependencyTargetReference } from
 import { isStructuralSemanticRelation } from '../../types/upstream/semanticReferences';
 import { GraphNodeIndex } from './graphNodeIndex';
 import { createControllerNodeName, createServiceNodeName } from '../../types/semantic/nominalVocabulary';
-import type { RelationIndex } from '../../semantic/foundation/relationMembership';
-import { relationIndexLookup, relationIndexAdd } from '../../semantic/foundation/relationMembership';
-import { relationContains } from '../../semantic/foundation/relationMembership';
-import { relationEqual } from '../../semantic/foundation/relationFoundation';
-import { relationOptionFold, relationProject, relationVariantFold, relationFold } from '../../semantic/foundation/relationalSequence';
-import { relationResolve } from '../../semantic/foundation/relationFoundation';
+import type { RelationIndex } from '../../semantic/relations/relationMembership';
+import { relationIndexLookup, relationIndexAdd } from '../../semantic/relations/relationMembership';
+import { relationContains } from '../../semantic/relations/relationMembership';
+import { relationEqual } from '../../semantic/relations/relationFoundation';
+import { relationOptionFold, relationProject, relationVariantFold, relationFold } from '../../semantic/relations/relationalSequence';
+import { relationResolve } from '../../semantic/relations/relationFoundation';
 import { projectStructuralSemanticRelationToGraphEdge } from './structuralSemanticRelationProjection';
 import type { Sequence } from '../../types/upstream/collections';
 

@@ -1,0 +1,28 @@
+{
+  "phase": 1634,
+  "title": "Invocation Semantic Contract / Thin Scanner",
+  "status": "implemented_with_validation_limits",
+  "scope": [
+    "packages/core/src/types/upstream/semanticInterproceduralDataFlowInterface.ts",
+    "packages/core/src/types/upstream/semanticInterproceduralDataFlowAlgebra.ts",
+    "packages/core/src/types/upstream/semanticInterproceduralDataFlowAuthority.ts",
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts",
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts"
+  ],
+  "invariants": {
+    "interface_directly_imports_generic_rewrite_implementation_types": false,
+    "scanner_facade_contains_invocation_reasoning": false,
+    "authority_is_thin_binding": true,
+    "domain_policy_declared_in_upstream_interface": true,
+    "incomplete_judgment_preserves_proven_facts": true,
+    "semantic_closure_requires_no_unresolved_obligations": true,
+    "rewrite_closed_can_coexist_with_semantic_incomplete": true,
+    "semantic_foundation_emptied": false
+  },
+  "validation": {
+    "targeted_typescript_check": "passed",
+    "full_build": "not_run_node_modules_missing",
+    "runtime_tests": "not_run_node_modules_missing",
+    "full_repository_typecheck": "blocked_by_global_tsc_version_and_missing_node_types"
+  }
+}

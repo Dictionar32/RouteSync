@@ -1,0 +1,31 @@
+{
+  "phase": 2704,
+  "title": "Fully Typed Runtime Scanner Operations",
+  "scope": "upstream CLI manifest runtime trace; interface-first operation objects; canonical PHP AST boundary correction",
+  "changes": [
+    "Replaced the PhpCodeParser static wrapper with an interface-typed operation object returning canonical PhpAstNode.",
+    "Removed legacy FieldNode lowering from the runtime expression parser path.",
+    "Converted PHP grammar matching, callee matching, source slicing, AST mapping, and boundary adaptation to interface-typed operation objects.",
+    "Converted RequestType action and response producers to named interface-typed operation objects.",
+    "Grouped canonical source identity and inventory functions under RequestTypeDerivationSourceEvidenceInventoryInterface.",
+    "Converted proof verifier source/AST/identity/conflict/replay checks to operation objects and updated callers/tests.",
+    "Added audit:phase2704-runtime-operation-objects."
+  ],
+  "audits": {
+    "phase2659": { "passed": 14, "total": 14 },
+    "phase2660": { "passed": 10, "total": 10 },
+    "phase2661": { "passed": 6, "total": 6 },
+    "phase2703": { "passed": 9, "total": 9 },
+    "phase2704": { "passed": 11, "total": 11 },
+    "typescriptSyntaxTranspile": { "passed": 24, "total": 24, "diagnostics": 0 },
+    "targetedCoreChangedFileDiagnostics": { "count": 0, "files": 5 }
+  },
+  "fullTypecheck": "not_completed: workspace dependencies and type definitions are absent; global TypeScript compiler rejects repository ES2025 config; targeted compiler run has diagnostics elsewhere in dependency graph",
+  "runtimeTests": "not_run: php-parser and workspace test dependencies are absent",
+  "semanticProofVerification": {
+    "status": "incomplete",
+    "requiredLawCount": 34,
+    "verifiedLawCoverage": "not complete",
+    "failClosed": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "phase": 1468,
+  "title": "Loop Statement Contract Extraction",
+  "sourceEvidence": "TokenDescriptor[] suffix at a foreach/for/while candidate",
+  "typedKnowledge": "ScannerLoopStatementEvidence",
+  "semanticAuthority": "scannerLoopStatementContractAlgebra",
+  "closedJudgments": ["resolved", "not_applicable", "malformed"],
+  "runtimeProjection": ["foreach AST", "while AST", "for AST"],
+  "migratedReasoning": ["header delimiter", "body delimiter", "for clause partition", "foreach as partition", "foreach iteration target"],
+  "downstream": "PhpAstFactory",
+  "fullBuild": "not_verified_dependencies_and_project_type_definitions_unavailable"
+}

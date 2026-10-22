@@ -1,0 +1,21 @@
+{
+  "phase": 1455,
+  "title": "Conditional Statement Evidence Contract",
+  "scope": [
+    "packages/core/src/types/upstream/scannerConditionalStatementInterface.ts",
+    "packages/core/src/types/upstream/scannerConditionalStatementAlgebra.ts",
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/types/upstream/index.ts",
+    "packages/core/src/types/upstream/docs/PHASE1455_CONDITIONAL_STATEMENT_EVIDENCE_CONTRACT.md",
+    "scripts/audits/audit-phase1455-conditional-statement-evidence-contract.cjs"
+  ],
+  "architecture": "source evidence -> semantic reasoning algebra -> closed judgment/contract -> interface -> wiring -> runtime executor -> downstream projection",
+  "verification": {
+    "static_audit": "node scripts/audits/audit-phase1455-conditional-statement-evidence-contract.cjs",
+    "focused_algebra_typecheck": "passed with TypeScript 5.8.3, 0 diagnostics",
+    "focused_algebra_cases": "9/9 passed",
+    "runtime_typecheck": "no diagnostics in changed runtime/interface/algebra files; transitive project errors remain",
+    "full_build": "not verified; tsdown unavailable in the workspace",
+    "downstream_ast_equivalence": "blocked: runtime integration attempt reached a RangeError recursion in the existing expression-classification path before equivalence could be assessed"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "phase": 1476,
+  "title": "PHP Type Expression Contract",
+  "interface": "packages/core/src/types/upstream/phpTypeExpressionInterface.ts",
+  "algebra": "packages/core/src/types/upstream/phpTypeExpressionAlgebra.ts",
+  "consumer": "packages/core/src/compiler/scanner/subscanners/model/propertyProducer.ts",
+  "test": "packages/core/src/types/upstream/__test__/phpTypeExpressionContract.phase1476.test.ts",
+  "scope": [
+    "parenthesized DNF enforcement",
+    "unparenthesized union/intersection rejection",
+    "nullable-prefix grammar closure",
+    "fail-closed unsupported native atoms"
+  ]
+}

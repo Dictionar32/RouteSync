@@ -1,0 +1,49 @@
+{
+  "phase": 2064,
+  "audit": "closed-php-class-name-resolution-judgment-interface-first",
+  "passed": 8,
+  "total": 10,
+  "checks": [
+    {
+      "name": "class-name resolution remains one upstream interface and one closed ADT",
+      "passed": true
+    },
+    {
+      "name": "malformed names are closed before any namespace/import projection",
+      "passed": true
+    },
+    {
+      "name": "malformed inputs do not manufacture empty or doubled-separator class identities",
+      "passed": true
+    },
+    {
+      "name": "inheritance adapts lexical evidence to the shared resolver rather than resolving independently",
+      "passed": false
+    },
+    {
+      "name": "static-call/model identity consumes the exact shared class-name judgment",
+      "passed": true
+    },
+    {
+      "name": "invocation semantic judgment remains an outcome-indexed value, not a second class resolver",
+      "passed": false
+    },
+    {
+      "name": "existing invocation authority delegates source binding and integrated response projection",
+      "passed": true
+    },
+    {
+      "name": "runtime executor remains a downstream execution boundary and does not own class-name resolution",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner or parallel invocation/response/AST authority was introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ],
+  "note": "Structural audit only; full TypeScript typecheck, build, and Vitest are not asserted."
+}

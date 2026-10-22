@@ -58,7 +58,6 @@ export function resolveRouteCapabilityJudgment(
 ): ResolvedRouteCapability {
     const semanticInput: RouteCapabilitySemanticEvidence = Object.freeze({
         actionKind: basics.resolvedActionKind,
-        isMutating: basics.resolvedIsMutating,
         parameterCount,
         method,
         path: _path,

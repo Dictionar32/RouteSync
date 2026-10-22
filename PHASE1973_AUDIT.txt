@@ -1,0 +1,6 @@
+PASS complete selection requires root_reached
+PASS blocked selection excludes root_reached
+PASS partial ancestry reasons remain typed
+PASS no relation/foundation subscanner path added by this phase
+
+4/4 interface-only structural checks passed

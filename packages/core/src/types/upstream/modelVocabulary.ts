@@ -1,4 +1,3 @@
-import { relationResolve, relationEqual } from '../../semantic/foundation/semanticRelations';
 import type { ClassName, ColumnName, ModelName, PropertyName, RelationName, MethodName } from './names';
 import type { TypeExpression } from './typeVocabulary';
 import type { SourceSpan } from './provenance';
@@ -44,9 +43,10 @@ export type ModelAccessorResult =
   | { readonly kind: 'absent' }
   | { readonly kind: 'present'; readonly type: TypeExpression };
 
+/** Complete upstream computation judgment: even rejected analysis carries the closed expression ADT. */
 export type ModelAccessorComputation =
   | { readonly kind: 'expression'; readonly expression: import('./expression').Expression; readonly result: TypeExpression }
-  | { readonly kind: 'rejected'; readonly reason: 'unsupported_syntax' | 'missing_return_expression'; readonly result: TypeExpression; readonly source: SourceSpan };
+  | { readonly kind: 'rejected'; readonly expression: import('./expression').Expression; readonly result: TypeExpression };
 
 export type EloquentRelationType =
   | { readonly kind: 'has_one' }
@@ -82,8 +82,13 @@ export type EloquentRelationMultiplicity =
   | { readonly kind: 'single' }
   | { readonly kind: 'collection' };
 
+const eloquentRelationMultiplicityByCardinality: Readonly<Record<EloquentRelationCardinality['kind'], EloquentRelationMultiplicity>> = Object.freeze({
+  one: { kind: 'single' },
+  many: { kind: 'collection' },
+});
+
 export const eloquentRelationMultiplicity = (cardinality: EloquentRelationCardinality): EloquentRelationMultiplicity =>
-  relationResolve(relationEqual(cardinality.kind, 'many'), () => ({ kind: 'collection' }), () => ({ kind: 'single' }));
+  eloquentRelationMultiplicityByCardinality[cardinality.kind];
 
 export type EloquentRelationDescriptor = {
   readonly type: EloquentRelationType;

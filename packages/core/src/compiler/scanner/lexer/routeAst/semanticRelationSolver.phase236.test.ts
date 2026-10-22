@@ -1,4 +1,4 @@
-import { solveSemanticRelationsDetailed, type SemanticRelationRewrite } from './semanticRewriteEngine';
+import { solveSemanticRelationsDetailed, type SemanticRelationRewrite } from '../../../../semantic/relations/semanticRewriteEngine';
 
 type R = 'parent' | 'child' | 'root';
 const variable = (variable: string) => ({ variable } as const);

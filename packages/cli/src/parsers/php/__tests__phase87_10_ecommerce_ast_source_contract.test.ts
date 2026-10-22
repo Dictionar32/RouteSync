@@ -1,4 +1,4 @@
-import { adaptPhpAstBoundary } from '../boundaryAdapter';
+import { phpAstBoundaryAdapter } from '../boundaryAdapter';
 
 function loc(start: number, end: number) {
     return { start: { line: 1, column: start, offset: start }, end: { line: 1, column: end, offset: end }, source: null };
@@ -7,7 +7,7 @@ function loc(start: number, end: number) {
 describe('Phase 87.10 ecommerce_shop PHP AST source contract', () => {
     test('nested property access preserves each node source expression', () => {
         const code = '$review->created_at';
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'propertylookup', loc: loc(0, 19),
             what: { kind: 'variable', name: 'review', loc: loc(0, 7) },
             offset: { kind: 'identifier', name: 'created_at', loc: loc(9, 19) }
@@ -19,7 +19,7 @@ describe('Phase 87.10 ecommerce_shop PHP AST source contract', () => {
 
     test('nested method call preserves call source and target source separately', () => {
         const code = '$request->user()->id';
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'propertylookup', loc: loc(0, 20),
             what: { kind: 'call', loc: loc(0, 16),
                 what: { kind: 'propertylookup', loc: loc(0, 14),

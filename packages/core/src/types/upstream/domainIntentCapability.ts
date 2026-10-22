@@ -58,29 +58,50 @@ export interface DomainIntentCapabilityContract extends DomainIntentCapabilityAl
 export interface DomainIntentCapabilityInterface extends DomainIntentCapabilityContract {}
 export interface DomainIntentCapabilityConsumerInterface extends DomainIntentCapabilityInterface {}
 
-/** Runtime-safe downstream projection. Proof/evidence remains upstream-only. */
-export interface DomainIntentCapabilityReference {
+/** Common runtime projection fields; proof/evidence remains upstream-only. */
+interface DomainIntentCapabilityReferenceBase {
   readonly kind: DomainIntentCapabilityKind;
   readonly authority: 'upstream';
   readonly identity: string;
   readonly domainName: string;
-  readonly intentKind: DomainIntentKind;
-  readonly aggregateCollection: AggregateCollectionIntentCapability | undefined;
   readonly closed: true;
 }
+
+/** Closed ADT: consumers dispatch on a coherent variant, not optional-field probes. */
+export type DomainIntentCapabilityReference =
+  | (DomainIntentCapabilityReferenceBase & {
+      readonly intentKind: 'aggregate_collection';
+      readonly aggregateCollection: AggregateCollectionIntentCapability;
+    })
+  | (DomainIntentCapabilityReferenceBase & {
+      readonly intentKind: 'generic';
+      readonly aggregateCollection: undefined;
+    });
 
 export function domainIntentCapabilityReferenceFromCapability(
   capability: DomainIntentCapabilityContract,
 ): DomainIntentCapabilityReference {
-  return Object.freeze({
+  const base = {
     kind: capability.kind,
     authority: capability.authority,
     identity: capability.identity,
     domainName: capability.domainName,
-    intentKind: capability.intentKind,
-    aggregateCollection: capability.aggregateCollection,
     closed: true as const,
-  });
+  };
+  if (capability.intentKind === 'aggregate_collection') {
+    if (!capability.aggregateCollection) {
+      throw new Error(`Incomplete aggregate-collection capability: ${capability.identity}`);
+    }
+    return Object.freeze({
+      ...base,
+      intentKind: 'aggregate_collection' as const,
+      aggregateCollection: capability.aggregateCollection,
+    });
+  }
+  if (capability.aggregateCollection !== undefined) {
+    throw new Error(`Generic capability contains aggregate-collection payload: ${capability.identity}`);
+  }
+  return Object.freeze({ ...base, intentKind: 'generic' as const, aggregateCollection: undefined });
 }
 
 interface RecordLike {

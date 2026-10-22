@@ -7,7 +7,7 @@ import {
   type ActiveQueryFrame, type SalsaCompilerStats, createQueryKey, createQueryGraphManager,
   executeSalsaQuery,
 } from './salsa';
-import { relationOptionFold } from '../../semantic/foundation/relationalSequence';
+import { relationOptionFold } from '../../semantic/relations/relationalSequence';
 import type { SalsaExecutionState } from './salsa/queryExecutor';
 
 export {

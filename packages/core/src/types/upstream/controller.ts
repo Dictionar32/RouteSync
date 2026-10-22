@@ -1,6 +1,5 @@
 import type { Assignment } from './assignment';
-import type { ExpressionArguments } from './expression';
-import type { Expression } from './expression';
+import type { ExpressionArguments, Expression, ExpressionArgument } from './expression';
 import type { ActionName, ClassName, ControllerName, MethodName, ModelName, RequestName, ResourceName, TableName, VariableName, MiddlewareName } from './names';
 import type { SourceSpan } from './provenance';
 import type { CatchHandlers, SourceStatements, Sequence } from './collections';
@@ -9,9 +8,16 @@ import type { ModelReference, ResourceReference, ResponseReference } from './sem
 import type { ResponseCardinality, ResponseResult } from './response';
 import type { HttpStatusCode, StatementIndex, StatementPath } from './valueObjects';
 import type { SemanticDataflowInput } from './semanticDataflow';
+import type { ControllerVariableSemanticJudgment } from './controllerVariableSemanticInterface';
 
 export type RequestBinding = { readonly kind: 'bound_request'; readonly name: RequestName } | { readonly kind: 'no_request' };
-export type ControllerResponse = { readonly kind: 'response_present'; readonly response: ResponseReference } | { readonly kind: 'response_absent' };
+/** A controller-action response-reference judgment, not proof that the PHP method emits an HTTP response. */
+export type ControllerResponseReferenceJudgment =
+  | { readonly kind: 'response_reference_declared'; readonly response: ResponseReference }
+  | { readonly kind: 'response_reference_not_declared' };
+
+/** Compatibility name for existing controller projection consumers. Prefer ControllerResponseReferenceJudgment in new contracts. */
+export type ControllerResponse = ControllerResponseReferenceJudgment;
 
 export type ControllerMethodVisibility =
   | { readonly kind: 'public' }
@@ -52,14 +58,32 @@ export type ControllerMiddlewareOrigin =
 export type ControllerPolicyActionScope =
   | { readonly kind: 'all' }
   | { readonly kind: 'only'; readonly actions: Sequence<ActionName> }
-  | { readonly kind: 'except'; readonly actions: Sequence<ActionName> };
+  | { readonly kind: 'except'; readonly actions: Sequence<ActionName> }
+  | { readonly kind: 'only_except'; readonly only: Sequence<ActionName>; readonly except: Sequence<ActionName> };
+
+export type ControllerPolicyNamedScopeArgument = Extract<ExpressionArgument, { readonly kind: 'named' }>;
+
+/** Typed evidence for policy scope that cannot be closed statically. */
+export type ControllerPolicyActionScopeBlockReason =
+  | Readonly<{ readonly kind: 'duplicate_only_argument'; readonly arguments: readonly ControllerPolicyNamedScopeArgument[] }>
+  | Readonly<{ readonly kind: 'duplicate_except_argument'; readonly arguments: readonly ControllerPolicyNamedScopeArgument[] }>
+  | Readonly<{ readonly kind: 'unsupported_only_expression'; readonly argument: ControllerPolicyNamedScopeArgument }>
+  | Readonly<{ readonly kind: 'unsupported_except_expression'; readonly argument: ControllerPolicyNamedScopeArgument }>
+  | Readonly<{ readonly kind: 'unsupported_action_array_entry'; readonly argument: ControllerPolicyNamedScopeArgument; readonly expression: Expression }>
+  | Readonly<{ readonly kind: 'unsupported_unpacked_arguments'; readonly arguments: readonly Extract<ExpressionArgument, { readonly kind: 'unpacked' }>[] }>
+  | Readonly<{ readonly kind: 'scope_argument_inventory_inconsistent'; readonly arguments: readonly ControllerPolicyNamedScopeArgument[] }>;
+
+/** A scope is either resolved into the existing domain ADT or explicitly blocked. */
+export type ControllerPolicyActionScopeJudgment =
+  | ControllerPolicyActionScope
+  | Readonly<{ readonly kind: 'blocked'; readonly reason: ControllerPolicyActionScopeBlockReason }>;
 
 export interface ControllerMiddlewareRelation {
   readonly kind: 'controller_middleware_relation';
   readonly middleware: MiddlewareName | Expression;
   readonly origin: ControllerMiddlewareOrigin;
   readonly scope: ControllerPolicyScope;
-  readonly actions: ControllerPolicyActionScope;
+  readonly actions: ControllerPolicyActionScopeJudgment;
   readonly exclusion: boolean;
   readonly source: SourceSpan;
 }
@@ -68,7 +92,7 @@ export interface ControllerAuthorizationRelation {
   readonly kind: 'controller_authorization_relation';
   readonly scope: ControllerPolicyScope;
   /** Action applicability; class attributes are `all`, method attributes name their concrete action. */
-  readonly actions: ControllerPolicyActionScope;
+  readonly actions: ControllerPolicyActionScopeJudgment;
   readonly arguments: ExpressionArguments;
   readonly source: SourceSpan;
 }
@@ -214,13 +238,14 @@ export interface ControllerExpressionFact {
 export interface ControllerVariableDefinition {
   readonly variable: VariableName;
   readonly origin: ControllerVariableOrigin;
-  readonly expression: Expression;
-  readonly semantic: ControllerVariableSemantic;
+  /** The closed semantic judgment owns the single canonical expression; no parallel expression slot exists. */
+  readonly semanticResolution: ControllerVariableSemanticJudgment;
   readonly source: SourceSpan;
 }
 
 export interface ControllerVariableBinding {
   readonly variable: VariableName;
+  /** Definitions retain source-occurrence order; consumers selecting the current binding use the final available definition. */
   readonly definitions: Sequence<ControllerVariableDefinition>;
 }
 
@@ -254,6 +279,18 @@ export interface ControllerSemanticDataflow {
   readonly returned: ControllerReturnSemantic;
 }
 
+/**
+ * One source-correlated semantic projection shared by the action and method-contract views.
+ * Consumers must reuse this value rather than independently recomputing action semantics.
+ */
+export interface ControllerMethodSemanticProjection {
+  readonly kind: 'controller_method_semantic_projection';
+  readonly controller: ControllerName;
+  readonly source: SourceSpan;
+  readonly responseReferenceJudgment: ControllerResponseReferenceJudgment;
+  readonly semantic: ControllerSemanticDataflow;
+}
+
 export type ControllerHelper = ControllerMethodContract & {
   readonly kind: 'controller_helper';
   readonly controller: ControllerName;
@@ -272,7 +309,7 @@ export interface ControllerAction {
   /** Canonical parameter semantics; PHP parameter AST remains scanner evidence. */
   readonly parameters: Sequence<ControllerParameter>;
   readonly request: RequestBinding;
-  readonly response: ControllerResponse;
+  readonly response: ControllerResponseReferenceJudgment;
   /** Resolved method-level container dependencies; route/model bindings are excluded. */
   readonly dependencies: Sequence<ControllerDependency>;
   readonly statements: SourceStatements;

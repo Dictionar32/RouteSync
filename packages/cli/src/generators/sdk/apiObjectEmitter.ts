@@ -6,7 +6,7 @@
  * @module cli/generators/sdk
  */
 
-import { operationIdentityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeParameterCapabilityReferencesFromRoute, routeTargetScopeFromRoute } from '@routesync/core';
+import { hasCanonicalRequestFields, operationIdentityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeParameterCapabilityReferencesFromRoute, routeTargetScopeFromRoute } from '@routesync/core';
 import type { ClassifiedRoute } from '../route-capability-projection';
 import { ConstantsGenerator } from '../ConstantsGenerator';
 import { resolveEndpointResponseInfo } from './endpointResolver';
@@ -86,7 +86,7 @@ export function emitApiObjectLines(
         apiBodyLines.push('      },');
       }
 
-      const hasBodyMapper = Boolean(route.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && ctx.usesZod);
+      const hasBodyMapper = Boolean(route.contract.request.body.kind === 'body' && hasCanonicalRequestFields(route.contract.request.body.schema) && ctx.usesZod);
       const hasRespMapper = Boolean(respInfo.mapper);
 
       if (hasBodyMapper || hasRespMapper) {

@@ -1,0 +1,52 @@
+{
+  "phase": 1723,
+  "name": "domain-owned-invocation-stage-judgments-regression",
+  "auditScripts": 22,
+  "total": 290,
+  "passed": 290,
+  "failed": 0,
+  "phases": [
+    {
+      "file": "PHASE1714_AUDIT.json",
+      "total": 204,
+      "passed": 204,
+      "failed": 0
+    },
+    {
+      "file": "PHASE1716_AUDIT.json",
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "file": "PHASE1719_AUDIT.json",
+      "total": 14,
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "file": "PHASE1720_AUDIT.json",
+      "total": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "file": "PHASE1721_AUDIT.json",
+      "total": 17,
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "file": "PHASE1722_AUDIT.json",
+      "total": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "file": "PHASE1723_AUDIT.json",
+      "total": 14,
+      "passed": 14,
+      "failed": 0
+    }
+  ]
+}

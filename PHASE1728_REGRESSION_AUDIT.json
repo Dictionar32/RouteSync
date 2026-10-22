@@ -1,0 +1,77 @@
+{
+  "phase": 1728,
+  "name": "analysis-correspondence-contract-regression",
+  "phaseSpecificAuditScripts": [
+    {
+      "script": "audit-phase1721-static-source-bound-stage-context.cjs",
+      "passed": 17,
+      "total": 17,
+      "status": "PASS"
+    },
+    {
+      "script": "audit-phase1722-static-stage-judgment-envelope.cjs",
+      "passed": 16,
+      "total": 16,
+      "status": "PASS"
+    },
+    {
+      "script": "audit-phase1723-domain-owned-invocation-stage-judgments.cjs",
+      "passed": 14,
+      "total": 14,
+      "status": "PASS"
+    },
+    {
+      "script": "audit-phase1724-static-coverage-truthfulness-boundary.cjs",
+      "passed": 12,
+      "total": 12,
+      "status": "PASS"
+    },
+    {
+      "script": "audit-phase1725-total-invocation-coverage-publication.cjs",
+      "passed": 16,
+      "total": 16,
+      "status": "PASS"
+    },
+    {
+      "script": "audit-phase1726-inventory-bound-coverage-contract.cjs",
+      "passed": 15,
+      "total": 15,
+      "status": "PASS"
+    },
+    {
+      "script": "audit-phase1727-publication-validation-outcome.cjs",
+      "passed": 19,
+      "total": 19,
+      "status": "PASS"
+    },
+    {
+      "script": "audit-phase1728-analysis-correspondence-contract.cjs",
+      "passed": 17,
+      "total": 17,
+      "status": "PASS"
+    }
+  ],
+  "phaseSpecificTotal": 126,
+  "phaseSpecificPassed": 126,
+  "historicalCumulativeRegression": [
+    {
+      "throughPhase": 1725,
+      "passed": 75,
+      "total": 75,
+      "status": "PASS"
+    },
+    {
+      "throughPhase": 1726,
+      "passed": 90,
+      "total": 90,
+      "status": "PASS"
+    },
+    {
+      "throughPhase": 1727,
+      "passed": 109,
+      "total": 109,
+      "status": "PASS"
+    }
+  ],
+  "scope": "Interface-contract audits only. Static algebra, publication authority implementation, and production Laravel scanner wiring remain unimplemented."
+}

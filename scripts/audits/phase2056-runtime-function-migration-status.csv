@@ -1,0 +1,6 @@
+file,symbol,phase2056_disposition,reason
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,modelOriginEvidence,retained-as-evidence-projection,AST structural projection now carries typed static-call origin input without invoking semantic authority
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,staticCallOriginInput,retained-as-typed-input-constructor,constructs framework-independent upstream evidence from source syntax
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,modelOriginFromEvidence,replaced-by-closed-judgment,removed optional ControllerModelOrigin return and separate reason reconstruction
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,judgeModelOrigin,authority-judgment,existing resource authority now publishes resolved/missing/unresolved ADT and composes static-call origin authority
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,controllerStaticCallOriginAuthority,retained-as-specialized-authority,continues owning DB::table versus class-model origin semantics; composed upstream rather than duplicated

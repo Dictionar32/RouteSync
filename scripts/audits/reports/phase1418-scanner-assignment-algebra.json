@@ -1,0 +1,45 @@
+{
+  "phase": 1418,
+  "title": "scanner-assignment-parts-algebra",
+  "checks": [
+    {
+      "name": "upstream algebra exposes generic assignment contract",
+      "passed": true
+    },
+    {
+      "name": "algebra owns ordered operator candidate resolution without a second search",
+      "passed": false
+    },
+    {
+      "name": "algebra returns explicit target/value failures and owns reference marker",
+      "passed": true
+    },
+    {
+      "name": "algebra emits a typed assignment-parts resolution",
+      "passed": true
+    },
+    {
+      "name": "runtime supplies PHP operator vocabulary as capabilities",
+      "passed": true
+    },
+    {
+      "name": "runtime delegates assignment decomposition to algebra",
+      "passed": true
+    },
+    {
+      "name": "runtime supplies PHP-specific target and expression resolvers",
+      "passed": false
+    },
+    {
+      "name": "build script preserved",
+      "passed": true
+    },
+    {
+      "name": "new assignment contract contains no any",
+      "passed": true
+    }
+  ],
+  "passed": 7,
+  "total": 9,
+  "status": "failed"
+}

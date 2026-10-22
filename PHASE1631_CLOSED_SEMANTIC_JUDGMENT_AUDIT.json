@@ -1,0 +1,32 @@
+{
+  "phase": 1631,
+  "title": "Closed semantic judgment and staged proof preservation",
+  "checks": [
+    {
+      "name": "closed-and-incomplete-are-discriminated-judgments",
+      "passed": true
+    },
+    {
+      "name": "constraint-incompleteness-stops-before-rewrite",
+      "passed": true
+    },
+    {
+      "name": "constraint-and-rewrite-provenance-are-preserved",
+      "passed": true
+    },
+    {
+      "name": "final-status-follows-final-stage-status",
+      "passed": true
+    },
+    {
+      "name": "constraint-round-limit-is-enforced-before-recursion",
+      "passed": true
+    },
+    {
+      "name": "regression-test-covers-incomplete-and-provenance",
+      "passed": true
+    }
+  ],
+  "passed": 6,
+  "total": 6
+}

@@ -1,0 +1,86 @@
+{
+  "phase": 1567,
+  "audit": "typed-request-type-input-rejection-contract",
+  "passed": 11,
+  "total": 16,
+  "checks": [
+    {
+      "name": "interface remains declaration-only",
+      "passed": false
+    },
+    {
+      "name": "invalid-input judgment carries typed evidence",
+      "passed": true
+    },
+    {
+      "name": "duplicate route identity uses route-domain keys",
+      "passed": false
+    },
+    {
+      "name": "duplicate resource identity uses resource-domain keys",
+      "passed": false
+    },
+    {
+      "name": "duplicate request identity uses request-domain keys",
+      "passed": false
+    },
+    {
+      "name": "invalid contract rejection carries failed law",
+      "passed": true
+    },
+    {
+      "name": "unsupported policy rejection names supported policy",
+      "passed": true
+    },
+    {
+      "name": "reason and evidence are correlated as a discriminated union",
+      "passed": true
+    },
+    {
+      "name": "proof-less failure excludes invalid-input judgment",
+      "passed": true
+    },
+    {
+      "name": "rejection confirmation is distinct from successful derivation",
+      "passed": true
+    },
+    {
+      "name": "rejection mismatch has a typed law-bound counterexample",
+      "passed": true
+    },
+    {
+      "name": "all invalid verifier failures bind one law each",
+      "passed": true
+    },
+    {
+      "name": "all invalid verifier failures carry typed evidence",
+      "passed": false
+    },
+    {
+      "name": "authority verifier preserves input plus judgment contract",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the interface",
+      "passed": true
+    },
+    {
+      "name": "scanner/runtime implementations remain outside the interface",
+      "passed": true
+    }
+  ],
+  "failures": [
+    "interface remains declaration-only",
+    "duplicate route identity uses route-domain keys",
+    "duplicate resource identity uses resource-domain keys",
+    "duplicate request identity uses request-domain keys",
+    "all invalid verifier failures carry typed evidence"
+  ],
+  "scope": "static interface-model audit only; does not claim authority implementation, scanner migration, runtime migration, full TypeScript build, package build, or Vitest validation",
+  "notes": [
+    "invalid input is a first-class typed rejection rather than a proof-less judgment with only a reason string",
+    "duplicate source identity witnesses are domain-specific and non-empty",
+    "verification distinguishes confirmed rejection from verified successful derivation",
+    "scanner and runtime files intentionally unchanged"
+  ]
+}

@@ -3,16 +3,16 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
-const controller = read('src/compiler/scanner/subscanners/ControllerScanner.ts');
+const controller = read('src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const route = read('src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
 const checks = {
-  controllerDiscoversCanonicalSourceFiles: controller.includes("const files = await collectPhpFiles(controllerDirectory);") && controller.includes("path.join(sourceRoot, 'app', 'Http', 'Controllers')"),
-  controllerAccumulatorIsClosedRelationState: controller.includes('methods: [] as readonly') && controller.includes('index: [] as RelationIndex<string, ControllerActionInfo>'),
-  controllerAccumulatorHasNoSelfReference: !controller.includes('return [...controllerMethods,'),
+  controllerConsumesClosedSourceInventory: controller.includes('LaravelControllerScanInput') && controller.includes('input.invocationInventory') && controller.includes('invocationInventoryReceipt.correspondences'),
+  controllerAccumulatorIsClosedRelationState: controller.includes('controllers: [] as LaravelControllerScanArtifact[]') && controller.includes('invocationJudgment,') && controller.includes('controllers: [...state.controllers, artifact]'),
+  controllerDoesNotRebuildLegacyControllerIndex: !controller.includes('controllerIndex') && !controller.includes('RelationIndex<string, RelationIndex<string, ControllerActionInfo>>'),
   routeConstraintUsesCanonicalParameterAst: route.includes('readonly parameter: RouteConstraintParameterAst'),
   routeConstraintUsesCanonicalValueAst: route.includes('createRouteConstraintValueAst(value)'),
   routeConstraintNoDuplicateArgumentShape: route.includes('type RouteConstraintSyntaxArgument = RouteConstraintArgumentAst'),
-  routeGroupPresenceIsRefinedBeforeValue: route.includes('value is PresentGroupPendingKey') && route.includes('value => present(value.value)'),
+  routeGroupPresenceIsRefinedBeforeValue: route.includes('presenceFold') && route.includes('present('),
   routeTargetFoldPreservesClosedAdt: route.includes("relationVariantFold<RouteTargetDescription, 'closure', RouteTargetAst>") && route.includes("'controller_action', RouteTargetAst"),
   routeTargetFoldConsumesNarrowedCandidate: route.includes('rest => relationVariantFold') && route.includes('remaining => relationVariantFold'),
 };

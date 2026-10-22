@@ -1,0 +1,32 @@
+{
+  "phase": 2059,
+  "title": "Static-call model catalog identity interface first",
+  "source_archive": "RouteSync-phase2058-static-call-origin-argument-rule-interface-first-20261015.zip",
+  "changes": [
+    "Added typed ControllerStaticCallModelClassIdentity evidence and a versioned ControllerStaticCallModelClassIdentityRuleInterface.",
+    "Static class origin now resolves only against a unique model identity from scanned ModelDefinition values; unknown classes are not applicable and duplicate short identities are unresolved.",
+    "Wired the canonical model class catalog from laravelSourceAstPipeline through LaravelControllerScanInput, action resolution, and controller dataflow evidence.",
+    "Preserved existing invocation, integrated response, response attribute, AST rule, and resource binding authorities; no relation/foundation subscanner or parallel authority added."
+  ],
+  "structural_audits": {
+    "scripts": 15,
+    "passed_scripts": 15,
+    "failed_scripts": 0,
+    "passed_checks": 155,
+    "failed_checks": 0
+  },
+  "typescript_parser_only": {
+    "files": 14,
+    "parse_diagnostics": 0
+  },
+  "package_json_parse": "passed",
+  "zip_integrity": "will be recorded after archive creation",
+  "not_run": [
+    "full TypeScript typecheck",
+    "build",
+    "Vitest"
+  ],
+  "known_limitations": [
+    "PHP import-alias and fully-qualified class-reference resolution is not yet modeled as a closed judgment; the current catalog match is exact against model short-name evidence and rejects ambiguity."
+  ]
+}

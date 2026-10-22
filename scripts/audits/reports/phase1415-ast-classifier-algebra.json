@@ -1,0 +1,44 @@
+{
+  "phase": 1415,
+  "status": "passed",
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "name": "upstream algebra owns ordered candidate resolution",
+      "status": "passed"
+    },
+    {
+      "name": "upstream algebra owns first-applicable rule selection",
+      "status": "passed"
+    },
+    {
+      "name": "PHP parser supplies typed expression and statement rule catalogs to upstream algebra",
+      "status": "passed"
+    },
+    {
+      "name": "runtime no longer performs candidate dispatch itself",
+      "status": "passed"
+    },
+    {
+      "name": "algebra is language-agnostic",
+      "status": "passed"
+    },
+    {
+      "name": "closed syntax request/result contract remains in place",
+      "status": "passed"
+    },
+    {
+      "name": "semantic judgment production remains outside scanner parser",
+      "status": "passed"
+    },
+    {
+      "name": "build command preserved",
+      "status": "passed"
+    }
+  ],
+  "residuals": [
+    "PHP grammar-specific expression rule definitions remain in astClassifierRuntime by design; next migration boundary is statement/assignment grammar into rule contracts.",
+    "Full TypeScript build requires installed workspace dependencies."
+  ]
+}

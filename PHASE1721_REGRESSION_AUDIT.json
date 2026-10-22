@@ -1,0 +1,156 @@
+{
+  "phase": 1721,
+  "scope": "phase1702-through-phase1721",
+  "auditScripts": 20,
+  "checksPassed": 301,
+  "checksFailed": 0,
+  "status": "pass",
+  "audits": [
+    {
+      "phase": 1702,
+      "passed": 14,
+      "total": 14,
+      "failed": 0,
+      "script": "audit-phase1702-laravel-scanner-interface-first-contract-correction.cjs.cjs"
+    },
+    {
+      "phase": 1703,
+      "passed": 13,
+      "total": 13,
+      "failed": 0,
+      "script": "audit-phase1703-laravel-scanner-interface-first-contract-closure.cjs.cjs"
+    },
+    {
+      "phase": 1704,
+      "passed": 12,
+      "total": 12,
+      "failed": 0,
+      "script": "audit-phase1704-laravel-scanner-interface-contract-correction.cjs.cjs"
+    },
+    {
+      "phase": 1705,
+      "passed": 21,
+      "total": 21,
+      "failed": 0,
+      "script": "audit-phase1705-laravel-scanner-interface-contract-model.cjs.cjs"
+    },
+    {
+      "phase": 1706,
+      "passed": 10,
+      "total": 10,
+      "failed": 0,
+      "script": "audit-phase1706-invocation-coverage-interface-truth.cjs.cjs"
+    },
+    {
+      "phase": 1707,
+      "passed": 14,
+      "total": 14,
+      "failed": 0,
+      "script": "audit-phase1707-invocation-subject-interface-model.cjs.cjs"
+    },
+    {
+      "phase": 1708,
+      "passed": 15,
+      "total": 15,
+      "failed": 0,
+      "script": "audit-phase1708-static-target-resolution-interface-model.cjs.cjs"
+    },
+    {
+      "phase": 1709,
+      "passed": 20,
+      "total": 20,
+      "failed": 0,
+      "script": "audit-phase1709-static-argument-effect-interface-model.cjs.cjs"
+    },
+    {
+      "phase": 1710,
+      "passed": 20,
+      "total": 20,
+      "failed": 0,
+      "script": "audit-phase1710-static-aggregate-judgment-interface.cjs.cjs"
+    },
+    {
+      "phase": 1711,
+      "passed": 15,
+      "total": 15,
+      "failed": 0,
+      "script": "audit-phase1711-static-proof-obligation-correspondence.cjs.cjs"
+    },
+    {
+      "phase": 1712,
+      "passed": 19,
+      "total": 19,
+      "failed": 0,
+      "script": "audit-phase1712-static-authority-validation-interface.cjs.cjs"
+    },
+    {
+      "phase": 1713,
+      "passed": 16,
+      "total": 16,
+      "failed": 0,
+      "script": "audit-phase1713-static-rule-obligation-contract.cjs.cjs"
+    },
+    {
+      "phase": 1714,
+      "passed": 15,
+      "total": 15,
+      "failed": 0,
+      "script": "audit-phase1714-static-judgment-compatibility-contract.cjs.cjs"
+    },
+    {
+      "phase": 1715,
+      "passed": 14,
+      "total": 14,
+      "failed": 0,
+      "script": "audit-phase1715-static-proof-ledger-contract.cjs.cjs"
+    },
+    {
+      "phase": 1716,
+      "passed": 12,
+      "total": 12,
+      "failed": 0,
+      "script": "audit-phase1716-static-incomplete-proof-witness-shape.cjs.cjs"
+    },
+    {
+      "phase": 1717,
+      "passed": 10,
+      "total": 10,
+      "failed": 0,
+      "script": "audit-phase1717-static-invocation-algebra-interface-contract.cjs.cjs"
+    },
+    {
+      "phase": 1718,
+      "passed": 17,
+      "total": 17,
+      "failed": 0,
+      "script": "audit-phase1718-static-algebra-stage-interface-contract.cjs.cjs"
+    },
+    {
+      "phase": 1719,
+      "passed": 14,
+      "total": 14,
+      "failed": 0,
+      "script": "audit-phase1719-static-authority-derivation-handoff-contract.cjs.cjs"
+    },
+    {
+      "phase": 1720,
+      "passed": 13,
+      "total": 13,
+      "failed": 0,
+      "script": "audit-phase1720-static-source-bound-derivation-contract.cjs.cjs"
+    },
+    {
+      "phase": 1721,
+      "passed": 17,
+      "total": 17,
+      "failed": 0,
+      "script": "audit-phase1721-static-source-bound-stage-context.cjs.cjs"
+    }
+  ],
+  "notes": [
+    "Audit scripts check interface/contract shape, not runtime semantics or end-to-end execution.",
+    "Full package build was not run.",
+    "Targeted strict TypeScript check remains blocked by unrelated resource-model/domain diagnostics; no diagnostic references either modified interface file.",
+    "Phase 1700 and 1701 are outside this regression range."
+  ]
+}

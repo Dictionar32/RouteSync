@@ -1,0 +1,100 @@
+{
+  "phase": 2059,
+  "auditScripts": 15,
+  "passedScripts": 15,
+  "failedScripts": 0,
+  "passedChecks": 155,
+  "failedChecks": 0,
+  "report": [
+    {
+      "script": "audit-phase1869-laravel-invocation-integrated-response-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase1885-laravel-static-call-origin-judgment-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase1886-laravel-resource-binding-judgment-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase1887-controller-resource-binding-reuses-canonical-response-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase1943-controller-semantic-consumer-closure.cjs",
+      "exitCode": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase1944-controller-ast-adt-semantic-judgment.cjs",
+      "exitCode": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2051-runtime-function-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2052-response-attribute-semantic-judgment-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2053-ast-inline-array-judgment-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2054-controller-resource-static-call-judgment-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 8,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2055-controller-resource-static-call-rule-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2056-controller-model-origin-closed-judgment-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2057-static-call-origin-rule-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2058-static-call-origin-argument-rule-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "script": "audit-phase2059-static-call-model-catalog-identity-interface-first.cjs",
+      "exitCode": 0,
+      "passed": 10,
+      "failed": 0
+    }
+  ]
+}

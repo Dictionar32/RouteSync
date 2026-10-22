@@ -1,0 +1,49 @@
+{
+  "phase": 1570,
+  "audit": "duplicate-occurrence-pair-contract",
+  "passed": 7,
+  "total": 9,
+  "checks": [
+    {
+      "name": "duplicate pair has an explicit first occurrence",
+      "passed": true
+    },
+    {
+      "name": "duplicate pair has an explicit second occurrence",
+      "passed": true
+    },
+    {
+      "name": "additional collisions are represented without losing the primary pair",
+      "passed": true
+    },
+    {
+      "name": "pair occurrences are constrained to source evidence with occurrence keys",
+      "passed": true
+    },
+    {
+      "name": "distinct-location law remains explicit",
+      "passed": true
+    },
+    {
+      "name": "reused-location counterexample identifies the repeated occurrence key",
+      "passed": false
+    },
+    {
+      "name": "collision-key law remains explicit",
+      "passed": true
+    },
+    {
+      "name": "duplicate witness remains domain-specific",
+      "passed": true
+    },
+    {
+      "name": "interface contains no runtime implementation",
+      "passed": false
+    }
+  ],
+  "failures": [
+    "reused-location counterexample identifies the repeated occurrence key",
+    "interface contains no runtime implementation"
+  ],
+  "scope": "static interface audit only; no authority/scanner/runtime migration or full build claim"
+}

@@ -1,8 +1,8 @@
 /** Declarative scanner cursor backed by relation-driven transitions. */
 import { createSourceLineNumber, createSourceOffset } from './PhpAst';
 import type { TokenType, TokenDescriptor } from './PhpAst';
-import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/foundation/semanticRelations';
-import { relationTextSlice } from '../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/relations/semanticRelations';
+import { relationTextSlice } from '../../../semantic/relations/relationalSequence';
 
 export interface CursorMark { readonly offset: number; readonly line: number; }
 export interface SourceStream {

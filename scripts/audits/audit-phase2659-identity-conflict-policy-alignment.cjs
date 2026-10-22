@@ -1,0 +1,38 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
+const contract = read('packages/core/src/types/upstream/requestTypeDerivationInterface.ts');
+const reasoning = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticReasoning.ts');
+const verifier = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProofVerifier.ts');
+const composition = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticComposition.ts');
+const assembler = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticPipelineAssembler.ts');
+const coverage = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationCoverage.ts');
+const loader = read('packages/cli/src/standaloneCompositionLoader.ts');
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+const packageJson = JSON.parse(read('package.json'));
+const runtimeTest = read('packages/core/src/compiler/semantic/request-type-derivation/__test__/requestTypeDerivationIdentityConflictPolicy.phase2659.test.ts');
+
+check('upstream policy explicitly classifies duplicate resource identity as conflict', /duplicateIdentity: 'conflict'/.test(contract));
+check('conflict ADT carries all source occurrences for route, request and resource duplicate identities', /kind: 'duplicate_route_identity'; readonly candidates: readonly RequestTypeRouteEvidenceReference\[\]/.test(contract) && /kind: 'duplicate_request_identity'; readonly candidates: readonly RequestTypeRequestEvidenceReference\[\]/.test(contract) && /kind: 'duplicate_resource_identity'; readonly candidates: readonly RequestTypeResourceEvidenceReference\[\]/.test(contract));
+check('producer emits identity collisions as conflict judgments instead of invalid_input', /conflictsFromIdentityCollisions/.test(reasoning) && /kind: 'conflict'/.test(reasoning) && !/reason: 'duplicate_source_identity'/.test(contract));
+check('route/resource/request receipts preserve duplicate source occurrence disposition', /duplicateRouteOccurrences/.test(reasoning) && /duplicateResourceOccurrences/.test(reasoning) && /duplicateRequestOccurrences/.test(reasoning));
+check('proof carries collision relations and source closure conflict count', /relation: 'source_conflict'/.test(reasoning) && /conflicts: conflictCount/.test(reasoning));
+check('verifier independently recomputes collision inventory from raw input', /identityCollisionInventory\(inference\.input\)/.test(reasoning) && /requestTypeDerivationIdentityConflictLedgerVerification\.matchesInput/.test(verifier));
+check('partial collision verification has an explicit incomplete result and does not claim valid', /kind: 'verification_incomplete'/.test(verifier) && /identity_conflict_ledger_confirmed/.test(verifier) && /missingLaws: REQUEST_TYPE_DERIVATION_LAW_IDS/.test(verifier));
+check('full 34-law verification remains an explicit blocker', /REQUEST_TYPE_DERIVATION_LAW_IDS/.test(verifier) && /missingLaws: REQUEST_TYPE_DERIVATION_LAW_IDS/.test(verifier));
+check('coverage propagates partial verification as incomplete instead of treating it as complete', /verification\.kind === 'verification_incomplete'/.test(coverage) && /kind: 'verification_incomplete'/.test(coverage));
+check('composition uses canonical preparation, producer and verifier', /preparation: requestTypeDerivationSemanticInputPreparation/.test(composition) && /reasoning: requestTypeDerivationSemanticReasoning/.test(composition) && /verifier: requestTypeDerivationProofVerifier/.test(composition));
+check('assembler verifies producer result before decision and authority', /composition\.reasoning\.infer\(preparedInput\)/.test(assembler) && /verifier\.verify\(inference\)/.test(assembler) && /composition\.decision\.decide/.test(assembler) && /authorityIntegrityGate\.evaluate/.test(assembler));
+check('CLI scan and sync both consume manifest composition from the upstream loader', /manifestScanOperation\.scan/.test(scan) && /manifestScanOperation\.scan/.test(sync) && /ROUTESYNC_UPSTREAM_COMPOSITION_EXPORT = 'requestTypeDerivationSemanticComposition'/.test(loader));
+check('focused runtime regression test covers conflict ADT, receipts, verifier incompleteness and coverage', /duplicate_resource_identity/.test(runtimeTest) && /verification_incomplete/.test(runtimeTest) && /resourceReceipts/.test(runtimeTest) && /coverage\.kind/.test(runtimeTest));
+check('Phase 2659 audit is registered in package scripts', packageJson.scripts['audit:phase2659-identity-conflict-policy-alignment'] === 'node scripts/audits/audit-phase2659-identity-conflict-policy-alignment.cjs');
+
+for (const result of checks) process.stdout.write(`${result.passed ? 'PASS' : 'FAIL'} ${result.name}\n`);
+const passed = checks.filter(result => result.passed).length;
+process.stdout.write(`\nPhase 2659 identity-conflict policy alignment: ${passed}/${checks.length} assertions passed.\n`);
+process.stdout.write('SCOPE: structural source-path and policy-alignment audit; not a TypeScript compile or proof of all 34 laws.\n');
+if (passed !== checks.length) process.exitCode = 1;

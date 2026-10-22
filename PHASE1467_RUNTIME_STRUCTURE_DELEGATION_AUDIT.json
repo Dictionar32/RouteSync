@@ -1,0 +1,9 @@
+{
+  "phase": 1467,
+  "title": "Runtime Structure Delegation",
+  "sourceEvidence": "TokenDescriptor[]",
+  "authority": "ScannerTokenStructureInterface / ScannerTokenStructureAlgebra",
+  "runtimeChanges": ["splitTopLevel delegates top-level separator reasoning", "matchingClose delegates delimiter matching", "matchingBrace delegates delimiter matching", "classifyMatch projects ScannerMatchExpressionAlgebra judgment"],
+  "architecture": ["Source evidence", "Typed structural evidence", "Closed judgment", "Interface contract", "Wiring", "Runtime projection"],
+  "fullBuild": "not_run_dependencies_not_installed"
+}

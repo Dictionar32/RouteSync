@@ -1,0 +1,20 @@
+{
+  "phase": 2336,
+  "title": "Inherited Controller Policy Closure",
+  "status": "static-audit-passed",
+  "checks": { "passed": 12, "total": 12 },
+  "changes": [
+    "canonical Laravel route scanner builds controller policy catalog from existing controller action contracts",
+    "resolved action inheritedFrom ancestry is passed to existing effective policy resolver",
+    "resolver uses inherited ancestry when no explicit inheritance graph is passed",
+    "repeated policy source evidence is deduplicated without collapsing different named middleware from one source span",
+    "LaravelRouteScannerInterface contract version advanced from 11 to 12"
+  ],
+  "not_run": ["Vitest", "TypeScript typecheck/build", "CLI end-to-end", "npm run build"],
+  "known_remaining": [
+    "completeness of upstream inheritedFrom ancestry is not independently proven by this phase",
+    "manifest projection remains to be traced end-to-end",
+    "semantic/relations remains in other scanner paths",
+    "legacy subscanner removal is not included"
+  ]
+}

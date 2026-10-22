@@ -6,7 +6,7 @@
  */
 import type { ControlFlowGraph, BasicBlock } from '../../utils/cfg/basicBlock';
 import type { FlowState, TransferFn, MergeFn } from './types';
-import type { RelationIndex } from '../../../semantic/foundation/relationMembership';
+import type { RelationIndex } from '../../../semantic/relations/relationMembership';
 import {
   relationEvery,
   relationFirstOption,
@@ -14,8 +14,10 @@ import {
   relationProject,
   relationResolve,
   relationFixedPoint,
-} from '../../../semantic/foundation/relationalSequence';
-import { relationNotEqual } from '../../../semantic/foundation/semanticRelations';
+} from '../../../semantic/relations/relationalSequence';
+import { relationNotEqual } from '../../../semantic/relations/semanticRelations';
+import type { RelationFixedPoint } from '../../../semantic/relations/relationalSequence';
+import { requireConvergedDataFlow } from './dataFlowSolveJudgment';
 
 const flowEntry = <T>(id: number, state: FlowState<T>): readonly [number, FlowState<T>] => [id, state];
 
@@ -74,12 +76,12 @@ const converged = <T>(
   },
 );
 
-export function runForwardAnalysis<T>(
+export function runForwardAnalysisWithJudgment<T>(
   cfg: ControlFlowGraph,
   initialState: T,
   transfer: TransferFn<T>,
   merge: MergeFn<T>,
-): RelationIndex<number, FlowState<T>> {
+): RelationFixedPoint<RelationIndex<number, FlowState<T>>> {
   const seed = relationProject(
     cfg.blocks,
     ([id]) => flowEntry(id, { inState: initialState, outState: initialState }),
@@ -89,5 +91,15 @@ export function runForwardAnalysis<T>(
     entries => deriveRound(cfg, entries, initialState, transfer, merge),
     converged,
   );
-  return fixedPoint.value;
+  return fixedPoint;
+}
+
+/** Compatibility projection that refuses to publish an incomplete approximation as a closed result. */
+export function runForwardAnalysis<T>(
+  cfg: ControlFlowGraph,
+  initialState: T,
+  transfer: TransferFn<T>,
+  merge: MergeFn<T>,
+): RelationIndex<number, FlowState<T>> {
+  return requireConvergedDataFlow(runForwardAnalysisWithJudgment(cfg, initialState, transfer, merge));
 }

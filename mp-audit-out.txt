@@ -1,0 +1,72 @@
+{
+  "phase": 1972,
+  "total": 16,
+  "passed": 16,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "existing judgment interface returns closed judgment ADT",
+      "passed": true
+    },
+    {
+      "name": "controller model contains explicit blocked outcome",
+      "passed": true
+    },
+    {
+      "name": "duplicate only and except have typed reasons",
+      "passed": true
+    },
+    {
+      "name": "unsupported direct expression has typed outcomes",
+      "passed": true
+    },
+    {
+      "name": "unsupported array entries preserve expression evidence",
+      "passed": true
+    },
+    {
+      "name": "authority blocks duplicate arguments",
+      "passed": true
+    },
+    {
+      "name": "authority blocks dynamic / unsupported expression evidence",
+      "passed": true
+    },
+    {
+      "name": "authority retains deliberate empty array as resolved empty sequence",
+      "passed": true
+    },
+    {
+      "name": "route middleware scope carries blocked judgment",
+      "passed": true
+    },
+    {
+      "name": "route middleware flow has complete vs blocked judgment",
+      "passed": true
+    },
+    {
+      "name": "route middleware flow detects blocked declarations and exclusions",
+      "passed": true
+    },
+    {
+      "name": "effective policy carries complete vs blocked judgment",
+      "passed": true
+    },
+    {
+      "name": "blocked controller and route policy are preserved as semantic relations",
+      "passed": true
+    },
+    {
+      "name": "regression tests cover dynamic, duplicate, empty, unpacked and downstream blocked outcomes",
+      "passed": true
+    },
+    {
+      "name": "judgment types are publicly exported",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner added",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "phase": 1988,
+  "title": "Integrated Invocation/Response AST Projection Interface First",
+  "scope": "existing interface contract, existing AST projection authority executor, and AST ADT retention; no new subscanner layers",
+  "checks": [
+    {
+      "name": "existing invocation-only context is explicitly discriminated",
+      "passed": true
+    },
+    {
+      "name": "integrated context requires both correlated judgments",
+      "passed": true
+    },
+    {
+      "name": "projection ADT separates syntax, invocation-only, and integrated outcomes",
+      "passed": true
+    },
+    {
+      "name": "AST projection authority forwards the exact response judgment",
+      "passed": true
+    },
+    {
+      "name": "AST projection authority does not synthesize response judgments",
+      "passed": true
+    },
+    {
+      "name": "controller body AST has a distinct integrated variant",
+      "passed": true
+    },
+    {
+      "name": "body parser retains integrated response judgment",
+      "passed": true
+    },
+    {
+      "name": "body parser keeps invocation-only outcome separate",
+      "passed": true
+    },
+    {
+      "name": "test covers exact response object identity",
+      "passed": true
+    },
+    {
+      "name": "reasoning contract version advanced",
+      "passed": false
+    },
+    {
+      "name": "judgment contract version advanced",
+      "passed": false
+    },
+    {
+      "name": "public AST projection exports remain available",
+      "passed": true
+    },
+    {
+      "name": "controller relation dependency frontier stays within the audited ceiling",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation imports in controller subscanner tree",
+      "passed": true
+    }
+  ],
+  "passed": 12,
+  "total": 14,
+  "trace": {
+    "controllerSubscannerTypeScriptFiles": 22,
+    "relationImportFiles": 8,
+    "foundationImportFiles": 0
+  },
+  "typecheck": "not-run",
+  "build": "not-run"
+}

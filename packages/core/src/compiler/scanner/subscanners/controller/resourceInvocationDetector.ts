@@ -4,9 +4,9 @@ import { classifyAstTokens } from '../../lexer/astClassifier';
 import { ResourceResponseDescriptor } from '../../../../types/route';
 import type { ResourceName } from '../../../../types/upstream/names';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
-import { relationAdvanceIndex, relationFold, relationGate, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationAdvanceIndex, relationFold, relationGate, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';
 import { tokenKindAt, tokenValueAt } from '../../lexer/tokenEvidence';
-import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';
 import { solveRewriteCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 export interface DetectedResourceInvocation {

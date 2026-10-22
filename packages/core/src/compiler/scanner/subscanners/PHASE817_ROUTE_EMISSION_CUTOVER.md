@@ -25,7 +25,7 @@ Phase 817 audit confirms:
 - emitter returns `RouteEmission[]`
 - scanner consumes `RouteEmission`
 - public scanner returns `RouteAst[]`
-- compatibility bridge still references `RouteSemanticFlowFactory`
+- the historical `RouteSemanticFlowFactory.ts` compatibility path is now empty in place after a workspace-wide source-reference trace found no active imports
 
 ## Build status
 
@@ -33,4 +33,4 @@ A full TypeScript build is not claimed in this extracted workspace because the l
 
 ## Next frontier
 
-Eliminate `RouteSemanticFlowFactory` from `routeProducerRelations.ts` by constructing `RouteProducerInput` directly from `RouteEmission` and the declaration semantic facts. Only after that bridge reaches zero should the route descriptor/factory tree be considered for deletion.
+The old `RouteSemanticFlowFactory.ts` path is retired in place. Route producer semantics must remain owned by the canonical `RouteProducerInput` / declaration semantic facts path; do not recreate the old factory as a fallback.

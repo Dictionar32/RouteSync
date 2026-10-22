@@ -1,0 +1,66 @@
+{
+  "phase": 2020,
+  "audit": "controller-request-binding-interface-first",
+  "passed": 5,
+  "total": 11,
+  "checks": [
+    {
+      "name": "existing retirement interface evolves before runtime wiring",
+      "passed": false
+    },
+    {
+      "name": "typed responsibility map binds source and target request ADTs",
+      "passed": false
+    },
+    {
+      "name": "retirement responsibility records forwarding instead of scanner semantic classification",
+      "passed": false
+    },
+    {
+      "name": "source contract aliases the existing closed request ADT and artifact preserves that ADT",
+      "passed": true
+    },
+    {
+      "name": "request-binding ADT retains typed, form-request, framework-request, and no-request outcomes",
+      "passed": false
+    },
+    {
+      "name": "action scanner forwards the closed request ADT unchanged",
+      "passed": false
+    },
+    {
+      "name": "action scanner no longer imports relation/foundation runtime helpers",
+      "passed": true
+    },
+    {
+      "name": "action scanner reuses existing resolver-context types instead of duplicating tuple types",
+      "passed": false
+    },
+    {
+      "name": "no relation/foundation subscanner directories exist",
+      "passed": true
+    },
+    {
+      "name": "no replacement controller subscanner or parallel authority was introduced",
+      "passed": true
+    },
+    {
+      "name": "package audit entry and phase source are registered",
+      "passed": true
+    }
+  ],
+  "removedRelationConsumers": [
+    "packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts"
+  ],
+  "remainingControllerRelationConsumers": [
+    "actionValidationExtractor.ts",
+    "controllerAstCanonical.ts",
+    "controllerDataflowContract.ts",
+    "controllerHasMiddleware.phase900.test.ts",
+    "resourceDataflowAggregator.ts",
+    "resourceInvocationDetector.ts",
+    "responseDetector.ts",
+    "responseDtoReader.ts"
+  ],
+  "note": "This phase removes semantic/relations runtime helpers from actionScanner.ts only. Other controller subscanner and descriptor imports remain and are not claimed retired. Full project typecheck/build is not asserted."
+}

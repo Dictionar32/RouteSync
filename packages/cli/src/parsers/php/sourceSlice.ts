@@ -2,10 +2,19 @@
 import { relationOptionalFold } from '@routesync/core';
 import type { GrammarLocation, PhpGrammarNode } from './ast/grammar';
 
-export function sliceNodeSource(node: PhpGrammarNode, source: string): string {
+const sliceNodeSourceImplementation = (node: PhpGrammarNode, source: string): string => {
   return relationOptionalFold<GrammarLocation, string>(
     node.loc,
     () => { throw Error(`PHP AST source boundary: node has no usable location for ${node.kind}`); },
     location => source.slice(location.start.offset, location.end.offset),
   );
 }
+
+
+export interface PhpNodeSourceSliceOperationInterface {
+  readonly slice: (node: PhpGrammarNode, source: string) => string;
+}
+
+export const phpNodeSourceSliceOperation: PhpNodeSourceSliceOperationInterface = Object.freeze({
+  slice: sliceNodeSourceImplementation,
+});

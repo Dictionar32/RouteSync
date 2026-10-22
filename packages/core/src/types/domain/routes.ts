@@ -24,6 +24,9 @@ import type { ActionName, DomainName, ResourceName, RouteName, RoutePath, Source
 import type { RouteRequestBinding } from "./request";
 import type { RouteCapabilityContract } from "../upstream/route";
 import type { OperationIdentityCapabilityContract } from "../upstream/operationIdentityCapability";
+import type { LaravelRouteAuthorizationSemanticJudgment } from '../upstream/routeAuthorizationSemanticJudgmentInterface';
+import type { Presence } from '../upstream/presence';
+import type { EffectiveControllerActionPolicy } from '../upstream/effectiveControllerActionPolicy';
 
 /**
  * Route Parameter Specification Contract.
@@ -81,6 +84,8 @@ export interface RouteBindingContract {
   readonly operation: RouteOperationBinding;
   readonly schema: RouteSchemaPayload;
   readonly response: ResponseDescriptor;
+  /** Method-correlated Integrated Response product or an explicit closed projection blocker. */
+  readonly responseProjection: import('../upstream/endpointBindings').EndpointResponseBinding;
   readonly request: RouteRequestBinding;
   readonly runtimeReturn: ControllerRuntimeReturn;
   readonly semanticReturn: ControllerReturnSemantic;
@@ -97,9 +102,14 @@ export interface RouteProvenanceContract {
   readonly sourceFile: SourceFilePath;
   readonly sourceLine: SourceLineNumber;
   readonly uri: RoutePath;
+  readonly declarationSpan: import('../upstream/provenance').SourceSpan;
 }
 
 export interface RouteSemanticFlow {
+  /** Source authorization judgment remains typed through semantic flow; do not infer it from capability.auth. */
+  readonly authorization: LaravelRouteAuthorizationSemanticJudgment;
+  /** Effective controller/action policy is attached only after a resolved upstream route binding. */
+  readonly controllerActionPolicy: Presence<EffectiveControllerActionPolicy>;
   /**
    * Canonical route model. All route semantics live in closed sub-contracts.
    * Consumers must read identity, binding, capability and provenance rather

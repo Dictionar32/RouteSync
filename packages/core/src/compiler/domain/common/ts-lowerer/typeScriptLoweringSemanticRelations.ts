@@ -3,15 +3,16 @@ import type { ResolvedSemanticTypeKind } from '../ResolvedSemanticType';
 import { astAnalysisTypeJudgment, type AstAnalysisFact, type AstAnalysisJudgment, type AstAnalysisTypeJudgment } from '../../../analysis/astAnalysisInterface';
 type SemanticTypeAnalysisFact = { readonly kind: 'semantic_type'; readonly value: ResolvedSemanticTypeKind };
 import { astSemanticStageInterfaceOf, type AstSemanticStageInterface } from '../../../../types/upstream/astSemanticStageInterfaceAlgebra';
-import { relationFirstOption, relationOptionFold, relationProject, relationResolve, relationRefine, relationCount, relationVariant } from '../../../../semantic/foundation/relationalSequence';
-import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationProject, relationResolve, relationRefine, relationCount, relationVariant } from '../../../../semantic/relations/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';
 import { astSemanticTextTerm } from '../../../../types/upstream/astSemanticInterface';
-import { createSemanticTypeLoweringPort, semanticTypeLoweringFact, type AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';
+import { createSemanticTypeLoweringPort, semanticTypeLoweringFact } from '../../../../types/upstream/astSemanticStageAuthority';
+import type { AstSemanticStagePort } from '../../../../types/upstream/astSemanticStageInterface';
 import {
   solveSemanticRelations,
   type SemanticRelation,
   type SemanticRelationRewrite,
-} from '../../../../semantic/foundation/semanticRewriteEngine';
+} from '../../../../semantic/relations/semanticRewriteEngine';
 
 export type TypeScriptLoweringSemanticRelation =
   | 'resolved_type_kind'

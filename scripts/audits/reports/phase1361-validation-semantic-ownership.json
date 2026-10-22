@@ -1,0 +1,107 @@
+{
+  "phase": 1361,
+  "audit": "validation-semantic-ownership",
+  "purpose": "Eliminate downstream Laravel validation reclassification by projecting canonical validation ADTs; preserve the unused upstream ValidationRuleDefinition as a separately classified migration seam.",
+  "checks": [
+    {
+      "name": "ValidationRuleDefinition remains a source-level upstream declaration with source provenance",
+      "ok": true
+    },
+    {
+      "name": "ValidationRuleDefinition is not silently substituted for the canonical domain rule ADT",
+      "ok": true
+    },
+    {
+      "name": "ValidationRuleParser owns parsing of rule strings at scanner origin",
+      "ok": true
+    },
+    {
+      "name": "Canonical route validation entries preserve source span",
+      "ok": true
+    },
+    {
+      "name": "Canonical rule aggregation consumes RouteValidationRuleEntry",
+      "ok": true
+    },
+    {
+      "name": "FormRequest producer constructs request schema from canonical validation fields",
+      "ok": true
+    },
+    {
+      "name": "FormRequest scanner enters the canonical request producer path",
+      "ok": true
+    },
+    {
+      "name": "Enum generator consumes RouteSchemaPayload contract",
+      "ok": true
+    },
+    {
+      "name": "Enum generator reads canonical schema fields rather than an invented schema.rules field",
+      "ok": true
+    },
+    {
+      "name": "Enum generator reads typed ValidationRuleNode values",
+      "ok": true
+    },
+    {
+      "name": "Enum generator extracts enum values from typed validation parameters",
+      "ok": true
+    },
+    {
+      "name": "Enum generator no longer reparses Laravel rule strings downstream",
+      "ok": true
+    },
+    {
+      "name": "Enum generator no longer uses any or a legacy record cast for validation rules",
+      "ok": true
+    },
+    {
+      "name": "Operation identity algebra carries upstream identity and reasoning without method classification",
+      "ok": true
+    },
+    {
+      "name": "Operation identity authority delegates to the canonical materializer",
+      "ok": true
+    },
+    {
+      "name": "CLI emitter projects the existing operation identity capability",
+      "ok": true
+    },
+    {
+      "name": "SDK requires explicit operation identity and hook kind",
+      "ok": true
+    },
+    {
+      "name": "React consumers do not classify HTTP method into semantic hook kind",
+      "ok": true
+    },
+    {
+      "name": "Manifest validates canonical AST before canonical source-model construction",
+      "ok": false
+    },
+    {
+      "name": "DataFlowInterface remains the consumer boundary for semantic dataflow",
+      "ok": true
+    },
+    {
+      "name": "IR projection consumes semantic dataflow authority and graph projection stays structural",
+      "ok": true
+    },
+    {
+      "name": "Build script and declared TypeScript version remain unchanged",
+      "ok": true
+    }
+  ],
+  "passedChecks": 21,
+  "totalChecks": 22,
+  "decision": {
+    "canonicalOwner": "ValidationRuleParser + CanonicalRouteValidationRuleEntry + RouteSemanticFlowValidationRuleSet at scanner origin",
+    "downstreamProjection": "CLI enum generator consumes RouteSchemaPayload.fields[].validation and never parses Laravel rule strings",
+    "preservedContract": "ValidationRuleDefinition remains intact and unwired until a producer/consumer migration is proven",
+    "compatibility": "Legacy noncanonical schema.rules string maps are not reinterpreted by the CLI generator; canonical RouteSchemaPayload is the supported path"
+  },
+  "validationLimits": [
+    "Static source-contract audit only; full build and runtime tests require installed project dependencies.",
+    "The workspace does not contain node_modules/tsdown; TypeScript 7.0.2 full build remains unverified."
+  ]
+}

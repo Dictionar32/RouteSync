@@ -1,0 +1,17 @@
+{
+  "upstreamRouteParameterProjection": true,
+  "projectionUsesCanonicalValueFlow": true,
+  "projectionMatchesControllerRouteParameter": true,
+  "analysisConsumesManifestSeedInput": true,
+  "routePolicyNotConvertedToDataflow": true,
+  "legacyRouteDataFlowHasNoGraphConsumer": true,
+  "physicalEcommercePhpFiles": 111,
+  "physicalEcommerceRouteParameterEvidence": [
+    "{id}",
+    "{produkItemId}",
+    "{orderId}",
+    "{provider}"
+  ],
+  "fixtureHasRouteParameterEvidence": true,
+  "clean": true
+}

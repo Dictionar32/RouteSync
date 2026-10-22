@@ -1,0 +1,29 @@
+{
+  "phase": 1920,
+  "title": "Semantic Knowledge Projection Contract",
+  "scope": [
+    "packages/core/src/types/upstream/semanticKnowledgeEvidenceAdapterInterface.ts",
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts",
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts",
+    "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+    "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+    "packages/core/src/types/upstream/laravelControllerScannerInterface.ts"
+  ],
+  "static_audit": {
+    "passed": 11,
+    "total": 11,
+    "status": "passed"
+  },
+  "zip_integrity": "verified_with_unzip_test",
+  "build": "not_run_by_design",
+  "typecheck": "not_run_by_design",
+  "runtime_tests": "not_run_by_design",
+  "key_changes": [
+    "Replaced positional produce(evidence, optional sourceName) with typed project(input).",
+    "Projection input carries discriminated request, source evidence, canonical SourceFile, and SemanticEvidenceProvider.",
+    "Projection output keeps source identity, provider provenance, and canonical SemanticKnowledgeDataFlow together.",
+    "ControllerDataflowAst retains the complete source-correlated projection.",
+    "Removed the adapter parameter falsely propagated into canonicalDefinition although it was not consumed.",
+    "Preserved canonical invocation judgment and distinct integrated response composition."
+  ]
+}

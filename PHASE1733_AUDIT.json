@@ -1,0 +1,69 @@
+{
+  "phase": 1733,
+  "name": "publication-authority-interface-contract",
+  "total": 15,
+  "passed": 9,
+  "failed": 6,
+  "checks": [
+    {
+      "name": "publication authority boundary has a distinct typed contract",
+      "passed": false
+    },
+    {
+      "name": "boundary type and value synchronize at v1",
+      "passed": false
+    },
+    {
+      "name": "canonical identity derives from inventory subject and avoids independent identity fields",
+      "passed": true
+    },
+    {
+      "name": "inventory and publication cardinality are explicit",
+      "passed": true
+    },
+    {
+      "name": "analysis judgments must biject to ordinary inventory subjects",
+      "passed": true
+    },
+    {
+      "name": "judgment identity and source span are bound to canonical subject",
+      "passed": true
+    },
+    {
+      "name": "invalid publication returns non-empty typed violations, never a success receipt",
+      "passed": true
+    },
+    {
+      "name": "receipt is authority-built and semantic reasoning remains outside authority",
+      "passed": true
+    },
+    {
+      "name": "publication interface requires the authority boundary",
+      "passed": true
+    },
+    {
+      "name": "coverage type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "pipeline type/value synchronized at v46 and discloses implementation is pending",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary v25 forwards validated receipt/rejection without repair",
+      "passed": false
+    },
+    {
+      "name": "scanner continues delegating to canonical pipeline without local invocation reasoning",
+      "passed": false
+    },
+    {
+      "name": "no semantic/foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

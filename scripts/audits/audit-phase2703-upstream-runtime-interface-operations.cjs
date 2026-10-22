@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, pass) => { checks.push({ name, pass: Boolean(pass) }); console.log(`${pass ? 'PASS' : 'FAIL'} ${name}`); };
+const reasoning = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticReasoning.ts');
+const verifier = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProofVerifier.ts');
+const production = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProductionComposition.ts');
+const cliFactory = read('packages/cli/src/upstreamCompositionFactory.ts');
+const loader = read('packages/cli/src/standaloneCompositionLoader.ts');
+const upstream = read('packages/core/src/upstream.ts');
+const index = read('packages/core/src/index.ts');
+check('duplicate-identity ledger checker is a named interface-typed operation object', /export interface RequestTypeDerivationIdentityConflictLedgerVerificationInterface/.test(reasoning) && /export const requestTypeDerivationIdentityConflictLedgerVerification:\s*RequestTypeDerivationIdentityConflictLedgerVerificationInterface\s*=\s*Object\.freeze\(\{/.test(reasoning));
+check('proof verifier consumes the ledger operation object, not a loose exported function', /requestTypeDerivationIdentityConflictLedgerVerification\.matchesInput\(inference\)/.test(verifier));
+check('production assembler is an interface-typed operation object', /export interface RequestTypeDerivationProductionPipelineAssemblerInterface/.test(production) && /export const requestTypeDerivationProductionPipelineAssembler:\s*RequestTypeDerivationProductionPipelineAssemblerInterface\s*=\s*Object\.freeze\(\{/.test(production));
+check('CLI composition invokes the assembler through its named operation', /requestTypeDerivationProductionPipelineAssembler\.assemble\(semanticComposition\)/.test(cliFactory));
+check('pipeline requirement is interface-typed object rather than exported callable', /export const requestTypeDerivationSemanticPipelineRequirement:\s*RequestTypeDerivationSemanticPipelineRequirementInterface\s*=\s*Object\.freeze\(\{/.test(production) && !/export const requireRequestTypeDerivationSemanticPipeline\s*=/.test(production));
+check('loader uses a domain location ADT without branded primitive string wrappers', /RouteSyncStandaloneCompositionModuleLocation/.test(loader) && /kind: 'package_specifier'/.test(loader) && !/unique symbol/.test(loader) && !/ModuleSpecifierBrand/.test(loader));
+check('broken duplicateIdentityRejection export alias is retired from public entrypoints', !/requestTypeDerivationDuplicateIdentityRejectionMatchesInput/.test(upstream + index));
+check('public entrypoints expose the actual interface-typed ledger operation', /requestTypeDerivationIdentityConflictLedgerVerification/.test(upstream) && /requestTypeDerivationIdentityConflictLedgerVerification/.test(index));
+check('semantic proof incompleteness remains explicit and is not promoted to valid', /kind: 'verification_incomplete' as const/.test(verifier) && /missingLaws: REQUEST_TYPE_DERIVATION_LAW_IDS/.test(verifier));
+const failed = checks.filter(c => !c.pass);
+console.log(`\nPhase 2703 upstream runtime source audit: ${checks.length - failed.length}/${checks.length} assertions passed.`);
+console.log('SCOPE: static source assertions only; does not establish TypeScript compilation, runtime integration, or complete 34-law proof verification.');
+if (failed.length) process.exitCode = 1;

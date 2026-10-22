@@ -22,7 +22,7 @@ import {
     type ResolvedPrimitiveKind
 } from '../ResolvedSemanticType';
 import type { SemanticTypeHandler, SemanticTypeResolverLike } from './resolverContracts';
-import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export const PrimitiveTypeHandler: SemanticTypeHandler = Object.freeze({
     supports: (type: SemanticType): boolean => relationEqual(type.kind, 'primitive'),

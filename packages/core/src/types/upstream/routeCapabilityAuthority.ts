@@ -8,9 +8,9 @@ import type { ActionName, RoutePath } from './names';
 import type { CrudRole, HttpMethod } from './routeExecutionVocabulary';
 import { CrudRole as CrudRoleValue } from './routeExecutionVocabulary';
 import { RESOURCE_ACTION_KNOWLEDGE } from './routeResourceFlow';
-import { relationAll, relationEqual, relationResolve } from '../../semantic/foundation/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationSelect } from '../../semantic/foundation/relationalSequence';
-import { relationNone, relationSome, type RelationOption } from '../../semantic/foundation/relationalSequence';
+import { relationAll, relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationSelect } from '../../semantic/relations/relationalSequence';
+import { relationNone, relationSome, type RelationOption } from '../../semantic/relations/relationalSequence';
 import type { RouteCapabilityCrudEvidence } from './route';
 
 export interface RouteCrudRoleResolution {
@@ -18,6 +18,19 @@ export interface RouteCrudRoleResolution {
   readonly role: CrudRole;
   readonly evidence: RouteCapabilityCrudEvidence;
   readonly closed: true;
+}
+
+/**
+ * Canonical typed evidence envelope for route CRUD judgment.
+ * Consumers pass one complete semantic input instead of coordinating positional
+ * arguments and optional overrides themselves.
+ */
+export interface RouteCapabilityCrudInput {
+  readonly kind: 'route_capability_crud_input';
+  readonly method: HttpMethod;
+  readonly path: RoutePath;
+  readonly action: ActionName;
+  readonly explicitRole?: CrudRole;
 }
 
 const actionRole = (action: ActionName): CrudRole => {
@@ -97,9 +110,15 @@ const actionEvidenceCandidate = (action: ActionName, role: CrudRole): RouteCapab
 
 
 export interface RouteCapabilityAuthorityAlgebraInterface {
+  /** Canonical operation: resolve one typed input into a closed CRUD judgment. */
+  readonly resolve: (input: RouteCapabilityCrudInput) => RouteCrudRoleResolution;
+  /** @deprecated Compatibility projections; new consumers should use resolve(). */
   readonly crudRoleFromAction: (action: ActionName) => CrudRole;
+  /** @deprecated Compatibility projections; new consumers should use resolve(). */
   readonly crudRoleFromRoute: (method: HttpMethod, path: RoutePath) => CrudRole;
+  /** @deprecated Compatibility projection; new consumers should use resolve(). */
   readonly crudRoleResolution: (method: HttpMethod, path: RoutePath, action?: ActionName, explicit?: CrudRole) => RouteCrudRoleResolution;
+  /** @deprecated Compatibility projection; new consumers should use resolve(). */
   readonly capabilityEvidence: (role: CrudRole, explicit?: CrudRole, action?: ActionName, method?: HttpMethod, path?: RoutePath) => RouteCapabilityCrudEvidence;
 }
 
@@ -110,30 +129,50 @@ export interface RouteCapabilityAuthorityContractInterface extends RouteCapabili
 
 export interface RouteCapabilityAuthorityInterface extends RouteCapabilityAuthorityContractInterface {}
 
-export const routeCapabilityAuthority: RouteCapabilityAuthorityInterface = Object.freeze({
+const resolveRouteCapabilityCrudInput = (
+  input: RouteCapabilityCrudInput | Readonly<{
+    readonly kind: 'route_capability_crud_input';
+    readonly method: HttpMethod;
+    readonly path: RoutePath;
+    readonly action?: ActionName;
+    readonly explicitRole?: CrudRole;
+  }>,
+): RouteCrudRoleResolution => {
+  const { method, path, action, explicitRole } = input;
+  const routeRoleResolution = routeRole(method, path);
+  const candidates: readonly RelationOption<{ readonly role: CrudRole; readonly evidence: RouteCapabilityCrudEvidence }>[] = [
+    explicitRole === undefined ? relationNone() : relationSome(Object.freeze({ role: explicitRole, evidence: explicitEvidenceCandidate(explicitRole) })),
+    action === undefined ? relationNone() : relationSome(Object.freeze({ role: actionRole(action), evidence: actionEvidenceCandidate(action, actionRole(action)) })),
+    relationSome(Object.freeze({ role: routeRoleResolution, evidence: routeEvidenceCandidate(method, path, routeRoleResolution) })),
+  ];
+  const selected = relationFirstOption(candidates, candidate => candidate.kind === 'some');
+  return relationOptionFold(
+    selected,
+    () => Object.freeze({
+      kind: 'route_crud_role_resolution' as const,
+      role: CrudRoleValue.Custom,
+      evidence: routeEvidenceCandidate(method, path, CrudRoleValue.Custom),
+      closed: true as const,
+    }),
+    candidate => Object.freeze({ kind: 'route_crud_role_resolution' as const, role: candidate.value.role, evidence: candidate.value.evidence, closed: true as const }),
+  );
+};
+
+export const routeCapabilityAuthorityAlgebra: RouteCapabilityAuthorityAlgebraInterface = Object.freeze({
   authority: 'upstream' as const,
   closed: true as const,
   crudRoleFromAction: (action: ActionName): CrudRole => actionRole(action),
   crudRoleFromRoute: (method: HttpMethod, path: RoutePath): CrudRole => routeRole(method, path),
-  crudRoleResolution: (method: HttpMethod, path: RoutePath, action?: ActionName, explicit?: CrudRole): RouteCrudRoleResolution => {
-    const routeRoleResolution = routeRole(method, path);
-    const candidates: readonly RelationOption<{ readonly role: CrudRole; readonly evidence: RouteCapabilityCrudEvidence }>[] = [
-      explicit === undefined ? relationNone() : relationSome(Object.freeze({ role: explicit, evidence: explicitEvidenceCandidate(explicit) })),
-      action === undefined ? relationNone() : relationSome(Object.freeze({ role: actionRole(action), evidence: actionEvidenceCandidate(action, actionRole(action)) })),
-      relationSome(Object.freeze({ role: routeRoleResolution, evidence: routeEvidenceCandidate(method, path, routeRoleResolution) })),
-    ];
-    const selected = relationFirstOption(candidates, candidate => candidate.kind === 'some');
-    return relationOptionFold(
-      selected,
-      () => Object.freeze({
-        kind: 'route_crud_role_resolution' as const,
-        role: CrudRoleValue.Custom,
-        evidence: routeEvidenceCandidate(method, path, CrudRoleValue.Custom),
-        closed: true as const,
-      }),
-      candidate => Object.freeze({ kind: 'route_crud_role_resolution' as const, role: candidate.value.role, evidence: candidate.value.evidence, closed: true as const }),
-    );
-  },
+  resolve: (input: RouteCapabilityCrudInput): RouteCrudRoleResolution =>
+    resolveRouteCapabilityCrudInput(input),
+  crudRoleResolution: (method: HttpMethod, path: RoutePath, action?: ActionName, explicit?: CrudRole): RouteCrudRoleResolution =>
+    resolveRouteCapabilityCrudInput({
+      kind: 'route_capability_crud_input',
+      method,
+      path,
+      action,
+      ...(explicit === undefined ? {} : { explicitRole: explicit }),
+    }),
   capabilityEvidence: (role: CrudRole, explicit?: CrudRole, action?: ActionName, method?: HttpMethod, path?: RoutePath): RouteCapabilityCrudEvidence => {
     const candidates: readonly RelationOption<RouteCapabilityCrudEvidence>[] = [
       explicit === undefined ? relationNone() : relationSome(explicitEvidenceCandidate(explicit)),
@@ -148,3 +187,30 @@ export const routeCapabilityAuthority: RouteCapabilityAuthorityInterface = Objec
   },
 });
 
+
+
+/**
+ * Compose upstream ownership around the canonical route-capability algebra.
+ * The authority wrapper delegates every operation; it does not reclassify
+ * actions, routes, or evidence.
+ */
+export function createRouteCapabilityAuthority(
+  algebra: RouteCapabilityAuthorityAlgebraInterface,
+): RouteCapabilityAuthorityInterface {
+  return Object.freeze({
+    authority: 'upstream' as const,
+    closed: true as const,
+    resolve: (input: RouteCapabilityCrudInput): RouteCrudRoleResolution => algebra.resolve(input),
+    crudRoleFromAction: (action: ActionName): CrudRole => algebra.crudRoleFromAction(action),
+    crudRoleFromRoute: (method: HttpMethod, path: RoutePath): CrudRole => algebra.crudRoleFromRoute(method, path),
+    crudRoleResolution: (method: HttpMethod, path: RoutePath, action?: ActionName, explicit?: CrudRole): RouteCrudRoleResolution =>
+      algebra.crudRoleResolution(method, path, action, explicit),
+    capabilityEvidence: (role: CrudRole, explicit?: CrudRole, action?: ActionName, method?: HttpMethod, path?: RoutePath): RouteCapabilityCrudEvidence =>
+      algebra.capabilityEvidence(role, explicit, action, method, path),
+  });
+}
+
+/** Canonical production authority; the algebra remains the sole classifier. */
+export const routeCapabilityAuthority: RouteCapabilityAuthorityInterface = createRouteCapabilityAuthority(
+  routeCapabilityAuthorityAlgebra,
+);

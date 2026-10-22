@@ -1,0 +1,78 @@
+{
+  "phase": 1692,
+  "title": "Laravel Domain Interface Closure",
+  "checks": 16,
+  "passed": 14,
+  "failed": 2,
+  "failures": [
+    "schema catalog projection uses canonical constructor",
+    "migration catalog projection uses canonical constructor"
+  ],
+  "checksDetail": [
+    {
+      "name": "typescript syntax: packages/core/src/types/upstream/schema.ts",
+      "passed": true
+    },
+    {
+      "name": "typescript syntax: packages/core/src/types/upstream/migrationInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "typescript syntax: packages/core/src/types/upstream/highLevelContracts.ts",
+      "passed": true
+    },
+    {
+      "name": "typescript syntax: packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "passed": true
+    },
+    {
+      "name": "typescript syntax: packages/core/src/types/upstream/__tests__/laravel-domain-contract-closure.phase1692.test.ts",
+      "passed": true
+    },
+    {
+      "name": "domain union contains schema",
+      "passed": true
+    },
+    {
+      "name": "domain union contains migration",
+      "passed": true
+    },
+    {
+      "name": "domain union contains DTO",
+      "passed": true
+    },
+    {
+      "name": "domain union contains middleware",
+      "passed": true
+    },
+    {
+      "name": "domain union contains attribute",
+      "passed": true
+    },
+    {
+      "name": "domain union contains channel",
+      "passed": true
+    },
+    {
+      "name": "schema catalog uses closed contract",
+      "passed": true
+    },
+    {
+      "name": "migration catalog uses closed contract",
+      "passed": true
+    },
+    {
+      "name": "schema catalog projection uses canonical constructor",
+      "passed": false
+    },
+    {
+      "name": "migration catalog projection uses canonical constructor",
+      "passed": false
+    },
+    {
+      "name": "type regression test covers closed interfaces and scanned domains",
+      "passed": true
+    }
+  ],
+  "note": "This audit checks source syntax and interface wiring invariants. It does not replace a full TypeScript typecheck or Vitest run."
+}

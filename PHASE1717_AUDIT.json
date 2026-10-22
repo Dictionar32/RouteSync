@@ -1,0 +1,25 @@
+{
+  "phase": 1717,
+  "title": "Static Invocation Algebra Interface Contract",
+  "scope": "interface-first contract definition only; no algebra implementation, authority implementation, or production scanner wiring",
+  "regression": {
+    "auditRange": "1702-1717",
+    "auditScripts": 16,
+    "checksPassed": 240,
+    "checksFailed": 0,
+    "phase1717ChecksPassed": 10,
+    "phase1717ChecksFailed": 0
+  },
+  "typecheck": {
+    "command": "tsc --noEmit --strict --target ES2022 --moduleResolution bundler --module ESNext --skipLibCheck packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+    "exitCode": 2,
+    "diagnosticsInChangedInterfaceFiles": 0,
+    "status": "blocked by existing diagnostics in unrelated domain/upstream modules"
+  },
+  "build": "not run",
+  "implementationStatus": {
+    "staticInvocationAlgebra": "interface-only",
+    "staticAuthorityValidator": "interface-only",
+    "productionScannerWiring": "unchanged"
+  }
+}

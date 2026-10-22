@@ -2,10 +2,10 @@
 import type { ControllerActionInfo } from '../../descriptors/requestDescriptors';
 import type { ControllerResourceBinding } from './controllerDataflowContract';
 import type { ResourceName } from '../../../../types/domain/semanticValues';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationFirst, relationExpand, relationProject } from '../../../../semantic/foundation/relationalSequence';
-import type { RelationOption } from '../../../../semantic/foundation/relationalSequence';
-import type { RelationIndex } from '../../../../semantic/foundation/relationMembership';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationFirst, relationExpand, relationProject } from '../../../../semantic/relations/relationalSequence';
+import type { RelationOption } from '../../../../semantic/relations/relationalSequence';
+import type { RelationIndex } from '../../../../semantic/relations/relationMembership';
 
 export interface ControllerResourceDataflow {
     readonly bindings: readonly ControllerResourceBinding[];

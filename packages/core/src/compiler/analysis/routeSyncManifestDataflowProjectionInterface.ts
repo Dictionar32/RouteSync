@@ -1,6 +1,7 @@
 import type { UpstreamWiringInterface } from '../../types/interfaces/interfaceDependencyBoundary';
 import type { RouteSyncManifestFlow } from '../../types/upstream/manifest';
-import type { ManifestDataflowSeedSurface } from '../../types/upstream/semanticDataflowManifestSurface';
+import type { SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
+import type { Sequence } from '../../types/upstream/collections';
 import type { SemanticDataflowIdentity } from '../../types/upstream/semanticDataflow';
 
 /**
@@ -18,7 +19,12 @@ export interface RouteSyncManifestDataflowControllerSurface {
   readonly dataflowNode: SemanticDataflowIdentity;
 }
 
-export interface RouteSyncManifestDataflowSurface extends ManifestDataflowSeedSurface {
+/** Runtime-facing projection: closed judgments only, never raw semantic inputs. */
+export interface RouteSyncManifestDataflowSurface {
   readonly kind: 'route_sync_manifest_dataflow_surface';
+  /** Upstream has already completed semantic reasoning and proof closure. */
+  readonly dataflowJudgments: Sequence<SemanticDataflowJudgment>;
+  /** Runtime trust boundary: upstream-materialized policy payloads are re-decoded before execution. */
+  readonly dataflowQueryPolicyContracts: readonly unknown[];
   readonly controllers: readonly RouteSyncManifestDataflowControllerSurface[];
 }

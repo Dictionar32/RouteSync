@@ -38,7 +38,7 @@ export function createFieldCollection<TField>(
  * @param transformFn - Mapping function for each field element
  * @returns Transformed FieldCollection<TTarget>
  */
-import { relationProject } from '../../../semantic/foundation/relationalSequence';
+import { relationProject } from '../../../semantic/relations/relationalSequence';
 
 export function mapFieldCollection<TSource, TTarget>(
     collection: FieldCollection<TSource>,

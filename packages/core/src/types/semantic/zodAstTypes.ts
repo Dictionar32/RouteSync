@@ -9,8 +9,8 @@
 import type { Lookup } from '../upstream/collections';
 import type { PropertyName } from '../upstream/names';
 import { SemanticValueFactory } from '../domain/semanticValues';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationProject } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/relations/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';
 
 export interface ZodPropertyEntry {
   readonly key: PropertyName;

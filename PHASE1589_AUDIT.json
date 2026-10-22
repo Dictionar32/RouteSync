@@ -1,0 +1,23 @@
+{
+  "phase": 1589,
+  "name": "interface-first-runtime-proof-binding",
+  "date": "2026-10-11",
+  "changes": [
+    "Validate runtime contract identity and closure before projection",
+    "Validate complete required-law coverage at executor boundary",
+    "Bind authority proof premises to submitted source evidence",
+    "Return typed non-projectable outcomes for contract rejection and input-binding mismatch",
+    "Add structural audit and trace report"
+  ],
+  "structuralAudit": {
+    "passed": 6,
+    "total": 6,
+    "command": "node scripts/audits/audit-phase1589-runtime-proof-binding.cjs"
+  },
+  "build": {
+    "status": "unverified",
+    "reason": "tsdown/TypeScript build dependencies are not installed in the active workspace"
+  },
+  "defaultEndToEndCutover": "open",
+  "proofProducingDefaultPipeline": "not present; intentionally not fabricated"
+}

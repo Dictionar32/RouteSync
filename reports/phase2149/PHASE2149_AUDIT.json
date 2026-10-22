@@ -1,0 +1,57 @@
+{
+  "phase": 2149,
+  "title": "Typed Request Projection Loss Interface-First Trace",
+  "passed": 11,
+  "total": 11,
+  "checks": [
+    {
+      "name": "typed projection loss is an explicit ownership obligation",
+      "passed": true
+    },
+    {
+      "name": "coverage names the lossy fallback without claiming closure",
+      "passed": true
+    },
+    {
+      "name": "canonical controller request judgment preserves typed and unresolved variants",
+      "passed": true
+    },
+    {
+      "name": "route producer keeps canonical typed/unresolved route ADT variants available",
+      "passed": true
+    },
+    {
+      "name": "action contract version synchronizes with production wiring",
+      "passed": true
+    },
+    {
+      "name": "runtime executor still forwards the exact semantic judgment",
+      "passed": true
+    },
+    {
+      "name": "invocation correlation and integrated response pipeline remain wired",
+      "passed": true
+    },
+    {
+      "name": "no new relation/foundation or subscanner layer was introduced",
+      "passed": true
+    },
+    {
+      "name": "source trace documentation records the open boundary",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "The canonical action request judgment is not yet wired into route boundary construction",
+    "No full build, full typecheck, or Vitest run",
+    "Syntax-only transpilation and static source checks do not establish runtime correctness"
+  ]
+}

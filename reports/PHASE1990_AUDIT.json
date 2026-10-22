@@ -1,0 +1,36 @@
+{
+  "phase": 1990,
+  "title": "Response Evidence Source-Binding Authority Interface First",
+  "scope": "interface/type declarations only",
+  "audit": "14/14 passed",
+  "syntaxTranspile": "3 changed TypeScript files, zero syntax diagnostics",
+  "typecheck": "not clean; repository-wide existing errors observed in unrelated files; no errors surfaced in the two changed upstream interface files in filtered diagnostics",
+  "runtimeScannerMigrated": false,
+  "responseJudgmentProducedByRuntimeScanner": false,
+  "controllerSubscannerTypeScriptFiles": 20,
+  "controllerSubscannerFilesReferencingSemanticRelations": 12,
+  "controllerSubscannerFilesReferencingSemanticFoundation": 0,
+  "relationFiles": [
+    "packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts"
+  ],
+  "foundationFiles": [],
+  "changedFiles": [
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/laravelSubscannerRetirementInterface.ts",
+    "packages/core/src/index.ts",
+    "packages/core/src/types/upstream/PHASE1990_RESPONSE_EVIDENCE_BINDING_AUTHORITY_INTERFACE.md",
+    "scripts/audits/audit-phase1990-response-evidence-binding-authority-interface.cjs",
+    "reports/PHASE1990_AUDIT.txt"
+  ]
+}

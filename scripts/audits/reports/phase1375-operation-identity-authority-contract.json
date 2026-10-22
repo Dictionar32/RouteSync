@@ -1,0 +1,131 @@
+{
+  "phase": 1375,
+  "title": "Operation Identity Authority Contract Composition",
+  "scope": [
+    "operation identity runtime algebra and upstream authority composition",
+    "authority contract metadata and backward-compatible entry point",
+    "route producer, operation identity projection, CLI and SDK consumer trace",
+    "AST/ADT, semantic dataflow, manifest, graph, IR, and React regression boundaries"
+  ],
+  "checks": 22,
+  "passed": 21,
+  "failed": 1,
+  "results": [
+    {
+      "name": "operation identity authority has a dedicated executable contract",
+      "passed": true,
+      "detail": "The authority contract specializes the existing runtime algebra without duplicating its operation signature."
+    },
+    {
+      "name": "authority composition accepts the runtime algebra contract",
+      "passed": true,
+      "detail": "Authority composition depends on the behavioral contract rather than a concrete algebra shape."
+    },
+    {
+      "name": "authority composition delegates construction exactly once",
+      "passed": true,
+      "detail": "The authority does not reconstruct identity, evidence, derivation, provenance, or proof."
+    },
+    {
+      "name": "canonical production authority is bound to the canonical algebra",
+      "passed": true,
+      "detail": "The production implementation is selected once at the upstream authority boundary."
+    },
+    {
+      "name": "authority metadata is closed and upstream-owned",
+      "passed": true,
+      "detail": "The composed authority advertises its ownership and closed contract explicitly."
+    },
+    {
+      "name": "existing public function remains backwards compatible",
+      "passed": true,
+      "detail": "Existing single-argument callers keep working; explicit composition can be supplied for tests or alternate runtime wiring."
+    },
+    {
+      "name": "authority entry point does not import semantic derivation logic",
+      "passed": true,
+      "detail": "No second identity classifier was introduced at the authority wrapper."
+    },
+    {
+      "name": "algebra preserves the exact upstream reasoning proof",
+      "passed": true,
+      "detail": "The closed capability forwards existing reasoning evidence and provenance."
+    },
+    {
+      "name": "algebra does not classify method or path",
+      "passed": true,
+      "detail": "Identity capability construction seals an existing route identity rather than deriving a new one."
+    },
+    {
+      "name": "route producer continues to use the upstream authority entry point",
+      "passed": true,
+      "detail": "The route producer remains connected to the authority boundary."
+    },
+    {
+      "name": "operation identity projection remains a consumer-only wiring contract",
+      "passed": true,
+      "detail": "Downstream receives a closed identity reference, not an executable reasoning algebra."
+    },
+    {
+      "name": "CLI projects capability identity rather than reclassifying routes",
+      "passed": true,
+      "detail": "CLI generation consumes the canonical upstream capability."
+    },
+    {
+      "name": "SDK remains fail-closed when upstream identity is absent",
+      "passed": true,
+      "detail": "SDK does not reconstruct operation identity from method/path as a fallback."
+    },
+    {
+      "name": "AST dataflow uses canonical semantic ADT aliases",
+      "passed": false,
+      "detail": "AST remains a producer boundary over canonical input and judgment types."
+    },
+    {
+      "name": "dataflow reasoning contract remains shared and upstream-owned",
+      "passed": true,
+      "detail": "Dataflow does not introduce a second local judge signature."
+    },
+    {
+      "name": "dataflow runtime adapter only projects an upstream-closed judgment",
+      "passed": true,
+      "detail": "Upstream manifest production owns reasoning; runtime adapter only forwards the closed judgment and proof."
+    },
+    {
+      "name": "manifest projection does not own dataflow closure",
+      "passed": true,
+      "detail": "Manifest projection forwards upstream-closed judgments and policy contracts without rerunning semantic reasoning."
+    },
+    {
+      "name": "graph projection retains structural relation semantics",
+      "passed": true,
+      "detail": "Graph relations remain distinct from value/dataflow closure."
+    },
+    {
+      "name": "IR consumes closed upstream dataflow state",
+      "passed": true,
+      "detail": "IR does not rerun the semantic solver."
+    },
+    {
+      "name": "React hooks consume endpoint capability instead of route classification",
+      "passed": true,
+      "detail": "Frontend hooks continue to rely on resolved endpoint capability."
+    },
+    {
+      "name": "public exports include the new authority contract and composition factory",
+      "passed": true,
+      "detail": "The contract is accessible without forcing consumers to import an internal file path."
+    },
+    {
+      "name": "audit is reproducible and package build contract is unchanged",
+      "passed": true,
+      "detail": "The audit is registered without changing package version or build command."
+    }
+  ],
+  "decision": {
+    "area": "Operation identity upstream authority boundary",
+    "change": "Added an explicit authority interface and a composition factory that accepts OperationIdentityCapabilityContractMaterializerInterface.",
+    "reason": "The prior authority wrapper delegated to the canonical algebra but had no explicit compositional contract for runtime wiring or substitutable verification.",
+    "preserved": "The canonical algebra remains the sole identity capability constructor; route producers and downstream projections preserve their existing behavior."
+  }
+}

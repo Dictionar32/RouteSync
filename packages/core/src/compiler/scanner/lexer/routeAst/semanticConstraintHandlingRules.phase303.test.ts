@@ -1,9 +1,9 @@
 import { solveConstraintHandlingRules, type ConstraintHandlingRule } from './semanticConstraintHandlingRules';
-import type { SemanticRelationPattern } from './semanticRewriteEngine';
+import type { SemanticRelationPattern } from '../../../../semantic/relations/semanticRewriteEngine';
 
 type R = 'requires' | 'entity' | 'obsolete' | 'active' | 'resolved';
 const variable = (name: string) => ({ variable: name } as const);
-const pattern = (relation: R, ...arguments_: readonly (string | number | boolean | null | ReturnType<typeof variable>)[]): SemanticRelationPattern<R> => ({ relation, arguments: arguments_ });
+const pattern = (relation: R, ...arguments_: readonly (string | number | boolean | ReturnType<typeof variable>)[]): SemanticRelationPattern<R> => ({ relation, arguments: arguments_ });
 const has = (facts: readonly { readonly relation: R; readonly arguments: readonly unknown[] }[], key: string): boolean => facts.some(fact => `${fact.relation}:${fact.arguments.join(':')}` === key);
 
 const propagation: ConstraintHandlingRule<R> = {
@@ -35,3 +35,12 @@ const simpagationResult = solveConstraintHandlingRules<R>([
 if (!has(simpagationResult.facts, 'active:A:source')) throw new Error('Simpagation did not derive active relation.');
 if (has(simpagationResult.facts, 'obsolete:A')) throw new Error('Simpagation did not remove obsolete relation.');
 console.log('PHASE303-CHR-RELATION-PASS');
+
+const zeroBudgetResult = solveConstraintHandlingRules<R>([{ relation: 'requires', arguments: ['A', 'predicate'] }], [propagation], 0);
+if (zeroBudgetResult.status !== 'incomplete' || zeroBudgetResult.saturated !== false || zeroBudgetResult.rounds !== 0) {
+  throw new Error('A zero-round budget must be an explicit incomplete judgment.');
+}
+const exhaustedBudgetResult = solveConstraintHandlingRules<R>([{ relation: 'requires', arguments: ['A', 'predicate'] }], [propagation], 1);
+if (exhaustedBudgetResult.status !== 'incomplete' || exhaustedBudgetResult.saturated !== false) {
+  throw new Error('A changing first round must not be mislabeled as closed at the round limit.');
+}

@@ -1,0 +1,37 @@
+RouteSync Phase2415 validation record
+
+Production source changes:
+  - packages/core/src/types/upstream/laravelRouteScannerInterface.ts
+  - packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts
+  - packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts
+  - packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts
+  - packages/core/src/index.ts
+
+Implemented:
+  - Closed route response-blocked outcome retains exact route AST and response ADT.
+  - Source-AST pipeline propagates response blocker with the exact invocation inventory receipt.
+  - Blocked route response prevents downstream resource/response AST projection and complete manifest publication.
+  - Existing policy blockers from the same scan remain attached to the response-blocked outcome.
+
+Phase2415 structural audit:
+  scripts/audits/audit-phase2415-route-response-blocker-propagation.cjs
+  PASS: 14/14 assertions.
+
+Regression audits:
+  scripts/audits/audit-phase2414-route-response-boundary-ownership.cjs
+  PASS: 12/12 assertions.
+  scripts/audits/audit-phase2393-route-producer-input-evidence-closure.cjs
+  PASS: 8/8 assertions.
+
+TypeScript syntax transpilation using the globally available TypeScript compiler:
+  PASS: 5/5 modified production files.
+
+Full typecheck:
+  ATTEMPTED, BLOCKED by the baseline environment/repository. Global tsc rejects the project's configured target/lib values and reports parser errors in packages/core/src/compiler/scanner/upstream/route/effectiveControllerActionPolicyResolver.phase921.test.ts at lines 47 and 221. No full typecheck pass is claimed.
+Full typecheck: NOT VERIFIED.
+Vitest: NOT RUN (workspace dependencies/node_modules unavailable).
+Package build: NOT RUN.
+Live scan/sync CLI: NOT RUN.
+
+Known remaining migration:
+  ResponseDescriptor compatibility consumers and the VoidResponseDescriptor.create() seed remain. This phase blocks explicitly unresolved response projections from being published as complete; it does not claim full response-descriptor retirement.

@@ -21,9 +21,9 @@ import type { RouteResourceRegistration } from "../../../../types/upstream/route
 import type { Sequence } from "../../../../types/upstream/collections";
 import type { RouteDeclarationAst } from "../../lexer/routeAst/routeDeclarationAst";
 import type { ControllerReturnSemantic } from "../../../../types/upstream/controller";
-import type { RelationIndex } from '../../../../semantic/foundation/relationMembership';
-import { relationIndexLookup } from '../../../../semantic/foundation/relationMembership';
-import { relationGate, relationEqual, relationOptionFold, relationProject, relationVariantFold, type RelationOption, relationNone, relationSome } from "../../../../semantic/foundation/relationalSequence";
+import type { RelationIndex } from '../../../../semantic/relations/relationMembership';
+import { relationIndexLookup } from '../../../../semantic/relations/relationMembership';
+import { relationGate, relationEqual, relationOptionFold, relationProject, relationVariantFold, type RelationOption, relationNone, relationSome } from "../../../../semantic/relations/relationalSequence";
 
 export function mapMethodDetails(method: HttpMethod): {
     method: HttpMethod;

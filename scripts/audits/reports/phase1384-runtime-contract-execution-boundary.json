@@ -1,0 +1,70 @@
+{
+  "phase": 1384,
+  "audit": "runtime-contract-execution-boundary",
+  "passed": true,
+  "passedChecks": 12,
+  "totalChecks": 12,
+  "checks": [
+    {
+      "name": "runtime boundary accepts closed judgment",
+      "passed": true,
+      "detail": "runtime boundary input is a judgment, not raw semantic input"
+    },
+    {
+      "name": "runtime composition does not call semantic authority",
+      "passed": true,
+      "detail": "runtime composition only projects through adapter"
+    },
+    {
+      "name": "manifest analysis reads judgment sequence",
+      "passed": true,
+      "detail": "analysis consumes upstream-closed judgments"
+    },
+    {
+      "name": "missing judgment fails closed",
+      "passed": true,
+      "detail": "no fallback re-judgment from raw input"
+    },
+    {
+      "name": "upstream manifest surface owns initial reasoning",
+      "passed": true,
+      "detail": "initial judgment construction remains upstream-owned"
+    },
+    {
+      "name": "materializer interface is explicit",
+      "passed": true,
+      "detail": "materialize contract makes already-resolved input intent explicit"
+    },
+    {
+      "name": "canonical materializer only seals provided evidence",
+      "passed": true,
+      "detail": "materializer carries evidence/proof without route classification"
+    },
+    {
+      "name": "authority delegates to materializer",
+      "passed": true,
+      "detail": "authority is composition around canonical materializer"
+    },
+    {
+      "name": "route producer uses canonical materialize API",
+      "passed": true,
+      "detail": "producer uses explicit materialize entry point"
+    },
+    {
+      "name": "legacy fromRoute is deprecated compatibility only",
+      "passed": true,
+      "detail": "legacy naming remains available but is not canonical"
+    },
+    {
+      "name": "legacy AST analyzer is explicitly deprecated",
+      "passed": true,
+      "detail": "legacy scanner facade still reasons; do not mistake it for runtime path"
+    },
+    {
+      "name": "package version/build script preserved",
+      "passed": true,
+      "detail": "version=1.0.49; build=tsdown"
+    }
+  ],
+  "verificationLimit": "Static source audit only; TypeScript build not verified because tsdown is not installed."
+}

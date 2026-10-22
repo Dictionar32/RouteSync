@@ -7,9 +7,9 @@ import type { Lookup, Option } from '../../../../types/upstream/collections';
 import { matchLookup } from '../../../../types/upstream/collections';
 import type { ModelName, TableName, ResourceName } from '../../../../types/upstream/names';
 import { createModelName } from '../../../../types/upstream/names';
-import { relationFold, relationOptionFold, relationLookup, relationVariantFold, relationProject } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationIndexAdd, type RelationIndex } from '../../../../semantic/foundation/relationMembership';
+import { relationFold, relationOptionFold, relationLookup, relationVariantFold, relationProject } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationIndexAdd, type RelationIndex } from '../../../../semantic/relations/relationMembership';
 
 export interface ModelSymbolTable {
     readonly get: (name: ModelName) => Lookup<OriginModelSymbol>;

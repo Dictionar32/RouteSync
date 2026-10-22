@@ -9,20 +9,36 @@
  */
 import { routeMiddlewareIdentity, type RouteMiddlewareContract, type RouteMiddlewareExclusionContract, type RouteMiddlewareFlow, type RouteMiddlewareScope, type RouteMiddlewareSemanticInput } from '../../../../types/upstream/routeMiddleware';
 import type { ActionName } from '../../../../types/upstream/names';
-import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationGate, relationProject, relationSelect, relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
-import { presenceFold, type Presence } from '../../../../types/upstream/presence';
+import type { ControllerPolicyActionScopeBlockReason } from '../../../../types/upstream/controller';
+import type { Presence } from '../../../../types/upstream/presence';
 
-const actionValue = (action: Presence<ActionName>): string =>
-  presenceFold(action, () => '', value => value.value.value);
+const actionValue = (action: Presence<ActionName>): string => {
+  switch (action.kind) {
+    case 'absent': return '';
+    case 'present': return action.value.value.value;
+  }
+};
+
+const blockedScopeReasons = (scope: RouteMiddlewareScope): readonly ControllerPolicyActionScopeBlockReason[] => {
+  switch (scope.kind) {
+    case 'blocked': return [scope.reason];
+    case 'all':
+    case 'only':
+    case 'except':
+    case 'only_except': return [];
+  }
+};
 
 const scopeApplies = (scope: RouteMiddlewareScope, action: Presence<ActionName>): boolean => {
-  if (scope.kind === 'all') return true;
-  const current = actionValue(action);
-  const contains = relationAny(relationProject(scope.actions, candidate => relationEqual(candidate.value.value, current)));
-  return scope.kind === 'only'
-    ? relationAll([relationEqual(action.kind, 'present'), contains])
-    : relationAll([relationEqual(action.kind, 'present'), relationNotEqual(contains, true)]);
+  switch (scope.kind) {
+    case 'blocked': return false;
+    case 'all': return true;
+    case 'only': return action.kind === 'present' && scope.actions.some(candidate => Object.is(candidate.value.value, actionValue(action)));
+    case 'except': return action.kind === 'present' && !scope.actions.some(candidate => Object.is(candidate.value.value, actionValue(action)));
+    case 'only_except': return action.kind === 'present'
+      && scope.only.some(candidate => Object.is(candidate.value.value, actionValue(action)))
+      && !scope.except.some(candidate => Object.is(candidate.value.value, actionValue(action)));
+  }
 };
 
 const middlewareIdentityEqual = (
@@ -31,37 +47,39 @@ const middlewareIdentityEqual = (
 ): boolean => {
   const leftIdentity = routeMiddlewareIdentity(left.middleware);
   const rightIdentity = routeMiddlewareIdentity(right.middleware);
-  return relationEqual(
-    leftIdentity.kind,
-    rightIdentity.kind,
-  ) && relationEqual(
-    leftIdentity.name.value.value,
-    rightIdentity.name.value.value,
-  );
+  return Object.is(leftIdentity.kind, rightIdentity.kind)
+    && Object.is(leftIdentity.name.value.value, rightIdentity.name.value.value);
 };
 
 const exclusionApplies = (
   declaration: RouteMiddlewareContract,
   exclusions: readonly RouteMiddlewareExclusionContract[],
   action: Presence<ActionName>,
-): boolean => relationProject(
-  relationSelect(exclusions, exclusion =>
-    middlewareIdentityEqual(declaration, exclusion) && scopeApplies(exclusion.scope, action)),
-  exclusion => exclusion,
-).length > 0;
+): boolean => exclusions.some(exclusion =>
+  middlewareIdentityEqual(declaration, exclusion) && scopeApplies(exclusion.scope, action));
 
 /** Resolve declared middleware into the concrete action's effective middleware set. */
 export const resolveRouteMiddlewareFlow = (
   input: RouteMiddlewareSemanticInput,
 ): RouteMiddlewareFlow => {
-  const effectiveMiddleware = relationSelect(
-    input.declarations,
+  const blockedScopes = Object.freeze([
+    ...input.declarations.flatMap(declaration => blockedScopeReasons(declaration.scope)),
+    ...input.exclusions.flatMap(exclusion => blockedScopeReasons(exclusion.scope)),
+  ]);
+  const effectiveMiddleware = input.declarations.filter(
     declaration => scopeApplies(declaration.scope, input.action) && !exclusionApplies(declaration, input.exclusions, input.action),
   );
+  const judgment = (() => {
+    switch (blockedScopes.length) {
+      case 0: return Object.freeze({ kind: 'complete' as const });
+      default: return Object.freeze({ kind: 'blocked' as const, reasons: blockedScopes });
+    }
+  })();
   return Object.freeze({
     kind: 'route_middleware_flow' as const,
-    middleware: Object.freeze(relationProject(input.declarations, declaration => declaration)),
-    exclusions: Object.freeze(relationProject(input.exclusions, exclusion => exclusion)),
-    effectiveMiddleware: Object.freeze(relationProject(effectiveMiddleware, declaration => declaration)),
+    judgment,
+    middleware: Object.freeze([...input.declarations]),
+    exclusions: Object.freeze([...input.exclusions]),
+    effectiveMiddleware: Object.freeze(effectiveMiddleware),
   });
 };

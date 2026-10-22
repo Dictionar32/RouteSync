@@ -1,0 +1,23 @@
+{
+  "phase": 2165,
+  "title": "Interface-first invocation and integrated-response trace",
+  "status": "trace_complete_implementation_blocked_on_typed_dto_inventory_contract",
+  "changedRuntimeSemantics": false,
+  "addedAuthority": false,
+  "addedSubscanner": false,
+  "addedRelationOrFoundationLayer": false,
+  "existingInvocationAuthority": "InvocationSemanticAuthorityInterface.analyze",
+  "existingInvocationExecutor": "InvocationSemanticRuntimeExecutorInterface.execute",
+  "existingIntegratedResponsePipeline": "LaravelControllerResponseSemanticPipelineInterface.judgeIntegratedResponse",
+  "existingResponseExecutor": "LaravelControllerResponseSemanticRuntimeExecutorInterface.execute",
+  "confirmedEvidenceGap": [
+    "resolved_response_attribute_descriptor",
+    "response_dto_declaration"
+  ],
+  "legacySemanticOwnerStillActive": [
+    "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts::resolveResponse",
+    "packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts",
+    "packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts"
+  ],
+  "nextRequiredContractEvolution": "Extend the existing response evidence production input with a typed source-correlated DTO declaration inventory supplied by the source-model stage; do not claim completion until the response authority consumes its closed judgment."
+}

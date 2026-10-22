@@ -1,1 +1,1 @@
-export * from '../foundation/relationalSequence';
+export * from '../relations/relationalSequence';

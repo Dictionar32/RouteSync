@@ -1,0 +1,61 @@
+--- a/packages/core/src/compiler/semantic/request-type-derivation/responseContribution.ts
++++ b/packages/core/src/compiler/semantic/request-type-derivation/responseContribution.ts
+@@ -121,11 +121,22 @@
+     route: RouteSemanticFlow,
+     resources: ReadonlyMap<string, ResourceAst>
+ ): RelationOption<ResourceAst> {
+-    const response = route.binding.response;
++    const response = route.binding.responseProjection;
++    if (response.kind === 'controller_method_response') {
++        const result = response.product.result;
++        if (result.kind !== 'resource') return relationNone<ResourceAst>();
++        const resourceName = result.resource.name.value.value;
++        return relationGate(
++            resources.has(resourceName),
++            () => relationSome(resources.get(resourceName) as ResourceAst),
++            () => relationNone<ResourceAst>(),
++        );
++    }
++    const descriptor = route.binding.response;
+     return relationGate(
+-        relationEqual(response.kind, 'resource'),
++        relationEqual(descriptor.kind, 'resource'),
+         () => {
+-            const resourceName = response.resourceName.value;
++            const resourceName = descriptor.resourceName.value;
+             return relationGate(
+                 resources.has(resourceName),
+                 () => relationSome(resources.get(resourceName) as ResourceAst),
+@@ -136,10 +147,32 @@
+     );
+ }
+ 
++const deriveIntegratedResourceResponseData = (
++    route: RouteSemanticFlow,
++    resourceIndex: ReadonlyMap<string, ResourceAst>,
++): RelationOption<ResponseData> => {
++    const projection = route.binding.responseProjection;
++    if (projection.kind !== 'controller_method_response') return relationNone<ResponseData>();
++    const result = projection.product.result;
++    if (result.kind === 'no_content') return relationNone<ResponseData>();
++    if (result.kind !== 'resource') return relationNone<ResponseData>();
++    return relationOptionMap(responseResource(route, resourceIndex), resource => {
++        const fields = toResponseFields(sequenceToArray(resource.definition.fields.items));
++        const shape = result.cardinality.kind === 'collection' ? 'collection' as const : 'single' as const;
++        return {
++            fields,
++            contract: toResourceContract(resource.definition.name.value.value, fields, shape),
++        };
++    });
++};
++
+ export function deriveActionResponseData(
+     route: RouteSemanticFlow,
+     resourceIndex: ReadonlyMap<string, ResourceAst>
+ ): RelationOption<ResponseData> {
++    if (route.binding.responseProjection.kind === 'controller_method_response') {
++        return deriveIntegratedResourceResponseData(route, resourceIndex);
++    }
+     const response = route.binding.response;
+     return relationGate(
+         relationEqual(response.kind, 'void'),

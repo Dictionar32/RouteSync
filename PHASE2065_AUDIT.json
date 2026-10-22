@@ -1,0 +1,49 @@
+{
+  "phase": 2065,
+  "title": "Single Canonical Class-Name Judgment Interface First",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "model identity interface consumes an existing class-resolution judgment",
+      "passed": true
+    },
+    {
+      "name": "origin rule contract forwards the same judgment",
+      "passed": true
+    },
+    {
+      "name": "model identity implementation does not invoke the resolver again",
+      "passed": true
+    },
+    {
+      "name": "static-call authority resolves once and forwards the exact judgment",
+      "passed": true
+    },
+    {
+      "name": "the origin authority contract advances to version 11",
+      "passed": true
+    },
+    {
+      "name": "regression proves a supplied judgment outranks source-context re-resolution",
+      "passed": true
+    },
+    {
+      "name": "invocation remains the existing canonical semantic judgment",
+      "passed": true
+    },
+    {
+      "name": "integrated response remains the existing correlated response contract",
+      "passed": true
+    },
+    {
+      "name": "runtime remains delegation-only",
+      "passed": true
+    },
+    {
+      "name": "phase audit command is registered",
+      "passed": true
+    }
+  ],
+  "verificationScope": "structural source audit only; full typecheck/build/Vitest not asserted"
+}

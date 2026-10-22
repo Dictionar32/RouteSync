@@ -18,6 +18,7 @@ import {
   type ResourceCrudMap
 } from './classifierTypes'
 import type { RouteCapabilityProjectionInterface } from './routeCapabilityProjectionInterface'
+import { routeActionIdentityCapabilityAuthority, type RouteActionIdentityResolution } from '@routesync/core'
 
 /**
  * Project resolved routes into the legacy ClassifiedRoute surface.
@@ -28,31 +29,17 @@ import type { RouteCapabilityProjectionInterface } from './routeCapabilityProjec
  */
 function projectRoute(
   route: RouteSemanticFlow,
-  groupAliases?: Readonly<Record<string, string>>,
-  usedActions: Map<string, Set<string>> = new Map<string, Set<string>>(),
+  identity: RouteActionIdentityResolution,
 ): ClassifiedRoute {
     const method = route.identity.coordinates.method
-    const sourceGroupName = route.identity.domain.group.value.value
-    const groupName = groupAliases?.[sourceGroupName] ?? sourceGroupName
+    const groupName = identity.groupName
     const role = route.capability.crudRole
     const runtimePath = route.identity.coordinates.runtimePath
     const hasParams = route.identity.parameters.all.length > 0
     const hasTrailingParam = CRUD_ROLE_REGISTRY[role].affectsSingleResource
 
-    // actionName is a closed upstream capability. HTTP method is transport
-    // metadata only and must never become semantic action naming here.
-    const baseAction = route.capability.actionName.value.value
-
-    const used = usedActions.get(groupName) ?? new Set<string>()
-    usedActions.set(groupName, used)
-
-    let actionName = baseAction
-    if (used.has(actionName)) {
-      let suffix = 2
-      while (used.has(`${baseAction}${suffix}`)) suffix += 1
-      actionName = `${baseAction}${suffix}`
-    }
-    used.add(actionName)
+    // Final action identity is already resolved by the upstream capability authority.
+    const actionName = identity.actionName.value.value
 
   return ScannedClassifiedRouteDescriptor.fromRoute(route, {
     groupName,
@@ -66,12 +53,29 @@ function projectRoute(
   })
 }
 
+const routeIdentityKey = (route: RouteSemanticFlow): string => [
+  route.identity.coordinates.name.value.value,
+  route.provenance.sourceFile.value.value,
+  String(route.provenance.sourceLine.value),
+].join('::')
+
 export function projectRoutes(
   routes: readonly RouteSemanticFlow[],
   groupAliases?: Readonly<Record<string, string>>
 ): ClassifiedRoute[] {
-  const usedActions = new Map<string, Set<string>>()
-  return routes.map(route => projectRoute(route, groupAliases, usedActions))
+  const contract = routeActionIdentityCapabilityAuthority.resolve(routes.map(route => ({
+    kind: 'route_action_identity_candidate' as const,
+    routeKey: routeIdentityKey(route),
+    sourceGroupName: route.identity.domain.group.value.value,
+    actionName: route.capability.actionName,
+    closed: true as const,
+  })), groupAliases)
+  const resolutions = new Map(contract.resolutions.map(resolution => [resolution.routeKey, resolution]))
+  return routes.map(route => {
+    const identity = resolutions.get(routeIdentityKey(route))
+    if (!identity) throw new Error(`Missing upstream action identity for route ${routeIdentityKey(route)}`)
+    return projectRoute(route, identity)
+  })
 }
 
 /**

@@ -1,0 +1,60 @@
+{
+  "phase": 1981,
+  "audit": "interface-first-controller-trace",
+  "passed": 11,
+  "total": 13,
+  "checks": [
+    {
+      "name": "invocation-response-AST contract map exists",
+      "status": "PASS"
+    },
+    {
+      "name": "interface-first contract exists",
+      "status": "PASS"
+    },
+    {
+      "name": "retirement contract advanced to version 8",
+      "status": "FAIL"
+    },
+    {
+      "name": "invocation judgment remains canonical",
+      "status": "PASS"
+    },
+    {
+      "name": "response judgment remains a distinct product",
+      "status": "PASS"
+    },
+    {
+      "name": "controller artifact remains typed",
+      "status": "PASS"
+    },
+    {
+      "name": "AST projection remains a closed judgment",
+      "status": "PASS"
+    },
+    {
+      "name": "executor cannot reconstruct or classify semantics",
+      "status": "PASS"
+    },
+    {
+      "name": "relation/foundation and replacement layers explicitly prohibited",
+      "status": "PASS"
+    },
+    {
+      "name": "public export is type-only",
+      "status": "PASS"
+    },
+    {
+      "name": "controller artifact correlates invocation and response",
+      "status": "FAIL"
+    },
+    {
+      "name": "response judgment retains invocation outcome",
+      "status": "PASS"
+    },
+    {
+      "name": "AST projection retains complete/blocked ADT",
+      "status": "PASS"
+    }
+  ]
+}

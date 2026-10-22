@@ -12,8 +12,8 @@ import type { ControllerNodeName, ServiceNodeName } from '../types/semantic/nomi
 import type { Lookup } from '../types/upstream/collections';
 import { GraphNodeIndex } from './service/graphNodeIndex';
 import type { GraphNodeReference } from './service/graphNodeIndex';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/foundation/relationMembership';
-import { relationOptionFold } from '../semantic/foundation/relationalSequence';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/relations/relationMembership';
+import { relationOptionFold } from '../semantic/relations/relationalSequence';
 import {
   detectExecutionLayer,
   buildServiceNode,
@@ -37,6 +37,7 @@ const serviceReference = (name: string): GraphNodeReference => ({
   kind: 'service_reference',
   name: { kind: 'class_name', value: { kind: 'string_value', value: name } },
 });
+
 
 export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, ServiceGraphAssemblyInterface {
   private readonly modelsMap = GraphNodeIndex.empty<ServiceModelNode>();

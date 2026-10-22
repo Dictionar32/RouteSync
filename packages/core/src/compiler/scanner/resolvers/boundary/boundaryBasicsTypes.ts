@@ -22,6 +22,9 @@ import type {
     ActionName, ControllerName, DomainTypeName, PropertyName, ResourceName, RouteName, RoutePath, SourceFile
 } from "../../../../types/upstream/names";
 import type { RouteCapabilityCrudEvidence } from "../../../../types/upstream/route";
+import type { LaravelRouteAuthorizationSemanticJudgment } from "../../../../types/upstream/routeAuthorizationSemanticJudgmentInterface";
+import type { EndpointResponseBinding } from "../../../../types/upstream/endpointBindings";
+import type { SourceSpan } from "../../../../types/upstream/provenance";
 
 export type { RouteBoundaryContract } from "../../../../types/upstream/route";
 
@@ -30,12 +33,15 @@ export interface RouteBoundaryCommonOptions {
     readonly path: RoutePath;
     readonly resourceName?: ResourceName;
     readonly domain?: DomainTypeName;
-    readonly auth: boolean;
+    /** Original closed authorization judgment from the Laravel scanner; boundary consumers must not reconstruct it from a boolean. */
+    readonly authorization: LaravelRouteAuthorizationSemanticJudgment;
     readonly middleware: readonly PropertyName[];
     readonly parameters?: readonly RouteParameter[];
     readonly pathParameters?: readonly RouteParameter[];
     readonly queryParameters?: readonly RouteQueryParameter[];
     readonly response: ResponseDescriptor;
+    /** Closed, method-correlated Integrated Response outcome; never infer this from the compatibility descriptor. */
+    readonly responseProjection: EndpointResponseBinding;
     readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
     readonly invalidation?: RouteCacheInvalidationDescriptor;
     readonly executionSignature?: RouteExecutionSignature;
@@ -64,6 +70,7 @@ export interface ControllerActionBoundaryOptions extends RouteBoundaryCommonOpti
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
+    readonly sourceSpan: SourceSpan;
 }
 
 export interface ControllerReferenceBoundaryOptions extends RouteBoundaryCommonOptions {
@@ -76,6 +83,7 @@ export interface ControllerReferenceBoundaryOptions extends RouteBoundaryCommonO
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
+    readonly sourceSpan: SourceSpan;
 }
 
 export interface ClosureBoundaryOptions extends RouteBoundaryCommonOptions {
@@ -88,6 +96,7 @@ export interface ClosureBoundaryOptions extends RouteBoundaryCommonOptions {
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
+    readonly sourceSpan: SourceSpan;
 }
 
 export interface SyntheticBoundaryOptions extends RouteBoundaryCommonOptions {
@@ -100,6 +109,7 @@ export interface SyntheticBoundaryOptions extends RouteBoundaryCommonOptions {
     readonly isMutating?: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
+    readonly sourceSpan: SourceSpan;
 }
 
 export type RouteBoundaryOptions =
@@ -123,12 +133,17 @@ export interface ResolvedRouteBoundaryOptions {
     readonly isMutating: boolean;
     readonly sourceFile: SourceFile;
     readonly sourceLine: import("../../../../types/route").RouteProvenanceContract["sourceLine"];
+    readonly sourceSpan: SourceSpan;
+    readonly authorization: LaravelRouteAuthorizationSemanticJudgment;
     readonly auth: import('../../../../types/upstream/valueObjects').TruthValue;
     readonly middleware: import("../../../../types/upstream/collections").RouteMiddlewares;
+    /** Closed upstream security judgment; consumers must not resolve middleware semantics again. */
+    readonly security: import("../../../../types/upstream/routeSecurityAuthority").RouteSecurityJudgment;
     readonly parameters: readonly RouteParameter[];
     readonly pathParameters: readonly RouteParameter[];
     readonly queryParameters: readonly RouteQueryParameter[];
     readonly response: ResponseDescriptor;
+    readonly responseProjection: EndpointResponseBinding;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
     readonly invalidation: RouteCacheInvalidationDescriptor;
     readonly executionSignature: RouteExecutionSignature;

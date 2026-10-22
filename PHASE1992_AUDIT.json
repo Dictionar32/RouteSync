@@ -1,0 +1,27 @@
+{
+  "phase": 1992,
+  "name": "response-evidence-observation-coverage-interface-first",
+  "scope": "upstream contract/type declarations, public type export, documentation, and structural audit only",
+  "structuralAudit": { "passed": 16, "total": 16 },
+  "syntaxTranspile": { "file": "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts", "diagnostics": 0 },
+  "runtimeProducerImplemented": false,
+  "scannerWiringMigrated": false,
+  "responseJudgmentProductionIntegrated": false,
+  "fullTypecheckRun": false,
+  "buildRun": false,
+  "relationFoundationSubscannerAdded": false,
+  "relationFoundationSubscannerRemoved": false,
+  "knownTrace": {
+    "scannerPath": "packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts",
+    "currentProducerCall": "controllerProducer.produce({ declaration: declarationEvidence, invocationJudgment })",
+    "artifactResponseJudgmentIntegrated": false,
+    "controllerSubscannerTreeTypescriptFiles": 20,
+    "filesReferencingSemanticRelations": 12,
+    "filesReferencingSemanticFoundation": 0
+  },
+  "limits": [
+    "Structural audit verifies declarations and exports, not semantic correctness of an implementation.",
+    "TranspileModule is syntax transpilation only and does not type-check imports or generic compatibility.",
+    "Runtime integration remains deferred until the contract is stable."
+  ]
+}

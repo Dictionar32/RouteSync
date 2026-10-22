@@ -1,0 +1,38 @@
+{
+  "phase": 2197,
+  "title": "Response Authority / Executor Closure",
+  "baseArchive": "RouteSync-Phase2196-Upstream-Composition-Contract-Closure.zip",
+  "changedFiles": [
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts",
+    "packages/core/src/types/upstream/index.ts",
+    "packages/core/src/types/upstream/docs/PHASE2197-RESPONSE-AUTHORITY-EXECUTOR-CLOSURE.md"
+  ],
+  "rootCause": "The pipeline factory accepted a complete dependency bundle but judgeIntegratedResponse still called a module-level responseExecutor bound to the default responseSemanticAuthority; source identity semantics were also hardwired to the default singleton.",
+  "changes": [
+    "Response pipeline dependencies now require the existing response semantic authority.",
+    "Source identity semantics are obtained from the selected response semantic authority, avoiding a parallel identity dependency slot.",
+    "Added a factory for the existing response semantic authority with explicit source identity semantics.",
+    "Added an executor factory whose execute and projection members derive from the exact authority supplied.",
+    "The integrated pipeline constructs and uses its executor from its dependency contract authority.",
+    "Response pipeline contract version advanced from 26 to 27.",
+    "Exported the authority/executor factories and the complete dependency composition through the upstream public index."
+  ],
+  "assertions": {
+    "pipeline dependencies own response authority": "passed",
+    "no detached source identity dependency": "passed",
+    "integrated response executes pipeline-bound executor": "passed",
+    "executor constructed from dependency authority": "passed",
+    "executor execute is exact authority judge": "passed",
+    "contract version 27": "passed",
+    "authority and executor factories are public upstream exports": "passed",
+    "no relation/foundation/subscanner layers added": "passed"
+  },
+  "validation": {
+    "typescriptSyntaxTranspile": "passed 3/3",
+    "zipIntegrity": "pending",
+    "fullTypecheck": "not_run",
+    "vitest": "not_run",
+    "packageBuild": "not_run"
+  }
+}

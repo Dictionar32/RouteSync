@@ -1,0 +1,60 @@
+{
+  "phase": 2161,
+  "title": "Return Semantic Argument Closure and Response Descriptor Ownership",
+  "passed": 5,
+  "total": 12,
+  "checks": [
+    {
+      "name": "controller return semantic forwards the declared response-reference judgment argument",
+      "passed": true
+    },
+    {
+      "name": "controller return semantic no longer reads an undeclared response identifier",
+      "passed": true
+    },
+    {
+      "name": "action contract passes one reference judgment to return semantics and dataflow",
+      "passed": false
+    },
+    {
+      "name": "action semantic knowledge labels reference evidence separately from HTTP return semantics",
+      "passed": false
+    },
+    {
+      "name": "coverage explicitly records legacy response descriptor derivation as an open obligation",
+      "passed": false
+    },
+    {
+      "name": "coverage does not falsely mark response descriptor derivation complete",
+      "passed": false
+    },
+    {
+      "name": "action semantic contract version advanced to 21",
+      "passed": false
+    },
+    {
+      "name": "action executor still forwards the exact semantic judgment instead of upgrading coverage",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner retains the exact invocation judgment when publishing integrated response",
+      "passed": true
+    },
+    {
+      "name": "integrated response continues to distinguish observed returns from descriptor candidates",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation or duplicate response subscanner introduced",
+      "passed": true
+    },
+    {
+      "name": "response attribute legacy resolver remains explicitly identified rather than silently relocated",
+      "passed": false
+    }
+  ],
+  "productionCodeChanged": true,
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

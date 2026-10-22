@@ -3,8 +3,8 @@ import type { ResolvedSemanticType } from '../../domain/common/resolved-types';
 import { PrimitiveKind, type PrimitiveType, type SemanticType } from '../../../types/domain/semanticType';
 import { ResolvedPrimitiveType, ResolvedUnionType } from '../../domain/common/resolved-types';
 import { type LegacyContractValue, ContractInputBoundaryError } from './types';
-import { relationResolve, relationFold } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationResolve, relationFold } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 
 const isPrimitiveSemanticType = (value: SemanticType): value is PrimitiveType => relationEqual(value.kind, 'primitive');
 

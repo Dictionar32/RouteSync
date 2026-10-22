@@ -1,21 +1,27 @@
 /**
  * nodeMapper.ts
  *
- * Pure Dataflow AST Lowering: PhpGrammarNode → FieldNode.
- * 0 if, 0 switch, pure F-Algebra tree fold orchestration.
+ * Canonical AST boundary: PhpGrammarNode → PhpAstNode.
+ * No legacy lowering occurs on the runtime parser path.
  *
  * @module cli/parsers/php
  */
 
-import type { FieldNode } from '@routesync/core';
+import type { PhpAstNode } from '@routesync/core';
 import type { PhpGrammarNode } from './ast/grammar';
-import { foldPhpAstNode } from '@routesync/core';
-import { sliceNodeSource } from './sourceSlice';
-import { adaptPhpAstBoundaryJudgment } from './boundaryAdapter';
-import { FIELD_NODE_ALGEBRA } from './algebra/fieldNodeAlgebra';
+import { phpNodeSourceSliceOperation } from './sourceSlice';
+import { phpAstBoundaryAdapter } from './boundaryAdapter';
 
-export function mapPhpAstNode(grammarNode: PhpGrammarNode, source: string): FieldNode {
-    const originalCode = sliceNodeSource(grammarNode, source);
-    const astNode = adaptPhpAstBoundaryJudgment(grammarNode, originalCode).ast;
-    return foldPhpAstNode(astNode, FIELD_NODE_ALGEBRA);
+const mapPhpAstNodeImplementation = (grammarNode: PhpGrammarNode, source: string): PhpAstNode => {
+    const originalCode = phpNodeSourceSliceOperation.slice(grammarNode, source);
+    return phpAstBoundaryAdapter.adaptJudgment(grammarNode, originalCode).ast;
 }
+
+
+export interface PhpAstNodeMappingOperationInterface {
+  readonly map: (grammarNode: PhpGrammarNode, source: string) => PhpAstNode;
+}
+
+export const phpAstNodeMappingOperation: PhpAstNodeMappingOperationInterface = Object.freeze({
+  map: mapPhpAstNodeImplementation,
+});

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveRouteMiddlewareFlow } from '../routeMiddlewareFlowResolver';
 import type { RouteMiddlewareSemanticInput } from '../../../../../types/upstream/routeMiddleware';
 import { present } from '../../../../../types/upstream/presence';
-import { createActionName, createMiddlewareName } from '../../../../../types/upstream/names';
+import { createActionName, createMiddlewareName, stringValue } from '../../../../../types/upstream/names';
 
 const middleware = (name: string, scope: RouteMiddlewareSemanticInput['declarations'][number]['scope'], source: 'route' | 'controller_class' | 'controller_method' = 'route') => ({
   middleware: { name: createMiddlewareName(name), parameters: Object.freeze([]) },
@@ -58,6 +58,34 @@ describe('Phase 899 route middleware semantic resolver', () => {
 
     const flow = resolveRouteMiddlewareFlow(input);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['verified']);
+  });
+
+
+  it('preserves blocked scope judgment instead of reporting a complete empty result', () => {
+    const source = Object.freeze({
+      kind: 'source_span' as const,
+      file: Object.freeze({ kind: 'source_file' as const, value: stringValue('Controller.php') }),
+      start: Object.freeze({ kind: 'number_value' as const, value: 0 }),
+      end: Object.freeze({ kind: 'number_value' as const, value: 1 }),
+    });
+    const argument = Object.freeze({
+      kind: 'named' as const,
+      name: Object.freeze({ kind: 'expression_argument_name' as const, value: stringValue('only') }),
+      value: Object.freeze({
+        kind: 'variable' as const,
+        name: Object.freeze({ kind: 'variable_name' as const, value: stringValue('methods') }),
+        source,
+      }),
+    });
+    const input: RouteMiddlewareSemanticInput = {
+      declarations: [middleware('auth', { kind: 'blocked', reason: { kind: 'unsupported_only_expression', argument } }, 'controller_class')],
+      exclusions: [],
+      action: present(createActionName('show')),
+    };
+    const flow = resolveRouteMiddlewareFlow(input);
+    expect(flow.judgment.kind).toBe('blocked');
+    expect(flow.middleware).toHaveLength(1);
+    expect(flow.effectiveMiddleware).toHaveLength(0);
   });
 
   it('does not invent applicability for scoped middleware without a concrete action', () => {

@@ -1,0 +1,53 @@
+{
+  "phase": 1425,
+  "title": "expression-root-operator-contract",
+  "checks": [
+    {
+      "name": "root operator is resolved through the precedence algebra",
+      "passed": true
+    },
+    {
+      "name": "null coalescing belongs to the same root-operator catalog",
+      "passed": false
+    },
+    {
+      "name": "runtime has one root-operator path for coalescing and binary operators",
+      "passed": false
+    },
+    {
+      "name": "AST construction is a projection after root selection",
+      "passed": true
+    },
+    {
+      "name": "recursive operands are classified after root selection",
+      "passed": false
+    },
+    {
+      "name": "algebra returns a closed resolution ADT",
+      "passed": false
+    },
+    {
+      "name": "algebra checks operator vocabulary and precedence contract",
+      "passed": false
+    },
+    {
+      "name": "tests cover precedence, right associativity, and coalesce chains",
+      "passed": false
+    },
+    {
+      "name": "no any escape hatch was introduced",
+      "passed": true
+    },
+    {
+      "name": "build script remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "previous phase audits remain registered",
+      "passed": true
+    }
+  ],
+  "passed": 5,
+  "total": 11,
+  "status": "failed"
+}

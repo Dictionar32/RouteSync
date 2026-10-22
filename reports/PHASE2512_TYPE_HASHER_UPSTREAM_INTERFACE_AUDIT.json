@@ -1,0 +1,56 @@
+{
+  "phase": 2512,
+  "title": "TypeHasher Upstream Interface and Relation Cutover",
+  "total": 8,
+  "passed": 8,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "TypeHasher has no direct semantic/relations import",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/types/TypeHasher.ts"
+    },
+    {
+      "name": "TypeHasher has no direct semantic/foundation import",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/types/TypeHasher.ts"
+    },
+    {
+      "name": "An upstream TypeHasherInterface contract exists",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/typeHasherInterface.ts"
+    },
+    {
+      "name": "Hash context and cache-entry datum are upstream-owned",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/typeHasherInterface.ts"
+    },
+    {
+      "name": "Implementation is explicitly typed by the upstream interface",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/types/TypeHasher.ts"
+    },
+    {
+      "name": "Existing HashContext public name is preserved as a type alias",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/types/TypeHasher.ts"
+    },
+    {
+      "name": "Upstream barrel exports the new contract",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/index.ts"
+    },
+    {
+      "name": "Type hashing uses no relation-index implementation import",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/types/TypeHasher.ts"
+    }
+  ],
+  "remainingKnownDebt": [
+    "requestAstCanonical.ts still imports semantic/relations directly.",
+    "operations/form-request/canonicalValidationRuleEntry.ts and ruleCollector.ts still import semantic/relations directly.",
+    "TypeInterner relation-free status is only direct-import clean; transitive closure requires tracing all reachable dependencies.",
+    "The Laravel pipeline still imports legacy subscanners for response, schema, migration, DTO, query, service, middleware, and provider.",
+    "Full project typecheck, package build, Vitest, and CLI end-to-end have not passed in this environment."
+  ]
+}

@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = p => fs.readFileSync(path.join(root, p), 'utf8');
+const checks = [];
+const assert = (name, condition, detail) => checks.push({name, passed: Boolean(condition), detail});
+const cli = read('packages/cli/src/index.ts');
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+const composition = read('packages/cli/src/upstreamCompositionFactory.ts');
+assert('program root injects composition into scan', /addCommand\(createScanCommand\(composition\)\)/.test(cli), 'createProgram supplies the assembled composition');
+assert('program root injects composition into sync', /addCommand\(createSyncCommand\(composition\)\)/.test(cli), 'createProgram supplies the assembled composition');
+assert('scan factory requires typed composition', /createScanCommand\s*=\s*\(composition: RouteSyncCliUpstreamCompositionInterface\)/.test(scan), 'composition is mandatory in the TypeScript API');
+assert('sync factory requires typed composition', /createSyncCommand\s*=\s*\(composition: RouteSyncCliUpstreamCompositionInterface\)/.test(sync), 'composition is mandatory in the TypeScript API');
+assert('scan no longer exports authority-free singleton', !/export const scanCommand\s*=\s*createScanCommand\(\)/.test(scan), 'no module-level command bypasses the composition root');
+assert('sync no longer exports authority-free singleton', !/export const syncCommand\s*=\s*createSyncCommand\(\)/.test(sync), 'no module-level command bypasses the composition root');
+assert('scan consumes injected semantic pipeline', /createRouteManifestProjectionComposition\(requestTypeDerivationPipeline\)/.test(scan), 'projection receives the injected upstream pipeline');
+assert('sync consumes injected semantic pipeline', /createRouteManifestProjectionComposition\(requestTypeDerivationPipeline\)/.test(sync), 'projection receives the injected upstream pipeline');
+assert('composition factory assembles upstream pipeline', /assembleRequestTypeDerivationProductionPipeline\(semanticComposition\)/.test(composition), 'no local reasoning fallback is manufactured');
+assert('source-gap remains explicit', /RequestTypeDerivationSemanticProducerGapError/.test(read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticReasoning.ts')), 'unimplemented semantic contribution is not reclassified as success');
+for (const c of checks) console.log(`${c.passed ? 'PASS' : 'FAIL'} ${c.name}: ${c.detail}`);
+console.log(`\n${checks.filter(c=>c.passed).length}/${checks.length} structural assertions passed`);
+if (checks.some(c=>!c.passed)) process.exitCode = 1;

@@ -1,0 +1,27 @@
+{
+  "phase": 1643,
+  "subject": "invocation target ambiguity semantic contract",
+  "contractVersion": 4,
+  "architecture": {
+    "semanticRuleOwner": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "semanticAlgebra": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "runtimeExecutor": "authority delegation only",
+    "scanner": "thin facade; no semantic inference or rewrite"
+  },
+  "checks": {
+    "passed": 46,
+    "failed": 0,
+    "audits": [
+      "audit-phase1637-invocation-authority-contract.cjs",
+      "audit-phase1639-invocation-runtime-executor-interface.cjs",
+      "audit-phase1640-invocation-scoped-judgment.cjs",
+      "audit-phase1641-invocation-dependency-slice.cjs",
+      "audit-phase1642-evidence-judgment-trace.cjs",
+      "audit-phase1643-invocation-target-ambiguity.cjs"
+    ]
+  },
+  "verificationLimits": [
+    "Full TypeScript compilation not verified: dependencies/type definitions absent and available global TypeScript does not support configured target/lib.",
+    "Vitest regression suite not executed because project dependencies are absent."
+  ]
+}

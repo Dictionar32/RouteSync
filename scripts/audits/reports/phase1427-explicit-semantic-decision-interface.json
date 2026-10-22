@@ -1,0 +1,49 @@
+{
+  "phase": 1427,
+  "title": "explicit-semantic-decision-interface",
+  "checks": [
+    {
+      "name": "semantic decision contract has explicit upstream authority and closure",
+      "passed": true
+    },
+    {
+      "name": "rule authority is explicit and independent of declaration order",
+      "passed": false
+    },
+    {
+      "name": "result ADT separates derivation, absence, and contract violation",
+      "passed": true
+    },
+    {
+      "name": "duplicate identities and priorities are rejected before reasoning",
+      "passed": false
+    },
+    {
+      "name": "scanner expression classification is wired through the semantic decision interface",
+      "passed": false
+    },
+    {
+      "name": "scanner expression rules declare explicit priorities",
+      "passed": false
+    },
+    {
+      "name": "tests cover order independence and invalid contracts",
+      "passed": false
+    },
+    {
+      "name": "no any escape hatch was introduced",
+      "passed": true
+    },
+    {
+      "name": "build script remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ],
+  "passed": 5,
+  "total": 10,
+  "status": "failed"
+}

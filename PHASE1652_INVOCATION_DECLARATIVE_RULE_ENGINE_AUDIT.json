@@ -1,0 +1,67 @@
+{
+  "phase": 1652,
+  "title": "Invocation Declarative Rule Engine",
+  "contractVersion": 8,
+  "executableRuleIds": [
+    "invocation-evidence-presence",
+    "invocation-target-resolution",
+    "invocation-target-ambiguity",
+    "invocation-positional-argument-binding",
+    "invocation-argument-parameter-unresolved",
+    "invocation-result-emission",
+    "invocation-exception-emission",
+    "invocation-unresolved-target-obligation"
+  ],
+  "traceEntriesPerJudgment": 9,
+  "staticAudits": {
+    "declarativeRuleEngine": {
+      "passed": 13,
+      "failed": 0
+    },
+    "callableBoundary": {
+      "passed": 10,
+      "failed": 0
+    }
+  },
+  "runtimeSmoke": {
+    "unresolvedTarget": {
+      "status": "incomplete",
+      "obligation": "callable_target_unresolved",
+      "actualRuleApplication": true
+    },
+    "oneResolvedCallable": {
+      "status": "closed",
+      "targets": 1,
+      "argumentBindings": 1,
+      "resultFlows": 1
+    },
+    "ambiguousTarget": {
+      "status": "incomplete",
+      "obligation": "callable_target_ambiguous",
+      "targets": 2
+    },
+    "missingParameter": {
+      "status": "incomplete",
+      "obligation": "argument_parameter_unresolved"
+    },
+    "missingInvocationEvidence": {
+      "status": "incomplete",
+      "obligation": "invocation_evidence_missing"
+    },
+    "authorityValidation": "passed"
+  },
+  "typecheck": {
+    "strictFocusedNoUncheckedIndexedAccessFalse": "passed; zero diagnostics",
+    "strictFocusedNoUncheckedIndexedAccessTrue": "59 diagnostics in transitive relational substrate/dependencies; zero diagnostics in modified invocation files"
+  },
+  "build": {
+    "status": "blocked",
+    "reason": "tsdown not installed in workspace"
+  },
+  "vitest": {
+    "status": "not-run",
+    "reason": "Vitest not installed in workspace"
+  },
+  "scannerRuntime": "delegates to invocationSemanticRuntimeExecutor.executeAll; no invocation policy branches",
+  "foundationImportsInBoundaryFiles": 0
+}

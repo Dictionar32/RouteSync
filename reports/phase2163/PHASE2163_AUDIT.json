@@ -1,0 +1,72 @@
+{
+  "phase": 2163,
+  "title": "Response Attribute Source Evidence — Interface First",
+  "passed": 13,
+  "total": 15,
+  "checks": [
+    {
+      "name": "upstream method evidence has a closed response-attribute ADT",
+      "passed": true
+    },
+    {
+      "name": "declared response attribute retains typed response reference and shape",
+      "passed": true
+    },
+    {
+      "name": "method evidence stores source attribute facts separately from return expressions",
+      "passed": true
+    },
+    {
+      "name": "producer interface accepts source-level attribute evidence without scanner AST types",
+      "passed": true
+    },
+    {
+      "name": "existing controller producer projects both attribute ADT variants",
+      "passed": true
+    },
+    {
+      "name": "Laravel controller scanner supplies parsed attribute evidence to existing producer",
+      "passed": true
+    },
+    {
+      "name": "scanner mapping preserves explicit collection/single shape as ADT values",
+      "passed": true
+    },
+    {
+      "name": "response semantic evidence distinguishes raw attribute source from resolved descriptor",
+      "passed": true
+    },
+    {
+      "name": "existing response evidence producer emits source attribute evidence per method",
+      "passed": true
+    },
+    {
+      "name": "production evidence union includes response attribute source evidence",
+      "passed": true
+    },
+    {
+      "name": "coverage keeps resolved descriptor and DTO evidence obligations open",
+      "passed": true
+    },
+    {
+      "name": "legacy resolver is still explicitly visible and not falsely claimed retired",
+      "passed": false
+    },
+    {
+      "name": "existing integrated response pipeline remains wired into scanner",
+      "passed": true
+    },
+    {
+      "name": "no response authority or response subscanner duplication introduced",
+      "passed": true
+    },
+    {
+      "name": "producer contract version advanced with its new evidence projection",
+      "passed": false
+    }
+  ],
+  "productionCodeChanged": true,
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

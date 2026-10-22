@@ -1,0 +1,42 @@
+{
+  "phase": 2701,
+  "title": "Fully Typed Runtime Scanner Operations",
+  "scope": [
+    "packages/cli/src/standaloneCompositionLoader.ts",
+    "packages/cli/src/index.ts",
+    "packages/cli/src/parsers/php/sourceInvocationPipeline.ts",
+    "packages/cli/src/parsers/php/index.ts",
+    "packages/cli/src/__tests__/standaloneCompositionLoader.phase2661.test.ts"
+  ],
+  "checks": {
+    "legacy_loader_export_absent": true,
+    "legacy_guard_export_absent": true,
+    "legacy_cli_runner_export_absent": true,
+    "legacy_pipeline_analyze_exports_absent": true,
+    "new_loader_object_present": true,
+    "new_guard_object_present": true,
+    "new_cli_runner_object_present": true,
+    "new_pipeline_ops_object_present": true
+  },
+  "source_level_checks_passed": 8,
+  "source_level_checks_total": 8,
+  "typecheck": "not_run",
+  "build": "not_run",
+  "unit_tests": "not_run",
+  "cli_end_to_end": "not_run",
+  "semantic_verifier_completeness": "upstream gap remains unresolved",
+  "runtime_trace": [
+    "routeSyncStandaloneCliOperation.run",
+    "routeSyncStandaloneCompositionLoader.load",
+    "routeSyncStandaloneCompositionGuard.isComposition",
+    "routeSyncCliProgramFactory.createFromSemanticComposition",
+    "routeSyncCliUpstreamCompositionFactory.compose",
+    "routeSyncCliManifestScanOperationFactory.create",
+    "scan/sync command factory object",
+    "manifestScanOperation.scan",
+    "controllerInvocationManifestCompositionAuthority.compose",
+    "source identity, discovery, acquisition, AST/semantic pipeline",
+    "validated inventory and manifest builder",
+    "accepted manifest or explicit blocked/rejected ADT"
+  ]
+}

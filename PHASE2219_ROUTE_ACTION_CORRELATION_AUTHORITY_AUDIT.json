@@ -1,0 +1,42 @@
+{
+  "phase": 2219,
+  "title": "Interface-first route/action correlation authority",
+  "base": "Phase 2218 Canonical Action Method Source Correlation",
+  "changed": [
+    "packages/core/src/types/upstream/laravelControllerActionRouteCorrelationAuthority.ts",
+    "packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+    "packages/core/src/types/domain/request.ts",
+    "packages/core/src/types/upstream/endpointBindings.ts",
+    "packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts",
+    "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts",
+    "packages/core/src/types/upstream/index.ts",
+    "packages/core/src/types/upstream/__tests__/route-action-correlation-authority.phase2219.test.ts"
+  ],
+  "authority": "ControllerActionRouteCorrelationAuthorityInterface",
+  "preserves": [
+    "controller/action identity",
+    "exact canonical source span",
+    "explicit ambiguity",
+    "explicit invalid-publication outcome"
+  ],
+  "avoids": [
+    "semantic/foundation",
+    "semantic/relations in the new authority",
+    "new subscanner layer"
+  ],
+  "validation": {
+    "syntax_transpile": "7/7 changed TypeScript files passed zero syntax diagnostics",
+    "structural_assertions": "8/8 passed",
+    "vitest": "not_run (Vitest dependency not invoked)",
+    "typecheck": "not_run",
+    "build": "not_run",
+    "zip_integrity": "verified with unzip -t after archive creation"
+  },
+  "known_open_gaps": [
+    "legacy scanControllerAction / resolveControllerActionContract remains active",
+    "action response DTO semantic projection parity remains open",
+    "resource binding publication still crosses the legacy adapter",
+    "channel client subscription evidence remains unresolved",
+    "semantic/relations call sites require individual audit"
+  ]
+}

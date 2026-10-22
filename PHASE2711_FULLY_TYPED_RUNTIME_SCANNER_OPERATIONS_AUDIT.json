@@ -1,0 +1,87 @@
+{
+  "phase": 2711,
+  "title": "Fully Typed Runtime Scanner Operations — typed identity relation judgments and scanner operation objects",
+  "status": "partial-source-fix",
+  "audit": {
+    "phase2711StaticAssertions": { "passed": 19, "total": 19 },
+    "phase2703UpstreamRuntimeInterfaceAssertions": { "passed": 9, "total": 9 },
+    "changedTypeScriptSyntaxDiagnostics": { "count": 0, "filesChecked": 27 },
+    "runtimeSmoke": { "passed": 6, "total": 6 },
+    "requestTypeTargetedTypecheck": {
+      "baselinePhase2710Diagnostics": 79,
+      "phase2711Diagnostics": 79,
+      "newDiagnosticFingerprints": 0,
+      "resolvedDiagnosticFingerprints": 0,
+      "status": "not-clean-baseline-errors-remain"
+    },
+    "scannerTokenizerArrayParserTypecheck": {
+      "baselinePhase2710Diagnostics": 85,
+      "phase2711Diagnostics": 85,
+      "newDiagnosticFingerprints": 0,
+      "resolvedDiagnosticFingerprints": 0,
+      "status": "not-clean-baseline-errors-remain"
+    },
+    "vitest": "not-run-dependencies-unavailable",
+    "cliScanSyncEndToEnd": "not-run",
+    "fullWorkspaceTypecheck": "not-verified-local-toolchain-lacks-required-types-and-supports-only-typescript-5.8.3",
+    "proofLawClosure": "not-verified-fail-closed-required"
+  },
+  "changes": [
+    {
+      "path": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+      "change": "replace boolean sameCanonical identity methods with typed route/resource/request relation judgment ADTs"
+    },
+    {
+      "path": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts",
+      "change": "upstream-owned relation operations return equivalent/distinct judgments retaining both operands; collision inventory consumes judgment tags"
+    },
+    {
+      "path": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceOccurrenceVerification.ts",
+      "change": "occurrence verification and input membership consume typed identity relation judgments"
+    },
+    {
+      "path": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationResourceResolution.ts",
+      "change": "candidate selection consumes canonical resource identity relation judgment"
+    },
+    {
+      "path": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationResourceResolutionInventory.ts",
+      "change": "route/FormRequest mismatch consumes the explicit distinct judgment"
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "change": "exported tokenizePhpSource function replaced by interface-typed phpSourceTokenizer operation object"
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "change": "exported parsePhpArray function replaced by interface-typed phpArrayParser operation object"
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/LaravelSourceLexer.ts",
+      "change": "facade delegates to typed tokenizer and array parser objects"
+    }
+  ],
+  "runtimeTrace": [
+    "packages/cli/src/commands/scan.ts and sync.ts",
+    "packages/cli/src/upstreamCompositionFactory.ts",
+    "packages/cli/src/manifestScanOperationInterface.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "packages/core/src/compiler/scanner/LaravelSourceLexer.ts",
+    "packages/core/src/compiler/scanner/lexer/tokenizer.ts -> phpSourceTokenizer.tokenize",
+    "packages/core/src/compiler/scanner/lexer/arrayParser.ts -> phpArrayParser.parse",
+    "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts",
+    "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceOccurrenceVerification.ts",
+    "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProofVerifier.ts",
+    "manifest_builder_complete or manifest_builder_blocked -> CLI projection gate"
+  ],
+  "remainingFindings": {
+    "exportFunctionDeclarationsInScannerNonTestSources": { "phase2710": 170, "phase2711": 168, "files": 69 },
+    "occurrenceKeys": "still template-literal strings",
+    "proofVerifierIdentityKeys": "requires further audit and migration",
+    "proofLaws": "complete 34-law closure not established",
+    "integration": "Vitest and CLI scan/sync end-to-end not run"
+  },
+  "typescriptReferences": [
+    "https://www.typescriptlang.org/docs/handbook/2/objects.html",
+    "https://www.typescriptlang.org/docs/handbook/2/narrowing.html"
+  ]
+}

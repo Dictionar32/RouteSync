@@ -1,0 +1,77 @@
+{
+  "phase": 1728,
+  "name": "analysis-correspondence-contract",
+  "total": 17,
+  "passed": 12,
+  "failed": 5,
+  "checks": [
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "analysis correspondence invariant is part of coverage contract",
+      "passed": true
+    },
+    {
+      "name": "validation receipt requires entry-by-entry correspondence ledger",
+      "passed": true
+    },
+    {
+      "name": "duplicate analysis judgment has a domain violation",
+      "passed": true
+    },
+    {
+      "name": "analysis judgment outside inventory has a domain violation",
+      "passed": true
+    },
+    {
+      "name": "inventory identity must match the contained subject identity",
+      "passed": true
+    },
+    {
+      "name": "inventory source must match the contained subject source",
+      "passed": true
+    },
+    {
+      "name": "correspondence record preserves inventory and publication entries",
+      "passed": false
+    },
+    {
+      "name": "validated publication contains correspondence ledger",
+      "passed": true
+    },
+    {
+      "name": "validation invariant rejects unmatched analysis judgments",
+      "passed": false
+    },
+    {
+      "name": "rejection result remains a non-empty typed ledger",
+      "passed": true
+    },
+    {
+      "name": "scanner preserves correspondence receipt without reconstructing validation",
+      "passed": true
+    },
+    {
+      "name": "new correspondence type is exported from core index",
+      "passed": true
+    },
+    {
+      "name": "no generic wrapper or semantic foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered in package scripts",
+      "passed": true
+    }
+  ]
+}

@@ -7,7 +7,7 @@
  */
 
 import { matchResponseFieldProjection, type ResponseFieldProjection } from '../response-field';
-import { relationProject } from '../../../../semantic/foundation/relationalSequence';
+import { relationProject } from '../../../../semantic/relations/relationalSequence';
 import type { NestedObjectSchemaBuilder } from '../NestedObjectSchemaBuilder';
 import type { ArraySchemaBuilder } from '../ArraySchemaBuilder';
 import { buildPrimitiveSchemaWithModifiers } from './primitiveSchemaBuilder';

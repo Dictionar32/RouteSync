@@ -1,0 +1,26 @@
+{
+  "phase": 2220,
+  "title": "Canonical Action Controller Identity",
+  "baseArchive": "RouteSync-Phase2219-Interface-First-Route-Action-Correlation-Authority.zip",
+  "changes": [
+    "Added controllerName to canonical LaravelControllerActionSemanticKnowledge.",
+    "Published controller identity from LaravelControllerActionSemanticJudgmentInput.controller.",
+    "Updated knowledge coverage and action semantic contract version 25 to 26.",
+    "Updated route/action correlation authority contract version 1 to 2 and explicitly documented identity/source correlation rules.",
+    "Route correlation now validates publication controller against both canonical semantic identity and consumer projection identity."
+  ],
+  "validation": {
+    "typescriptSyntaxTranspilation": { "passed": 6, "failed": 0, "diagnostics": 0 },
+    "structuralAssertions": { "passed": 11, "failed": 0 },
+    "vitest": "not_run",
+    "fullTypecheck": "not_run",
+    "packageBuild": "not_run",
+    "zipIntegrity": "archive_created_and_tested_with_unzip_t"
+  },
+  "knownRemainingGaps": [
+    "scanControllerAction and resolveControllerActionContract remain active in the Laravel action derivation path.",
+    "Integrated response DTO/class binding and response-contract projection remain owned by the existing LaravelControllerResponseSemanticPipelineInterface and are not fully consumed by the action compatibility projection.",
+    "Resource-binding domain publication still traverses the legacy action adapter.",
+    "Remaining semantic/relations call sites and scanner subscanner responsibilities have not all been retired."
+  ]
+}

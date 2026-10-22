@@ -10,7 +10,8 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import chalk from 'chalk';
-import { manifestBuilder, createLaravelSourceProjectIdentity } from '@routesync/core';
+import { createLaravelSourceProjectIdentity } from '@routesync/core';
+import { controllerInvocationManifestBuilder } from '../../parsers/php/controllerInvocationManifestComposition';
 
 import type { RouteManifest, RouteSemanticFlow } from '@routesync/core';
 
@@ -22,8 +23,27 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
   }
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as RouteManifest;
-  const freshManifest = await manifestBuilder.build(createLaravelSourceProjectIdentity(cwd));
-  const routes = (freshManifest.routes || []) as any[];
+  const freshManifest = await controllerInvocationManifestBuilder.build(createLaravelSourceProjectIdentity(cwd), Object.freeze({ kind: 'laravel_route_source_selection_default' }));
+  if (freshManifest.kind === 'controller_invocation_manifest_source_documents_blocked') {
+    const blockedSources = freshManifest.blockedReads.map(read => read.blocker.kind + ': ' + read.sourceFile.value.value);
+    console.error('Controller source document acquisition blocked:', blockedSources.join(', '));
+    process.exitCode = 1;
+    return;
+  }
+  if (freshManifest.kind === 'controller_invocation_manifest_source_discovery_blocked') {
+    console.error(chalk.red(`Manifest drift audit blocked by controller-source discovery: ${JSON.stringify(freshManifest.discovery.blocker)}`));
+    process.exit(1);
+  }
+  if (freshManifest.kind === 'controller_invocation_manifest_inventory_rejected') {
+    console.error(chalk.red(`Manifest drift audit blocked by controller-inventory judgment: ${JSON.stringify(freshManifest.inventory.rejections)}`));
+    process.exit(1);
+  }
+  if (freshManifest.kind === 'manifest_builder_blocked') {
+    console.error(chalk.red(`Manifest drift audit blocked by upstream manifest judgment: ${JSON.stringify(freshManifest)}`));
+    process.exit(1);
+  }
+  const completeFreshManifest = freshManifest.manifest;
+  const routes = completeFreshManifest.ast.ast.routeFlows;
 
   const hashRoute = (r: RouteSemanticFlow): string => {
     const replacer = (key: string, value: unknown) => {

@@ -21,6 +21,6 @@ export interface ProviderProducer {
 }
 
 export const providerProducer: ProviderProducer = {
-  produceResult: input => buildProviderSemanticResultFromSource(input.source, input.file, input.sourceSpan),
+  produceResult: input => buildProviderSemanticResultFromSource(input),
   produce: input => providerProducer.produceResult(input).ast,
 };

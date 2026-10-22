@@ -1,0 +1,38 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
+const cliCompose = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+const generate = read('packages/cli/src/commands/generate.ts');
+const controllerScanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
+const executionDeps = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
+const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
+const responseInterface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
+const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
+
+check('scan command uses shared invocation manifest composition', /buildManifestWithInvocationPipeline/.test(scan));
+check('sync command uses shared invocation manifest composition', /buildManifestWithInvocationPipeline/.test(sync));
+check('CLI builds manifest only from validated inventory receipt', /manifestBuilder\.build\(terminalOutcome\.result\.receipt/.test(cliCompose));
+check('generate consumes manifest through compiler bridge', /CompilerBridge\.emitFullBundle/.test(generate));
+check('controller scanner runs integrated response judgment', /responseSemanticPipeline\.judgeIntegratedResponse/.test(controllerScanner));
+check('response judgment retains exact invocation correlation in AST projection', /kind: 'integrated_invocation_response_judgment',[\s\S]*?judgment: invocationJudgment,[\s\S]*?responseJudgment/.test(controllerScanner));
+check('action judgment still enters legacy action scanner', /scanControllerAction\(/.test(executionDeps));
+check('legacy action derivation remains explicitly identified after reference-judgment rename', /resolveResponse\(method, context\.sourceProject, returned\)/.test(actionContract));
+check('absent response attribute still maps to void descriptor', /case 'absent': return VoidResponseDescriptor\.create\(\)/.test(actionContract));
+check('integrated evidence distinguishes observed return from descriptor candidate', /kind: 'observed_controller_return'/.test(responsePipeline) && /kind: 'controller_action_response_reference_candidate'/.test(responsePipeline));
+check('descriptor candidate is not declared canonical return proof', /candidate-not-direct-PHP-return-proof/.test(responseInterface));
+check('resource binding treats response_absent as unresolved rather than proven no-content', /case 'response_reference_not_declared':[\s\S]*?kind: 'unresolved', reason: 'response_reference_not_declared'/.test(resourceAuthority));
+check('no new duplicate response authority proposed', !/ResponsePresenceSemanticAuthority|subscanners\/responsePresence|semantic\/foundation/.test(actionContract + executionDeps));
+check('trace records response declaration/reference as distinct from HTTP return semantics', /declaration\/reference availability/.test(read('reports/phase2159/TRACE.md')) && /actual HTTP return semantics/.test(read('reports/phase2159/TRACE.md')));
+
+const failed = checks.filter(item => !item.passed);
+const report = { phase: 2159, title: 'CLI-to-Response Ownership Trace — Interface First', passed: checks.length - failed.length, total: checks.length, checks, productionCodeChanged: false };
+fs.writeFileSync(path.join(root, 'reports/phase2159/PHASE2159_AUDIT.json'), JSON.stringify(report, null, 2) + '\n');
+for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
+process.stdout.write(`\n${report.passed}/${report.total} checks passed\n`);
+process.exitCode = failed.length ? 1 : 0;

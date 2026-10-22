@@ -1,0 +1,28 @@
+{
+  "phase": 1451,
+  "title": "Statement Boundary Algebra Contract",
+  "scope": "core/src/types/upstream statement-boundary algebra only",
+  "staticAudit": {
+    "script": "scripts/audits/audit-phase1451-statement-boundary-algebra-contract.cjs",
+    "passed": 12,
+    "total": 12
+  },
+  "typeCheck": {
+    "command": "tsc --noEmit --skipLibCheck --target ES2020 --module ESNext --moduleResolution bundler packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts packages/core/src/types/upstream/scannerStatementBoundaryInterface.ts",
+    "passed": true,
+    "diagnostics": 0
+  },
+  "build": {
+    "passed": false,
+    "reason": "npm run build cannot start because tsdown is not installed in this workspace; command exits with status 127"
+  },
+  "runtimeTests": {
+    "executed": false,
+    "reason": "Vitest is unavailable in the workspace; this phase focuses on algebra contract enforcement and deliberately leaves sequence/runtime wiring unchanged"
+  },
+  "canonicalContractImplemented": true,
+  "legacyFacadeDelegatesToCanonicalContract": true,
+  "sequenceWiringChanged": false,
+  "runtimeChanged": false,
+  "downstreamVerified": false
+}

@@ -1,0 +1,12 @@
+{
+  "phase": 2147,
+  "title": "Request Binding Authority Closure, Interface First",
+  "result": "passed",
+  "audit": { "passed": 13, "total": 13 },
+  "syntaxOnlyTranspilation": { "passed": 5, "total": 5 },
+  "fullBuild": "not_run",
+  "fullTypecheck": "not_run",
+  "vitest": "not_run",
+  "legacyActionDerivation": "still_open",
+  "noRelationFoundationOrNewSubscanner": true
+}

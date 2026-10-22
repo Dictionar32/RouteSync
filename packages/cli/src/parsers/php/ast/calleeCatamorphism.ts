@@ -61,7 +61,7 @@ export interface CalleeVisitor<R> {
   readonly unknown: (callee: PhpGrammarNode, args: readonly PhpArgument[], code: string) => R;
 }
 
-export function createCalleeAstVisitor(adaptNode: (node: PhpGrammarNode) => PhpAstNode): CalleeVisitor<PhpAstNode> {
+const createCalleeAstVisitorImplementation = (adaptNode: (node: PhpGrammarNode) => PhpAstNode): CalleeVisitor<PhpAstNode> => {
   const visitor: CalleeVisitor<PhpAstNode> = {
     identifier: (callee, args, code) => ({ kind: 'function_call', originalCode: code, source: { kind: 'absent' }, name: functionName(callee.name), args }),
     name: (callee, args, code) => ({ kind: 'function_call', originalCode: code, source: { kind: 'absent' }, name: functionName(lastName(callee.name)), args }),
@@ -74,7 +74,7 @@ export function createCalleeAstVisitor(adaptNode: (node: PhpGrammarNode) => PhpA
   return Object.freeze(visitor);
 }
 
-export function matchCallee<R>(callee: PhpGrammarNode, args: readonly PhpArgument[], code: string, visitor: CalleeVisitor<R>): R {
+const matchCalleeImplementation = <R>(callee: PhpGrammarNode, args: readonly PhpArgument[], code: string, visitor: CalleeVisitor<R>): R => {
   return relationOptionFold(
     relationVariant(callee, 'identifier'),
     () => relationOptionFold(
@@ -108,3 +108,20 @@ const lastName = (name: string): string =>
     () => name,
     value => value,
   );
+
+
+export interface PhpCalleeAstVisitorFactoryInterface {
+  readonly create: (adaptNode: (node: PhpGrammarNode) => PhpAstNode) => CalleeVisitor<PhpAstNode>;
+}
+
+export interface PhpCalleeMatchingOperationInterface {
+  readonly match: <R>(callee: PhpGrammarNode, args: readonly PhpArgument[], code: string, visitor: CalleeVisitor<R>) => R;
+}
+
+export const phpCalleeAstVisitorFactory: PhpCalleeAstVisitorFactoryInterface = Object.freeze({
+  create: createCalleeAstVisitorImplementation,
+});
+
+export const phpCalleeMatchingOperation: PhpCalleeMatchingOperationInterface = Object.freeze({
+  match: matchCalleeImplementation,
+});

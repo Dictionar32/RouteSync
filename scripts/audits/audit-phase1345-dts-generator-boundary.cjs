@@ -2,20 +2,18 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (name) => fs.readFileSync(path.join(root, name), 'utf8');
+const exists = (name) => fs.existsSync(path.join(root, name));
 const packageJson = JSON.parse(read('package.json'));
 const rootConfig = JSON.parse(read('tsconfig.json'));
-const dtsConfig = JSON.parse(read('tsconfig.dts.json'));
 const buildConfig = read('tsdown.config.ts');
 const checks = [
-  ['root strict isolated declarations remain enabled', rootConfig.compilerOptions.isolatedDeclarations === true],
-  ['declaration-only config extends root config', dtsConfig.extends === './tsconfig.json'],
-  ['declaration-only config disables isolated declaration transform', dtsConfig.compilerOptions.isolatedDeclarations === false],
-  ['declaration-only config includes package source', dtsConfig.include.includes('packages/**/*.ts')],
-  ['tsdown declaration generator avoids the missing TypeScript Go native binary', buildConfig.includes("generator: 'tsc'") && !buildConfig.includes("generator: 'tsgo'")],
-  ['tsdown declaration generator uses declaration-specific tsconfig', buildConfig.includes("tsconfig: 'tsconfig.dts.json'")],
-  ['build script preserved', typeof packageJson.scripts.build === 'string'],
-  ['previous phase 1344 audit preserved', typeof packageJson.scripts['audit:phase1344-semantic-interface-wiring-and-bridge-exports'] === 'string'],
-  ['audit script registered', packageJson.scripts['audit:phase1345-dts-generator-boundary'] === 'node scripts/audits/audit-phase1345-dts-generator-boundary.cjs'],
+  ['root declaration generation remains enabled', rootConfig.compilerOptions.declaration === true],
+  ['root isolated declaration policy remains explicit', rootConfig.compilerOptions.isolatedDeclarations === true],
+  ['tsdown is configured to emit declarations', /dts:\s*true/.test(buildConfig)],
+  ['tsdown declaration generation uses the canonical root tsconfig', /tsconfig:\s*['"]tsconfig.json['"]/.test(buildConfig) && !/tsconfig:\s*['"]tsconfig.dts.json['"]/.test(buildConfig)],
+  ['no phantom declaration config is required by this audit', !exists('tsconfig.dts.json')],
+  ['build command is preserved', packageJson.scripts.build === 'tsdown'],
+  ['audit script remains registered', packageJson.scripts['audit:phase1345-dts-generator-boundary'] === 'node scripts/audits/audit-phase1345-dts-generator-boundary.cjs'],
 ];
 let failures = 0;
 for (const [label, passed] of checks) {

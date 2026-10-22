@@ -1,0 +1,85 @@
+{
+  "phase": 1727,
+  "name": "coverage-publication-validation-outcome",
+  "total": 19,
+  "passed": 15,
+  "failed": 4,
+  "checks": [
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "publication result is a closed validated-or-rejected domain union",
+      "passed": true
+    },
+    {
+      "name": "validated result carries the publication and a typed validation witness",
+      "passed": true
+    },
+    {
+      "name": "rejection requires a non-empty typed violation ledger",
+      "passed": true
+    },
+    {
+      "name": "duplicate inventory identities have an explicit rejection variant",
+      "passed": true
+    },
+    {
+      "name": "missing publication entries have an explicit rejection variant",
+      "passed": true
+    },
+    {
+      "name": "duplicate publication entries have an explicit rejection variant",
+      "passed": true
+    },
+    {
+      "name": "publication entries outside inventory have an explicit rejection variant",
+      "passed": true
+    },
+    {
+      "name": "judgment identity mismatches have an explicit rejection variant",
+      "passed": true
+    },
+    {
+      "name": "source evidence mismatches have an explicit rejection variant",
+      "passed": true
+    },
+    {
+      "name": "publisher returns validation outcome instead of an unqualified publication",
+      "passed": true
+    },
+    {
+      "name": "coverage contract requires validation result or typed rejection",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner forwards validated publication or rejection without repair",
+      "passed": true
+    },
+    {
+      "name": "new result and violation types are exported from core index",
+      "passed": true
+    },
+    {
+      "name": "coverage, pipeline, and scanner contract versions remain synchronized",
+      "passed": false
+    },
+    {
+      "name": "audit scripts are registered in package scripts",
+      "passed": true
+    },
+    {
+      "name": "no generic wrapper or semantic foundation dependency introduced",
+      "passed": true
+    }
+  ]
+}

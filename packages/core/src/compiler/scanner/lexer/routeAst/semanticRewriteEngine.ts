@@ -1,2 +1,11 @@
-/** Compatibility facade. Generic semantic rewrite execution is foundation-owned. */
-export * from '../../../../semantic/foundation/semanticRewriteEngine';
+/** Type-only compatibility surface; generic rewrite execution is foundation-owned. */
+export type {
+  SemanticRelation,
+  SemanticRelationAtom,
+  SemanticRelationBindings,
+  SemanticRelationDerivation,
+  SemanticRelationPattern,
+  SemanticRelationRewrite,
+  SemanticRelationRewriteResult,
+  SemanticRelationSolveResult,
+} from '../../../../semantic/relations/semanticRewriteEngine';

@@ -15,7 +15,7 @@ import { buildRouteCapabilityContract } from "./capabilityBuilder";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
 import { resolveRouteBoundaryInput } from "./boundaryInputResolution";
 import { ScannedEndpointContract } from "../../../../types/route";
-import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationEqual } from "../../../../semantic/relations/semanticRelations";
 
 export class RouteBoundaryContractFactory {
     public static create(options: RouteBoundaryOptions): RouteBoundaryContract {
@@ -50,6 +50,7 @@ export class RouteBoundaryContractFactory {
         });
 
         return Object.freeze({
+            authorization: resolved.authorization,
             identity,
             binding,
             capability,

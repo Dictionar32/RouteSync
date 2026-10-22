@@ -1,0 +1,19 @@
+{
+  "phase": 1597,
+  "title": "Interface-first contract closure",
+  "scope": "upstream interface definitions and type-contract tests only",
+  "checks": [
+    { "name": "decision premises explicitly carry intended contract", "passed": true },
+    { "name": "pipeline assembler has a dedicated interface", "passed": true },
+    { "name": "contract value mismatch is a typed rejection outcome", "passed": true },
+    { "name": "scanner wiring unchanged", "passed": true },
+    { "name": "runtime executor unchanged", "passed": true },
+    { "name": "type test added", "passed": true },
+    { "name": "Vitest executed", "passed": false, "reason": "local vitest binary unavailable" },
+    { "name": "package build executed", "passed": false, "reason": "local tsdown binary unavailable" }
+  ],
+  "passedStaticChecks": 6,
+  "totalChecks": 8,
+  "migrationReady": false,
+  "decision": "continue_interface_audit_before_wiring"
+}

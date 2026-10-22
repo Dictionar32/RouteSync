@@ -1,0 +1,52 @@
+{
+  "phase": 1951,
+  "audit": "ast-projection-reasoning-interface-first",
+  "passed": 5,
+  "total": 11,
+  "checks": [
+    {
+      "name": "canonical judgment contract is v11 and reasoning contract is v2",
+      "passed": false
+    },
+    {
+      "name": "existing reasoning ADT owns a typed AST projection rule",
+      "passed": false
+    },
+    {
+      "name": "AST rule explicitly distinguishes semantic judgment presence from invocation success",
+      "passed": false
+    },
+    {
+      "name": "AST rule preserves integrated response outcome and forbids scanner-side classification",
+      "passed": false
+    },
+    {
+      "name": "body parser dispatches using the canonical reasoning contract instead of a duplicate string rule",
+      "passed": false
+    },
+    {
+      "name": "semantic AST projection receives the exact judgment from the canonical parser boundary",
+      "passed": false
+    },
+    {
+      "name": "integrated response remains authority-owned and is not reclassified in AST parser",
+      "passed": true
+    },
+    {
+      "name": "closed response ADT retains all four outcomes and exact per-outcome judgment variants",
+      "passed": true
+    },
+    {
+      "name": "judgment value schema version aligns with its factory-produced value",
+      "passed": true
+    },
+    {
+      "name": "no duplicate invocation authority or semantic foundation was introduced",
+      "passed": true
+    },
+    {
+      "name": "Phase 1951 audit command is registered",
+      "passed": true
+    }
+  ]
+}

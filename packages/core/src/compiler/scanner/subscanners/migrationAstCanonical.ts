@@ -1,14 +1,14 @@
+import { sourceFileAcquisition } from '../sourceFiles';
 import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import type { MigrationAst } from '../../../types/upstream/ast';
 import type { SourceFile } from '../../../types/upstream/names';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
-import { collectPhpFiles, readSourceText } from './scannerUtils';
 import { migrationProducer, type MigrationSourceAst } from './migrationProducer';
 import { parsePhpMethodOrThrow } from '../lexer/phpMethodParser';
 import * as path from 'node:path';
-import { relationAsyncFold, relationFold, relationGate } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationAsyncFold, relationFold, relationGate } from '../../../semantic/relations/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../../semantic/relations/semanticRelations';
 
 function source(file: string): SourceSpan {
   return { kind: 'source_span', file: { kind: 'source_file', value: { kind: 'string_value', value: file } }, start: { kind: 'number_value', value: 0 }, end: { kind: 'number_value', value: 0 } };
@@ -27,9 +27,9 @@ function parseMigrationMethods(text: string, tokens: readonly import('../Laravel
 export async function scanMigrationAsts(sourceProject: SourceProjectIdentity): Promise<readonly MigrationAst[]> {
   const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'database', 'migrations');
-  const files = await collectPhpFiles(directory);
+  const files = await sourceFileAcquisition.collectPhpFiles(directory);
   const result = await relationAsyncFold(files, [] as MigrationAst[], async (asts, file) => {
-    const text = await readSourceText(file);
+    const text = await sourceFileAcquisition.readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(text);
     const span = source(file);
     const sourceAst: MigrationSourceAst = { kind: 'migration_source_ast', methods: parseMigrationMethods(text, tokens), tokens, source: span };

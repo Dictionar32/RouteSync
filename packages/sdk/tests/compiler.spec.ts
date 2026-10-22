@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { v6, SemanticResolutionKernel } from '@routesync/core';
-import { PhpCodeParser } from '../../cli/src/parsers/PhpCodeParser';
+import { phpCodeParsingOperation } from '../../cli/src/parsers/PhpCodeParser';
 
 describe('RouteSync Compiler Core v6.1', () => {
   it('should support nominal type systems and cycle-safe relative hashing', () => {
@@ -972,8 +972,8 @@ describe('RouteSync Compiler Core v6.1', () => {
     });
 
     // 1. Test parsing simple property access expression: $this->price
-    const priceAST = PhpCodeParser.parseExpression('$this->price');
-    expect(priceAST.kind).toBe('property_access');
+    const priceAST = phpCodeParsingOperation.parseExpression('$this->price');
+    expect(priceAST.kind).toBe('property_lookup');
     
     // Resolve type of $this->price under context of Product model
     const priceResolution = kernel.resolve(priceAST, { fileName: 'Product' });
@@ -981,15 +981,15 @@ describe('RouteSync Compiler Core v6.1', () => {
     expect(priceResolution.type).toBe('number');
 
     // 2. Test parsing relation traversal: $this->category->title
-    const categoryTitleAST = PhpCodeParser.parseExpression('$this->category->title');
-    expect(categoryTitleAST.kind).toBe('property_access');
+    const categoryTitleAST = phpCodeParsingOperation.parseExpression('$this->category->title');
+    expect(categoryTitleAST.kind).toBe('property_lookup');
     
     const categoryTitleResolution = kernel.resolve(categoryTitleAST, { fileName: 'Product' });
     expect(categoryTitleResolution.status).toBe('resolved');
     expect(categoryTitleResolution.type).toBe('string');
 
     // 3. Test parsing non-existent property fallback
-    const missingAST = PhpCodeParser.parseExpression('$this->non_existent');
+    const missingAST = phpCodeParsingOperation.parseExpression('$this->non_existent');
     const missingResolution = kernel.resolve(missingAST, { fileName: 'Product' });
     expect(missingResolution.status).toBe('unknown');
   });

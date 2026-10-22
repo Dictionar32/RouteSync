@@ -5,7 +5,7 @@ import type {
     ResolvedObjectTypeParams, ResolvedUnionTypeParams, ResolvedIntersectionTypeParams,
     ResolvedUnknownTypeParams, ObjectKind, ResolvedProperty, ResolvedObjectIdentity
 } from './types';
-import { relationResolve } from '../../../../semantic/foundation/relationalSequence';
+import { relationResolve } from '../../../../semantic/relations/relationalSequence';
 import type { ResolvedSemanticTypeBase } from './base';
 
 export interface ResolvedObjectType extends ResolvedSemanticTypeBase {

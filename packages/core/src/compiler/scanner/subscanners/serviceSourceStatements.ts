@@ -11,11 +11,11 @@ import type { Option, Sequence } from '../../../types/upstream/collections';
 import type { DeclaredType } from '../../../types/upstream/typeVocabulary';
 import type { ServiceMethodResultIndex } from '../../../types/upstream/service';
 import type { ModelSymbolTable } from '../symbols/ModelSymbolTable';
-import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
-import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from './resource/resourceUpstreamExpressionMappings';
-import { relationAll, relationAny, relationEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
-import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, relationCount, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
+import { projectPhpAstExpressionToUpstream } from '../lexer/routeAst/phpAstExpressionSemanticAuthority';
+import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from '../lexer/routeAst/phpAstExpressionMappings';
+import { relationAll, relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
+import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, relationCount, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone, type RelationVariant } from '../../../semantic/relations/relationalSequence';
 
 type Binding = { readonly variable: VariableName; readonly value: SemanticValue };
 type Environment = RelationIndex<VariableName, Binding>;
@@ -140,11 +140,11 @@ function castExpression(expression: RelationVariant<Expression, 'cast'>): Semant
 }
 
 function resolveExpression(value: PhpAstValue, file: string, environment: Environment, models: ModelSymbolTable, methodResults: ServiceMethodResultIndex): ResolvedExpression {
-  const expression = mapResourcePhpAstToUpstream(value, file);
+  const expression = projectPhpAstExpressionToUpstream(value, file);
   return { kind: 'resolved_expression', expression, result: semanticExpression(expression, environment, models, methodResults) };
 }
 
-function assignmentTarget(target: PhpAssignmentTarget, file: string): AssignmentTarget { return resolveAssignmentTarget(target, mapResourcePhpAstToUpstream, file); }
+function assignmentTarget(target: PhpAssignmentTarget, file: string): AssignmentTarget { return resolveAssignmentTarget(target, projectPhpAstExpressionToUpstream, file); }
 
 type StatementResult = { readonly statement: SourceStatement; readonly environment: Environment };
 type ForClauseResult = { readonly clause: SourceForClause; readonly environment: Environment };

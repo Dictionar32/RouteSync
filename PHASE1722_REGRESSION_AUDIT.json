@@ -1,0 +1,139 @@
+{
+  "summary": {
+    "phaseRange": "1702-1722",
+    "scripts": 21,
+    "passedScripts": 21,
+    "failedScripts": 0,
+    "checksPassed": 282,
+    "checksTotal": 282,
+    "failures": []
+  },
+  "results": [
+    {
+      "script": "audit-phase1702-laravel-scanner-interface-first-contract-correction.cjs",
+      "exitCode": 0,
+      "passed": 0,
+      "total": 0
+    },
+    {
+      "script": "audit-phase1703-laravel-scanner-interface-first-contract-closure.cjs",
+      "exitCode": 0,
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "script": "audit-phase1704-laravel-scanner-interface-contract-correction.cjs",
+      "exitCode": 0,
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "script": "audit-phase1705-laravel-scanner-interface-contract-model.cjs",
+      "exitCode": 0,
+      "passed": 0,
+      "total": 0
+    },
+    {
+      "script": "audit-phase1706-invocation-coverage-interface-truth.cjs",
+      "exitCode": 0,
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "script": "audit-phase1707-invocation-subject-interface-model.cjs",
+      "exitCode": 0,
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "script": "audit-phase1708-static-target-resolution-interface-model.cjs",
+      "exitCode": 0,
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "script": "audit-phase1709-static-argument-effect-interface-model.cjs",
+      "exitCode": 0,
+      "passed": 20,
+      "total": 20
+    },
+    {
+      "script": "audit-phase1710-static-aggregate-judgment-interface.cjs",
+      "exitCode": 0,
+      "passed": 20,
+      "total": 20
+    },
+    {
+      "script": "audit-phase1711-static-proof-obligation-correspondence.cjs",
+      "exitCode": 0,
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "script": "audit-phase1712-static-authority-validation-interface.cjs",
+      "exitCode": 0,
+      "passed": 19,
+      "total": 19
+    },
+    {
+      "script": "audit-phase1713-static-rule-obligation-contract.cjs",
+      "exitCode": 0,
+      "passed": 16,
+      "total": 16
+    },
+    {
+      "script": "audit-phase1714-static-judgment-compatibility-contract.cjs",
+      "exitCode": 0,
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "script": "audit-phase1715-static-proof-ledger-contract.cjs",
+      "exitCode": 0,
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "script": "audit-phase1716-static-incomplete-proof-witness-shape.cjs",
+      "exitCode": 0,
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "script": "audit-phase1717-static-invocation-algebra-interface-contract.cjs",
+      "exitCode": 0,
+      "passed": 10,
+      "total": 10
+    },
+    {
+      "script": "audit-phase1718-static-algebra-stage-interface-contract.cjs",
+      "exitCode": 0,
+      "passed": 17,
+      "total": 17
+    },
+    {
+      "script": "audit-phase1719-static-authority-derivation-handoff-contract.cjs",
+      "exitCode": 0,
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "script": "audit-phase1720-static-source-bound-derivation-contract.cjs",
+      "exitCode": 0,
+      "passed": 13,
+      "total": 13
+    },
+    {
+      "script": "audit-phase1721-static-source-bound-stage-context.cjs",
+      "exitCode": 0,
+      "passed": 17,
+      "total": 17
+    },
+    {
+      "script": "audit-phase1722-static-stage-judgment-envelope.cjs",
+      "exitCode": 0,
+      "passed": 16,
+      "total": 16
+    }
+  ]
+}

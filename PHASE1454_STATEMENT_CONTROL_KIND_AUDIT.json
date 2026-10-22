@@ -1,0 +1,20 @@
+{
+  "phase": 1454,
+  "title": "Statement Control Kind Contract",
+  "scope": [
+    "packages/core/src/types/upstream/scannerStatementControlInterface.ts",
+    "packages/core/src/types/upstream/scannerStatementControlAlgebra.ts",
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts",
+    "packages/core/src/types/upstream/index.ts",
+    "packages/core/src/types/upstream/docs/PHASE1454_STATEMENT_CONTROL_KIND_CONTRACT.md",
+    "scripts/audits/audit-phase1454-statement-control-kind-contract.cjs"
+  ],
+  "architecture": "source evidence -> semantic reasoning algebra -> closed judgment/contract -> interface -> wiring -> runtime executor -> downstream projection",
+  "verification": {
+    "static_audit": "node scripts/audits/audit-phase1454-statement-control-kind-contract.cjs",
+    "focused_typecheck": "interface and algebra only",
+    "full_build": "not asserted",
+    "downstream_runtime_tests": "not asserted"
+  }
+}

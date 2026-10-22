@@ -7,8 +7,8 @@
  * the AST semantic algebra and are consumed by the relation rewrite engine.
  */
 import type { AstSemanticPreservationRelation, AstSemanticStage, AstSemanticStageContract } from './astSemanticStageInterface';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
-import { relationResolve, relationGate, relationRefine, relationOptionFold } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/relations/semanticRelations';
+import { relationResolve, relationGate, relationRefine, relationOptionFold } from '../../semantic/relations/relationalSequence';
 
 export type AstSemanticProofStatus = 'obligation' | 'discharged';
 

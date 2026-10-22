@@ -15,7 +15,6 @@ import {
     type ControllerActionCreateOptions,
     buildRouteHandler
 } from "./controllerActionTypes";
-import { emptyControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
 import type { ActionName, ControllerName, SourceFile } from "../../../../types/upstream/names";
 import type { ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { ControllerRequestBinding } from './controllerActionContract';
@@ -70,7 +69,7 @@ export const ScannedControllerActionDescriptor = Object.freeze({
             semanticReturn: { kind: 'absent' },
             request: { kind: 'no_request' },
             schema: emptyRouteSchemaPayload(),
-            dataflow: emptyControllerDataflowContract(),
+            dataflow: Object.freeze({ semantic: Object.freeze({ variables: Object.freeze({ kind: 'empty' as const }) }), resourceBindings: Object.freeze([]) }),
             errorResponses: [],
             parameters: [],
             handler: buildRouteHandler(createControllerName(controllerName), createActionName(actionName)),

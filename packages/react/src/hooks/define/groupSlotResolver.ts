@@ -8,29 +8,11 @@
 
 import { type EndpointCallable } from '@routesync/sdk'
 import { HttpMethod } from '@routesync/core'
-import { type HookConfig, type InvalidateList } from './hookTypes'
-import { hasKey } from './unifiedHookBuilder'
-
-export function extractParamKey(endpoint: unknown): string {
-  if (typeof endpoint !== 'function' || !hasKey(endpoint, '$def')) {
-    throw new Error('Route parameter capability is missing from the endpoint')
-  }
-  const definition = endpoint.$def
-  if (!hasKey(definition, 'routeParameter')) {
-    throw new Error('Route parameter capability is missing from the endpoint')
-  }
-  const parameter = definition.routeParameter
-  if (!hasKey(parameter, 'kind') || parameter.kind !== 'route_parameter_capability_reference') {
-    throw new Error('Route parameter capability is missing from the endpoint')
-  }
-  if (!hasKey(parameter, 'name') || typeof parameter.name !== 'string') {
-    throw new Error('Route parameter capability is missing from the endpoint')
-  }
-  return parameter.name
-}
+import { type CrudGroupExecutionContract, type HookConfig, type InvalidateList } from './hookTypes'
 
 export interface ResolvedGroupSlots {
   readonly indexService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly createService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
   readonly showService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
   readonly updateService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
   readonly updateSelfService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
@@ -42,51 +24,27 @@ export interface ResolvedGroupSlots {
   readonly deleteParamKey: string | undefined
 }
 
-const firstByRole = (
-  group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>,
-  role: 'index' | 'show' | 'update' | 'delete',
-  targetScope?: 'collection' | 'member',
-): EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined => {
-  for (const endpoint of Object.values(group)) {
-    if (!endpoint || typeof endpoint !== 'function' || !endpoint.$def) continue
-    if (endpoint.$def.crudRole !== role) continue
-    if (targetScope && endpoint.$def.targetScope !== targetScope) continue
-    return endpoint
+export function resolveGroupSlots(contract: CrudGroupExecutionContract): ResolvedGroupSlots {
+  if (contract.kind !== 'crud_group_execution_contract' || contract.closed !== true) {
+    throw new Error('RouteSync requires a closed upstream CRUD slot contract')
   }
-  return undefined
-}
-
-export function resolveGroupSlots(
-  group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>
-): ResolvedGroupSlots {
-  const indexService = firstByRole(group, 'index')
-  const showService = firstByRole(group, 'show')
-  const updateService = firstByRole(group, 'update', 'member')
-  const resolvedUpdateSelf = firstByRole(group, 'update', 'collection')
-  const updateSelfService = resolvedUpdateSelf
-  const deleteService = firstByRole(group, 'delete', 'member')
-  const deleteSelfService = firstByRole(group, 'delete', 'collection')
-
-  const showParamKey = showService ? extractParamKey(showService) : undefined
-  const updateParamKey = updateService ? extractParamKey(updateService) : undefined
-  const deleteParamKey = deleteService ? extractParamKey(deleteService) : undefined
-
   return {
-    indexService,
-    showService,
-    updateService,
-    updateSelfService,
-    resolvedUpdateSelf,
-    deleteService,
-    deleteSelfService,
-    showParamKey,
-    updateParamKey,
-    deleteParamKey
+    indexService: contract.indexService,
+    showService: contract.showService,
+    createService: contract.createService,
+    updateService: contract.updateService,
+    updateSelfService: contract.updateSelfService,
+    resolvedUpdateSelf: contract.updateSelfService,
+    deleteService: contract.deleteService,
+    deleteSelfService: contract.deleteSelfService,
+    showParamKey: contract.showParamKey,
+    updateParamKey: contract.updateParamKey,
+    deleteParamKey: contract.deleteParamKey,
   }
 }
 
 export type ExtraEndpointDescriptor = {
-  service: unknown
+  service: EndpointCallable<unknown, unknown, unknown, HttpMethod>
   hookKind?: 'query' | 'mutation' | 'infinite_query'
   crudRole?: 'index' | 'show' | 'create' | 'update' | 'delete' | 'custom'
   queryKey?: (...args: never[]) => readonly unknown[]
@@ -94,29 +52,25 @@ export type ExtraEndpointDescriptor = {
 }
 
 export function resolveGroupExtras(
-  group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>,
   groupConfig: HookConfig,
-  groupQueryKeys?: Record<string, (...args: unknown[]) => readonly unknown[]>
+  groupQueryKeys: Record<string, (...args: unknown[]) => readonly unknown[]> | undefined,
+  contract: CrudGroupExecutionContract
 ): Record<string, ExtraEndpointDescriptor> {
+  if (contract.kind !== 'crud_group_execution_contract' || contract.closed !== true) {
+    throw new Error('RouteSync requires a closed upstream custom-endpoint contract')
+  }
   const extras: Record<string, ExtraEndpointDescriptor> = {}
-
-  for (const action in group) {
-    const endpoint = group[action]
-    if (typeof endpoint !== 'function' || !endpoint.$def) continue
-    if (endpoint.$def.crudRole !== 'custom') continue
-
-    const actionCache = groupConfig.cache?.[action] as { invalidate?: InvalidateList } | undefined
-    const actionKeyFn = groupConfig.actionKeys?.[action] ?? groupQueryKeys?.[action]
-
-    extras[action] = {
-      service: endpoint,
-      hookKind: endpoint.$def.hookKind,
-      crudRole: endpoint.$def.crudRole,
-      queryKey: typeof actionKeyFn === 'function' ? (actionKeyFn as (...args: never[]) => readonly unknown[]) : undefined,
+  for (const item of contract.customEndpoints) {
+    const actionCache = groupConfig.cache?.[item.action] as { invalidate?: InvalidateList } | undefined
+    const actionKeyFn = groupConfig.actionKeys?.[item.action] ?? groupQueryKeys?.[item.action]
+    extras[item.action] = {
+      service: item.service,
+      hookKind: item.hookKind,
+      crudRole: item.crudRole,
+      queryKey: typeof actionKeyFn === 'function' ? actionKeyFn as (...args: never[]) => readonly unknown[] : undefined,
       invalidate: actionCache?.invalidate,
     }
   }
-
   return extras
 }
 
@@ -133,14 +87,16 @@ export function resolveGroupQueryKeyFns(
     if (cache?.list) return cache.list()
     if (groupQueryKeys?.lists) return groupQueryKeys.lists()
     if (groupQueryKeys?.list) return groupQueryKeys.list()
-    return [groupName, 'list']
+    if (groupQueryKeys?.all) return groupQueryKeys.all()
+    throw new Error(`RouteSync group ${groupName} is missing its upstream list query-key capability`)
   }
 
   const detailKey = (id: number): readonly unknown[] => {
     const cache = groupConfig.cache as { detail?: (id: number) => readonly unknown[] } | undefined
     if (cache?.detail) return cache.detail(id)
     if (groupQueryKeys?.detail) return groupQueryKeys.detail(id)
-    return [groupName, 'detail', id]
+    if (groupQueryKeys?.all) return groupQueryKeys.all()
+    throw new Error(`RouteSync group ${groupName} is missing its upstream detail query-key capability`)
   }
 
   return { listKey, detailKey }

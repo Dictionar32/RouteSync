@@ -1,6 +1,5 @@
-import { projectRelation, selectRelation, expandRelation } from '../../../relational/sequence';
 import type { TokenDescriptor } from '../phpAstTypes';
-import type { RouteConstraintArgument } from '../../../../types/upstream/routeConstraints';
+import { routeConstraintArgumentAlgebra, type RouteConstraintArgument } from '../../../../types/upstream/routeConstraints';
 import {
   createMiddlewareNameAst,
   createRoutePathLiteral,
@@ -35,8 +34,6 @@ import {
 } from './semanticRouteSyntaxRelations';
 import { SYNTAX_KIND_GROUPS, SYNTAX_OPERATION_GROUPS, tokenHasKind, tokenHasOperation } from './syntaxValue';
 import { absent, present, presenceOf, presenceFold, type Presence } from '../../../../types/upstream/presence';
-import { relationAll } from '../../../../semantic/foundation/semanticRelations';
-import { relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
 import { continueScan, syntaxScan } from './syntaxScan';
 import { createRouteResourceMiddlewareAst } from './routeResourceDeclarationAst';
 import { resourceMiddlewareSyntax } from './semanticRouteSyntaxRelations';
@@ -97,12 +94,12 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
     path: createRoutePathLiteral(path.value),
     target: targetAt(cursor, method),
     bindings: parseRouteBindingDeclarations(path.value),
-    prefix: Object.freeze(projectRelation(effective.prefixes, createRoutePrefixAst)),
-    middleware: Object.freeze(projectRelation(effective.middleware, createMiddlewareNameAst)),
+    prefix: Object.freeze(effective.prefixes.map(createRoutePrefixAst)),
+    middleware: Object.freeze(effective.middleware.map(createMiddlewareNameAst)),
     routeMiddleware: Object.freeze(readRouteMiddleware(cursor.callArgumentCursor, end)),
     resourceMiddleware: Object.freeze(readResourceMiddleware(cursor.callArgumentCursor, end, false)),
     resourceMiddlewareExclusions: Object.freeze(readResourceMiddleware(cursor.callArgumentCursor, end, true)),
-    groupNamePrefix: Object.freeze(projectRelation(effective.namePrefixes, createRouteNamePrefixAst)),
+    groupNamePrefix: Object.freeze(effective.namePrefixes.map(createRouteNamePrefixAst)),
     ...presenceFold(effective.controller, () => Object.freeze({}), entry => Object.freeze({ groupController: createRouteControllerAst(entry) })),
     ...presenceFold(effective.domain, () => Object.freeze({}), entry => Object.freeze({ groupDomain: createRouteDomainAst(entry) })),
     groupBindingScope: effective.bindingScope,
@@ -113,12 +110,12 @@ function buildRouteDeclaration(cursor: TokenCursor, groups: readonly GroupState[
     resourceScoped: hasResourceOperation(cursor.callArgumentCursor, end, SYNTAX_OPERATION_GROUPS.scoped),
     resourceCreatable: hasResourceOperation(cursor.callArgumentCursor, end, SYNTAX_OPERATION_GROUPS.creatable),
     resourceDestroyable: hasResourceOperation(cursor.callArgumentCursor, end, SYNTAX_OPERATION_GROUPS.destroyable),
-    routeConstraints: Object.freeze(projectRelation(readRouteConstraints(cursor.callArgumentCursor, end), item => ({
+    routeConstraints: Object.freeze(readRouteConstraints(cursor.callArgumentCursor, end).map(item => ({
       method: item.method,
       parameter: createRouteConstraintParameterAst(item.parameter),
       argument: constraintArgumentAst(item),
     }))),
-    groupConstraints: Object.freeze(projectRelation(effective.constraints, item => ({
+    groupConstraints: Object.freeze(effective.constraints.map(item => ({
       method: item.method,
       parameter: createRouteConstraintParameterAst(item.parameter.value.value),
       argument: groupConstraintArgumentAst(item.argument),
@@ -132,12 +129,12 @@ function readMiddleware(call: TokenCursor): readonly MiddlewareNameAst[] {
   return presenceFold(
     call.callClosePresence,
     () => [] as readonly MiddlewareNameAst[],
-    end => projectRelation(selectRelation(syntaxRange(call.callArgumentCursor, end).tokens(), token => tokenHasKind(token, SYNTAX_KIND_GROUPS.strings)), token => createMiddlewareNameAst(token.value)),
+    end => syntaxRange(call.callArgumentCursor, end).tokens().filter(token => tokenHasKind(token, SYNTAX_KIND_GROUPS.strings)).map(token => createMiddlewareNameAst(token.value)),
   );
 }
 
 function findPathCursor(start: TokenCursor, method: LaravelRouteMethod): Presence<TokenCursor> {
-  return start.findWitness((token, at) => relationAll([tokenHasKind(token, SYNTAX_KIND_GROUPS.strings), isRoutePathToken(at, method)]));
+  return start.findWitness((token, at) => tokenHasKind(token, SYNTAX_KIND_GROUPS.strings) && isRoutePathToken(at, method));
 }
 
 function targetAt(route: TokenCursor, method: LaravelRouteMethod): RouteTargetAst { return routeTargetAst(route, method); }
@@ -148,17 +145,17 @@ function findDeclarationEnd(start: TokenCursor): TokenCursor {
 
 
 function groupConstraintArgumentAst(argument: RouteConstraintArgument): RouteConstraintArgumentAst {
-  return relationVariantFold<RouteConstraintArgument, 'pattern', RouteConstraintArgumentAst>(argument, 'pattern',
-    rest => relationVariantFold<Exclude<RouteConstraintArgument, { readonly kind: 'pattern' }>, 'values', RouteConstraintArgumentAst>(rest, 'values',
-      () => Object.freeze({ kind: 'none' as const }),
-      values => Object.freeze({
-        kind: 'values' as const,
-        values: projectRelation(values.values, value => createRouteConstraintValueAst(value.value)),
-      })),
-    pattern => Object.freeze({
+  return routeConstraintArgumentAlgebra.match(argument, {
+    pattern: pattern => Object.freeze({
       kind: 'pattern' as const,
       value: createRouteConstraintValueAst(pattern.value.value),
-    }));
+    }),
+    values: values => Object.freeze({
+      kind: 'values' as const,
+      values: values.values.map(value => createRouteConstraintValueAst(value.value)),
+    }),
+    none: () => Object.freeze({ kind: 'none' as const }),
+  });
 }
 
 function constraintArgumentAst(item: RouteConstraintSyntaxFact): RouteConstraintArgumentAst {
@@ -180,12 +177,9 @@ function hasResourceOperation(start: TokenCursor, end: TokenCursor, operations: 
 }
 
 function resourceOperationStrings(start: TokenCursor, end: TokenCursor, operations: readonly import('./syntaxValue').SyntaxOperation[]): readonly string[] {
-  return Object.freeze(expandRelation(
-    syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, operations))),
-    cursor => presenceFold(cursor.callClosePresence, () => Object.freeze([] as readonly string[]), close =>
-      Object.freeze(projectRelation(selectRelation(syntaxRange(cursor.callArgumentCursor, close).tokens(), token => tokenHasKind(token, SYNTAX_KIND_GROUPS.strings)), token => token.value))
-    ),
-  ));
+  return Object.freeze(syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, operations))).flatMap(cursor => presenceFold(cursor.callClosePresence, () => Object.freeze([] as readonly string[]), close =>
+    Object.freeze(syntaxRange(cursor.callArgumentCursor, close).tokens().filter(token => tokenHasKind(token, SYNTAX_KIND_GROUPS.strings)).map(token => token.value))
+  )));
 }
 
 function readResourceActionFilter(start: TokenCursor, end: TokenCursor): RouteDeclarationAst['resourceActionFilter'] {
@@ -199,26 +193,23 @@ function readResourceActionFilter(start: TokenCursor, end: TokenCursor): RouteDe
 }
 
 function readRouteConstraints(start: TokenCursor, end: TokenCursor): readonly RouteConstraintSyntaxFact[] {
-  return expandRelation(syntaxRange(start, end).project((_, cursor) => routeConstraintFact(cursor)), presenceValues);
+  return syntaxRange(start, end).project((_, cursor) => routeConstraintFact(cursor)).flatMap(presenceValues);
 }
 
 function readRouteMiddleware(start: TokenCursor, end: TokenCursor): readonly MiddlewareNameAst[] {
-  return expandRelation(syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.middleware))), cursor => readMiddleware(cursor.callArgumentCursor));
+  return syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.middleware))).flatMap(cursor => readMiddleware(cursor.callArgumentCursor));
 }
 
 function readResourceMiddleware(start: TokenCursor, end: TokenCursor, exclusion: boolean): readonly import('./routeResourceDeclarationAst').RouteResourceMiddlewareAst[] {
   const operation = exclusion ? SYNTAX_OPERATION_GROUPS.withoutMiddlewareFor : Object.freeze([...SYNTAX_OPERATION_GROUPS.middlewareFor, 'middleware' as const]);
-  return expandRelation(
-    syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, operation))),
-    cursor => {
+  return syntaxRange(start, end).findAll((_, cursor) => presenceFold(cursor.currentPresence, () => false, token => tokenHasOperation(token, operation))).flatMap(cursor => {
       const method = exclusion ? 'withoutMiddlewareFor' as const : presenceFold(cursor.currentPresence, () => 'middleware' as const, token =>
         tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.middlewareFor) ? 'middlewareFor' as const : 'middleware' as const);
       const syntax = resourceMiddlewareSyntax(cursor, method);
       return presenceFold(createRouteResourceMiddlewareAst(method, syntax), () => [], value => [value]);
-    },
-  );
+    });
 }
 
 function hasMissingHandler(start: TokenCursor, end: TokenCursor): boolean {
-  return presenceBoolean(inRangePresence(start, end, (token, cursor) => presenceFold(cursor.previousPresence, () => false, previous => relationAll([tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.missing), tokenHasKind(previous, SYNTAX_KIND_GROUPS.closeParens)]))));
+  return presenceBoolean(inRangePresence(start, end, (token, cursor) => presenceFold(cursor.previousPresence, () => false, previous => tokenHasOperation(token, SYNTAX_OPERATION_GROUPS.missing) && tokenHasKind(previous, SYNTAX_KIND_GROUPS.closeParens))));
 }

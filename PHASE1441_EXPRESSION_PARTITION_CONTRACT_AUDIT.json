@@ -1,0 +1,22 @@
+{
+  "phase": 1441,
+  "title": "Expression partition contract and scanner runtime wiring",
+  "pipeline": ["source evidence", "semantic reasoning algebra", "closed judgment/contract", "interface", "wiring", "runtime executor", "downstream projection"],
+  "staticAudit": { "script": "scripts/audits/audit-phase1441-expression-partition-contract.cjs", "passed": 13, "total": 13 },
+  "changes": [
+    "conditional expression contract consumes token occurrence judgments and returns source partitions",
+    "root operator contract consumes token occurrence judgments and returns before/operator/after evidence",
+    "PHP expression wiring consumes scannerTokenStructureInterface",
+    "array access runtime classification consumes delimiter judgment evidence",
+    "legacy top-level operator adapter delegates to scannerTokenStructureInterface"
+  ],
+  "knownFrontier": [
+    "Four older runtime consumers still require numeric offsets and use a compatibility adapter derived from evidence partition length.",
+    "ScannerTokenStructureAlgebra retains its internal cursor-index implementation; public semantic interface does not expose those indexes."
+  ],
+  "validation": {
+    "vitest": "not run: local Vitest toolchain unavailable",
+    "build": "not successful: tsdown unavailable in workspace",
+    "targetedTypeScript": "modified source files had no direct diagnostics; command still reports errors in imported modules, so this is not a clean typecheck"
+  }
+}

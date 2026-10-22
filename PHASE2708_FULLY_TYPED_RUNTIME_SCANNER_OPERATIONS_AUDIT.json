@@ -1,0 +1,42 @@
+{
+  "phase": 2708,
+  "title": "Fully Typed Runtime Scanner Operations — Source Identity Model",
+  "runtime_trace": [
+    "packages/cli/src/commands/scan.ts",
+    "composition.manifestScanOperation.scan(input)",
+    "routeSyncCliManifestScanOperationFactory.create",
+    "controllerInvocationManifestCompositionAuthority",
+    "source project identity + route selection + source discovery/read",
+    "invocation source inventory and semantic judgment correspondence",
+    "manifestBuilderOperationPreparation.prepare(receipt).build()",
+    "Laravel source AST pipeline",
+    "complete Laravel source model + dataflow judgments + resource-group capabilities",
+    "manifest_builder_complete or manifest_builder_blocked",
+    "CLI request/resource preflight"
+  ],
+  "source_fix": {
+    "new_operation": "requestTypeCanonicalResourceIdentityEquivalence",
+    "interface_typed_object": true,
+    "generic_wrapper_added": false,
+    "comparison_migrated_from": "routeResourceIdentity.semanticKey !== bindingResourceIdentity.semanticKey",
+    "comparison_migrated_to": "requestTypeCanonicalResourceIdentityEquivalence.equivalent(routeResourceIdentity, bindingResourceIdentity)",
+    "scope": "resource identity comparison in request-type resource resolution only"
+  },
+  "checks": {
+    "phase2708_static_audit": {"passed": 7, "total": 7},
+    "phase2703_static_audit": {"passed": 9, "total": 9},
+    "transpile_syntax_diagnostics": 0,
+    "runtime_equivalence_assertions": {"passed": 2, "total": 2},
+    "full_typecheck": "blocked_by_existing_workspace_diagnostics; 80 diagnostics in targeted dependency graph, none naming the two changed implementation files after explicit input annotation",
+    "vitest": "not_run; vitest and turbo executables unavailable",
+    "cli_scan_sync_e2e": "not_run"
+  },
+  "remaining_root_causes": [
+    "semanticKey remains serialized string identity across many request-type consumers",
+    "source occurrence identity remains template-literal string",
+    "ADT if/switch branches remain in request-type verifier and semantic pipeline",
+    "canonical proof law set is not fully verified; verification_incomplete remains fail-closed",
+    "full runtime typecheck/build/test/E2E not established"
+  ],
+  "status": "partial_source_fix; not_full_runtime_verification"
+}

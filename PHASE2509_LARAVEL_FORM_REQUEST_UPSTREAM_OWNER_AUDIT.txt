@@ -1,0 +1,10 @@
+PASS new scanner owner exists
+PASS wiring selects new scanner owner
+PASS active wiring does not import legacy FormRequestScanner barrel
+PASS producer implementation is outside subscanners
+PASS producer uses upstream producer interface
+PASS upstream scanner contract remains authoritative
+PASS migrated scanner has no direct semantic/foundation import
+PASS migrated producer has no direct semantic/foundation import
+INFO migrated FormRequest path still has direct semantic/relations imports in 5 files
+INFO this audit checks ownership/wiring and direct imports only; it does not prove transitive relation/foundation closure or runtime behavior

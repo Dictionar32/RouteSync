@@ -19,19 +19,19 @@ import { semanticReasoningContract, type SemanticReasoningContract } from './sem
 import { RouteSemanticFlowCacheInvalidationDescriptor } from '../domain/cacheInvalidation';
 import type { Presence } from './primitiveVocabulary';
 import { presenceFold, presenceOf } from './presence';
-import { relationAny, relationEqual, relationGate } from '../../semantic/foundation/semanticRelations';
-import { relationProject, relationTextSlice, relationVariantFold } from '../../semantic/foundation/relationalSequence';
+import { relationAny, relationEqual, relationGate } from '../../semantic/relations/semanticRelations';
+import { relationProject, relationTextSlice, relationVariantFold } from '../../semantic/relations/relationalSequence';
 import type { BaseValidationRuleNode } from '../domain/validationRules';
 import { createActionName, type ActionName, type DomainTypeName, type RoutePath } from './names';
 import type { RouteCapabilityCrudEvidence } from './route';
 import type { CrudRole } from './routeExecutionVocabulary';
 import { CRUD_ROLE_REGISTRY } from '../domain/crudRoles';
+import { ROUTE_ACTION_KIND_REGISTRY } from '../domain/httpVocabulary';
 import type { HttpMethod } from './routeExecutionVocabulary';
 
 export interface RouteCapabilitySemanticEvidence {
   /** Raw route facts entering the upstream semantic authority. */
   readonly actionKind: RouteActionKind;
-  readonly isMutating: boolean;
   readonly parameterCount: number;
   readonly method: HttpMethod;
   readonly path: RoutePath;
@@ -78,8 +78,15 @@ export interface RouteCapabilitySemanticResolution {
   readonly errorResponses: readonly HttpErrorResponseDescriptor[];
 }
 
-const hasRules = (schema: RouteSchemaPayload): boolean =>
+/**
+ * Canonical schema-shape fact shared by upstream capability reasoning and target
+ * projections. RouteSchemaPayload.fields is the sole source of request-field
+ * presence; legacy `schema.rules` maps are not part of this contract.
+ */
+export const hasCanonicalRequestFields = (schema: RouteSchemaPayload): boolean =>
   relationEqual(schema.fields.length, 0) === false;
+
+const hasRules = hasCanonicalRequestFields;
 
 const hasFileRule = (rule: BaseValidationRuleNode): boolean =>
   relationAny([relationEqual(rule.kind, 'file'), relationEqual(rule.kind, 'image')]);
@@ -91,15 +98,20 @@ const payloadTypeName = (
   request: RouteRequestBinding,
   domain: DomainTypeName,
   action: ActionName,
-): string => relationVariantFold(
-  request,
-  'form_request',
-  () => {
-    const actionValue = action.value.value;
-    return `${domain.value.value}${actionValue.charAt(0).toUpperCase()}${relationTextSlice(actionValue, 1)}Payload`;
-  },
-  value => value.identity.source.requestClass.value.value,
-);
+): string => {
+  switch (request.kind) {
+    case 'form_request':
+      return request.identity.source.requestClass.value.value;
+    case 'framework_request':
+    case 'typed_request':
+    case 'unresolved_request':
+    case 'unresolved_action_request':
+    case 'no_request': {
+      const actionValue = action.value.value;
+      return `${domain.value.value}${actionValue.charAt(0).toUpperCase()}${relationTextSlice(actionValue, 1)}Payload`;
+    }
+  }
+};
 
 const resolveActionName = (input: RouteCapabilitySemanticEvidence, crudRole: CrudRole): ActionName => {
   if (crudRole === 'custom') return input.action;
@@ -142,10 +154,11 @@ const resolveRequestContentType = (
 
 const defaultErrors = (
   input: RouteCapabilitySemanticEvidence,
+  isMutating: boolean,
   hasValidationRules: boolean,
 ): readonly HttpErrorResponseDescriptor[] => {
   const validation = relationGate(
-    relationAny([input.isMutating, hasValidationRules]),
+    relationAny([isMutating, hasValidationRules]),
     () => [httpErrorResponseValidation()],
     () => [],
   );
@@ -170,13 +183,16 @@ export interface RouteCapabilitySemanticAuthorityContractInterface
 export interface RouteCapabilitySemanticAuthorityInterface
   extends RouteCapabilitySemanticAuthorityContractInterface {}
 
-export const routeCapabilitySemanticAuthority: RouteCapabilitySemanticAuthorityInterface = Object.freeze({
+export const routeCapabilitySemanticAuthorityAlgebra: RouteCapabilitySemanticAuthorityAlgebraInterface = Object.freeze({
   authority: 'upstream' as const,
   closed: true as const,
   resolve: (input: RouteCapabilitySemanticEvidence, overrides: RouteCapabilitySemanticOverrides): RouteCapabilitySemanticResolution => {
-    const hookKind = presenceFold(overrides.hookKind, () => resolveHookKind(input.isMutating), value => value);
+    // RouteActionKind is the canonical semantic input. Do not accept a second,
+    // independently supplied boolean that can contradict the action ADT.
+    const isMutating = ROUTE_ACTION_KIND_REGISTRY[input.actionKind].isMutating;
+    const hookKind = presenceFold(overrides.hookKind, () => resolveHookKind(isMutating), value => value);
     const validation = hasRules(input.schema);
-    const payload = hasPayload(input.isMutating, input.schema);
+    const payload = hasPayload(isMutating, input.schema);
     const executionSignature = resolveExecutionSignature(input, overrides, hookKind, payload);
     const requestContentType = resolveRequestContentType(input, overrides);
     const payloadLocationDecision: RoutePayloadLocationDecision = presenceFold(
@@ -202,7 +218,7 @@ export const routeCapabilitySemanticAuthority: RouteCapabilitySemanticAuthorityI
     const crudRole = input.crudEvidence.role;
     const actionName = resolveActionName(input, crudRole);
     const crudEvidence = input.crudEvidence;
-    const errorResponses = presenceFold(overrides.errorResponses, () => defaultErrors(input, validation), value => value);
+    const errorResponses = presenceFold(overrides.errorResponses, () => defaultErrors(input, isMutating, validation), value => value);
     const invalidation = presenceFold(overrides.invalidation, () => RouteSemanticFlowCacheInvalidationDescriptor.none(), value => value);
     return Object.freeze({
       hookKind,
@@ -222,3 +238,25 @@ export const routeCapabilitySemanticAuthority: RouteCapabilitySemanticAuthorityI
 });
 
 // RouteCapabilitySemanticAuthorityInterface is the canonical typed contract above.
+
+
+/**
+ * Compose upstream ownership around the semantic reasoning algebra. Runtime
+ * consumers receive the closed contract and delegate resolution; they do not
+ * duplicate route capability inference.
+ */
+export function createRouteCapabilitySemanticAuthority(
+  algebra: RouteCapabilitySemanticAuthorityAlgebraInterface,
+): RouteCapabilitySemanticAuthorityInterface {
+  return Object.freeze({
+    authority: 'upstream' as const,
+    closed: true as const,
+    resolve: (input: RouteCapabilitySemanticEvidence, overrides: RouteCapabilitySemanticOverrides): RouteCapabilitySemanticResolution =>
+      algebra.resolve(input, overrides),
+  });
+}
+
+/** Canonical production authority bound to the one semantic reasoning algebra. */
+export const routeCapabilitySemanticAuthority: RouteCapabilitySemanticAuthorityInterface = createRouteCapabilitySemanticAuthority(
+  routeCapabilitySemanticAuthorityAlgebra,
+);

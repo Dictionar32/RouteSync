@@ -5,7 +5,7 @@ import {
   relationIndexAdd,
   relationIndexLookup,
   type RelationIndex,
-} from '../../../semantic/foundation/relationMembership';
+} from '../../../semantic/relations/relationMembership';
 import {
   relationAny,
   relationEqual,
@@ -13,7 +13,7 @@ import {
   relationOptionFold,
   relationProject,
   relationResolve,
-} from '../../../semantic/foundation/relationalSequence';
+} from '../../../semantic/relations/relationalSequence';
 
 export type PassRelationIndex = RelationIndex<string, ExecutablePass>;
 export type ProducerRelationIndex = RelationIndex<ArtifactKey, ExecutablePass>;

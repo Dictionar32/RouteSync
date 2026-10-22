@@ -1,0 +1,37 @@
+{
+  "phase": 1440,
+  "title": "Semantic Token Structure Interface",
+  "scope": [
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts",
+    "packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts",
+    "packages/core/src/types/upstream/index.ts"
+  ],
+  "contract": "ScannerTokenStructureInterface returns source partitions and typed delimiter evidence instead of cursor numbers to migrated consumers.",
+  "audit": {
+    "script": "scripts/audits/audit-phase1440-semantic-token-structure-interface.cjs",
+    "checks_passed": 10,
+    "checks_total": 10,
+    "kind": "static source-boundary audit"
+  },
+  "tests": {
+    "added": "packages/core/src/types/upstream/__test__/scannerTokenStructureInterface.phase1440.test.ts",
+    "executed": false,
+    "reason": "local node_modules toolchain is not installed"
+  },
+  "build": {
+    "executed": false,
+    "reason": "local node_modules toolchain is not installed"
+  },
+  "remaining_frontier": [
+    "conditional expression algebra still returns numeric cursor positions",
+    "root operator algebra still returns numeric cursor positions",
+    "legacy scanner consumers still use cursor-based token structure operations"
+  ],
+  "typecheck": {
+    "command": "tsc --noEmit --skipLibCheck --target ES2020 --module ESNext --moduleResolution bundler <three touched source files>",
+    "status": "failed_on_existing_imported_modules",
+    "direct_diagnostics_in_touched_files": 0,
+    "notes": "Diagnostics were reported in unrelated imported scanner/query modules; no diagnostics pointed to scannerTokenStructureAlgebra.ts, phpExpressionStructureEvidenceProvider.ts, or astClassifierRuntime.ts."
+  }
+}

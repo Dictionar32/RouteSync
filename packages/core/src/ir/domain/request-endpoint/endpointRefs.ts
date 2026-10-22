@@ -19,8 +19,7 @@ import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import type { RouteParameter } from '../../../types/upstream/route';
 import { PARAMETER_TYPE_KNOWLEDGE } from '../../../types/semantic/semanticKnowledge';
 import { HTTP_METHOD_REGISTRY } from '../../../types/domain/httpVocabulary';
-import { solveSemanticRelations, type SemanticRelation } from '../../../semantic/foundation/semanticRewriteEngine';
-import { resolveResponseReferenceKind, type ResponseKind } from './responseReferenceSemanticRelations';
+import { solveSemanticRelations, type SemanticRelation } from '../../../semantic/relations/semanticRewriteEngine';
 
 export const PARAMETER_TYPE_RULES = PARAMETER_TYPE_KNOWLEDGE;
 
@@ -106,15 +105,23 @@ export function buildRequestReference(
 }
 
 export function buildResponseReference(route: RouteSemanticFlow): ResponseReference {
-  const kind = resolveResponseReferenceKind(route.binding.response.kind);
-  const response = route.binding.response;
-  const builders: Readonly<Record<ResponseKind, () => ResponseReference>> = {
-    resource: () => ({ type: 'resource', resource: response.resource, statusCode: response.statusCode, headers: [], pagination: response.pagination }),
-    collection: () => ({ type: 'collection', resource: response.resource, statusCode: response.statusCode, headers: [], pagination: response.pagination }),
-    paginated: () => ({ type: 'paginated', resource: response.resource, statusCode: response.statusCode, headers: [], pagination: response.pagination }),
-    custom: () => ({ type: 'custom', responseType: response.responseType, statusCode: response.statusCode, headers: [], pagination: response.pagination }),
-    empty: () => ({ type: 'empty', statusCode: response.statusCode, headers: [], pagination: response.pagination }),
-  };
-  return builders[kind]();
+  const projection = route.binding.responseProjection;
+  switch (projection.kind) {
+    case 'controller_method_response':
+      return { type: 'integrated_response', product: projection.product };
+    case 'controller_response_projection_blocked':
+      return { type: 'blocked', judgment: projection };
+    case 'declared_response':
+      return { type: 'declared_response', binding: projection };
+    case 'inline_response':
+      return { type: 'inline_response', binding: projection };
+    case 'redirect_response':
+      return { type: 'redirect_response', binding: projection };
+    case 'file_response':
+      return { type: 'file_response', binding: projection };
+    case 'empty_response':
+      return { type: 'empty_response', binding: projection };
+  }
 }
+
 

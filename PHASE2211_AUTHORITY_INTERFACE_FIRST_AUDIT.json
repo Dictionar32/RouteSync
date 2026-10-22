@@ -1,0 +1,35 @@
+{
+  "phase": 2211,
+  "title": "Action Body Judgment Provenance Preservation",
+  "baseline": "RouteSync-Phase2210-Invocation-Executor-Explicit-Delegation-Trace.zip",
+  "interfaceFirst": true,
+  "runtimeSemanticInference": false,
+  "changes": [
+    "LaravelControllerActionSemanticKnowledge preserves the exact existing ControllerBodySemanticJudgment",
+    "Production publication forwards the body judgment without reconstructing it",
+    "Canonical published-knowledge inventory names bodyJudgment explicitly",
+    "Regression test confirms the existing body authority and source-correlation contract remain canonical"
+  ],
+  "openBoundaries": [
+    "scanControllerAction and resolveControllerActionContract remain the legacy production derivation path",
+    "responseAttributeScanner still resolves DTO files and derives descriptor fields; migrate through the existing response pipeline using complete DTO declaration evidence",
+    "resource-binding domain publication still traverses the legacy action adapter",
+    "ChannelScanner still lacks authoritative client-subscription evidence",
+    "semantic/relations remains in use and requires per-call ownership tracing"
+  ],
+  "forbiddenShortcutsAvoided": [
+    "no semantic/foundation layer",
+    "no replacement relation layer",
+    "no new subscanner layer",
+    "no parallel response-descriptor authority",
+    "no claim that the Laravel scanner is fully migrated"
+  ],
+  "validation": {
+    "fullTypecheck": "not-run",
+    "vitest": "not-run",
+    "packageBuild": "not-run",
+    "syntaxTranspilation": "4/4 changed or directly related TypeScript files passed with zero syntax diagnostics",
+    "structuralAssertions": "7/7 passed",
+    "zipIntegrity": "pending"
+  }
+}

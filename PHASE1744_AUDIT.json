@@ -1,0 +1,81 @@
+{
+  "phase": 1744,
+  "name": "source-bound-composition-result",
+  "total": 18,
+  "passed": 11,
+  "failed": 7,
+  "checks": [
+    {
+      "name": "composition contract and value are v3",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract and value are v53",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary contract and value are v32",
+      "passed": false
+    },
+    {
+      "name": "composition result retains source knowledge and integrated response together",
+      "passed": false
+    },
+    {
+      "name": "composition operation returns source-bound result instead of detached response",
+      "passed": true
+    },
+    {
+      "name": "contract declares exact input-to-response source binding",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract carries source-binding invariant",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner boundary preserves source-bound composition result",
+      "passed": true
+    },
+    {
+      "name": "composition public interface remains integrate-only",
+      "passed": true
+    },
+    {
+      "name": "no second integrated-response authority was introduced",
+      "passed": true
+    },
+    {
+      "name": "publication authority remains sole correspondence owner",
+      "passed": true
+    },
+    {
+      "name": "judgment and analysis existing domain types are reused",
+      "passed": true
+    },
+    {
+      "name": "integrated response remains a typed validated/rejected union",
+      "passed": false
+    },
+    {
+      "name": "scanner runtime is unchanged and not falsely claimed wired",
+      "passed": false
+    },
+    {
+      "name": "runtime status explicitly remains interface-only",
+      "passed": false
+    },
+    {
+      "name": "composition result type is exported from core index",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency is introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered in package scripts",
+      "passed": true
+    }
+  ]
+}

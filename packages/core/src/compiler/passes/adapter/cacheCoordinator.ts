@@ -12,7 +12,7 @@ import type { CompilationState } from '../CompilationState';
 import type { CompilationContext } from '../CompilationContext';
 import type { CacheDescriptor } from '../../cache/ArtifactCache';
 import { computeFingerprintHash } from '../../fingerprint/Fingerprint';
-import { relationProject } from '../../../semantic/foundation/relationalSequence';
+import { relationProject } from '../../../semantic/relations/relationalSequence';
 
 export function createPassCacheDescriptor<
     I extends readonly ArtifactKey[],

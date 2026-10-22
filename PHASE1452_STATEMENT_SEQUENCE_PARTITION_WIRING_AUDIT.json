@@ -1,0 +1,36 @@
+{
+  "phase": 1452,
+  "title": "Statement Sequence Partition Wiring",
+  "scope": "core/src/types/upstream/scannerStatementSequenceAlgebra.ts and scanner statement-boundary runtime wiring",
+  "staticAudit": {
+    "script": "scripts/audits/audit-phase1452-statement-sequence-partition-wiring.cjs",
+    "passed": 12,
+    "total": 12
+  },
+  "targetedTypeCheck": {
+    "command": "tsc --noEmit --skipLibCheck --target ES2020 --module ESNext --moduleResolution bundler packages/core/src/types/upstream/scannerStatementBoundaryInterface.ts packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts",
+    "passed": true,
+    "diagnostics": 0
+  },
+  "runtimeTypeCheck": {
+    "passed": false,
+    "diagnostics": 452,
+    "touchedRuntimeDiagnostics": 0,
+    "reason": "Transitive project typecheck reaches existing errors in unrelated compiler/upstream modules; no diagnostic points to astClassifierRuntime.ts after this phase's wiring change."
+  },
+  "build": {
+    "passed": false,
+    "reason": "tsdown executable is not installed in this workspace"
+  },
+  "runtimeTests": {
+    "executed": false,
+    "reason": "Vitest executable is not installed in this workspace; tests were updated but not executed."
+  },
+  "interfaceChanged": true,
+  "algebraContractChanged": false,
+  "sequenceWiringChanged": true,
+  "runtimeWiringChanged": true,
+  "runtimeSimplified": false,
+  "downstreamVerified": false,
+  "legacyCompatibilityFacadeRemoved": false
+}

@@ -11,8 +11,8 @@ import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { Lookup } from '../../../types/upstream/collections';
 import type { HttpStatusCode } from '../../../types/upstream/valueObjects';
 import { createPropertyName } from '../../../types/upstream/names';
-import { relationEqual, relationGate } from '../../../semantic/foundation/semanticRelations';
-import { relationLookup, relationOptionFold, relationProject, relationNone, relationSome } from '../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationGate } from '../../../semantic/relations/semanticRelations';
+import { relationLookup, relationOptionFold, relationProject, relationNone, relationSome } from '../../../semantic/relations/relationalSequence';
 
 export type ResponseProducerInput =
   | { readonly kind: 'dto'; readonly declaration: ResponseDtoDeclarationAst; readonly source: SourceSpan }
@@ -79,7 +79,7 @@ function controllerResponse(method: ControllerMethodAst, source: SourceSpan): Re
   const returned = controllerReturnSemanticFromMethod(
     method,
     source.file.value.value,
-    { kind: 'response_present', response: { kind: 'response_reference', name: createResponseTypeName(`${String(method.name)}Response`) } },
+    { kind: 'response_reference_declared', response: { kind: 'response_reference', name: createResponseTypeName(`${String(method.name)}Response`) } },
   );
   const result = responseResultFromReturn(returned);
   const output: TypeExpression = { kind: 'mixed' };

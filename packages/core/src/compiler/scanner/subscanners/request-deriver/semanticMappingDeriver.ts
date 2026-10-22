@@ -9,7 +9,7 @@ import type { RequestType } from '../../../artifacts/RequestTypesArtifact';
 import type { SemanticMappingContract } from '../../../../types/upstream/semanticMapping';
 import { semanticReadMapperFromResource, semanticWriteMapperFromAction } from '../../../../types/upstream/semanticMapping';
 import { semanticReasoningContract } from '../../../../types/upstream/semanticReasoning';
-import { relationFold, relationProject, relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationFold, relationProject, relationVariantFold } from '../../../../semantic/relations/relationalSequence';
 
 export function deriveSemanticMappingContract(requestTypes: readonly RequestType[]): SemanticMappingContract {
   const read = relationFold(requestTypes, [] as ReturnType<typeof semanticReadMapperFromResource>[], (state, requestType) =>
@@ -47,3 +47,4 @@ export function deriveSemanticMappingContract(requestTypes: readonly RequestType
     closed: true,
   });
 }
+

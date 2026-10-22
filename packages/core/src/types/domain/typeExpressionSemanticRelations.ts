@@ -8,11 +8,11 @@ import {
     solveSemanticRelations,
     type SemanticRelation,
     type SemanticRelationRewrite,
-} from '../../semantic/foundation/semanticRewriteEngine';
+} from '../../semantic/relations/semanticRewriteEngine';
 import type { PrimitiveVocabulary } from '../upstream/primitiveVocabulary';
 import type { TypeExpression } from '../upstream/typeVocabulary';
-import { relationAny, relationAll, relationEqual } from '../../semantic/foundation/semanticRelations';
-import { relationFirst, relationOptionFold, relationProject } from '../../semantic/foundation/relationalSequence';
+import { relationAny, relationAll, relationEqual } from '../../semantic/relations/semanticRelations';
+import { relationFirst, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';
 
 export type TypeExpressionProjection =
     | 'primitive'
@@ -33,6 +33,8 @@ export type TypeExpressionProjection =
 export type PrimitiveProjection =
     | 'string'
     | 'number'
+    | 'integer'
+    | 'decimal'
     | 'boolean'
     | 'date_time'
     | 'file'
@@ -85,6 +87,8 @@ const primitiveRules = (
 export const PRIMITIVE_PROJECTION_RULES = primitiveRules(
     ['string', 'string'],
     ['number', 'number'],
+    ['integer', 'integer'],
+    ['decimal', 'decimal'],
     ['boolean', 'boolean'],
     ['date_time', 'date_time'],
     ['file', 'file'],
@@ -138,7 +142,7 @@ export const resolvePrimitiveProjection = (primitive: PrimitiveVocabulary): Prim
         () => { throw Error(`No semantic projection rule for primitive kind '${primitive.kind}'`); },
         fact => relationOptionFold(
             relationFirst([fact.arguments[1]], argument => relationAny([
-                relationEqual(argument, 'string'), relationEqual(argument, 'number'), relationEqual(argument, 'boolean'),
+                relationEqual(argument, 'string'), relationEqual(argument, 'number'), relationEqual(argument, 'integer'), relationEqual(argument, 'decimal'), relationEqual(argument, 'boolean'),
                 relationEqual(argument, 'date_time'), relationEqual(argument, 'file'), relationEqual(argument, 'json'),
                 relationEqual(argument, 'unspecified'),
             ])),

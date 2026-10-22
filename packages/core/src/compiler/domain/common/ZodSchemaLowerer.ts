@@ -21,8 +21,8 @@ import {
     type ResolvedPrimitiveKind,
     matchResolvedSemanticType
 } from './ResolvedSemanticType';
-import { relationFold, relationProject, relationResolve, relationSlice } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationFold, relationProject, relationResolve, relationSlice } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 
 export type ReferenceResolutionStrategy = (name: string) => string;
 

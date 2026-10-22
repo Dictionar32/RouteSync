@@ -1,0 +1,24 @@
+{
+  "phase": 2343,
+  "title": "Existing Controller Policy Inventory Identity",
+  "status": "static-audit-passed",
+  "checks": { "passed": 12, "failed": 0 },
+  "contractVersions": {
+    "effectiveControllerActionPolicyAuthority": 4,
+    "effectiveControllerActionPolicyRuntimeExecutor": 4,
+    "laravelRouteScanner": 15,
+    "laravelControllerScanner": 43
+  },
+  "tests": {
+    "staticAudit": "passed",
+    "vitest": "not-run",
+    "typescript": "not-run",
+    "cliEndToEnd": "not-run",
+    "npmBuild": "not-run"
+  },
+  "remaining": [
+    "Trace and retire legacy subscanner only after caller/export proof",
+    "Continue semantic/relations import ownership migration",
+    "Verify policy judgment preservation through manifest and final IR via CLI fixtures"
+  ]
+}

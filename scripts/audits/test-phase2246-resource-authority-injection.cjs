@@ -1,0 +1,41 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+let passed = 0;
+const check = (label, condition) => {
+  if (!condition) {
+    process.stderr.write(`FAIL ${label}\n`);
+    process.exitCode = 1;
+    return;
+  }
+  passed += 1;
+  process.stdout.write(`PASS ${label}\n`);
+};
+const action = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
+const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
+const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const dataflowAuthority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts');
+const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
+const resourceProjection = read('packages/core/src/types/upstream/controllerResourceReturnSourceEvidenceProjectionInterface.ts');
+const runtime = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
+const response = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
+check('action contract and production wiring are aligned at version 45', /readonly version: 45;/.test(action) && /version: 45 as const/.test(wiring));
+check('dataflow debt targets existing canonical dataflow and resource authorities', /controllerResourceReturnSourceEvidenceProjection\.project/.test(resolver) && /ControllerResourceBindingAuthorityInterface/.test(resourceProjection));
+check('legacy dataflow input requires the existing resource authority interface', /readonly resourceBindingAuthority: ControllerResourceBindingAuthorityInterface/.test(dataflow));
+check('legacy dataflow module no longer imports the concrete resource authority singleton', !/import \{ controllerResourceBindingAuthority \}/.test(dataflow));
+check('candidate judgment calls the injected authority', /resourceBindingAuthority\.judge\(resourceBindingCandidate\(/.test(dataflow));
+check('production resolver consumes the source projection and judges candidates through the injected authority', /controllerResourceReturnSourceEvidenceProjection\.project/.test(resolver) && /context\.resourceBindingAuthority\.judge\(evidence\.candidate\)/.test(resolver));
+check('CLI action wiring supplies the existing upstream resource authority', /resourceBindingAuthority: controllerResourceBindingAuthority/.test(wiring));
+check('canonical AST projection call site supplies the same existing authority', /resourceBindingAuthority: controllerResourceBindingAuthority/.test(canonical));
+check('legacy action compatibility path supplies the existing authority', /resourceBindingAuthority: controllerResourceBindingAuthority/.test(scanner));
+check('canonical dataflow authority already exists and owns source-correlated dataflow judgment', /interface ControllerDataflowSemanticJudgmentAuthorityInterface/.test(dataflowAuthority) && /contractVersion: 15/.test(dataflowAuthority));
+check('resource authority remains the sole declared semantic owner for resource binding', /interface ControllerResourceBindingAuthorityInterface/.test(resourceAuthority) && /readonly judge:/.test(resourceAuthority) && /readonly publishResolved:/.test(resourceAuthority));
+check('integrated response ownership remains with the existing response pipeline', /judgeIntegratedResponse/.test(response) && /runtime-executor-forwards-the-completed-judgment-without-semantic-reclassification/.test(action));
+check('runtime executor contract remains a judgment forwarding boundary', /semanticJudgment/.test(runtime));
+check('production resolver no longer imports the dataflow subscanner and transitive relation migration remains explicit', !/createControllerDataflowContract/.test(resolver) && /legacy_dataflow_relation_algebra/.test(action));
+check('touched production modules introduce no semantic/foundation dependency', !/semantic\/foundation/.test([resolver, dataflow, wiring, canonical, scanner].join('\n')));
+process.stdout.write(`Phase 2246 structural audit: ${passed}/15 passed\n`);

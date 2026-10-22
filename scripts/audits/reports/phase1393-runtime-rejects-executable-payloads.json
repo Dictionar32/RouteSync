@@ -1,0 +1,41 @@
+{
+  "phase": 1393,
+  "audit": "runtime-rejects-executable-payloads",
+  "passed": true,
+  "passedChecks": 8,
+  "totalChecks": 8,
+  "checks": [
+    {
+      "name": "JSON data preflight occurs before contract validation",
+      "pass": true
+    },
+    {
+      "name": "accessors are rejected without invoking their getter",
+      "pass": true
+    },
+    {
+      "name": "custom object prototypes are rejected",
+      "pass": true
+    },
+    {
+      "name": "symbol properties are rejected",
+      "pass": true
+    },
+    {
+      "name": "cyclic object graphs are rejected",
+      "pass": true
+    },
+    {
+      "name": "non-finite numeric payloads are rejected",
+      "pass": true
+    },
+    {
+      "name": "JSON snapshot and post-snapshot validation remain in place",
+      "pass": true
+    },
+    {
+      "name": "package version and build command preserved",
+      "pass": true
+    }
+  ]
+}

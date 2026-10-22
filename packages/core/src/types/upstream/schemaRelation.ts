@@ -27,6 +27,7 @@ export interface SchemaRelationIndexInterface {
   readonly kind: 'schema_relation_index_interface';
   readonly tables: Sequence<SchemaRelationInterface>;
   readonly table: (table: TableName) => SchemaRelationInterface | undefined;
+  readonly schemaTable: (table: TableName) => SchemaTable | undefined;
   readonly incoming: (table: TableName) => Sequence<ForeignKey>;
   readonly closed: true;
 }
@@ -54,6 +55,7 @@ export const schemaRelationIndexFrom = (schema: SchemaInterface): SchemaRelation
     kind: 'schema_relation_index_interface' as const,
     tables: sequence(tables),
     table: (table: TableName) => tables.find(candidate => candidate.table.value.value === table.value.value),
+    schemaTable: (table: TableName) => items(schema.definition.tables.items).find(candidate => candidate.table.value.value === table.value.value),
     incoming,
     closed: true as const,
   });

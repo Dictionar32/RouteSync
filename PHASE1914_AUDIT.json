@@ -1,0 +1,19 @@
+{
+  "phase": 1914,
+  "title": "Laravel Controller Source-Payload Evidence Adapter Interface First",
+  "status": "PASS_WITH_REMAINING_RUNTIME_MIGRATION",
+  "staticAudit": {
+    "passed": 10,
+    "total": 10,
+    "script": "scripts/audits/test-phase1914-controller-source-payload-adapter-interface-first.cjs"
+  },
+  "zipIntegrity": "verified-with-unzip-test",
+  "build": "not-run-by-request",
+  "typecheck": "not-run-by-request",
+  "remainingRuntimeResponsibilities": [
+    "controllerDataflowAnalyzer.ts still orchestrates variable semantic resolution through the existing executor",
+    "controllerDataflowAnalyzer.ts still groups definitions into ControllerSemanticVariableFlow"
+  ],
+  "invocationJudgment": "preserved-as-canonical-input-and-output-value",
+  "integratedResponse": "preserved-as-distinct-composition-result"
+}

@@ -1,0 +1,99 @@
+{
+  "phase": 1732,
+  "name": "invocation-judgment-authority-boundary-regression",
+  "scriptsRun": 15,
+  "scriptsPassed": 15,
+  "scriptsFailed": 0,
+  "results": [
+    {
+      "script": "scripts/audits/audit-phase1721-static-source-bound-stage-context.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n17/17 Phase 1721 interface checks passed.\nSCOPE: source-bound stage envelope contract only; no algebra runtime, authority runtime, or production scanner wiring is claimed."
+    },
+    {
+      "script": "scripts/audits/audit-phase1722-static-stage-judgment-envelope.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n16/16 Phase 1722 interface checks passed.\nSCOPE: interface contract only; static algebra/authority implementations and production scanner wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1723-domain-owned-invocation-stage-judgments.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n14/14 Phase 1723 interface checks passed.\nSCOPE: interface/model correction only; no static algebra runtime, authority implementation, or production scanner wiring is claimed."
+    },
+    {
+      "script": "scripts/audits/audit-phase1724-static-coverage-truthfulness-boundary.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n12/12 Phase 1724 interface checks passed.\nSCOPE: interface-contract correction only; static invocation coverage inventory publication, algebra/authority implementation, and Laravel wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1725-invocation-coverage-regression.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "PASS Phase 1721-1725 regression: 75/75; failures=0"
+    },
+    {
+      "script": "scripts/audits/audit-phase1725-total-invocation-coverage-publication.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n16/16 Phase 1725 interface checks passed.\nSCOPE: total coverage-publication contract only; authority implementation and Laravel production wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1726-inventory-bound-coverage-contract.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n15/15 Phase 1726 interface checks passed.\nSCOPE: interface contract only; inventory implementation, publication authority implementation, and Laravel wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1726-invocation-coverage-regression.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "PASS Phase 1721-1726 interface regression: 90/90; failures=0"
+    },
+    {
+      "script": "scripts/audits/audit-phase1727-invocation-coverage-regression.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "PASS Phase 1721-1727 interface regression: 109/109; failures=0"
+    },
+    {
+      "script": "scripts/audits/audit-phase1727-publication-validation-outcome.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n19/19 Phase 1727 interface checks passed.\nSCOPE: contract only; publication authority implementation and Laravel production wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1728-analysis-correspondence-contract.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n17/17 Phase 1728 interface checks passed.\nSCOPE: interface contract only; authority implementation and Laravel production wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1729-canonical-subject-coverage-entry.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n12/12 Phase 1729 interface checks passed.\nSCOPE: interface contract only; inventory/publication authority implementations and Laravel production wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1730-correspondence-identity-ownership.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n11/11 Phase 1730 interface checks passed.\nSCOPE: interface contract evolution only; publication authority implementation and Laravel wiring remain incomplete."
+    },
+    {
+      "script": "scripts/audits/audit-phase1731-subject-derived-correspondence-receipt.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n12/12 Phase 1731 interface checks passed.\nSCOPE: interface contract evolution only; correspondence authority implementation and Laravel production wiring remain unimplemented."
+    },
+    {
+      "script": "scripts/audits/audit-phase1732-invocation-judgment-authority-boundary.cjs",
+      "passed": true,
+      "exitCode": 0,
+      "outputTail": "\n13/13 Phase 1732 interface checks passed.\nSCOPE: contract/interface evolution only; publication authority implementation and additional production wiring remain out of scope."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "phase": 1551,
+  "scope": "Ownership map derived from the Phase 1550 full scanner inventory and focused source trace; not a claim that all scanner reasoning is migrated.",
+  "inventory": {
+    "sourceFiles": 464,
+    "productionFiles": 371,
+    "testFiles": 93,
+    "reasoningSignalCandidates": 187,
+    "productionDirectGenericSolverCallFiles": 0
+  },
+  "clusters": [
+    { "name": "relation-calculus-closure-constraints", "owner": "packages/core/src/types/upstream/semantic*", "status": "migrated-phase-1550", "scannerRole": "compatibility-facade-and-wiring" },
+    { "name": "route-crud-capability", "owner": "packages/core/src/types/upstream/routeCapabilityAuthority.ts", "status": "upstream-authority-exists", "scannerRole": "evidence-adapter-compatibility" },
+    { "name": "route-domain", "owner": "packages/core/src/types/upstream/routeDomainAuthority.ts", "status": "judgment-strengthened-phase-1551", "scannerRole": "typed-input-wiring" },
+    { "name": "route-security", "owner": "packages/core/src/types/upstream/routeSecurityAuthority.ts", "status": "upstream-authority-exists-audit-consumers", "scannerRole": "evidence-adapter" },
+    { "name": "route-group-facts", "owner": "packages/core/src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts", "status": "upstream-semantic-projection-exists", "scannerRole": "syntax-evidence-and-wiring" },
+    { "name": "ast-classification", "owner": "packages/core/src/types/upstream/astClassifierRuleAlgebra.ts plus syntax parser", "status": "mixed-boundary-open", "scannerRole": "syntax-parsing-and-ast-construction-only" },
+    { "name": "model-resource-request-type-derivation", "owner": "upstream semantic authorities to be traced per contract", "status": "open-frontier", "scannerRole": "evidence-production-only" },
+    { "name": "resource-mapping-expression-closure", "owner": "packages/core/src/types/upstream/semanticRewriteAuthority.ts and runtime executor", "status": "partial-migration-open-consumer-audit", "scannerRole": "evidence-adapter-and-wiring" },
+    { "name": "controller-expression-dataflow", "owner": "upstream controller/dataflow authority", "status": "partial-migration-open-frontier", "scannerRole": "ast-evidence-and-wiring" }
+  ],
+  "invariants": [
+    "No second solver is introduced.",
+    "Scanner syntax parsing is not mislabeled as semantic reasoning.",
+    "A default value is not represented as source-derived evidence.",
+    "Closed judgments expose the selected evidence and decision rule where the domain requires them.",
+    "Runtime executors delegate; they do not independently reclassify or infer."
+  ]
+}

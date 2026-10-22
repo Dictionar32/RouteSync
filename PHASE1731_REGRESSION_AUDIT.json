@@ -1,0 +1,21 @@
+{
+  "phase": 1731,
+  "name": "subject-derived-correspondence-receipt-regression",
+  "scope": "Phase 1721 through Phase 1731 interface audit lineage",
+  "directPhaseAuditScripts": 11,
+  "directPhaseAuditChecks": 161,
+  "directPhaseAuditPassed": 161,
+  "directPhaseAuditFailed": 0,
+  "regressionAuditScripts": 3,
+  "regressionAuditStatus": "passed",
+  "details": [
+    "Phase 1725 regression: 75/75 passed",
+    "Phase 1726 regression: 90/90 passed",
+    "Phase 1727 regression: 109/109 passed"
+  ],
+  "limitations": [
+    "TypeScript compiler is not installed in this extracted workspace, so targeted typecheck was not run.",
+    "Full package build was not run.",
+    "Coverage publication authority implementation and Laravel production wiring remain incomplete."
+  ]
+}

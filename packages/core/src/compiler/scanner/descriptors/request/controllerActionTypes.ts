@@ -13,15 +13,15 @@ import type {
     HttpErrorResponseDescriptor
 } from "../../../../types/route";
 import { RouteHandlerKind } from "../../../../types/route";
-import type { ControllerDataflowContract } from "../../subscanners/controller/controllerDataflowContract";
+import type { ControllerActionDataflowContract } from './controllerActionContract';
 import type { ControllerRequestBinding } from './controllerActionContract';
 import type { ActionName, ControllerName, SourceFile } from '../../../../types/upstream/names';
 import type { ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { RuntimeReturnContract } from './controllerActionContract';
 import type { ControllerReturnSemantic } from '../../../../types/upstream/controller';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
-import { relationGate } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationGate } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export type ControllerActionInfo = ScannedControllerActionParams;
 
@@ -40,7 +40,7 @@ export interface ScannedControllerActionParamsContract {
     readonly semanticReturn: ControllerReturnSemantic;
     readonly request: ControllerRequestBinding;
     readonly schema: RouteSchemaPayload;
-    readonly dataflow: ControllerDataflowContract;
+    readonly dataflow: ControllerActionDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
     /** Upstream parameter facts retained so route binding can be resolved semantically. */
     readonly parameters: readonly ControllerParameterAst[];
@@ -63,7 +63,7 @@ export interface ControllerActionCreateOptionsContract {
     readonly semanticReturn: ControllerReturnSemantic;
     readonly request: ControllerRequestBinding;
     readonly schema: RouteSchemaPayload;
-    readonly dataflow: ControllerDataflowContract;
+    readonly dataflow: ControllerActionDataflowContract;
     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
     readonly parameters: readonly ControllerParameterAst[];
 }
@@ -76,7 +76,7 @@ export function buildRouteHandler(controllerName: ControllerName, actionName: Ac
     const target = `${controllerNameValue}@${actionNameValue}`;
     return Object.freeze(
         relationGate(relationEqual(actionNameValue, '__invoke'),
-            () => ({ kind: RouteHandlerKind.InvokableController, controllerName: SemanticValueFactory.controllerName(controllerNameValue), actionName: '__invoke', target: SemanticValueFactory.className(target) }),
-            () => ({ kind: RouteHandlerKind.ControllerAction, controllerName: SemanticValueFactory.controllerName(controllerNameValue), actionName: actionNameValue, target: SemanticValueFactory.className(target) }))
+            () => ({ kind: RouteHandlerKind.InvokableController, controllerName: SemanticValueFactory.className(controllerNameValue), actionName: SemanticValueFactory.actionName('__invoke'), target: SemanticValueFactory.className(target) }),
+            () => ({ kind: RouteHandlerKind.ControllerAction, controllerName: SemanticValueFactory.className(controllerNameValue), actionName, target: SemanticValueFactory.className(target) }))
     );
 }

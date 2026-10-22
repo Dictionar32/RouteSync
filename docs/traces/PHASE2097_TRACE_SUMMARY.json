@@ -1,0 +1,12 @@
+{
+  "phase": "2097",
+  "title": "Trace all paths through CLI",
+  "source_changes": 0,
+  "core_files_importing_subscanners": 24,
+  "core_files_importing_semantic_relations": 379,
+  "core_files_importing_semantic_foundation": 0,
+  "cli_relation_helper_consumers": 8,
+  "legacy_reference_lines": 825,
+  "trace_type": "static import and production composition trace",
+  "build_typecheck_vitest": "not run"
+}

@@ -4,25 +4,56 @@
  * Middleware semantics are resolved once here. Downstream consumers receive
  * the closed result and must not classify middleware again.
  */
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationNormalizeWhitespace } from '../../semantic/foundation/semanticRelations';
-import { relationFoldRight, relationProject, relationVariantFold, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationGate, relationNormalizeWhitespace } from '../../semantic/relations/semanticRelations';
+import { relationFoldRight, relationProject, relationVariantFold, relationTextFind, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../semantic/relations/relationalSequence';
 import type { TruthValue } from './valueObjects';
 import { truthValue, numberValue, stringValue } from './valueObjects';
 import { SecuritySchemeKind, RoutePolicyKind, createRouteSecurityDescriptor, type RouteSecurityDescriptor, type RoutePolicyDescriptor, type RouteRateLimit } from './route';
 import type { RouteMiddlewares, Sequence } from './collections';
 import type { RouteMiddleware } from './route';
+import type { LaravelRouteAuthorizationSemanticJudgment } from './routeAuthorizationSemanticJudgmentInterface';
+import type { MiddlewareName } from './names';
 import { createAbilityName, createPropertyName, type GuardName, type AbilityName } from './names';
 
-export interface RouteSecurityResolution {
+/** Complete, closed semantic result handed to runtime consumers.
+ *
+ * This is a judgment, not an intermediate candidate: all security, auth,
+ * policy, and rate-limit fields have been resolved by the upstream authority.
+ */
+export interface RouteSecurityJudgment {
+  readonly kind: 'route_security_judgment';
+  readonly authority: 'upstream';
+  readonly contractVersion: 'route_security.v2';
+  readonly closed: true;
   readonly security: RouteSecurityDescriptor;
   readonly auth: TruthValue;
   readonly policies: Sequence<RoutePolicyDescriptor>;
   readonly rateLimit: RouteRateLimit;
 }
 
-export interface RouteSecurityAuthorityInterface {
-  readonly resolve: (middleware: RouteMiddlewares, auth?: TruthValue) => RouteSecurityResolution;
+/** Compatibility name retained for existing consumers; it denotes the full judgment. */
+export type RouteSecurityResolution = RouteSecurityJudgment;
+
+/** Typed request ADT for the route-security authority. Inputs travel as one contract value. */
+export interface RouteSecurityAuthorityInput {
+  readonly kind: 'route_security_authority_input';
+  readonly middleware: RouteMiddlewares;
+  readonly authorization: LaravelRouteAuthorizationSemanticJudgment;
 }
+
+/** Executable algebra: implementations must resolve the typed request, not reinterpret positional arguments. */
+export interface RouteSecurityAuthorityAlgebraInterface {
+  readonly resolve: (input: RouteSecurityAuthorityInput) => RouteSecurityResolution;
+}
+
+/** Closed upstream contract consumed by scanner/runtime adapters. */
+export interface RouteSecurityAuthorityContractInterface extends RouteSecurityAuthorityAlgebraInterface {
+  readonly authority: 'upstream';
+  readonly contractVersion: 'route_security.v2';
+  readonly closed: true;
+}
+
+export interface RouteSecurityAuthorityInterface extends RouteSecurityAuthorityContractInterface {}
 
 const emptySequence = <T>(): Sequence<T> => ({ kind: 'empty' });
 const sequenceSingleton = <T>(value: T): Sequence<T> => ({ kind: 'cons', head: value, tail: emptySequence<T>() });
@@ -52,44 +83,51 @@ const initialSecurityClassificationState: SecurityClassificationState = Object.f
 const middlewareSecurityState = (state: SecurityClassificationState, middleware: RouteMiddleware): SecurityClassificationState => {
   const trimmed = relationNormalizeWhitespace(middleware.name.value.value);
   const lower = relationTextLower(trimmed);
-  const authSanctum = relationEqual(lower, 'auth:sanctum');
-  const authBearer = relationAny([relationEqual(lower, 'auth:api'), relationEqual(lower, 'auth:bearer')]);
-  const authCookie = relationAny([relationEqual(lower, 'auth'), relationTextStartsWith(lower, 'auth:')]);
   const abilityPrefix = relationAny([relationTextStartsWith(lower, 'ability:'), relationTextStartsWith(lower, 'abilities:')]);
   const rolePrefix = relationAny([relationTextStartsWith(lower, 'role:'), relationTextStartsWith(lower, 'roles:')]);
   const admin = relationAny([relationEqual(lower, 'admin'), relationEqual(lower, 'superadmin')]);
-  const colon = relationTextSlice(trimmed, 0);
-  const payload = relationGate(relationNotEqual(colon, ''), () => trimmed, () => trimmed);
+  const colon = relationTextFind(trimmed, ':');
+  const payload = relationGate(relationEqual(colon, -1), () => trimmed, () => relationTextSlice(trimmed, colon + 1));
   const abilityItems = relationTextFields(payload, ',');
   const normalizedAbilities = sequenceMapText(abilityItems, item => abilityName(relationNormalizeWhitespace(item)));
   const normalizedRoles = sequenceMapText(abilityItems, item => abilityName(`role:${relationNormalizeWhitespace(item)}`));
+  return relationGate(
+    abilityPrefix,
+    () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedAbilities) }),
+    () => relationGate(
+      rolePrefix,
+      () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedRoles) }),
+      () => relationGate(admin, () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, sequenceSingleton(abilityName(`role:${lower}`))) }), () => state),
+    ),
+  );
+};
+
+/** Authentication classification consumes only the canonical upstream judgment's evidence. */
+const authorizationSecurityState = (state: SecurityClassificationState, middleware: MiddlewareName): SecurityClassificationState => {
+  const lower = relationTextLower(relationNormalizeWhitespace(middleware.value.value));
+  const authSanctum = relationEqual(lower, 'auth:sanctum');
+  const authBearer = relationAny([relationEqual(lower, 'auth:api'), relationEqual(lower, 'auth:bearer')]);
   return relationGate(
     authSanctum,
     () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Sanctum, guards: sequenceConcat(state.guards, sequenceSingleton(guardName('sanctum'))) }),
     () => relationGate(
       authBearer,
       () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Bearer, guards: sequenceConcat(state.guards, sequenceSingleton(guardName('api'))) }),
-      () => relationGate(
-        authCookie,
-        () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Cookie, guards: sequenceConcat(state.guards, sequenceSingleton(guardName('web'))) }),
-        () => relationGate(
-          abilityPrefix,
-          () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedAbilities) }),
-          () => relationGate(
-            rolePrefix,
-            () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedRoles) }),
-            () => relationGate(admin, () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, sequenceSingleton(abilityName(`role:${lower}`))) }), () => state),
-          ),
-        ),
-      ),
+      () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Cookie, guards: sequenceConcat(state.guards, sequenceSingleton(guardName('web'))) }),
     ),
   );
 };
 
-const classifySecurity = (middleware: RouteMiddlewares): RouteSecurityDescriptor => {
+const classifySecurity = (middleware: RouteMiddlewares, authorization: LaravelRouteAuthorizationSemanticJudgment): RouteSecurityDescriptor => {
   const classifySequence = (items: Sequence<RouteMiddleware>, state: SecurityClassificationState): SecurityClassificationState =>
     relationVariantFold(items, 'cons', () => state, candidate => classifySequence(candidate.tail, middlewareSecurityState(state, candidate.head)));
-  const state = classifySequence(middleware.items, initialSecurityClassificationState);
+  const middlewareState = classifySequence(middleware.items, initialSecurityClassificationState);
+  const state = relationVariantFold(
+    authorization,
+    'laravel_route_authorization_middleware_present',
+    judgment => relationFoldRight(judgment.middleware, middlewareState, (evidence, current) => authorizationSecurityState(current, evidence)),
+    () => middlewareState,
+  );
   return createRouteSecurityDescriptor(state.isProtected, state.scheme, state.guards, state.abilities);
 };
 
@@ -120,8 +158,10 @@ const policyForMiddleware = (middleware: string): Readonly<{ policies: Sequence<
 const middlewareValues = (items: Sequence<RouteMiddleware>, output: readonly string[] = []): readonly string[] =>
   relationVariantFold(items, 'cons', () => output, candidate => middlewareValues(candidate.tail, [...output, candidate.head.name.value.value]));
 
-const resolve = (middleware: RouteMiddlewares, auth: TruthValue = truthValue(false)): RouteSecurityResolution => {
-  const security = classifySecurity(middleware);
+const resolveRouteSecurity = (input: RouteSecurityAuthorityInput): RouteSecurityResolution => {
+  const middleware = input.middleware;
+  const authorizationProtected = relationEqual(input.authorization.kind, 'laravel_route_authorization_middleware_present');
+  const security = classifySecurity(middleware, input.authorization);
   const values = middlewareValues(middleware.items);
   const resolved = values.reduce((acc, value) => {
     const current = policyForMiddleware(value);
@@ -130,7 +170,39 @@ const resolve = (middleware: RouteMiddlewares, auth: TruthValue = truthValue(fal
       rateLimit: current.rateLimit.kind !== 'none' ? current.rateLimit : acc.rateLimit,
     });
   }, { policies: emptySequence<RoutePolicyDescriptor>(), rateLimit: { kind: 'none' as const } });
-  return Object.freeze({ security, auth: truthValue(relationAny([auth.value, security.isProtected.value])), policies: resolved.policies, rateLimit: resolved.rateLimit });
+  return Object.freeze({
+    kind: 'route_security_judgment' as const,
+    authority: 'upstream' as const,
+    contractVersion: 'route_security.v2' as const,
+    closed: true as const,
+    security,
+    auth: truthValue(relationAny([authorizationProtected, security.isProtected.value])),
+    policies: resolved.policies,
+    rateLimit: resolved.rateLimit,
+  });
 };
 
-export const routeSecurityAuthority: RouteSecurityAuthorityInterface = Object.freeze({ resolve });
+/**
+ * Compose authority metadata around the canonical security reasoning algebra.
+ * Runtime consumers execute this contract; the wrapper does not classify middleware.
+ */
+export function createRouteSecurityAuthority(
+  algebra: RouteSecurityAuthorityAlgebraInterface,
+): RouteSecurityAuthorityInterface {
+  return Object.freeze({
+    authority: 'upstream' as const,
+    contractVersion: 'route_security.v2' as const,
+    closed: true as const,
+    resolve: (input: RouteSecurityAuthorityInput): RouteSecurityResolution => algebra.resolve(input),
+  });
+}
+
+/** Canonical production algebra; security and policy reasoning lives here. */
+export const routeSecurityAuthorityAlgebra: RouteSecurityAuthorityAlgebraInterface = Object.freeze({
+  resolve: resolveRouteSecurity,
+});
+
+/** Runtime-facing closed authority, bound once to the canonical algebra. */
+export const routeSecurityAuthority: RouteSecurityAuthorityInterface = createRouteSecurityAuthority(
+  routeSecurityAuthorityAlgebra,
+);

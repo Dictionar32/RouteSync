@@ -8,8 +8,8 @@
 import { toCamelCase, toPascalCase, ResourceNamingConvention } from '../../utils/resource-naming';
 import { SemanticValueFactory } from '../domain/semanticValues';
 import type { ActionName, ControllerName, DomainTypeName, ResourceName, RoutePath } from './names';
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate } from '../../semantic/foundation/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationProject, relationSelect, relationTextTrimChars, relationTextFields, relationTextSlice, relationTextEndsWith, relationTextLower, relationTextNumber, relationTextRemoveSuffix, type RelationOption } from '../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate } from '../../semantic/relations/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationProject, relationSelect, relationTextTrimChars, relationTextFields, relationTextSlice, relationTextEndsWith, relationTextLower, relationTextNumber, relationTextRemoveSuffix, type RelationOption } from '../../semantic/relations/relationalSequence';
 
 export interface RouteDomainResolutionContext {
   readonly domain: RelationOption<DomainTypeName>;
@@ -19,12 +19,23 @@ export interface RouteDomainResolutionContext {
   readonly actionName: RelationOption<ActionName>;
 }
 
+export type RouteDomainResolutionOutcome = 'candidate_selected' | 'default_applied';
+
+/**
+ * Closed judgment exposes the actual decision, not only its projected value.
+ * `selected` is explicit absence when no candidate justified the result; the
+ * default `App` must never masquerade as a source-derived domain.
+ */
 export interface RouteDomainResolutionJudgment {
   readonly kind: 'route_domain_resolution_judgment';
   readonly input: RouteDomainResolutionContext;
   readonly candidates: readonly RouteDomainCandidate[];
+  readonly selected: RelationOption<RouteDomainCandidate>;
   readonly result: DomainTypeName;
+  readonly outcome: RouteDomainResolutionOutcome;
+  readonly rule: 'explicit>controller>resource>register>path>action>default';
   readonly resolution: 'ranked_relation_candidates';
+  readonly authority: 'upstream';
   readonly closed: true;
 }
 
@@ -134,8 +145,10 @@ export const resolveRouteDomainJudgment = (context: RouteDomainResolutionContext
   const path = candidateFromOption('path_domain', context.path, () => true, value => domainFromSegments(segmentEvidence(value.value.value)));
   const action = candidateFromOption('action_domain', context.actionName, () => true, actionDomain);
   const candidates = Object.freeze([...explicit, ...controller, ...resource, ...register, ...path, ...action]);
+  const selected = relationFirstOption(candidates, entry => relationNotEqual(entry.domain.value.value, ''));
+  const outcome: RouteDomainResolutionOutcome = selected.kind === 'some' ? 'candidate_selected' : 'default_applied';
   const result = relationOptionFold(
-    relationFirstOption(candidates, entry => relationNotEqual(entry.domain.value.value, '')),
+    selected,
     () => SemanticValueFactory.domainName('App'),
     entry => entry.domain,
   );
@@ -143,8 +156,12 @@ export const resolveRouteDomainJudgment = (context: RouteDomainResolutionContext
     kind: 'route_domain_resolution_judgment',
     input: context,
     candidates,
+    selected,
     result,
+    outcome,
+    rule: 'explicit>controller>resource>register>path>action>default',
     resolution: 'ranked_relation_candidates',
+    authority: 'upstream',
     closed: true,
   });
 };

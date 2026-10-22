@@ -18,7 +18,8 @@ const controllerSurface = (controller: ControllerActionFlowContract) => Object.f
 export const routeSyncManifestDataflowProjection: RouteSyncManifestDataflowProjectionInterface = Object.freeze({
   project: (manifest: RouteSyncManifestFlow): RouteSyncManifestDataflowSurface => Object.freeze({
     kind: 'route_sync_manifest_dataflow_surface' as const,
-    dataflowInputs: manifest.dataflowInputs,
+    dataflowJudgments: manifest.dataflowJudgments,
+    dataflowQueryPolicyContracts: manifest.dataflowQueryPolicyContracts,
     controllers: Object.freeze(
       sequenceToArray(manifest.contracts.controllers).map(controllerSurface),
     ),

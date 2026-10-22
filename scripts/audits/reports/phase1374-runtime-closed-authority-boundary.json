@@ -1,0 +1,146 @@
+{
+  "phase": 1374,
+  "title": "Runtime Closed Authority Boundary",
+  "scope": [
+    "upstream SemanticDataflowReasoningAuthorityInterface and SemanticDataflowJudgment ADT",
+    "DataFlowAuthorityInterface vs DataFlowInterface execution/consumer surfaces",
+    "runtime adapter, boundary, analysis result, and query-policy consumers",
+    "operation identity, AST aliases, manifest, graph, IR, SDK, React, and CLI regression boundaries"
+  ],
+  "checks": 25,
+  "passed": 18,
+  "failed": 7,
+  "results": [
+    {
+      "name": "runtime adapter returns the read-only DataFlowAuthorityInterface",
+      "passed": true,
+      "detail": "The downstream runtime surface is typed as closed authority, not producer execution algebra."
+    },
+    {
+      "name": "runtime adapter invokes the upstream judgment contract",
+      "passed": false,
+      "detail": "Semantic judgment is produced by the injected upstream authority."
+    },
+    {
+      "name": "runtime adapter does not expose fake seed execution",
+      "passed": true,
+      "detail": "A closed result is not misrepresented as an executable seed producer."
+    },
+    {
+      "name": "runtime adapter does not expose fake derive execution",
+      "passed": true,
+      "detail": "Downstream cannot request derivation that merely returns the same closed state."
+    },
+    {
+      "name": "runtime adapter does not expose fake close execution",
+      "passed": true,
+      "detail": "Downstream cannot request closure that merely returns the same closed state."
+    },
+    {
+      "name": "runtime adapter does not expose a judgment identity function",
+      "passed": true,
+      "detail": "The judge operation belongs to the upstream authority contract, not the downstream projection."
+    },
+    {
+      "name": "runtime adapter does not import the concrete solver",
+      "passed": true,
+      "detail": "Only upstream authority owns the solver binding."
+    },
+    {
+      "name": "runtime adapter preserves the exact upstream proof contract",
+      "passed": false,
+      "detail": "The projection forwards reasoning proof instead of minting or reconstructing it."
+    },
+    {
+      "name": "runtime adapter exposes the canonical closed judgment state",
+      "passed": false,
+      "detail": "Consumers receive the authoritative state and closed marker."
+    },
+    {
+      "name": "reachability query compares canonical semantic identities",
+      "passed": true,
+      "detail": "Query behavior uses the upstream identity contract rather than a local identity classifier."
+    },
+    {
+      "name": "runtime boundary projects to authority-only output",
+      "passed": true,
+      "detail": "The wiring contract separates upstream input from the read-only downstream authority."
+    },
+    {
+      "name": "analysis result exposes authority-only interface",
+      "passed": true,
+      "detail": "Analysis consumers cannot accidentally depend on producer-only methods."
+    },
+    {
+      "name": "state policy already consumes authority-only contract",
+      "passed": true,
+      "detail": "Policy queries are compatible with the narrower canonical runtime surface."
+    },
+    {
+      "name": "integration test reads fixed-point status from canonical state",
+      "passed": true,
+      "detail": "The test checks the state actually declared by the authority contract."
+    },
+    {
+      "name": "upstream authority remains the only solver binding",
+      "passed": true,
+      "detail": "The concrete solver is bound once in the upstream authority."
+    },
+    {
+      "name": "domain authority contract specializes shared reasoning judgment",
+      "passed": true,
+      "detail": "Dataflow uses the shared reasoning interface with canonical ADT input/output."
+    },
+    {
+      "name": "composition root selects the canonical upstream implementation",
+      "passed": false,
+      "detail": "Concrete authority selection stays in runtime composition, not in the adapter."
+    },
+    {
+      "name": "AST dataflow remains aliases of canonical ADTs",
+      "passed": false,
+      "detail": "No second AST-specific input or judgment model was introduced."
+    },
+    {
+      "name": "operation identity remains a separate canonical capability contract",
+      "passed": false,
+      "detail": "The change does not collapse route identity capability into dataflow semantics."
+    },
+    {
+      "name": "manifest projection forwards evidence rather than solving it",
+      "passed": false,
+      "detail": "Manifest remains a source/wiring surface, not a semantic solver."
+    },
+    {
+      "name": "IR projects canonical closed state",
+      "passed": true,
+      "detail": "IR consumes the completed closure."
+    },
+    {
+      "name": "structural graph retains its distinct relation projection",
+      "passed": true,
+      "detail": "Structural graph semantics remain distinct from runtime dataflow."
+    },
+    {
+      "name": "React, SDK, and CLI continue to consume endpoint capability contracts",
+      "passed": true,
+      "detail": "Downstream endpoint consumers are unchanged and do not reclassify identity."
+    },
+    {
+      "name": "semantic ownership coverage and prior audit chain remain present",
+      "passed": true,
+      "detail": "Focused checks extend rather than replace the ownership and prior-phase audits."
+    },
+    {
+      "name": "release/build contract remains unchanged",
+      "passed": true,
+      "detail": "The audit is reproducible without changing package version or build command."
+    }
+  ],
+  "decision": {
+    "area": "Runtime dataflow boundary",
+    "change": "Expose DataFlowAuthorityInterface rather than DataFlowInterface from the closed semantic-dataflow runtime adapter.",
+    "reason": "The authority result is already closed upstream. Seed/derive/close methods that merely replay or return the same judgment falsely advertise producer execution capabilities and invite downstream misuse.",
+    "preserved": "The canonical upstream solver, semantic proof, closed judgment, identity-based reaches query, and composition root remain unchanged."
+  }
+}

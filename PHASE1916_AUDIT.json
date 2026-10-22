@@ -1,0 +1,16 @@
+{
+  "phase": 1916,
+  "status": "PASS_STATIC_AUDIT_WITH_REMAINING_RUNTIME_ORCHESTRATION",
+  "checks": 11,
+  "build_run": false,
+  "typecheck_run": false,
+  "tests_run": false,
+  "changes": [
+    "added upstream ControllerVariableSemanticResolutionInputAdapterInterface",
+    "added PHP-specific semantic-resolution request adapter in scanner wiring",
+    "removed inline AST-evidence and parameter-binding adaptation from controllerDataflowAnalyzer",
+    "preserved existing ControllerVariableSemanticRuntimeExecutorInterface as sole semantic resolver",
+    "preserved canonical invocation judgment and separate integrated response"
+  ],
+  "remaining": "controllerDataflowAnalyzer still orchestrates knowledge production and judgment sequencing; wiring-only migration is incomplete"
+}

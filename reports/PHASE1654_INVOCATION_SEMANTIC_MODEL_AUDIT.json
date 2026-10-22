@@ -1,0 +1,35 @@
+{
+  "phase": 1654,
+  "version": 10,
+  "modelFields": [
+    {
+      "name": "target",
+      "ok": true
+    },
+    {
+      "name": "arguments",
+      "ok": true
+    },
+    {
+      "name": "effects",
+      "ok": true
+    },
+    {
+      "name": "obligations",
+      "ok": true
+    },
+    {
+      "name": "trace",
+      "ok": true
+    },
+    {
+      "name": "proof",
+      "ok": true
+    }
+  ],
+  "generatedRules": true,
+  "loweringUsesModel": true,
+  "noRuleIdSwitch": true,
+  "scannerCallsExecutor": true,
+  "status": "PASS"
+}

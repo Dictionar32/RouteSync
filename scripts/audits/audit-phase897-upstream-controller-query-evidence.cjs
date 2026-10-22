@@ -1,21 +1,18 @@
 const fs = require('node:fs');
 const path = require('node:path');
-
 const root = path.resolve(__dirname, '../../packages/core');
 const canonical = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts'), 'utf8');
-const producer = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/controller/controllerProducer.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/ControllerScanner.ts'), 'utf8');
-const orchestrator = fs.readFileSync(path.join(root, 'src/compiler/scanner/orchestrator/sourceAstScanner.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'src/compiler/scanner/wiring/laravelControllerScanner.ts'), 'utf8');
+const pipeline = fs.readFileSync(path.join(root, 'src/compiler/scanner/wiring/laravelSourceAstPipeline.ts'), 'utf8');
 const test = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts'), 'utf8');
-
 const checks = {
   queryAstConsumedByControllerCanonical: canonical.includes('QueryAst') && canonical.includes('controllerQueryOperations'),
   sourceSpanContainsQuery: canonical.includes('query.source') && canonical.includes('methodSource'),
   modelWriteFromQueryEvidence: canonical.includes("'model_write'") && canonical.includes('queryOperationIsWrite'),
   databaseTableFromQueryEvidence: canonical.includes("'database_table'") && canonical.includes('literalStringFromExpression'),
-  producerCarriesQueries: producer.includes('queries?: readonly QueryAst[]') && producer.includes('input.queries ?? []'),
-  scannerPassesQueries: scanner.includes('queries: readonly QueryAst[]') && scanner.includes('queries,'),
-  orchestratorProducesQueriesBeforeController: orchestrator.indexOf('const queries = queryProducer.produce') < orchestrator.indexOf('ControllerScanner.scanCanonicalBundle'),
+  canonicalControllerContractReceivesQueryEvidence: scanner.includes('const queries: readonly QueryAst[] = input.queries') && scanner.includes('controllerMethodContractFromMethod') && scanner.includes('queries'),
+  scannerPassesQueries: pipeline.includes('queries,') && scanner.includes('queries: readonly QueryAst[]'),
+  queryProducerRunsBeforeCanonicalControllerScanner: pipeline.indexOf('const queries = queryProducer.produce') < pipeline.indexOf('laravelControllerScanner.scan('),
   regressionCoversWriteAndTable: test.includes('model_write:Order') && test.includes('database_table:orders'),
   noMethodNameInference: !canonical.includes("method.name.value.value === 'store'") && !canonical.includes("method.name.value.value === 'show'") && !canonical.includes("method.name.value.value === 'update'"),
 };

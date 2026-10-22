@@ -1,0 +1,33 @@
+{
+  "phase": 2193,
+  "title": "Interface-first invocation/response AST projection dependency",
+  "status": "implemented-static-validation-only",
+  "scope": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts;packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts;packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts;packages/core/src/compiler/scanner/LaravelSourceLexer.ts;packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts;packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+  "trace": [
+    "LaravelControllerScannerInterface.astProjectionAuthority",
+    "LaravelControllerScannerExecutor.astProjectionAuthority",
+    "LaravelSourceLexer.parseControllerDeclarationFromInvocationJudgment",
+    "parseControllerDeclaration",
+    "parseControllerMethod",
+    "parseControllerBody",
+    "LaravelControllerAstProjectionSemanticAuthorityInterface.judge"
+  ],
+  "checks": {
+    "existingAuthorityInterfaceReused": true,
+    "scannerInjectsAuthority": true,
+    "exactInvocationAndIntegratedResponseContextForwarded": true,
+    "parserDoesNotReconstructSemanticJudgments": true,
+    "newRelationFoundationOrSubscannerLayer": false,
+    "scannerContractVersionUpdatedTo35": true,
+    "typescriptSyntaxTranspilation": "6/6 passed",
+    "fullTypecheck": "not-run",
+    "vitest": "not-run",
+    "build": "not-run"
+  },
+  "remaining": [
+    "Direct parser callers retain a default composition binding for compatibility.",
+    "Other parser paths may still import concrete authorities directly.",
+    "Response pipeline still binds several concrete upstream authorities at composition time.",
+    "DTO response projection is not yet the canonical per-method response product in every path."
+  ]
+}

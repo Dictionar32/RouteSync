@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, ok, detail = '') => checks.push({ name, ok: Boolean(ok), detail });
+const scanner = read('packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts');
+const contract = read('packages/core/src/compiler/scanner/orchestrator/RouteSyncManifestScanOperationInterface.ts');
+const orchestratorBarrel = read('packages/core/src/compiler/scanner/orchestrator/index.ts');
+const coreIndex = read('packages/core/src/index.ts');
+const builder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
+
+check('scan operation contract is declared as an exported interface', contract.includes('export interface RouteSyncManifestScanOperationInterface'));
+check('flow completion is a named exported result interface', contract.includes('export interface RouteSyncManifestFlowCompleteJudgment'));
+check('flow scan result is an explicit discriminated union alias', contract.includes('export type RouteSyncManifestFlowScanJudgment =') && /RouteSyncManifestFlowScanJudgment[\s\S]*?ManifestBuilderBlockedJudgment[\s\S]*?RouteSyncManifestFlowCompleteJudgment/.test(contract));
+check('flow operation contract returns a named explicit result type', /scanFlow:[\s\S]*?Promise<RouteSyncManifestFlowScanJudgment>/.test(contract));
+check('flow operation input is a closed inventory receipt', /scanFlow:[\s\S]*?invocationInventoryReceipt: LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt/.test(contract));
+check('manifest operation returns the typed builder judgment', /scanManifest:[\s\S]*?Promise<ManifestBuilderJudgment>/.test(contract));
+check('runtime operation value is explicitly interface-typed', scanner.includes('export const routeSyncManifestScanOperation: RouteSyncManifestScanOperationInterface'));
+check('flow scan operation calls the builder preparation interface', /scanFlow:[\s\S]*?manifestBuilderOperationPreparation\.prepare\(/.test(scanner));
+check('manifest scan operation calls the builder preparation interface', /scanManifest:[\s\S]*?manifestBuilderOperationPreparation\.prepare\(/.test(scanner));
+check('blocked builder judgment is propagated without success fallback', /return judgment\.kind === 'manifest_builder_blocked'\s*\? judgment/.test(scanner));
+check('public flow facade declares explicit result instead of ReturnType inference', /export function scanRouteSyncManifestFlow\([\s\S]*?\): Promise<RouteSyncManifestFlowScanJudgment>/.test(scanner) && !/scanRouteSyncManifestFlow[\s\S]*?ReturnType</.test(scanner));
+check('public flow facade delegates to operation interface', /export function scanRouteSyncManifestFlow[\s\S]*?return routeSyncManifestScanOperation\.scanFlow\(invocationInventoryReceipt\)/.test(scanner));
+check('public manifest facade delegates to operation interface', /export function scanRouteSyncManifest[\s\S]*?return routeSyncManifestScanOperation\.scanManifest\(invocationInventoryReceipt\)/.test(scanner));
+check('operation and named result types are exported from orchestrator barrel', orchestratorBarrel.includes('routeSyncManifestScanOperation') && orchestratorBarrel.includes('RouteSyncManifestScanOperationInterface') && orchestratorBarrel.includes('RouteSyncManifestFlowScanJudgment') && orchestratorBarrel.includes('RouteSyncManifestFlowCompleteJudgment'));
+check('operation and named result types are exported from core public entrypoint without duplicate contract export', coreIndex.includes('routeSyncManifestScanOperation') && coreIndex.includes('RouteSyncManifestScanOperationInterface') && coreIndex.includes('RouteSyncManifestFlowScanJudgment') && coreIndex.includes('RouteSyncManifestFlowCompleteJudgment') && (coreIndex.match(/export type \{ RouteSyncManifestFlowCompleteJudgment/g) || []).length === 1);
+check('builder preparation implementation remains interface-owned', builder.includes('export const manifestBuilderOperationPreparation: ManifestBuilderOperationPreparationInterface'));
+for (const item of checks) console.log(`${item.ok ? 'PASS' : 'FAIL'} ${item.name}${item.detail ? ` — ${item.detail}` : ''}`);
+console.log(`RESULT ${checks.filter(x => x.ok).length}/${checks.length}`);
+if (checks.some(x => !x.ok)) process.exitCode = 1;

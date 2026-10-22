@@ -1,0 +1,48 @@
+{
+  "phase": 1950,
+  "audit": "invocation-contract-execution-closure",
+  "passed": 3,
+  "total": 10,
+  "checks": [
+    {
+      "name": "judgment reasoning contract is version 11 and contains exact outcome closure",
+      "passed": false
+    },
+    {
+      "name": "pipeline-present rule is a closed tuple that excludes not-connected success",
+      "passed": false
+    },
+    {
+      "name": "the authority executes the exact reasoning contract exposed on its interface",
+      "passed": false
+    },
+    {
+      "name": "custom authority construction can receive a domain-compatible reasoning contract",
+      "passed": false
+    },
+    {
+      "name": "response mapping enumerates all four integrated-response ADT variants",
+      "passed": false
+    },
+    {
+      "name": "integrated response projection preserves exact upstream evidence and provenance",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner forwards the exact closed judgment to the canonical parser",
+      "passed": false
+    },
+    {
+      "name": "AST dataflow receives the same judgment and integrated response remains upstream-owned",
+      "passed": false
+    },
+    {
+      "name": "phase 1948 regression audit expects the current version 11 contract",
+      "passed": true
+    },
+    {
+      "name": "phase 1950 audit command is registered",
+      "passed": true
+    }
+  ]
+}

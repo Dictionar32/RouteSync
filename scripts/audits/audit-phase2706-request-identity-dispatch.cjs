@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const sourcePath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts';
+const source = fs.readFileSync(path.join(root, sourcePath), 'utf8');
+const checks = [];
+const check = (name, pass) => { checks.push({ name, pass: Boolean(pass) }); console.log(`${pass ? 'PASS' : 'FAIL'} ${name}`); };
+const start = source.indexOf('const canonicalRequestIdentityImplementation:');
+const end = source.indexOf('\nconst routeReference:', start);
+const operation = source.slice(start, end);
+check('canonical request identity operation dispatches through a named handler table', /canonicalRequestIdentityDispatch\[identity\.kind\]\(identity\)/.test(operation));
+check('identity dispatch has an explicit interface contract', /interface CanonicalRequestIdentityDispatchInterface/.test(source));
+check('HTTP identity has a dedicated typed dispatch handler', /http_request_identity:\s*identity\s*=>/.test(source) && /identityKind: 'http_request_identity'/.test(source));
+check('FormRequest identity has a dedicated typed dispatch handler', /form_request_identity:\s*identity\s*=>/.test(source) && /identityKind: 'form_request_identity'/.test(source));
+check('canonical request identity implementation no longer contains switch dispatch', !/\bswitch\s*\(/.test(operation));
+check('dispatch guards reject mismatched source variants instead of silently coercing them', /HTTP request identity dispatch received a different source variant/.test(source) && /Form request identity dispatch received a different source variant/.test(source));
+check('canonical request identity operation remains part of the actual source evidence inventory', /canonicalRequestIdentity:\s*canonicalRequestIdentityImplementation/.test(source));
+const failed = checks.filter(item => !item.pass);
+console.log(`\nPhase 2706 source dispatch audit: ${checks.length - failed.length}/${checks.length} assertions passed.`);
+console.log('SCOPE: static source assertions only; not a full typecheck or runtime test.');
+if (failed.length) process.exitCode = 1;

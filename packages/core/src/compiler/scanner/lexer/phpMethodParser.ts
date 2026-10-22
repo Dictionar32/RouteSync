@@ -2,8 +2,8 @@ import type { TokenDescriptor } from './phpAstTypes';
 import { createAstIdentifier } from './phpAstTypes';
 import { classifyAstTokens, classifyPhpBlock } from './astClassifier';
 import type { PhpMethodAst, PhpParameterAst, PhpParameterTypeAst } from './phpMethodAstTypes';
-import { relationAll, relationAny, relationEqual, relationGate, relationNone, relationSome, relationIsSome, relationNotEqual, type RelationOption } from '../../../semantic/foundation/semanticRelations';
-import { relationOptionFold, relationSlice, relationTextSlice, relationFirstOption } from '../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationGate, relationNone, relationSome, relationIsSome, relationNotEqual, type RelationOption } from '../../../semantic/relations/semanticRelations';
+import { relationOptionFold, relationSlice, relationTextSlice, relationFirstOption } from '../../../semantic/relations/relationalSequence';
 import { tokenAt, tokenValueEquals, tokenKindEquals } from './tokenEvidence';
 
 export function parsePhpMethod(source: string, tokens: readonly TokenDescriptor[], functionIndex: number): RelationOption<PhpMethodAst> {

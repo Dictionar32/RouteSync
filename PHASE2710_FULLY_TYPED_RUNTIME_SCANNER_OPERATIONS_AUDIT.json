@@ -1,0 +1,45 @@
+{
+  "phase": 2710,
+  "title": "Fully Typed Runtime Scanner Operations \u2014 Structural Upstream Identities",
+  "scope": {
+    "contract": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "runtimeOwner": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts",
+    "verifierConsumer": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceOccurrenceVerification.ts",
+    "upstreamOwned": true,
+    "newStandaloneHelperModule": false
+  },
+  "trace": [
+    "packages/cli/src/commands/scan.ts and sync.ts",
+    "packages/cli/src/manifestScanOperationInterface.ts",
+    "packages/cli/src/upstreamCompositionFactory.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "source-project identity and route selection",
+    "controller source discovery and source-document acquisition",
+    "invocation inventory and semantic judgments",
+    "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts",
+    "Laravel source AST pipeline and complete source model",
+    "manifest_builder_complete or manifest_builder_blocked",
+    "manifest projection only after complete upstream judgment"
+  ],
+  "results": {
+    "structural_identity_audit": "12/12 PASS",
+    "runtime_identity_equality": "4/4 PASS",
+    "phase2703_interface_runtime_audit": "9/9 PASS",
+    "syntax_diagnostics_changed_typescript_files": 0,
+    "targeted_tsc_exit_code": 2,
+    "targeted_tsc_current_diagnostics": 79,
+    "targeted_tsc_baseline_diagnostics": 79,
+    "new_diagnostic_fingerprints": 0,
+    "removed_diagnostic_fingerprints": 0,
+    "vitest": "NOT RUN",
+    "cli_scan_sync_e2e": "NOT RUN",
+    "complete_34_law_proof_verification": "NOT CLAIMED"
+  },
+  "remaining": [
+    "Serialized semanticKey comparisons remain in some verifier and ledger-projection laws.",
+    "Occurrence identity remains represented as serialized template-literal strings; migrate identity authority to structural source coordinates.",
+    "Existing source-occurrence proof-evidence type diagnostics remain in the baseline.",
+    "Exported functions remain in unrelated CLI generator/annotation modules outside the audited upstream manifest-forming path.",
+    "Full typecheck, Vitest, and CLI scan/sync integration remain unverified."
+  ]
+}

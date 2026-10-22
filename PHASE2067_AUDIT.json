@@ -1,0 +1,57 @@
+{
+  "phase": 2067,
+  "title": "Controller Dataflow Context Contract Interface First",
+  "passed": 10,
+  "total": 12,
+  "checks": [
+    {
+      "name": "dataflow construction has one named input contract",
+      "passed": false
+    },
+    {
+      "name": "dataflow constructor no longer accepts unused positional parameters or default semantic context",
+      "passed": true
+    },
+    {
+      "name": "nested evidence projection receives explicit context ADT",
+      "passed": true
+    },
+    {
+      "name": "canonical AST projection explicitly marks unavailable lexical context",
+      "passed": true
+    },
+    {
+      "name": "descriptor boundary closes optional context once before entering dataflow contract",
+      "passed": false
+    },
+    {
+      "name": "origin interface preserves explicit available/unavailable context evidence",
+      "passed": true
+    },
+    {
+      "name": "same existing upstream class-name authority remains responsible for resolution",
+      "passed": true
+    },
+    {
+      "name": "invocation semantic judgment remains the existing contract",
+      "passed": true
+    },
+    {
+      "name": "integrated response continues to retain invocation response correlation",
+      "passed": true
+    },
+    {
+      "name": "runtime executor remains delegation-only",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner or duplicate authority was introduced",
+      "passed": true
+    },
+    {
+      "name": "phase audit is registered",
+      "passed": true
+    }
+  ],
+  "verificationScope": "structural source audit only; full typecheck/build/Vitest not asserted"
+}

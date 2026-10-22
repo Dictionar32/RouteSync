@@ -1,0 +1,85 @@
+{
+  "phase": 2699,
+  "audit": "fully-typed-runtime-scanner-operations",
+  "passed": 14,
+  "total": 14,
+  "syntaxFiles": 5,
+  "syntaxPassed": 5,
+  "checks": [
+    {
+      "name": "projection factory has a named interface with a fully typed create contract",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "projection factory is exported as one frozen interface-typed runtime object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "legacy exported projection factory function is removed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "scan and sync use the typed factory object on the live runtime path",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "integrated manifest authority uses the same typed projection factory",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "public core boundary exports the factory object and its interface",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI scan and sync both request the canonical upstream manifest operation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "projection is gated on the closed projected result; blocked judgments remain explicit",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "source acquisition remains interface-first and canonical for semantic source AST evidence",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/routeManifestProjectionComposition.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/cli/src/commands/scan.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/cli/src/commands/sync.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/integratedRouteManifestAuthority.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/index.ts",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "typecheck": "full project typecheck not run",
+  "notes": [
+    "Structural and transpile syntax checks do not prove full TypeScript type compatibility or runtime CLI integration.",
+    "The production RequestType semantic reasoning/verifier gap documented in Phase 2636 remains unresolved and must continue to fail closed."
+  ]
+}

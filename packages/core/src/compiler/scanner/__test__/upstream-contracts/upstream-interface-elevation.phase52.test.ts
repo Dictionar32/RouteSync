@@ -1,6 +1,6 @@
 import type { RouteAst } from '../../../../types/upstream/ast';
 import type { RouteDefinition, RouteProducer, RouteProducerInput } from '../../../../types/upstream/route';
-import { routeProducer } from '../../subscanners/routeProducer';
+import { routeProducer } from '../../../../types/upstream/routeProducer';
 
 // Phase 52: RouteAst remains a construction artifact while semantic flow stays AST-free.
 const semanticProducer: RouteProducer = {

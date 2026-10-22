@@ -1,0 +1,66 @@
+{
+  "phase": 1383,
+  "audit": "runtime-closed-contract-executor",
+  "passedChecks": 9,
+  "totalChecks": 11,
+  "checks": [
+    {
+      "name": "Upstream manifest surface owns closed judgment production",
+      "passed": false
+    },
+    {
+      "name": "Builder computes judgments from the exact input sequence once",
+      "passed": false
+    },
+    {
+      "name": "Manifest contract carries closed judgments as first-class output",
+      "passed": true
+    },
+    {
+      "name": "Validated flow transports judgments unchanged",
+      "passed": true
+    },
+    {
+      "name": "Analysis surface projection transports judgments unchanged",
+      "passed": true
+    },
+    {
+      "name": "Runtime wiring accepts closed judgment, never raw input",
+      "passed": true
+    },
+    {
+      "name": "Runtime composition contains no semantic authority import or judge call",
+      "passed": true
+    },
+    {
+      "name": "Adapter is a pure projection and preserves the same judgment/proof",
+      "passed": true
+    },
+    {
+      "name": "Pipeline only projects closed judgments",
+      "passed": true
+    },
+    {
+      "name": "Route analysis looks up the upstream judgment, not an input seed",
+      "passed": true
+    },
+    {
+      "name": "Package version and build command remain unchanged",
+      "passed": true
+    }
+  ],
+  "architecture": {
+    "upstream": "input seeds -> semantic authority -> closed judgments + derivation evidence",
+    "wiring": "manifest/flow projections transport judgments without recomputation",
+    "runtime": "closed judgment -> read-only DataFlowAuthorityInterface projection",
+    "prohibitedRuntimeResponsibilities": [
+      "seed classification",
+      "judgment construction",
+      "fixed-point closure",
+      "proof synthesis"
+    ]
+  },
+  "limitations": [
+    "Static source-contract audit only; TypeScript build and runtime tests must be executed in an environment with dependencies available."
+  ]
+}

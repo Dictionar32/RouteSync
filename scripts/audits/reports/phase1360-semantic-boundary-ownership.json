@@ -1,0 +1,123 @@
+{
+  "phase": 1360,
+  "audit": "semantic-boundary-ownership",
+  "purpose": "Trace real ownership and consumers for remaining semantic-boundary candidates without fabricating consumers, duplicating semantic authorities, or reclassifying in downstream layers.",
+  "checks": [
+    {
+      "name": "ControllerExpressionFact is currently a declaration-only contract, not a discovered producer-consumer path",
+      "ok": true
+    },
+    {
+      "name": "ExpressionDefinition is currently a declaration-only expression-plus-source contract",
+      "ok": true
+    },
+    {
+      "name": "ValidationRuleDefinition is distinct from the active domain ValidationRuleNode pipeline",
+      "ok": true
+    },
+    {
+      "name": "The active validation path uses explicit domain rule contracts rather than silently consuming ValidationRuleDefinition",
+      "ok": true
+    },
+    {
+      "name": "SchemaRelationTarget is not consumed as the active schema relation authority",
+      "ok": true
+    },
+    {
+      "name": "Schema relation authority is represented by SchemaRelationInterface and SchemaRelationIndexInterface",
+      "ok": true
+    },
+    {
+      "name": "Canonical model semantic construction consumes schemaRelationIndexFrom rather than reconstructing SchemaRelationTarget",
+      "ok": true
+    },
+    {
+      "name": "RouteConstraintFlow has no active producer/consumer while routeDataFlow owns active constraint facts",
+      "ok": false
+    },
+    {
+      "name": "ApiResourceAction is a declaration-only alias and resource action plan remains the semantic output",
+      "ok": true
+    },
+    {
+      "name": "Phase 1359 source-boundary algebra remains representation-only",
+      "ok": true
+    },
+    {
+      "name": "Manifest wiring validates complete AST before building the canonical Laravel source model",
+      "ok": false
+    },
+    {
+      "name": "DataFlowInterface separates producer and consumer authority contracts",
+      "ok": true
+    },
+    {
+      "name": "IR consumes semantic dataflow authority while structural graph uses GraphEdgeRelation projection",
+      "ok": true
+    },
+    {
+      "name": "CLI and SDK consume explicit operation identity instead of classifying HTTP methods/actions",
+      "ok": true
+    },
+    {
+      "name": "No artificial references or new semantic bridge were added to silence declaration-only findings",
+      "ok": true
+    },
+    {
+      "name": "Package build script remains unchanged as tsdown and declared TypeScript target remains 7.0.2",
+      "ok": true
+    }
+  ],
+  "passedChecks": 14,
+  "totalChecks": 16,
+  "findings": [
+    {
+      "contract": "ControllerExpressionFact",
+      "status": "declaration_only",
+      "decision": "Preserve the public contract; do not add a producer until the canonical controller-expression producer and missing consumer are demonstrated.",
+      "next": "Trace ControllerSemanticDataflow variables/resources and controller AST canonicalization before deciding whether this fact is redundant."
+    },
+    {
+      "contract": "ExpressionDefinition",
+      "status": "declaration_only",
+      "decision": "Keep as a type-only provenance pair unless a consumer needs a named expression boundary; avoid wrapping every Expression in a duplicate contract.",
+      "next": "Compare against existing Expression.source and source-backed AST/ADT traversal."
+    },
+    {
+      "contract": "ValidationRuleDefinition",
+      "status": "parallel_vocabulary",
+      "decision": "Do not adapt it into the active validation path yet; the active path uses ValidationRuleNode, ValidationRuleParser and form-request descriptors.",
+      "next": "Design a single owner/migration plan before any Laravel-rule-to-Zod projection change."
+    },
+    {
+      "contract": "SchemaRelationTarget",
+      "status": "redundant_candidate",
+      "decision": "Do not wire a second table/model tuple while SchemaRelationInterface and SchemaRelationIndexInterface own schema evidence and indexing.",
+      "next": "Only revive if a consumer requires a distinct target identity not expressible through existing relation evidence."
+    },
+    {
+      "contract": "RouteConstraintFlow",
+      "status": "disconnected_contract",
+      "decision": "Preserve file in place; active route constraint evidence is carried by routeDataFlow and RouteDeclarationAst.",
+      "next": "Compare source provenance and effective constraint merge semantics before any consolidation."
+    },
+    {
+      "contract": "ApiResourceAction",
+      "status": "narrow_alias_unconsumed",
+      "decision": "Preserve alias and file; do not make the resource action table depend on it merely to create a reference.",
+      "next": "Review only if a public API needs the narrower API-resource action set."
+    }
+  ],
+  "architecture": {
+    "sourceToManifest": "Laravel source -> CompleteSourceAst validation -> CompleteLaravelSourceModel -> manifest/dataflow seeds",
+    "validation": "Laravel validation evidence -> current domain ValidationRuleNode/ValidationRuleParser path -> existing schema/IR target projection; ValidationRuleDefinition is not wired in this phase",
+    "schema": "SchemaInterface -> schemaRelationIndexFrom -> SchemaRelationIndexInterface -> model semantic relation construction",
+    "dataflow": "SemanticDataflowInput -> DataFlow authority/consumer interface -> IR projection; structural relations -> GraphEdgeRelation -> graph projection",
+    "downstream": "Capability/identity projection -> CLI -> SDK -> React hooks; transport, validation, mapping and cache concerns remain target-runtime responsibilities"
+  },
+  "validationLimits": [
+    "Static source-contract audit only; not a full build or runtime test.",
+    "Environment has TypeScript 5.8.3 globally and package.json declares 7.0.2; no local node_modules or tsdown executable is available.",
+    "Official TypeScript 7.0 announcement states TypeScript 7.0 does not ship a programmatic API; API-dependent audits should use the compatibility package/API version appropriate to their needs rather than assuming the 7.0 compiler exposes the TypeScript 5.x Compiler API."
+  ]
+}

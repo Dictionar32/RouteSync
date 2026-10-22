@@ -7,11 +7,12 @@ import {
     type PrimitiveType, type GenericParameter, type SemanticType, type ScannedObjectProperty
 } from './semanticType';
 import {
+    relationAny,
     relationProject,
     relationSequenceToArray,
     relationResolve,
     relationVariantFold,
-} from '../../semantic/foundation/relationalSequence';
+} from '../../semantic/relations/relationalSequence';
 
 /**
  * Canonical TypeExpression -> SemanticType lowering.
@@ -136,7 +137,7 @@ function primitiveByProjection(projection: ReturnType<typeof resolvePrimitivePro
         Object.is(projection, 'string'),
         () => primitiveType(PrimitiveKind.STRING),
         () => relationResolve(
-            Object.is(projection, 'number'),
+            relationAny([Object.is(projection, 'number'), Object.is(projection, 'integer'), Object.is(projection, 'decimal')]),
             () => primitiveType(PrimitiveKind.NUMBER),
             () => relationResolve(
                 Object.is(projection, 'boolean'),

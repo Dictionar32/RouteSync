@@ -3,9 +3,9 @@
  */
 import type { SemanticType } from '../../../types/domain/semanticType';
 import { SemanticTypeFactory } from '../../../types/domain/semanticType';
-import { relationResolve, relationFirstOption, type RelationOption } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationUnique, type RelationMembership } from '../../../semantic/foundation/relationMembership';
+import { relationResolve, relationFirstOption, type RelationOption } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
+import { relationUnique, type RelationMembership } from '../../../semantic/relations/relationMembership';
 import type { VariableState } from '../TypeEnvironment';
 
 export function joinTypes(types: RelationMembership<SemanticType>): RelationOption<SemanticType> {

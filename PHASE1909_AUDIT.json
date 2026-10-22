@@ -1,0 +1,25 @@
+{
+  "phase": 1909,
+  "name": "laravel-controller-binding-payload-judgment",
+  "status": "PASS_WITH_REMAINING_RUNTIME_MIGRATION",
+  "checks": {
+    "static_audit": "pass_8_of_8",
+    "build": "not_run",
+    "typecheck": "not_run",
+    "tests": "not_run"
+  },
+  "completed": [
+    "closed upstream matched/missing/ambiguous correspondence judgment model",
+    "canonical file-and-span payload correspondence",
+    "synthetic unsupported-expression fallback removed",
+    "correspondence outcomes retained on controller dataflow model",
+    "exact invocation judgment and integrated response preserved"
+  ],
+  "remaining": [
+    "move correspondence execution behind an upstream authority",
+    "move variable-origin normalization behind an upstream semantic judgment",
+    "move PHP-to-upstream expression projection to source adapter contract",
+    "move variable grouping to canonical upstream data model or contract",
+    "trace every production consumer and verify typecheck/tests in user's supported environment"
+  ]
+}

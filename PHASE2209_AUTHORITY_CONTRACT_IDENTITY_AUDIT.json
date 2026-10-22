@@ -1,0 +1,22 @@
+{
+  "phase": 2209,
+  "title": "Authority Contract Identity and Laravel Scanner Trace",
+  "baseline": "RouteSync-Phase2208-Authority-Interface-First-Model.zip",
+  "changes": [
+    "Expose batchContract separately on InvocationSemanticRuntimeExecutorInterface.",
+    "Wire batchContract from the declared batch authority without adding semantic inference to the executor.",
+    "Add regression test asserting both current invocation authorities share the canonical contract identity.",
+    "Document exact invocation/integrated-response/HTTP-response/AST-projection ownership and remaining Laravel scanner gaps."
+  ],
+  "open_gaps": [
+    "scanControllerAction and resolveControllerActionContract still own legacy action derivations.",
+    "ChannelScanner.scanCanonicalAsts remains directly called without source-backed client-subscription evidence.",
+    "semantic/relations remains widely used; no replacement layer was added."
+  ],
+  "verification": {
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run",
+    "npm_run_build": "not_run"
+  }
+}

@@ -8,6 +8,7 @@
  */
 
 import type { SourceSpan } from './provenance';
+import type { PhpAstExpressionKind } from './phpAstSyntaxKind';
 import type {
   AstDerivation,
   AstDiagnostic,
@@ -31,11 +32,14 @@ import {
   relationEqual,
   relationFixedPoint,
   relationFold,
+  relationSelect,
   relationProject,
   relationResolve,
   relationVariantFold,
-} from '../../semantic/foundation/relationalSequence';
-import { relationUnique } from '../../semantic/foundation/relationMembership';
+} from '../../semantic/relations/relationalSequence';
+import { relationUnique } from '../../semantic/relations/relationMembership';
+import { numberValue, stringValue, type NumberValue, type StringValue } from './valueObjects';
+import { semanticReasoningContract, type SemanticReasoningContract } from './semanticReasoning';
 
 export type AstSemanticStage =
   | 'scanner_evidence'
@@ -61,7 +65,8 @@ export type AstSemanticTerm =
   | { readonly kind: 'rule'; readonly value: AstRuleName }
   | { readonly kind: 'witness'; readonly value: AstWitnessName }
   | { readonly kind: 'stage'; readonly value: AstSemanticStage }
-  | { readonly kind: 'text'; readonly value: string };
+  | { readonly kind: 'text'; readonly value: string }
+  | { readonly kind: 'syntax'; readonly value: PhpAstExpressionKind };
 
 export type AstSemanticFact = {
   readonly kind: 'ast_semantic_fact';
@@ -97,13 +102,174 @@ export type AstSemanticDerivation = {
   readonly conclusions: readonly AstSemanticFact[];
 };
 
-export type AstSemanticClosure = {
-  readonly kind: 'ast_semantic_closure';
-  readonly facts: AstSemanticFacts;
-  readonly derivations: readonly AstSemanticDerivation[];
-  readonly rounds: number;
-  readonly converged: boolean;
-};
+/** Closure-specific derivations carry an explicit round for well-founded replay. */
+export type AstSemanticClosureDerivation = AstSemanticDerivation & Readonly<{
+  readonly round: AstSemanticRoundCount;
+}>;
+
+/** Domain identity: the tag prevents unrelated identity classes being interchanged. */
+export type AstSemanticRequestIdentity = Readonly<{
+  readonly kind: 'ast_semantic_request_identity';
+  readonly value: StringValue;
+}>;
+export type AstSemanticSeedSnapshotIdentity = Readonly<{
+  readonly kind: 'ast_semantic_seed_snapshot_identity';
+  readonly canonicalForm: StringValue;
+}>;
+export type AstSemanticRuleSetIdentity = Readonly<{
+  readonly kind: 'ast_semantic_rule_set_identity';
+  readonly canonicalForm: StringValue;
+}>;
+export type AstSemanticFactSetIdentity = Readonly<{
+  readonly kind: 'ast_semantic_fact_set_identity';
+  readonly canonicalForm: StringValue;
+}>;
+export type AstSemanticDerivationLedgerIdentity = Readonly<{
+  readonly kind: 'ast_semantic_derivation_ledger_identity';
+  readonly canonicalForm: StringValue;
+}>;
+export type AstSemanticRoundLimit = Readonly<{
+  readonly kind: 'ast_semantic_round_limit';
+  readonly value: NumberValue;
+}>;
+export type AstSemanticRoundCount = Readonly<{
+  readonly kind: 'ast_semantic_round_count';
+  readonly value: NumberValue;
+}>;
+
+export const astSemanticRequestIdentity = (value: string): AstSemanticRequestIdentity => Object.freeze({
+  kind: 'ast_semantic_request_identity',
+  value: stringValue(value),
+});
+export const astSemanticRoundLimit = (value: number): AstSemanticRoundLimit => Object.freeze({
+  kind: 'ast_semantic_round_limit',
+  value: numberValue(value),
+});
+const astSemanticRoundCount = (value: number): AstSemanticRoundCount => Object.freeze({
+  kind: 'ast_semantic_round_count',
+  value: numberValue(value),
+});
+const astSemanticSeedSnapshotIdentity = (canonicalForm: string): AstSemanticSeedSnapshotIdentity => Object.freeze({
+  kind: 'ast_semantic_seed_snapshot_identity', canonicalForm: stringValue(canonicalForm),
+});
+const astSemanticRuleSetIdentity = (canonicalForm: string): AstSemanticRuleSetIdentity => Object.freeze({
+  kind: 'ast_semantic_rule_set_identity', canonicalForm: stringValue(canonicalForm),
+});
+const astSemanticFactSetIdentity = (canonicalForm: string): AstSemanticFactSetIdentity => Object.freeze({
+  kind: 'ast_semantic_fact_set_identity', canonicalForm: stringValue(canonicalForm),
+});
+const astSemanticDerivationLedgerIdentity = (canonicalForm: string): AstSemanticDerivationLedgerIdentity => Object.freeze({
+  kind: 'ast_semantic_derivation_ledger_identity', canonicalForm: stringValue(canonicalForm),
+});
+
+/**
+ * Closure input is named so the rule set, seed evidence, and termination bound
+ * form one explicit domain contract. Numeric and identity fields are value
+ * objects, not interchangeable primitive fields. Invalid limits remain
+ * representable so the authority can return a typed incomplete outcome.
+ */
+export type AstSemanticClosureRequest = Readonly<{
+  readonly kind: 'ast_semantic_closure_request';
+  readonly requestIdentity: AstSemanticRequestIdentity;
+  readonly seed: AstSemanticFacts;
+  readonly rules: readonly AstSemanticRule[];
+  readonly roundLimit: AstSemanticRoundLimit;
+}>;
+
+/**
+ * A closure is final only when the authority has observed a fixed point.
+ * Reaching the iteration bound is not equivalent to semantic closure.
+ */
+export type AstSemanticClosure =
+  | {
+      readonly kind: 'ast_semantic_closure';
+      readonly status: 'closed';
+      readonly requestIdentity: AstSemanticRequestIdentity;
+      readonly seedSnapshotIdentity: AstSemanticSeedSnapshotIdentity;
+      readonly ruleSetIdentity: AstSemanticRuleSetIdentity;
+      readonly factSetIdentity: AstSemanticFactSetIdentity;
+      readonly derivationLedgerIdentity: AstSemanticDerivationLedgerIdentity;
+      readonly facts: AstSemanticFacts;
+      readonly derivations: readonly AstSemanticClosureDerivation[];
+      readonly rounds: AstSemanticRoundCount;
+      readonly certificate: {
+        readonly kind: 'ast_semantic_fixed_point_certificate';
+        readonly stableFacts: true;
+        readonly rulesExhausted: true;
+        readonly requestIdentity: AstSemanticRequestIdentity;
+        readonly seedSnapshotIdentity: AstSemanticSeedSnapshotIdentity;
+        readonly ruleSetIdentity: AstSemanticRuleSetIdentity;
+        readonly factSetIdentity: AstSemanticFactSetIdentity;
+        readonly derivationLedgerIdentity: AstSemanticDerivationLedgerIdentity;
+      };
+    }
+  | {
+      readonly kind: 'ast_semantic_closure';
+      readonly status: 'incomplete';
+      readonly requestIdentity: AstSemanticRequestIdentity;
+      readonly seedSnapshotIdentity: AstSemanticSeedSnapshotIdentity;
+      readonly ruleSetIdentity: AstSemanticRuleSetIdentity;
+      readonly factSetIdentity: AstSemanticFactSetIdentity;
+      readonly derivationLedgerIdentity: AstSemanticDerivationLedgerIdentity;
+      readonly reason: 'invalid_round_limit' | 'round_limit_reached';
+      readonly facts: AstSemanticFacts;
+      readonly derivations: readonly AstSemanticClosureDerivation[];
+      readonly rounds: AstSemanticRoundCount;
+      readonly roundLimit: AstSemanticRoundLimit;
+    };
+
+/**
+ * Verifies closure-to-request binding and ledger integrity. This is a structural
+ * verifier, not a cryptographic authenticity check and not a replacement for
+ * checking the semantic soundness of every rule implementation.
+ */
+export type AstSemanticClosureVerification =
+  | Readonly<{
+      readonly kind: 'ast_semantic_closure_verification';
+      readonly status: 'verified';
+      readonly requestIdentity: AstSemanticRequestIdentity;
+      readonly seedSnapshotIdentity: AstSemanticSeedSnapshotIdentity;
+      readonly ruleSetIdentity: AstSemanticRuleSetIdentity;
+      readonly factSetIdentity: AstSemanticFactSetIdentity;
+      readonly derivationLedgerIdentity: AstSemanticDerivationLedgerIdentity;
+    }>
+  | Readonly<{
+      readonly kind: 'ast_semantic_closure_verification';
+      readonly status: 'rejected';
+      readonly reason:
+        | 'incomplete_closure'
+        | 'invalid_closed_round_bound'
+        | 'seed_fact_missing_from_closure'
+        | 'request_identity_mismatch'
+        | 'seed_snapshot_mismatch'
+        | 'rule_set_mismatch'
+        | 'fact_set_mismatch'
+        | 'derivation_ledger_mismatch'
+        | 'certificate_binding_mismatch'
+        | 'derivation_rule_unknown'
+        | 'derivation_premise_mismatch'
+        | 'derivation_premise_not_in_closure'
+        | 'derivation_conclusion_mismatch'
+        | 'duplicate_rule_identity'
+        | 'derivation_replay_mismatch';
+    }>;
+
+/** A closure result accepted only after replayable proof verification. */
+export type AstSemanticClosureAssessment =
+  | Readonly<{
+      readonly kind: 'ast_semantic_closure_assessment';
+      readonly status: 'accepted';
+      readonly closure: Extract<AstSemanticClosure, { readonly status: 'closed' }>;
+      readonly verification: Extract<AstSemanticClosureVerification, { readonly status: 'verified' }>;
+      readonly reasoning: SemanticReasoningContract<'declarative_relation_rewrite_fixed_point'>;
+    }>
+  | Readonly<{
+      readonly kind: 'ast_semantic_closure_assessment';
+      readonly status: 'rejected';
+      readonly closure: AstSemanticClosure;
+      readonly verification: Extract<AstSemanticClosureVerification, { readonly status: 'rejected' }>;
+      readonly reasoning: SemanticReasoningContract<'declarative_relation_rewrite_fixed_point'>;
+    }>;
 
 export type AstSemanticJudgment = {
   readonly kind: 'ast_semantic_judgment';
@@ -122,6 +288,8 @@ export type AstSemanticProjection = {
 };
 
 export type AstSemanticInterface = {
+  /** Declares the reasoning strategy that owns closure and proof replay. */
+  readonly reasoning: SemanticReasoningContract<'declarative_relation_rewrite_fixed_point'>;
   readonly fact: (
     stage: AstSemanticStage,
     relation: AstSemanticRelationName,
@@ -136,11 +304,24 @@ export type AstSemanticInterface = {
     diagnostics: readonly AstDiagnostic[],
     derivation: AstDerivation,
   ) => AstSemanticJudgment;
-  readonly close: (
-    seed: AstSemanticFacts,
-    rules: readonly AstSemanticRule[],
-    maxRounds: number,
-  ) => AstSemanticClosure;
+  /**
+   * Contract laws:
+   * - every recorded derivation's premises must be contained in the facts
+   *   available before that rule application;
+   * - every recorded conclusion must belong to the named rule;
+   * - duplicate facts are canonicalized by relation identity;
+   * - `status: closed` is permitted only at a fixed point after all rules have
+   *   been reconsidered; exhausting the bound must return `incomplete`;
+   * - an invalid bound must never be represented as a successful closure.
+   */
+  readonly close: (request: AstSemanticClosureRequest) => AstSemanticClosure;
+  /** Rebinds a closure to its exact request and verifies its structural ledger. */
+  readonly verifyClosure: (
+    request: AstSemanticClosureRequest,
+    closure: AstSemanticClosure,
+  ) => AstSemanticClosureVerification;
+  /** Close and verify as one authority operation; consumers cannot accidentally treat an unverified closure as accepted. */
+  readonly closeVerified: (request: AstSemanticClosureRequest) => AstSemanticClosureAssessment;
   readonly project: (
     facts: AstSemanticFacts,
   ) => AstSemanticProjection;
@@ -171,6 +352,10 @@ const semanticFactKey = (fact: AstSemanticFact): string => JSON.stringify([
   fact.object,
 ]);
 
+/** Canonical set identity is independent of evidence/rule declaration order. */
+const canonicalSetIdentity = <Value>(values: readonly Value[], key: (value: Value) => string): string =>
+  JSON.stringify([...relationProject(values, key)].sort());
+
 const semanticFactEqual = (left: AstSemanticFact, right: AstSemanticFact): boolean => relationEqual(semanticFactKey(left), semanticFactKey(right));
 
 const appendFacts = (left: AstSemanticFacts, right: AstSemanticFacts): AstSemanticFacts => astSemanticFacts([
@@ -182,39 +367,254 @@ const ruleMatches = (facts: AstSemanticFacts, rule: AstSemanticRule): boolean =>
   relationProject(rule.premises, premise => relationAny(relationProject(facts.items, fact => semanticFactEqual(premise, fact)))),
 );
 
-const applyRules = (facts: AstSemanticFacts, rules: readonly AstSemanticRule[]): AstSemanticFacts => {
-  const emissions = relationProject(
-    rules,
-    rule => relationResolve(
-      ruleMatches(facts, rule),
-      () => astSemanticFacts(rule.conclusions),
-      () => astSemanticFacts([]),
-    ),
-  );
-  return relationFold(emissions, astSemanticFacts([]), (state, entry) => appendFacts(state, entry));
+type AstSemanticClosureState = Readonly<{
+  facts: AstSemanticFacts;
+  derivations: readonly AstSemanticClosureDerivation[];
+  round: number;
+}>;
+
+const ruleDerivation = (
+  rule: AstSemanticRule,
+  round: number,
+  conclusions: readonly AstSemanticFact[],
+): AstSemanticClosureDerivation => Object.freeze({
+  kind: 'ast_semantic_derivation',
+  rule: rule.name,
+  round: astSemanticRoundCount(round),
+  witness: Object.freeze({
+    kind: 'ast_witness',
+    value: stringValue(`${rule.name.value.value}@round:${round}`),
+  }),
+  premises: Object.freeze(relationProject(rule.premises, fact => Object.freeze({
+    kind: 'ast_semantic_premise' as const,
+    fact,
+  }))),
+  conclusions: Object.freeze(conclusions),
+});
+
+const deriveRuleApplications = (
+  facts: AstSemanticFacts,
+  rules: readonly AstSemanticRule[],
+  round: number,
+): AstSemanticClosureState => {
+  const matched = relationSelect(rules, rule => ruleMatches(facts, rule));
+  const applications = relationProject(matched, rule => {
+    const freshConclusions = relationSelect(rule.conclusions, conclusion =>
+      !relationAny(relationProject(facts.items, existing => semanticFactEqual(existing, conclusion))),
+    );
+    return Object.freeze({
+      facts: astSemanticFacts(freshConclusions),
+      derivation: freshConclusions.length > 0 ? ruleDerivation(rule, round, freshConclusions) : undefined,
+    });
+  });
+  return relationFold(applications, Object.freeze({ facts: astSemanticFacts([]), derivations: Object.freeze([]), round }) as AstSemanticClosureState,
+    (state, application) => Object.freeze({
+      facts: appendFacts(state.facts, application.facts),
+      derivations: application.derivation === undefined
+        ? state.derivations
+        : Object.freeze([...state.derivations, application.derivation]),
+      round: state.round,
+    }));
 };
 
-const closeFacts = (
-  seed: AstSemanticFacts,
-  rules: readonly AstSemanticRule[],
-  maxRounds: number,
-): AstSemanticClosure => {
-  const fixed = relationFixedPoint(
-    seed,
-    current => appendFacts(current, applyRules(current, rules)),
-    (left, right) => relationEqual(
-      JSON.stringify(relationProject(left.items, semanticFactKey)),
-      JSON.stringify(relationProject(right.items, semanticFactKey)),
-    ),
-    maxRounds,
-  );
+const sameIdentity = (left: { readonly value?: StringValue; readonly canonicalForm?: StringValue }, right: { readonly value?: StringValue; readonly canonicalForm?: StringValue }): boolean =>
+  (left.value?.value ?? left.canonicalForm?.value) === (right.value?.value ?? right.canonicalForm?.value);
+
+const verifyClosure = (
+  request: AstSemanticClosureRequest,
+  closure: AstSemanticClosure,
+): AstSemanticClosureVerification => {
+  if (closure.status !== 'closed') {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'incomplete_closure' });
+  }
+  const requestedRoundLimit = request.roundLimit.value.value;
+  const completedRounds = closure.rounds.value.value;
+  if (!Number.isSafeInteger(requestedRoundLimit) || requestedRoundLimit < 1
+    || !Number.isSafeInteger(completedRounds) || completedRounds < 1 || completedRounds > requestedRoundLimit) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'invalid_closed_round_bound' });
+  }
+  if (!sameIdentity(request.requestIdentity, closure.requestIdentity)) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'request_identity_mismatch' });
+  }
+  const expectedSeed = astSemanticSeedSnapshotIdentity(canonicalSetIdentity(request.seed.items, semanticFactKey));
+  if (!sameIdentity(expectedSeed, closure.seedSnapshotIdentity)) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'seed_snapshot_mismatch' });
+  }
+  const expectedRules = astSemanticRuleSetIdentity(canonicalSetIdentity(request.rules, rule => JSON.stringify([rule.name, rule.stage, canonicalSetIdentity(rule.premises, semanticFactKey), canonicalSetIdentity(rule.conclusions, semanticFactKey)])));
+  if (!sameIdentity(expectedRules, closure.ruleSetIdentity)) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'rule_set_mismatch' });
+  }
+  if (relationAny(relationProject(request.seed.items, seedFact => !relationAny(relationProject(closure.facts.items, fact => semanticFactEqual(seedFact, fact)))))) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'seed_fact_missing_from_closure' });
+  }
+  const expectedFacts = astSemanticFactSetIdentity(canonicalSetIdentity(closure.facts.items, semanticFactKey));
+  if (!sameIdentity(expectedFacts, closure.factSetIdentity)) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'fact_set_mismatch' });
+  }
+  const expectedLedger = astSemanticDerivationLedgerIdentity(JSON.stringify(relationProject(closure.derivations, derivation => JSON.stringify([derivation.rule, derivation.round, derivation.witness, relationProject(derivation.premises, premise => semanticFactKey(premise.fact)), relationProject(derivation.conclusions, semanticFactKey)]))));
+  if (!sameIdentity(expectedLedger, closure.derivationLedgerIdentity)) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'derivation_ledger_mismatch' });
+  }
+  const certificate = closure.certificate;
+  if (
+    !sameIdentity(certificate.requestIdentity, closure.requestIdentity) ||
+    !sameIdentity(certificate.seedSnapshotIdentity, closure.seedSnapshotIdentity) ||
+    !sameIdentity(certificate.ruleSetIdentity, closure.ruleSetIdentity) ||
+    !sameIdentity(certificate.factSetIdentity, closure.factSetIdentity) ||
+    !sameIdentity(certificate.derivationLedgerIdentity, closure.derivationLedgerIdentity) ||
+    certificate.stableFacts !== true || certificate.rulesExhausted !== true
+  ) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'certificate_binding_mismatch' });
+  }
+  const ruleNames = relationProject(request.rules, rule => rule.name.value.value);
+  if (new Set(ruleNames).size !== ruleNames.length) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'duplicate_rule_identity' });
+  }
+
+  // Replay the derivation ledger from the seed, round by round. A fact derived
+  // in round N cannot justify a premise until round N+1; this prevents cyclic
+  // or otherwise unsupported facts from being accepted merely because they
+  // appear in the final fact set.
+  const derivationKey = (rule: AstRuleName, round: number): string =>
+    JSON.stringify([rule.value.value, round]);
+  const recordedByKey = new Map<string, AstSemanticClosureDerivation>();
+  for (const derivation of closure.derivations) {
+    const round = derivation.round.value.value;
+    if (!Number.isSafeInteger(round) || round < 1 || round > completedRounds) {
+      return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'derivation_replay_mismatch' });
+    }
+    const key = derivationKey(derivation.rule, round);
+    if (recordedByKey.has(key)) {
+      return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'derivation_replay_mismatch' });
+    }
+    recordedByKey.set(key, derivation);
+  }
+
+  let replayFacts = request.seed;
+  const replayedDerivationKeys = new Set<string>();
+  for (let round = 1; round <= completedRounds; round += 1) {
+    const roundStartFacts = replayFacts;
+    const roundConclusions: AstSemanticFact[] = [];
+    for (const rule of request.rules) {
+      if (!ruleMatches(roundStartFacts, rule)) continue;
+      const freshConclusions = relationSelect(rule.conclusions, conclusion =>
+        !relationAny(relationProject(roundStartFacts.items, existing => semanticFactEqual(existing, conclusion))),
+      );
+      if (freshConclusions.length === 0) continue;
+      const key = derivationKey(rule.name, round);
+      const derivation = recordedByKey.get(key);
+      if (derivation === undefined) {
+        return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'derivation_replay_mismatch' });
+      }
+      const expectedPremises = canonicalSetIdentity(rule.premises, semanticFactKey);
+      const recordedPremises = canonicalSetIdentity(relationProject(derivation.premises, premise => premise.fact), semanticFactKey);
+      const expectedConclusions = canonicalSetIdentity(freshConclusions, semanticFactKey);
+      const recordedConclusions = canonicalSetIdentity(derivation.conclusions, semanticFactKey);
+      const expectedWitness = `${rule.name.value.value}@round:${round}`;
+      if (
+        derivation.rule.value.value !== rule.name.value.value ||
+        expectedPremises !== recordedPremises ||
+        expectedConclusions !== recordedConclusions ||
+        derivation.witness.value.value !== expectedWitness
+      ) {
+        return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'derivation_replay_mismatch' });
+      }
+      replayedDerivationKeys.add(key);
+      roundConclusions.push(...freshConclusions);
+    }
+    replayFacts = appendFacts(roundStartFacts, astSemanticFacts(roundConclusions));
+  }
+  if (
+    replayedDerivationKeys.size !== recordedByKey.size ||
+    canonicalSetIdentity(replayFacts.items, semanticFactKey) !== canonicalSetIdentity(closure.facts.items, semanticFactKey)
+  ) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'derivation_replay_mismatch' });
+  }
+  // A claimed fixed point must have no enabled rule with a missing conclusion.
+  if (relationAny(relationProject(request.rules, rule =>
+    ruleMatches(closure.facts, rule) && relationAny(relationProject(rule.conclusions, conclusion =>
+      !relationAny(relationProject(closure.facts.items, fact => semanticFactEqual(fact, conclusion))),
+    )),
+  ))) {
+    return Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'derivation_replay_mismatch' });
+  }
   return Object.freeze({
-    kind: 'ast_semantic_closure',
-    facts: fixed.value,
-    derivations: Object.freeze([]),
-    rounds: fixed.rounds,
-    converged: fixed.converged,
+    kind: 'ast_semantic_closure_verification',
+    status: 'verified',
+    requestIdentity: closure.requestIdentity,
+    seedSnapshotIdentity: closure.seedSnapshotIdentity,
+    ruleSetIdentity: closure.ruleSetIdentity,
+    factSetIdentity: closure.factSetIdentity,
+    derivationLedgerIdentity: closure.derivationLedgerIdentity,
   });
+};
+
+const closeFacts = (request: AstSemanticClosureRequest): AstSemanticClosure => {
+  const { seed, rules, requestIdentity } = request;
+  const roundLimit = request.roundLimit.value.value;
+  const seedSnapshotIdentity = astSemanticSeedSnapshotIdentity(canonicalSetIdentity(seed.items, semanticFactKey));
+  const ruleSetIdentity = astSemanticRuleSetIdentity(canonicalSetIdentity(rules, rule => JSON.stringify([rule.name, rule.stage, canonicalSetIdentity(rule.premises, semanticFactKey), canonicalSetIdentity(rule.conclusions, semanticFactKey)])));
+  const closureIdentity = (facts: AstSemanticFacts, derivations: readonly AstSemanticClosureDerivation[]) => Object.freeze({
+    requestIdentity,
+    seedSnapshotIdentity,
+    ruleSetIdentity,
+    factSetIdentity: astSemanticFactSetIdentity(canonicalSetIdentity(facts.items, semanticFactKey)),
+    derivationLedgerIdentity: astSemanticDerivationLedgerIdentity(JSON.stringify(relationProject(derivations, derivation => JSON.stringify([derivation.rule, derivation.round, derivation.witness, relationProject(derivation.premises, premise => semanticFactKey(premise.fact)), relationProject(derivation.conclusions, semanticFactKey)])))),
+  });
+  if (!Number.isSafeInteger(roundLimit) || roundLimit < 1) {
+    return Object.freeze({
+      kind: 'ast_semantic_closure',
+      status: 'incomplete',
+      ...closureIdentity(seed, Object.freeze([])),
+      reason: 'invalid_round_limit',
+      facts: seed,
+      derivations: Object.freeze([]),
+      rounds: astSemanticRoundCount(0),
+      roundLimit: request.roundLimit,
+    });
+  }
+  const fixed = relationFixedPoint(
+    Object.freeze({ facts: seed, derivations: Object.freeze([]), round: 0 }) as AstSemanticClosureState,
+    (current: AstSemanticClosureState) => {
+      const nextRound = current.round + 1;
+      const applications = deriveRuleApplications(current.facts, rules, nextRound);
+      return Object.freeze({
+        facts: appendFacts(current.facts, applications.facts),
+        derivations: Object.freeze([...current.derivations, ...applications.derivations]),
+        round: nextRound,
+      });
+    },
+    (left: AstSemanticClosureState, right: AstSemanticClosureState) => relationEqual(
+      JSON.stringify(relationProject(left.facts.items, semanticFactKey)),
+      JSON.stringify(relationProject(right.facts.items, semanticFactKey)),
+    ),
+    roundLimit - 1,
+  );
+  return fixed.converged
+    ? Object.freeze({
+        kind: 'ast_semantic_closure',
+        status: 'closed',
+        ...closureIdentity(fixed.value.facts, fixed.value.derivations),
+        facts: fixed.value.facts,
+        derivations: fixed.value.derivations,
+        rounds: astSemanticRoundCount(fixed.rounds + 1),
+        certificate: Object.freeze({
+          kind: 'ast_semantic_fixed_point_certificate',
+          stableFacts: true as const,
+          rulesExhausted: true as const,
+          ...closureIdentity(fixed.value.facts, fixed.value.derivations),
+        }),
+      })
+    : Object.freeze({
+        kind: 'ast_semantic_closure',
+        status: 'incomplete',
+        ...closureIdentity(fixed.value.facts, fixed.value.derivations),
+        reason: 'round_limit_reached',
+        facts: fixed.value.facts,
+        derivations: fixed.value.derivations,
+        rounds: astSemanticRoundCount(fixed.rounds + 1),
+        roundLimit: request.roundLimit,
+      });
 };
 
 export const createAstSemanticJudgment = (
@@ -234,10 +634,47 @@ export const createAstSemanticJudgment = (
   derivation,
 });
 
+const astSemanticReasoning = semanticReasoningContract('declarative_relation_rewrite_fixed_point');
+
+const closeAndVerify = (request: AstSemanticClosureRequest): AstSemanticClosureAssessment => {
+  const closure = closeFacts(request);
+  const verification = verifyClosure(request, closure);
+  if (closure.status === 'closed' && verification.status === 'verified') {
+    return Object.freeze({
+      kind: 'ast_semantic_closure_assessment',
+      status: 'accepted',
+      closure,
+      verification,
+      reasoning: astSemanticReasoning,
+    });
+  }
+  if (verification.status === 'rejected') {
+    return Object.freeze({
+      kind: 'ast_semantic_closure_assessment',
+      status: 'rejected',
+      closure,
+      verification,
+      reasoning: astSemanticReasoning,
+    });
+  }
+  // A closed closure cannot be rejected by this branch with a verified proof;
+  // the discriminated result remains explicit if the contract evolves.
+  return Object.freeze({
+    kind: 'ast_semantic_closure_assessment',
+    status: 'rejected',
+    closure,
+    verification: Object.freeze({ kind: 'ast_semantic_closure_verification', status: 'rejected', reason: 'incomplete_closure' }),
+    reasoning: astSemanticReasoning,
+  });
+};
+
 export const astSemanticInterface: AstSemanticInterface = Object.freeze({
+  reasoning: astSemanticReasoning,
   fact: astSemanticFact,
   judgment: createAstSemanticJudgment,
   close: closeFacts,
+  verifyClosure,
+  closeVerified: closeAndVerify,
   project: facts => Object.freeze({
     kind: 'ast_semantic_projection',
     stage: 'target_projection',
@@ -251,6 +688,7 @@ export const astSemanticRuleTerm = (value: AstRuleName): AstSemanticTerm => ({ k
 export const astSemanticWitnessTerm = (value: AstWitnessName): AstSemanticTerm => ({ kind: 'witness', value });
 export const astSemanticStageTerm = (value: AstSemanticStage): AstSemanticTerm => ({ kind: 'stage', value });
 export const astSemanticTextTerm = (value: string): AstSemanticTerm => ({ kind: 'text', value });
+export const astSemanticSyntaxTerm = (value: PhpAstExpressionKind): AstSemanticTerm => ({ kind: 'syntax', value });
 
 const astSemanticTermFromRelation = (term: AstRelationTerm): AstSemanticTerm =>
   relationVariantFold(term, 'ast_term_node',

@@ -1,0 +1,144 @@
+{
+  "phase": 2698,
+  "audit": "runtime-source-acquisition-interface",
+  "passed": 26,
+  "total": 26,
+  "syntaxFiles": 15,
+  "syntaxPassed": 15,
+  "checks": [
+    {
+      "name": "source acquisition has a named interface with explicit async and sync contracts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "runtime exports a single frozen interface-typed source acquisition object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "legacy free-function exports are removed from source acquisition",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "recursive traversal uses the same typed runtime object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "PHP collection behavior preserves missing-root empty result and immutable file list",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "async and sync source reads remain explicit typed operations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "all live scanner consumers import the interface object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "all scanner call sites use explicit object methods",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "semantic source AST evidence now uses the canonical scanner acquisition object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "controller execution dependencies inject the object method, not a free function",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no direct sourceFiles imports retain legacy function names",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/sourceFiles.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/semantic/sourceAstEvidenceAcquisition.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/responseScanner.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/__test__/createNotConnectedControllerInventoryReceipt.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/laravelFormRequestScanner.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/laravelModelScanner.ts",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "typecheck": "full project typecheck not run",
+  "notes": [
+    "Transpile syntax checks do not prove type compatibility, filesystem behavior, build, or CLI integration."
+  ]
+}

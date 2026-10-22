@@ -1,0 +1,37 @@
+{
+  "phase": 1544,
+  "name": "semantic-knowledge-versus-edge-absence",
+  "passed": 7,
+  "total": 7,
+  "checks": [
+    {
+      "name": "edge-free semantic model falls back to existing knowledge identity in adapter",
+      "passed": true
+    },
+    {
+      "name": "empty edge set still enters canonical input creation",
+      "passed": true
+    },
+    {
+      "name": "only genuinely empty knowledge surface uses no-evidence protocol",
+      "passed": true
+    },
+    {
+      "name": "edge-free knowledge has a distinct result status",
+      "passed": true
+    },
+    {
+      "name": "status is derived from edge-set presence, not knowledge presence",
+      "passed": true
+    },
+    {
+      "name": "regression test covers isolated semantic knowledge",
+      "passed": true
+    },
+    {
+      "name": "regression test asserts canonical judgment for isolated knowledge",
+      "passed": true
+    }
+  ],
+  "status": "passed"
+}

@@ -1,0 +1,90 @@
+{
+  "phase": 1413,
+  "audit": "runtime-semantic-ownership",
+  "status": "passed_with_residuals",
+  "passed": 9,
+  "total": 9,
+  "checks": [
+    {
+      "name": "Domain intent capability is a closed discriminated union",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Upstream materializer rejects incoherent capability payloads",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "React consumes typed generated manifest contract",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "React no longer performs semantic capability shape classification",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "React dispatch is only on the closed execution ADT",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "defineHooks requires the generated runtime contract type",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "AST eliminator preserves kind correlation without broad Record cast",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI route projection does not classify CRUD role from method/path",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "Package build script and version are preserved",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "migrated": [
+    "React no longer parses unknown runtime manifest payloads to reclassify domain-intent capability; it consumes the generated contract type.",
+    "DomainIntentCapabilityReference is a closed discriminated union with upstream coherence checks.",
+    "AST eliminator keeps variant-index correlation instead of widening to Record<kind, (AstJudgment) => R>."
+  ],
+  "residuals": [
+    {
+      "severity": "high",
+      "owner": "packages/cli/src/generators/classifier/routeGrouper.ts",
+      "detail": "The CLI projection still invokes routeActionIdentityCapabilityAuthority.resolve. Move resolution to upstream manifest construction and pass the closed identity contract through wiring before claiming runtime-wide migration complete."
+    },
+    {
+      "severity": "medium",
+      "owner": "packages/core/src/compiler/scanner/lexer/astClassifier.ts",
+      "detail": "Parser/scanner still produces AST classification; continue splitting syntax recognition from semantic judgment production using the AST semantic producer interface."
+    },
+    {
+      "severity": "medium",
+      "owner": "packages/core/src/types/upstream/semanticReasoning.ts",
+      "detail": "A total strategy-to-evidence Record remains upstream. It is not runtime classification, but can be migrated to a relation catalog if Record-free reasoning algebra is a hard requirement."
+    },
+    {
+      "severity": "medium",
+      "owner": "packages/core/src/types/upstream/sourceAstSemanticOriginInterface.ts",
+      "detail": "Origin rule totality currently uses Record in upstream authority; not a downstream/runtime classifier."
+    },
+    {
+      "severity": "medium",
+      "owner": "packages/cli/src/generators/NextActionGenerator.ts",
+      "detail": "Generator emits target control flow based on already-closed execution-signature fields; verify every branch is a projection of an upstream contract, not fresh semantic inference."
+    }
+  ],
+  "package": {
+    "version": "1.0.49",
+    "build": "tsdown"
+  }
+}

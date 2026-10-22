@@ -8,7 +8,7 @@
  */
 
 import type { PhpAstNode, ArrayEntryAstNode } from './nodes';
-import { relationProject, relationOptionFold, relationRefine } from '../../../semantic/foundation/relationalSequence';
+import { relationProject, relationOptionFold, relationRefine, relationEqual } from '../../../semantic/relations/relationalSequence';
 import type { PhpArgument, PhpPropertyName, PhpBlock, PhpStatement, PhpReturnExpression, ArrayKey } from './astValues';
 import type { PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticPropertyLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode, BinaryAstNode, UnaryAstNode, TypeCastAstNode, TernaryAstNode, ArrayAstNode, LiteralAstNode, StaticConstantAstNode, VariableAstNode, UnsupportedAstNode } from './nodes';
 
@@ -42,7 +42,7 @@ const dispatchPhpAstKind = <K extends PhpAstNode['kind'], R>(
     handler: (value: Extract<PhpAstNode, { readonly kind: K }>) => R,
     fallback: () => R,
 ): R => relationOptionFold(
-    relationRefine(node, (candidate): candidate is Extract<PhpAstNode, { readonly kind: K }> => candidate.kind === kind),
+    relationRefine(node, (candidate): candidate is Extract<PhpAstNode, { readonly kind: K }> => relationEqual(candidate.kind, kind)),
     fallback,
     handler,
 );
@@ -128,7 +128,7 @@ export type FoldedArrayKey<R> =
 
 const foldPhpArrayKey = <R>(key: ArrayKey, folder: PhpAstFolder<R>): FoldedArrayKey<R> =>
     relationOptionFold(
-        relationRefine(key, (candidate): candidate is Extract<ArrayKey, { readonly kind: 'explicit' }> => candidate.kind === 'explicit'),
+        relationRefine(key, (candidate): candidate is Extract<ArrayKey, { readonly kind: 'explicit' }> => relationEqual(candidate.kind, 'explicit')),
         () => ({ kind: 'implicit' }),
         explicit => ({ kind: 'explicit', expression: foldPhpAstNode(explicit.expression, folder) }),
     );
@@ -138,11 +138,11 @@ const foldPhpArgumentValue = <R>(argument: PhpArgument, folder: PhpAstFolder<R>)
 
 const foldPhpAstArgument = <R>(argument: PhpArgument, folder: PhpAstFolder<R>): FoldedPhpArgument<R> =>
     relationOptionFold(
-        relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'positional' }> => candidate.kind === 'positional'),
+        relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'positional' }> => relationEqual(candidate.kind, 'positional')),
         () => relationOptionFold(
-            relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'named' }> => candidate.kind === 'named'),
+            relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'named' }> => relationEqual(candidate.kind, 'named')),
             () => relationOptionFold(
-                relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'unpacked' }> => candidate.kind === 'unpacked'),
+                relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'unpacked' }> => relationEqual(candidate.kind, 'unpacked')),
                 () => ({ kind: 'unpacked', value: foldPhpArgumentValue(argument, folder) }),
                 unpacked => ({ kind: 'unpacked', value: foldPhpArgumentValue(unpacked, folder) }),
             ),
@@ -161,16 +161,16 @@ export type FoldedPhpStatement<R> =
 
 const foldPhpReturnExpression = <R>(expression: PhpReturnExpression, folder: PhpAstFolder<R>): FoldedPhpReturnExpression<R> =>
     relationOptionFold(
-        relationRefine(expression, (candidate): candidate is Extract<PhpReturnExpression, { readonly kind: 'value' }> => candidate.kind === 'value'),
+        relationRefine(expression, (candidate): candidate is Extract<PhpReturnExpression, { readonly kind: 'value' }> => relationEqual(candidate.kind, 'value')),
         () => ({ kind: 'void' }),
         value => ({ kind: 'value', value: foldPhpAstNode(value.value, folder) }),
     );
 
 const foldPhpStatement = <R>(statement: PhpStatement, folder: PhpAstFolder<R>): FoldedPhpStatement<R> =>
     relationOptionFold(
-        relationRefine(statement, (candidate): candidate is Extract<PhpStatement, { readonly kind: 'expression_statement' }> => candidate.kind === 'expression_statement'),
+        relationRefine(statement, (candidate): candidate is Extract<PhpStatement, { readonly kind: 'expression_statement' }> => relationEqual(candidate.kind, 'expression_statement')),
         () => relationOptionFold(
-            relationRefine(statement, (candidate): candidate is Extract<PhpStatement, { readonly kind: 'return_statement' }> => candidate.kind === 'return_statement'),
+            relationRefine(statement, (candidate): candidate is Extract<PhpStatement, { readonly kind: 'return_statement' }> => relationEqual(candidate.kind, 'return_statement')),
             () => { throw Error('Unreachable PhpStatement kind'); },
             returned => ({ kind: 'return_statement', expression: foldPhpReturnExpression(returned.expression, folder) }),
         ),

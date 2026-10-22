@@ -16,6 +16,7 @@ export type {
     PhpLiteralValue,
     PhpAstValue,
     PhpAstValueNode,
+    PhpFunctionNameSourceEvidence,
     PhpPropertyPath,
     PhpArrayEntry,
     PhpArrayKey,

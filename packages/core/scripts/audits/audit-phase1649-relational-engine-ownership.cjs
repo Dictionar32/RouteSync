@@ -1,0 +1,40 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const sourceRoot = path.join(root, 'src');
+const legacyRoot = path.join(sourceRoot, 'semantic', 'foundation');
+const engineRoot = path.join(sourceRoot, 'semantic', 'relations');
+const read = file => fs.readFileSync(file, 'utf8');
+const sourceFiles = [];
+const walk = dir => {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) walk(file);
+    else if (/\.(?:ts|tsx|mts|cts)$/.test(entry.name)) sourceFiles.push(file);
+  }
+};
+walk(sourceRoot);
+const checks = [];
+const check = (name, pass) => checks.push({ name, pass: Boolean(pass) });
+const importReference = /(?:from\s*|import\s*\()\s*['"][^'"]*foundation\//;
+check('No TypeScript source imports or dynamically imports any foundation implementation path', sourceFiles.every(file => !importReference.test(read(file))));
+const legacyImplementations = ['presenceRelations.ts','relationFoundation.ts','relationMembership.ts','relationalSequence.ts','semanticRelationalAlgebra.ts','semanticRelationalCollections.ts','semanticRelationalExecutionPlan.ts','semanticRelations.ts','semanticRewriteEngine.ts'];
+check('Legacy implementation files remain in place but are empty', legacyImplementations.every(name => fs.existsSync(path.join(legacyRoot, name)) && fs.statSync(path.join(legacyRoot, name)).size === 0));
+check('Relation engine implementations have a new semantic/relations owner', legacyImplementations.every(name => fs.existsSync(path.join(engineRoot, name)) && fs.statSync(path.join(engineRoot, name)).size > 0));
+const relationImports = sourceFiles.filter(file => /semantic\/relations\//.test(read(file))).length;
+check('Existing consumers are rewired to the new relation-engine owner', relationImports >= 300);
+const derivation = read(path.join(sourceRoot, 'types/upstream/semanticJudgmentDerivationInterface.ts'));
+const compiler = read(path.join(sourceRoot, 'types/upstream/semanticJudgmentRuleCompiler.ts'));
+const algebra = read(path.join(sourceRoot, 'types/upstream/invocationSemanticJudgmentAlgebra.ts'));
+const authority = read(path.join(sourceRoot, 'types/upstream/invocationSemanticJudgmentAuthority.ts'));
+const executor = read(path.join(sourceRoot, 'types/upstream/invocationSemanticRuntimeExecutor.ts'));
+const scanner = read(path.join(sourceRoot, 'compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts'));
+check('Declarative derivation contract remains independent of the retired path', !importReference.test(derivation));
+check('Generic derivation compiler remains independent of the retired path', !importReference.test(compiler) && /compileSemanticJudgmentRule/.test(algebra));
+check('Invocation algebra consumes the declarative compiler and new relation engine', /compileSemanticJudgmentRule/.test(algebra) && /semantic\/relations\//.test(algebra));
+check('Authority delegates to the invocation judgment algebra', /analyzeInvocationJudgmentAlgebra/.test(authority));
+check('Runtime executor only delegates to authority', /authority\.analyze\(input\)/.test(executor) && !/analyzeInvocationJudgmentAlgebra|executeRelations/.test(executor));
+check('Scanner facade uses the upstream authority/executor boundary', /invocationSemanticRuntimeExecutor/.test(scanner) && !/analyzeInvocationJudgmentAlgebra|executeRelations/.test(scanner));
+for (const item of checks) console.log(`${item.pass ? 'PASS' : 'FAIL'} ${item.name}`);
+console.log(`${checks.filter(item => item.pass).length}/${checks.length} checks passed`);
+if (checks.some(item => !item.pass)) process.exitCode = 1;

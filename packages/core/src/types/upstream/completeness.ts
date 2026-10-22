@@ -42,9 +42,9 @@ const collect = (checks: Sequence<Check>): Sequence<CompletenessFailure> => {
       return concat(checks.head.failures, collect(checks.tail));
   }
 };
-const completeResult = (failures: Sequence<CompletenessFailure>, ast: SourceAst): CompleteSourceAst | IncompleteUpstream => ({
+const completeResult = <Ast extends SourceAst>(failures: Sequence<CompletenessFailure>, ast: Ast): (CompleteSourceAst & { readonly ast: Ast }) | IncompleteUpstream => ({
   empty: (): CompleteSourceAst => ({ kind: 'complete_source_ast', ast, [completeSourceProof]: 'complete' }),
   cons: (): IncompleteUpstream => ({ kind: 'incomplete_upstream', stage: { kind: 'source_ast' }, failures: { kind: 'completeness_failures', items: failures } })
 }[failures.kind]());
-export const validateCompleteSourceAst = (ast: SourceAst, source: SourceSpan): CompleteSourceAst | IncompleteUpstream => completeResult(collect(
+export const validateCompleteSourceAst = <Ast extends SourceAst>(ast: Ast, source: SourceSpan): (CompleteSourceAst & { readonly ast: Ast }) | IncompleteUpstream => completeResult(collect(
   cons(check({ kind: 'model' }, ast.models.items, source), cons(check({ kind: 'resource' }, ast.resources.items, source), cons(check({ kind: 'request' }, ast.requests.items, source), cons(check({ kind: 'route' }, ast.routes.items, source), cons(check({ kind: 'controller' }, ast.controllers.items, source), cons(check({ kind: 'response' }, ast.responses.items, source), cons(check({ kind: 'service' }, ast.services.items, source), cons(check({ kind: 'migration' }, ast.migrations.items, source), cons(check({ kind: 'dto' }, ast.dtos.items, source), cons(check({ kind: 'middleware' }, ast.middlewares.items, source), cons(check({ kind: 'provider' }, ast.providers.items, source), cons(check({ kind: 'attribute' }, ast.attributes.items, source), cons(check({ kind: 'channel' }, ast.channels.items, source), empty())))))))))))))), ast);

@@ -1,0 +1,77 @@
+{
+  "phase": 1741,
+  "name": "composition-encapsulation-interface",
+  "total": 17,
+  "passed": 10,
+  "failed": 7,
+  "checks": [
+    {
+      "name": "composition contract and constant both use v2",
+      "passed": true
+    },
+    {
+      "name": "composition contract makes single-knowledge inventory and analysis order explicit",
+      "passed": true
+    },
+    {
+      "name": "publication authority remains sole correspondence validator",
+      "passed": true
+    },
+    {
+      "name": "public composition boundary exposes only integrate and contract",
+      "passed": true
+    },
+    {
+      "name": "composition accepts one SemanticKnowledgeDataFlow instead of independently supplied analysis/inventory",
+      "passed": false
+    },
+    {
+      "name": "component authorities are documented as private implementation dependencies",
+      "passed": true
+    },
+    {
+      "name": "accepted and rejected integrated responses preserve publication result union",
+      "passed": false
+    },
+    {
+      "name": "failure semantics prohibit fabricated fallback analysis and receipt",
+      "passed": true
+    },
+    {
+      "name": "composition implementation and Laravel wiring remain truthfully pending",
+      "passed": false
+    },
+    {
+      "name": "no duplicate integrated-response authority has been introduced",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract and value synchronized at v52",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary contract and value synchronized at v31",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner contract specifies post-wiring composition-only delegation",
+      "passed": false
+    },
+    {
+      "name": "scanner runtime remains unchanged and does not implement composition or correspondence",
+      "passed": false
+    },
+    {
+      "name": "public index exports the composition interface and contract",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "Phase 1741 audit command is registered",
+      "passed": true
+    }
+  ]
+}

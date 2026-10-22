@@ -1,0 +1,64 @@
+{
+  "phase": 2206,
+  "title": "Interface-First Source-AST Evidence Producer Closure",
+  "status": "implemented_with_explicit_remaining_gaps",
+  "root": "RouteSync/",
+  "contractVersionChanges": [
+    {
+      "contract": "LaravelSourceAstPipelineInterface",
+      "from": 7,
+      "to": 8
+    }
+  ],
+  "addedUpstreamContracts": [
+    "LaravelMigrationScannerInterface",
+    "LaravelAttributeScannerInterface",
+    "LaravelDtoDeclarationInventoryScannerInterface",
+    "LaravelQueryProducerInterface"
+  ],
+  "closedDependencies": [
+    "migration scanner",
+    "attribute scanner",
+    "DTO declaration inventory scanner",
+    "query producer"
+  ],
+  "preservedAuthorities": [
+    "canonical invocation inventory receipt",
+    "existing complete-or-incomplete DTO inventory judgment",
+    "existing integrated response semantic pipeline",
+    "existing per-method response projection judgments"
+  ],
+  "remainingDirectDependencies": [
+    "service scanner",
+    "middleware scanner",
+    "provider scanner",
+    "channel scanner",
+    "collection and sequence shaping",
+    "legacy semantic/relations helpers",
+    "concrete implementation imports in the composition root"
+  ],
+  "architectureConstraints": {
+    "newRelationLayer": false,
+    "newFoundationLayer": false,
+    "newSubscannerLayer": false,
+    "duplicateInvocationSemanticAuthority": false,
+    "runtimeSemanticReclassification": false,
+    "DTOInventoryFlattenedToRawArray": false
+  },
+  "validation": {
+    "syntaxTranspilation": {
+      "status": "passed",
+      "files": 8,
+      "errors": 0
+    },
+    "structuralAssertions": {
+      "status": "passed",
+      "assertions": 13,
+      "total": 13
+    },
+    "zipIntegrity": "passed",
+    "fullTypecheck": "notRun",
+    "vitest": "notRun",
+    "packageBuild": "notRun"
+  }
+}

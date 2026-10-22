@@ -1,0 +1,16 @@
+{
+  "phase": 1518,
+  "title": "Interface-Owned Query Derivation Lineage",
+  "date": "2026-10-10",
+  "scope": [
+    "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "packages/core/src/types/upstream/queryProducerSemanticReasoning.ts",
+    "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts",
+    "packages/core/src/types/upstream/__test__/queryProducerSemanticAlgebra.phase1487.test.ts",
+    "packages/core/src/index.ts"
+  ],
+  "checks": 9,
+  "build": "not_run_dependencies_unavailable",
+  "unitTests": "not_run",
+  "limitation": "Derivation is typed lineage, not yet a machine-checkable proof that every premise and constraint was discharged."
+}

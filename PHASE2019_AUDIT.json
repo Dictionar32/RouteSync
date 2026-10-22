@@ -1,0 +1,57 @@
+{
+  "phase": 2019,
+  "audit": "php-class-identity-interface-first",
+  "passed": 8,
+  "total": 12,
+  "checks": [
+    {
+      "name": "existing declaration contract requires canonical class identity",
+      "passed": true
+    },
+    {
+      "name": "class-name resolution has explicit resolved and blocked ADT variants",
+      "passed": true
+    },
+    {
+      "name": "parent identity is required rather than inferred from basename",
+      "passed": true
+    },
+    {
+      "name": "parser preserves namespace-derived declaration identity",
+      "passed": false
+    },
+    {
+      "name": "shared upstream authority applies class import alias and fully qualified name rules",
+      "passed": false
+    },
+    {
+      "name": "supported grouped imports project evidence while malformed import evidence is blocked by the shared authority",
+      "passed": false
+    },
+    {
+      "name": "ancestry authority matches canonical qualified identity instead of short names",
+      "passed": true
+    },
+    {
+      "name": "blocked name-resolution judgment propagates to blocked ancestry ADT",
+      "passed": true
+    },
+    {
+      "name": "scanner contract and executor agree on version 26",
+      "passed": false
+    },
+    {
+      "name": "regression coverage includes aliased import and incomplete grouped import",
+      "passed": true
+    },
+    {
+      "name": "phase documentation and package audit entry are present",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner directories are introduced",
+      "passed": true
+    }
+  ],
+  "note": "Structural audit only; full TypeScript typecheck/build and Vitest execution are not asserted."
+}

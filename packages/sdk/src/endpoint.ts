@@ -1,4 +1,4 @@
-import { type RouteDefinition, HttpMethod } from '@routesync/core'
+import { type RouteDefinition, type RetryConfig, HttpMethod } from '@routesync/core'
 
 export type EndpointDefinition = RouteDefinition
 
@@ -61,8 +61,8 @@ export function endpoint<
       params?: (payload: TParams) => unknown
     }
     headers?: Record<string, string>
-    cache?: unknown
-    retry?: unknown
+    cache?: boolean
+    retry?: boolean | RetryConfig
     body?: Record<string, unknown>
     params?: Record<string, unknown>
     query?: Record<string, unknown>

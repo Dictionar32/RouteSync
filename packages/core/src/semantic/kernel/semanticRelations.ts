@@ -1,1 +1,1 @@
-export * from '../foundation/semanticRelations';
+export * from '../relations/semanticRelations';

@@ -1,0 +1,57 @@
+{
+  "phase": 1420,
+  "title": "scanner-boundary-assignment-closure",
+  "checks": [
+    {
+      "name": "statement boundary uses a typed delimiter stack and detects mismatched closers",
+      "passed": true
+    },
+    {
+      "name": "statement boundary detects unclosed delimiters and invalid starts",
+      "passed": true
+    },
+    {
+      "name": "sequence rejects malformed boundaries before invoking resolvers",
+      "passed": false
+    },
+    {
+      "name": "sequence validates terminator and end-of-input index invariants",
+      "passed": false
+    },
+    {
+      "name": "assignment result distinguishes resolved, unresolved, malformed and contract violation",
+      "passed": true
+    },
+    {
+      "name": "assignment algebra receives token-structure ADT rather than a raw numeric index",
+      "passed": true
+    },
+    {
+      "name": "runtime adapts closed assignment outcomes explicitly",
+      "passed": true
+    },
+    {
+      "name": "runtime does not collapse malformed token structure into not-found",
+      "passed": false
+    },
+    {
+      "name": "binary operator candidate selection is owned once by runtime or delegated algebra",
+      "passed": false
+    },
+    {
+      "name": "token-structure algebra remains the owner of generic delimiter traversal",
+      "passed": false
+    },
+    {
+      "name": "build script remains tsdown",
+      "passed": true
+    },
+    {
+      "name": "no any introduced in evolved scanner contracts",
+      "passed": true
+    }
+  ],
+  "passed": 7,
+  "total": 12,
+  "status": "failed"
+}

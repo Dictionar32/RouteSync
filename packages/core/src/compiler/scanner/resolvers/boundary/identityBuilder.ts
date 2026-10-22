@@ -10,7 +10,7 @@ import type { RouteIdentityContract } from "../../../../types/route";
 import type { ResolvedRouteBoundaryOptions } from "./boundaryBasicsTypes";
 import type { IntermediateRouteBoundaryBasics } from "./boundaryBasics";
 
-export { deriveRouteConstantKey } from "./boundaryBasics";
+export { deriveRouteConstantKey } from "../../../../types/upstream/names";
 
 export function buildRouteIdentityContract(
     params: ResolvedRouteBoundaryOptions,

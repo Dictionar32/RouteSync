@@ -1,6 +1,9 @@
+import { sourceFileAcquisition } from '../sourceFiles';
 import path from 'path';
+import fs from 'node:fs';
 import type { ResponseAst } from '../../../types/upstream/ast';
 import type { ResponseDefinition } from '../../../types/upstream/response';
+import type { ResourceDefinition } from '../../../types/upstream/resource';
 import type { ResponseProducerResult } from './responseProducer';
 import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import type { ResponseDtoDeclarationAst } from '../lexer/responseDtoAstTypes';
@@ -8,11 +11,13 @@ import { responseProducer } from './responseProducer';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
 import { createAstIdentifier } from '../lexer/phpAstTypes';
-import { collectPhpFiles } from './scannerUtils';
+import { createSourceFile, stringValue } from '../../../types/upstream/names';
+import type { LaravelControllerScanJudgment, LaravelControllerScanArtifact } from '../../../types/upstream/laravelControllerScannerInterface';
+import { laravelControllerResponseSemanticPipeline } from '../../../types/upstream/laravelControllerResponseSemanticPipeline';
+import type { LaravelControllerMethodResponseAstProjectionJudgment, LaravelControllerResponseSemanticPipelineInterface } from '../../../types/upstream/laravelControllerResponseSemanticJudgmentInterface';
+import type { LaravelResponseScannerInput, LaravelResponseScannerInterface, LaravelResponseScannerResult } from '../../../types/upstream/laravelResponseScannerInterface';
+import type { LaravelFrameworkVersionCompatibility, LaravelFrameworkVersionLockEvidence } from '../../../types/upstream/laravelControllerResponseSemanticJudgmentInterface';
 
-import { readSourceText } from './scannerUtils';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationGate, relationAsyncFold, relationFirst, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from '../../../semantic/foundation/relationalSequence';
 const span = (file: string, line: number): SourceSpan => ({
   kind: 'source_span',
   file: { kind: 'source_file', value: stringValue(file) },
@@ -20,92 +25,123 @@ const span = (file: string, line: number): SourceSpan => ({
   end: { kind: 'number_value', value: line },
 });
 
-function primitiveType(name: PhpPropertyTypeAst['name']): TypeExpression {
-  const candidates: readonly { readonly name: PhpPropertyTypeAst['name']; readonly value: TypeExpression }[] = [
-    { name: 'bool', value: { kind: 'primitive', value: { kind: 'boolean' } } },
-    { name: 'int', value: { kind: 'primitive', value: { kind: 'number' } } },
-    { name: 'float', value: { kind: 'primitive', value: { kind: 'number' } } },
-    { name: 'string', value: { kind: 'primitive', value: { kind: 'string' } } },
-  ];
-  return relationOptionFold(
-    relationFirst(candidates, candidate => relationEqual(candidate.name, name)),
-    () => ({ kind: 'mixed' }),
-    candidate => candidate.value,
-  );
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function typeExpression(type: PhpPropertyTypeAst): TypeExpression {
-  const value = relationGate(relationEqual(type.kind, 'primitive'),
-    () => primitiveType(type.name),
-    () => relationGate(relationEqual(type.kind, 'mixed'),
-      () => ({ kind: 'mixed' } as const),
-      () => ({ kind: 'reference', value: { kind: 'class', name: { kind: 'class_name', value: stringValue(type.name) } } } as const)));
-  return relationGate(type.nullable, () => ({ kind: 'nullable', value }), () => value);
+function laravelFrameworkVersionLockEvidence(sourceProject: SourceProjectIdentity): LaravelFrameworkVersionLockEvidence {
+  const lockFile = path.join(sourceProject.root.value.value, 'composer.lock');
+  let contents: string;
+  try {
+    contents = fs.readFileSync(lockFile, 'utf8');
+  } catch {
+    return Object.freeze({ kind: 'laravel_framework_lock_unavailable' });
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(contents);
+  } catch {
+    return Object.freeze({ kind: 'laravel_framework_lock_invalid' });
+  }
+
+  if (!isRecord(parsed) || !Array.isArray(parsed.packages)) {
+    return Object.freeze({ kind: 'laravel_framework_lock_invalid' });
+  }
+
+  const frameworkPackage = parsed.packages.find((entry: unknown) => isRecord(entry) && entry.name === 'laravel/framework');
+  if (!isRecord(frameworkPackage) || typeof frameworkPackage.version !== 'string') {
+    return Object.freeze({ kind: 'laravel_framework_package_not_locked' });
+  }
+
+  return Object.freeze({
+    kind: 'laravel_framework_version_candidate',
+    version: stringValue(frameworkPackage.version),
+    sourceFile: createSourceFile(lockFile),
+  });
 }
-
-const defaultResponseStatus: HttpStatusCode = {
-  kind: 'http_status_code',
-  value: { kind: 'number_value', value: 200 },
-};
-
-const emptyTransport = (): import('../../../types/upstream/response').ResponseTransport => ({
-  kind: 'response_transport',
-  headers: { kind: 'empty' },
-  cookies: { kind: 'empty' },
-});
 
 function definition(ast: ResponseDtoDeclarationAst, file: string): ResponseProducerResult {
   return responseProducer.produce({ kind: 'dto', declaration: ast, source: span(file, Number(ast.source.line)) });
 }
 
 function className(tokens: readonly { readonly value: string }[]): string {
-  const seek = (index: number): ReturnType<typeof relationNone<string>> | ReturnType<typeof relationSome<string>> => relationGate(index + 1 < tokens.length,
-    () => relationGate(relationEqual(tokens[index].value, 'class'), () => relationSome(tokens[index + 1].value), () => seek(index + 1)),
-    () => relationNone());
-  return relationOptionFold(seek(0),
-    () => { throw Error('Response DTO class declaration not found'); },
-    value => value);
+  for (let index = 0; index + 1 < tokens.length; index += 1) {
+    if (tokens[index].value === 'class') {
+      return tokens[index + 1].value;
+    }
+  }
+  throw Error('Response DTO class declaration not found');
 }
 
 async function scanFiles(files: readonly string[], results: readonly ResponseProducerResult[]): Promise<readonly ResponseProducerResult[]> {
-  return relationAsyncFold(files, results, async (current, file) => {
-    const source = await readSourceText(file);
+  const collected: ResponseProducerResult[] = [...results];
+  for (const file of files) {
+    const source = await sourceFileAcquisition.readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(source);
     const ast = LaravelSourceLexer.parseResponseDtoDeclaration(tokens, createAstIdentifier(className(tokens)));
-    return Object.freeze([...current, definition(ast, file)]);
-  });
+    collected.push(definition(ast, file));
+  }
+  return Object.freeze(collected);
 }
 
-async function scanControllerFiles(files: readonly string[], results: readonly ResponseProducerResult[]): Promise<readonly ResponseProducerResult[]> {
-  return relationAsyncFold(files, results, async (current, file) => {
-    const source = await readSourceText(file);
-    const tokens = LaravelSourceLexer.tokenize(source);
-    const declaration = LaravelSourceLexer.parseControllerDeclaration(source, tokens, createAstIdentifier(path.basename(file, '.php')));
-    const produced = relationProject(relationSelect(declaration.methods, method => relationGate(relationEqual(method.returns.length, 0), () => false, () => true)), method =>
-      responseProducer.produce({ kind: 'controller', method, source: span(file, Number(method.source.line)) }));
-    return Object.freeze([...current, ...produced]);
-  });
+function controllerResponseProjectionJudgments(
+  controllerScan: LaravelControllerScanJudgment,
+  resourceDefinitions: readonly ResourceDefinition[],
+  frameworkVersion: LaravelFrameworkVersionCompatibility,
+  responsePipeline: LaravelControllerResponseSemanticPipelineInterface,
+): readonly LaravelControllerMethodResponseAstProjectionJudgment[] {
+  return Object.freeze(controllerScan.controllers.flatMap((artifact: LaravelControllerScanArtifact) => {
+    switch (artifact.responseJudgment.kind) {
+      case 'controller_response_method_products_complete': {
+        const products = Object.freeze([
+          artifact.responseJudgment.product.firstMethod,
+          ...artifact.responseJudgment.product.remainingMethods,
+        ]);
+        return Object.freeze(products.map(product => responsePipeline.methodResponseAstProjection.project(Object.freeze({
+          kind: 'laravel_controller_method_response_ast_projection_input',
+          product,
+          actionJudgments: artifact.actionJudgments,
+          resourceDefinitions,
+          frameworkVersion,
+        }))));
+      }
+      default:
+        // Unresolved, blocked, rejected, and return-semantic-only judgments do not fabricate ResponseAst values.
+        return Object.freeze([]);
+    }
+  }));
 }
 
-export interface ResponseScannerBundle {
-  readonly definitions: readonly ResponseDefinition[];
-  readonly asts: readonly ResponseAst[];
-}
+export type ResponseScannerBundle = LaravelResponseScannerResult;
 
-export async function scanResponseBundle(sourceProject: SourceProjectIdentity): Promise<ResponseScannerBundle> {
+export async function scanResponseBundle(sourceProject: SourceProjectIdentity, controllerScan: LaravelControllerScanJudgment, resourceDefinitions: readonly ResourceDefinition[], responsePipeline: LaravelControllerResponseSemanticPipelineInterface = laravelControllerResponseSemanticPipeline): Promise<ResponseScannerBundle> {
   const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Http', 'DTOs');
-  const controllerDirectory = path.join(sourceRoot, 'app', 'Http', 'Controllers');
-  const files = await collectPhpFiles(directory);
-  const controllerFiles = await collectPhpFiles(controllerDirectory);
+  const files = await sourceFileAcquisition.collectPhpFiles(directory);
   const dtoResults = await scanFiles(files, Object.freeze([]));
-  const results = await scanControllerFiles(controllerFiles, dtoResults);
+  const frameworkVersionEvidence = laravelFrameworkVersionLockEvidence(sourceProject);
+  const frameworkVersion = responsePipeline.paginationEnvelope.metadataProfile.frameworkVersionCompatibility.judge(Object.freeze({ kind: 'laravel_framework_version_compatibility_judgment_input', evidence: frameworkVersionEvidence }));
+  const projectionJudgments = controllerResponseProjectionJudgments(controllerScan, resourceDefinitions, frameworkVersion, responsePipeline);
+  const projectedResults: readonly ResponseProducerResult[] = Object.freeze(projectionJudgments.flatMap(projection => projection.kind === 'controller_method_response_ast_projection_complete' ? [Object.freeze({ definition: projection.definition, ast: projection.ast })] : []));
+  const results = Object.freeze([...dtoResults, ...projectedResults]);
   return Object.freeze({
-    definitions: Object.freeze(relationProject(results, result => result.definition)),
-    asts: Object.freeze(relationProject(results, result => result.ast)),
+    definitions: Object.freeze(results.map(result => result.definition)),
+    asts: Object.freeze(results.map(result => result.ast)),
+    projectionJudgments,
   });
 }
 
-export async function scanResponseAsts(sourceProject: SourceProjectIdentity): Promise<readonly ResponseAst[]> {
-  return (await scanResponseBundle(sourceProject)).asts;
+export async function scanResponseAsts(sourceProject: SourceProjectIdentity, controllerScan: LaravelControllerScanJudgment, resourceDefinitions: readonly ResourceDefinition[], responsePipeline: LaravelControllerResponseSemanticPipelineInterface = laravelControllerResponseSemanticPipeline): Promise<readonly ResponseAst[]> {
+  return (await scanResponseBundle(sourceProject, controllerScan, resourceDefinitions, responsePipeline)).asts;
 }
+
+/** Interface-bound adapter consumed by the source-AST composition root. */
+export const laravelResponseScanner: LaravelResponseScannerInterface = Object.freeze({
+  kind: 'laravel_response_scanner',
+  closed: true,
+  contractVersion: 1,
+  scan: (input: LaravelResponseScannerInput): Promise<LaravelResponseScannerResult> =>
+    scanResponseBundle(input.sourceProject, input.controllerScan, input.resourceDefinitions, input.responsePipeline),
+});

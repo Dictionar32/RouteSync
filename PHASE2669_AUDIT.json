@@ -1,0 +1,21 @@
+{
+  "phase": 2669,
+  "name": "independent-group-receipt-replay",
+  "source": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProofVerifier.ts",
+  "contract": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+  "tests": "packages/core/src/compiler/semantic/request-type-derivation/__test__/requestTypeDerivationGroupContributionAlgebra.phase2664.test.ts",
+  "checks": {
+    "independent_replay_function_present": true,
+    "producer_fold_not_imported_by_verifier": true,
+    "receipt_chain_continuity_checked": true,
+    "action_policy_replayed": true,
+    "response_policy_replayed": true,
+    "final_group_and_judgment_output_correlated": true,
+    "forged_after_state_counterexample_test_added": true,
+    "partial_verification_does_not_claim_valid": true,
+    "all_34_laws_remain_explicitly_unverified": true
+  },
+  "runtime_tests": "not_run_dependencies_missing",
+  "full_typecheck": "blocked_by_preexisting_project_errors_and_missing_vitest_types",
+  "known_gap": "group contribution incoming receipt omits full identity/source; full 34-law independent verification remains incomplete"
+}

@@ -1,0 +1,19 @@
+RouteSync Phase 2424 — RequestType Route Source Provenance Repair
+
+Static audit:
+  node scripts/audits/audit-phase2424-request-type-route-provenance-closure.cjs
+  PASS 8/8 assertions
+
+Syntax checks:
+  node --check scripts/audits/audit-phase2424-request-type-route-provenance-closure.cjs
+  PASS
+
+TypeScript validation:
+  Focused global tsc 5.8.3 invocation did not pass (545 diagnostics across the snapshot).
+  Comparing with the unmodified Phase2423 snapshot yielded the same total count (545).
+  Remaining diagnostics include pre-existing type errors, missing dependencies/Node types,
+  and a pre-existing duplicate property in boundaryInputResolution.ts. No new diagnostic
+  mentions declarationSpan/sourceSpan in the changed source files.
+
+Not verified: package build, Vitest, full CLI execution, and end-to-end RequestType authority lowering.
+The active RequestType lowering still uses requestTypeDerivationProjectionPipeline.derive(...).

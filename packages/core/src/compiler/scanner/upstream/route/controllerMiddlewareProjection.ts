@@ -9,8 +9,8 @@
 import type { ControllerMiddlewareRelation, ControllerPolicyActionScope, ControllerPolicyRelation } from '../../../../types/upstream/controller';
 import type { MiddlewareName } from '../../../../types/upstream/names';
 import type { RouteMiddlewareContract, RouteMiddlewareExclusionContract, RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
-import { relationExpand, relationGate, relationSelect, relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationExpand, relationGate, relationSelect, relationVariantFold } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 import type { Sequence } from '../../../../types/upstream/collections';
 
 const sequenceToArray = <T>(sequence: Sequence<T>): readonly T[] =>
@@ -23,19 +23,19 @@ const sequenceToArray = <T>(sequence: Sequence<T>): readonly T[] =>
     },
   );
 
-const actionScope = (relation: ControllerMiddlewareRelation): RouteMiddlewareScope =>
-  relationGate(
-    relationEqual(relation.actions.kind, 'all'),
-    () => ({ kind: 'all' as const }),
-    () => {
-      const scoped = relation.actions as Extract<ControllerPolicyActionScope, { readonly kind: 'only' }> | Extract<ControllerPolicyActionScope, { readonly kind: 'except' }>;
-      return relationGate(
-        relationEqual(scoped.kind, 'only'),
-        () => ({ kind: 'only' as const, actions: Object.freeze(sequenceToArray(scoped.actions)) }),
-        () => ({ kind: 'except' as const, actions: Object.freeze(sequenceToArray(scoped.actions)) }),
-      );
-    },
-  );
+const actionScope = (relation: ControllerMiddlewareRelation): RouteMiddlewareScope => {
+  switch (relation.actions.kind) {
+    case 'blocked': return { kind: 'blocked', reason: relation.actions.reason };
+    case 'all': return { kind: 'all' };
+    case 'only': return { kind: 'only', actions: Object.freeze(sequenceToArray(relation.actions.actions)) };
+    case 'except': return { kind: 'except', actions: Object.freeze(sequenceToArray(relation.actions.actions)) };
+    case 'only_except': return {
+      kind: 'only_except',
+      only: Object.freeze(sequenceToArray(relation.actions.only)),
+      except: Object.freeze(sequenceToArray(relation.actions.except)),
+    };
+  }
+};
 const controllerScope = (relation: ControllerMiddlewareRelation): RouteMiddlewareScope => actionScope(relation);
 
 const namedMiddleware = (relation: ControllerMiddlewareRelation): MiddlewareName | undefined =>

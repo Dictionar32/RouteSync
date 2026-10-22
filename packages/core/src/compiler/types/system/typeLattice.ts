@@ -2,7 +2,7 @@
 
 import { type SemanticType, UnionType, NeverType } from '../../../types/domain/semanticType';
 import { TypeHasher, type HashContext } from '../TypeHasher';
-import { relationEqual, relationResolve } from '../../../semantic/foundation/semanticRelations';
+import { relationEqual, relationResolve } from '../../../semantic/relations/semanticRelations';
 
 const structuralEqual = (a: SemanticType, b: SemanticType, ctx: HashContext): boolean =>
   relationEqual(TypeHasher.hash(a, ctx), TypeHasher.hash(b, ctx));

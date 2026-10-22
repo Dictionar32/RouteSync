@@ -1,0 +1,33 @@
+{
+  "phase": 1471,
+  "name": "callable-list-contract-extraction",
+  "date": "2026-10-10",
+  "status": "focused-verification-passed-full-build-unverified",
+  "architecture": [
+    "source token evidence",
+    "typed callable-list knowledge",
+    "semantic reasoning algebra",
+    "closed judgment contract",
+    "runtime wiring",
+    "AST projection"
+  ],
+  "migrations": [
+    "parseArguments no longer maintains recursive delimiter-depth state",
+    "parseCaptures consumes shared delimiter evidence and typed capture judgment",
+    "callable-list interface and algebra exported from upstream barrel"
+  ],
+  "verification": {
+    "phase1470Audit": "7/7 passed",
+    "phase1471Audit": "9/9 passed",
+    "focusedTypeScriptCheck": "passed",
+    "compiledSemanticSmokeTests": "6/6 passed",
+    "runtimeChangedRegionDiagnostics": "none observed",
+    "fullBuild": "not verified; workspace dependencies are absent",
+    "vitest": "not run; workspace dependencies are absent"
+  },
+  "remainingFrontier": [
+    "parseParameters still uses its existing limited variable projection",
+    "other splitTopLevel and delimiter index adapters remain until each consumer is rewired",
+    "whole-runtime compile reports pre-existing diagnostics outside this phase"
+  ]
+}

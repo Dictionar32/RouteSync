@@ -1,0 +1,53 @@
+{
+  "phase": 1426,
+  "title": "expression-operator-contract-migration",
+  "checks": [
+    {
+      "name": "runtime delegates root resolution to the PHP expression contract",
+      "passed": false
+    },
+    {
+      "name": "runtime no longer owns the root-operator catalog or resolver",
+      "passed": true
+    },
+    {
+      "name": "PHP-specific operator vocabulary is isolated in its adapter contract",
+      "passed": true
+    },
+    {
+      "name": "language-neutral algebra owns precedence and associativity decisions",
+      "passed": false
+    },
+    {
+      "name": "operator algebra models non-associative operators",
+      "passed": false
+    },
+    {
+      "name": "PHP comparison operators are marked non-associative",
+      "passed": false
+    },
+    {
+      "name": "tests cover non-associative chains and valid single comparisons",
+      "passed": false
+    },
+    {
+      "name": "closed resolution distinguishes malformed input and contract violations",
+      "passed": false
+    },
+    {
+      "name": "no any escape hatch was introduced",
+      "passed": true
+    },
+    {
+      "name": "build script remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "phase audit is registered",
+      "passed": true
+    }
+  ],
+  "passed": 5,
+  "total": 11,
+  "status": "failed"
+}

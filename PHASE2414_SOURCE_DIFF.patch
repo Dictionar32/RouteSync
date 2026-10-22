@@ -1,0 +1,226 @@
+--- Phase2413/packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts
++++ Phase2414/packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts
+@@ -21,7 +21,7 @@
+ import { laravelRoutePathResolutionAuthority } from '../../../types/upstream/routePathResolutionAuthority';
+ import { emitResourceRouteBoundariesFromJudgment, emitStandardRouteBoundaries, type StandardRouteTarget } from '../subscanners/route-scanner';
+ import type { ControllerActionFlowContract } from '../../../types/upstream/highLevelContracts';
+-import type { ControllerActionJudgmentPublication, ControllerActionJudgmentRouteSelection } from '../../../types/upstream/laravelControllerScannerInterface';
++import type { ControllerActionJudgmentPublication, ControllerActionJudgmentRouteSelection, LaravelControllerScanJudgment } from '../../../types/upstream/laravelControllerScannerInterface';
+ import type { EndpointResponseBinding } from '../../../types/upstream/endpointBindings';
+ import type { LaravelControllerMethodResponseProduct } from '../../../types/upstream/laravelControllerResponseSemanticJudgmentInterface';
+ import { controllerActionRouteCorrelationAuthority } from '../../../types/upstream/laravelControllerActionRouteCorrelationAuthority';
+@@ -61,6 +61,7 @@
+   resourceFlowAuthority: LaravelRouteScannerInterface['routeResourceFlowAuthority'],
+   pathResolutionAuthority: LaravelRouteScannerInterface['routePathResolutionAuthority'],
+   file: string,
++  controllerScan: LaravelControllerScanJudgment,
+   publications: readonly ControllerActionJudgmentPublication[],
+   correlationAuthority: LaravelRouteScannerInterface['controllerActionRouteCorrelationAuthority'],
+ ): readonly RouteBoundaryContract[] => {
+@@ -84,7 +85,11 @@
+         middlewares,
+         SemanticValueFactory.sourceFilePath(file),
+         declarationEvidence.source.line,
+-        (method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine) => routeBoundaryContractFromRouteFacts(method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine, actionJudgmentForTarget(target, publications, correlationAuthority)),
++        (method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine) => {
++          const actionSelection = actionJudgmentForTarget(target, publications, correlationAuthority);
++          const responseProjection = responseProjectionForTarget(target, controllerScan, actionSelection);
++          return routeBoundaryContractFromRouteFacts(method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine, actionSelection, responseProjection);
++        },
+       );
+     }
+     case 'laravel_route_declaration_method_query':
+@@ -110,7 +115,11 @@
+         middlewares,
+         SemanticValueFactory.sourceFilePath(file),
+         declarationEvidence.source.line,
+-        (method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine) => routeBoundaryContractFromRouteFacts(method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine, actionJudgmentForTarget(target, publications, correlationAuthority)),
++        (method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine) => {
++          const actionSelection = actionJudgmentForTarget(target, publications, correlationAuthority);
++          const responseProjection = responseProjectionForTarget(target, controllerScan, actionSelection);
++          return routeBoundaryContractFromRouteFacts(method, path, resourceName, target, routeAuthorization, middleware, sourceFile, sourceLine, actionSelection, responseProjection);
++        },
+       );
+     }
+   }
+@@ -185,24 +194,14 @@
+   }
+ };
+ 
+-const responseProjectionForDeclaration = (
+-  declaration: import('../../../types/upstream/routeDeclarationEvidence').RouteDeclarationEvidence,
++const responseProjectionForTarget = (
++  target: StandardRouteTarget,
+   controllerScan: LaravelControllerScanJudgment,
+-  publications: readonly ControllerActionJudgmentPublication[],
+-  correlationAuthority: LaravelRouteScannerInterface['controllerActionRouteCorrelationAuthority'],
++  selection: ControllerActionJudgmentRouteSelection,
+ ): EndpointResponseBinding => {
+-  if (declaration.target.kind === 'closure') {
++  if (target.kind === 'closure') {
+     return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'closure_response_not_correlated' });
+   }
+-  if (declaration.target.kind !== 'controller_action' && declaration.target.kind !== 'controller_invokable') {
+-    return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'action_judgment_unmatched' });
+-  }
+-  const selection: ControllerActionJudgmentRouteSelection = correlationAuthority.judge({
+-    kind: 'controller_action_route_correlation_input',
+-    controller: createControllerName(declaration.target.controller),
+-    action: createActionName(declaration.target.kind === 'controller_action' ? declaration.target.action : '__invoke'),
+-    publications,
+-  });
+   switch (selection.kind) {
+     case 'unmatched_action_judgment':
+       return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'action_judgment_unmatched' });
+@@ -280,7 +279,7 @@
+     return Object.freeze(declarations.flatMap(declaration => {
+       const evidence = routeDeclarationEvidenceFromAst(declaration, file);
+       const methodJudgment = methodAuthority.judge({ method: evidence.method, targetMethods: evidence.targetMethods });
+-      return emitDeclaration(evidence, methodJudgment, authorizationAuthority, resourceFlowAuthority, pathResolutionAuthority, file, actionJudgments, correlationAuthority).map(boundary => Object.freeze({ boundary, declaration, evidence, methodJudgment, file }));
++      return emitDeclaration(evidence, methodJudgment, authorizationAuthority, resourceFlowAuthority, pathResolutionAuthority, file, controllerScan, actionJudgments, correlationAuthority).map(boundary => Object.freeze({ boundary, declaration, evidence, methodJudgment, file }));
+     }));
+   }))).flat());
+   const controllerPolicyCatalog: import('../../../types/upstream/effectiveControllerActionPolicy').EffectiveControllerActionPolicyCatalogJudgment = controllerScan.kind === 'laravel_controller_scan_complete'
+@@ -299,8 +298,7 @@
+     : Object.freeze({ kind: 'blocked' as const, entries: Object.freeze([]), reason: Object.freeze({ kind: 'controller_policy_inventory_unavailable' as const, controllers: Object.freeze([]) }) });
+   const artifacts = origins.map(({ boundary, declaration, evidence, methodJudgment, file }) => {
+     const sourceSpan = Object.freeze({ kind: 'source_span' as const, file: SemanticValueFactory.sourceFilePath(file), start: { kind: 'number_value' as const, value: declaration.source.startOffset }, end: { kind: 'number_value' as const, value: declaration.end.endOffset } });
+-    const responseProjection = responseProjectionForDeclaration(evidence, controllerScan, actionJudgments, correlationAuthority);
+-    const producerInput = routeProducerInputCompositionOperation.compose({ boundary, declaration: evidence, source: sourceSpan, methodJudgment, responseProjection });
++    const producerInput = routeProducerInputCompositionOperation.compose({ boundary, declaration: evidence, source: sourceSpan, methodJudgment });
+     const ast: RouteAst = routeProducerOperation.produce(producerInput);
+     const binding = bindingAuthority.judge({ kind: 'route_controller_binding_judgment_input', route: ast, controllerActions: actions });
+     const routeMiddleware = Object.freeze([...evidence.middleware, ...evidence.routeMiddleware].map(createMiddlewareName));
+
+--- Phase2413/packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts
++++ Phase2414/packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts
+@@ -181,6 +181,7 @@
+     sourceFile: SourceFile,
+     sourceLine: number,
+     actionJudgmentSelection: ControllerActionJudgmentRouteSelection,
++    responseProjection: EndpointResponseBinding,
+ ): import('../../../types/upstream/route').RouteBoundaryContract => {
+     const boundaryOptions: RouteBoundaryOptions = relationVariantFold(
+         target,
+@@ -198,6 +199,7 @@
+                 sourceFile,
+                 sourceLine,
+                 response: value.response,
++                responseProjection,
+                 runtimeReturn: { kind: 'none' as const },
+                 semanticReturn: value.semanticReturn,
+                 schema: emptyRouteSchemaPayload(),
+@@ -226,6 +228,7 @@
+                 sourceFile,
+                 sourceLine,
+                 response: value.response,
++                responseProjection,
+                 runtimeReturn: { kind: 'none' as const },
+                 semanticReturn: { kind: 'absent' as const },
+                 schema: emptyRouteSchemaPayload(),
+@@ -252,6 +255,7 @@
+             sourceFile: value.action.sourceFile,
+             sourceLine: value.action.sourceLine,
+             response: value.action.response,
++            responseProjection,
+             runtimeReturn: value.action.runtimeReturn,
+             semanticReturn: value.action.semanticReturn,
+             schema: value.action.schema,
+@@ -308,7 +312,6 @@
+         declarationEvidence: RouteDeclarationEvidence,
+         source: import("../../../types/upstream/provenance").SourceSpan,
+         methodJudgment: LaravelRouteDeclarationMethodJudgment,
+-        responseProjection: EndpointResponseBinding,
+     ): RouteProducerInput => {
+         const declarationMethods = methodJudgment.kind === 'laravel_route_declaration_method_match'
+             ? methodJudgment.httpMethods
+@@ -377,7 +380,7 @@
+         // The former controller-map refinement was unreachable in the active wiring: its
+         // only caller always supplied relationNone(), so it could never refine a parameter.
+         const parameters: RouteParameters = { kind: 'route_parameters', items: relationFoldRight(route.identity.parameters.all, { kind: 'empty' } as RouteParameters['items'], (parameter, tail) => ({ kind: 'cons', head: parameter, tail })) };
+-        const response: EndpointResponseBinding = responseProjection;
++        const response: EndpointResponseBinding = route.binding.responseProjection;
+         const domain: RouteDomain = relationGate(
+             relationEqual(route.identity.domain.domain.value.value.length, 0),
+             () => ({ kind: 'default' }),
+@@ -501,6 +504,5 @@
+             input.declaration,
+             input.source,
+             input.methodJudgment,
+-            input.responseProjection,
+         ),
+ });
+
+--- Phase2413/packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasicsTypes.ts
++++ Phase2414/packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasicsTypes.ts
+@@ -23,6 +23,7 @@
+ } from "../../../../types/upstream/names";
+ import type { RouteCapabilityCrudEvidence } from "../../../../types/upstream/route";
+ import type { LaravelRouteAuthorizationSemanticJudgment } from "../../../../types/upstream/routeAuthorizationSemanticJudgmentInterface";
++import type { EndpointResponseBinding } from "../../../../types/upstream/endpointBindings";
+ 
+ export type { RouteBoundaryContract } from "../../../../types/upstream/route";
+ 
+@@ -38,6 +39,8 @@
+     readonly pathParameters?: readonly RouteParameter[];
+     readonly queryParameters?: readonly RouteQueryParameter[];
+     readonly response: ResponseDescriptor;
++    /** Closed, method-correlated Integrated Response outcome; never infer this from the compatibility descriptor. */
++    readonly responseProjection: EndpointResponseBinding;
+     readonly errorResponses?: readonly HttpErrorResponseDescriptor[];
+     readonly invalidation?: RouteCacheInvalidationDescriptor;
+     readonly executionSignature?: RouteExecutionSignature;
+@@ -134,6 +137,7 @@
+     readonly pathParameters: readonly RouteParameter[];
+     readonly queryParameters: readonly RouteQueryParameter[];
+     readonly response: ResponseDescriptor;
++    readonly responseProjection: EndpointResponseBinding;
+     readonly errorResponses: readonly HttpErrorResponseDescriptor[];
+     readonly invalidation: RouteCacheInvalidationDescriptor;
+     readonly executionSignature: RouteExecutionSignature;
+
+--- Phase2413/packages/core/src/compiler/scanner/resolvers/boundary/bindingBuilder.ts
++++ Phase2414/packages/core/src/compiler/scanner/resolvers/boundary/bindingBuilder.ts
+@@ -22,6 +22,7 @@
+     return Object.freeze({
+         schema: params.schema,
+         response: params.response,
++        responseProjection: params.responseProjection,
+         responseTypeName,
+         operation: resolved.operation,
+         request,
+
+--- Phase2413/packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts
++++ Phase2414/packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts
+@@ -85,6 +85,7 @@
+         pathParameters: basics.resolvedPathParameters,
+         queryParameters: basics.resolvedQueryParameters,
+         response: params.response,
++        responseProjection: params.responseProjection,
+         errorResponses: capability.errorResponses,
+         invalidation: capability.invalidation,
+         executionSignature: capability.executionSignature,
+
+--- Phase2413/packages/core/src/types/domain/routes.ts
++++ Phase2414/packages/core/src/types/domain/routes.ts
+@@ -84,6 +84,8 @@
+   readonly operation: RouteOperationBinding;
+   readonly schema: RouteSchemaPayload;
+   readonly response: ResponseDescriptor;
++  /** Method-correlated Integrated Response product or an explicit closed projection blocker. */
++  readonly responseProjection: import('../upstream/endpointBindings').EndpointResponseBinding;
+   readonly request: RouteRequestBinding;
+   readonly runtimeReturn: ControllerRuntimeReturn;
+   readonly semanticReturn: ControllerReturnSemantic;
+
+--- Phase2413/packages/core/src/types/upstream/route.ts
++++ Phase2414/packages/core/src/types/upstream/route.ts
+@@ -312,8 +312,6 @@
+   readonly declaration: import('./routeDeclarationEvidence').RouteDeclarationEvidence;
+   readonly source: SourceSpan;
+   readonly methodJudgment: import('./laravelRouteDeclarationMethodJudgment').LaravelRouteDeclarationMethodJudgment;
+-  /** Exact method-owned Integrated Response projection, or an explicit closed blocker. */
+-  readonly responseProjection: EndpointResponseBinding;
+ }
+ 
+ export interface RouteProducerInputComposition {

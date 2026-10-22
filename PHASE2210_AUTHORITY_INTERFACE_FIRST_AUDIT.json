@@ -1,0 +1,31 @@
+{
+  "phase": 2210,
+  "title": "Invocation Executor Explicit Delegation Trace",
+  "baseline": "RouteSync-Phase2209-Authority-Contract-Identity-and-Scanner-Trace.zip",
+  "interfaceFirst": true,
+  "runtimeSemanticInference": false,
+  "changes": [
+    "InvocationSemanticRuntimeExecutorInterface exposes the exact delegation ownership of execute and executeAll",
+    "executeAll invokes the configured batch authority through an explicit receiver-preserving wrapper",
+    "Phase 2209 test asserts the delegation contract"
+  ],
+  "openBoundaries": [
+    "scanControllerAction and resolveControllerActionContract retain body and response-descriptor derivation",
+    "resource-binding judgment is upstream but publication still traverses the legacy action adapter",
+    "ChannelScanner.scanCanonicalAsts still classifies without authoritative client-subscription evidence",
+    "semantic/relations remains broadly imported and requires per-call semantic ownership trace"
+  ],
+  "forbiddenShortcutsAvoided": [
+    "no semantic/foundation layer",
+    "no replacement relation layer",
+    "no new subscanner layer",
+    "no claim that the Laravel scanner is fully migrated"
+  ],
+  "validation": {
+    "fullTypecheck": "not-run",
+    "vitest": "not-run",
+    "packageBuild": "not-run",
+    "syntaxTranspilation": "to-be-checked",
+    "zipIntegrity": "to-be-checked"
+  }
+}

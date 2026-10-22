@@ -1,0 +1,27 @@
+{
+  "phase": 1905,
+  "title": "Laravel Controller Response Composition Interface-First",
+  "status": "static-interface-audit-passed",
+  "checks": {
+    "staticAudit": "8/8",
+    "typescriptBuild": "not-run",
+    "typescriptTests": "not-run"
+  },
+  "changes": [
+    "advanced InvocationSemanticIntegratedResponseCompositionContract from version 17 to 18",
+    "declared that the composed publication aggregate is distinct from its PHP-source invocation input and preserves that exact input as phpFunctionInvocations",
+    "advanced LaravelControllerInvocationSemanticBoundaryContract from version 71 to 72",
+    "corrected canonical judgment versus integrated response ownership wording",
+    "injected InvocationSemanticIntegratedResponseCompositionInterface into controllerDataflowAnalyzer",
+    "moved concrete composition singleton binding to controllerVariableSemanticRuntimeBinding wiring root",
+    "corrected analyzer documentation to disclose remaining semantic runtime work"
+  ],
+  "openFindings": [
+    "controllerDataflowAnalyzer still correlates binding facts with statement payloads by source span",
+    "origin normalization and AST expression projection still occur in scanner runtime",
+    "semantic variable grouping and semantic-resolution orchestration still occur in scanner runtime",
+    "controllerDataflowContract resource-binding traversal remains unmodified",
+    "TypeScript build and tests remain unverified"
+  ],
+  "semanticFoundationDependencyIntroduced": false
+}

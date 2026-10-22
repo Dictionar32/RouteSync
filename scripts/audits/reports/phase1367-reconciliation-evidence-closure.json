@@ -1,0 +1,94 @@
+{
+  "phase": 1367,
+  "title": "Semantic Reconciliation Evidence Closure",
+  "result": "failed",
+  "passed": 18,
+  "total": 20,
+  "checks": [
+    {
+      "name": "reconciliation evidence is a closed, named upstream contract",
+      "passed": true
+    },
+    {
+      "name": "authority computes applicability once before constructing evidence",
+      "passed": true
+    },
+    {
+      "name": "authority seals relation, schema and applicability into the same evidence value",
+      "passed": true
+    },
+    {
+      "name": "candidate matching consumes the canonical applicability judgment",
+      "passed": true
+    },
+    {
+      "name": "schema provenance projection reuses the same applicability judgment",
+      "passed": true
+    },
+    {
+      "name": "canonical key resolution consumes the complete reconciliation evidence",
+      "passed": true
+    },
+    {
+      "name": "status derivation consumes the same evidence rather than separate relation and applicability arguments",
+      "passed": true
+    },
+    {
+      "name": "effective key fallback consumes the same evidence contract",
+      "passed": true
+    },
+    {
+      "name": "authority passes one evidence object through matching, key, status and provenance",
+      "passed": true
+    },
+    {
+      "name": "algebra remains the sole relation applicability classifier",
+      "passed": true
+    },
+    {
+      "name": "relation evidence and graph/dataflow authorities remain distinct",
+      "passed": true
+    },
+    {
+      "name": "operation identity capability preserves upstream reasoning and evidence",
+      "passed": true
+    },
+    {
+      "name": "manifest wiring validates canonical AST before creating semantic dataflow seeds",
+      "passed": false
+    },
+    {
+      "name": "AST dataflow exposes the closed authority judgment without duplicating the solver",
+      "passed": false
+    },
+    {
+      "name": "React consumes validated SDK endpoint capability rather than reclassifying routes",
+      "passed": true
+    },
+    {
+      "name": "SDK schema mapper and CLI emitter remain explicit projection boundaries",
+      "passed": true
+    },
+    {
+      "name": "Axios transport remains separate from semantic identity and capability reasoning",
+      "passed": true
+    },
+    {
+      "name": "graph relation projection consumes structural semantic relations through a closed result",
+      "passed": true
+    },
+    {
+      "name": "Laravel ecommerce source and Next.js/Zod/Axios/TanStack Query target are present in the traced example",
+      "passed": true
+    },
+    {
+      "name": "audit is registered without changing package version or build command",
+      "passed": true
+    }
+  ],
+  "change": "Applicability is derived once by upstream authority, sealed into SemanticReconciliationEvidence, and consumed by candidate matching, status, key resolution and schema provenance projection.",
+  "validationLimits": [
+    "Static source audit only; it does not establish TypeScript typecheck, runtime behavior, or full build success.",
+    "Full build requires repository dependencies including tsdown."
+  ]
+}

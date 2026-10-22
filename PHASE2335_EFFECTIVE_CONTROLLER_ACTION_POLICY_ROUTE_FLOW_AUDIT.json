@@ -1,0 +1,29 @@
+{
+  "phase": 2335,
+  "title": "Effective Controller/Action Policy in Canonical Route Flow",
+  "contractVersion": 11,
+  "existingContractsReused": [
+    "RouteSemanticFlow.controllerActionPolicy",
+    "EffectiveControllerActionPolicy",
+    "RouteControllerBindingJudgment",
+    "resolveEffectiveControllerActionPolicy",
+    "RouteMiddlewareSemanticInput",
+    "projectRouteResourceMiddleware"
+  ],
+  "staticAudit": {
+    "passed": 14,
+    "total": 14,
+    "script": "scripts/audits/audit-phase2335-effective-controller-action-policy-route-flow.cjs"
+  },
+  "zipIntegrity": "pass",
+  "vitest": "not_run",
+  "typescriptTypecheck": "not_run",
+  "build": "not_run",
+  "cliIntegration": "not_run",
+  "knownGaps": [
+    "canonical Laravel route scanner still contains pre-existing semantic/relations imports outside the focused effective-policy path",
+    "inherited controller policy catalog is not yet explicitly closed and wired into the canonical route scan call",
+    "effective policy has not yet been projected through final manifest/security output",
+    "legacy subscanner route flow still publishes explicit policy absence"
+  ]
+}

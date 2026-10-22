@@ -2,9 +2,9 @@
 import type { QueryKey, QueryNode, ActiveQueryFrame } from './salsaTypes';
 import type { QueryGraphManager } from './queryGraphManager';
 import { assertNoCycle } from './cycleDetector';
-import { relationGate, relationOptionFold, relationFirst, relationResolve, relationAll } from '../../../semantic/foundation/relationalSequence';
-import { relationNotEqual } from '../../../semantic/foundation/relationFoundation';
-import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
+import { relationGate, relationOptionFold, relationFirst, relationResolve, relationAll } from '../../../semantic/relations/relationalSequence';
+import { relationNotEqual } from '../../../semantic/relations/relationFoundation';
+import type { RelationOption } from '../../../semantic/relations/relationFoundation';
 
 export interface SalsaExecutionState { activeQueries: readonly string[]; activeQueryStack: readonly ActiveQueryFrame[]; }
 

@@ -1,0 +1,40 @@
+{
+  "phase": 2208,
+  "title": "Authority Interface-First Model",
+  "status": "contract_clarified_with_explicit_remaining_gaps",
+  "baseline": "Phase 2207 Service Middleware Provider Interface Closure",
+  "authorityOwnership": {
+    "phpInvocationJudgment": "InvocationSemanticAuthorityInterface.analyze",
+    "invocationRuntimeExecution": "InvocationSemanticRuntimeExecutorInterface.execute",
+    "phpInvocationIntegratedResponse": "InvocationSemanticIntegratedResponseCompositionInterface.integrate",
+    "laravelHttpResponseJudgment": "LaravelControllerResponseSemanticPipelineInterface.judgeIntegratedResponse",
+    "controllerArtifactAndAstProjection": "LaravelControllerScannerInterface plus LaravelSourceAstProjectionJudgment",
+    "cliPublication": "downstream projection only; no semantic reclassification"
+  },
+  "contractChanges": [
+    "LaravelControllerSubscannerInterfaceFirstContract now names distinct invocation authority, executor, PHP integrated response, and Laravel HTTP response owners",
+    "LaravelSubscannerRetirementInterface version 14 to 15",
+    "LaravelChannelScannerMigrationContract version 2 to 3",
+    "Added authority-interface-first-model.phase2208.test.ts"
+  ],
+  "remainingGaps": [
+    "ChannelScanner remains a direct legacy call and infers public/private/presence from channel pattern without client subscription evidence",
+    "Channel evidence provider is not established by the current Laravel SourceProjectIdentity boundary; do not substitute an empty evidence inventory or keep heuristic classification under the upstream interface",
+    "semantic/relations helpers remain in source-AST sequence and collection shaping",
+    "legacy subscanner implementations remain behind several composition-root adapters",
+    "full typecheck, Vitest, and package build were not run"
+  ],
+  "prohibitedNewLayers": [
+    "semantic/foundation",
+    "semantic/relations replacement layer",
+    "replacement subscanner"
+  ],
+  "validation": {
+    "syntaxTranspile": "3/3 changed or added TypeScript files passed with zero syntax diagnostics",
+    "structuralAssertions": "13/13 passed",
+    "zipIntegrity": "passed",
+    "fullTypecheck": "not_run",
+    "vitest": "not_run",
+    "packageBuild": "not_run"
+  }
+}

@@ -1,0 +1,13 @@
+PASS scanner judges each selected action through existing authority
+PASS executor forwards exact action judgment
+PASS scanner currently publishes action projections
+PASS scanner artifact contract currently has no actionJudgments publication
+PASS route scanner currently flattens action projections only
+PASS route boundary construction precedes binding judgment
+PASS controller-reference boundary defaults to no_request
+PASS canonical request ADT already has five variants
+PASS action judgment projection parameter is generic
+PASS design forbids casts and duplicate reduced judgment
+PASS typed request obligation remains open
+PASS no relation/foundation or subscanner added
+RESULT 12/12

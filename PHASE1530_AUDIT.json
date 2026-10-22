@@ -1,0 +1,18 @@
+{
+  "phase": 1530,
+  "date": "2026-10-10",
+  "title": "Closed Judgment Carries Its Semantic Conclusion",
+  "scope": "interface/model contract and audit only; no runtime/scanner function-body changes",
+  "modelInvariant": "A resolved provenance judgment carries the actual QueryOperationAst as well as the rule-family identity and satisfied obligation ledger",
+  "changed": [
+    "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "scripts/audits/audit-phase1530-closed-judgment-conclusion.cjs",
+    "package.json",
+    "PHASE1530_CLOSED_JUDGMENT_CONCLUSION.md",
+    "PHASE1530_AUDIT.json"
+  ],
+  "scannerFunctionBodiesChanged": false,
+  "reasoningImplementationChanged": false,
+  "runtimeAuthorityWired": false,
+  "build": "not_verified: prior workspace build was blocked because tsdown was missing"
+}

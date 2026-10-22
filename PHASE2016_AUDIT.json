@@ -1,0 +1,40 @@
+{
+  "phase": 2016,
+  "audit": "controller-declaration-blocked-propagation-interface-first",
+  "passed": 3,
+  "total": 8,
+  "checks": [
+    {
+      "name": "existing controller scanner interface owns declaration-selection inventory ADT",
+      "passed": false
+    },
+    {
+      "name": "blocked inventory retains controller identity and original ancestry termination",
+      "passed": false
+    },
+    {
+      "name": "complete and blocked inventory outcomes are discriminated union members",
+      "passed": true
+    },
+    {
+      "name": "scanner checks blocked selection before action derivation",
+      "passed": false
+    },
+    {
+      "name": "blocked declarations are not published as controller AST artifacts",
+      "passed": false
+    },
+    {
+      "name": "scanner propagates blocked declaration judgment in its result",
+      "passed": false
+    },
+    {
+      "name": "source AST completeness gate marks controller category unscanned for blocked declaration inventory",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner added",
+      "passed": true
+    }
+  ]
+}

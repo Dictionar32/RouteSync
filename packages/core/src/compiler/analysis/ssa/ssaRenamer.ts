@@ -1,12 +1,13 @@
 /** Relation-driven SSA variable renaming over the canonical CFG relation. */
 
 import type { ControlFlowGraph, BasicBlockRelation, Expression, Instruction } from '../../utils/ControlFlowGraph';
+import type { AssignInstruction, PhiInstruction } from '../../utils/cfg/instructions';
 import type { DominatorTree } from '../DominatorAnalysis';
 import { createVariableVersionScope, type VariableVersionScope } from './renamer/variableVersionScope';
 import { renameBlockInstructions, updateSuccessorPhis } from './renamer';
 import { basicBlockLookup, basicBlockReplace, createControlFlowGraph } from '../../utils/ControlFlowGraph';
-import { relationAny, relationFold, relationOptionFold, relationResolve, relationVariantValue, relationRefine } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/relationFoundation';
+import { relationAny, relationFold, relationOptionFold, relationResolve, relationVariantValue, relationRefine } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/relationFoundation';
 
 export interface SSARenamer { readonly rename: (cfg: ControlFlowGraph, dom: DominatorTree) => ControlFlowGraph; }
 
@@ -14,7 +15,7 @@ const relationIsDefinition = (instruction: Expression | Instruction): boolean =>
     relationResolve(relationEqual(instruction.kind, 'Assign'), () => true, () => relationEqual(instruction.kind, 'Phi'));
 
 const definitionTarget = (instruction: Expression | Instruction): number => relationOptionFold(
-    relationRefine(instruction, (candidate): candidate is Extract<Instruction, { readonly kind: 'Assign' | 'Phi' }> =>
+    relationRefine(instruction, (candidate): candidate is AssignInstruction | PhiInstruction =>
         relationAny([relationEqual(candidate.kind, 'Assign'), relationEqual(candidate.kind, 'Phi')])),
     () => { throw Error('SSA definition target requested for a non-definition instruction'); },
     value => relationResolve(relationEqual(value.kind, 'Assign'),

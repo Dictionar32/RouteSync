@@ -1,0 +1,45 @@
+{
+  "phase": 2063,
+  "audit": "shared-php-class-name-resolution-interface-first",
+  "passed": 8,
+  "total": 9,
+  "checks": [
+    {
+      "name": "shared lexical context, input, and rule interface are upstream contracts",
+      "passed": true
+    },
+    {
+      "name": "one upstream authority closes FQCN, namespace-relative, import-alias, and current-namespace judgments",
+      "passed": true
+    },
+    {
+      "name": "incomplete import inventory is a closed blocked judgment, not guessed namespace identity",
+      "passed": true
+    },
+    {
+      "name": "static-call authority delegates to the shared class-name authority and preserves its exact judgment ADT",
+      "passed": true
+    },
+    {
+      "name": "inheritance scanner projects lexical evidence into the same upstream authority",
+      "passed": false
+    },
+    {
+      "name": "existing static-call authority contract advances with single-judgment propagation",
+      "passed": true
+    },
+    {
+      "name": "focused regressions cover FQCN, aliases, qualified aliases, namespace-relative and blocked outcomes",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner or duplicate invocation/response/AST authority was introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ],
+  "note": "Structural audit only; no full TypeScript typecheck, build, or Vitest execution is asserted."
+}

@@ -1,0 +1,16 @@
+{
+  "upstreamAuthorityExists": true,
+  "upstreamAuthorityNoCompilerImport": true,
+  "upstreamAuthorityOwnsFixedPoint": true,
+  "upstreamAuthorityOwnsPaths": true,
+  "interfaceOwnsGuard": true,
+  "interfaceOwnsPaths": true,
+  "inputPreservesGuard": true,
+  "pipelineUsesUpstreamAuthority": true,
+  "compilerAuthorityCompatibilityOnly": true,
+  "scannerAnalyzerNoSolver": true,
+  "routeDataFlowIsNotDataflowAuthority": true,
+  "physicalEcommerceFixture": true,
+  "clean": true,
+  "productionRouteDataFlowConsumers": 0
+}

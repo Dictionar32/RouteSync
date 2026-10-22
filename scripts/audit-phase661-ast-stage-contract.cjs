@@ -11,12 +11,12 @@ const boundaryFiles = [
   'packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts',
   'packages/core/src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts',
   'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
   'packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts',
 ];
 const stageContract = read('packages/core/src/types/upstream/astSemanticStageInterface.ts');
+const stageAuthority = read('packages/core/src/types/upstream/astSemanticStageAuthority.ts');
 const graph = read('packages/core/src/types/upstream/astSemanticStageContract.ts');
 const requiredContracts = [
   'SCANNER_EVIDENCE_CONTRACT', 'UPSTREAM_MAPPING_CONTRACT', 'RESOLVER_GRAPH_CONTRACT',
@@ -34,8 +34,8 @@ const canonicalForbidden = Object.fromEntries(boundaryFiles.map(file => [file, [
 const result = {
   phase: 661,
   model: 'closed AST stage contracts with typed semantic edges and rewrite authority',
-  contracts: requiredContracts.every(name => stageContract.includes(name)),
-  factories: requiredFactories.every(name => stageContract.includes(name)),
+  contracts: requiredContracts.every(name => stageAuthority.includes(name)),
+  factories: requiredFactories.every(name => stageAuthority.includes(name)),
   graph: requiredEdges.every(name => graph.includes(name)),
   graphContractExported: read('packages/core/src/types/upstream/index.ts').includes("./astSemanticStageContract"),
   legacySolverEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts') === 0,
@@ -43,6 +43,8 @@ const result = {
   canonicalForbidden,
 };
 result.cleanBoundary = Object.values(canonicalForbidden).every(count => count === 0);
-result.success = result.contracts && result.factories && result.graph && result.graphContractExported && result.legacySolverEmpty && result.syntaxCoreEmpty && result.cleanBoundary;
+result.contractHasNoRuntimeConstructors = !/export\s+(?:const|function)\s/.test(stageContract);
+result.legacyDataflowFacadeDelegatesUpstream = /@deprecated Compatibility facade/.test(read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts')) && /createSemanticDataflowJudgment/.test(read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts')) && !/relationFixedPoint|reachClosure/.test(read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts'));
+result.success = result.contracts && result.factories && result.graph && result.graphContractExported && result.legacySolverEmpty && result.syntaxCoreEmpty && result.cleanBoundary && result.contractHasNoRuntimeConstructors && result.legacyDataflowFacadeDelegatesUpstream;
 console.log(JSON.stringify(result, null, 2));
 process.exit(result.success ? 0 : 1);

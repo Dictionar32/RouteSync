@@ -1,0 +1,77 @@
+{
+  "phase": 1721,
+  "name": "static-source-bound-stage-context",
+  "total": 17,
+  "passed": 15,
+  "failed": 2,
+  "checks": [
+    {
+      "name": "subject-presence success returns one source-bound context",
+      "passed": true
+    },
+    {
+      "name": "source-bound context contains exact knowledge snapshot and static subject",
+      "passed": true
+    },
+    {
+      "name": "post-presence stage outputs preserve the source-bound context in typed envelopes",
+      "passed": true
+    },
+    {
+      "name": "positional and target stages consume the same context type",
+      "passed": true
+    },
+    {
+      "name": "binding consumes context-bound target and positional judgments",
+      "passed": true
+    },
+    {
+      "name": "effect projection consumes a context-bound target judgment",
+      "passed": true
+    },
+    {
+      "name": "assembly consumes context-bound completed subjudgments",
+      "passed": true
+    },
+    {
+      "name": "final derived result carries context-bound final judgment",
+      "passed": true
+    },
+    {
+      "name": "authority accepts derived envelope without independent context or judgment",
+      "passed": true
+    },
+    {
+      "name": "algebra contract declares context-bound output and source snapshot handoff",
+      "passed": true
+    },
+    {
+      "name": "algebra contract type/value synchronized at v5",
+      "passed": true
+    },
+    {
+      "name": "authority validation and receipt synchronized at v8",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract v46 includes the static stage binding invariant",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary v25 forwards stage envelopes without semantic reasoning",
+      "passed": false
+    },
+    {
+      "name": "source context and stage envelope are publicly exported",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency or any escape hatch added in changed interfaces",
+      "passed": true
+    },
+    {
+      "name": "prior source-bound audit remains in regression lineage",
+      "passed": true
+    }
+  ]
+}

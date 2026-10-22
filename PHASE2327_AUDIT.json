@@ -1,0 +1,16 @@
+{
+  "phase": 2327,
+  "title": "Existing authorization authority and Laravel scanner trace",
+  "scope": "Evolve existing contract implementation; no duplicate authority or V2 interface",
+  "changed": [
+    "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts",
+    "packages/core/src/compiler/scanner/semantic/route/routeAuthorizationSemanticJudgmentAuthority.phase2325.test.ts",
+    "packages/core/src/types/upstream/docs/PHASE2327-EXISTING-AUTHORITY-AND-LARAVEL-SCANNER-TRACE.md"
+  ],
+  "verification": {
+    "source_assertion_added": true,
+    "vitest_executed": false,
+    "typescript_build_executed": false,
+    "cli_integration_executed": false
+  }
+}

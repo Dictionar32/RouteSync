@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, pass) => {
+  checks.push({ name, pass: Boolean(pass) });
+  console.log(`${pass ? 'PASS' : 'FAIL'} ${name}`);
+};
+const contractPath = 'packages/core/src/types/upstream/requestTypeDerivationInterface.ts';
+const inventoryPath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts';
+const occurrencePath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceOccurrenceVerification.ts';
+const resolutionPath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationResourceResolution.ts';
+const resolutionInventoryPath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationResourceResolutionInventory.ts';
+const contract = read(contractPath);
+const inventory = read(inventoryPath);
+const occurrence = read(occurrencePath);
+const resolution = read(resolutionPath);
+const resolutionInventory = read(resolutionInventoryPath);
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+const composition = read('packages/cli/src/upstreamCompositionFactory.ts');
+const loader = read('packages/cli/src/standaloneCompositionLoader.ts');
+const test = read('packages/core/src/compiler/semantic/request-type-derivation/__test__/requestTypeCanonicalIdentityRelationJudgment.phase2711.test.ts');
+const tokenizer = read('packages/core/src/compiler/scanner/lexer/tokenizer.ts');
+const arrayParser = read('packages/core/src/compiler/scanner/lexer/arrayParser.ts');
+const lexerFacade = read('packages/core/src/compiler/scanner/LaravelSourceLexer.ts');
+check('upstream interface returns typed route relation judgment, not boolean', /relateCanonicalRouteIdentity:[\s\S]*?RequestTypeCanonicalRouteIdentityRelationJudgment/.test(contract) && !/sameCanonicalRouteIdentity:[\s\S]*?boolean/.test(contract));
+check('upstream interface returns typed resource relation judgment, not boolean', /relateCanonicalResourceIdentity:[\s\S]*?RequestTypeCanonicalResourceIdentityRelationJudgment/.test(contract) && !/sameCanonicalResourceIdentity:[\s\S]*?boolean/.test(contract));
+check('upstream interface returns typed request relation judgment, not boolean', /relateCanonicalRequestIdentity:[\s\S]*?RequestTypeCanonicalRequestIdentityRelationJudgment/.test(contract) && !/sameCanonicalRequestIdentity:[\s\S]*?boolean/.test(contract));
+check('all three relation ADTs preserve both operands and equivalent/distinct outcomes', ['RequestTypeCanonicalRouteIdentityRelationJudgment','RequestTypeCanonicalResourceIdentityRelationJudgment','RequestTypeCanonicalRequestIdentityRelationJudgment'].every(name => contract.includes(name)) && ['canonical_route_identity_equivalent','canonical_route_identity_distinct','canonical_resource_identity_equivalent','canonical_resource_identity_distinct','canonical_request_identity_equivalent','canonical_request_identity_distinct'].every(tag => contract.includes(tag)) && /readonly left: RequestTypeCanonicalRouteIdentity/.test(contract) && /readonly right: RequestTypeCanonicalRouteIdentity/.test(contract) && /readonly left: RequestTypeCanonicalResourceIdentity/.test(contract) && /readonly right: RequestTypeCanonicalResourceIdentity/.test(contract) && /readonly left: RequestTypeCanonicalRequestIdentity/.test(contract) && /readonly right: RequestTypeCanonicalRequestIdentity/.test(contract));
+check('canonical identity relation implementations are internal operations, not exported free functions', /const relateCanonicalRouteIdentityImplementation:[\s\S]*?RequestTypeCanonicalRouteIdentityRelationJudgment/.test(inventory) && /const relateCanonicalResourceIdentityImplementation:[\s\S]*?RequestTypeCanonicalResourceIdentityRelationJudgment/.test(inventory) && /const relateCanonicalRequestIdentityImplementation:[\s\S]*?RequestTypeCanonicalRequestIdentityRelationJudgment/.test(inventory) && /export const requestTypeDerivationSourceEvidenceInventory:\s*RequestTypeDerivationSourceEvidenceInventoryInterface\s*=\s*Object\.freeze\(\{/.test(inventory));
+check('duplicate identity collision inventory consumes typed relation tags', /relateCanonicalRouteIdentityImplementation\([\s\S]*?\.kind === 'canonical_route_identity_equivalent'/.test(inventory) && /relateCanonicalResourceIdentityImplementation\([\s\S]*?\.kind === 'canonical_resource_identity_equivalent'/.test(inventory) && /relateCanonicalRequestIdentityImplementation\([\s\S]*?\.kind === 'canonical_request_identity_equivalent'/.test(inventory));
+check('source-occurrence verification consumes typed route/resource/request judgments', /relateCanonicalRouteIdentity\([\s\S]*?\.kind === 'canonical_route_identity_equivalent'/.test(occurrence) && /relateCanonicalResourceIdentity\([\s\S]*?\.kind === 'canonical_resource_identity_equivalent'/.test(occurrence) && /relateCanonicalRequestIdentity\([\s\S]*?\.kind === 'canonical_request_identity_equivalent'/.test(occurrence));
+check('resource candidate resolution consumes typed identity judgment', /relateCanonicalResourceIdentity\([\s\S]*?\.kind === 'canonical_resource_identity_equivalent'/.test(resolution));
+check('route/FormRequest resource mismatch consumes distinct judgment explicitly', /relateCanonicalResourceIdentity\([\s\S]*?\.kind === 'canonical_resource_identity_distinct'/.test(resolutionInventory));
+check('legacy sameCanonical boolean API is absent from TypeScript package sources', !fs.readdirSync(path.join(root, 'packages'), { withFileTypes: true }).length || !walkTs(path.join(root, 'packages')).some(({ text }) => /sameCanonical(Route|Resource|Request)Identity/.test(text)));
+function walkTs(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    const absolute = path.join(dir, entry.name);
+    if (entry.isDirectory()) return walkTs(absolute);
+    if (!entry.isFile() || !entry.name.endsWith('.ts')) return [];
+    const text = fs.readFileSync(absolute, 'utf8');
+    return [{ absolute, text }];
+  });
+}
+check('resource identity tests assert semantic judgment ADTs, not boolean values', /canonical_resource_identity_equivalent/.test(test) && /canonical_resource_identity_distinct/.test(test) && !/\.toBe\(true\)|\.toBe\(false\)/.test(test));
+check('CLI scan invokes the composition-owned manifest scan operation', /composition\.manifestScanOperation/.test(scan) && /manifestScanOperation\.scan\(/.test(scan));
+check('upstream CLI composition assembles and installs the semantic pipeline', /requestTypeDerivationProductionPipelineAssembler\.assemble\(semanticComposition\)/.test(composition) && /routeSyncCliManifestScanOperationFactory\.create\(manifestComposition\)/.test(composition));
+check('selected CLI composition and identity modules use interface-typed operation objects, with no exported free functions', [scan,sync,composition,loader,inventory,occurrence,resolution,resolutionInventory,tokenizer,arrayParser].every(source => !/\bexport\s+(?:async\s+)?function\b/.test(source)) && /export const requestTypeDerivationSourceEvidenceInventory:\s*RequestTypeDerivationSourceEvidenceInventoryInterface\s*=\s*Object\.freeze\(\{/.test(inventory));
+check('no duplicate compiler-level resource-equivalence helper was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeCanonicalResourceIdentityEquivalence.ts')));
+check('PHP tokenizer is an interface-typed operation object and has no exported free function', /export interface PhpSourceTokenizerInterface/.test(tokenizer) && /export const phpSourceTokenizer:\s*PhpSourceTokenizerInterface\s*=\s*Object\.freeze\(\{/.test(tokenizer) && !/export\s+function\s+tokenizePhpSource/.test(tokenizer));
+check('PHP array parser is an interface-typed operation object and has no exported free function', /export interface PhpArrayParserInterface/.test(arrayParser) && /export const phpArrayParser:\s*PhpArrayParserInterface\s*=\s*Object\.freeze\(\{/.test(arrayParser) && !/export\s+function\s+parsePhpArray/.test(arrayParser));
+check('LaravelSourceLexer delegates to typed tokenizer/parser objects', /phpSourceTokenizer\.tokenize\(source\)/.test(lexerFacade) && /phpArrayParser\.parse\(source, tokens, startIndex\)/.test(lexerFacade));
+check('legacy tokenizer and array-parser callable names are retired across package TypeScript sources', !walkTs(path.join(root, 'packages')).some(({ text }) => /\btokenizePhpSource\b|\bparsePhpArray\b/.test(text)));
+const failed = checks.filter(item => !item.pass);
+console.log(`\nPhase 2711 typed identity relation audit: ${checks.length - failed.length}/${checks.length} assertions passed.`);
+console.log('SCOPE: static source assertions only. This audit does not establish whole-workspace compilation, Vitest execution, CLI scan/sync integration, or complete proof-law verification.');
+if (failed.length) process.exitCode = 1;

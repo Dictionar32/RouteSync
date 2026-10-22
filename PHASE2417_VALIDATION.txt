@@ -1,0 +1,29 @@
+RouteSync Phase2417 validation
+
+Focused canonical response IR handoff audit:
+  node scripts/audits/audit-phase2417-canonical-response-ir-handoff.cjs
+  PASS 13/13 assertions
+
+Prior regression audits:
+  node scripts/audits/audit-phase2416-integrated-response-resource-consumer.cjs
+  PASS 8/8 assertions
+  node scripts/audits/audit-phase2415-route-response-blocker-propagation.cjs
+  PASS 14/14 assertions
+
+TypeScript syntax transpilation (global TypeScript 5.8.3):
+  packages/core/src/types/ir/endpointIrTypes.ts
+  packages/core/src/ir/domain/request-endpoint/endpointRefs.ts
+  PASS 2/2 files; 0 syntax diagnostics
+
+Targeted TypeScript typecheck:
+  tsc --noEmit --pretty false --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler packages/core/src/types/ir/endpointIrTypes.ts packages/core/src/ir/domain/request-endpoint/endpointRefs.ts
+  FAIL: 61 project diagnostics in other files; 0 diagnostics named either modified production file.
+  This is not a successful typecheck.
+
+Not run:
+  - Vitest (workspace dependencies unavailable)
+  - Package build
+  - Live RouteSync CLI scan/sync
+
+Scope note:
+  This phase closes canonical EndpointResponseBinding -> endpoint IR handoff only. It does not claim full runtime executor or CLI chain closure.

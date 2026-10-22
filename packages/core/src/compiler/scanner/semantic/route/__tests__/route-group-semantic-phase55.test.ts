@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import { parseRouteDeclarations } from '../../lexer/routeAst/routeDeclarationParser';
-import { resolveRouteGroupContext } from '../routeGroupContextResolver';
+import { routeGroupContextResolver } from '../../../descriptors/route/routeGroupContextResolver';
 import type { TokenDescriptor } from '../../lexer/phpAstTypes';
 
 describe('route group semantic elevation', () => {
@@ -17,7 +17,7 @@ describe('route group semantic elevation', () => {
       groupConstraints: [{ parameter: 'id', value: '[0-9]+' }] as any,
       source: {}, end: {},
     };
-    const context = resolveRouteGroupContext(declaration as any);
+    const context = routeGroupContextResolver.fromDeclaration(declaration as any);
     assert.equal(context.namePrefix.kind, 'some');
     assert.equal(context.controller.kind, 'some');
     assert.equal(context.domain.kind, 'explicit');

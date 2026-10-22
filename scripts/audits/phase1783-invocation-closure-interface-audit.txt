@@ -1,0 +1,16 @@
+PASS batch-contract-version-2
+PASS batch-closure-requires-total-bijection
+PASS batch-closure-correlates-arguments
+PASS batch-closure-has-typed-rejected-outcome
+PASS validated-batch-is-authority-receipt
+PASS integrated-response-preserves-closure-result
+PASS composition-input-accepts-only-validated-receipt
+PASS resolution-contract-still-prohibits-short-name-classification
+PASS call-authority-does-not-reintroduce-relations-or-foundation
+PASS interface-contracts-remain-exported-through-upstream-index
+SUMMARY 10/10 interface checks passed
+PENDING name-resolution-authority-implementation-missing
+PENDING batch-closure-authority-implementation-missing
+PENDING runtime-does-not-return-integrated-aggregate
+PENDING laravel-scanner-does-not-provide-php-batch
+PENDING resource-scanner-still-uses-pre-resolution-evidence

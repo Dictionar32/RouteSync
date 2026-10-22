@@ -1,0 +1,48 @@
+{
+  "phase": 1958,
+  "audit": "ast-source-domain-correlated-adt-interface-first",
+  "passed": 9,
+  "total": 10,
+  "checks": [
+    {
+      "name": "classifier contract consumes typed token evidence rather than PhpSourceText",
+      "passed": true
+    },
+    {
+      "name": "classifier has one request/response ADT port and no overload signatures",
+      "passed": false
+    },
+    {
+      "name": "semantic request is not incorrectly placed inside syntax classifier",
+      "passed": true
+    },
+    {
+      "name": "lexical ingress tokenizes before syntax classification",
+      "passed": true
+    },
+    {
+      "name": "semantic production reuses existing upstream producer",
+      "passed": true
+    },
+    {
+      "name": "producer rejects arbitrary syntax strings at the contract boundary",
+      "passed": true
+    },
+    {
+      "name": "canonical syntax-kind vocabulary covers actual expression AST variants",
+      "passed": true
+    },
+    {
+      "name": "semantic stage response preserves existing authority closure",
+      "passed": true
+    },
+    {
+      "name": "public barrel exports the strengthened syntax kind",
+      "passed": true
+    },
+    {
+      "name": "legacy text ingress is not part of the upstream classifier contract",
+      "passed": true
+    }
+  ]
+}

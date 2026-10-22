@@ -3,7 +3,7 @@ import type { SemanticReasoningContract } from './semanticReasoning';
 import type { SemanticType } from '../domain/semanticType';
 import type { PropertyName, ResourceName, FormTypeName } from '../domain/semanticValues';
 import { IdentifierCase } from '../../utils/naming';
-import { relationProject } from '../../semantic/foundation/relationalSequence';
+import { relationProject } from '../../semantic/relations/relationalSequence';
 
 export type SemanticMappingDirection = 'read' | 'write';
 export type SemanticMappingKind = 'direct' | 'object' | 'resource' | 'collection' | 'resource_collection';

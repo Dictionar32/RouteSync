@@ -1,0 +1,40 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
+
+const contract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionScanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
+const routeProjection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const judgmentInterface = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
+const retirementInterface = read('packages/core/src/types/upstream/laravelSubscannerRetirementInterface.ts');
+const tests = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts');
+
+check('legacy resolveRequest semantic classifier is retired', !/function\s+resolveRequest\s*\(/.test(contract));
+check('action contract consumes the existing upstream request ADT', /export type ControllerRequestBinding = LaravelControllerRequestSemanticBinding/.test(contract));
+check('subscanner retirement contract records canonical request ADT ownership', /canonical-LaravelControllerRequestSemanticBinding-ADT-with-preserved-typed-unresolved-variant/.test(retirementInterface));
+check('resolver context requires a closed request judgment', /readonly requestBindingJudgment:\s*RequestBindingJudgment/.test(contract));
+check('resolver projects the supplied judgment without reclassification', /const request = context\.requestBindingJudgment/.test(contract));
+check('request evidence adapter delegates judgment to existing authority', /laravelControllerRequestSemanticBindingAuthority\.judge\(evidence\)/.test(contract));
+check('evidence adapter represents all parameter origins exhaustively', /case 'request_origin'/.test(contract) && /case 'model_origin'/.test(contract) && /case 'external'/.test(contract) && /case 'expression'/.test(contract));
+check('action scanner forwards one judgment into the legacy projection', /requestBindingJudgment,\s*sourceProject/.test(actionScanner));
+check('production composition computes the request judgment once and passes it through', /const requestBindingJudgment = controllerRequestBindingJudgmentFromMethod\(input\.method, input\.formRequestIndex\)/.test(wiring) && /input\.contextualAttributeNames,\s*requestBindingJudgment/.test(wiring));
+check('published action semantic knowledge reuses the exact judgment value', /request:\s*requestBindingJudgment/.test(wiring));
+check('legacy route projection preserves typed request outcomes', /case 'typed':\s*return Object\.freeze\(\{ kind: 'typed_request', type: request\.type \}\)/.test(routeProjection));
+check('legacy route projection preserves unresolved type judgments', /case 'typed_unresolved':\s*return Object\.freeze\(\{ kind: 'unresolved_request', judgment: request\.judgment \}\)/.test(routeProjection));
+check('endpoint projection preserves unresolved action/type outcomes', /kind: 'unresolved_input', judgment: route\.binding\.request\.judgment/.test(routeProjection) && /kind: 'unresolved_action_input'/.test(routeProjection));
+check('schema compatibility consumes canonical request ADT exhaustively', /case 'typed_unresolved': return Object\.freeze\(\{ kind: 'no_form_request_schema_evidence' \}\)/.test(contract));
+check('retired schema-request compatibility obligation is removed from live coverage', !/kind: 'legacy_schema_request_binding_compatibility'/.test(judgmentInterface) && /schema-request-evidence-projects-from-the-canonical-request-judgment/.test(judgmentInterface));
+check('action judgment contract version is synchronized at 19', /readonly version: 19;/.test(judgmentInterface) && /version: 19 as const/.test(wiring));
+check('request contract tests use upstream request judgment', /controllerRequestBindingJudgmentFromMethod\(method, \[\]\)/.test(tests));
+check('changed production files do not introduce relation/foundation or a new subscanner dependency', ![contract, actionScanner, wiring, routeProjection].some(source => /semantic\/foundation|subscanners\/requestSemanticAuthority/.test(source)));
+
+const failed = checks.filter(item => !item.passed);
+const report = { phase: 2155, title: 'Legacy Request Derivation Retirement — Interface First', passed: checks.length - failed.length, total: checks.length, checks };
+fs.writeFileSync(path.join(root, 'reports/phase2155/PHASE2155_AUDIT.json'), JSON.stringify(report, null, 2) + '\n');
+for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
+process.stdout.write(`\n${report.passed}/${report.total} checks passed\n`);
+process.exitCode = failed.length ? 1 : 0;

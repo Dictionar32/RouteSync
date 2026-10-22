@@ -1,0 +1,18 @@
+{
+  "phase": 970,
+  "audit": "manifest-dataflow-closure",
+  "checks": {
+    "manifestSurfaceExtendsSeedSurface": true,
+    "builderMaterializesCanonicalInputs": true,
+    "scannerForwardsCanonicalInputs": true,
+    "surfaceOwnsSeedAssembly": true,
+    "routeProjectionUsesInputFactType": true,
+    "analysisConsumesManifestInput": true,
+    "analysisRejectsMissingManifestInput": true,
+    "analysisHasNoControllerSemanticFallback": true,
+    "noSecondSolverInSurface": true,
+    "noSecondSolverInProjection": true
+  },
+  "failed": [],
+  "clean": true
+}

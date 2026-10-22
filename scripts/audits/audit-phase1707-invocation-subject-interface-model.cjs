@@ -1,0 +1,32 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
+const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
+const publicIndex = read('packages/core/src/index.ts');
+const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
+const producer = read('packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts');
+const checks = [];
+const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
+
+check('ordinary and static invocation are distinct subject variants', pipeline.includes("kind: 'ordinary-invocation-subject'") && pipeline.includes("kind: 'static-invocation-subject'"));
+check('subject identity includes source form and KnowledgeId', pipeline.includes("readonly form: 'ordinary-invocation' | 'static-invocation'") && pipeline.includes('readonly id: KnowledgeId'));
+check('coverage inventory correlates every entry with source evidence', pipeline.includes('readonly source: SemanticSource') && pipeline.includes('InvocationSemanticSubjectCoverageInventoryInterface'));
+check('coverage contract requires exactly-once ordinary/static inventory', pipeline.includes('every-ordinary-and-static-source-fact-appears-exactly-once-with-source-evidence'));
+check('static invocation has a dedicated target and judgment contract', pipeline.includes('InvocationStaticJudgmentModelContract') && pipeline.includes('resolve-class-and-operation-as-a-pair-with-zero-one-or-many-candidate-outcomes'));
+check('static call cannot be coerced by inventing a receiver', pipeline.includes('never-invent-a-receiver-or-coerce-static-invocation-to-ordinary-invocation'));
+check('static target ambiguity and missing target preserve typed outcomes', pipeline.includes('retain-source-backed-unresolved-obligation-without-fabricating-a-callable') && pipeline.includes('retain-all-distinct-candidates-and-candidate-specific-evidence'));
+check('argument binding and effects are gated on resolved static target', pipeline.includes('derive-only-after-target-resolution-and-explicit-argument-form-evidence') && pipeline.includes('project-only-effects-declared-by-the-resolved-static-target'));
+check('Laravel controller scanner boundary explicitly forbids semantic reasoning', scanner.includes('LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_BOUNDARY_CONTRACT') && scanner.includes('invocation-target-resolution') && scanner.includes('semantic-fallback-or-reclassification'));
+check('public package index exports new interface contracts and subject types', publicIndex.includes('INVOCATION_STATIC_JUDGMENT_MODEL_CONTRACT') && publicIndex.includes('InvocationSemanticSubjectCoverageInventoryInterface') && publicIndex.includes('LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_BOUNDARY_CONTRACT'));
+check('current algebra gap remains explicit and is not misrepresented as implemented', /fact\.kind === 'invocation' \? \[fact\.value\] : \[\]/.test(algebra) && !/fact\.kind === 'static-invocation'/.test(algebra));
+check('source producer still preserves static invocation as its own fact', producer.includes("kind: 'static-invocation'"));
+check('pipeline contract version is current and coverage contract version is 12', /interface InvocationSemanticPipelineContract\s*\{[\s\S]*?readonly version: 32;/.test(pipeline) && /kind: 'invocation_semantic_coverage_contract',\s*version: 17,/.test(pipeline));
+check('new contracts do not add any or semantic/foundation dependencies', !/:\s*any\b/.test(pipeline + scanner) && !pipeline.includes('semantic/foundation') && !scanner.includes('semantic/foundation'));
+
+for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
+const failed = checks.filter((item) => !item.passed);
+process.stdout.write(`\n${checks.length - failed.length}/${checks.length} invocation subject interface model checks passed.\n`);
+process.stdout.write('SCOPE: interface and contract only. Static invocation judgment implementation and production wiring remain intentionally open.\n');
+if (failed.length) process.exit(1);

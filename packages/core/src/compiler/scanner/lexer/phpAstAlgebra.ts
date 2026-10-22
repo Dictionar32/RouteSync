@@ -1,9 +1,9 @@
 /** Exhaustive relational eliminator of scanner-level PHP syntax AST. */
 import type { PhpAstValue, PhpPropertyPath } from './phpAstTypes';
-import type { PhpAccessMode, PhpMatchArm } from './phpAstExpressionTypes';
-import type { PhpStatement } from './phpAstStatementTypes';
-import { relationOptionFold, relationRefine, type RelationVariant } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import type { PhpAccessMode, PhpArrayKey, PhpMatchArm } from './phpAstExpressionTypes';
+import type { PhpStatement, PhpStaticPropertyOwner } from './phpAstStatementTypes';
+import { relationOptionFold, relationRefine, type RelationVariant } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 
 export interface PhpAstValueVisitor<R> {
     readonly literal: (node: RelationVariant<PhpAstValue, 'literal'>) => R;
@@ -39,6 +39,21 @@ export interface PhpAstValueVisitor<R> {
     readonly unsupported: (node: RelationVariant<PhpAstValue, 'unsupported'>) => R;
 }
 export type PhpMicroAstVisitor<R> = PhpAstValueVisitor<R>;
+
+
+export interface PhpStaticPropertyOwnerVisitor<R> {
+    readonly named_class: (node: Extract<PhpStaticPropertyOwner, { readonly kind: 'named_class' }>) => R;
+    readonly self: (node: Extract<PhpStaticPropertyOwner, { readonly kind: 'self' }>) => R;
+    readonly static: (node: Extract<PhpStaticPropertyOwner, { readonly kind: 'static' }>) => R;
+    readonly parent: (node: Extract<PhpStaticPropertyOwner, { readonly kind: 'parent' }>) => R;
+}
+
+export interface PhpArrayKeyVisitor<R> {
+    readonly string: (node: Extract<PhpArrayKey, { readonly kind: 'string' }>) => R;
+    readonly integer: (node: Extract<PhpArrayKey, { readonly kind: 'integer' }>) => R;
+    readonly expression: (node: Extract<PhpArrayKey, { readonly kind: 'expression' }>) => R;
+}
+
 
 export interface PhpPropertyPathVisitor<R> {
     readonly single: (node: RelationVariant<PhpPropertyPath, 'single'>) => R;
@@ -81,6 +96,38 @@ const dispatchPhpAstValueKind = <K extends PhpAstValue['kind'], R>(
 
 export function matchPhpAstValue<R>(value: PhpAstValue, visitor: PhpAstValueVisitor<R>): R {
   return dispatchPhpAstValueKind(value, 'literal', visitor.literal, () => dispatchPhpAstValueKind(value, 'interpolated_string', visitor.interpolatedString, () => dispatchPhpAstValueKind(value, 'resource_single', visitor.resourceSingle, () => dispatchPhpAstValueKind(value, 'resource_collection', visitor.resourceCollection, () => dispatchPhpAstValueKind(value, 'method_chain', visitor.methodChain, () => dispatchPhpAstValueKind(value, 'property_access', visitor.propertyAccess, () => dispatchPhpAstValueKind(value, 'array_access', visitor.arrayAccess, () => dispatchPhpAstValueKind(value, 'function_call', visitor.functionCall, () => dispatchPhpAstValueKind(value, 'callable_call', visitor.callableCall, () => dispatchPhpAstValueKind(value, 'variable_reference', visitor.variableReference, () => dispatchPhpAstValueKind(value, 'magic_constant', visitor.magicConstant, () => dispatchPhpAstValueKind(value, 'constant_reference', visitor.constantReference, () => dispatchPhpAstValueKind(value, 'short_ternary', visitor.shortTernary, () => dispatchPhpAstValueKind(value, 'null_coalesce', visitor.nullCoalesce, () => dispatchPhpAstValueKind(value, 'binary_expression', visitor.binaryExpression, () => dispatchPhpAstValueKind(value, 'unary_expression', visitor.unaryExpression, () => dispatchPhpAstValueKind(value, 'cast_expression', visitor.castExpression, () => dispatchPhpAstValueKind(value, 'ternary_expression', visitor.ternaryExpression, () => dispatchPhpAstValueKind(value, 'nested_array', visitor.nestedArray, () => dispatchPhpAstValueKind(value, 'static_call', visitor.staticCall, () => dispatchPhpAstValueKind(value, 'class_reference', visitor.classReference, () => dispatchPhpAstValueKind(value, 'class_constant', visitor.classConstant, () => dispatchPhpAstValueKind(value, 'construct', visitor.construct, () => dispatchPhpAstValueKind(value, 'assignment_expression', visitor.assignmentExpression, () => dispatchPhpAstValueKind(value, 'dynamic_construct', visitor.dynamicConstruct, () => dispatchPhpAstValueKind(value, 'anonymous_class_construct', visitor.anonymousClassConstruct, () => dispatchPhpAstValueKind(value, 'instance_of', visitor.instanceOf, () => dispatchPhpAstValueKind(value, 'closure', visitor.closure, () => dispatchPhpAstValueKind(value, 'arrow_function', visitor.arrowFunction, () => dispatchPhpAstValueKind(value, 'match_expression', visitor.matchExpression, () => dispatchPhpAstValueKind(value, 'unsupported', visitor.unsupported, () => { throw Error('Unreachable PhpAstValue kind'); })))))))))))))))))))))))))))))));
+}
+
+
+const dispatchPhpArrayKeyKind = <K extends PhpArrayKey['kind'], R>(
+  value: PhpArrayKey,
+  kind: K,
+  handler: (node: Extract<PhpArrayKey, { readonly kind: K }>) => R,
+  fallback: () => R,
+): R => relationOptionFold(
+  relationRefine(value, (candidate): candidate is Extract<PhpArrayKey, { readonly kind: K }> => relationEqual(candidate.kind, kind)),
+  fallback,
+  handler,
+);
+
+export function matchPhpArrayKey<R>(value: PhpArrayKey, visitor: PhpArrayKeyVisitor<R>): R {
+  return dispatchPhpArrayKeyKind(value, 'string', visitor.string, () => dispatchPhpArrayKeyKind(value, 'integer', visitor.integer, () => dispatchPhpArrayKeyKind(value, 'expression', visitor.expression, () => { throw Error('Unreachable PhpArrayKey kind'); })));
+}
+
+
+const dispatchPhpStaticPropertyOwnerKind = <K extends PhpStaticPropertyOwner['kind'], R>(
+  value: PhpStaticPropertyOwner,
+  kind: K,
+  handler: (node: Extract<PhpStaticPropertyOwner, { readonly kind: K }>) => R,
+  fallback: () => R,
+): R => relationOptionFold(
+  relationRefine(value, (candidate): candidate is Extract<PhpStaticPropertyOwner, { readonly kind: K }> => relationEqual(candidate.kind, kind)),
+  fallback,
+  handler,
+);
+
+export function matchPhpStaticPropertyOwner<R>(value: PhpStaticPropertyOwner, visitor: PhpStaticPropertyOwnerVisitor<R>): R {
+  return dispatchPhpStaticPropertyOwnerKind(value, 'named_class', visitor.named_class, () => dispatchPhpStaticPropertyOwnerKind(value, 'self', visitor.self, () => dispatchPhpStaticPropertyOwnerKind(value, 'static', visitor.static, () => dispatchPhpStaticPropertyOwnerKind(value, 'parent', visitor.parent, () => { throw Error('Unreachable PhpStaticPropertyOwner kind'); }))));
 }
 
 const dispatchPhpPropertyPathKind = <K extends PhpPropertyPath['kind'], R>(

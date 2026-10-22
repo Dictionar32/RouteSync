@@ -11,7 +11,7 @@ import type {
   SemanticKnowledgeDataFlow as CanonicalSemanticKnowledgeDataFlow,
   SemanticDataFlowEdge,
 } from '../../../../types/upstream/semanticDataflowKnowledge';
-import { relationContains, relationUnique } from '../../../../semantic/foundation/relationMembership';
+import { relationContains, relationUnique } from '../../../../semantic/relations/relationMembership';
 import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve } from '../../../relational/sequence';
 import { typedDistinct, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
 import { knowledgeIdKey } from '../../../../types/upstream/semanticDataflowKnowledge';

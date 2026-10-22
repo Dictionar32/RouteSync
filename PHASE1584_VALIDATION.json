@@ -1,0 +1,22 @@
+{
+  "phase": 1584,
+  "typescript_version": "5.8.3",
+  "interface_transpile_diagnostics": 0,
+  "strict_typecheck": {
+    "baseline_errors": 35,
+    "phase_errors": 35,
+    "diagnostics_identical_to_baseline": true
+  },
+  "package_build": {
+    "status": "blocked",
+    "reason": "tsdown executable unavailable in workspace",
+    "exit_code": 127
+  },
+  "audit": {
+    "passed": 11,
+    "total": 11
+  },
+  "scanner_aggregator_authority_wiring_executor_migrated": false,
+  "archive_root": "RouteSync/",
+  "claims_boundary": "Interface contract strengthened only; live wiring is not yet proven to consume it."
+}

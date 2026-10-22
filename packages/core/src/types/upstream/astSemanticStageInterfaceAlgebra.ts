@@ -13,10 +13,10 @@ import type {
   AstSemanticPipeline,
   AstSemanticStageFact,
 } from './astSemanticStageInterface';
-import { astSemanticStageFacts } from './astSemanticStageInterface';
+import { astSemanticStageFacts } from './astSemanticStageAuthority';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
-import { relationEqual, relationResolve } from '../../semantic/foundation/semanticRelations';
-import { relationGate, relationNone, relationSome, type RelationOption } from '../../semantic/foundation/relationalSequence';
+import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
+import { relationGate, relationNone, relationSome, type RelationOption } from '../../semantic/relations/relationalSequence';
 
 export type AstSemanticStageInterface = Readonly<{
   readonly kind: 'ast_semantic_stage_interface';

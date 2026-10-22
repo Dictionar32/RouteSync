@@ -1,0 +1,50 @@
+{
+  "phase": 1578,
+  "audit": "semantic-authority-interface-closure",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "semantic authority rule registry declares 11 distinct decision rules",
+      "passed": true
+    },
+    {
+      "name": "decision rule coverage is exhaustive by mapped type",
+      "passed": true
+    },
+    {
+      "name": "closed derivation has its own verified conclusion",
+      "passed": true
+    },
+    {
+      "name": "incomplete judgment cannot be represented as a complete derivation outcome",
+      "passed": true
+    },
+    {
+      "name": "conflicted judgment cannot be represented as a complete derivation outcome",
+      "passed": true
+    },
+    {
+      "name": "verification counterexample remains distinct from verified incomplete/conflicted judgment",
+      "passed": true
+    },
+    {
+      "name": "typed rejection requires structurally equivalent rejection witness",
+      "passed": true
+    },
+    {
+      "name": "all inconsistency modes retain named rule proofs",
+      "passed": true
+    },
+    {
+      "name": "new authority interface returns one closed semantic assessment",
+      "passed": true
+    },
+    {
+      "name": "scanner, legacy authority implementation, and executor remain untouched",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "interface-only structural audit; scanner wiring, legacy authority implementation, and runtime executor are unchanged"
+}

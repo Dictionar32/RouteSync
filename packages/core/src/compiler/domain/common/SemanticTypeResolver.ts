@@ -11,8 +11,8 @@
 import {
     type SemanticType
 } from '../../../types/domain/semanticType';
-import { relationFirst, relationOptionFold, relationRefine } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationFirst, relationOptionFold, relationRefine } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 import type { ResourceFieldSemanticBinding } from '../../../types/domain/resourceFieldSemanticBinding';
 import type { ResourceFieldSemantic } from '../../../types/domain/resourceFieldSemantic';
 

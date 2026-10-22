@@ -25,7 +25,7 @@ import { parseModelAccessors } from "./model/memberAccessorsParser";
 import { parseModelRelations } from "./model/memberRelationsParser";
 import { modelProducer, type ModelProducerResult } from "./modelProducer";
 import { collectPhpFiles } from "./scannerUtils";
-import { relationAsyncFold } from "../../../semantic/foundation/relationalSequence";
+import { relationAsyncFold } from "../../../semantic/relations/relationalSequence";
 import { resolveModelColumns } from "./model";
 
 // Explicit named re-exports (Rule 14: 0 wildcard re-exports)

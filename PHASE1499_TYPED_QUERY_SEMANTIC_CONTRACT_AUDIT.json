@@ -1,0 +1,27 @@
+{
+  "phase": 1499,
+  "title": "Typed query semantic contract",
+  "date": "2026-10-10",
+  "workspaceRoot": "RouteSync",
+  "changes": [
+    "Query semantic interface method names now use MethodName domain values",
+    "Malformed query judgments now carry QuerySemanticDiagnostic with DescriptionText",
+    "Join descriptor argument positions now use QueryArgumentPosition with NumberValue",
+    "Unknown explicit basic where operators now reject instead of defaulting to equality",
+    "Scanner wiring and focused regression tests updated"
+  ],
+  "checks": {
+    "syntaxTranspilationChangedFiles": "passed",
+    "typedMethodNameContract": "passed",
+    "typedDiagnosticContract": "passed",
+    "typedArgumentPositionContract": "passed",
+    "unknownOperatorFailsClosed": "passed",
+    "fullTypecheck": "not_verified: dependencies absent and global TypeScript older than configured target",
+    "tests": "not_run: Vitest dependencies absent",
+    "build": "not_run: project dependencies absent"
+  },
+  "references": [
+    "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html",
+    "https://mlir.llvm.org/docs/Interfaces/"
+  ]
+}

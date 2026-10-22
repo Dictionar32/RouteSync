@@ -1,0 +1,15 @@
+{
+  "phase": 1516,
+  "title": "Closed Owned-Rule Execution Contract",
+  "checks": [
+    "interface defines a closed execution result without not_applicable",
+    "owned-rule execution normalizes evaluator not_applicable to malformed",
+    "rule binding exposes only the interface-owned closed execution result",
+    "dispatch cannot downgrade an owned method to unclaimed after execution",
+    "scanner fallback remains limited to the explicit unclaimed migration frontier",
+    "unknown methods retain an explicit unclaimed judgment"
+  ],
+  "result": "PASS",
+  "fullBuild": "NOT_RUN: node_modules unavailable",
+  "unitTests": "NOT_RUN: node_modules unavailable"
+}

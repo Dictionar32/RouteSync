@@ -8,7 +8,6 @@ const boundary = [
   'packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts',
   'packages/core/src/compiler/analysis/ssa/renamer/blockInstructionRenamer.ts',
   'packages/core/src/compiler/utils/cfg/instructions.ts',
-  'packages/core/src/compiler/scanner/resolvers/RouteCrudClassifier.ts',
 ];
 
 const forbidden = (file) => {
@@ -63,6 +62,7 @@ const transition = reports[boundary[0]];
 const pipelineText = fs.readFileSync(path.join(ROOT, boundary[1]), 'utf8');
 const transitionText = fs.readFileSync(path.join(ROOT, boundary[0]), 'utf8');
 const cfgText = fs.readFileSync(path.join(ROOT, 'packages/core/src/compiler/utils/cfg/instructions.ts'), 'utf8');
+const routeCrudAdapter = fs.readFileSync(path.join(ROOT, 'packages/core/src/compiler/scanner/resolvers/RouteCrudClassifier.ts'), 'utf8');
 const solverEmpty = fs.statSync(path.join(ROOT, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts')).size === 0;
 const syntaxEmpty = fs.statSync(path.join(ROOT, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts')).size === 0;
 const transitionKinds = [
@@ -81,11 +81,12 @@ const result = {
   transitionAlgebra: transitionKinds,
   transitionsCarriedByAuthority: transitionsCarried,
   closedReturnADT: closedReturn,
+  routeCrudCompatibilityDelegatesUpstream: /Deprecated compatibility facade/.test(routeCrudAdapter) && /routeCapabilityAuthority\.crudRoleFromRoute/.test(routeCrudAdapter),
   legacySolverEmpty: solverEmpty,
   syntaxCoreEmpty: syntaxEmpty,
   boundary: reports,
   cleanBoundary: clean,
-  success: transitionKinds && transitionsCarried && closedReturn && solverEmpty && syntaxEmpty && clean,
+  success: transitionKinds && transitionsCarried && closedReturn && solverEmpty && syntaxEmpty && clean && /Deprecated compatibility facade/.test(routeCrudAdapter) && /routeCapabilityAuthority\.crudRoleFromRoute/.test(routeCrudAdapter),
 };
 console.log(JSON.stringify(result, null, 2));
 process.exitCode = result.success ? 0 : 1;

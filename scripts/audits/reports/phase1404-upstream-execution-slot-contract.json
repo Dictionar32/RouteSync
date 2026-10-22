@@ -1,0 +1,75 @@
+{
+  "phase": 1404,
+  "audit": "upstream-execution-slot-contract",
+  "status": "passed_with_residuals",
+  "passed": 9,
+  "total": 9,
+  "residuals": [
+    {
+      "id": "R1",
+      "severity": "medium",
+      "owner": "packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts",
+      "detail": "Producer boundary exists, but source file discovery and syntax parsing remain combined with semantic product production."
+    },
+    {
+      "id": "R2",
+      "severity": "closed",
+      "owner": "packages/react/src/hooks/define/groupSlotResolver.ts",
+      "detail": "Closed: React requires crudSlots and the checked-in ecommerce example declares explicit contracts."
+    },
+    {
+      "id": "R3",
+      "severity": "medium",
+      "owner": "packages/cli/src/generators/classifier/routeGrouper.ts",
+      "detail": "Duplicate generated action names are still suffixed downstream instead of carrying a final symbol in the upstream route contract."
+    },
+    {
+      "id": "R4",
+      "severity": "medium",
+      "owner": "packages/core/src/types/domain/resourceGroupDescriptors.ts",
+      "detail": "Legacy descriptor helpers still expose role-based route selection; trace callers before retirement."
+    }
+  ],
+  "checks": [
+    {
+      "name": "resource-group contract carries closed slot ADT",
+      "pass": true
+    },
+    {
+      "name": "slot references carry canonical route and parameter identity",
+      "pass": true
+    },
+    {
+      "name": "upstream algebra resolves CRUD slots and custom route references",
+      "pass": true
+    },
+    {
+      "name": "hook generator consumes upstream slot contract",
+      "pass": true
+    },
+    {
+      "name": "hook generator resolves projection only by canonical route identity",
+      "pass": true
+    },
+    {
+      "name": "hook source passes manifest contract to lowering",
+      "pass": true
+    },
+    {
+      "name": "React runtime fallback is removed and HookConfig requires a closed contract",
+      "pass": true
+    },
+    {
+      "name": "hand-authored ecommerce hook groups explicitly declare slots",
+      "pass": true
+    },
+    {
+      "name": "package version and build command preserved",
+      "pass": true
+    }
+  ],
+  "package": {
+    "version": "1.0.49",
+    "build": "tsdown"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "phase": 1952,
+  "audit": "ast-projection-semantic-authority-interface-first",
+  "passed": 7,
+  "total": 13,
+  "checks": [
+    {
+      "name": "existing upstream interface declares an executable authority boundary for AST projection",
+      "passed": false
+    },
+    {
+      "name": "projection judgment is a closed ADT with distinct syntax-only and semantic variants",
+      "passed": false
+    },
+    {
+      "name": "authority consumes the AST rule owned by the canonical invocation reasoning contract",
+      "passed": false
+    },
+    {
+      "name": "semantic projection preserves the exact invocation judgment object",
+      "passed": true
+    },
+    {
+      "name": "parser delegates context reasoning to the semantic authority instead of interpreting context kind",
+      "passed": false
+    },
+    {
+      "name": "parser AST dispatch consumes only the authority-closed projection judgment",
+      "passed": true
+    },
+    {
+      "name": "semantic AST remains an explicit ADT case and retains canonical dataflow judgment",
+      "passed": true
+    },
+    {
+      "name": "production scanner still forwards the canonical invocation judgment without reclassification",
+      "passed": true
+    },
+    {
+      "name": "AST projection authority is exported through upstream and package public surfaces",
+      "passed": true
+    },
+    {
+      "name": "no duplicate invocation judgment authority or parallel judgment model is introduced",
+      "passed": true
+    },
+    {
+      "name": "existing integrated response outcomes remain untouched and outcome-specific",
+      "passed": false
+    },
+    {
+      "name": "runtime tests cover syntax-only closure, exact judgment identity, and shared reasoning contract",
+      "passed": false
+    },
+    {
+      "name": "Phase 1952 audit command is registered",
+      "passed": true
+    }
+  ]
+}

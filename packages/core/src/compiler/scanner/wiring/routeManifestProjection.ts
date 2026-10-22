@@ -1,18 +1,29 @@
-import type { RouteSyncManifest } from '../../../types/upstream/manifest';
-import type { RouteManifestProjection, RouteManifestProjectionInterface } from './routeManifestProjectionInterface';
-import { routeManifestTypeLowering } from './routeManifestTypeLowering';
+import type { RouteManifestRequestResolutionPreflight } from './routeManifestProjectionInterface';
+import type { RequestTypeDerivationSemanticPipelineInterface } from '../../../types/upstream/requestTypeDerivationInterface';
+import {
+  createAuthorityBackedRouteManifestProjection,
+  type AuthorityBackedRouteManifestProjectionResult,
+} from './routeManifestProjectionAuthority';
 
-const project = (manifest: RouteSyncManifest): RouteManifestProjection => {
-  const lowering = routeManifestTypeLowering.project(manifest);
-  return Object.freeze({
-    kind: 'route_manifest_projection',
-    requestTypes: lowering.requestTypes,
-    semanticTypes: lowering.semanticTypes,
-  });
+/**
+ * The active manifest projection entrypoint requires the upstream semantic
+ * pipeline. There is deliberately no default to the legacy RequestType[] solver:
+ * until a production producer/verifier composition is supplied, callers must
+ * surface that missing composition rather than silently derive unverified types.
+ */
+export const projectRouteSyncManifestForRouteManifest = (
+  preflight: RouteManifestRequestResolutionPreflight,
+  pipeline: RequestTypeDerivationSemanticPipelineInterface,
+): AuthorityBackedRouteManifestProjectionResult => {
+  const projection = createAuthorityBackedRouteManifestProjection(pipeline);
+  return projection.project(preflight);
 };
 
-/** Canonical wiring implementation for downstream RouteManifest materialization. */
-export const routeManifestProjection: RouteManifestProjectionInterface = Object.freeze({ project });
-
-export const projectRouteSyncManifestForRouteManifest = (manifest: RouteSyncManifest): RouteManifestProjection =>
-  routeManifestProjection.project(manifest);
+/**
+ * Factory form for composition roots which own the concrete semantic pipeline.
+ * This keeps the semantic dependency explicit and makes legacy fallback
+ * structurally unavailable on the active projection path.
+ */
+export const createRouteManifestProjection = (
+  pipeline: RequestTypeDerivationSemanticPipelineInterface,
+) => createAuthorityBackedRouteManifestProjection(pipeline);

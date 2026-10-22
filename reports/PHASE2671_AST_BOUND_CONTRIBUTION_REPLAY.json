@@ -1,0 +1,22 @@
+{
+  "phase": 2671,
+  "name": "ast-bound-contribution-replay",
+  "status": "structural_audit_passed",
+  "checks": {
+    "phase2665_cli_manifest_upstream": "9/9",
+    "phase2666_assessment_witness_closure": "8/8",
+    "phase2667_receipt_derived_closure": "6/6",
+    "phase2668_mixed_outcome_ledger": "8/8",
+    "phase2670_source_bound_receipts": "10/10",
+    "phase2671_ast_contribution_replay": "12/12"
+  },
+  "typecheck": {
+    "modified_verifier_diagnostics": 0,
+    "full_dependency_graph": "failed_on_pre-existing_errors"
+  },
+  "runtime": {
+    "vitest": "not_run_dependencies_missing",
+    "laravel_artisan": "not_run_vendor_autoload_missing",
+    "all_34_semantic_laws": "verification_incomplete"
+  }
+}

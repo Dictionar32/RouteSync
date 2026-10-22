@@ -1,0 +1,21 @@
+{
+  "phase": 1585,
+  "name": "request-type-semantic-wiring-cutover",
+  "scope": [
+    "core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts",
+    "core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts",
+    "core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts",
+    "core/src/compiler/scanner/subscanners/request-deriver/actionDeriver.ts",
+    "core/src/compiler/scanner/subscanners/request-deriver/responseDeriver.ts",
+    "core/src/compiler/semantic/request-type-derivation"
+  ],
+  "checks": {
+    "passed": 11,
+    "total": 11
+  },
+  "semantic_decisions_owned_by": "compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts",
+  "wiring_calls": "RequestTypeDerivationProjectionInterface",
+  "scanner_logic": "compatibility_facades_only",
+  "closed_proof_authority_wired_end_to_end": false,
+  "runtime_executor_migrated": false
+}

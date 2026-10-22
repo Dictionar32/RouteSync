@@ -1,0 +1,69 @@
+{
+  "phase": 1552,
+  "inventory": {
+    "sourceFiles": 455,
+    "productionFiles": 362,
+    "testFiles": 93,
+    "filesWithReasoningSignals": 182,
+    "filesWithDirectSolverCalls": 5,
+    "productionFilesWithDirectSolverCalls": 0
+  },
+  "clusters": [
+    {
+      "name": "relation-calculus-closure-constraints",
+      "contract": "types/upstream/semantic*",
+      "implementation": "types/upstream authority + semantic foundation solver",
+      "status": "migrated-phase1550",
+      "scannerRole": "compatibility facade and wiring"
+    },
+    {
+      "name": "route-domain-judgment",
+      "contract": "types/upstream/routeDomainAuthority.ts",
+      "implementation": "upstream route-domain authority",
+      "status": "judgment-strengthened-phase1551",
+      "scannerRole": "typed evidence and wiring"
+    },
+    {
+      "name": "semantic-object-type-derivation",
+      "contract": "types/upstream/semanticTypeDerivationInterface.ts",
+      "implementation": "compiler/semantic/type-derivation/*",
+      "status": "migrated-out-of-scanner-phase1552",
+      "scannerRole": "compatibility facade and wiring"
+    },
+    {
+      "name": "request-type-derivation",
+      "contract": "not yet unified under closed upstream authority",
+      "implementation": "compiler/scanner/subscanners/request-deriver/*",
+      "status": "open-frontier",
+      "scannerRole": "still contains derivation logic; next migration target"
+    },
+    {
+      "name": "AST construction and classification",
+      "contract": "types/upstream/astClassifierRuleAlgebra.ts plus syntax structures",
+      "implementation": "compiler/scanner/lexer/astClassifierRuntime.ts",
+      "status": "mixed-boundary-open",
+      "scannerRole": "retain syntax parsing; audit domain inference separately"
+    },
+    {
+      "name": "route security and CRUD resolution",
+      "contract": "types/upstream/routeSecurityAuthority.ts and routeCapabilityAuthority.ts",
+      "implementation": "upstream authorities",
+      "status": "authority-exists-consumer-audit-open",
+      "scannerRole": "evidence adapter and wiring"
+    },
+    {
+      "name": "controller expression/dataflow",
+      "contract": "upstream controller/dataflow authorities",
+      "implementation": "mixed upstream/scanner",
+      "status": "partial-migration-open",
+      "scannerRole": "evidence and wiring only as target state"
+    }
+  ],
+  "principles": [
+    "Scanner parses syntax and collects source evidence; semantic inference is owned outside scanner.",
+    "Upstream contracts are the stable authority boundary; executor delegates and does not reclassify.",
+    "No duplicate solver is introduced.",
+    "Closed status must describe a complete derivation, not merely a default or best-effort result.",
+    "RequestTypeDeriver and AST/domain mixed classifiers remain explicit frontiers."
+  ]
+}

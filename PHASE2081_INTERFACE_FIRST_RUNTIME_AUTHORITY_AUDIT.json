@@ -1,0 +1,21 @@
+{
+  "phase": 2081,
+  "title": "Interface-first runtime authority trace",
+  "kind": "static_source_trace",
+  "production_source_changed": false,
+  "build_run": false,
+  "typecheck_run": false,
+  "vitest_run": false,
+  "audit_script": "scripts/audits/audit-phase2081-interface-first-runtime-authority.cjs",
+  "assertions": 8,
+  "assertions_passed": 8,
+  "invocation_discriminated_union": "present",
+  "declaration_selection_complete_blocked_adt": "present",
+  "integrated_response_pipeline": "present",
+  "scanner_relation_dependency": "still_present",
+  "scanner_controller_subscanner_dependency": "still_present",
+  "declaration_semantic_helpers": "still_present",
+  "action_resolver_direct_contract_derivation": "still_present",
+  "runtime_executor_only": "not_satisfied",
+  "next_change": "Evolve existing action/declaration contracts in place after reconciling domain evidence and outcomes; migrate callers as one change."
+}

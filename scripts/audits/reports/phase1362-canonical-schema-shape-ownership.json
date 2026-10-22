@@ -1,0 +1,82 @@
+{
+  "phase": 1362,
+  "audit": "canonical-schema-shape-ownership",
+  "purpose": "Remove legacy schema.rules checks from CLI consumers and route schema-shape decisions through the upstream canonical RouteSchemaPayload.fields contract.",
+  "checks": [
+    {
+      "name": "Canonical schema shape is derived from RouteSchemaPayload.fields only",
+      "ok": true
+    },
+    {
+      "name": "Route capability semantic authority reuses the canonical schema-shape predicate",
+      "ok": true
+    },
+    {
+      "name": "Canonical schema-shape predicate is exported from the core public entry point",
+      "ok": true
+    },
+    {
+      "name": "Singleton/custom resource classifier consumes canonical schema shape",
+      "ok": true
+    },
+    {
+      "name": "Form type resolver consumes canonical schema shape",
+      "ok": true
+    },
+    {
+      "name": "SDK API emitter consumes canonical schema shape for body mappers",
+      "ok": true
+    },
+    {
+      "name": "No CLI generator reparses a legacy schema.rules map",
+      "ok": true
+    },
+    {
+      "name": "Canonical RouteSchemaPayload declares fields/messages/attributes rather than rules map",
+      "ok": true
+    },
+    {
+      "name": "Operation identity algebra preserves upstream route identity and reasoning",
+      "ok": true
+    },
+    {
+      "name": "Operation identity authority delegates to runtime algebra",
+      "ok": true
+    },
+    {
+      "name": "Manifest construction validates source AST before source-model building",
+      "ok": false
+    },
+    {
+      "name": "DataFlowInterface remains an explicit downstream consumer boundary",
+      "ok": true
+    },
+    {
+      "name": "IR and graph projections retain separate semantic and structural authorities",
+      "ok": true
+    },
+    {
+      "name": "Phase 1361 validation enum projection remains canonical ADT based",
+      "ok": true
+    },
+    {
+      "name": "Build script and TypeScript 7 declaration remain unchanged",
+      "ok": true
+    }
+  ],
+  "passedChecks": 14,
+  "totalChecks": 15,
+  "decision": {
+    "canonicalOwner": "hasCanonicalRequestFields in routeCapabilitySemanticAuthority, defined solely from RouteSchemaPayload.fields",
+    "consumers": [
+      "singleton/custom resource classification",
+      "form payload type resolution",
+      "SDK API body-mapper emission"
+    ],
+    "compatibility": "Legacy test fixtures containing schema.rules are not treated as canonical runtime contracts; no fallback parser or shape reclassification was added."
+  },
+  "validationLimits": [
+    "Static source-contract audit only; full build/runtime tests require installed project dependencies.",
+    "Workspace does not contain node_modules/tsdown; TypeScript 7.0.2 full build remains unverified."
+  ]
+}

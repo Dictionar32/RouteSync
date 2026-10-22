@@ -1,0 +1,160 @@
+{
+  "phase": 1363,
+  "audit": "upstream-contract-closure-and-operation-identity-consumption",
+  "purpose": "Separate truly unconsumed upstream type contracts from active identity/capability paths, and remove an unnecessary SDK identity cast without creating artificial consumers.",
+  "scope": [
+    "packages/core/src",
+    "packages/cli/src",
+    "packages/sdk/src",
+    "packages/react/src",
+    "examples/ecommerce-shop-source"
+  ],
+  "candidateContracts": [
+    {
+      "name": "ValidationRuleDefinition",
+      "declaration": "packages/core/src/types/upstream/request.ts",
+      "canonicalAlternative": "CanonicalRouteValidationRuleEntry -> RouteSemanticFlowValidationRuleSet -> RequestField.validation (ValidationRuleNode ADT)",
+      "disposition": "preserve_unwired_candidate",
+      "rationale": "The active scanner pipeline already emits canonical typed validation nodes. No producer/consumer for this separate definition was found; wiring it in would risk a second validation authority.",
+      "productionOccurrences": [
+        {
+          "file": "packages/core/src/types/upstream/request.ts",
+          "count": 1
+        }
+      ],
+      "action": "Preserve declaration; do not auto-delete or force-wire. Revisit only when a concrete producer/consumer gap is identified."
+    },
+    {
+      "name": "ControllerExpressionFact",
+      "declaration": "packages/core/src/types/upstream/controller.ts",
+      "canonicalAlternative": "ControllerSemanticVariableFlow and canonical Expression AST/dataflow facts",
+      "disposition": "preserve_unwired_candidate",
+      "rationale": "No production consumer was found. Do not add a parallel expression-fact producer until an actual missing semantic distinction is demonstrated.",
+      "productionOccurrences": [
+        {
+          "file": "packages/core/src/types/upstream/controller.ts",
+          "count": 1
+        }
+      ],
+      "action": "Preserve declaration; do not auto-delete or force-wire. Revisit only when a concrete producer/consumer gap is identified."
+    },
+    {
+      "name": "ExpressionDefinition",
+      "declaration": "packages/core/src/types/upstream/expression.ts",
+      "canonicalAlternative": "Expression AST nodes with SourceSpan provenance and semantic dataflow identities",
+      "disposition": "preserve_unwired_candidate",
+      "rationale": "No production consumer was found. Its expression-plus-source tuple may overlap existing AST provenance; keep it public and unmodified pending a semantic need.",
+      "productionOccurrences": [
+        {
+          "file": "packages/core/src/types/upstream/expression.ts",
+          "count": 1
+        }
+      ],
+      "action": "Preserve declaration; do not auto-delete or force-wire. Revisit only when a concrete producer/consumer gap is identified."
+    },
+    {
+      "name": "SchemaRelationTarget",
+      "declaration": "packages/core/src/types/upstream/schemaRelation.ts",
+      "canonicalAlternative": "SchemaRelationInterface / SchemaRelationIndexInterface -> StructuralSemanticRelation -> GraphEdgeRelation",
+      "disposition": "preserve_unwired_candidate",
+      "rationale": "No production consumer was found, while active schema relation indexing and graph projection already exist. Do not wire a second table/model tuple without a missing target identity requirement.",
+      "productionOccurrences": [
+        {
+          "file": "packages/core/src/types/upstream/schemaRelation.ts",
+          "count": 1
+        }
+      ],
+      "action": "Preserve declaration; do not auto-delete or force-wire. Revisit only when a concrete producer/consumer gap is identified."
+    }
+  ],
+  "operationIdentityTrace": [
+    "OperationIdentityCapabilityRuntimeAlgebraInterface -> operationIdentityCapabilityAlgebra.fromRoute",
+    "operationIdentityCapabilityAuthority -> canonical runtime algebra",
+    "operationIdentityProjection -> OperationIdentityReference representation",
+    "ManifestSerializer -> serialized capability/reference fields",
+    "SDK RouteDefinition.operationIdentity -> defineApi $key / $queryKey",
+    "React ClosedHookKind -> $def.hookKind"
+  ],
+  "checks": [
+    {
+      "name": "ValidationRuleDefinition declaration remains intact",
+      "ok": true
+    },
+    {
+      "name": "ValidationRuleDefinition has no production consumer outside its declaration",
+      "ok": true
+    },
+    {
+      "name": "ControllerExpressionFact declaration remains intact",
+      "ok": true
+    },
+    {
+      "name": "ControllerExpressionFact has no production consumer outside its declaration",
+      "ok": true
+    },
+    {
+      "name": "ExpressionDefinition declaration remains intact",
+      "ok": true
+    },
+    {
+      "name": "ExpressionDefinition has no production consumer outside its declaration",
+      "ok": true
+    },
+    {
+      "name": "SchemaRelationTarget declaration remains intact",
+      "ok": true
+    },
+    {
+      "name": "SchemaRelationTarget has no production consumer outside its declaration",
+      "ok": true
+    },
+    {
+      "name": "SDK RouteDefinition carries OperationIdentityReference as a typed optional contract",
+      "ok": true
+    },
+    {
+      "name": "SDK defineApi narrows required operation identity before attaching query keys",
+      "ok": true
+    },
+    {
+      "name": "SDK defineApi does not cast operation identity to its own contract",
+      "ok": true
+    },
+    {
+      "name": "Operation identity wiring only projects the closed upstream capability",
+      "ok": true
+    },
+    {
+      "name": "Operation identity authority delegates to the canonical runtime algebra",
+      "ok": false
+    },
+    {
+      "name": "Operation identity algebra preserves upstream identity and reasoning",
+      "ok": true
+    },
+    {
+      "name": "Manifest serializer forwards the already-resolved route capability",
+      "ok": true
+    },
+    {
+      "name": "React hook types index the already-closed hookKind capability",
+      "ok": true
+    },
+    {
+      "name": "Phase 1362 schema-shape ownership audit remains present",
+      "ok": true
+    },
+    {
+      "name": "Build script and declared TypeScript 7 version are preserved",
+      "ok": true
+    }
+  ],
+  "passedChecks": 17,
+  "totalChecks": 18,
+  "decision": "The four zero-consumer candidates remain preserved but explicitly classified. Runtime identity is consumed through a typed reference; the redundant SDK cast was removed. No fake producer/consumer or duplicate semantic authority was introduced.",
+  "validationLimits": [
+    "Static source audit; this does not prove runtime behavior.",
+    "Full build remains unverified because this workspace has no local node_modules/tsdown.",
+    "TypeScript available globally in prior checks is 5.8.3, while the package declares 7.0.2."
+  ]
+}

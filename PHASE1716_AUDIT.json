@@ -1,0 +1,78 @@
+{
+  "phase": 1716,
+  "name": "static-incomplete-proof-witness-shape",
+  "scope": "upstream interface contract only",
+  "checks": [
+    {
+      "name": "incomplete witness sequence is a closed typed tuple union",
+      "passed": true
+    },
+    {
+      "name": "incomplete proof excludes closure witness from its sequence",
+      "passed": true
+    },
+    {
+      "name": "unresolved target sequence ends at the obligated target witness",
+      "passed": true
+    },
+    {
+      "name": "resolved-target sequences preserve binding/effect rule order",
+      "passed": true
+    },
+    {
+      "name": "incomplete receipt no longer accepts an open-ended witness array",
+      "passed": true
+    },
+    {
+      "name": "proof-ledger contract is version 2 and declares the incomplete tuple law",
+      "passed": true
+    },
+    {
+      "name": "authority receipt and validation contract versions synchronize at v4",
+      "passed": true
+    },
+    {
+      "name": "judgment/model/coverage contracts synchronize at v7/v11",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract synchronizes at v24",
+      "passed": true
+    },
+    {
+      "name": "new witness sequence type is exported through the core entry",
+      "passed": true
+    },
+    {
+      "name": "previous proof-ledger audit retained for regression lineage",
+      "passed": true
+    },
+    {
+      "name": "scanner contract remains untouched by runtime wiring and no foundation dependency introduced",
+      "passed": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "result": "PASS",
+  "regressionAudits": {
+    "phase1702Through1716": {
+      "passed": 230,
+      "total": 230,
+      "result": "PASS"
+    },
+    "phase1700And1701": {
+      "result": "NOT_PASSING",
+      "note": "two legacy assertions in each audit fail on existing repository assumptions unrelated to Phase 1716; not counted in the 230/230 phase1702\u20131716 result"
+    }
+  },
+  "typecheck": {
+    "exitCode": 2,
+    "changedInterfaceDiagnostics": 0,
+    "note": "targeted tsc invocation reports existing errors in other domain/upstream modules; no diagnostics reference either changed interface file"
+  },
+  "build": "NOT_RUN_BY_REQUESTED_WORKFLOW_PREFERENCE",
+  "productionStaticInvocationAlgebra": "NOT_IMPLEMENTED",
+  "productionAuthorityValidator": "NOT_IMPLEMENTED",
+  "laravelScannerWiring": "UNCHANGED"
+}

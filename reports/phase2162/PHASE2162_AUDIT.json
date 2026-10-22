@@ -1,0 +1,72 @@
+{
+  "phase": 2162,
+  "title": "Response Evidence Production Coverage — Interface First",
+  "passed": 10,
+  "total": 15,
+  "checks": [
+    {
+      "name": "coverage ADT explicitly marks response evidence production partial",
+      "passed": true
+    },
+    {
+      "name": "coverage enumerates parser-observed return evidence as produced",
+      "passed": false
+    },
+    {
+      "name": "coverage explicitly names declared response attribute as missing evidence",
+      "passed": false
+    },
+    {
+      "name": "coverage explicitly names DTO declaration evidence as missing",
+      "passed": true
+    },
+    {
+      "name": "empty evidence inventory carries coverage",
+      "passed": true
+    },
+    {
+      "name": "present evidence inventory carries the same coverage",
+      "passed": true
+    },
+    {
+      "name": "producer attaches coverage to empty inventory",
+      "passed": true
+    },
+    {
+      "name": "producer attaches coverage to non-empty inventory",
+      "passed": true
+    },
+    {
+      "name": "coverage names existing producer as target rather than inventing another authority",
+      "passed": true
+    },
+    {
+      "name": "coverage preserves legacy descriptor owner as an open migration obligation",
+      "passed": true
+    },
+    {
+      "name": "response evidence production interface version advanced to 6",
+      "passed": false
+    },
+    {
+      "name": "production implementation version matches contract version",
+      "passed": false
+    },
+    {
+      "name": "legacy resolveResponse remains explicitly visible instead of falsely claiming retirement",
+      "passed": false
+    },
+    {
+      "name": "existing integrated response pipeline remains wired in controller scanner",
+      "passed": true
+    },
+    {
+      "name": "no duplicate response authority, relation, or foundation layer introduced",
+      "passed": true
+    }
+  ],
+  "productionCodeChanged": true,
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

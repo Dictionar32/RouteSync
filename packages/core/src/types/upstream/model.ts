@@ -14,8 +14,6 @@ import type { ModelPrimaryKeyReconciliationInterface } from './modelPrimaryKey';
 export type { EloquentRelationCardinality } from './modelVocabulary';
 import type { SourceStatements } from './sourceStatements';
 import type { DatabaseType } from './databaseVocabulary';
-import { relationIndexLookup, type RelationIndex } from '../../semantic/foundation/relationMembership';
-import { relationOptionFold, relationProject } from '../../semantic/foundation/relationalSequence';
 
 export type ModelTable =
   | { readonly kind: 'conventional'; readonly name: TableName }
@@ -163,49 +161,57 @@ export type ModelSemanticSurface = {
   readonly relationsByName: ModelSemanticRelationIndex;
 };
 
-export type ModelSemanticPropertyIndex = RelationIndex<PropertyName, ModelSemanticProperty>;
+export type ModelSemanticPropertyIndex = readonly (readonly [PropertyName, ModelSemanticProperty])[];
 
-export const modelSemanticPropertyIndexFrom = (
-  properties: readonly ModelSemanticProperty[],
-): ModelSemanticPropertyIndex => Object.freeze(relationProject(properties, property => [property.property, property] as const));
+export interface ModelSemanticPropertyIndexFactoryInterface {
+  (properties: readonly ModelSemanticProperty[]): ModelSemanticPropertyIndex;
+}
 
-export const modelSemanticPropertyLookup = (
-  index: ModelSemanticPropertyIndex,
-  property: PropertyName,
-): Lookup<ModelSemanticProperty> => relationOptionFold(
-  relationIndexLookup(index, property),
-  () => ({ kind: 'missing' as const }),
-  value => ({ kind: 'found' as const, value }),
+export interface ModelSemanticPropertyLookupInterface {
+  (index: ModelSemanticPropertyIndex, property: PropertyName): Lookup<ModelSemanticProperty>;
+}
+
+export interface ModelSemanticPropertyMembershipInterface {
+  (index: ModelSemanticPropertyIndex, property: PropertyName): boolean;
+}
+
+export const modelSemanticPropertyIndexFrom: ModelSemanticPropertyIndexFactoryInterface = properties => Object.freeze(
+  properties.map(property => [property.property, property] as const),
 );
 
-export const modelSemanticPropertyHas = (
-  index: ModelSemanticPropertyIndex,
-  property: PropertyName,
-): boolean => relationOptionFold(
-  relationIndexLookup(index, property),
-  () => false,
-  () => true,
-);
+export const modelSemanticPropertyLookup: ModelSemanticPropertyLookupInterface = (index, property) => {
+  const entry = index.find(candidate => candidate[0].value.value === property.value.value);
+  if (entry === undefined) return { kind: 'missing' };
+  return { kind: 'found', value: entry[1] };
+};
+
+export const modelSemanticPropertyHas: ModelSemanticPropertyMembershipInterface = (index, property) =>
+  index.some(candidate => candidate[0].value.value === property.value.value);
 
 
 export type ModelPropertyAccessFact =
   | { readonly kind: 'scalar'; readonly property: ModelSemanticColumn | ModelSemanticAccessor }
   | { readonly kind: 'relation'; readonly property: ModelSemanticRelation };
 
-export type ModelSemanticRelationIndex = RelationIndex<RelationName, ModelSemanticRelation>;
+export type ModelSemanticRelationIndex = readonly (readonly [RelationName, ModelSemanticRelation])[];
 
-export const modelSemanticRelationIndexFrom = (
-  relations: readonly ModelSemanticRelation[],
-): ModelSemanticRelationIndex => Object.freeze(relationProject(relations, relation => [relation.relation, relation] as const));
+export interface ModelSemanticRelationIndexFactoryInterface {
+  (relations: readonly ModelSemanticRelation[]): ModelSemanticRelationIndex;
+}
 
-export const modelSemanticRelationLookup = (
-  index: ModelSemanticRelationIndex,
-  relation: RelationName,
-): Lookup<ModelSemanticRelation> => relationOptionFold(
-  relationIndexLookup(index, relation),
-  () => ({ kind: 'missing' as const }),
-  value => ({ kind: 'found' as const, value }),
+export interface ModelSemanticRelationLookupInterface {
+  (index: ModelSemanticRelationIndex, relation: RelationName): Lookup<ModelSemanticRelation>;
+}
+
+export const modelSemanticRelationIndexFrom: ModelSemanticRelationIndexFactoryInterface = relations => Object.freeze(
+  relations.map(relation => [relation.relation, relation] as const),
 );
+
+export const modelSemanticRelationLookup: ModelSemanticRelationLookupInterface = (index, relation) => {
+  const entry = index.find(candidate => candidate[0].value.value === relation.value.value);
+  if (entry === undefined) return { kind: 'missing' };
+  return { kind: 'found', value: entry[1] };
+};
 
 
 export type ModelSemanticDefinition = {

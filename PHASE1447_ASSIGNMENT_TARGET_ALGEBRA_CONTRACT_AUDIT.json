@@ -1,0 +1,11 @@
+{
+  "phase": 1447,
+  "title": "Assignment Target Algebra Contract",
+  "scope": "Implement the previously established assignment-target interface in upstream algebra without changing runtime wiring.",
+  "staticAudit": { "passed": 10, "total": 10 },
+  "targetedTypeScript": { "command": "tsc --noEmit --skipLibCheck --target ES2020 --module ESNext --moduleResolution bundler packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts", "passed": true, "diagnostics": 0 },
+  "runtimeTests": { "status": "not_run", "reason": "Vitest executable is unavailable in this workspace." },
+  "build": { "status": "blocked", "reason": "npm run build cannot find tsdown in this workspace." },
+  "runtimeWiringChanged": false,
+  "compatibilityBoundary": "The old scannerAssignmentTargetAlgebra entry point remains as an adapter and delegates target-recognition decisions to scannerAssignmentTargetContractAlgebra. The legacy callback API still carries index-based evidence until wiring migration."
+}

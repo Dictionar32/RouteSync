@@ -1,0 +1,25 @@
+{
+  "phase": 1456,
+  "name": "cast-expression-contract",
+  "status": "focused-contract-and-runtime-probes-passed",
+  "source": "RouteSync Phase 1455",
+  "interface": "packages/core/src/types/upstream/scannerCastExpressionInterface.ts",
+  "algebra": "packages/core/src/types/upstream/scannerCastExpressionAlgebra.ts",
+  "wiring": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+  "results": {
+    "phase1456Audit": "14/14 passed",
+    "phase1455Audit": "14/14 passed",
+    "phase1454Audit": "13/13 passed",
+    "phase1453Audit": "10/10 passed",
+    "phase1452Audit": "12/12 passed",
+    "castAlgebraRuntimeProbes": "10/10 passed",
+    "astRuntimeProbes": "11/11 passed",
+    "focusedTypecheck": "passed with 0 diagnostics",
+    "runtimeFileDirectDiagnostics": "none observed in broader tsc output"
+  },
+  "known_blockers": [
+    "Full npm build unavailable because tsdown is not installed in the workspace.",
+    "Full repository type-check has unrelated diagnostics in transitive modules.",
+    "Full AST/downstream suite has not been run."
+  ]
+}

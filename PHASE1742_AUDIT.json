@@ -1,0 +1,81 @@
+{
+  "phase": 1742,
+  "name": "scanner-contract-truthfulness",
+  "total": 18,
+  "passed": 9,
+  "failed": 9,
+  "checks": [
+    {
+      "name": "Laravel scanner boundary contract and value are v31",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract and value are v52",
+      "passed": false
+    },
+    {
+      "name": "integrated response ownership is explicitly a future wiring requirement",
+      "passed": false
+    },
+    {
+      "name": "current integrated response runtime status is explicit in the type contract",
+      "passed": false
+    },
+    {
+      "name": "composition boundary is phrased as a post-wiring requirement",
+      "passed": false
+    },
+    {
+      "name": "composition interface still exposes only integrate and contract",
+      "passed": true
+    },
+    {
+      "name": "composition still accepts one source knowledge graph",
+      "passed": false
+    },
+    {
+      "name": "actual Laravel analyzer still delegates directly to the existing pipeline",
+      "passed": false
+    },
+    {
+      "name": "actual Laravel analyzer does not claim to invoke the unwired composition interface",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract states composition implementation and Laravel wiring are pending",
+      "passed": false
+    },
+    {
+      "name": "publication authority remains the sole correspondence owner",
+      "passed": true
+    },
+    {
+      "name": "integrated response keeps validated and rejected publication variants",
+      "passed": false
+    },
+    {
+      "name": "no duplicate integrated response authority was introduced",
+      "passed": true
+    },
+    {
+      "name": "scanner contract still forbids semantic fallback and reclassification",
+      "passed": true
+    },
+    {
+      "name": "public index exports the existing composition contract and interface",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "Phase 1742 audit command is registered",
+      "passed": true
+    },
+    {
+      "name": "Phase 1742 regression command is registered",
+      "passed": true
+    }
+  ]
+}

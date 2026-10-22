@@ -1,0 +1,24 @@
+{
+  "phase": 1942,
+  "name": "controller-payload-ambiguity-closure-interface-first",
+  "status": "PASS",
+  "checks": {
+    "phase1940_regression": { "passed": 8, "total": 8 },
+    "phase1941_payload_identity": { "passed": 7, "total": 7 },
+    "phase1942_payload_ambiguity_closure": { "passed": 8, "total": 8 },
+    "typescript_syntax_transpilation": "PASS",
+    "zip_integrity": "PASS"
+  },
+  "not_run": [
+    "full TypeScript type-check",
+    "project build",
+    "full test suite"
+  ],
+  "architecture": {
+    "existing_authority_evolved": true,
+    "parallel_semantic_authority_added": false,
+    "callable_payload_lookup_added": false,
+    "ambiguous_payload_outcome_explicit": true,
+    "scanner_selects_first_resolved_binding": false
+  }
+}

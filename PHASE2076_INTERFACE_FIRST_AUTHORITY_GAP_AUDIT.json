@@ -1,0 +1,24 @@
+{
+  "phase": 2076,
+  "kind": "interface_first_authority_gap_trace",
+  "production_source_changed": false,
+  "build": "not_run",
+  "typecheck": "not_run",
+  "vitest": "not_run",
+  "checks": [
+    { "id": "existing-interface-contracts", "status": "pass" },
+    { "id": "invocation-discriminated-union", "status": "pass" },
+    { "id": "invocation-response-projection-adt-correlation", "status": "pass_type_shape_only" },
+    { "id": "scanner-free-of-relation-foundation", "status": "fail" },
+    { "id": "scanner-free-of-controller-subscanner-calls", "status": "fail" },
+    { "id": "runtime-executor-only", "status": "fail" },
+    { "id": "declaration-authority-free-of-semantic-helper-reasoning", "status": "fail" }
+  ],
+  "next_owner": "existing-upstream-action-declaration-and-collection-contracts",
+  "forbidden_shortcuts": [
+    "move-helper-to-another-file",
+    "add-parallel-interface-that-only-wraps-existing-subscanner",
+    "remove-class-syntax-without-moving-semantic-ownership",
+    "reconstruct-invocation-or-integrated-response-judgment"
+  ]
+}

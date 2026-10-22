@@ -1,0 +1,47 @@
+{
+  "phase": 1398,
+  "audit": "ast-classifier-single-interface-contract",
+  "checks": [
+    {
+      "name": "contractIsDedicatedUpstreamType",
+      "passed": false
+    },
+    {
+      "name": "contractDoesNotImportCompilerRuntime",
+      "passed": true
+    },
+    {
+      "name": "requestHasOnlyEvidenceBoundary",
+      "passed": false
+    },
+    {
+      "name": "evidenceBuilderAcceptsSingleInterfaceInput",
+      "passed": false
+    },
+    {
+      "name": "oldPositionalTripleSignatureRemoved",
+      "passed": true
+    },
+    {
+      "name": "consumerUsesExplicitInterfaceObject",
+      "passed": false
+    },
+    {
+      "name": "returnsClosedStageInterface",
+      "passed": false
+    },
+    {
+      "name": "packageVersionAndBuildPreserved",
+      "passed": true
+    }
+  ],
+  "passedChecks": 3,
+  "totalChecks": 8,
+  "failures": [
+    "contractIsDedicatedUpstreamType",
+    "requestHasOnlyEvidenceBoundary",
+    "evidenceBuilderAcceptsSingleInterfaceInput",
+    "consumerUsesExplicitInterfaceObject",
+    "returnsClosedStageInterface"
+  ]
+}

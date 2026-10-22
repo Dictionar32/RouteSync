@@ -12,8 +12,8 @@ import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import type { ResourceName } from "../../../../types/upstream/names";
 import { RouteParameterSemanticFactory } from "../../semantic/route/routeParameterSemanticFactory";
 import { relationGate, relationProject, relationSelect, relationResolve, relationAll } from "../../../relational/sequence";
-import { relationTextStartsWith, relationTextFields, relationTextTrimChars, relationTextTrimEndChars } from "../../../../semantic/foundation/relationalSequence";
-import { relationNotEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationTextStartsWith, relationTextFields, relationTextTrimChars, relationTextTrimEndChars } from "../../../../semantic/relations/relationalSequence";
+import { relationNotEqual } from "../../../../semantic/relations/semanticRelations";
 import { deriveRouteConstantKey } from "../../resolvers/boundary/boundaryBasics";
 
 export interface ResolvedRoutePath {

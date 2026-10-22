@@ -1,12 +1,13 @@
 import type { PrimitiveBody, ResponseBody } from './responseBody';
 import type { ObjectProperty } from "./semanticType";
 import type { SemanticType } from "./semanticType";
-import { relationProject } from '../../semantic/foundation/relationalSequence';
+import { relationProject } from '../../semantic/relations/relationalSequence';
 import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldSemanticBinding } from "./resourceFieldSemanticBinding";
 import { requireResourceFieldType } from './resourceFieldSemantic';
 import { SemanticValueFactory } from "./semanticValues";
 import type { ClassName, DomainName, ModelName, ResourceName, ResponseFieldName, ResponseTypeName, RouteName, SourceFilePath } from "./semanticValues";
+import type { ControllerResponseReferenceJudgment } from '../upstream/controller';
 import {
   ResponseShape,
   type PaginatedEnvelopeDescriptor,
@@ -43,7 +44,15 @@ export type RouteResponseAnalysis =
   | InlineRouteResponseAnalysis
   | VoidRouteResponseAnalysis;
 
-export interface ResponseDescriptorBase {
+export interface ResponseDescriptorReferenceContract {
+  /** Availability of a declared response reference; this is not an HTTP-return judgment. */
+  readonly responseReferenceJudgment: ControllerResponseReferenceJudgment;
+}
+
+/** Compatibility alias; new contracts should use ResponseDescriptorReferenceContract. */
+export type ResponseDescriptorPresenceContract = ResponseDescriptorReferenceContract;
+
+export interface ResponseDescriptorBase extends ResponseDescriptorReferenceContract {
   readonly kind: ResponseKind;
   readonly shape: ResponseShape;
   readonly responseTypeName: () => ResponseTypeName;
@@ -65,11 +74,13 @@ export interface ResourceResponseDescriptor extends ResponseDescriptorBase {
 const resourceDescriptor = (params: ResourceResponseParams): ResourceResponseDescriptor => {
   const resourceName = params.resourceName;
   const shape = params.shape;
+  const responseTypeName = SemanticValueFactory.responseTypeName(`${resourceName.value.value}Response`);
   const descriptor: ResourceResponseDescriptor = {
     kind: 'resource',
     resourceName,
     shape,
-    responseTypeName: () => SemanticValueFactory.responseTypeName(`${resourceName.value.value}Response`),
+    responseReferenceJudgment: Object.freeze({ kind: 'response_reference_declared', response: Object.freeze({ kind: 'response_reference', name: responseTypeName }) }),
+    responseTypeName: () => responseTypeName,
     toSuccessStatusCode: () => 200,
     toAnalysis: (routeName) => ({ routeName, kind: 'resource', shape, resourceName }),
     toResponseBody: () => ({ type: 'resource', resource: resourceName.value.value, shape }),
@@ -96,11 +107,13 @@ export interface ModelResponseDescriptor extends ResponseDescriptorBase {
 const modelDescriptor = (params: ModelResponseParams): ModelResponseDescriptor => {
   const modelName = params.modelName;
   const shape = params.shape;
+  const responseTypeName = SemanticValueFactory.responseTypeName(`${modelName.value.value}Response`);
   const descriptor: ModelResponseDescriptor = {
     kind: 'model',
     modelName,
     shape,
-    responseTypeName: () => SemanticValueFactory.responseTypeName(`${modelName.value.value}Response`),
+    responseReferenceJudgment: Object.freeze({ kind: 'response_reference_declared', response: Object.freeze({ kind: 'response_reference', name: responseTypeName }) }),
+    responseTypeName: () => responseTypeName,
     toSuccessStatusCode: () => 200,
     toAnalysis: (routeName) => ({ routeName, kind: 'model', shape, modelName }),
     toResponseBody: () => ({ type: 'model', model: modelName.value.value, shape }),
@@ -121,6 +134,7 @@ export interface VoidResponseDescriptor extends ResponseDescriptorBase {
 const voidDescriptor = (): VoidResponseDescriptor => {
   const descriptor: VoidResponseDescriptor = {
     kind: 'void',
+    responseReferenceJudgment: Object.freeze({ kind: 'response_reference_not_declared' }),
     shape: 'single',
     responseTypeName: () => SemanticValueFactory.responseTypeName('void'),
     toSuccessStatusCode: () => 204,
@@ -174,6 +188,7 @@ const inlineDescriptor = (params: InlineResponseDescriptorParams): InlineRespons
   const baseName = params.baseName;
   const descriptor: InlineResponseDescriptor = {
     kind: 'inline',
+    responseReferenceJudgment: Object.freeze({ kind: 'response_reference_declared', response: Object.freeze({ kind: 'response_reference', name: typeName }) }),
     domain: params.domain,
     baseName,
     typeName,

@@ -19,10 +19,10 @@ import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 import { matchLookup } from "../../../../../types/upstream/collections";
 import { requireResourceFieldType } from "../../../../../types/domain/resourceFieldSemantic";
-import { resolveAstValueToExpression } from "../../../subscanners/resource/resourceAstExpressionMapper";
-import { createRelationName } from "../../../../../types/upstream/names";
-import { relationEqual } from "../../../../../semantic/foundation/semanticRelations";
-import { relationGate, relationFold, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from "../../../../../semantic/foundation/relationalSequence";
+import { mapResourceAstExpression } from "../../../operations/resourceAstExpressionMapper";
+import { createRelationName, type SourceFile } from "../../../../../types/upstream/names";
+import { relationEqual } from "../../../../../semantic/relations/semanticRelations";
+import { relationGate, relationFold, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from "../../../../../semantic/relations/relationalSequence";
 
 export function bindResourceCollectionField(
     key: string,
@@ -76,7 +76,8 @@ export function bindNestedArrayField(
         readonly value: PhpAstValue;
         readonly modelSymbol: OriginModelSymbol;
         readonly modelSymbolTable: ModelSymbolTable;
-    }) => BoundResourceFieldResult
+    }) => BoundResourceFieldResult,
+    sourceFile: SourceFile,
 ): BoundResourceFieldResult {
     const childFields = relationFold(value.entries, EMPTY_RESOURCE_FIELD_BINDINGS, (fields, childEntry, index) => {
         const childKey = relationGate(relationEqual(childEntry.kind, 'keyed'),
@@ -102,7 +103,7 @@ export function bindNestedArrayField(
         return {
             name: SemanticValueFactory.responseFieldName(childKey),
             propertyName: field.propertyName,
-            value: resolveAstValueToExpression(entry.value)
+            value: mapResourceAstExpression({ value: entry.value, sourceFile })
         };
     });
     const expression = ResourceFieldExpressionFactory.object(expressionFields);

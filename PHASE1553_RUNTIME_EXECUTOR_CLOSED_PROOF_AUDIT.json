@@ -1,0 +1,113 @@
+{
+  "phase": 1553,
+  "title": "Interface-first runtime executor proof and scanner ownership trace",
+  "totals": {
+    "sourceFiles": 488,
+    "productionFiles": 382,
+    "testFiles": 106,
+    "filesWithReasoningSignals": 314,
+    "directSolverCalls": 5,
+    "productionDirectSolverCalls": 0
+  },
+  "checks": [
+    {
+      "name": "upstream interface defines typed request, closed judgment, and proof",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "proof carries ordered derivation stages, source coverage, and result count",
+      "passed": false,
+      "detail": ""
+    },
+    {
+      "name": "runtime boundary validates closure and proof without semantic re-derivation",
+      "passed": false,
+      "detail": ""
+    },
+    {
+      "name": "authority composes the existing resource, route-response, and model derivations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "runtime executor delegates to authority then validates the returned contract",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "concrete authority composition is outside scanner",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "scanner facade consumes executor and does not select the concrete authority",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "tests cover delegation and mismatched source-coverage rejection",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "openFrontiers": [
+    {
+      "path": "packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts",
+      "owner": "request-type semantic authority",
+      "status": "open",
+      "note": "Orchestrator still calls derivation aggregation implemented under scanner/subscanners/request-deriver."
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/subscanners/request-deriver/",
+      "owner": "request-type semantic authority",
+      "status": "open",
+      "note": "Action/response/group assembly still mixes domain derivation and descriptor construction."
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+      "owner": "AST syntax/semantic boundary",
+      "status": "mixed",
+      "note": "Syntax-to-AST construction is expected; domain inference/classification ownership still needs rule-by-rule trace."
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts",
+      "owner": "upstream request-type interface",
+      "status": "open",
+      "note": "Wiring still calls RequestTypeDeriver directly."
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/",
+      "owner": "route security/CRUD and controller dataflow authorities",
+      "status": "consumer-audit-open",
+      "note": "Existing authorities are present; this inventory does not prove every consumer has cut over."
+    }
+  ],
+  "directSolverCallSites": [
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
+      "line": 15,
+      "test": true
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+      "line": 12,
+      "test": true
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+      "line": 65,
+      "test": true
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+      "line": 20,
+      "test": true
+    },
+    {
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+      "line": 34,
+      "test": true
+    }
+  ]
+}

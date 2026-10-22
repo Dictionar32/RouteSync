@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import path from 'node:path';
-import { manifestBuilder } from '../wiring/upstreamManifestBuilder';
-import { routeSyncManifestFlowFromManifest } from '../orchestrator/upstreamManifestScanner';
+import { manifestBuilderOperationPreparation } from '../wiring/upstreamManifestBuilder';
+import { routeSyncManifestFlowProjection } from '../orchestrator/upstreamManifestScanner';
 import { createLaravelSourceProjectIdentity } from '../../../types/upstream/sourceProjectIdentity';
+import { createNotConnectedControllerInventoryReceipt } from './createNotConnectedControllerInventoryReceipt';
 import type { SemanticRelation } from '../../../types/upstream/semanticReferences';
 import type { Sequence } from '../../../types/upstream/collections';
 
@@ -31,8 +32,12 @@ const findRelation = (
 
 describe('Phase 1007 ecommerce direct relation-family closure', () => {
   test('keeps belongsTo, hasMany, and hasOne on the canonical reconciled relation lane', async () => {
-    const manifest = await manifestBuilder.build(createLaravelSourceProjectIdentity(fixtureRoot));
-    const manifestFlow = routeSyncManifestFlowFromManifest(manifest);
+    const sourceProject = createLaravelSourceProjectIdentity(fixtureRoot);
+    const receipt = await createNotConnectedControllerInventoryReceipt(sourceProject);
+    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: { kind: 'laravel_route_source_selection_default' } }).build();
+    if (manifestJudgment.kind !== 'manifest_builder_complete') throw new Error(`Fixture manifest blocked: ${manifestJudgment.projection.kind}`);
+    const manifest = manifestJudgment.manifest;
+    const manifestFlow = routeSyncManifestFlowProjection.project(manifest);
     const relations = sequenceToArray(manifestFlow.relations.relations) as readonly SemanticRelation[];
 
     const belongsTo = findRelation(relations, 'OrderDetail', 'Order', 'order');

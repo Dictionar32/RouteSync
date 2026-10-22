@@ -22,6 +22,6 @@ export interface ServiceProducer {
 }
 
 export const serviceProducer: ServiceProducer = {
-  produceResult: input => buildServiceProducerResult(input.syntax, input.source, input.models),
+  produceResult: input => buildServiceProducerResult(input),
   produce: input => serviceProducer.produceResult(input).ast,
 };

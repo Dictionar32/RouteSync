@@ -6,6 +6,7 @@ const outDir = 'dist'
 
 const internalTypes = {
   '@routesync/core': './core',
+  '@routesync/core/upstream': './upstream',
   '@routesync/sdk': './sdk',
   '@routesync/react': './react',
 }
@@ -68,7 +69,8 @@ export default defineConfig([
   {
     ...shared,
     entry: {
-      core: 'packages/core/src/index.ts'
+      core: 'packages/core/src/index.ts',
+      upstream: 'packages/core/src/upstream.ts'
     },
     format: ['esm', 'cjs']
   },

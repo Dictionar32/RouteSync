@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { classifyPhpBlock } from '../astClassifier';
-import { tokenizePhpSource } from '../tokenizer';
+import { phpSourceTokenizer } from '../tokenizer';
 import { produceSemanticKnowledgeDataFlow } from './semanticKnowledgeDataFlowProducer';
 
 const parse = (source: string) => classifyPhpBlock(
-  tokenizePhpSource(source).filter(token => token.type !== 'EOF'),
+  phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'),
 );
 
 describe('semantic Knowledge/Data-Flow source of truth', () => {

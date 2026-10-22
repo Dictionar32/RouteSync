@@ -1,7 +1,5 @@
-import {
-  analyzeSemanticDataFlow,
-  pathSatisfiesGuard,
-} from './semanticDataFlowAnalyzer';
+import { analyzeSemanticDataFlow } from '../../wiring/semanticDataflowRuntimeBinding';
+import { pathSatisfiesGuard } from './semanticDataFlowAnalyzer';
 import {
   semanticAbsent,
   semanticPresent,

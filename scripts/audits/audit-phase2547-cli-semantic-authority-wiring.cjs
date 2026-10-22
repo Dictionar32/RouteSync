@@ -1,0 +1,24 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const checks = [];
+const assert = (label, condition) => checks.push({ label, passed: Boolean(condition) });
+const upstream = read('packages/core/src/types/upstream/semanticTypeDerivationInterface.ts');
+const authority = read('packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationAuthority.ts');
+const lowering = read('packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts');
+const authorityLowering = read('packages/core/src/compiler/scanner/wiring/routeManifestTypeLoweringAuthority.ts');
+const cliScan = read('packages/cli/src/commands/scan.ts');
+const cliSync = read('packages/cli/src/commands/sync.ts');
+assert('upstream defines the semantic derivation authority port', /interface SemanticTypeDerivationAuthorityInterface[\s\S]*?resolve: \(request: SemanticTypeDerivationRequest\) => SemanticTypeDerivationJudgment/.test(upstream));
+assert('semantic authority is an interface-valued frozen operation', /export const semanticTypeDerivationAuthority: SemanticTypeDerivationAuthorityInterface = Object\.freeze\(/.test(authority));
+assert('default manifest lowering invokes the canonical authority directly', /semanticTypeDerivationAuthority\.resolve\(\{ resources, models, interner, routes \}\)\.result/.test(lowering));
+assert('authority-backed lowering invokes the same canonical authority directly', /semanticTypeDerivationAuthority\.resolve\(\{ resources, models, interner, routes \}\)\.result/.test(authorityLowering));
+assert('active lowering no longer imports the SemanticTypeDeriver subscanner facade', !/subscanners\/SemanticTypeDeriver|SemanticTypeDeriver\.derive/.test(lowering + authorityLowering));
+assert('lowering preserves typed source AST inputs and the shared interner', /const routes = routeFlowsFromManifest\(manifest\)[\s\S]*?const models = modelAstsFromManifest\(manifest\)[\s\S]*?const resources = resourceAstsFromManifest\(manifest\)[\s\S]*?const interner = TypeInterner\.create\(\)/.test(lowering));
+assert('CLI scan and sync gate projection on resource preflight first', cliScan.indexOf('resourceAssessment.kind') < cliScan.indexOf('projectRouteSyncManifestForRouteManifest(completeManifest, requestResolutionPreflight)') && cliSync.indexOf('resourceAssessment.kind') < cliSync.indexOf('projectRouteSyncManifestForRouteManifest(completeManifest, requestResolutionPreflight)'));
+assert('new direct wiring introduces no foundation/relation dependency', !/semantic\/(foundation|relations)/.test(lowering + authorityLowering));
+let failed = 0;
+for (const check of checks) { console.log(`${check.passed ? 'PASS' : 'FAIL'} ${check.label}`); if (!check.passed) failed += 1; }
+console.log(`RESULT ${checks.length - failed}/${checks.length} checks passed`);
+process.exitCode = failed === 0 ? 0 : 1;

@@ -1,0 +1,20 @@
+{
+  "phase": 1474,
+  "title": "Inline Array Partition Contract",
+  "status": "implemented",
+  "architecture": "Source evidence -> typed structural partition judgment -> interface -> runtime wiring -> AST projection",
+  "changes": [
+    "Inline array entries now use ScannerTokenStructureInterface.partitionTopLevel.",
+    "Malformed partition judgments project to an unsupported AST node rather than being treated as one ordinary segment.",
+    "Removed the runtime-local splitTopLevel helper from astClassifierRuntime.ts.",
+    "Added focused upstream partition tests and an architecture audit."
+  ],
+  "verification": {
+    "architecture_audit": "8/8 passed",
+    "strict_upstream_typescript_compile": "passed",
+    "runtime_smoke": "passed for [1, 2], [1, foo(2, 3),], and []",
+    "full_runtime_typescript_compile": "blocked by 467 existing diagnostics across broader modules; no diagnostics reported in changed partition lines or token structure interface/algebra",
+    "vitest": "not run; vitest dependency absent",
+    "package_build": "not run; tsdown dependency absent"
+  }
+}

@@ -1,5 +1,6 @@
 /**
  * Historical wiring path. Route-group semantic authority remains upstream.
+ * This module re-exports the interface-typed operation object, not free functions.
  */
-export { resolveRouteGroupFactsJudgment, resolveRouteGroupFacts } from '../../upstream/route/routeGroupSemanticResolver';
-export type { RouteGroupResolutionJudgment } from '../../upstream/route/routeGroupSemanticResolver';
+export { routeGroupSemanticResolver } from '../../upstream/route/routeGroupSemanticResolver';
+export type { RouteGroupResolutionJudgment, RouteGroupSemanticResolverInterface } from '../../upstream/route/routeGroupSemanticResolver';

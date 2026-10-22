@@ -1,0 +1,47 @@
+{
+  "phase": 1411,
+  "name": "upstream-origin-totality",
+  "status": "passed_with_residuals",
+  "change": "Origin resolution now uses an exhaustive typed Record<SourceAstEvidenceKind, rule> instead of a default resource fallback.",
+  "validation": {
+    "phase1410": {
+      "passed": 23,
+      "total": 23,
+      "status": "passed_with_residuals"
+    },
+    "phase1411": {
+      "passed": 15,
+      "total": 15,
+      "status": "passed"
+    },
+    "phase1409": {
+      "passed": 12,
+      "total": 12,
+      "status": "passed_with_residuals"
+    },
+    "build": {
+      "status": "blocked",
+      "reason": "npm run build exited 127 because node_modules/.bin/tsdown is missing in this workspace."
+    }
+  },
+  "preserved": {
+    "packageVersion": "1.0.49",
+    "buildScript": "tsdown"
+  },
+  "residuals": [
+    "Model accessor eligibility remains semantic reasoning inside sourceAstSemanticProducer and should be migrated to an upstream closed capability judgment.",
+    "Laravel source families outside model/resource/controller/service are not yet integrated into the source-AST semantic origin contract.",
+    "Full TypeScript build and runtime integration tests remain unverified because the build dependency tsdown is absent."
+  ],
+  "flow": "Laravel evidence -> syntax AST/ADT -> upstream semantic reasoning -> closed capability/dataflow judgment -> interface/contract -> wiring -> runtime executor -> manifest/graph/IR/CLI/SDK/React projection",
+  "research": [
+    "https://mlir.llvm.org/docs/Interfaces/",
+    "https://codeql.github.com/docs/codeql-language-guides/analyzing-data-flow-in-javascript-and-typescript/",
+    "https://laravel.com/docs/controllers#resource-controllers",
+    "https://nextjs.org/docs/app",
+    "https://zod.dev/basics",
+    "https://axios-http.com/docs/instance",
+    "https://tanstack.com/query/latest/docs/framework/react/guides/query-keys",
+    "https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/"
+  ]
+}

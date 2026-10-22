@@ -1,5 +1,5 @@
-import { relationOptionFold, relationFirst } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationOptionFold, relationFirst } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 import { createDomainAstJudgment, type MiddlewareAst } from '../../../types/upstream/ast';
 import type { MiddlewareDefinition } from '../../../types/upstream/application';
 import { createClassName } from '../../../types/upstream/names';
@@ -36,7 +36,7 @@ export const middlewareProducer: MiddlewareProducer = {
         handle,
         name.value.value,
         input.source.file.value.value,
-        { kind: 'response_absent' },
+        { kind: 'response_reference_not_declared' },
       ),
       source: input.source,
     };

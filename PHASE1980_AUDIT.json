@@ -1,0 +1,59 @@
+{
+  "phase": 1980,
+  "title": "Controller response judgment correlated on canonical controller artifact — interface first",
+  "scope": "type/interface declarations, public type export, trace audit, and documentation only; no runtime/executor/wiring/subscanner implementation edits",
+  "trace": {
+    "controllerProductionModulesScanned": 14,
+    "relationOrFoundationImportOccurrences": 27,
+    "foundationImportOccurrences": 0,
+    "migrationStatus": "legacy consumers remain; runtime wiring must supply responseJudgment before the new artifact contract is implementation-complete"
+  },
+  "checks": [
+    {
+      "name": "response judgment remains a discriminated ADT",
+      "passed": true
+    },
+    {
+      "name": "response judgment is indexed by invocation outcome",
+      "passed": true
+    },
+    {
+      "name": "controller artifact requires response judgment",
+      "passed": true
+    },
+    {
+      "name": "controller artifact keeps invocation and response outcome-indexed together",
+      "passed": true
+    },
+    {
+      "name": "scanner contract version records the interface change",
+      "passed": true
+    },
+    {
+      "name": "response responsibility map points to judgment contract and artifact boundary",
+      "passed": true
+    },
+    {
+      "name": "retirement contract version is 7",
+      "passed": true
+    },
+    {
+      "name": "generic response judgment is publicly type-exported",
+      "passed": true
+    },
+    {
+      "name": "response judgment file has no runtime values and scanner interface adds no executable declaration",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation replacement subscanner is introduced",
+      "passed": true
+    },
+    {
+      "name": "legacy relation/foundation import count is explicitly visible for migration",
+      "passed": true
+    }
+  ],
+  "passed": 11,
+  "total": 11
+}

@@ -1,0 +1,60 @@
+{
+  "phase": 1998,
+  "audit": "response-correlation-rejection-artifact-adt",
+  "passed": 6,
+  "total": 13,
+  "checks": [
+    {
+      "name": "source-correlation rejection judgment is a closed ADT retaining invocation and rejected receipt",
+      "passed": true
+    },
+    {
+      "name": "evidence producer accepts successful correlation only",
+      "passed": true
+    },
+    {
+      "name": "AST projection response ADT preserves declaration-correlation rejection",
+      "passed": false
+    },
+    {
+      "name": "scanner artifact not-connected outcome accepts correlation rejection",
+      "passed": false
+    },
+    {
+      "name": "scanner artifact source-binding-rejected outcome accepts correlation rejection",
+      "passed": false
+    },
+    {
+      "name": "scanner artifact blocked outcome accepts correlation rejection",
+      "passed": false
+    },
+    {
+      "name": "scanner artifact complete invocation outcome accepts correlation rejection",
+      "passed": false
+    },
+    {
+      "name": "scanner contract version advanced to 23",
+      "passed": false
+    },
+    {
+      "name": "scan judgment contract version advanced to 23",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract version 3 records rejection preservation",
+      "passed": true
+    },
+    {
+      "name": "public index exports the new rejection judgment",
+      "passed": true
+    },
+    {
+      "name": "documentation states runtime integration remains unresolved",
+      "passed": true
+    },
+    {
+      "name": "no new relation/foundation subscanner added by this phase",
+      "passed": true
+    }
+  ]
+}

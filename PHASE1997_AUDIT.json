@@ -1,0 +1,22 @@
+{
+  "phase": 1997,
+  "title": "Response Pipeline AST Projection Interface First",
+  "audit": "scripts/audits/audit-phase1997-response-pipeline-ast-projection-interface-first.cjs",
+  "auditResult": "11/11 PASS",
+  "syntaxCheck": {
+    "typescriptVersion": "5.8.3",
+    "filesChecked": 3,
+    "diagnostics": 0
+  },
+  "fullTypecheck": "not run",
+  "build": "not run",
+  "runtimeWiring": "not implemented in this interface-first phase",
+  "knownFrontier": [
+    "scanner runtime does not consume responseSemanticPipeline",
+    "scanner artifact construction omits required responseJudgment",
+    "descriptor-derived response reference remains a candidate, not direct PHP return evidence",
+    "existing semantic/relations references remain in legacy controller scanner files",
+    "scanner interface and scan judgment contract versions are ahead of the legacy scanner implementation version 17; runtime migration remains pending"
+  ],
+  "subscannerConstraint": "No relation/foundation subscanner added"
+}

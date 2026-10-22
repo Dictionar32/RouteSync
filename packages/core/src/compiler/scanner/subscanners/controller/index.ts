@@ -11,7 +11,6 @@ export {
   detectModelResponse,
   detectInlineResponse
 } from './responseDetector';
-export { scanControllerAction } from './actionScanner';
-export { resolveControllerBody } from './controllerBodyResolver';
+export type { ControllerBodyEvidenceProjection } from './controllerBodyResolver';
 
 export type { ControllerDataflowContract, ControllerResourceBinding } from "./controllerDataflowContract";

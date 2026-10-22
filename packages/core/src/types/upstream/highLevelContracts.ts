@@ -12,7 +12,10 @@ import type { ResponseDefinition } from './response';
 import type { RouteDefinition } from './route';
 import type { ControllerAction, ControllerHelper, ControllerDependency, ControllerSemanticDataflow } from './controller';
 import type { ServiceDefinition, ResolvedServiceDependencies } from './service';
-import type { ProviderDefinition, ProviderBindingAttributes, ProviderContainerBindings } from './application';
+import type { ProviderDefinition, ProviderBindingAttributes, ProviderContainerBindings, DtoDefinition, MiddlewareDefinition, AttributeDefinition } from './application';
+import type { SchemaInterface } from './schema';
+import type { MigrationInterface } from './migrationInterface';
+import type { ChannelDefinition } from './channel';
 
 export type { ResourceFieldMeaning, RequestFieldTarget };
 
@@ -110,6 +113,18 @@ export interface ServiceSemanticContract extends ServiceHighLevelContract {
   readonly resolvedDependencies: ResolvedServiceDependencies;
 }
 
+/** Closed contracts for domains whose meaning is already derived upstream. */
+export interface SchemaHighLevelContract extends SchemaInterface {}
+export interface MigrationHighLevelContract extends MigrationInterface {}
+export interface DtoHighLevelContract extends DtoDefinition {}
+export interface MiddlewareHighLevelContract extends MiddlewareDefinition {}
+export interface AttributeHighLevelContract extends AttributeDefinition {}
+export interface ChannelHighLevelContract extends ChannelDefinition {}
+
+/**
+ * Closed discriminated union of every first-class Laravel semantic domain.
+ * Scanner evidence and catalog builders are not members of this union.
+ */
 export type LaravelDomainContract =
   | ModelHighLevelContract
   | RelationHighLevelContract
@@ -119,7 +134,13 @@ export type LaravelDomainContract =
   | RouteHighLevelContract
   | ControllerHighLevelContract
   | ServiceHighLevelContract
-  | ProviderHighLevelContract;
+  | ProviderHighLevelContract
+  | SchemaHighLevelContract
+  | MigrationHighLevelContract
+  | DtoHighLevelContract
+  | MiddlewareHighLevelContract
+  | AttributeHighLevelContract
+  | ChannelHighLevelContract;
 
 /**
  * Semantic lookup boundary used by upstream consumers. The producer may use
@@ -140,6 +161,14 @@ export interface LaravelSemanticContractCatalog {
   readonly controllers: import('./collections').Sequence<ControllerActionFlowContract>;
   readonly services: import('./collections').Sequence<ServiceSemanticContract>;
   readonly providers: import('./collections').Sequence<ProviderHighLevelContract>;
+  /** Migration-derived schema semantics are retained at the canonical source boundary. */
+  readonly schemas: import('./collections').Sequence<SchemaHighLevelContract>;
+  readonly migrations: import('./collections').Sequence<MigrationHighLevelContract>;
+  /** Laravel application surfaces scanned upstream must not disappear at model projection. */
+  readonly dtos: import('./collections').Sequence<DtoHighLevelContract>;
+  readonly middlewares: import('./collections').Sequence<MiddlewareHighLevelContract>;
+  readonly attributes: import('./collections').Sequence<AttributeHighLevelContract>;
+  readonly channels: import('./collections').Sequence<ChannelHighLevelContract>;
 }
 
 export interface LaravelSemanticLookup<T> {

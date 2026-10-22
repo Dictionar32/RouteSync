@@ -20,11 +20,11 @@ import {
     relationProject,
     relationVariantFold,
     relationGate,
-} from '../../../../semantic/foundation/relationalSequence';
-import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+} from '../../../../semantic/relations/relationalSequence';
+import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';
 import type { PropertyName } from '../../../../types/upstream/names';
-import type { RelationIndex } from '../../../../semantic/foundation/relationMembership';
-import { relationIndexAdd, relationIndexLookup } from '../../../../semantic/foundation/relationMembership';
+import type { RelationIndex } from '../../../../semantic/relations/relationMembership';
+import { relationIndexAdd, relationIndexLookup } from '../../../../semantic/relations/relationMembership';
 
 export interface RouteValidationRuleSet {
     readonly entries: readonly RouteValidationRuleEntry[];
@@ -51,6 +51,7 @@ interface RootValidationField {
     readonly requirement: RequestFieldRequirement;
     readonly validation: RouteValidationRuleEntry['validation'];
     readonly source: RouteValidationRuleEntry['source'];
+    readonly sources: readonly RouteValidationRuleEntry['source'][];
     readonly shape: ValidationFieldShape;
     readonly properties: readonly ValidationFieldProperty[];
 }
@@ -75,6 +76,7 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): RelationInd
                 requirement: relationOptionFold(existing, () => requirementFromValidation(entry.validation), value => value.requirement),
                 validation: relationOptionFold(existing, () => entry.validation, value => value.validation),
                 source: relationOptionFold(existing, () => entry.source, value => value.source),
+                sources: Object.freeze([...relationOptionFold(existing, () => [], value => value.sources), entry.source]),
                 shape: relationOptionFold(existing, () => entry.shape, value => value.shape),
                 properties: mergeProperty(
                     relationOptionFold(existing, () => [], value => value.properties),
@@ -87,7 +89,8 @@ function collectRoots(entries: readonly RouteValidationRuleEntry[]): RelationInd
                 presence: entry.presence,
                 requirement: requirementFromValidation(entry.validation),
                 validation: entry.validation,
-                source: entry.source,
+                source: relationOptionFold(existing, () => entry.source, value => value.source),
+                sources: Object.freeze([...relationOptionFold(existing, () => [], value => value.sources), entry.source]),
                 shape: entry.shape,
                 properties: relationOptionFold(existing, () => [], value => value.properties),
             }),
@@ -140,6 +143,7 @@ function entryProperty(entry: RouteValidationRuleEntry, shape: ValidationFieldSh
         validation: entry.validation,
         shape: relationVariantFold(shape, 'collection', nested => nested, collection => collection.element),
         source: entry.source,
+        sources: Object.freeze([entry.source]),
     };
 }
 
@@ -170,6 +174,7 @@ function mergePropertyShape(existing: ValidationFieldProperty, incoming: Validat
         presence: existing.presence,
         validation: existing.validation,
         source: existing.source,
+        sources: Object.freeze([...existing.sources, ...incoming.sources]),
         shape,
     };
 }
@@ -314,6 +319,7 @@ function toRequestField(root: RootValidationField, interner: TypeInterner): Requ
         requirement: root.requirement,
         validation: Object.freeze([...root.validation]),
         fileConstraints: Object.freeze([]),
+        sources: Object.freeze([...root.sources]),
         source: root.source,
     };
 }

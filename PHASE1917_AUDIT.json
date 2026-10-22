@@ -1,0 +1,21 @@
+{
+  "phase": 1917,
+  "title": "Laravel Controller Semantic-Judgment Boundary Coherence",
+  "status": "PASS_WITH_REMAINING_RUNTIME_ORCHESTRATION",
+  "audit": {
+    "passed": 10,
+    "total": 10,
+    "command": "node scripts/audits/test-phase1917-controller-semantic-judgment-boundary-coherence.cjs"
+  },
+  "changes": [
+    "Aligned LaravelControllerInvocationSemanticBoundaryContract interface version and exported value to version 83.",
+    "Added explicit contract boundary for preserving the exact ControllerVariableSemanticJudgment returned by the existing executor.",
+    "Documented that source-projected Expression and judgment expressionValue are distinct domain representations.",
+    "Preserved canonical invocation judgment and integrated response as separate values."
+  ],
+  "not_run": ["build", "typecheck", "unit tests"],
+  "remaining": [
+    "controllerDataflowAnalyzer still orchestrates calls to existing semantic authorities and composition stages.",
+    "This phase does not claim the analyzer is wiring-only."
+  ]
+}

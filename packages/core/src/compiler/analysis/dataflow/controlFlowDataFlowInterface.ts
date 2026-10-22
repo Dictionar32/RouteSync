@@ -1,9 +1,19 @@
 import type { ControlFlowGraph } from '../../utils/cfg/basicBlock';
 import type { FlowState, MergeFn, TransferFn } from './types';
-import type { RelationIndex } from '../../../semantic/foundation/relationMembership';
+import type { RelationIndex } from '../../../semantic/relations/relationMembership';
+import type { RelationFixedPoint } from '../../../semantic/relations/relationalSequence';
+
+/** A solve judgment preserves whether the data-flow relation actually converged. */
+export type DataFlowSolveJudgment<T> = RelationFixedPoint<RelationIndex<number, FlowState<T>>>;
 
 /** Forward CFG data-flow capability. */
 export interface DataFlowForwardInterface<T> {
+  readonly analyzeWithJudgment: (
+    cfg: ControlFlowGraph,
+    initialState: T,
+    transfer: TransferFn<T>,
+    merge: MergeFn<T>,
+  ) => DataFlowSolveJudgment<T>;
   readonly analyze: (
     cfg: ControlFlowGraph,
     initialState: T,
@@ -14,6 +24,12 @@ export interface DataFlowForwardInterface<T> {
 
 /** Backward CFG data-flow capability. */
 export interface DataFlowBackwardInterface<T> {
+  readonly analyzeBackwardWithJudgment: (
+    cfg: ControlFlowGraph,
+    initialState: T,
+    transfer: TransferFn<T>,
+    merge: MergeFn<T>,
+  ) => DataFlowSolveJudgment<T>;
   readonly analyzeBackward: (
     cfg: ControlFlowGraph,
     initialState: T,

@@ -1,0 +1,41 @@
+{
+  "phase": 1390,
+  "audit": "runtime-decodes-immutable-contract",
+  "passed": true,
+  "passedChecks": 8,
+  "totalChecks": 8,
+  "checks": [
+    {
+      "name": "untrusted value enters runtime structural gate",
+      "pass": true
+    },
+    {
+      "name": "unsupported contract versions fail closed",
+      "pass": true
+    },
+    {
+      "name": "source/sink selection is exact closed union",
+      "pass": true
+    },
+    {
+      "name": "decoder snapshots and revalidates contract",
+      "pass": true
+    },
+    {
+      "name": "snapshot is recursively frozen",
+      "pass": true
+    },
+    {
+      "name": "executor uses decoded snapshot",
+      "pass": true
+    },
+    {
+      "name": "decoder is exported through package API",
+      "pass": true
+    },
+    {
+      "name": "package version and build command unchanged",
+      "pass": true
+    }
+  ]
+}

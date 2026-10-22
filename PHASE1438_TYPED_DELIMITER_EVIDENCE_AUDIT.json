@@ -1,0 +1,38 @@
+{
+  "phase": 1438,
+  "title": "Typed delimiter evidence boundary",
+  "date": "2026-10-09",
+  "status": "static-audit-passed-build-unverified",
+  "workspace_root": "RouteSync/",
+  "changes": [
+    "Changed compound-expression provider delimiter lookup services from numeric sentinels to PhpExpressionIndexEvidence.",
+    "Propagated malformed array-access and call-delimiter evidence into upstream candidate arbitration as terminal evidence.",
+    "Added upstream scannerTokenStructureAlgebra.findMatchingClose/findMatchingOpen operations with typed resolutions.",
+    "Added runtime evidence adapters that only translate upstream resolutions into PHP evidence unions.",
+    "Added focused Vitest coverage for nested delimiters and malformed matches (not executed in this workspace).",
+    "Added static boundary audit and architecture notes."
+  ],
+  "audit_results": {
+    "phase1438_typed_delimiter_evidence": "13/13",
+    "phase1437_terminal_expression_evidence_contract": "14/14",
+    "phase1436_expression_evidence_provider_boundary": "10/10",
+    "phase1435_expression_judgment_proof_trail": "9/9",
+    "phase1434_expression_arbitration_interface": "10/10",
+    "phase1433_upstream_expression_judgment_authority": "9/9"
+  },
+  "build": {
+    "command": "npm run build",
+    "status": "not-run-to-completion",
+    "reason": "tsdown executable is not installed in the workspace"
+  },
+  "focused_validation": {
+    "upstream_algebra_typescript_compile": "passed",
+    "delimiter_algebra_executable_checks": "6/6 passed",
+    "provider_and_runtime_targeted_typecheck": "blocked by errors in other imported modules; no diagnostics reported for the changed provider/algebra files"
+  },
+  "validation_scope": "Static source-boundary audits passed; upstream delimiter algebra compiled with standalone TypeScript and 6 executable Node checks passed. Full project build remains unverified; broader targeted typecheck reports errors in other imported source modules.",
+  "remaining_frontier": [
+    "Migrate other scanner consumers away from numeric sentinel return values.",
+    "Add executable integration tests for the PHP provider and runtime projection over valid and malformed expressions."
+  ]
+}

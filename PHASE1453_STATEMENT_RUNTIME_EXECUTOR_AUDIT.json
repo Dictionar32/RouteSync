@@ -1,0 +1,16 @@
+{
+  "phase": 1453,
+  "title": "Statement Runtime Executor Simplification",
+  "scope": [
+    "packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts",
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/types/upstream/docs/PHASE1453_STATEMENT_RUNTIME_EXECUTOR_SIMPLIFICATION.md",
+    "scripts/audits/audit-phase1453-statement-runtime-executor-simplification.cjs"
+  ],
+  "architecture": "source evidence -> semantic reasoning algebra -> closed judgment/contract -> interface -> wiring -> runtime executor -> downstream projection",
+  "verification": {
+    "static_audit": "run scripts/audits/audit-phase1453-statement-runtime-executor-simplification.cjs",
+    "full_build": "not asserted",
+    "downstream_runtime_tests": "not asserted"
+  }
+}

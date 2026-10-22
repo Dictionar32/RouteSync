@@ -261,7 +261,7 @@ export const semanticDataflowRequestFacts = (
 
   const definitions = sequenceItems(controller.semantic.variables).flatMap(binding => sequenceItems(binding.definitions));
   for (const definition of definitions) {
-    for (const access of requestAccessFields(definition.expression, boundName)) {
+    for (const access of requestAccessFields(definition.semanticResolution.sourceExpression, boundName)) {
       const candidates = access.field
         ? fields.filter(field => propertyPathValue(field.name) === access.field)
         : fields;
@@ -378,3 +378,13 @@ export const semanticDataflowRequestFacts = (
   }
   return Object.freeze(facts);
 };
+
+export interface SemanticDataflowRequestProjectionAuthorityInterface {
+  readonly kind: 'semantic_dataflow_request_projection_authority';
+  readonly project: (sourceModel: CompleteLaravelSourceModel, controller: ControllerActionFlowContract) => readonly SemanticDataflowInputFact[];
+}
+
+export const semanticDataflowRequestProjectionAuthority: SemanticDataflowRequestProjectionAuthorityInterface = Object.freeze({
+  kind: 'semantic_dataflow_request_projection_authority',
+  project: semanticDataflowRequestFacts,
+});

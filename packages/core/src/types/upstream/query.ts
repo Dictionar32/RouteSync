@@ -3,6 +3,7 @@ import type { Expression, ModelStaticOperation, QueryOperation } from './express
 import type { ModelName } from './names';
 import type { SourceSpan } from './provenance';
 import type { Option, Sequence } from './collections';
+import type { QueryProducerSemanticJudgment } from './queryProducerSemanticInterface';
 
 export type QueryOperationAst =
   | { readonly kind: 'instance'; readonly operation: QueryOperation }
@@ -35,10 +36,14 @@ export type QuerySubqueryCorrelation =
 export type QuerySubqueryAst = {
   readonly kind: 'query_subquery_ast';
   readonly operations: Sequence<QueryOperationAst>;
+  /** Preserves upstream resolution outcomes, including malformed operations, instead of erasing them into an empty option. */
+  readonly operationJudgments: Sequence<QueryProducerSemanticJudgment<QueryOperationAst>>;
   readonly role: QuerySubqueryRole;
   readonly alias: Option<Expression>;
   readonly correlation: QuerySubqueryCorrelation;
   readonly expression: Expression;
+  /** Authoritative upstream result; `model` is a compatibility projection for existing consumers. */
+  readonly modelOriginJudgment: QueryProducerSemanticJudgment<ModelName>;
   readonly model: { readonly kind: 'known'; readonly name: ModelName } | { readonly kind: 'indeterminate' };
   readonly source: SourceSpan;
   readonly nestedQueries: readonly QuerySubqueryAst[];
@@ -47,7 +52,11 @@ export type QuerySubqueryAst = {
 export type QueryAst = {
   readonly kind: 'query_ast';
   readonly operations: Sequence<QueryOperationAst>;
+  /** Authoritative operation judgments; `operations` is a compatibility projection of resolved judgments. */
+  readonly operationJudgments: Sequence<QueryProducerSemanticJudgment<QueryOperationAst>>;
   readonly expression: ExpressionAst;
+  /** Authoritative upstream result; `model` is a compatibility projection for existing consumers. */
+  readonly modelOriginJudgment: QueryProducerSemanticJudgment<ModelName>;
   readonly model: { readonly kind: 'known'; readonly name: ModelName } | { readonly kind: 'indeterminate' };
   readonly source: SourceSpan;
   readonly nestedQueries: readonly QuerySubqueryAst[];

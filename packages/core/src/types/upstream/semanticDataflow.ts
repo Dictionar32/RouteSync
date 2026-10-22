@@ -8,7 +8,7 @@
  */
 import type { SourceSpan } from './provenance';
 import type { StringValue } from './valueObjects';
-import { semanticReasoningContract, type SemanticReasoningContract, type SemanticReasoningEvidence, type SemanticReasoningAuthorityInterface } from './semanticReasoning';
+import type { SemanticReasoningContract, SemanticReasoningEvidence, SemanticReasoningStrategy, SemanticReasoningAuthorityInterface, SemanticReasoningJudgmentInterface } from './semanticReasoning';
 
 export type SemanticDataflowRuleName = Readonly<{ readonly kind: 'semantic_dataflow_rule'; readonly value: StringValue }>;
 export type SemanticDataflowWitnessName = Readonly<{ readonly kind: 'semantic_dataflow_witness'; readonly value: StringValue }>;
@@ -158,7 +158,18 @@ export interface SemanticDataflowJudgmentEvidenceInterface {
   readonly closure: readonly SemanticDataflowFact[];
   readonly derivations: readonly SemanticDataflowDerivation[];
   readonly paths: readonly SemanticDataflowPath[];
+  /** Runtime-verifiable certificate that both closure procedures actually converged. */
+  readonly closureCertificate: SemanticDataflowClosureCertificate;
 }
+
+export type SemanticDataflowClosureCertificate = Readonly<{
+  readonly kind: 'semantic_dataflow_closure_certificate';
+  readonly factClosure: Readonly<{ readonly kind: 'fact_closure'; readonly converged: true; readonly rounds: number }>;
+  readonly pathClosure: Readonly<{ readonly kind: 'path_closure'; readonly converged: true; readonly rounds: number }>;
+  /** Every fact in the admitted closure must have at least one derivation conclusion. */
+  readonly derivationCoverage: Readonly<{ readonly kind: 'derivation_coverage'; readonly complete: true; readonly coveredFacts: number }>;
+  readonly closed: true;
+}>;
 
 export interface SemanticDataflowJudgmentFixpointInterface {
   readonly fixedPoint: 'least_fixed_point';
@@ -242,6 +253,17 @@ export interface SemanticDataflowAlgebraInterface<
   readonly origin: SemanticDataflowOrigin;
   readonly judgment: SemanticDataflowJudgment;
   readonly closed: true;
+}
+
+/**
+ * Upstream-owned executable contract for producing a closed semantic-dataflow
+ * judgment. Runtime adapters depend on this contract instead of importing the
+ * concrete closure implementation.
+ */
+export interface SemanticDataflowReasoningAuthorityInterface
+  extends SemanticReasoningJudgmentInterface<SemanticDataflowInput, SemanticDataflowJudgment> {
+  readonly kind: 'semantic_dataflow_reasoning_authority';
+  readonly authority: 'upstream';
 }
 
 /** Named upstream contract composed from the semantic dataflow algebra. */

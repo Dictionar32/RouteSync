@@ -1,0 +1,20 @@
+{
+  "phase": "1542",
+  "name": "explicit-no-evidence-runtime-contract",
+  "audit": "scripts/audits/audit-phase1542-explicit-no-evidence-runtime-contract.cjs",
+  "checks": 8,
+  "passed": 8,
+  "failed": 0,
+  "priorAudits": {
+    "phase1541": "8/8 pass",
+    "phase1540": "7/7 pass"
+  },
+  "typescriptBuild": "not-run",
+  "buildBlocker": "node_modules/.bin/tsdown is not installed in this workspace",
+  "scope": "semantic dataflow runtime interface + scanner empty-evidence wiring",
+  "notClaimed": [
+    "whole scanner migration",
+    "query operation compatibility catalog closure",
+    "TypeScript build pass"
+  ]
+}

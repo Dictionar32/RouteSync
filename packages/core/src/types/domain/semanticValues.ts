@@ -103,7 +103,8 @@ export interface SemanticOperator {
     | 'and'
     | 'or'
     | 'concat'
-    | 'null_coalesce';
+    | 'null_coalesce'
+    | 'unknown';
 }
 
 export type BoundLiteralValue =

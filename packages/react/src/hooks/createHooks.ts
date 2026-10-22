@@ -13,22 +13,37 @@ import { useApiMutation, type ApiMutationOptions } from './useMutation'
  *   const { data } = useList()
  *   const mutation = useAddItem()
  */
+function isEndpointCallable(value: unknown): value is EndpointCallable {
+  if (typeof value !== 'function') return false
+
+  const definition: unknown = Reflect.get(value, '$def')
+  const key: unknown = Reflect.get(value, '$key')
+  const queryKey: unknown = Reflect.get(value, '$queryKey')
+  if (typeof definition !== 'object' || definition === null) return false
+  if (!Array.isArray(key) || typeof queryKey !== 'function') return false
+
+  const hookKind: unknown = Reflect.get(definition, 'hookKind')
+  return hookKind === 'query' || hookKind === 'infinite_query' || hookKind === 'mutation'
+}
+
 export function createHooks<T extends Record<string, unknown>>(
   group: T
 ) {
   const hooks: Record<string, (...args: never) => unknown> = {}
 
   for (const [action, endpoint] of Object.entries(group)) {
-    const hookKind = (endpoint as EndpointCallable).$def.hookKind
-    if (!hookKind) throw new Error(`RouteSync endpoint ${action} is missing the upstream hook-kind capability`)
+    if (!isEndpointCallable(endpoint)) {
+      throw new Error(`RouteSync endpoint ${action} is missing a valid SDK endpoint contract`)
+    }
+    const hookKind = endpoint.$def.hookKind
     const hookName = `use${action.charAt(0).toUpperCase()}${action.slice(1)}`
 
     if (hookKind === 'query' || hookKind === 'infinite_query') {
       hooks[hookName] = (options?: unknown, queryOptions?: unknown) =>
-        useApiQuery(endpoint as EndpointCallable, options as never, queryOptions as never)
+        useApiQuery(endpoint, options as never, queryOptions as never)
     } else {
       hooks[hookName] = (mutationOptions?: unknown) =>
-        useApiMutation(endpoint as EndpointCallable, mutationOptions as never)
+        useApiMutation(endpoint, mutationOptions as never)
     }
   }
 

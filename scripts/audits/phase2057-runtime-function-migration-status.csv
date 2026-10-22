@@ -1,0 +1,6 @@
+file,symbol,previous_behavior,phase2057_disposition
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,databaseFacadeTableCallPattern,implicit DB::table boolean predicate,replaced by declarative class_method rule pattern
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,databaseTableOrigin,relation-helper based table argument inference,retained as typed ADT elimination under registered rule
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,controllerStaticCallOriginRules,implicit ordered condition chain,registered explicit semantic rules with precedence
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,judgeModelOrigin,treated all static-call resolved outcomes as model/table,closes not_applicable to unresolved without duplicate origin reasoning
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,staticCallOriginInput,structural source evidence projection,retained as evidence-only projection

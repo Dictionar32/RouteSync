@@ -1,0 +1,133 @@
+{
+  "phase": 1370,
+  "title": "Semantic Reasoning Interface Wiring Trace",
+  "scope": [
+    "operation identity capability/algebra/authority/projection/CLI consumer",
+    "semantic ownership coverage and audit scripts",
+    "AST ADT -> semantic dataflow authority -> generic DataFlowInterface -> SDK/React/CLI consumers",
+    "model primary-key reconciliation -> canonical SchemaRelationIndexInterface",
+    "Laravel source example and frontend target presence"
+  ],
+  "checks": 19,
+  "passed": 18,
+  "failed": 1,
+  "results": [
+    {
+      "name": "primary-key reconciliation consumes canonical schema relation index",
+      "passed": true,
+      "detail": "Primary-key reconciliation consumes the schema relation contract instead of searching raw SchemaInterface tables and columns again."
+    },
+    {
+      "name": "schema table/primary-column selection has one producer",
+      "passed": true,
+      "detail": "The existing schema relation index remains the sole table/primary-column selection boundary; no second schema classifier was added."
+    },
+    {
+      "name": "model builder constructs schema index once before reconciliation",
+      "passed": true,
+      "detail": "The canonical schema relation index is shared by primary-key reconciliation and model-relation construction."
+    },
+    {
+      "name": "primary-key status is a closed explicit judgment",
+      "passed": true,
+      "detail": "The reconciliation result preserves all four status outcomes without duplicating table/column classification."
+    },
+    {
+      "name": "primary-key reconciler no longer uses find/filter over raw schema",
+      "passed": true,
+      "detail": "Raw schema table lookup and primary-column filtering are no longer repeated inside the reconciliation judgment."
+    },
+    {
+      "name": "primary-key regression cases use canonical schema index",
+      "passed": true,
+      "detail": "Matched, conflict, unresolved, and composite-key ambiguity cases enter through the canonical schema relation index."
+    },
+    {
+      "name": "operation identity runtime algebra is adopted by authority",
+      "passed": true,
+      "detail": "Operation identity construction is centralized in the upstream algebra and delegated to by its authority."
+    },
+    {
+      "name": "operation identity wiring projects closed upstream capability",
+      "passed": true,
+      "detail": "The CLI emitter consumes the capability through an explicit projection instead of reconstructing operation identity."
+    },
+    {
+      "name": "operation identity contract carries semantic reasoning proof",
+      "passed": true,
+      "detail": "The exact upstream reasoning proof is preserved by the operation identity algebra."
+    },
+    {
+      "name": "AST dataflow interface aliases canonical semantic ADTs",
+      "passed": false,
+      "detail": "AST-facing dataflow is a typed boundary over the canonical semantic input/judgment, not a parallel solver model."
+    },
+    {
+      "name": "dataflow authority owns closure and reachability",
+      "passed": true,
+      "detail": "Semantic closure remains upstream-owned."
+    },
+    {
+      "name": "dataflow wiring preserves proof and avoids reclassification",
+      "passed": true,
+      "detail": "The read-only DataFlowAuthorityInterface preserves the exact proof without advertising fake producer execution."
+    },
+    {
+      "name": "generic dataflow separates producer execution from consumer authority",
+      "passed": true,
+      "detail": "Execution and read-only authority are separate contracts."
+    },
+    {
+      "name": "SDK consumes operation identity fail-closed",
+      "passed": true,
+      "detail": "The SDK requires the upstream operation identity reference instead of deriving it from method/path."
+    },
+    {
+      "name": "React hook boundary consumes closed hook capability",
+      "passed": true,
+      "detail": "React hook selection uses the endpoint contract at the consumer boundary."
+    },
+    {
+      "name": "semantic ownership coverage audit remains present",
+      "passed": true,
+      "detail": "The existing semantic ownership audit remains the broad cross-layer guardrail."
+    },
+    {
+      "name": "Laravel source and generated Next.js frontend remain in the trace scope",
+      "passed": true,
+      "detail": "The source ecosystem, Laravel model/routes, and example frontend are present for source-to-target tracing."
+    },
+    {
+      "name": "React SDK and CLI production source remain in the trace scope",
+      "passed": true,
+      "detail": "The three downstream layers are checked at their active production entry points."
+    },
+    {
+      "name": "audit is registered without changing package version/build command",
+      "passed": true,
+      "detail": "The phase audit is reproducible; package version and build command remain unchanged."
+    }
+  ],
+  "decisions": [
+    {
+      "area": "Model primary-key reconciliation",
+      "decision": "Consume the existing SchemaRelationIndexInterface and reuse the same index in the model builder.",
+      "reason": "The raw-schema table lookup and primary-column filter were duplicated semantic selection inside the reconciliation judgment."
+    },
+    {
+      "area": "AST/dataflow interface",
+      "decision": "Keep SemanticDataflowInput/Judgment as canonical ADTs and DataFlowInterface as a generic wiring/execution boundary.",
+      "reason": "CodeQL likewise distinguishes AST nodes from data-flow graph nodes; semantic dataflow must not be silently equated with syntax-tree structure."
+    },
+    {
+      "area": "Operation identity",
+      "decision": "Preserve the upstream capability/algebra/proof chain and project only a runtime-safe reference downstream.",
+      "reason": "SDK/CLI consumers should not re-resolve identity from HTTP method/path."
+    },
+    {
+      "area": "Cross-layer contracts",
+      "decision": "Keep the existing semantic ownership audit and add a focused wiring audit; do not fabricate consumers for declaration-only contracts.",
+      "reason": "A static symbol declaration is not evidence of production adoption; ownership should be traced through producer, authority, wiring, and consumer."
+    }
+  ]
+}

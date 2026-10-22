@@ -11,10 +11,11 @@ import {
   ResourceGroupKind,
   RESOURCE_GROUP_REGISTRY,
   ROUTE_PARAMETER_TYPE_REGISTRY,
-  type ResourceModelKeyCapabilityContract
+  type ResourceModelKeyCapabilityContract,
+  hasCanonicalRequestFields,
+  matchCrudRole
 } from '@routesync/core'
 import { toTypeName } from '../names'
-import { matchCrudRole } from '@routesync/core'
 import type { ClassifiedRoute, ResolvedTypeInfo, ResourceCrudMap } from './classifierTypes'
 
 export function resolveItemPrimaryKeyType(
@@ -53,7 +54,7 @@ export function resolveRouteResponseType(route?: ClassifiedRoute): { readonly ty
 const STANDARD_FORM_ACTIONS: ReadonlySet<string> = new Set(['Create', 'Update', 'Get']);
 
 export function resolveRouteFormType(route?: ClassifiedRoute): ResolvedTypeInfo {
-  const hasSchema = Boolean(route?.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && Object.keys(route.contract.request.body.schema.rules).length > 0);
+  const hasSchema = Boolean(route?.contract.request.body.kind === 'body' && hasCanonicalRequestFields(route.contract.request.body.schema));
   const actionKey = route
     ? matchCrudRole(route.crudRole, {
         index: () => 'Get',

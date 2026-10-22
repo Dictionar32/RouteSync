@@ -1,36 +1,47 @@
-import type { RouteIdentity, RouteCapabilityContract } from './route';
-import type { SemanticReasoningContract } from './semanticReasoning';
 import type {
-  OperationIdentity,
+  OperationIdentityCapabilityAuthorityInterface,
   OperationIdentityCapabilityContract,
+  OperationIdentityCapabilityInput,
+  OperationIdentityCapabilityContractMaterializerInterface,
 } from './operationIdentityCapability';
+import { operationIdentityCapabilityContractMaterializer } from './operationIdentityCapabilityAlgebra';
 
 /**
- * Upstream semantic authority for operation identity.
- *
- * This module owns construction of the closed capability. The public
- * interface/contract module contains only types; it does not reason, derive,
- * or construct semantic judgments.
+ * Compose an upstream authority around the canonical executable algebra.
+ * The authority adds ownership metadata and delegates judgment construction;
+ * it does not rebuild identity, evidence, or semantic proof.
  */
-export function operationIdentityCapabilityFromRoute(
-  route: Pick<RouteCapabilityContract, 'evidence' | 'derivation' | 'provenance' | 'reasoning' | 'closed'> & { readonly identity: RouteIdentity },
-): OperationIdentityCapabilityContract {
-  const identity: OperationIdentity = Object.freeze({ kind: 'operation_identity', route: route.identity });
-  const reasoning: SemanticReasoningContract = route.reasoning;
-
+export function createOperationIdentityCapabilityAuthority(
+  materializer: OperationIdentityCapabilityContractMaterializerInterface,
+): OperationIdentityCapabilityAuthorityInterface {
   return Object.freeze({
-    kind: 'operation_identity_capability',
+    kind: 'operation_identity_capability_authority',
     authority: 'upstream',
-    identity,
-    reasoning,
-    evidence: Object.freeze({
-      kind: 'operation_identity_capability_evidence',
-      route: route.identity,
-      closed: true,
-    }),
-    derivation: route.derivation,
-    provenance: route.provenance,
     closed: true,
+    materialize: (input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract =>
+      materializer.materialize(input),
+    fromRoute: (input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract =>
+      materializer.materialize(input),
   });
 }
 
+/** Canonical upstream authority bound to the production algebra. */
+export const operationIdentityCapabilityAuthority = createOperationIdentityCapabilityAuthority(
+  operationIdentityCapabilityContractMaterializer,
+);
+
+/** Backwards-compatible authority entry point; callers may supply a composed authority. */
+export function operationIdentityCapabilityFromRoute(
+  route: OperationIdentityCapabilityInput,
+  authority: OperationIdentityCapabilityAuthorityInterface = operationIdentityCapabilityAuthority,
+): OperationIdentityCapabilityContract {
+  return authority.materialize(route);
+}
+
+/** Canonical producer entry point: materialize an identity from already-resolved route evidence. */
+export function materializeOperationIdentityCapability(
+  input: OperationIdentityCapabilityInput,
+  authority: OperationIdentityCapabilityAuthorityInterface = operationIdentityCapabilityAuthority,
+): OperationIdentityCapabilityContract {
+  return authority.materialize(input);
+}

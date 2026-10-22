@@ -4,8 +4,8 @@ import type { ModelColumnFact } from '../../../../types/upstream/modelSourceFact
  * Canonical boundary: receives already-correlated model column facts.
  * Column/cast correlation belongs to the scanner origin, not this transformer.
  */
-export function buildModelColumnFacts(
-    facts: readonly ModelColumnFact[]
-): readonly ModelColumnFact[] {
-    return facts;
+export interface BuildModelColumnFactsInterface {
+    (facts: readonly ModelColumnFact[]): readonly ModelColumnFact[];
 }
+
+export const buildModelColumnFacts: BuildModelColumnFactsInterface = (facts) => facts;

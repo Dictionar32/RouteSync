@@ -1,0 +1,23 @@
+{
+  "phase": 2084,
+  "title": "Upstream-Owned Controller Ancestry Evidence",
+  "sourceChanges": [
+    "packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.ts",
+    "packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts",
+    "packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.phase1968.test.ts"
+  ],
+  "auditScript": "scripts/audits/phase2084-controller-ancestry-contract.mjs",
+  "staticAssertions": { "passed": 8, "total": 8 },
+  "remainingArchitecturalGaps": [
+    "laravelControllerScanner imports semantic/relations",
+    "laravelControllerScanner calls scanControllerAction controller subscanner",
+    "controllerDeclarationSemanticJudgmentAuthority retains imperative helper functions",
+    "laravelControllerScanner uses LaravelControllerScannerExecutor class"
+  ],
+  "build": "not_run",
+  "typecheck": "not_run",
+  "vitest": "not_run",
+  "productionMigrationComplete": false,
+  "claim": "Contract now carries exact resolved ancestor declaration identity, including partial resolved ancestry on blocked outcomes; this is not a full relation/subscanner/runtime-executor migration."
+}

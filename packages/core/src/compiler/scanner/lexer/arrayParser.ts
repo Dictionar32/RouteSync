@@ -9,8 +9,8 @@
 import { createSourceOffset } from './PhpAst';
 import type { TokenDescriptor, PhpArrayEntry, ParsedPhpArrayResult, PhpArrayKey } from './PhpAst';
 import { classifyAstTokens } from './astClassifier';
-import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 import { tokenValueEquals, tokenKindEquals } from './tokenEvidence';
 
 const some = <T>(value: T): RelationOption<T> => ({ kind: 'some', value });
@@ -20,14 +20,18 @@ const none = <T>(): RelationOption<T> => ({ kind: 'none' });
  * Parses a PHP array declaration into structured key-value entries.
  * Collection traversal is represented as recursive relation closure.
  */
-export function parsePhpArray(
-    source: string,
-    tokens: readonly TokenDescriptor[],
-    startIndex: number = 0
-): ParsedPhpArrayResult {
-    const opening = locateArrayOpening(tokens, startIndex);
-    return relationOptionFold(opening, () => ({ entries: [], endIndex: startIndex }), index => parseArrayBody(source, tokens, index));
+/** Typed operation contract for recursive PHP array parsing. */
+export interface PhpArrayParserInterface {
+    readonly parse: (source: string, tokens: readonly TokenDescriptor[], startIndex?: number) => ParsedPhpArrayResult;
 }
+
+/** Runtime array parser is exposed as an interface-typed operation object. */
+export const phpArrayParser: PhpArrayParserInterface = Object.freeze({
+    parse: (source: string, tokens: readonly TokenDescriptor[], startIndex: number = 0): ParsedPhpArrayResult => {
+        const opening = locateArrayOpening(tokens, startIndex);
+        return relationOptionFold(opening, () => ({ entries: [], endIndex: startIndex }), index => parseArrayBody(source, tokens, index));
+    },
+});
 
 const locateArrayOpening = (
     tokens: readonly TokenDescriptor[],
@@ -131,7 +135,7 @@ const parseArrayValue = (
     return relationResolve(index < tokens.length,
         () => relationResolve(isNestedArrayStart(tokens, index),
             () => {
-                const nested = parsePhpArray(source, tokens, index);
+                const nested = phpArrayParser.parse(source, tokens, index);
                 const endToken = relationOptionFold(relationFirst(relationSlice(tokens, Math.max(0, nested.endIndex - 1), nested.endIndex), () => true), () => valueToken, token => token);
                 const sourceRange = {
                     startOffset: createSourceOffset(valueToken.startOffset),

@@ -1,0 +1,97 @@
+{
+  "phase": 1382,
+  "audit": "upstream-ast-proof-dataflow-contract",
+  "passedChecks": 17,
+  "totalChecks": 19,
+  "checks": [
+    {
+      "name": "AST closure records rule applications with typed premises and conclusions",
+      "passed": true
+    },
+    {
+      "name": "AST closure returns upstream derivation witnesses instead of a hard-coded empty list",
+      "passed": true
+    },
+    {
+      "name": "AST closure accumulates derivations in the same fixed-point state as facts",
+      "passed": false
+    },
+    {
+      "name": "Focused AST proof closure tests cover matched and unmatched rules",
+      "passed": true
+    },
+    {
+      "name": "AST dataflow interface aliases canonical upstream input and judgment",
+      "passed": false
+    },
+    {
+      "name": "Dataflow authority exposes only read-only query/closure facets to consumers",
+      "passed": true
+    },
+    {
+      "name": "Producer reasoning operations are separated from consumer authority",
+      "passed": true
+    },
+    {
+      "name": "Dataflow adapter preserves the authority-produced judgment and proof",
+      "passed": true
+    },
+    {
+      "name": "Runtime boundary is typed as upstream-input to read-only authority wiring",
+      "passed": true
+    },
+    {
+      "name": "Dataflow authority owns fixed-point reachability/path closure",
+      "passed": true
+    },
+    {
+      "name": "Operation identity contract contains closed identity and reasoning proof",
+      "passed": true
+    },
+    {
+      "name": "Operation identity authority delegates to the canonical materializer instead of rebuilding the contract",
+      "passed": true
+    },
+    {
+      "name": "Operation identity wiring accepts closed capability and projects a reference",
+      "passed": true
+    },
+    {
+      "name": "IR projects from read-only canonical dataflow authority",
+      "passed": true
+    },
+    {
+      "name": "CLI emitter consumes the already-resolved operation identity capability",
+      "passed": true
+    },
+    {
+      "name": "React, SDK, CLI, and ecommerce source integration surfaces are present",
+      "passed": true
+    },
+    {
+      "name": "Ecommerce target keeps Axios, Zod, TanStack Query, and mapper contracts in their target layer",
+      "passed": true
+    },
+    {
+      "name": "CLI path classifier is an empty compatibility seam and routeGrouper projects upstream capability",
+      "passed": true
+    },
+    {
+      "name": "Build command and package version are preserved",
+      "passed": true
+    }
+  ],
+  "findings": {
+    "canonicalAstProofOwner": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "canonicalDataflowOwner": "packages/core/src/types/upstream/semanticDataflowAuthority.ts",
+    "runtimeConsumerBoundary": "DataFlowAuthorityInterface via SemanticDataflowRuntimeBoundary",
+    "targetProjection": "Axios transport + Zod schema + mapper + TanStack Query are target-layer consumers, not semantic authorities",
+    "migrationDebt": [
+      "CLI path/route grouping classifiers require per-consumer proof that they project closed capabilities instead of reclassifying route facts."
+    ],
+    "operationIdentityFlow": "upstream authority -> closed capability -> operationIdentityProjection -> CLI SDK reference",
+    "limits": [
+      "Static source-contract audit only; it does not replace TypeScript compilation or runtime tests."
+    ]
+  }
+}

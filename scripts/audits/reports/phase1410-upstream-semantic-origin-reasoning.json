@@ -1,0 +1,107 @@
+{
+  "phase": 1410,
+  "name": "upstream-semantic-origin-reasoning",
+  "status": "passed_with_residuals",
+  "passed": 23,
+  "total": 23,
+  "checks": [
+    {
+      "name": "semantic-origin input is a closed upstream evidence type",
+      "passed": true
+    },
+    {
+      "name": "semantic-origin output is a closed judgment",
+      "passed": true
+    },
+    {
+      "name": "origin resolver is declared as an upstream interface",
+      "passed": true
+    },
+    {
+      "name": "origin authority uses a total declarative Record over the closed source-kind union",
+      "passed": true
+    },
+    {
+      "name": "authority resolves model/controller/service/resource origins",
+      "passed": true
+    },
+    {
+      "name": "authority returns a frozen closed judgment with evidence provenance",
+      "passed": true
+    },
+    {
+      "name": "semantic producer delegates origin decisions to authority",
+      "passed": true
+    },
+    {
+      "name": "semantic producer no longer owns source-family origin classification",
+      "passed": true
+    },
+    {
+      "name": "origin contract exported from upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "origin authority and contract exposed through public package surface",
+      "passed": true
+    },
+    {
+      "name": "query dispatch helper exists before catalog initialization",
+      "passed": true
+    },
+    {
+      "name": "query dispatch entries are immutable",
+      "passed": true
+    },
+    {
+      "name": "Phase 1409 audit remains registered",
+      "passed": true
+    },
+    {
+      "name": "package identity and build command remain unchanged",
+      "passed": true
+    },
+    {
+      "name": "ecommerce Laravel fixture remains present",
+      "passed": true
+    },
+    {
+      "name": "canonical route producer projects pre-resolved identity and does not infer it locally",
+      "passed": true
+    },
+    {
+      "name": "CLI action grouping consumes upstream identity authority without local suffix registry",
+      "passed": true
+    },
+    {
+      "name": "CLI SDK emitter projects the resolved operation identity capability",
+      "passed": true
+    },
+    {
+      "name": "SDK refuses missing operation identity instead of inventing a fallback",
+      "passed": true
+    },
+    {
+      "name": "React hook runtime consumes explicit CRUD execution slots",
+      "passed": true
+    },
+    {
+      "name": "manifest builder delegates semantic dataflow judgments to the injected upstream manifest surface",
+      "passed": true
+    },
+    {
+      "name": "IR projection consumes closed authority state rather than rebuilding closure",
+      "passed": true
+    },
+    {
+      "name": "Zod output mapping remains a projection from canonical type mapping",
+      "passed": true
+    }
+  ],
+  "residuals": [
+    "Semantic-origin resolution now has an upstream interface and authority, but model accessor eligibility remains a separate producer-side rule and should become a closed capability judgment.",
+    "Other Laravel source families beyond model/resource/controller/service still require migration onto the evidence -> syntax -> semantic judgment path.",
+    "Full build and runtime integration tests must run with the repository dependency toolchain installed."
+  ],
+  "flow": "Laravel evidence -> syntax contract -> upstream semantic-origin judgment -> AST/ADT + dataflow judgment -> wiring -> runtime executor -> manifest/graph/IR/CLI/SDK/React"
+}

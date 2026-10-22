@@ -1,0 +1,74 @@
+{
+  "phase": 1366,
+  "title": "React Endpoint Contract Boundary and Semantic Flow Trace",
+  "result": "failed",
+  "passed": 10,
+  "total": 12,
+  "checks": [
+    {
+      "name": "React validates endpoint shape before consuming hook capability",
+      "passed": true
+    },
+    {
+      "name": "endpoint guard verifies callable SDK endpoint shape",
+      "passed": true
+    },
+    {
+      "name": "endpoint guard accepts only closed hook-kind values",
+      "passed": true
+    },
+    {
+      "name": "React reads hook kind from the validated upstream endpoint definition",
+      "passed": true
+    },
+    {
+      "name": "React hook builder no longer asserts arbitrary group entries as EndpointCallable",
+      "passed": true
+    },
+    {
+      "name": "SDK operation identity remains guarded and directly consumed",
+      "passed": true
+    },
+    {
+      "name": "CLI projects operation identity from the upstream capability",
+      "passed": true
+    },
+    {
+      "name": "operation identity projection remains a representation-only boundary",
+      "passed": true
+    },
+    {
+      "name": "upstream operation identity contract retains evidence and reasoning",
+      "passed": true
+    },
+    {
+      "name": "manifest builder validates canonical AST before model and dataflow seed wiring",
+      "passed": false
+    },
+    {
+      "name": "dataflow and AST interfaces remain explicit separate boundaries",
+      "passed": false
+    },
+    {
+      "name": "Phase 1366 audit is registered without changing build or package version",
+      "passed": true
+    }
+  ],
+  "trace": {
+    "operationIdentity": "RouteCapabilityContract / reasoning -> OperationIdentityCapabilityRuntimeAlgebraInterface -> operationIdentityProjection -> CLI manifest projection -> SDK OperationIdentityReference -> SDK query key",
+    "hookCapability": "upstream route capability -> CLI emitted hookKind -> SDK endpoint $def -> React createHooks validated EndpointCallable -> TanStack Query hook selection",
+    "dataflow": "CompleteSourceAst validation -> CompleteLaravelSourceModel -> SemanticDataflowInput -> DataFlowInterface / AST dataflow authority -> IR projection",
+    "graph": "schema/model relation evidence -> StructuralSemanticRelation -> GraphEdgeRelation; remains distinct from dataflow and IR semantics",
+    "candidateContracts": {
+      "SchemaRelationTarget": "Preserve; current SchemaRelationIndexInterface and SemanticRelationReconciliationInterface already carry relation evidence; no distinct target-identity consumer demonstrated.",
+      "ControllerExpressionFact": "Preserve pending a concrete expression-origin consumer not represented by existing controller semantic/dataflow contracts.",
+      "ExpressionDefinition": "Preserve pending a consumer that requires an explicit expression/source pair beyond existing source-bearing AST.",
+      "ValidationRuleDefinition": "Preserve separate from active ValidationRuleNode ADT until one canonical validation owner and lossless migration are established."
+    }
+  },
+  "validationLimits": [
+    "Static contract audit only; does not prove TypeScript typecheck, runtime tests, or full build.",
+    "No new consumers were added for declaration-only contracts.",
+    "Full build requires repository dependencies including tsdown."
+  ]
+}

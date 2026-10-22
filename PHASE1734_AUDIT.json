@@ -1,0 +1,45 @@
+{
+  "phase": 1734,
+  "name": "publication-receipt-authority-binding",
+  "total": 9,
+  "passed": 4,
+  "failed": 5,
+  "checks": [
+    {
+      "name": "validated receipt carries both coverage contract and exact authority boundary",
+      "passed": true
+    },
+    {
+      "name": "publication authority remains a single operational interface, not a duplicate abstraction",
+      "passed": true
+    },
+    {
+      "name": "receipt contract-binding invariant is present and synchronized at coverage v28",
+      "passed": false
+    },
+    {
+      "name": "pipeline type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "pipeline status accurately distinguishes interface definition from implementation/wiring",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary v25 preserves receipt contract binding",
+      "passed": false
+    },
+    {
+      "name": "scanner keeps delegating to the canonical pipeline without semantic reasoning",
+      "passed": false
+    },
+    {
+      "name": "no semantic/foundation dependency was introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

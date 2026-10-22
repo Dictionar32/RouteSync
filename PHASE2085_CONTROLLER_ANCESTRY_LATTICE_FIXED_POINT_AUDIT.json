@@ -1,0 +1,36 @@
+{
+  "phase": 2085,
+  "title": "Controller Ancestry Lattice / Fixed-Point Contract",
+  "productionSourceChanged": true,
+  "changedFiles": [
+    "packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.ts",
+    "packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.phase1968.test.ts",
+    "scripts/audits/audit-phase2085-controller-ancestry-fixed-point-contract.cjs"
+  ],
+  "staticAudit": {
+    "assertions": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "contracts": {
+    "ancestryClosureCertificate": true,
+    "completeLeastFixedPoint": true,
+    "partialResolvedInventoryFixedPoint": true,
+    "roundCount": true,
+    "knownAncestorCount": true,
+    "iterativeAncestryExpansion": true,
+    "cycleDoesNotDuplicateAncestor": true
+  },
+  "remainingGaps": {
+    "scannerRelationImportsRemain": true,
+    "controllerSubscannerCallRemains": true,
+    "actionContractDerivationStillRuntimeOwned": true,
+    "declarationAuthorityStillHasSemanticHelpers": true,
+    "runtimeExecutorClassRemains": true,
+    "buildRun": false,
+    "typecheckRun": false,
+    "vitestRun": false
+  },
+  "verdict": "PARTIAL_CONTRACT_STRENGTHENING_NOT_FULL_SCANNER_MIGRATION"
+}

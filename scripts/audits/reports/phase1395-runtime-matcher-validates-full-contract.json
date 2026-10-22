@@ -1,0 +1,40 @@
+{
+  "phase": 1395,
+  "audit": "runtime-matcher-validates-full-contract",
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "name": "matcher accepts untrusted candidates",
+      "pass": true
+    },
+    {
+      "name": "matcher rejects non-JSON/executable payloads before inspection",
+      "pass": true
+    },
+    {
+      "name": "matcher checks full contract invariants against judgment",
+      "pass": true
+    },
+    {
+      "name": "validator checks contract version and closed marker",
+      "pass": true
+    },
+    {
+      "name": "validator checks selected facts equal source/sink union",
+      "pass": true
+    },
+    {
+      "name": "validator checks fact membership against judgment",
+      "pass": true
+    },
+    {
+      "name": "orchestration uses guarded matcher before execution",
+      "pass": true
+    },
+    {
+      "name": "executor still decodes immutable snapshot",
+      "pass": true
+    }
+  ]
+}

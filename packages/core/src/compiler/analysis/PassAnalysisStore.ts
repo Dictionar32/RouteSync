@@ -1,9 +1,9 @@
 /** Relation-backed analysis artifact storage. */
 import type { AnalysisKey } from '../passes/PassResult';
 import type { AnalysisKeyName, AnalysisRegistry } from './AnalysisRegistry';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/foundation/relationMembership';
-import { relationOptionFold, relationSelect, type RelationOption } from '../../semantic/foundation/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../semantic/foundation/semanticRelations';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';
+import { relationOptionFold, relationSelect, type RelationOption } from '../../semantic/relations/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';
 
 export interface PassAnalysisStore<R extends object = AnalysisRegistry> {
     readonly get: <K extends AnalysisKeyName<R>>(key: AnalysisKey<R, K>) => RelationOption<R[K]>;

@@ -1,0 +1,28 @@
+{
+  "phase": 1449,
+  "title": "Assignment Target Downstream Contract",
+  "scope": [
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts",
+    "packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts",
+    "packages/core/src/types/upstream/__test__/scannerAssignmentTargetAlgebra.phase1422.test.ts"
+  ],
+  "staticAudit": { "passed": 11, "total": 11 },
+  "legacyAuditUpdated": { "phase": 1422, "passed": 11, "total": 11 },
+  "targetedTypeScript": {
+    "command": "tsc --noEmit --skipLibCheck --target ES2020 --module ESNext --moduleResolution bundler packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts",
+    "passed": true,
+    "diagnostics": 0
+  },
+  "build": {
+    "command": "npm run build",
+    "passed": false,
+    "reason": "tsdown executable is not installed in the workspace"
+  },
+  "runtimeTests": {
+    "passed": false,
+    "reason": "Vitest is not available in the workspace; regression tests were updated but not executed"
+  },
+  "compatibility": "The old cursor-oriented facade remains exported and is marked deprecated. Repository runtime and the migrated legacy regression suite no longer use it.",
+  "zipRoot": "RouteSync/"
+}

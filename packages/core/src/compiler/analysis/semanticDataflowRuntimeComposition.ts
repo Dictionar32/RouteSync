@@ -1,9 +1,9 @@
-/** Concrete downstream composition of the generic dataflow contract. */
-import type { SemanticDataflowInput } from '../../types/upstream/semanticDataflow';
+/** Concrete wiring composition: execute the contract projection, not semantic reasoning. */
+import type { SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
 import type { SemanticDataflowRuntimeBoundary, SemanticDataflowRuntimeDataFlow } from './semanticDataflowRuntimeBoundary';
 import { createSemanticDataflowDataFlowInterface } from './semanticDataflowDataFlowAdapter';
 
 export const semanticDataflowRuntimeBoundary: SemanticDataflowRuntimeBoundary = Object.freeze({
-  project: (input: SemanticDataflowInput): SemanticDataflowRuntimeDataFlow =>
-    createSemanticDataflowDataFlowInterface(input),
+  project: (judgment: SemanticDataflowJudgment): SemanticDataflowRuntimeDataFlow =>
+    createSemanticDataflowDataFlowInterface(judgment),
 });

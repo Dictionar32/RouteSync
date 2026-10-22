@@ -21,7 +21,7 @@ const boundaryOptions = (overrides: Partial<RouteBoundaryOptions>): RouteBoundar
     name: SemanticValueFactory.routeName('articles.index'),
     resourceName: SemanticValueFactory.resourceName('articles'),
     domain: SemanticValueFactory.domainName('articles'),
-    auth: false,
+    authorization: { kind: 'laravel_route_authorization_middleware_absent', middleware: Object.freeze([]) },
     middleware: [],
     parameters: [],
     pathParameters: [],

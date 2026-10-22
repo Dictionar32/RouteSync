@@ -1,0 +1,40 @@
+{
+  "phase": 1437,
+  "title": "Terminal Expression Evidence Contract",
+  "date": "2026-10-09",
+  "scope": [
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts",
+    "packages/core/src/types/upstream/scannerExpressionCandidateAlgebra.ts",
+    "packages/core/src/types/upstream/scannerExpressionStructure.ts"
+  ],
+  "changes": [
+    "Candidate algebra supports a terminal evidence outcome and stops evaluating later candidates when isTerminal matches.",
+    "Malformed conditional and unary form results are carried as typed evidence instead of exceptions from the PHP evidence provider.",
+    "Malformed top-level delimiter structure from the compound-expression operator lookup is carried as typed evidence.",
+    "Upstream judgment authority closes terminal evidence into malformed_source or contract_violation variants with candidate identity and attempts.",
+    "Runtime executor handles malformed_source as a diagnostic and keeps arbitration authority upstream.",
+    "Added regression coverage for terminal evidence short-circuiting candidate arbitration."
+  ],
+  "static_audits": {
+    "phase1437": "14/14 passed",
+    "phase1436": "10/10 passed",
+    "phase1435": "9/9 passed",
+    "phase1434": "10/10 passed",
+    "phase1433": "9/9 passed"
+  },
+  "build": {
+    "command": "npm run build",
+    "status": "blocked",
+    "reason": "tsdown is not installed in the workspace"
+  },
+  "typecheck": {
+    "command": "tsc --noEmit -p tsconfig.json",
+    "status": "blocked",
+    "reason": "Global TypeScript compiler is incompatible with this repository config and project type definitions are unavailable (missing standard globals, @types/node, vitest/globals; unsupported target/lib settings)."
+  },
+  "notes": [
+    "Static audits verify source boundaries and expected patterns, not runtime behavior.",
+    "No package.json scripts or dependency declarations were changed."
+  ]
+}

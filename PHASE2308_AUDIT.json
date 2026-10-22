@@ -1,0 +1,22 @@
+{
+  "phase": 2308,
+  "title": "Constructor Selection Interface-First Audit",
+  "scope": "upstream interface contract only",
+  "changed": [
+    "packages/core/src/types/upstream/phpClassConstructorSelectionInterface.ts",
+    "packages/core/src/types/upstream/docs/PHASE2308-CONSTRUCTOR-SELECTION-INTERFACE-FIRST-AUDIT.md",
+    "scripts/audits/audit-phase2308-constructor-interface-first.cjs"
+  ],
+  "verification": {
+    "structuralChecks": "8/8 passed",
+    "typecheck": "not run",
+    "build": "not run",
+    "integrationTests": "not run"
+  },
+  "explicitlyNotDone": [
+    "active constructor authority contract has not yet been changed to consume the new inventory ADT",
+    "scanner runtime wiring has not been changed",
+    "CLI-to-manifest blocked judgment propagation has not been integration-tested",
+    "semantic/relations transitive dependency in expression authority remains outside this phase"
+  ]
+}

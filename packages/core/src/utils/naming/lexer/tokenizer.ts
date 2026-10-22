@@ -6,7 +6,6 @@
  * lexical state; recursive relation closure consumes the input stream.
  */
 import { CharKind, LexerState, classifyChar } from './types';
-import { relationFirstOr, relationResolve } from '../../../semantic/foundation/relationalSequence';
 
 type Step = Readonly<{
     readonly state: LexerState;
@@ -16,19 +15,23 @@ type Step = Readonly<{
 
 type StepResult = ReturnType<Step['consume']>;
 
-const emit = (buffer: string, state: LexerState, next: string): StepResult =>
-    relationResolve(buffer.length > 0,
-        () => Object.freeze({ buffer: next, emitted: Object.freeze([buffer]), state }),
-        () => Object.freeze({ buffer: next, emitted: Object.freeze([]), state }));
+const emit = (buffer: string, state: LexerState, next: string): StepResult => {
+    if (buffer.length > 0) {
+        return Object.freeze({ buffer: next, emitted: Object.freeze([buffer]), state });
+    }
+    return Object.freeze({ buffer: next, emitted: Object.freeze([]), state });
+};
 
 const append = (buffer: string, state: LexerState, char: string): StepResult =>
     Object.freeze({ buffer: `${buffer}${char}`, emitted: Object.freeze([]), state });
+
+const START_DELIMITER: Step = { state: LexerState.START, kind: CharKind.DELIM, consume: buffer => Object.freeze({ buffer, emitted: Object.freeze([]), state: LexerState.START }) };
 
 const START: Step[] = [
     { state: LexerState.START, kind: CharKind.LOWER, consume: (_, char) => append('', LexerState.LOWERCASE_WORD, char) },
     { state: LexerState.START, kind: CharKind.UPPER, consume: (_, char) => append('', LexerState.UPPERCASE_WORD, char) },
     { state: LexerState.START, kind: CharKind.DIGIT, consume: (_, char) => append('', LexerState.LOWERCASE_WORD, char) },
-    { state: LexerState.START, kind: CharKind.DELIM, consume: buffer => Object.freeze({ buffer, emitted: Object.freeze([]), state: LexerState.START }) },
+    START_DELIMITER,
 ];
 
 const LOWER: Step[] = [
@@ -57,10 +60,16 @@ const ACRONYM: Step[] = [
 
 const STEPS = Object.freeze([...START, ...LOWER, ...UPPER, ...ACRONYM]);
 const key = (state: LexerState, kind: CharKind): string => `${state}:${kind}`;
-const stepAt = (state: LexerState, kind: CharKind): Step =>
-    relationFirstOr(STEPS, step => Object.is(key(step.state, step.kind), key(state, kind)), START[3]);
+const stepAt = (state: LexerState, kind: CharKind): Step => {
+    const selected = STEPS.find(step => Object.is(key(step.state, step.kind), key(state, kind)));
+    if (selected === undefined) {
+        return START_DELIMITER;
+    }
+    return selected;
+};
 
-const close = (buffer: string): readonly string[] => relationResolve(buffer.length > 0, () => Object.freeze([buffer]), () => Object.freeze([]));
+const close = (buffer: string): readonly string[] =>
+    buffer.length > 0 ? Object.freeze([buffer]) : Object.freeze([]);
 
 const consume = (
     input: string,
@@ -69,13 +78,12 @@ const consume = (
     buffer: string,
     output: readonly string[],
 ): readonly string[] => {
-    return relationResolve(index >= input.length,
-        () => Object.freeze([...output, ...close(buffer)]),
-        () => {
-            const char = input[index];
-            const result = stepAt(state, classifyChar(input.charCodeAt(index))).consume(buffer, char);
-            return consume(input, index + 1, result.state, result.buffer, Object.freeze([...output, ...result.emitted]));
-        });
+    if (index >= input.length) {
+        return Object.freeze([...output, ...close(buffer)]);
+    }
+    const char = input.charAt(index);
+    const result = stepAt(state, classifyChar(input.charCodeAt(index))).consume(buffer, char);
+    return consume(input, index + 1, result.state, result.buffer, Object.freeze([...output, ...result.emitted]));
 };
 
 export function tokenizeWords(str: string): readonly string[] {

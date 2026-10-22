@@ -1,0 +1,826 @@
+file,line,source_line
+packages/core/src/compiler/analysis/AnalysisManager.ts,6,import { relationContains } from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/AnalysisManager.ts,7,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/compiler/analysis/AnalysisManager.ts,8,"import { relationExpand, relationGate, relationFold, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/DataFlowAnalysis.ts,7,import type { RelationIndex } from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/PassAnalysisStore.ts,4,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/PassAnalysisStore.ts,5,"import { relationOptionFold, relationSelect, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/PassAnalysisStore.ts,6,"import { relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/analysis/SymbolAnalysis.ts,4,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/SymbolAnalysis.ts,5,"import { relationSelect, relationFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/SymbolAnalysis.ts,6,import { relationEqual } from '../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/SymbolAnalysis.ts,7,import type { RelationOption } from '../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/UseDefAnalysis.ts,2,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/UseDefAnalysis.ts,3,"import { relationOptionFold, relationSelect, relationFold, relationGate, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/UseDefAnalysis.ts,4,"import { relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/analysis/dataflow/backwardSolver.ts,4,import type { RelationIndex } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/dataflow/backwardSolver.ts,12,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/analysis/dataflow/backwardSolver.ts,13,import { relationNotEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/analysis/dataflow/controlFlowDataFlowInterface.ts,3,import type { RelationIndex } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/dataflow/forwardSolver.ts,9,import type { RelationIndex } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/dataflow/forwardSolver.ts,17,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/analysis/dataflow/forwardSolver.ts,18,import { relationNotEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/analysis/dominator/dominanceFrontier.ts,4,"import { relationContains, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/dominator/dominanceFrontier.ts,5,"import { relationOptionFold, relationFold, relationResolve, relationEqual } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/dominator/dominanceFrontier.ts,6,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/dominator/dominatorIntersect.ts,2,"import { relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/dominator/dominatorIntersect.ts,3,"import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/dominator/dominatorRpo.ts,4,import { relationContains } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/dominator/dominatorRpo.ts,5,"import { relationOptionFold, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/dominator/dominatorTree.ts,7,"import { relationIndexLookup, relationIndexAdd, relationContains, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/dominator/dominatorTree.ts,8,"import { relationOptionFold, relationFold, relationFixedPoint, relationResolve, relationEqual } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/dominator/dominatorTree.ts,9,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/loop/loopDetector.ts,5,"import { relationContains, relationInsert, type RelationMembership, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/loop/loopDetector.ts,6,"import { relationFold, relationOptionFold, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/loop/loopDetector.ts,7,import { relationEqual } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/loop/loopNormalizer.ts,4,import { relationContains } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/loop/loopNormalizer.ts,5,"import { relationFold, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/loop/loopNormalizer.ts,6,import { relationEqual } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/loop/loopTypes.ts,2,import type { RelationMembership } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/analysis/manager/dependencyGraph.ts,4,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/manager/dependencyGraph.ts,5,"import { relationOptionFold, relationSelect, relationProject, relationFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/manager/dependencyGraph.ts,6,import { relationNotEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/analysis/ssa/renamer/blockInstructionRenamer.ts,5,"import { relationAll, relationRefine, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/ssa/renamer/blockInstructionRenamer.ts,6,import { relationEqual } from '../../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/ssa/renamer/variableVersionScope.ts,4,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/ssa/renamer/variableVersionScope.ts,5,"import { relationOptionFold, relationResolve, relationEqual, type RelationOption } from '../../../../semantic/relations/relationFoundation';"
+packages/core/src/compiler/analysis/ssa/renamer/variableVersionScope.ts,6,import { relationVariantValue } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/analysis/ssa/ssaBuilder.ts,6,"import { relationContains, relationInsert } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/ssa/ssaBuilder.ts,7,"import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/relations/relationFoundation';"
+packages/core/src/compiler/analysis/ssa/ssaBuilder.ts,8,import { relationVariantValue } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/analysis/ssa/ssaBuilder.ts,9,"import { relationAll, relationFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/ssa/ssaRenamer.ts,9,"import { relationAny, relationFold, relationOptionFold, relationResolve, relationVariantValue, relationRefine } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/ssa/ssaRenamer.ts,10,import { relationEqual } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/ssa/ssaSemanticInterface.ts,6,import { relationProject } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/analysis/symbol/symbolGraph.ts,2,"import { relationIndexAdd, relationIndexLookup, type RelationIndex, relationContains, relationInsert } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/analysis/symbol/symbolGraph.ts,3,"import { relationOptionFold, relationFold, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/symbol/symbolGraph.ts,4,import { relationEqual } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/symbol/symbolGraph.ts,5,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/symbol/symbolHierarchy.ts,3,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/analysis/symbol/symbolHierarchy.ts,4,"import { relationOptionFold, relationSelect, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/analysis/symbol/symbolHierarchy.ts,5,import { relationEqual } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/compatibility/ContractInputBoundary.ts,10,"import { relationResolve, relationProject } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/compatibility/boundary/legacyResolver.ts,6,"import { relationResolve, relationFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/compatibility/boundary/legacyResolver.ts,7,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/constraints/ConstraintSolver.ts,21,} from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/constraints/ConstraintSolver.ts,25,} from '../../semantic/relations/semanticRelations';
+packages/core/src/compiler/constraints/ConstraintSolver.ts,31,} from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/constraints/TypeEnvironment.ts,12,} from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/constraints/TypeEnvironment.ts,13,"import { relationOptionFold, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/constraints/UnionFind.ts,11,} from '../../semantic/relations/semanticRelations';
+packages/core/src/compiler/constraints/UnionFind.ts,16,} from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/constraints/UnionFind.ts,17,import { relationOptionFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/constraints/solver/constraintStep.ts,22,} from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/constraints/solver/constraintStep.ts,23,"import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/constraints/solver/constraintStep.ts,32,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/constraints/solver/variableResolver.ts,6,"import { relationResolve, relationFirstOption, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/constraints/solver/variableResolver.ts,7,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/constraints/solver/variableResolver.ts,8,"import { relationUnique, type RelationMembership } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/diagnostics/DiagnosticBag.ts,9,"import { relationNotEqual, relationEqual, relationGate, relationProject, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ConversionResult.ts,13,import { relationResolve } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/domain/common/FieldCollection.ts,41,import { relationProject } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/domain/common/ResolvedObjectType.ts,9,"import { relationProject, relationResolve, relationSelect } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ResolvedObjectType.ts,10,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/ResponseFieldLowering.ts,13,import { relationProject } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/domain/common/SemanticTypeResolver.ts,14,"import { relationFirst, relationOptionFold, relationRefine } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/SemanticTypeResolver.ts,15,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/ZodSchemaLowerer.ts,24,"import { relationFold, relationProject, relationResolve, relationSlice } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ZodSchemaLowerer.ts,25,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/resolved-types/catamorphism.ts,10,"import { relationOptionFold, relationRefine } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/resolved-types/catamorphism.ts,11,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/resolved-types/compounds.ts,8,import { relationResolve } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/domain/common/response-lowering/loweringContracts.ts,9,import { relationExpand } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/domain/common/response-lowering/mapper/fieldConverter.ts,20,"import { relationFold, relationOptionFold, relationFirst, relationResolve, relationProject } from '../../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/response-lowering/mapper/fieldConverter.ts,21,import { relationEqual } from '../../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/response-lowering/mapper/responseFieldSemanticRelations.ts,2,"import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/compiler/domain/common/response-lowering/mapper/responseFieldSemanticRelations.ts,3,import { relationAll } from '../../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/response-lowering/mapper/responseFieldSemanticRelations.ts,4,"import { relationFirst, relationOptionFold, relationProject } from '../../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/response-lowering/mapper/wrapperResolver.ts,10,"import { relationFirst, relationOptionFold, relationResolve } from '../../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/response-lowering/mapper/wrapperResolver.ts,11,import { relationEqual } from '../../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/semantic-resolver/compoundHandlers.ts,22,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/semantic-resolver/compoundHandlers.ts,23,"import { relationProject, relationSelect, relationResolve, relationVariantFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/semantic-resolver/primitiveHandlers.ts,25,"import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/domain/common/ts-lowerer/builder/objectTypeLowerer.ts,16,"import { relationAny, relationEqual, relationResolve } from '../../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/domain/common/ts-lowerer/builder/objectTypeLowerer.ts,17,"import { relationFold, relationProject } from '../../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ts-lowerer/builder/typeExpressionLowerer.ts,17,"import { relationProject, relationResolve } from '../../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptCodeBuilder.ts,23,import { relationGate } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts,6,"import { relationFirstOption, relationOptionFold, relationProject, relationResolve, relationRefine, relationCount, relationVariant } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts,7,"import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts,15,} from '../../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptNodeLowerer.ts,12,"import { relationProject, relationResolve, relationFirstOption, relationOptionFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptNodeLowerer.ts,13,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptPrimitiveSemanticRelations.ts,6,"import { relationFirstOption, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptPrimitiveSemanticRelations.ts,7,"import { relationAll, relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptPrimitiveSemanticRelations.ts,12,} from '../../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptSyntax.ts,10,"import { relationProject, relationResolve } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptSyntax.ts,11,"import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts,8,"import { relationFirstOption, relationOptionFold, relationProject } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts,10,"import { relationAll, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/fingerprint/Fingerprint.ts,6,import { relationProject } from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/generators/contract-generation/ArraySchemaBuilder.ts,3,"import { relationOptionFold, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/generators/contract-generation/ContractActionGenerator.ts,18,"import { relationProject, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/generators/contract-generation/NestedObjectSchemaBuilder.ts,3,"import { relationOptionFold, relationProject, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/generators/contract-generation/response-field/fieldParser.ts,3,"import { relationOptionFold, relationProject, relationVariant } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/generators/contract-generation/response-field/types.ts,1,import type { RelationOption } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/generators/contract-generation/response-field/types.ts,2,import { relationResolve } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/generators/contract-generation/response-schema/fieldSchemaDispatcher.ts,10,import { relationProject } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/ir/semanticIRLoweringRelations.ts,11,} from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/ir/semanticIRLoweringRelations.ts,12,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/compiler/ir/semanticIRLoweringRelations.ts,17,} from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/optimization/LICM.ts,12,"import { relationIsSome, relationGate, relationOptionFold } from '../../semantic/relations/relationFoundation';"
+packages/core/src/compiler/optimization/PhiElimination.ts,27,} from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/passes/CompilationState.ts,19,} from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/passes/TypedPassAdapter.ts,15,"import { relationOptionFold, relationResolve, relationSome, relationNone, relationEqual } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/passes/adapter/cacheCoordinator.ts,15,import { relationProject } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/passes/adapter/contractValidator.ts,9,"import { relationResolve, relationFold, relationProject } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/passes/adapter/contractValidator.ts,10,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/passes/adapter/contractValidator.ts,11,import { relationContains } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/passes/adapter/outputApplicator.ts,12,import { relationFold } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/passes/contract-domain/contractArtifactBuilder.ts,14,"import { relationFold, relationProject } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/passes/contract-domain/contractExtraction.ts,16,"import { relationProject, relationResolve, relationEqual, relationVariantFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/passes/contract-domain/responseContractSemanticRelations.ts,6,} from '../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/passes/graph/graphAnalyzer.ts,8,} from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/passes/graph/graphAnalyzer.ts,16,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/passes/graph/topologicalSorter.ts,3,"import { relationContains, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/passes/graph/topologicalSorter.ts,4,"import { relationAny, relationEqual, relationOptionFold, relationProject, relationResolve, relationSelect } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/passes/lowerers/requestTypesLowerers.ts,15,import { deriveSemanticMappingContract } from '../../scanner/subscanners/request-deriver/semanticMappingDeriver';
+packages/core/src/compiler/passes/mapper/formFieldLineBuilder.ts,2,"import { relationProject, relationSelect } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/passes/mapper/mapperAssembler.ts,7,"import { relationResolve, relationEqual } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/passes/mapper/readFieldLineBuilder.ts,2,"import { relationProject, relationSelect } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/projectors/ApiFieldProjector.ts,14,import { relationExpand } from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/query/SalsaCompiler.ts,10,import { relationOptionFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/query/TypedCache.ts,3,import type { RelationOption } from '../../semantic/relations/relationFoundation';
+packages/core/src/compiler/query/TypedCache.ts,4,import { relationContains } from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/query/TypedCache.ts,5,"import { relationFold, relationOptionFold, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/query/cache/queryKey.ts,2,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/query/cache/storage.ts,7,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/query/cache/storage.ts,8,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/query/cache/storage.ts,9,"import { relationEqual, relationResolve } from '../../../semantic/relations/relationFoundation';"
+packages/core/src/compiler/query/cache/storage.ts,10,import { relationFold } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/query/cache/storage.ts,11,import { relationOptionFold } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/query/salsa/cycleDetector.ts,5,import { relationContains } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/query/salsa/cycleDetector.ts,6,import { relationGate } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/query/salsa/cycleDetector.ts,7,import { relationProject } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/query/salsa/queryExecutor.ts,5,"import { relationGate, relationOptionFold, relationFirst, relationResolve, relationAll } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/query/salsa/queryExecutor.ts,6,import { relationNotEqual } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/query/salsa/queryExecutor.ts,7,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/query/salsa/queryGraphManager.ts,3,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/query/salsa/queryGraphManager.ts,4,"import { relationOptionFold, relationResolve, relationFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/query/salsa/queryGraphManager.ts,5,"import { relationEqual, relationNotEqual } from '../../../semantic/relations/relationFoundation';"
+packages/core/src/compiler/query/salsa/queryGraphManager.ts,6,"import { relationContains, relationInsert, relationRemove } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/query/salsa/queryGraphManager.ts,7,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/query/salsa/salsaTypes.ts,3,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/relational/sequence.ts,1,"import { relationFirstOption, relationOptionFold, relationEqual } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/relational/sequence.ts,99,} from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/__test__/createNotConnectedControllerInventoryReceipt.ts,11,import { collectPhpFiles } from '../subscanners/scannerUtils';
+packages/core/src/compiler/scanner/__test__/eloquentExplicitRelationKey.phase999.test.ts,4,import { parseModelRelations } from '../subscanners/model/memberRelationsParser';
+packages/core/src/compiler/scanner/__test__/upstream-contracts/upstream-interface-elevation.phase52.test.ts,3,import { routeProducer } from '../../subscanners/routeProducer';
+packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts,22,"import { resolveAstValueToExpression } from ""../../../subscanners/resource/resourceAstExpressionMapper"";"
+packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts,24,"import { relationEqual } from ""../../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts,25,"import { relationGate, relationFold, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from ""../../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts,10,import { relationContains } from '../../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts,11,"import { relationAll, relationEqual } from ""../../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts,12,"import { relationFirst, relationOptionFold, relationSome, relationNone } from ""../../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts,16,"import { relationAll, relationGate, relationProject, relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts,17,"import { relationContains, relationInsert, relationIndexLookup, type RelationMembership, type RelationIndex } from ""../../../../semantic/relations/relationMembership"";"
+packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts,18,"import { relationOptionFold, relationRefine } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/propertyAccessBinder.ts,17,"import { relationVariantFold } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/propertyAccessBinder.ts,18,"import { relationResolve } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/propertyPathBinder.ts,10,"import { relationGate, relationProject, relationResolve } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/propertyPathBindingSupport.ts,11,"import { relationFold, relationProject, relationResolve } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/propertyPathResolution.ts,10,"import { resolveAstValueToExpression } from ""../../subscanners/resource/resourceAstExpressionMapper"";"
+packages/core/src/compiler/scanner/binders/resource/propertyPathResolution.ts,13,"import { relationFold, relationOptionFold, relationProject, relationResolve, relationSome, relationNone, type RelationOption } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts,34,"import { produceResourceField } from ""../../subscanners/resource/resourceFieldProducer"";"
+packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts,35,"import { mapResourcePhpStatementsToSourceStatements } from ""../../subscanners/resource/resourceUpstreamExpressionCanonical"";"
+packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts,36,"import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode, sourceSpanFromRange } from ""../../subscanners/resource/resourceUpstreamExpressionMappings"";"
+packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts,39,"import { relationEqual, relationGate } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts,40,"import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts,41,"import { resolveAstValueToExpression } from ""../../subscanners/resource/resourceAstExpressionMapper"";"
+packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts,157,readonly knowledgeDataFlow?: import('../../subscanners/resource/resourceModelKnowledgeDataFlow').ResourceModelKnowledgeDataFlow;
+packages/core/src/compiler/scanner/binders/resource/whenLoadedRelationArgument.ts,5,"import { relationFold, relationGate } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/descriptors/channel/channelFactories.ts,18,import { relationGate } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts,10,"import { relationFirst, relationOptionalFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts,11,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,1,"import { type RelationIndex, relationIndexLookup } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,12,import { mapResourcePhpAstToUpstream } from '../../subscanners/resource/resourceUpstreamExpressionCanonical';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,13,import { resolveResponseAttributeAst } from '../../subscanners/controller/responseAttributeScanner';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,15,"import { resolveControllerBody, type ControllerBodyResolution } from '../../subscanners/controller/controllerBodyResolver';"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,16,import { resolveActionSchema } from '../../subscanners/controller/actionValidationExtractor';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,17,"import { createControllerDataflowContract, createControllerReturnSet, type ControllerDataflowContract, type ControllerReturnSet } from '../../subscanners/controller/controllerDataflowContract';"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,18,import { controllerReturnSemanticFromMethod } from '../../subscanners/controller/controllerAstCanonical';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,19,import { expressionFromPhpAst } from '../../subscanners/expressionProducer';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,21,import { sequence } from '../../subscanners/resource/resourceUpstreamExpressionMappings';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,69,"import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,70,"import { relationContains, type RelationMembership } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,71,"import { relationFirstOption, relationGate, relationIsNone, relationIsPresent, relationNone, relationOptionFold, relationProject, relationSelect, relationSome, relationVariantValue, type RelationOption, type RelationVariant } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts,18,"import { emptyControllerDataflowContract } from ""../../subscanners/controller/controllerDataflowContract"";"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts,16,"import type { ControllerDataflowContract } from ""../../subscanners/controller/controllerDataflowContract"";"
+packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts,23,import { relationGate } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts,24,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts,7,import { relationVariantFold } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts,9,import type { RelationVariant } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts,11,"import { relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts,12,"import { relationGate } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts,11,"import { relationProject } from ""../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts,6,import { relationVariantFold } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts,32,"} from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts,23,} from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts,24,"import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts,26,import type { RelationIndex } from '../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts,27,"import { relationIndexAdd, relationIndexLookup } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/lexer/SourceStream.ts,4,"import { relationAll, relationAny, relationEqual, relationGate } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/SourceStream.ts,5,import { relationTextSlice } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/arrayParser.ts,12,"import { relationAll, relationFirst, relationOptionFold, relationResolve, relationSlice, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/arrayParser.ts,13,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts,35,import { relationNotEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts,45,"import { relationEqual, relationAny, relationAll } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts,46,"import { relationGate, relationFirst, relationSelect, relationProject, relationFold, relationOptionMap, relationIndexOf, relationLastIndexOf, relationEvery, relationMapValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSlice, relationCount, relationTextLength, relationTextIsUpperIdentifier, relationTextSlice, relationSome, relationNone, relationIsNone, relationIsPresent, relationVariantValue, relationVariant, relationVariantFold, relationOptionalFold, type RelationOption, type RelationNone, type RelationMaybe } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts,9,"import { relationAll, relationGate } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts,25,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts,27,import type { RelationVariant } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts,3,"import { relationGate, relationIndexOf, relationProject, relationExpand, relationOptionFold, relationEqual, relationAll, relationSlice, relationSelect } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts,4,import { relationAny } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts,5,"import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts,6,"import { relationProject, relationIndexOf, relationGate, relationFold, relationFirst, relationOptionFold, relationRange, relationTextSlice, relationAdvanceIndex, relationSome, relationNone, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts,7,"import { relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts,4,"import { relationAll, relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts,5,"import { relationGate, relationProject, relationSelect } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts,22,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts,5,"import { relationOptionFold, relationRefine, type RelationVariant } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts,6,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts,9,"import { relationGate, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/phpAstFactory.ts,1,"import { relationGate, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts,4,"import { relationOptionFold, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/phpExpressionOperatorContract.ts,20,import type { RelationOption } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts,8,"import { relationEqual, relationAny, relationAll, relationNotEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts,9,"import { relationGate, relationOptionFold, relationAdvanceIndex, relationSlice, relationCount, relationSome, relationNone, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/phpMethodParser.ts,5,"import { relationAll, relationAny, relationEqual, relationGate, relationNone, relationSome, relationIsSome, relationNotEqual, type RelationOption } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/phpMethodParser.ts,6,"import { relationOptionFold, relationSlice, relationTextSlice, relationFirstOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts,17,"import { collectPhpFiles, readSourceText } from '../subscanners/scannerUtils';"
+packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts,18,import { parseModelPropertyAsts } from '../subscanners/model/modelPropertyAstParser';
+packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts,19,"import { relationAsyncFold, relationProject, relationExpand, relationOptionFold, relationAdvanceIndex, relationFirstOption, relationFold, relationIndexOf, relationSlice, relationSome, relationNone, relationVariantFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts,20,"import { relationEqual, relationGate, relationAll, relationAny } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts,6,"import { relationEqual, relationAll } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts,7,"import { relationFold, relationGate, relationLookup, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts,1,"import { relationEqual, relationResolve } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts,2,"import { relationFirstOption, relationOptionFold, relationRefine, relationSlice, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/index.ts,32,"export type { SemanticRelation, SemanticRelationAtom, SemanticRelationBindings, SemanticRelationDerivation, SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationRewriteResult, SemanticRelationSolveResult } from '../../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts,1,"import { relationNotEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts,16,"import { relationFirstOption, relationOptionFold, relationVariantValue, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts,17,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts,4,"import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts,5,"import { relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts,9,"import { relationFirstOption, relationOptionFold, relationRefine } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts,10,"import { relationEqual, relationNotEqual, relationNone, relationSome } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts,154,"const clauseExpression = (clause: typeof value.initializer, hint: string): import('../../../../semantic/relations/relationalSequence').RelationOption<KnowledgeId> => relationCase(clause, current => current.kind, {"
+packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts,10,"import { relationGate, relationFirstOption, relationOptionFold, relationSelect, relationResolve, relationRange, relationNone, relationSome, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts,12,"import { relationAll, relationAny } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts,1,"import { relationNotEqual, relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts,38,import { relationAll } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts,39,import { relationVariantFold } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts,3,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts,16,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts,17,"import { relationFirst, relationOptionFold, relationProject, relationUnique } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts,16,export type { SemanticRelation } from '../../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts,2,import type { SemanticRelationPattern } from '../../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts,11,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts,1,"import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts,3,"import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts,4,import { relationVariantValue } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts,14,"import { relationContains, relationUnique } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts,1,"import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts,1,"import { solveSemanticRelationsDetailed, type SemanticRelationRewrite } from '../../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts,2,"import { relationFirstOption, relationOptionFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts,3,"import { relationContains, relationInsert, type RelationMembership } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts,2,export * from '../../../../semantic/relations/semanticRelationalAlgebra';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts,2,export * from '../../../../semantic/relations/semanticRelationalCollections';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts,5,"import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationRewrite } from '../../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts,2,import { solveSemanticRelationsDetailed } from '../../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts,2,import { solveSemanticRelationsDetailed } from '../../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts,2,export * from '../../../../semantic/relations/semanticRelationalExecutionPlan';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.phase266.test.ts,2,"import { rewriteSemanticRelations, type SemanticRelation } from '../../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts,11,} from '../../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts,1,"import { relationAll, relationAny, relationNormalizeWhitespace, relationNotEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts,2,"import { relationContains, relationUnique } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts,4,"import { relationFirst, relationOptionMap, relationOptionFold, relationVariantFold, relationVariantValue, relationEqual } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts,6,import { relationFirstOr } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts,1,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts,5,"import { relationVariantValue, type RelationVariant } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts,2,"import { relationFirstOption, relationOptionFold, relationOptionMap, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts,11,"import { relationEqual, relationAll, relationFixedPoint, relationGate, relationFirst, relationOptionFold, relationCount } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts,12,import { relationUnique } from '../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts,13,"import { relationExpand, relationProject, relationSelect } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts,4,"import { relationEqual, relationAll } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts,1,"import { relationEqual, relationAll } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts,1,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts,2,import { relationContains } from '../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts,3,"import { relationFirstOption, relationOptionFold, relationExpand, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/tokenEvidence.ts,2,"import { relationFold, relationNone, relationSome, relationOptionFold, relationGate, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/tokenEvidence.ts,3,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts,5,"import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts,6,"import { relationFirstOption, relationOptionFold, relationTextCharIn } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts,5,"import { relationFirstOption, relationOptionFold, relationTextSlice } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts,6,"import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/lexer/tokenizer.ts,24,"import { relationAny, relationEqual, relationGate, relationFirstOption, relationOptionFold } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts,14,"import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate, relationSome } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts,15,"import { relationFold, relationProject, relationSelect, relationSlice, relationTextSlice, relationLookup, relationOptionFold, relationOptionValue, relationAt, relationFirstOption, relationTextEnclosedFields, relationTextFields, relationTextReplaceEnclosed, relationTextTrimChars, relationTextStartsWith, relationTextEndsWith, relationTextLower, relationTextNumber, relationLastIndexOf, relationTextTrimEndChars, relationVariant } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts,16,"import type { RelationOption } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/resolvers/boundary/boundaryContractFactory.ts,18,"import { relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts,7,"import { relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts,13,"import { relationFoldRight } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/resolvers/boundary/capabilityBuilder.ts,11,"import { relationFoldRight } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts,14,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts,16,import { relationProject } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts,16,"import { findControllerResourceBinding, type ControllerResourceDataflow } from ""../../subscanners/controller/resourceDataflowAggregator"";"
+packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts,19,"import type { ResourceModelKnowledgeDataFlow } from ""../../subscanners/resource/resourceModelKnowledgeDataFlow"";"
+packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts,21,"import { relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts,22,"import { relationFirst, relationOptionFold, relationProject } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/resolvers/resource/structuralFieldMatcher.ts,12,"import { relationEqual, relationAny } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/resolvers/resource/structuralFieldMatcher.ts,13,"import { relationResolve, relationFold } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/resolvers/resource/structuralFieldMatcher.ts,14,"import { relationContains } from ""../../../../semantic/relations/relationMembership"";"
+packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts,21,"import { relationProject, relationSelect, relationAny, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts,22,"import { relationAll, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts,4,"import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts,5,"import { relationGate, relationProject, relationSelect } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/semantic/route/routeParameterSemanticFactory.ts,25,"} from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/semantic/semanticEvidenceRelations.ts,8,"import { absent, present, presenceFold, type Presence } from '../../../semantic/relations/presenceRelations';"
+packages/core/src/compiler/scanner/semantic/semanticEvidenceRelations.ts,9,"import { relationGate, relationProject } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/semantic/semanticEvidenceRelations.ts,11,"import { queryEvidenceProducer, type QueryProducerInput } from '../subscanners/queryEvidenceProducer';"
+packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts,14,"import { relationAll, relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts,15,"import { relationGate, relationProject } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts,7,* @module core/compiler/scanner/subscanners/FormRequestScanner
+packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts,33,"} from ""../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts,34,"import { relationAll, relationEqual } from ""../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/InvalidationResolver.ts,32,"} from ""../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/InvalidationResolver.ts,33,"import { relationAny, relationEqual } from ""../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/ModelScanner.ts,8,* @module core/compiler/scanner/subscanners/ModelScanner
+packages/core/src/compiler/scanner/subscanners/ModelScanner.ts,31,"import { relationAsyncFold } from ""../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/RouteScanner.ts,7,* @module core/compiler/scanner/subscanners/RouteScanner
+packages/core/src/compiler/scanner/subscanners/RouteScanner.ts,10,"import { relationContains, type RelationMembership } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/subscanners/RouteScanner.ts,12,import { relationFoldRight } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/RouteScanner.ts,15,"import { relationIndexLookup, relationIndexAdd, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/subscanners/RouteScanner.ts,16,"import { relationGate, relationLookup, relationOptionFold, relationEqual, relationAny, relationProject, relationFold, type RelationOption, relationNone, relationFirstOption, relationVariantFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts,11,"import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts,12,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/attributeProducer.ts,12,"import { relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/attributeProducer.ts,13,"import { relationFoldRight, relationGate, relationFirst, relationOptionFold, relationProject } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/channelProducer.ts,6,"import { relationFoldRight, relationGate } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/channelProducer.ts,7,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts,1,"import { relationNormalizeWhitespace, relationAll } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts,2,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts,3,"import { relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts,10,* @module core/compiler/scanner/subscanners/controller/actionValidationExtractor
+packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts,23,"import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, relationRefine, relationSelect, relationFold, relationFoldRight, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts,24,"import { relationAll, relationAny } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts,11,"import { relationProject, relationExpand, relationOptionFold, relationNone, relationSome, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts,12,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts,13,import { relationFirst } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,18,"import { relationGate, relationFold, relationProject, relationExpand, relationOptionFold, relationNone, relationRefine, relationAny, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,19,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,20,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts,9,import { relationVariantFold } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts,9,"import { relationFoldRight, relationProject, relationSelect } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts,10,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/controller/index.ts,6,* @module core/compiler/scanner/subscanners/controller
+packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts,5,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts,6,"import { relationFirst, relationExpand, relationProject } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts,7,import type { RelationOption } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts,8,import type { RelationIndex } from '../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts,7,"import { relationAdvanceIndex, relationFold, relationGate, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts,9,"import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts,8,import { relationUnique } from '../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts,16,"import { relationEqual, relationFold, relationGate, relationProject, relationSelect, relationOptionFold, relationSome, relationNone, relationFirstOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts,12,"import { relationGate, relationFold, relationProject, relationAdvanceIndex, relationOptionFold, relationSome, relationNone, relationLookup, relationIsSome, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts,13,"import { relationAll, relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts,15,"import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, relationVariantFold, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts,12,"import { relationFirst, relationOptionFold, relationProject, relationAsyncFold, relationAt, relationAdvanceIndex } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts,13,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/expressionAstCanonical.ts,7,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/expressionAstCanonical.ts,8,"import { relationGate, relationLookup, relationOptionFold, relationVariantValue } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/form-request/canonicalValidationRuleEntry.ts,31,"} from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/form-request/index.ts,6,* @module core/compiler/scanner/subscanners/form-request
+packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts,11,} from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts,12,"import { relationEqual, relationNormalizeWhitespace } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/index.ts,2,* subscanners/index.ts
+packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts,13,"import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts,14,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts,1,"import { relationOptionFold, relationFirst } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts,2,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts,10,"import { relationAsyncFold, relationFold, relationGate } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts,11,"import { relationEqual, relationNotEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/migrationProducer.ts,11,"import { relationAny, relationAll, relationEqual, relationGate } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/migrationProducer.ts,21,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/model/columnInferrer.ts,9,"import { relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/model/columnInferrer.ts,10,"import { relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts,10,"import { relationEqual, relationGate, relationOptionFold, relationFirst } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/model/eloquentRelationVocabulary.ts,1,"import { relationOptionalFold, relationFirst } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/model/eloquentRelationVocabulary.ts,2,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/model/index.ts,7,* @module core/compiler/scanner/subscanners/model
+packages/core/src/compiler/scanner/subscanners/model/memberAccessorsParser.ts,12,"import { relationGate, relationProject, relationTextSlice, relationNone, relationSome, relationOptionFold, type RelationOption } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/model/memberAccessorsParser.ts,13,"import { relationAny, relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/model/memberCastsParser.ts,6,"import { relationAll, relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/model/memberCastsParser.ts,7,"import { relationExpand, relationFold, relationGate, relationProject, relationSelect } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/model/memberPropertiesParser.ts,5,"import { relationAll, relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/model/memberPropertiesParser.ts,6,"import { relationFold, relationFirstOption, relationOptionFold, relationRefine, relationSelect, relationSome, relationNone } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts,9,"import { relationFold, relationGate } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts,10,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts,2,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts,3,import { relationGate } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts,13,"import { relationEqual, relationAny, relationGate } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts,14,"import { relationFirstOption, relationProject, relationOptionFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/model/modelParser.ts,34,"import { relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/model/modelParser.ts,35,"import { relationProject, relationFold, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/model/modelPropertyAstParser.ts,3,"import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/model/modelPropertyAstParser.ts,4,"import { relationAdvanceIndex, relationFold, relationLastIndexOf, relationSlice, relationTextSlice } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/model/propertyProducer.ts,1,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/model/propertyProducer.ts,6,} from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/model/semanticTypeCanonical.ts,2,"import { relationFoldRight, relationProject } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts,16,"import { relationGate, relationSome, relationNone, relationResolve, type RelationOption } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts,17,"import { RELATION_NONE, relationIsNone, relationIsPresent, type RelationMaybe, type RelationNone } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts,18,import { relationLookup } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts,19,import { relationContains } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts,20,"import { relationOptionFold, relationAdvanceIndex, relationFirstOption, relationProject, relationSelect, relationAll, relationAny } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts,10,"import { RELATION_NONE, relationGate, type RelationNone, relationFirst, relationFold, relationExpand, relationProject, relationMapValueOr, relationCatalogValueOr, relationOptionFold, relationAdvanceIndex, relationLookup, relationSome, relationNone, relationVariant, relationVariantValue, type RelationOption, type RelationVariant } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts,13,"import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts,54,"const queryOperationFromNamedMethod = (expression: RelationVariant<Expression, 'method' | 'nullsafe_method'>): import('../../../semantic/relations/relationalSequence').RelationOption<QueryOperationAst> => relationGate("
+packages/core/src/compiler/scanner/subscanners/request-deriver/index.ts,6,* @module core/compiler/scanner/subscanners/request-deriver
+packages/core/src/compiler/scanner/subscanners/request-deriver/semanticMappingDeriver.ts,12,"import { relationFold, relationProject, relationVariantFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/requestAstCanonical.ts,13,"import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationTextSlice, relationVariantFold, relationVariantValue, type RelationVariant } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/requestAstCanonical.ts,14,"import { relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/requestProducer.ts,15,"import { relationAll, relationEqual, relationSome, relationNone } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/requestProducer.ts,16,"import { relationExpand, relationFirst, relationGate, relationAdvanceIndex, relationOptionFold, relationProject, relationSelect, relationSlice } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/requestProducer.ts,54,"function lifecycleEntry<T>(entry: import('../../../semantic/relations/relationalSequence').RelationOption<T>, index: number, file: string): readonly RequestValidationLifecycle[] {"
+packages/core/src/compiler/scanner/subscanners/requestProducer.ts,108,function literalString(value: PhpAstValue): import('../../../semantic/relations/relationalSequence').RelationOption<string> {
+packages/core/src/compiler/scanner/subscanners/requestProducer.ts,116,function literalBoolean(value: PhpAstValue): import('../../../semantic/relations/relationalSequence').RelationOption<boolean> {
+packages/core/src/compiler/scanner/subscanners/requestProducer.ts,156,"function propertyValue(properties: readonly PhpClassPropertyAst[], name: string): import('../../../semantic/relations/relationalSequence').RelationOption<PhpAstValue> {"
+packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts,10,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts,11,"import { relationEvery, relationFirstOption, relationGate, relationOptionFold, relationProject, relationVariantValue, type RelationVariant } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceExpressionOperator.ts,2,"import { relationFirstOption, relationOptionFold, relationEqual } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceFieldProducer.ts,22,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/resource/resourceFieldProducer.ts,23,"import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts,10,"import { relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts,11,"import { relationFold, relationFirstOption, relationOptionFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts,3,"import { relationGate, relationProject, relationExpand, relationLookup, relationOptionFold, relationAdvanceIndex, relationAll, relationFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts,4,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts,9,"import { relationEqual, relationGate, relationLookup, relationOptionFold, relationProject } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts,10,import { relationVariantValue } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts,11,"import { relationEqual, relationFirstOption, relationGate, relationOptionFold, relationProject } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts,12,"import { relationLookup, relationVariantValue, relationCount, type RelationVariant } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts,24,"import { relationEqual, relationGate } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts,25,"import { relationFirst, relationOptionFold, relationProject, relationFold, relationLatticeFixedPoint } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/resourceProducer.ts,23,"import { relationLookup, relationOptionFold, relationProject, relationGate, relationSelect, relationFirstOption, relationExpand, relationRefine, relationSome, relationNone } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/resourceProducer.ts,24,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/resourceProducer.ts,272,"function returnExpression(method: import('../../../semantic/relations/relationalSequence').RelationOption<PhpMethodAst>, input: ResourceProducerInput, fallback: 'default_resource_type' | 'default_resource_id'): Expression | { readonly kind: 'default_resource_type' } | { readonly kind: 'default_resource_id' } {"
+packages/core/src/compiler/scanner/subscanners/responseProducer.ts,14,"import { relationEqual, relationGate } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/responseProducer.ts,15,"import { relationLookup, relationOptionFold, relationProject, relationNone, relationSome } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/responseScanner.ts,20,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/subscanners/responseScanner.ts,21,"import { relationGate, relationAsyncFold, relationFirst, relationOptionFold, relationProject, relationSome, relationNone } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/route-scanner/index.ts,7,* @module core/compiler/scanner/subscanners/route-scanner
+packages/core/src/compiler/scanner/subscanners/route-scanner/routeContextTracker.ts,6,* @module core/compiler/scanner/subscanners/route-scanner
+packages/core/src/compiler/scanner/subscanners/route-scanner/routeContextTracker.ts,12,"import { relationAll, relationEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/route-scanner/routeContextTracker.ts,23,"} from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts,6,* @module core/compiler/scanner/subscanners/route-scanner
+packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts,24,import type { RelationIndex } from '../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts,25,import { relationIndexLookup } from '../../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts,26,"import { relationGate, relationEqual, relationOptionFold, relationProject, relationVariantFold, type RelationOption, relationNone, relationSome } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts,6,* @module compiler/scanner/subscanners/route-scanner
+packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts,15,"import { relationTextStartsWith, relationTextFields, relationTextTrimChars, relationTextTrimEndChars } from ""../../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts,16,"import { relationNotEqual } from ""../../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts,10,import { relationFoldRight } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts,11,"import { relationGate, relationOptionFold, relationAny, relationEqual, relationVariantFold, relationFirstOption, relationNone, relationSome, relationFold, relationLookup, relationProject, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts,12,"import { relationIndexLookup, relationIndexAdd, type RelationIndex, type RelationMembership } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/subscanners/scannerUtils.ts,6,* @module core/compiler/scanner/subscanners/scannerUtils
+packages/core/src/compiler/scanner/subscanners/scannerUtils.ts,19,} from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/subscanners/scannerUtils.ts,20,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/subscanners/schemaProducer.ts,9,"import { relationEqual, relationFold, relationGate, relationOptionFold, relationProject, relationSelect, relationSome, type RelationOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts,1,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts,26,"import { relationGate, relationFold, relationAsyncFold, relationIndexOf, relationOptionFold, relationFixedPoint, relationProject, relationExpand, relationAll, relationAny, relationAdvanceIndex, relationLookup } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts,16,"import { relationAll, relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts,17,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts,18,"import { relationFold, relationGate, relationLookup, relationProject, relationOptionFold, relationRefine, relationSome, relationNone, relationCount, RELATION_NONE, type RelationMaybe, type RelationOption, type RelationNone, type RelationVariant } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts,1,"import { relationNormalizeWhitespace, relationAny, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts,2,"import { relationFirstOption, relationOptionFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts,9,* @module core/compiler/scanner/subscanners/typeDeriverUtils
+packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts,10,"import { relationFold, relationOptionFold, relationLookup, relationVariantFold, relationProject } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts,11,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts,12,"import { relationIndexAdd, type RelationIndex } from '../../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/scanner/symbols/model/originModelSymbol.ts,14,} from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/symbols/model/originModelSymbol.ts,15,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/upstream/route/controllerMiddlewareProjection.phase901.test.ts,5,import { relationFoldRight } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/upstream/route/controllerMiddlewareProjection.ts,12,"import { relationExpand, relationGate, relationSelect, relationVariantFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/upstream/route/controllerMiddlewareProjection.ts,13,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/upstream/route/effectiveControllerActionPolicyResolver.ts,26,"import { relationProject, relationSelect } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/upstream/route/resourceMiddlewareProjection.ts,13,import { relationProject } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts,8,"import { relationAdvanceIndex, relationGate, relationProject, relationVariantFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts,9,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/upstream/route/routeMiddlewareFlowResolver.ts,13,"import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/scanner/upstream/route/routeMiddlewareFlowResolver.ts,14,"import { relationGate, relationProject, relationSelect, relationVariantFold } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts,1,"import { relationOptionFold, relationRefine } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts,2,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts,5,import { resourcePhpAstExpressionSemanticAuthority } from '../subscanners/resource/resourceUpstreamExpressionCanonical';
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,1,import { type RelationMembership } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,2,import type { Sequence } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,3,"import { relationAsyncFold, relationFold, relationFirst, relationOptionFold, relationProject, relationEqual, relationExpand } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,5,import { readSourceText } from '../subscanners/scannerUtils';
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,10,"import { controllerActionFromMethod, controllerMethodContractFromMethod, controllerMethodAttributesFromAttributes, controllerMethodSemanticProjectionFromMethod } from '../subscanners/controller/controllerAstCanonical';"
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,13,import { scanControllerAction } from '../subscanners/controller';
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,14,import { controllerProducer } from '../subscanners/controller/controllerProducer';
+packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts,11,import { resourceProducer } from '../subscanners/resourceProducer';
+packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts,12,"import { relationAsyncFold, relationRefine, relationOptionFold, relationVariantFold, relationGate, relationFirstOption } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts,13,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts,3,"import { relationGate, relationNone, relationSome, relationOptionFold, relationProject, relationAny, relationEqual, relationLookup } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts,4,import type { RelationOption } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts,16,import { readSourceText } from '../subscanners/scannerUtils';
+packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts,17,import { controllerReturnSemanticFromValues } from '../subscanners/controller/controllerAstCanonical';
+packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts,18,"import { routeBoundaryContractFromRouteEmission, routeProducerInputFromRouteBoundary, routeSemanticFlowFromRouteBoundary } from '../subscanners/routeProducerRelations';"
+packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts,19,import { routeProducer } from '../subscanners/routeProducer';
+packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts,20,"import { resolveRoutePath, emitResourceRoutes, emitStandardRoutes, resourceRegistrationFromDeclaration, type ResourceRouteMethod, type StandardRouteTarget, type RouteEmission } from '../subscanners/route-scanner';"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,1,import { relationUnique } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,3,"import { scanResponseBundle } from ""../subscanners/responseScanner"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,4,"import { scanMigrationAsts } from ""../subscanners/migrationAstCanonical"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,6,"import { scanServiceBundle } from ""../subscanners/serviceAstCanonical"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,7,"import { scanMiddlewareAsts } from ""../subscanners/middlewareAstCanonical"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,8,"import { scanDtoAsts } from ""../subscanners/dtoAstCanonical"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,9,"import { scanProviderBundle } from ""../subscanners/providerAstCanonical"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,10,"import { scanAttributeAsts } from ""../subscanners/attributeAstCanonical"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,20,"import type { RelationIndex } from ""../../../semantic/relations/relationMembership"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,22,"import { schemaProducer } from ""../subscanners/schemaProducer"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,23,"import { queryProducer } from ""../subscanners/queryProducer"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,24,"import { relationAdvanceIndex, relationGate, relationProject, relationSelect, relationSequenceToArray } from ""../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,25,"import { relationEqual } from ""../../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/scanner/wiring/route/controllerMiddlewareProjection.phase901.test.ts,5,import { relationFoldRight } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/scanner/wiring/routeManifestLowerer.ts,20,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/wiring/routeManifestLowerer.ts,21,"import { relationResolve, relationProject } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts,2,import { SemanticTypeDeriver } from '../subscanners/SemanticTypeDeriver';
+packages/core/src/compiler/scanner/wiring/routeManifestTypeLoweringAuthority.ts,10,import { SemanticTypeDeriver } from '../subscanners/SemanticTypeDeriver';
+packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts,11,"import { relationVariantFold, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts,12,import { relationEqual } from '../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/scanner/wiring/upstream-interface-elevation.phase52.test.ts,3,import { routeProducer } from '../subscanners/routeProducer';
+packages/core/src/compiler/semantic/request-type-derivation/actionContribution.ts,6,* @module core/compiler/scanner/subscanners/request-deriver
+packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts,32,"} from ""../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/semantic/request-type-derivation/responseContribution.ts,29,"} from ""../../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/semantic/resourceModelBindingAuthority.ts,7,import type { SemanticRelation } from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/compiler/semantic/resourceModelBindingAuthority.ts,8,"import { relationAll, relationAny, relationEqual, relationGate } from '../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/semantic/resourceModelBindingAuthority.ts,9,"import { relationExpand, relationFirstOption, relationOptionFold, relationRefine, relationSelect, relationSlice, relationVariantFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/semantic/sourceAstEvidenceAcquisition.ts,2,"import { collectPhpFiles, readSourceText } from '../scanner/subscanners/scannerUtils';"
+packages/core/src/compiler/semantic/sourceAstEvidenceAcquisition.ts,3,import { relationAsyncFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts,3,"import { expressionProducer } from ""../scanner/subscanners/expressionProducer"";"
+packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts,4,"import { assignmentProducer } from ""../scanner/subscanners/assignmentProducer"";"
+packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts,5,"import { propertyProducer } from ""../scanner/subscanners/model/propertyProducer"";"
+packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts,6,"import { relationAsyncFold, relationExpand, relationFirstOption, relationOptionFold, relationGate, relationProject, relationSelect, relationRefine, relationVariant, relationSome, relationNone, relationFold, type RelationOption } from ""../../semantic/relations/relationalSequence"";"
+packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts,7,"import { relationEqual, relationAll, relationAny } from ""../../semantic/relations/semanticRelations"";"
+packages/core/src/compiler/semantic/sourceAstSyntaxParser.ts,4,import { parseModelPropertyAsts } from '../scanner/subscanners/model/modelPropertyAstParser';
+packages/core/src/compiler/semantic/sourceAstSyntaxParser.ts,5,"import { relationAdvanceIndex, relationExpand, relationFirstOption, relationOptionFold, relationRange, relationIndexOf } from '../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/semantic/sourceAstSyntaxParser.ts,6,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/compiler/semantic/type-derivation/SemanticDerivationContext.ts,5,import { relationFold } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/semantic/type-derivation/SemanticDerivationContext.ts,6,import type { RelationIndex } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/semantic/type-derivation/SemanticDerivationContext.ts,7,import { relationIndexAdd } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/semantic/type-derivation/modelTypeDeriver.ts,12,"import { relationEqual, relationFold, relationGate, relationProject, relationSequenceToArray } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/semantic/type-derivation/modelTypeDeriver.ts,13,"import { relationContains, relationInsert, type RelationMembership } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/semantic/type-derivation/resourceTypeDeriver.ts,15,"import { relationEqual, relationFold, relationGate, relationProject, relationTextSlice, relationVariantFold, relationSequenceToArray } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/semantic/type-derivation/resourceTypeDeriver.ts,16,"import { relationInsert, type RelationMembership } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/semantic/type-derivation/route-response/propertyProcessor.ts,16,import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+packages/core/src/compiler/semantic/type-derivation/route-response/propertyProcessor.ts,17,"import { relationFold, relationGate, relationSlice } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/semantic/type-derivation/route-response/shapeExtractor.ts,13,"import { relationEqual, relationGate, relationOptionFold, relationSome, relationNone } from '../../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/semantic/type-derivation/route-response/shapeExtractor.ts,14,import type { RelationOption } from '../../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/semantic/type-derivation/routeResponseDeriver.ts,13,"import { relationAll, relationEqual, relationFold, relationGate, relationOptionFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/semantic/type-derivation/routeResponseDeriver.ts,14,"import { relationContains, relationInsert, type RelationMembership } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationAuthority.ts,1,import { relationUnique } from '../../../semantic/relations/relationMembership';
+packages/core/src/compiler/types/TypeHasher.ts,14,} from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/types/TypeHasher.ts,21,} from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/types/TypeHasher.ts,22,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/compiler/types/TypeIR.ts,7,import { relationGate } from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/types/TypeInterner.ts,14,} from '../../semantic/relations/relationMembership';
+packages/core/src/compiler/types/TypeInterner.ts,15,import { relationOptionFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/compiler/types/resolved-php/matcher.ts,3,import { relationVariantFold } from '../../../semantic/relations/relationalSequence';
+packages/core/src/compiler/types/system/assignabilityChecker.ts,4,"import { relationResolve, relationEqual } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/types/system/assignabilityChecker.ts,5,"import { relationAnyMatch, relationVariantFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/types/system/subtypingChecker.ts,14,"import { relationContains, relationInsert } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/types/system/subtypingChecker.ts,15,"import { relationAll, relationAny, relationEqual, relationResolve } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/types/system/subtypingChecker.ts,16,"import { relationOptionFold, relationVariantFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/compiler/types/system/typeLattice.ts,5,"import { relationEqual, relationResolve } from '../../../semantic/relations/semanticRelations';"
+packages/core/src/compiler/utils/cfg/basicBlock.ts,10,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';"
+packages/core/src/compiler/utils/cfg/basicBlock.ts,11,import { relationResolve } from '../../../semantic/relations/relationFoundation';
+packages/core/src/compiler/verification/CFGVerifier.ts,19,} from '../../semantic/relations/relationFoundation';
+packages/core/src/compiler/verification/CFGVerifier.ts,20,import { relationContains } from '../../semantic/relations/relationMembership';
+packages/core/src/graph/ServiceGraphBuilder.ts,15,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/relations/relationMembership';"
+packages/core/src/graph/ServiceGraphBuilder.ts,16,import { relationOptionFold } from '../semantic/relations/relationalSequence';
+packages/core/src/graph/service/graphAssembler.ts,6,import type { RelationIndex } from '../../semantic/relations/relationMembership';
+packages/core/src/graph/service/graphAssembler.ts,7,import { relationEqual } from '../../semantic/relations/relationFoundation';
+packages/core/src/graph/service/graphAssembler.ts,8,"import { relationProject, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/graph/service/graphNodeIndex.ts,3,"import { relationNotEqual, relationProject, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/graph/service/graphNodeIndex.ts,4,"import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';"
+packages/core/src/graph/service/graphNodeIndex.ts,5,import { relationOptionFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/graph/service/manifestGraphCompiler.ts,16,import type { RelationIndex } from '../../semantic/relations/relationMembership';
+packages/core/src/graph/service/manifestGraphCompiler.ts,17,"import { relationIndexLookup, relationIndexAdd } from '../../semantic/relations/relationMembership';"
+packages/core/src/graph/service/manifestGraphCompiler.ts,18,import { relationContains } from '../../semantic/relations/relationMembership';
+packages/core/src/graph/service/manifestGraphCompiler.ts,19,import { relationEqual } from '../../semantic/relations/relationFoundation';
+packages/core/src/graph/service/manifestGraphCompiler.ts,20,"import { relationOptionFold, relationProject, relationVariantFold, relationFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/graph/service/manifestGraphCompiler.ts,21,import { relationResolve } from '../../semantic/relations/relationFoundation';
+packages/core/src/graph/service/nodeFactories.ts,19,"import { relationAny, relationAnyMatch, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';"
+packages/core/src/index.ts,1312,export type { Sequence } from './semantic/relations/relationalSequence';
+packages/core/src/ir/buildIRNode.ts,3,import { relationProject } from '../semantic/relations/semanticRelations'
+packages/core/src/ir/domain/request-endpoint/endpointRefs.ts,22,"import { solveSemanticRelations, type SemanticRelation } from '../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/ir/domain/request-endpoint/responseReferenceSemanticRelations.ts,2,"import { solveSemanticRelations, type SemanticRelation, type SemanticRelationRewrite } from '../../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/ir/domain/request-endpoint/responseReferenceSemanticRelations.ts,3,"import { relationFirstOption, relationOptionFold } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/authAndPolicy.ts,2,"import { relationGate } from ""../../semantic/relations/relationalSequence"";"
+packages/core/src/types/domain/boundAst.ts,29,"import { relationEqual, relationOptionFold, relationRefine } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/domain/eloquentTypes.ts,8,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/domain/eloquentTypes.ts,9,"import { relationGate, relationOptionFold, relationSome, relationRefine, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/fieldBinding.ts,4,"import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/domain/httpErrors.ts,9,"import { relationGate } from ""../../semantic/relations/relationalSequence"";"
+packages/core/src/types/domain/mappingIntent.ts,9,"import { relationProject, relationVariantFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/mappingIntent.ts,10,import { relationEqual } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/domain/phpAst/algebra.ts,11,"import { relationProject, relationOptionFold, relationRefine, relationEqual } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/resourceModelMethodResolver.ts,12,"import { relationEqual, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/resourceModelMethodResolverOperation.ts,7,"import { relationAt, relationEqual, relationFold, relationLookup, relationOptionFold, relationProject, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/resourceModelMethodResolverProjection.ts,8,"import { relationEqual, relationLookup, relationOptionFold, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/resourceModelSurface.ts,7,"import { relationEqual, relationProject, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/responseDescriptors.ts,4,import { relationProject } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/domain/routeEntityDefinition.ts,17,"import { relationGate, relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/routeEntityDefinition.ts,18,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/domain/routeEntityDefinition.ts,19,import { relationTextStartsWith } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/domain/semanticCollections.ts,8,"import { relationOptionFold, relationProject, relationFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/semanticCollections.ts,9,"import { relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/domain/semanticResolution.ts,1,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/domain/semanticResolution.ts,2,"import { relationOptionFold, relationRefine } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/typeExpressionSemanticRelations.ts,11,} from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/domain/typeExpressionSemanticRelations.ts,14,"import { relationAny, relationAll, relationEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/domain/typeExpressionSemanticRelations.ts,15,"import { relationFirst, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/typeExpressionSemanticType.ts,14,} from '../../semantic/relations/relationalSequence';
+packages/core/src/types/domain/validationFields.ts,7,"import { relationGate } from ""../../semantic/relations/relationalSequence"";"
+packages/core/src/types/domain/validationRules.ts,7,"import { relationAnyMatch, relationFirst, relationFold, relationOptionFold, relationProject, relationResolve, relationRefine } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/domain/validationRules.ts,8,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/ir/resolvedSemanticFactory.ts,17,import { relationResolve } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/ir/resolvedSemanticFactory.ts,18,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/semantic/irHints.ts,10,"import { relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/semantic/semanticTypes.ts,10,"import { relationOptionFold, relationFirstOption, relationProject, relationRefine } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/semantic/semanticTypes.ts,11,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/semantic/zodAstTypes.ts,12,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/semantic/zodAstTypes.ts,13,"import { relationFirstOption, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/__test__/queryProducerSemanticAlgebra.phase1487.test.ts,8,import { RELATION_NONE } from '../../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/__test__/routeDomainAuthority.phase1551.test.ts,5,import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+packages/core/src/types/upstream/__test__/scannerAssignmentPartsAlgebra.phase1418.test.ts,2,"import { relationNone, relationSome } from '../../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/__test__/semanticConstraintAuthority.phase1550.test.ts,2,import type { SemanticRelation } from '../../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts,15,"import { relationFirstOption, relationFold, relationOptionFold, relationRefine } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts,16,"import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/astSemanticInterface.ts,39,} from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/astSemanticInterface.ts,40,import { relationUnique } from '../../semantic/relations/relationMembership';
+packages/core/src/types/upstream/astSemanticStageAuthority.ts,21,"import { relationFold, relationProject, relationResolve, relationLookup, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/astSemanticStageAuthority.ts,22,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/astSemanticStageContract.ts,8,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/astSemanticStageContract.ts,9,"import { relationProject, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts,18,"import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts,19,"import { relationGate, relationNone, relationSome, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/astSemanticStagePreservation.ts,12,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/astSemanticStagePreservation.ts,13,"import { relationLookup, relationOptionFold, relationProject, relationResolve } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/astSemanticStageProof.ts,10,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/astSemanticStageProof.ts,11,"import { relationResolve, relationGate, relationRefine, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/astSemanticStageTransition.ts,4,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/astSemanticStageTransition.ts,5,"import { relationOptionFold, relationResolve, relationVariantFold, type RelationOption, type RelationVariant } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/collections.ts,15,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/collections.ts,16,"import { relationOptionFold, relationRefine, type Sequence } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/collections.ts,50,export type { Sequence } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/compilerPassFailure.ts,11,import { relationVariantFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/controllerDataflowBindingPayloadCorrespondenceAuthority.ts,1,"import { relationAll, relationOptionFold, relationFirst, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/controllerDataflowBindingPayloadCorrespondenceAuthority.ts,2,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts,1,"import { relationAny, relationEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts,6,"import { relationFirst, relationOptionFold, relationProject, relationRefine, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/controllerDataflowVariableIdentityAuthority.ts,1,"import { relationAll, relationFirst, relationOptionFold, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/controllerDataflowVariableIdentityAuthority.ts,2,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,3,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/controllerSemanticVariableFlowCompositionAuthority.ts,1,"import { relationFirst, relationOptionFold, type Sequence } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/effectiveControllerActionPolicyAlgebra.ts,8,"import { relationEqual, relationProject, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/highLevelSourceModel.ts,27,"import { relationEqual, relationExpand, relationFirstOption, relationFoldRight, relationOptionFold, relationProject, relationResolve, relationVariantFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts,11,import type { Sequence } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,146,readonly path: 'packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts' | 'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts';
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,152,readonly path: 'packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts' | 'packages/core/src/compiler/scanner/subscanners/responseScanner.ts';
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,158,readonly path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts' | 'packages/core/src/compiler/scanner/subscanners/controller/controllerInheritance.phase905.test.ts' | 'packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts';
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,371,"Object.freeze({ kind: 'structural_ast_consumer', path: 'packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'use-the-explicit-syntax-only-projection-context-without-invocation-dataflow-analysis' }),"
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,372,"Object.freeze({ kind: 'structural_ast_consumer', path: 'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'use-the-explicit-syntax-only-projection-context-without-invocation-dataflow-analysis' }),"
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,373,"Object.freeze({ kind: 'semantic_ast_consumer', path: 'packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts', semanticAuthority: 'canonical_invocation_judgment_required', migrationRequirement: 'must-use-a-source-bound-judgment-context-and-must-not-claim-whole-file-invocation-coverage-while-the-source-pipeline-is-not-connected' }),"
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,374,"Object.freeze({ kind: 'semantic_ast_consumer', path: 'packages/core/src/compiler/scanner/subscanners/responseScanner.ts', semanticAuthority: 'canonical_invocation_judgment_required', migrationRequirement: 'must-use-a-source-bound-judgment-context-and-must-not-claim-whole-file-invocation-coverage-while-the-source-pipeline-is-not-connected' }),"
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,375,"Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),"
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,376,"Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerInheritance.phase905.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),"
+packages/core/src/types/upstream/laravelControllerScannerInterface.ts,377,"Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),"
+packages/core/src/types/upstream/model.ts,17,"import { relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/upstream/model.ts,18,"import { relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/modelPrimaryKey.ts,5,"import { relationAt, relationOptionFold, relationResolve, relationVariantFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/modelRelation.ts,7,"import { relationProject, relationResolve, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/modelVocabulary.ts,1,"import { relationResolve, relationEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/names.ts,2,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/phpTypeExpressionAlgebra.ts,1,import { relationGate } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/presence.ts,1,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/presence.ts,2,"import { relationFirstOption, relationOptionFold, relationOptionalFold, relationVariant } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/queryProducerSemanticInterface.ts,7,import type { RelationOption } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/queryProducerSemanticInterface.ts,8,type RelationNoneValue = typeof import('../../semantic/relations/relationalSequence').RELATION_NONE;
+packages/core/src/types/upstream/queryProducerSemanticReasoning.ts,7,"import { RELATION_NONE, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/queryProducerSemanticReasoning.ts,9,"import { relationAdvanceIndex, relationAll, relationGate, relationLookup, relationNone, relationOptionFold, relationProject, relationSome, relationVariant, relationTextSlice } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/queryProducerSemanticReasoning.ts,10,"import { relationEqual, relationAny } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/resourceGroupCapabilityAlgebra.ts,27,} from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/resourceGroupCapabilityAlgebra.ts,28,import { relationContains } from '../../semantic/relations/relationMembership';
+packages/core/src/types/upstream/resourceModelBindingSemanticInterface.ts,8,"import type { SemanticRelationRewrite, SemanticRelationPattern, SemanticRelationVariable } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/resourceModelReasoning.ts,11,import { relationFirst } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts,14,"import type { SemanticRelation, SemanticRelationRewrite } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts,16,"import { relationLookup, relationOptionFold, relationProject, relationRefine } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts,17,"import { relationEqual, relationGate } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/resourceVocabulary.ts,4,"import { relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/resourceVocabulary.ts,5,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/routeCapabilityAuthority.ts,11,"import { relationAll, relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/routeCapabilityAuthority.ts,12,"import { relationFirstOption, relationOptionFold, relationSelect } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/routeCapabilityAuthority.ts,13,"import { relationNone, relationSome, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/routeCapabilitySemanticAuthority.ts,22,"import { relationAny, relationEqual, relationGate } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/routeCapabilitySemanticAuthority.ts,23,"import { relationProject, relationTextSlice, relationVariantFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/routeDomainAuthority.ts,11,"import { relationAll, relationAny, relationEqual, relationNotEqual, relationGate } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/routeDomainAuthority.ts,12,"import { relationFirstOption, relationOptionFold, relationProject, relationSelect, relationTextTrimChars, relationTextFields, relationTextSlice, relationTextEndsWith, relationTextLower, relationTextNumber, relationTextRemoveSuffix, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/routeResourceFlow.ts,13,import { relationContains } from '../../semantic/relations/relationMembership';
+packages/core/src/types/upstream/routeResourceFlow.ts,14,import { relationVariantFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/routeResourceFlow.ts,26,} from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/routeSecurityAuthority.ts,7,"import { relationAll, relationAny, relationEqual, relationGate, relationNormalizeWhitespace } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/routeSecurityAuthority.ts,8,"import { relationFoldRight, relationProject, relationVariantFold, relationTextFind, relationTextSlice, relationTextStartsWith, relationTextLower, relationTextFields, relationAt, relationTextNumber, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts,9,"import { relationEqual, relationOptionFold, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts,8,import type { RelationOption } from '../../semantic/relations/relationFoundation';
+packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts,8,"import { relationEqual, relationAll } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts,9,"import { relationAdvanceIndex, relationGate } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/scannerStatementControlAlgebra.ts,2,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/scannerStatementControlAlgebra.ts,3,"import { relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts,6,"import { relationAdvanceIndex, relationGate } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts,5,"import { relationAdvanceIndex, relationGate } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticClosureEngine.ts,1,import { relationResolve } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/semanticClosureEngine.ts,2,import { relationEqual } from '../../semantic/relations/semanticRelations';
+packages/core/src/types/upstream/semanticClosureEngine.ts,14,import type { SemanticRelation } from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/upstream/semanticClosureEngine.ts,15,"import { project, retain, visit } from '../../semantic/relations/semanticRelationalCollections';"
+packages/core/src/types/upstream/semanticConstraintAuthority.ts,2,"import { project, retain } from '../../semantic/relations/semanticRelationalCollections';"
+packages/core/src/types/upstream/semanticConstraintAuthority.ts,3,"import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationAtom, type SemanticRelationPattern, type SemanticRelationRewrite } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticConstraintAuthority.ts,4,"import { relationResolve, relationFirst, relationOptionFold, relationOptionMap, relationOptionalFold, relationRefine, relationVariant, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticConstraintAuthority.ts,5,"import { relationAll, relationAny, relationGate, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/semanticConstraintAuthority.ts,6,"import { relationContains, relationInsert } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts,2,"import { relationContains, relationUnique } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts,3,"import { expand, project, retain } from '../../semantic/relations/semanticRelationalCollections';"
+packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts,4,"import { relationResolve, relationAt, relationOptionFold, type RelationOption } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts,5,"import { relationAll, relationAny, relationEqual, relationIsSome, relationNotEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts,6,"import type { SemanticRelation, SemanticRelationBindings, SemanticRelationPattern } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts,7,"import { matchSemanticRelationPattern, instantiateSemanticRelationPattern } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticConstraintHandlingInterface.ts,5,} from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/upstream/semanticConstraintInterface.ts,6,} from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/upstream/semanticConstraintRuntimeExecutor.ts,2,import type { SemanticRelation } from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/upstream/semanticDataflowAuthority.ts,9,"import { relationAny, relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/semanticDataflowAuthority.ts,10,"import { relationFixedPoint, relationProject, relationSelect, relationExpand, relationFirstOption, relationOptionFold, relationVariantFold, relationAt, relationAnyMatch, relationIndexOf } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticDataflowControllerProjection.ts,13,"import { relationVariantFold, relationExpand, type Sequence } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticDataflowKnowledge.ts,2,"import { relationContains, relationUnique } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/upstream/semanticDataflowKnowledge.ts,3,"import { relationOptionalFold, relationVariant, relationVariantValue } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticDataflowKnowledge.ts,4,"import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticDataflowRouteProjection.ts,10,import type { Sequence } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/semanticDecisionAlgebra.ts,2,import { relationOptionFold } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/semanticDecisionInterface.ts,1,import type { RelationOption } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/semanticMapping.ts,6,import { relationProject } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/semanticObjectIdentityAuthority.ts,3,"import type { SemanticRelation, SemanticRelationAtom } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticObjectIdentityInterface.ts,7,"import type { SemanticRelationPattern, SemanticRelationRewrite } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticReconciliationAlgebra.ts,13,import { relationSelect } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/semanticRelationProgram.ts,1,import { relationResolve } from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/semanticRelationProgram.ts,2,"import { relationFirst, relationOptionFold, relationSome, relationNone, relationGate, relationRefine } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticRelationProgram.ts,3,"import { relationAll, relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/semanticRelationProgram.ts,4,"import { relationContains, relationInsert, type RelationMembership } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/upstream/semanticRelationProgram.ts,13,"import { project, retain, visit } from '../../semantic/relations/semanticRelationalCollections';"
+packages/core/src/types/upstream/semanticRelationProgram.ts,14,"import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom, SemanticRelationVariable, } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticRelationTheory.ts,7,"import { project, visit } from '../../semantic/relations/semanticRelationalCollections';"
+packages/core/src/types/upstream/semanticRelationTheory.ts,8,"import { semanticNullAtom, type SemanticNullAtom } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticRelationTheory.ts,9,"import { relationResolve, relationFirstOption, relationOptionFold, relationOptionalFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticRelationTheory.ts,10,"import { relationAll, relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/semanticRelationalBehaviorCatalog.ts,9,"import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticRelationalBehaviorKernel.ts,1,import { visit } from '../../semantic/relations/semanticRelationalCollections';
+packages/core/src/types/upstream/semanticRelationalBehaviorKernel.ts,11,"import type { SemanticRelation, SemanticRelationAtom, SemanticRelationDerivation } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticRewriteAuthority.ts,6,} from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/upstream/semanticRewriteAuthority.ts,7,"import { relationEqual, relationOptionFold, relationGate } from '../../semantic/relations/semanticRelations';"
+packages/core/src/types/upstream/semanticRewriteAuthority.ts,8,"import { relationProject, relationVariant } from '../../semantic/relations/relationalSequence';"
+packages/core/src/types/upstream/semanticRewriteAuthority.ts,9,"import { relationContains, relationInsert } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/upstream/semanticRewriteInterface.ts,8,"import type { SemanticRelation, SemanticRelationDerivation, SemanticRelationRewrite } from '../../semantic/relations/semanticRewriteEngine';"
+packages/core/src/types/upstream/semanticRewriteRuntimeExecutor.ts,2,import type { SemanticRelation } from '../../semantic/relations/semanticRewriteEngine';
+packages/core/src/types/upstream/semanticTypedRelation.ts,8,"import { relationContains, relationInsert, type RelationMembership } from '../../semantic/relations/relationMembership';"
+packages/core/src/types/upstream/semanticTypedRelation.ts,13,} from '../../semantic/relations/relationalSequence';
+packages/core/src/types/upstream/service.ts,9,"import { relationEqual, relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';"
+packages/core/src/utils/naming/lexer/tokenizer.ts,9,"import { relationFirstOr, relationResolve } from '../../../semantic/relations/relationalSequence';"
+packages/sdk/tests/attributeProducer.spec.ts,6,import { attributeProducer } from '../../core/src/compiler/scanner/subscanners/attributeProducer';
+packages/sdk/tests/attributeProducer.spec.ts,7,import { scanAttributeAsts } from '../../core/src/compiler/scanner/subscanners/attributeAstCanonical';
+packages/sdk/tests/channelProducer.spec.ts,5,import { ChannelScanner } from '../../core/src/compiler/scanner/subscanners/ChannelScanner';
+packages/sdk/tests/channelProducer.spec.ts,6,import { channelProducer } from '../../core/src/compiler/scanner/subscanners/channelProducer';
+packages/sdk/tests/downstreamExplicitModelsSSOT.spec.ts,2,import { resolveRouteInvalidations } from '../../core/src/compiler/scanner/subscanners/InvalidationResolver'
+packages/sdk/tests/dtoAstProducer.spec.ts,7,import { dtoProducer } from '../../core/src/compiler/scanner/subscanners/dtoProducer';
+packages/sdk/tests/dtoAstProducer.spec.ts,8,import { scanDtoAsts } from '../../core/src/compiler/scanner/subscanners/dtoAstCanonical';
+packages/sdk/tests/improvedIrDataflow.spec.ts,2,import { hasExplicitValidationType } from '../../core/src/compiler/scanner/subscanners/validationRuleChecker';
+packages/sdk/tests/improvedIrDataflow.spec.ts,3,import { ValidationRuleFieldLowerer } from '../../core/src/compiler/scanner/subscanners/ValidationRuleFieldLowerer';
+packages/sdk/tests/improvedIrDataflow.spec.ts,4,import { detectActionError } from '../../core/src/compiler/scanner/subscanners/controller/controllerErrorDetector';
+packages/sdk/tests/laravelParserAssignments.spec.ts,3,import { scanControllerAction } from '../../core/src/compiler/scanner/subscanners/controller/actionScanner'
+packages/sdk/tests/laravelParserValidateAndModelFallback.spec.ts,2,import { ModelScanner } from '../../core/src/compiler/scanner/subscanners/ModelScanner'
+packages/sdk/tests/middlewareProducer.spec.ts,6,import { scanMiddlewareAsts } from '../../core/src/compiler/scanner/subscanners/middlewareAstCanonical';
+packages/sdk/tests/middlewareProducer.spec.ts,7,import { middlewareProducer } from '../../core/src/compiler/scanner/subscanners/middlewareProducer';
+packages/sdk/tests/middlewareProducer.spec.ts,8,import { controllerActionFromMethod } from '../../core/src/compiler/scanner/subscanners/controller/controllerAstCanonical';
+packages/sdk/tests/middlewareProducer.spec.ts,15,"vi.mock('../../core/src/compiler/scanner/subscanners/controller/controllerAstCanonical', () => ({"
+packages/sdk/tests/paymentResource.spec.ts,4,import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
+packages/sdk/tests/produkItem.spec.ts,4,import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
+packages/sdk/tests/pureSemanticTypeDeriverContracts.spec.ts,2,"import { SemanticTypeDeriver, SemanticDerivationContext } from '../../core/src/compiler/scanner/subscanners/SemanticTypeDeriver'"
+packages/sdk/tests/resourceProducerLaravel13Semantics.spec.ts,2,import { resourceOperationType } from '../../core/src/compiler/scanner/subscanners/resource/resourceFieldProducer'
+packages/sdk/tests/semanticAstDataflowAndRelationPropagation.spec.ts,11,import { scanControllerAction } from '../../core/src/compiler/scanner/subscanners/controller/actionScanner';
+packages/sdk/tests/staticLaravelScannerUpstream.spec.ts,2,import { ModelScanner } from '../../core/src/compiler/scanner/subscanners/ModelScanner';
+packages/sdk/tests/ternaryEliminationAndControllerActionSSOT.spec.ts,2,import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
+packages/sdk/tests/tokoOnlineDemo.spec.ts,4,import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'

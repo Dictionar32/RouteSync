@@ -1,0 +1,105 @@
+{
+  "phase": 2157,
+  "title": "Controller Body Authority Owns Validation and Error Derivation",
+  "passed": 12,
+  "total": 15,
+  "checks": [
+    {
+      "name": "existing body authority contract advances to version 5",
+      "passed": true
+    },
+    {
+      "name": "body authority consumes raw typed ControllerBodyAst evidence",
+      "passed": true
+    },
+    {
+      "name": "action contract passes method.body directly to the existing authority",
+      "passed": false
+    },
+    {
+      "name": "legacy body resolver no longer owns validation/error interpretation",
+      "passed": true
+    },
+    {
+      "name": "legacy body resolver is only an evidence projection type",
+      "passed": true
+    },
+    {
+      "name": "old semantic resolver export is retired from controller subscanner index",
+      "passed": true
+    },
+    {
+      "name": "authority lowers inline validation evidence into canonical entries",
+      "passed": true
+    },
+    {
+      "name": "validation provenance uses exact source identity and source offsets",
+      "passed": true
+    },
+    {
+      "name": "schema is lowered from the authority-owned validation entries",
+      "passed": true
+    },
+    {
+      "name": "known error status rules are owned by the canonical body authority",
+      "passed": true
+    },
+    {
+      "name": "unknown error statuses are not fabricated into known error descriptors",
+      "passed": true
+    },
+    {
+      "name": "published body semantic knowledge consumes the exact closed body judgment",
+      "passed": false
+    },
+    {
+      "name": "integrated response remains a distinct source-correlated pipeline",
+      "passed": true
+    },
+    {
+      "name": "resource binding remains owned by the existing upstream authority",
+      "passed": false
+    },
+    {
+      "name": "no new relation/foundation or subscanner authority is introduced",
+      "passed": true
+    }
+  ],
+  "regressionAudits": [
+    {
+      "phase": 2133,
+      "passed": 18,
+      "total": 18
+    },
+    {
+      "phase": 2136,
+      "passed": 20,
+      "total": 20
+    },
+    {
+      "phase": 2137,
+      "passed": 15,
+      "total": 15
+    },
+    {
+      "phase": 2138,
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "phase": 2154,
+      "passed": 26,
+      "total": 26
+    },
+    {
+      "phase": 2155,
+      "passed": 18,
+      "total": 18
+    },
+    {
+      "phase": 2156,
+      "passed": 14,
+      "total": 14
+    }
+  ]
+}

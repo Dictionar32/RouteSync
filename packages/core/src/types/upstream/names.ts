@@ -1,5 +1,5 @@
+import { toSnakeCase } from '../../utils/resource-naming';
 import type { StringValue } from './valueObjects';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
 export interface ModelName { readonly kind: 'model_name'; readonly value: StringValue }
 export interface EnumName { readonly kind: 'enum_name'; readonly value: StringValue }
 export interface ServiceName { readonly kind: 'service_name'; readonly value: StringValue }
@@ -33,8 +33,9 @@ export interface TraitName { readonly kind: 'trait_name'; readonly value: String
 export const createModelName = (value: string): ModelName => Object.freeze({ kind: 'model_name' as const, value: stringValue(value) });
 export const createEnumName = (value: string): EnumName => Object.freeze({ kind: 'enum_name' as const, value: stringValue(value) });
 export const createClassName = (value: string): ClassName => Object.freeze({ kind: 'class_name' as const, value: stringValue(value) });
-export const classNameEquals = (left: ClassName, right: ClassName): boolean => relationEqual(left.value.value, right.value.value);
-export const modelNameMatchesClassName = (model: ModelName, className: ClassName): boolean => relationEqual(model.value.value, className.value.value);
+export const classNameEquals = (left: ClassName, right: ClassName): boolean => Object.is(left.value.value, right.value.value);
+export const variableNameEquals = (left: VariableName, right: VariableName): boolean => Object.is(left.value.value, right.value.value);
+export const modelNameMatchesClassName = (model: ModelName, className: ClassName): boolean => Object.is(model.value.value, className.value.value);
 export const createTableName = (value: string): TableName => Object.freeze({ kind: 'table_name' as const, value: stringValue(value) });
 export const createColumnName = (value: string): ColumnName => Object.freeze({ kind: 'column_name' as const, value: stringValue(value) });
 export type Name = ChannelName | ServiceName | ModelName | EnumName | ResourceName | PropertyName | RouteParameterName | VariableName | ClassName | ColumnName | RelationName | RouteName | RoutePath | ControllerName | RequestName | FormTypeName | ActionName | ConstantName | IndexName | ExceptionName | MethodName | FunctionName | ResponseTypeName | SourceFile | DomainTypeName | TableName | MiddlewareName | TraitName;
@@ -53,6 +54,9 @@ export const createConstantName = (value: string): ConstantName => Object.freeze
 export const createSourceFile = (value: string): SourceFile => Object.freeze({ kind: 'source_file', value: stringValue(value) });
 export const createChannelName = (value: string): ChannelName => Object.freeze({ kind: 'channel_name', value: stringValue(value) });
 export const createMiddlewareName = (value: string): MiddlewareName => Object.freeze({ kind: 'middleware_name' as const, value: stringValue(value) });
+
+export const createMethodName = (value: string): MethodName => Object.freeze({ kind: 'method_name' as const, value: stringValue(value) });
+export const methodNameEquals = (left: MethodName, right: MethodName): boolean => Object.is(left.value.value, right.value.value);
 
 export const createPropertyName = (value: string): PropertyName =>
   Object.freeze({ kind: 'property_name' as const, value: stringValue(value) });
@@ -74,3 +78,30 @@ export const createAbilityName = (value: string): AbilityName => Object.freeze({
 export interface HttpErrorName { readonly kind: 'http_error_name'; readonly value: StringValue }
 export const createHttpErrorName = (value: string): HttpErrorName => Object.freeze({ kind: 'http_error_name' as const, value: stringValue(value) });
 export interface GuardName { readonly kind: 'guard_name'; readonly value: StringValue }
+
+
+/** Canonical target constant-key projection for a typed route path. */
+export const deriveRouteConstantKey = (routePath: RoutePath): string => {
+  const segments = routePath.value.value.replace(/^\/+|\/+$/g, '').split('/').filter(segment => segment.length > 0);
+  const keys: string[] = [];
+  for (const segment of segments) {
+    const braceParameter = segment.startsWith('{') && segment.endsWith('}');
+    const colonParameter = segment.startsWith(':');
+    if (braceParameter || colonParameter) {
+      const parameterName = colonParameter ? segment.slice(1) : segment.slice(1, -1);
+      if (parameterName.toLowerCase() === 'id') {
+        keys.push('DETAIL');
+      } else {
+        const previous = keys.at(-1) ?? '';
+        const cleanParameter = toSnakeCase(parameterName).toUpperCase();
+        if (previous.endsWith('S')) {
+          keys[keys.length - 1] = previous.slice(0, -1);
+        }
+        keys.push(cleanParameter);
+      }
+    } else {
+      keys.push(toSnakeCase(segment).toUpperCase());
+    }
+  }
+  return keys.join('_');
+};

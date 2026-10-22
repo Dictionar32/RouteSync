@@ -13,8 +13,8 @@ import {
     type LoweredTypeDeclaration,
     type TypeScriptBuildResult
 } from '../typeScriptMetadata';
-import { relationAny, relationEqual, relationResolve } from '../../../../../semantic/foundation/semanticRelations';
-import { relationFold, relationProject } from '../../../../../semantic/foundation/relationalSequence';
+import { relationAny, relationEqual, relationResolve } from '../../../../../semantic/relations/semanticRelations';
+import { relationFold, relationProject } from '../../../../../semantic/relations/relationalSequence';
 
 type UniqueResult<T> = Readonly<{ readonly values: readonly T[] }>;
 

@@ -93,7 +93,7 @@
     "packages/core/src/compiler/scanner/subscanners/model/modelColumnFactsCanonical.ts",
     "packages/core/src/compiler/scanner/subscanners/model/modelColumnOrigin.ts",
     "packages/core/src/compiler/scanner/subscanners/model/modelParser.ts",
-    "packages/core/src/compiler/scanner/subscanners/model/modelPropertyAstParser.ts",
+    "packages/core/src/compiler/semantic/sourceAstSyntaxParser.ts",
     "packages/core/src/compiler/scanner/subscanners/model/semanticTypeCanonical.ts",
     "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts",
     "packages/core/src/compiler/scanner/subscanners/request-deriver/actionDeriver.ts",

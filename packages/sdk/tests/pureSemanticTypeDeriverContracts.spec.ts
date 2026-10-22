@@ -140,8 +140,9 @@ describe('SemanticTypeDeriver Complete Contract & ResolvedPhpType ADT', () => {
         it('executes cleanly with empty context returning empty array', () => {
             const deriver = SemanticTypeDeriver.create(SemanticDerivationContext.empty());
             expect(Object.isFrozen(deriver)).toBe(true);
-            const output = deriver.run();
-            expect(output).toEqual([]);
+            expect(deriver.judgment.kind).toBe('semantic_type_derivation_judgment');
+            expect(deriver.judgment.closed).toBe(true);
+            expect(deriver.judgment.result).toEqual([]);
         });
 
         it('derives resource object types with correct property types and nullability', () => {

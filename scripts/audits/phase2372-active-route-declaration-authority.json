@@ -1,0 +1,34 @@
+{
+  "phase": 2372,
+  "title": "active route declaration authority audit after canonical-contract reuse",
+  "checks": {
+    "activeScannerIsWiredIntoSourceAstPipeline": true,
+    "scannerContractInjectsExistingMethodAuthority": true,
+    "scannerContractInjectsExistingResourcePathAuthorizationAuthorities": true,
+    "declarationEvidenceHasClosedTargetVariants": true,
+    "declarationEvidencePreservesClosureReturn": true,
+    "scannerCreatesEvidenceOnceBeforeJudgments": true,
+    "scannerUsesExistingNarrowAuthorities": true,
+    "scannerDoesNotRecomputeRouteDeclarationFlow": true,
+    "closureReturnProductionUsesExistingContract": true,
+    "duplicateOperationAuthorityIsAbsent": true,
+    "boundaryStillOccursAfterEmission": true
+  },
+  "findings": {
+    "activePath": [
+      "The CLI source AST pipeline injects laravelRouteScanner.",
+      "The scanner reuses canonical RouteDeclarationEvidence for method, resource, path, and middleware judgments.",
+      "The existing method, authorization, resource-flow, path-resolution, and RouteProducer contracts are injected directly; no duplicate declaration-operation authority is introduced.",
+      "Closure return semantic is preserved by source evidence and consumed by the emitter.",
+      "The scanner still dispatches on method judgment and calls subscanner emitters.",
+      "RouteBoundaryContract and RouteProducerInput are still assembled after RouteEmission."
+    ],
+    "rootCause": [
+      "The existing authorities are individually connected, but their judgments are not yet composed into one complete producer-ready declaration contract before route emission.",
+      "Boundary construction depends on RouteEmission, so the current data direction still places the producer contract downstream of the emitter."
+    ],
+    "nextContractDecision": "Continue by evolving the existing canonical RouteBoundaryContract/RouteProducerInput and their producer integration; do not add a duplicate operation authority or move emitDeclaration to another file.",
+    "closureComplete": false
+  },
+  "pass": true
+}

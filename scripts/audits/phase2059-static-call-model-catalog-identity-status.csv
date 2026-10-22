@@ -1,0 +1,9 @@
+file,symbol,status,semantic_boundary,follow_up
+packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts,ControllerStaticCallModelClassIdentityRuleInterface,migrated,Closed model-class identity judgment over scanned model catalog,Add canonical PHP import-alias and FQCN resolution evidence
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,staticClassModelOriginRule,migrated,Resolves only a unique catalog identity and returns closed outcomes,Consume canonical class-reference judgment when available
+packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts,controllerModelClasses,migrated,Projects scanned ModelDefinition identities into typed controller input,Preserve source namespace/import alias identity
+packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts,scanLaravelControllers,migrated,Forwards model catalog without interpreting model identity,Keep scanner as wiring only
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,staticCallOriginInput,migrated,AST projection includes model catalog evidence,Do not reclassify model identity in scanner
+packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts,resolveControllerActionContract,migrated,Forwards catalog to dataflow contract,No parallel model-origin decision
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,rulePatternMatches,retained,Dispatches typed rule-pattern ADT,Do not mechanically remove safe ADT elimination
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,AST structural projections,retained,Structural evidence projection only,Keep semantic judgment upstream

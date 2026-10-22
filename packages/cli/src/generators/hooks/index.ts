@@ -9,7 +9,6 @@
 export {
   pushUnique,
   addRouteInvalidations,
-  toNormalizedActionKey,
   lowerGroupCacheLines,
   lowerGroupHookConfig
 } from './hookConfigLowerer';

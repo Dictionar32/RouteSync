@@ -1,0 +1,38 @@
+{
+  "phase": 1479,
+  "name": "php-type-atom-authority",
+  "root": "RouteSync/",
+  "checks": [
+    {
+      "name": "atom interface defines closed judgment",
+      "status": "pass"
+    },
+    {
+      "name": "atom algebra owns primitive mapping",
+      "status": "pass"
+    },
+    {
+      "name": "expression grammar delegates atom interpretation",
+      "status": "pass"
+    },
+    {
+      "name": "parameter algebra delegates primitive interpretation",
+      "status": "pass"
+    },
+    {
+      "name": "old local contextual atom table removed",
+      "status": "pass"
+    },
+    {
+      "name": "public upstream barrel exports atom contract",
+      "status": "pass"
+    },
+    {
+      "name": "regression tests cover agreement and fail-closed cases",
+      "status": "pass"
+    }
+  ],
+  "result": "7/7 pass",
+  "vitest": "not run: dependencies unavailable",
+  "build": "not run: dependencies unavailable"
+}

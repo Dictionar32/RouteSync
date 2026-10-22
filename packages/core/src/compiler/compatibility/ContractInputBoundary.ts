@@ -7,7 +7,7 @@
  */
 
 import type { ResolvedSemanticType } from '../types/ResolvedSemanticType';
-import { relationResolve, relationProject } from '../../semantic/foundation/relationalSequence';
+import { relationResolve, relationProject } from '../../semantic/relations/relationalSequence';
 import {
     type LegacyPrimitiveValue,
     type LegacyResourceValue,

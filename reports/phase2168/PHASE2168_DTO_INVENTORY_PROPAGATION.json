@@ -1,0 +1,25 @@
+{
+  "phase": 2168,
+  "kind": "interface_first_dto_inventory_propagation",
+  "result": "inventory_propagated_legacy_semantics_retained",
+  "changes": [
+    "LaravelControllerScanInput carries canonical DtoAst inventory",
+    "DTO scan runs before controller scan",
+    "integrated response input passes the exact inventory to existing evidence producer",
+    "evidence inventory and binding receipt retain DTO inventory without claiming same-file binding",
+    "scanner contract version 33",
+    "response pipeline contract version 19",
+    "response semantic judgment contract version 9",
+    "evidence production and source binding contract version 8"
+  ],
+  "stillMissing": [
+    "resolved_response_attribute_descriptor",
+    "response_dto_declaration"
+  ],
+  "legacyResolverRetired": false,
+  "newAuthorityAdded": false,
+  "newSubscannerAdded": false,
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

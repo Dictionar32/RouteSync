@@ -1,3 +1,4 @@
+import { createSourceFile } from '../../../types/upstream/names';
 import { createDomainAstJudgment, type RequestAst } from '../../../types/upstream/ast';
 import type { RequestDefinition, RequestAuthorization, RequestValidationLifecycle } from '../../../types/upstream/request';
 import type { RequestFields, Sequence } from '../../../types/upstream/collections';
@@ -6,31 +7,15 @@ import type { RequestName, FormTypeName } from '../../../types/upstream/names';
 import type { PhpArrayEntry } from '../lexer/PhpAst';
 import type { PhpAstValue, PhpMethodAst } from '../lexer/phpMethodAstTypes';
 import type { PhpClassPropertyAst } from '../lexer/phpAstDeclarationTypes';
+import type { RequestProducerInput, RequestProducerInterface, RequestProducerResult } from '../../../types/upstream/requestProducerInterface';
 import type { TypeInterner } from '../../types/TypeInterner';
 import { parseCanonicalValidationRuleEntries } from './form-request';
 import { RouteSemanticFlowValidationRuleSet } from '../descriptors/validation/validationRuleSet';
 import { requestFieldFromSource } from './requestAstCanonical';
-import { mapResourcePhpStatementsToSourceStatements } from './resource/resourceUpstreamExpressionCanonical';
-import { expressionFromPhpAst } from './expressionProducer';
-import { relationAll, relationEqual, relationSome, relationNone } from '../../../semantic/foundation/semanticRelations';
-import { relationExpand, relationFirst, relationGate, relationAdvanceIndex, relationOptionFold, relationProject, relationSelect, relationSlice } from '../../../semantic/foundation/relationalSequence';
-
-export type RequestProducerInput = {
-    readonly requestName: RequestName;
-    readonly formType: FormTypeName;
-    readonly source: SourceSpan;
-    readonly rules: readonly PhpArrayEntry[];
-    readonly authorize: PhpMethodAst;
-    readonly methods: readonly PhpMethodAst[];
-    readonly properties: readonly PhpClassPropertyAst[];
-    readonly sourceFile: string;
-    readonly interner: TypeInterner;
-};
-
-export interface RequestProducer {
-    readonly produce: (input: RequestProducerInput) => RequestAst;
-    readonly produceResult: (input: RequestProducerInput) => RequestProducerResult;
-}
+import { projectPhpStatementsToSourceStatements } from '../lexer/routeAst/phpAstExpressionSemanticAuthority';
+import { expressionFromPhpAst } from '../operations/expressionProducer';
+import { relationAll, relationEqual, relationSome, relationNone } from '../../../semantic/relations/semanticRelations';
+import { relationExpand, relationFirst, relationGate, relationAdvanceIndex, relationOptionFold, relationProject, relationSelect, relationSlice } from '../../../semantic/relations/relationalSequence';
 
 const seq = <T>(items: readonly T[], index = 0, tail: Sequence<T> = { kind: 'empty' }): Sequence<T> =>
     relationGate(index < items.length, () => seq(items, relationAdvanceIndex(index, 1), { kind: 'cons', head: items[items.length - index - 1], tail }), () => tail);
@@ -41,7 +26,7 @@ function authorization(method: PhpMethodAst, file: string): RequestAuthorization
         returned,
         () => { throw Error('FormRequest authorize() must return an expression at the AST boundary'); },
         statement => {
-            const expression = expressionFromPhpAst(statement.expression, file);
+            const expression = expressionFromPhpAst.project({ syntax: statement.expression, sourceFile: createSourceFile(file) });
             return relationGate(
                 relationAll([relationEqual(statement.expression.kind, 'literal'), relationEqual(statement.expression.value.kind, 'boolean')]),
                 () => relationGate(statement.expression.value.value, () => ({ kind: 'authorized', origin: { kind: 'source_explicit' } }), () => ({ kind: 'denied', origin: { kind: 'source_explicit' }})),
@@ -51,7 +36,7 @@ function authorization(method: PhpMethodAst, file: string): RequestAuthorization
     );
 }
 
-function lifecycleEntry<T>(entry: import('../../../semantic/foundation/relationalSequence').RelationOption<T>, index: number, file: string): readonly RequestValidationLifecycle[] {
+function lifecycleEntry<T>(entry: import('../../../semantic/relations/relationalSequence').RelationOption<T>, index: number, file: string): readonly RequestValidationLifecycle[] {
     return relationGate(relationEqual(index, 0),
         () => relationOptionFold(entry, () => [], statements => [{ kind: 'prepare_for_validation', statements }]),
         () => relationGate(relationEqual(index, 1),
@@ -72,7 +57,7 @@ function lifecycleEntry<T>(entry: import('../../../semantic/foundation/relationa
                                 callback: {
                                     kind: 'request_validation_callback',
                                     validator: { kind: 'validator_parameter', name: { kind: 'string_value', value: parameter.name.value } },
-                                    statements: mapResourcePhpStatementsToSourceStatements(method.body, file),
+                                    statements: projectPhpStatementsToSourceStatements(method.body, file),
                                     source: sourceSpan(file, method),
                                 },
                             }]);
@@ -87,8 +72,8 @@ function lifecycleEntry<T>(entry: import('../../../semantic/foundation/relationa
 function lifecycle(methods: readonly PhpMethodAst[], file: string): RequestValidationLifecycle[] {
     const statements = (name: string) => relationOptionFold(
         relationFirst(methods, method => relationEqual(method.name.value, name)),
-        () => relationNone<ReturnType<typeof mapResourcePhpStatementsToSourceStatements>>(),
-        method => relationSome(mapResourcePhpStatementsToSourceStatements(method.body, file)),
+        () => relationNone<ReturnType<typeof projectPhpStatementsToSourceStatements>>(),
+        method => relationSome(projectPhpStatementsToSourceStatements(method.body, file)),
     );
     const entries = [
         statements('prepareForValidation'),
@@ -105,7 +90,7 @@ function sourceSpan(file: string, method: PhpMethodAst): SourceSpan {
     return { kind: 'source_span', file: { kind: 'source_file', value: { kind: 'string_value', value: file } }, start: { kind: 'number_value', value: method.source.start }, end: { kind: 'number_value', value: method.source.end } };
 }
 
-function literalString(value: PhpAstValue): import('../../../semantic/foundation/relationalSequence').RelationOption<string> {
+function literalString(value: PhpAstValue): import('../../../semantic/relations/relationalSequence').RelationOption<string> {
     return relationGate(
         relationAll([relationEqual(value.kind, 'literal'), relationEqual(value.literalType, 'string')]),
         () => relationSome(value.value),
@@ -113,7 +98,7 @@ function literalString(value: PhpAstValue): import('../../../semantic/foundation
     );
 }
 
-function literalBoolean(value: PhpAstValue): import('../../../semantic/foundation/relationalSequence').RelationOption<boolean> {
+function literalBoolean(value: PhpAstValue): import('../../../semantic/relations/relationalSequence').RelationOption<boolean> {
     return relationGate(
         relationAll([relationEqual(value.kind, 'literal'), relationEqual(value.literalType, 'boolean')]),
         () => relationSome(value.value),
@@ -153,7 +138,7 @@ function attributes(method: PhpMethodAst, file: string): import('../../../types/
     return { kind: 'validation_attributes', items: seq(items) };
 }
 
-function propertyValue(properties: readonly PhpClassPropertyAst[], name: string): import('../../../semantic/foundation/relationalSequence').RelationOption<PhpAstValue> {
+function propertyValue(properties: readonly PhpClassPropertyAst[], name: string): import('../../../semantic/relations/relationalSequence').RelationOption<PhpAstValue> {
     return relationOptionFold(
         relationFirst(properties, item => relationEqual(item.name.value, name)),
         () => relationNone(),
@@ -185,32 +170,31 @@ function failureResponse(properties: readonly PhpClassPropertyAst[]): import('..
     return { kind: 'request_failure_response_configuration', redirect: redirectValue, errorBag: errorBagValue };
 }
 
-export interface RequestProducerResult {
-    readonly definition: RequestDefinition;
-    readonly ast: RequestAst;
-}
+type LegacyRequestProducerContract = RequestProducerInterface<readonly PhpArrayEntry[], PhpMethodAst, PhpClassPropertyAst>;
+type LegacyRequestProducerContractInput = RequestProducerInput<readonly PhpArrayEntry[], PhpMethodAst, PhpClassPropertyAst>;
 
-export const requestProducer: RequestProducer = {
+export const requestProducer: LegacyRequestProducerContract = Object.freeze({
     produce(input): RequestAst {
         return requestProducer.produceResult(input).ast;
     },
     produceResult(input): RequestProducerResult {
-        const validationEntries = parseCanonicalValidationRuleEntries(input.rules, input.sourceFile);
+        const sourcePath = input.sourceFile.value.value;
+        const validationEntries = parseCanonicalValidationRuleEntries(input.rules, sourcePath);
         const sourceFields = RouteSemanticFlowValidationRuleSet.create(validationEntries, input.interner).fields;
         const fields: RequestFields = { kind: 'request_fields', items: seq(relationProject(sourceFields, requestFieldFromSource)) };
         const messagesMethod = relationOptionFold(relationFirst(input.methods, method => relationEqual(method.name.value, 'messages')), () => relationNone<PhpMethodAst>(), relationSome);
         const attributesMethod = relationOptionFold(relationFirst(input.methods, method => relationEqual(method.name.value, 'attributes')), () => relationNone<PhpMethodAst>(), relationSome);
         const validation = {
             kind: 'form_request_validation',
-            authorization: authorization(input.authorize, input.sourceFile),
+            authorization: authorization(input.authorize, sourcePath),
             schema: {
                 kind: 'request_schema',
                 fields,
                 policy: validationPolicy(input.properties),
-                messages: relationOptionFold(messagesMethod, () => ({ kind: 'validation_messages', items: seq([]) }), method => messages(method, input.sourceFile)),
-                attributes: relationOptionFold(attributesMethod, () => ({ kind: 'validation_attributes', items: seq([]) }), method => attributes(method, input.sourceFile)),
+                messages: relationOptionFold(messagesMethod, () => ({ kind: 'validation_messages', items: seq([]) }), method => messages(method, sourcePath)),
+                attributes: relationOptionFold(attributesMethod, () => ({ kind: 'validation_attributes', items: seq([]) }), method => attributes(method, sourcePath)),
             },
-            lifecycle: { kind: 'request_validation_lifecycles', items: seq(lifecycle(input.methods, input.sourceFile)) },
+            lifecycle: { kind: 'request_validation_lifecycles', items: seq(lifecycle(input.methods, sourcePath)) },
             failureResponse: failureResponse(input.properties),
             validatedInput: seq([]),
         };
@@ -223,4 +207,4 @@ export const requestProducer: RequestProducer = {
         const ast = createDomainAstJudgment({ kind: 'request_ast', semantic: definition, source: input.source });
         return { definition, ast };
     },
-};
+});

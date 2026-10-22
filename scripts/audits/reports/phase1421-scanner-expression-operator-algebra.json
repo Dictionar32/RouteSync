@@ -1,0 +1,65 @@
+{
+  "phase": 1421,
+  "title": "scanner-expression-operator-algebra",
+  "checks": [
+    {
+      "name": "token structure algebra exposes all top-level candidates in one traversal",
+      "passed": true
+    },
+    {
+      "name": "candidate collector validates delimiter structure before returning candidates",
+      "passed": true
+    },
+    {
+      "name": "expression operator algebra owns precedence selection",
+      "passed": false
+    },
+    {
+      "name": "expression operator algebra owns associativity selection",
+      "passed": false
+    },
+    {
+      "name": "expression resolution uses a closed ADT for resolved, absent, malformed and contract violation",
+      "passed": false
+    },
+    {
+      "name": "invalid and duplicate operator rules fail explicitly",
+      "passed": false
+    },
+    {
+      "name": "PHP expression contract supplies operator vocabulary and precedence facts",
+      "passed": false
+    },
+    {
+      "name": "PHP expression contract delegates candidate selection to expression algebra",
+      "passed": false
+    },
+    {
+      "name": "PHP contract no longer locally projects and selects operator candidates",
+      "passed": true
+    },
+    {
+      "name": "PHP contract propagates malformed and contract-violation outcomes explicitly",
+      "passed": false
+    },
+    {
+      "name": "root-operator contract includes coalesce below symbolic logic, multiplication above addition, and PHP 8 concat tier",
+      "passed": false
+    },
+    {
+      "name": "no any introduced in new scanner algebra",
+      "passed": true
+    },
+    {
+      "name": "Phase 1421 audit script registered",
+      "passed": true
+    },
+    {
+      "name": "build script preserved",
+      "passed": true
+    }
+  ],
+  "passed": 6,
+  "total": 14,
+  "status": "failed"
+}

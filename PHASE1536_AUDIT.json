@@ -1,0 +1,18 @@
+{
+  "phase": 1536,
+  "title": "Source-Bound Execution Validation",
+  "scope": [
+    "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts",
+    "scripts/audits/audit-phase1536-source-bound-execution-validation.cjs"
+  ],
+  "results": {
+    "phase1536_source_bound_execution_validation": "7/7 passed",
+    "phase1535_ownership_correlated_runtime_contract": "7/7 passed",
+    "phase1534_source_bound_query_interface": "11/11 passed",
+    "phase1500_interface_first_query_operation_authority": "passed",
+    "typescript_build": "unverified: tsdown executable unavailable",
+    "phase1501_1502_1503_migration_audits": "known failures remain"
+  },
+  "proofStatus": "evaluator_obligations_not_yet_emitted"
+}

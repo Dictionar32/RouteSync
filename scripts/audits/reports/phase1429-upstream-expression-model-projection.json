@@ -1,0 +1,49 @@
+{
+  "phase": 1429,
+  "title": "upstream-expression-model-projection",
+  "checks": [
+    {
+      "name": "upstream Expression ADT already models semantic expression forms",
+      "passed": true
+    },
+    {
+      "name": "upstream ExpressionAst is the canonical AST judgment",
+      "passed": true
+    },
+    {
+      "name": "existing expression producer already projects PHP AST into upstream Expression",
+      "passed": true
+    },
+    {
+      "name": "scanner-specific ExpressionStructure remains the correct pre-AST structural model",
+      "passed": true
+    },
+    {
+      "name": "runtime resolves a structure before delegating projection",
+      "passed": true
+    },
+    {
+      "name": "runtime no longer owns the compound structure-to-AST switch",
+      "passed": true
+    },
+    {
+      "name": "dedicated projector consumes the existing upstream structure ADT",
+      "passed": true
+    },
+    {
+      "name": "projector performs projection only and does not arbitrate candidates or precedence",
+      "passed": true
+    },
+    {
+      "name": "upstream exports the existing structure type instead of introducing a parallel contract",
+      "passed": true
+    },
+    {
+      "name": "existing scanner integration tests cover precedence, coalescing, calls, and array access",
+      "passed": true
+    }
+  ],
+  "passed": 10,
+  "total": 10,
+  "status": "passed_with_build_pending"
+}

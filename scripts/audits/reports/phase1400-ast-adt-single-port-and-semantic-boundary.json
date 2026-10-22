@@ -1,0 +1,89 @@
+{
+  "phase": 1400,
+  "audit": "ast-adt-single-port-and-semantic-boundary",
+  "trace": {
+    "upstreamTypeFiles": 521,
+    "coreTypeScriptFiles": 1941,
+    "downstreamFiles": 513
+  },
+  "checks": [
+    {
+      "name": "upstreamContractDefinesClosedRequestADT",
+      "passed": false
+    },
+    {
+      "name": "upstreamContractDefinesClosedResultADT",
+      "passed": true
+    },
+    {
+      "name": "upstreamClassifierPortHasExactlyOneMethod",
+      "passed": false
+    },
+    {
+      "name": "contractHasNoCompilerRuntimeImports",
+      "passed": true
+    },
+    {
+      "name": "facadeIsNarrowAndDispatchesThroughSinglePort",
+      "passed": false
+    },
+    {
+      "name": "facadeHasNoTypeAssertionEscape",
+      "passed": true
+    },
+    {
+      "name": "runtimeIsNotImportedByOtherCoreConsumers",
+      "passed": false
+    },
+    {
+      "name": "astConsumersDoNotImportRuntimeDirectly",
+      "passed": true
+    },
+    {
+      "name": "astConsumersUseEvidencePort",
+      "passed": false
+    },
+    {
+      "name": "astAbsentEvidenceDoesNotReclassify",
+      "passed": false
+    },
+    {
+      "name": "operationIdentityContractHasSemanticIdentityCapability",
+      "passed": true
+    },
+    {
+      "name": "semanticDataflowSeparatesInputAndJudgment",
+      "passed": true
+    },
+    {
+      "name": "upstreamAuthorityOwnsDataflowReasoning",
+      "passed": true
+    },
+    {
+      "name": "irConsumesClosedDataflowAuthority",
+      "passed": true
+    },
+    {
+      "name": "noDirectRuntimeImplementationImportsInTargetPackages",
+      "passed": true
+    },
+    {
+      "name": "packageVersionAndBuildPreserved",
+      "passed": true
+    },
+    {
+      "name": "expectedTraceSurfacesPresent",
+      "passed": true
+    }
+  ],
+  "passedChecks": 11,
+  "totalChecks": 17,
+  "failures": [
+    "upstreamContractDefinesClosedRequestADT",
+    "upstreamClassifierPortHasExactlyOneMethod",
+    "facadeIsNarrowAndDispatchesThroughSinglePort",
+    "runtimeIsNotImportedByOtherCoreConsumers",
+    "astConsumersUseEvidencePort",
+    "astAbsentEvidenceDoesNotReclassify"
+  ]
+}

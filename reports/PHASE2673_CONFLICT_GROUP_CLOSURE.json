@@ -1,0 +1,39 @@
+{
+  "phase": 2673,
+  "title": "Conflict group closure verification",
+  "status": "structural_fix_applied_runtime_unverified",
+  "rootCause": "The conflict verifier checked the source-grounded identity-conflict ledger without independently closing group receipts carried by the same conflict judgment.",
+  "changes": [
+    "Added RequestTypeDerivationConflictGroupVerificationInterface to the upstream contract.",
+    "Added independent replay, source inventory, AST action/response, and resource identity checks for non-empty conflict groups.",
+    "Empty conflict groups are accepted only when no route receipt claims contribution.",
+    "Added two regression tests and audit:phase2673-conflict-group-closure."
+  ],
+  "structuralAudits": {
+    "phase2665": "9/9",
+    "phase2666": "8/8",
+    "phase2667": "6/6",
+    "phase2668": "8/8",
+    "phase2670": "10/10",
+    "phase2671": "12/12",
+    "phase2672": "19/19",
+    "phase2673": "12/12",
+    "total": "84/84"
+  },
+  "runtimeVerified": false,
+  "typecheckVerified": false,
+  "laravelRuntimeScanVerified": false,
+  "canonicalSemanticLawsVerified": 0,
+  "canonicalSemanticLawsTotal": 34,
+  "blockers": [
+    "Project node_modules and Vitest are unavailable in this workspace.",
+    "examples/ecommerce-shop-source/vendor/autoload.php is absent.",
+    "Full TypeScript build/typecheck and scan/sync end-to-end remain unverified.",
+    "The 34 canonical semantic laws remain independently unverified."
+  ],
+  "upstreamReferences": [
+    "https://github.com/laravel/framework/blob/13.x/src/Illuminate/Routing/Router.php",
+    "https://github.com/laravel/framework/blob/13.x/src/Illuminate/Routing/ResourceRegistrar.php",
+    "https://github.com/laravel/framework/blob/13.x/src/Illuminate/Routing/RouteCollection.php"
+  ]
+}

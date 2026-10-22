@@ -1,0 +1,26 @@
+{
+  "phase": 2331,
+  "title": "Preserve existing authorization judgment through route scan artifacts",
+  "base": "Phase 2330",
+  "root": "RouteSync/",
+  "changes": [
+    "Evolved the existing RouteEmission contract to retain LaravelRouteAuthorizationSemanticJudgment beside the legacy boolean projection.",
+    "Evolved LaravelRouteScanArtifact to preserve the original authorization judgment.",
+    "Advanced LaravelRouteScannerInterface and route scan outcome contractVersion from 8 to 9.",
+    "Updated both current scanner wiring and the still-present legacy scanner caller to pass the existing judgment through the shared emitter."
+  ],
+  "preserved": [
+    "LaravelRouteAuthorizationSemanticJudgmentAuthorityInterface",
+    "LaravelRouteAuthorizationSemanticJudgment",
+    "LaravelRouteScannerInterface",
+    "RouteEmission",
+    "LaravelRouteScanArtifact"
+  ],
+  "verification": {
+    "static_audit": "passed: 7/7 checks via scripts/audits/audit-phase2331-authorization-judgment-preservation.cjs",
+    "vitest": "not_run",
+    "typescript_build": "not_run_by_project_workflow",
+    "cli_integration": "not_run"
+  },
+  "known_remaining_issue": "RouteBoundaryContract and AST/manifest still receive the legacy boolean auth projection; extending judgment preservation beyond LaravelRouteScanArtifact requires tracing the public manifest consumers."
+}

@@ -1,0 +1,62 @@
+{
+  "phase": 2204,
+  "title": "Source-AST Scanner Dependency Closure",
+  "status": "implemented_with_explicit_remaining_gaps",
+  "root": "RouteSync/",
+  "contractVersionChanges": [
+    {
+      "contract": "LaravelSourceAstPipelineInterface",
+      "from": 5,
+      "to": 6
+    }
+  ],
+  "closedDependencies": [
+    "controllerScanner",
+    "resourceScanner",
+    "responseScanner",
+    "routeScanner",
+    "routeBindingAuthority"
+  ],
+  "consistencyRules": [
+    "response scanner receives the response semantic pipeline bound to the selected controller scanner",
+    "DTO ASTs are projected from the already-validated DTO declaration inventory rather than rescanned",
+    "source-AST pipeline executor delegates through its dependency contract"
+  ],
+  "remainingDirectDependencies": [
+    "model scanner",
+    "FormRequest scanner",
+    "migration scanner and migration interface adapter",
+    "schema producer",
+    "source-AST semantic producer",
+    "query producer",
+    "attribute scanner",
+    "DTO inventory scanner",
+    "service scanner",
+    "middleware scanner",
+    "provider scanner",
+    "channel scanner",
+    "collection and sequence shaping",
+    "legacy semantic/relations helpers"
+  ],
+  "validation": {
+    "syntaxTranspilation": {
+      "status": "passed",
+      "files": 3
+    },
+    "structuralAssertions": {
+      "status": "passed",
+      "assertions": 13
+    },
+    "zipIntegrity": "passed",
+    "fullTypecheck": "notRun",
+    "vitest": "notRun",
+    "packageBuild": "notRun"
+  },
+  "architectureConstraints": {
+    "newRelationLayer": false,
+    "newFoundationLayer": false,
+    "newSubscannerLayer": false,
+    "duplicateInvocationSemanticAuthority": false,
+    "runtimeSemanticReclassification": false
+  }
+}

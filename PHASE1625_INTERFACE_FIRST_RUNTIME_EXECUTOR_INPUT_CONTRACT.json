@@ -1,0 +1,26 @@
+{
+  "phase": 1625,
+  "title": "Interface-first runtime executor input contract",
+  "status": "static-audit-passed",
+  "changes": [
+    "Moved RequestTypeDerivationRuntimeExecutionResult and RequestTypeDerivationRuntimeExecutorInterface into the canonical upstream interface module.",
+    "Preserved specialized TInput on executor.execute and input_binding_failed.expectedInput.",
+    "Genericized the factory so executor input is derived from TInference['input'].",
+    "Migrated both route-manifest scanner wiring consumers to import the result algebra from upstream.",
+    "Kept runtime envelope validation and semantic reasoning outside scanner wiring."
+  ],
+  "trace": {
+    "upstream": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts (canonical executor port and result ADT)",
+    "runtimeExecutor": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationRuntimeExecutor.ts",
+    "scannerConsumers": [
+      "packages/core/src/compiler/scanner/wiring/routeManifestTypeLoweringAuthority.ts",
+      "packages/core/src/compiler/scanner/wiring/routeManifestProjectionAuthority.ts"
+    ]
+  },
+  "validation": {
+    "staticAudit": "passed",
+    "typeTest": "added; not executed because Vitest dependencies are not installed",
+    "fullBuild": "not run; node_modules absent",
+    "targetedTypeScript": "Reports the same two requestTypeDerivationRuntimeExecutor integrity-branch diagnostics and the same routeManifestTypeLoweringAuthority judgment implicit-any diagnostic present in the baseline; no new diagnostics in touched paths."
+  }
+}

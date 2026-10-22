@@ -1,0 +1,37 @@
+{
+  "phase": 1391,
+  "audit": "untrusted-contract-boundary",
+  "passed": true,
+  "passedChecks": 7,
+  "totalChecks": 7,
+  "checks": [
+    {
+      "name": "policy matcher accepts untrusted unknown input",
+      "pass": true
+    },
+    {
+      "name": "policy matcher checks JSON safety and full contract invariants before accepting candidate",
+      "pass": true
+    },
+    {
+      "name": "runtime executor accepts unknown candidate",
+      "pass": true
+    },
+    {
+      "name": "runtime executor decodes before exposing contract",
+      "pass": true
+    },
+    {
+      "name": "manifest orchestration treats supplied contracts as untrusted",
+      "pass": true
+    },
+    {
+      "name": "orchestration filters through guarded matcher",
+      "pass": true
+    },
+    {
+      "name": "package version and build script preserved",
+      "pass": true
+    }
+  ]
+}

@@ -50,8 +50,18 @@ export class GenericService<
     const response = await this.client.get<unknown>(this.endpoint, {
       params: this.mapRequest(params)
     })
-    const items = parseWithSchema(this.options.listSchema, this.extractData(response))
-    return items.map((item) => this.mapEntity(item))
+    const extracted = this.extractData(response)
+    if (this.options.listSchema) {
+      const items = parseWithSchema(this.options.listSchema, extracted)
+      if (!Array.isArray(items)) {
+        throw new Error('RouteSync list schema must parse to an array')
+      }
+      return items.map((item) => this.mapEntity(item))
+    }
+
+    // If only an entity schema is configured, validate each list item through
+    // that canonical parser instead of treating the whole raw response as T[].
+    return this.requireArray(extracted).map((item) => this.mapEntity(this.parseEntity(item)))
   }
 
   async findById(id: Id, params?: QueryParams): Promise<TEntity> {
@@ -62,13 +72,17 @@ export class GenericService<
   }
 
   async create(payload: TCreateInput): Promise<TEntity> {
-    const validated = parseWithSchema(this.options.createSchema, payload)
+    const validated = this.options.createSchema
+      ? parseWithSchema(this.options.createSchema, payload)
+      : payload
     const response = await this.client.post<unknown>(this.endpoint, this.mapRequest(validated))
     return this.mapEntity(this.parseEntity(this.extractData(response)))
   }
 
   async update(id: Id, payload: TUpdateInput): Promise<TEntity> {
-    const validated = parseWithSchema(this.options.updateSchema, payload)
+    const validated = this.options.updateSchema
+      ? parseWithSchema(this.options.updateSchema, payload)
+      : payload
     const response = await this.client.put<unknown>(
       `${this.endpoint}/${id}`,
       this.mapRequest(validated)
@@ -77,7 +91,9 @@ export class GenericService<
   }
 
   async patch(id: Id, payload: TUpdateInput): Promise<TEntity> {
-    const validated = parseWithSchema(this.options.updateSchema, payload)
+    const validated = this.options.updateSchema
+      ? parseWithSchema(this.options.updateSchema, payload)
+      : payload
     const response = await this.client.patch<unknown>(
       `${this.endpoint}/${id}`,
       this.mapRequest(validated)
@@ -95,6 +111,13 @@ export class GenericService<
     return this.mapEntity(this.parseEntity(this.extractData(response)))
   }
 
+  private requireArray(value: unknown): readonly unknown[] {
+    if (!Array.isArray(value)) {
+      throw new Error('RouteSync list response must be an array when no list schema is configured')
+    }
+    return value
+  }
+
   private extractData(response: unknown): unknown {
     if (response && typeof response === 'object' && 'data' in response) {
       return (response as { data: unknown }).data
@@ -104,7 +127,9 @@ export class GenericService<
   }
 
   private parseEntity(value: unknown): TBackendEntity {
-    return parseWithSchema(this.options.entitySchema, value)
+    return this.options.entitySchema
+      ? parseWithSchema(this.options.entitySchema, value)
+      : value as TBackendEntity
   }
 
   private mapEntity(value: TBackendEntity): TEntity {

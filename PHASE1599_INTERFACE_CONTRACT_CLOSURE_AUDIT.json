@@ -1,0 +1,27 @@
+{
+  "phase": 1599,
+  "title": "Interface-first semantic proof contract binding",
+  "scope": "upstream interface and type-level test only; no producer, verifier, scanner wiring, or runtime implementation changes",
+  "changes": [
+    "Added RequestTypeDerivationSemanticAuthorityProofFor<TContract> to bind the proof premises coverage to the candidate's contract family.",
+    "Changed RequestTypeDerivationSemanticAuthorityCandidateFor<TContract>.proof to use the contract-bound proof alias.",
+    "Added a focused type-level test for candidate/proof/coverage contract binding."
+  ],
+  "checks": [
+    { "name": "candidate envelope exposes a contract-bound proof type", "passed": true, "method": "source inspection" },
+    { "name": "proof premises coverage is parameterized by the same contract family", "passed": true, "method": "source inspection" },
+    { "name": "scanner wiring and runtime implementation untouched", "passed": true, "method": "changed-file scope" },
+    { "name": "target interface file has no reported TypeScript diagnostics", "passed": true, "method": "targeted compiler output inspection; compiler followed imports and emitted errors in unrelated files" },
+    { "name": "full imported TypeScript graph compiles", "passed": false, "method": "global tsc; existing errors across resource resolver, AST, model primary key, query producer, route security, semantic capability/dataflow/reasoning" },
+    { "name": "Vitest type test executed", "passed": false, "method": "Vitest executable not installed in workspace" },
+    { "name": "package build executed", "passed": false, "method": "tsdown executable not installed in workspace" }
+  ],
+  "migrationReady": false,
+  "blockers": [
+    "Existing TypeScript errors in imported project graph remain unresolved.",
+    "Type-level test has been added but could not be executed without Vitest.",
+    "Concrete semantic reasoning, proof verifier, and pipeline assembly implementation remain outside this interface-only phase.",
+    "End-to-end scanner migration has not been performed by design."
+  ],
+  "decision": "interface contract strengthened; migration not declared ready"
+}

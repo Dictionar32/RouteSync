@@ -8,13 +8,13 @@ import {
   relationFirstOption,
   relationOptionFold,
   relationProject,
-} from '../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
+} from '../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../semantic/relations/semanticRelations';
 import {
   solveSemanticRelations,
   type SemanticRelation,
   type SemanticRelationRewrite,
-} from '../../semantic/foundation/semanticRewriteEngine';
+} from '../../semantic/relations/semanticRewriteEngine';
 
 export type IRLoweringRelation = 'semantic_kind' | 'lowering_operation';
 type Rule = SemanticRelationRewrite<IRLoweringRelation>;

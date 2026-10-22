@@ -1,0 +1,45 @@
+{
+  "phase": 1417,
+  "title": "scanner-runtime-interface-algebra",
+  "checks": [
+    {
+      "name": "canonical boundary contract owns delimiter-state resolution and exposes a closed partition judgment",
+      "passed": true
+    },
+    {
+      "name": "boundary returns closed resolution ADT",
+      "passed": true
+    },
+    {
+      "name": "sequence contract owns cursor transitions",
+      "passed": true
+    },
+    {
+      "name": "sequence algebra accepts injected grammar capabilities",
+      "passed": true
+    },
+    {
+      "name": "runtime delegates statement traversal to algebra",
+      "passed": true
+    },
+    {
+      "name": "runtime delegates delimiter scanning to canonical boundary contract algebra",
+      "passed": true
+    },
+    {
+      "name": "structured rules receive boundary from sequence contract",
+      "passed": true
+    },
+    {
+      "name": "build script preserved",
+      "passed": true
+    },
+    {
+      "name": "no any introduced in new contracts",
+      "passed": true
+    }
+  ],
+  "passed": 9,
+  "total": 9,
+  "status": "passed_with_typecheck_pending"
+}

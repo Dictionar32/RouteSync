@@ -4,9 +4,9 @@ import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
 import { basicBlockLookup } from '../../utils/ControlFlowGraph';
 import { computeRPO } from './dominatorRpo';
 import { intersectDominators } from './dominatorIntersect';
-import { relationIndexLookup, relationIndexAdd, relationContains, type RelationIndex } from '../../../semantic/foundation/relationMembership';
-import { relationOptionFold, relationFold, relationFixedPoint, relationResolve, relationEqual } from '../../../semantic/foundation/relationalSequence';
-import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
+import { relationIndexLookup, relationIndexAdd, relationContains, type RelationIndex } from '../../../semantic/relations/relationMembership';
+import { relationOptionFold, relationFold, relationFixedPoint, relationResolve, relationEqual } from '../../../semantic/relations/relationalSequence';
+import type { RelationOption } from '../../../semantic/relations/relationFoundation';
 
 export interface DominatorTree {
     readonly idoms: RelationIndex<number, number>;

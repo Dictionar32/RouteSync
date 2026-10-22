@@ -21,7 +21,7 @@ const checks = [
   [/payloadLocationDecision: params\.payloadLocationDecision/.test(builder), 'capability builder composes without reclassification'],
   [/readonly payloadLocationDecision: import\([\s\S]*RoutePayloadLocationDecision/.test(resolution), 'resolved capability exposes the closed decision type'],
   [/readonly payloadLocationDecision: import\([\s\S]*RoutePayloadLocationDecision/.test(boundary), 'resolved boundary contract carries the decision'],
-  [/payloadLocationDecision: capability\.payloadLocationDecision/.test(declaration), 'route descriptor projection preserves the same decision'],
+  [/payloadLocationDecision: capability\.payloadLocationDecision/.test(inputWiring), 'boundary descriptor wiring preserves the same decision'],
   [/routePayloadLocationFromMethod\(input\.method\)/.test(authority), 'legacy convention is confined to upstream authority as an explicit fallback'],
   [packageJson.scripts?.['audit:phase1317-payload-location-evidence'] === 'node scripts/audits/audit-phase1317-payload-location-evidence.cjs', 'package script registers this regression audit'],
 ];

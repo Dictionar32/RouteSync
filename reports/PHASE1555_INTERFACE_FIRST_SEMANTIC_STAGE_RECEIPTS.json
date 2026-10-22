@@ -1,0 +1,21 @@
+{
+  "phase": 1555,
+  "title": "Interface-first semantic derivation stage receipts",
+  "targets": [
+    "packages/core/src/types/upstream/semanticTypeDerivationInterface.ts",
+    "packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationAuthority.ts",
+    "packages/core/src/compiler/semantic/type-derivation/__test__/semanticTypeDerivationRuntimeExecutor.phase1552.test.ts"
+  ],
+  "model_change": "Replace stage-name-only proof with ordered stage receipts binding evidence counts and result contributions to the closed judgment.",
+  "runtime_function_relocation": false,
+  "known_open_frontiers": [
+    "scanner/subscanners/RequestTypeDeriver.ts and request-deriver/* retain RequestType derivation",
+    "scanner/lexer/astClassifierRuntime.ts constructs candidate rule precedence locally",
+    "scanner/wiring/routeManifestTypeLowering.ts still routes RequestType derivation through scanner facade"
+  ],
+  "verification": {
+    "static_contract_audit": "pending",
+    "vitest": "not_run_dependencies_missing",
+    "full_build": "not_run_dependencies_missing"
+  }
+}

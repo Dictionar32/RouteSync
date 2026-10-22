@@ -10,7 +10,9 @@ const assert = (name, value) => {
 };
 
 const upstream = read('packages/core/src/types/upstream/astDataflowInterface.ts');
-const authority = read('packages/core/src/compiler/analysis/astDataflowAuthority.ts');
+const authority = read('packages/core/src/types/upstream/semanticDataflowAuthority.ts');
+const canonical = read('packages/core/src/types/upstream/semanticDataflow.ts');
+const compatibility = read('packages/core/src/compiler/analysis/astDataflowAuthority.ts');
 const analysis = read('packages/core/src/compiler/analysis/astAnalysisInterface.ts');
 const validation = read('packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts');
 const validationShape = read('packages/core/src/types/domain/validationRules.ts');
@@ -25,11 +27,12 @@ const ecommerce = [
 ];
 
 assert('upstreamDataflowInterfaceExists', exists('packages/core/src/types/upstream/astDataflowInterface.ts'));
-assert('upstreamDataflowClosed', /closed: true/.test(upstream) && /AstDataflowFact/.test(upstream));
-assert('upstreamHasReachabilityClosure', /kind: 'reaches'/.test(upstream) && /least_fixed_point/.test(upstream));
-assert('analysisConsumesDataflowJudgment', /readonly dataflow: AstDataflowJudgment/.test(analysis));
+assert('upstreamDataflowClosed', /AstDataflowFact/.test(upstream) && /closed: true/.test(canonical));
+assert('upstreamHasReachabilityClosure', /kind: 'reaches'/.test(canonical) && /fixedPoint: 'least_fixed_point'/.test(canonical) && /reachClosure/.test(authority));
+assert('analysisConsumesDataflowJudgment', /readonly dataflow: AstDataflowInterface/.test(analysis) && /AstDataflowJudgment/.test(upstream));
 assert('analysisEmitsDataflowClosureFact', /kind: 'dataflow_closure'/.test(analysis));
-assert('dataflowAuthorityExists', exists('packages/core/src/compiler/analysis/astDataflowAuthority.ts'));
+assert('dataflowAuthorityExists', exists('packages/core/src/types/upstream/semanticDataflowAuthority.ts') && /createSemanticDataflowJudgment/.test(authority));
+assert('historical AST dataflow authority is retired in place', compatibility.trim().length === 0);
 assert('dataflowAuthorityNoOpenPredicateVocabulary', !/predicate\s*:\s*string/.test(authority));
 assert('scalarShapeCarriesSemanticType', /kind: 'scalar'; readonly semanticType: SemanticType/.test(validationShape));
 assert('validationScalarWitnessConsumed', /scalar => createScalarValidationFieldNode\(root\.name, scalar[,\)]/.test(validation));

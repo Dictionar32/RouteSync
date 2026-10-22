@@ -1,0 +1,34 @@
+{
+  "phase": 2057,
+  "title": "Static-Call Origin Rule Interface First",
+  "result": "PASS_STRUCTURAL_AUDITS_AND_PARSE_ONLY",
+  "changes": [
+    "Added declarative static-call origin rule pattern ADT: class_method, class, fallback.",
+    "Advanced existing ControllerStaticCallOriginAuthorityInterface to contract version 2 and exposed ordered rules.",
+    "Registered DB::table before the DB facade class rule and generic model-origin fallback.",
+    "Removed relational helper imports from controllerStaticCallOriginAuthority.ts.",
+    "Mapped DB facade calls without table-origin semantics to not_applicable, then closed that result as unresolved at resource model-origin boundary.",
+    "Added regression coverage for DB::select and rule ordering."
+  ],
+  "structuralAuditChecks": 101,
+  "phase2057Audit": "10/10",
+  "phase2051Audit": "12/12",
+  "phase2052Audit": "12/12",
+  "phase2053Audit": "9/9",
+  "phase2054Audit": "8/8",
+  "phase2055Audit": "9/9",
+  "phase2056Audit": "9/9",
+  "phase1885StaticCallOriginAudit": "14/14",
+  "phase1869InvocationIntegratedResponseAudit": "10/10",
+  "phase1944AstAdtAudit": "8/8",
+  "typescriptParserOnly": {
+    "files": 4,
+    "parseDiagnostics": 0
+  },
+  "packageJsonParse": "PASS",
+  "fullTypecheck": "NOT_RUN",
+  "build": "NOT_RUN",
+  "vitest": "NOT_RUN",
+  "relationFoundationSubscannerAdded": false,
+  "duplicateAuthorityAdded": false
+}

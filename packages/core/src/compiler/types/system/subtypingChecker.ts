@@ -11,9 +11,9 @@ import { type SemanticType, PrimitiveKind } from '../../../types/domain/semantic
 import { TypeHasher, type HashContext } from '../TypeHasher';
 import type { TypeHierarchy } from '../TypeHierarchy';
 import { presenceFold, type Presence } from '../../../types/upstream/presence';
-import { relationContains, relationInsert } from '../../../semantic/foundation/relationMembership';
-import { relationAll, relationAny, relationEqual, relationResolve } from '../../../semantic/foundation/semanticRelations';
-import { relationOptionFold, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
+import { relationContains, relationInsert } from '../../../semantic/relations/relationMembership';
+import { relationAll, relationAny, relationEqual, relationResolve } from '../../../semantic/relations/semanticRelations';
+import { relationOptionFold, relationVariantFold } from '../../../semantic/relations/relationalSequence';
 
 const sameReference = (
   source: Extract<SemanticType, { kind: 'reference' }>,

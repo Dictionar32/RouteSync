@@ -1,0 +1,57 @@
+{
+  "phase": 1364,
+  "title": "Controller Semantic Flow Contract Adoption",
+  "result": "failed",
+  "passed": 9,
+  "total": 12,
+  "checks": [
+    {
+      "name": "upstream ControllerSemanticVariableFlow contract exists",
+      "passed": true
+    },
+    {
+      "name": "controller body AST uses upstream semantic flow contract",
+      "passed": false
+    },
+    {
+      "name": "controller dataflow contract imports canonical flow type",
+      "passed": true
+    },
+    {
+      "name": "controller dataflow contract exposes canonical flow type",
+      "passed": true
+    },
+    {
+      "name": "builder returns canonical flow type",
+      "passed": true
+    },
+    {
+      "name": "resource binding consumer accepts canonical flow type",
+      "passed": true
+    },
+    {
+      "name": "producer returns the canonical flow type",
+      "passed": false
+    },
+    {
+      "name": "no duplicate inline variables-flow shape remains in contract",
+      "passed": true
+    },
+    {
+      "name": "audit script is registered in package.json",
+      "passed": true
+    },
+    {
+      "name": "build script remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "package version remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "semantic AST producer remains separate from dataflow contract",
+      "passed": false
+    }
+  ]
+}

@@ -1,16 +1,12 @@
 import type { Lookup } from '../../types/upstream/collections';
+import { matchLookup } from '../../types/upstream/collections';
 import type { ClassReference, ModelReference, ServiceReference } from '../../types/upstream/semanticReferences';
-import { relationNotEqual, relationProject, relationSelect } from '../../semantic/foundation/relationalSequence';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/foundation/relationMembership';
-import { relationOptionFold } from '../../semantic/foundation/relationalSequence';
 
 export type GraphNodeReference = ClassReference | ModelReference | ServiceReference;
 export type GraphNodeEntry<T> = { readonly reference: GraphNodeReference; readonly value: T };
 
 type GraphNodeState<T> = Readonly<{
   readonly entries: readonly GraphNodeEntry<T>[];
-  readonly values: RelationIndex<string, T>;
-  readonly references: RelationIndex<string, GraphNodeReference>;
 }>;
 
 const referenceKey = (reference: GraphNodeReference): string =>
@@ -22,36 +18,35 @@ const replaceEntry = <T>(
   value: T,
 ): readonly GraphNodeEntry<T>[] => {
   const key = referenceKey(reference);
-  const retained = relationSelect(entries, entry => relationNotEqual(referenceKey(entry.reference), key));
+  const retained = entries.filter(entry => referenceKey(entry.reference) !== key);
   return Object.freeze([...retained, { reference, value }]);
 };
 
-const projectIndexes = <T>(entries: readonly GraphNodeEntry<T>[]): GraphNodeState<T> => {
-  const values = relationProject(entries, entry => [referenceKey(entry.reference), entry.value] as const);
-  const references = relationProject(entries, entry => [referenceKey(entry.reference), entry.reference] as const);
-  return Object.freeze({ entries: Object.freeze([...entries]), values, references });
+const lookupEntry = <T>(
+  entries: readonly GraphNodeEntry<T>[],
+  reference: GraphNodeReference,
+): Lookup<T> => {
+  const key = referenceKey(reference);
+  const entry = entries.find(candidate => referenceKey(candidate.reference) === key);
+  return entry === undefined
+    ? { kind: 'missing' }
+    : { kind: 'found', value: entry.value };
 };
 
 const create = <T>(initial: readonly GraphNodeEntry<T>[]): GraphNodeIndex<T> => {
-  let state = projectIndexes(initial);
+  let state: GraphNodeState<T> = Object.freeze({ entries: Object.freeze([...initial]) });
   const api: GraphNodeIndex<T> = {
     set: (reference, value) => {
-      const entries = replaceEntry(state.entries, reference, value);
-      state = projectIndexes(entries);
+      state = Object.freeze({ entries: replaceEntry(state.entries, reference, value) });
     },
-    lookup: reference => relationOptionFold(
-      relationIndexLookup(state.values, referenceKey(reference)),
-      () => ({ kind: 'missing' } as const),
-      value => ({ kind: 'found', value } as const),
-    ),
-    has: reference => relationOptionFold(
-      relationIndexLookup(state.values, referenceKey(reference)),
-      () => false,
-      () => true,
-    ),
+    lookup: reference => lookupEntry(state.entries, reference),
+    has: reference => matchLookup(lookupEntry(state.entries, reference), {
+      missing: () => false,
+      found: () => true,
+    }),
     get size() { return state.entries.length; },
     [Symbol.iterator]: () => state.entries[Symbol.iterator](),
-    referencesIterator: () => relationProject(state.references, entry => entry[1])[Symbol.iterator](),
+    referencesIterator: () => state.entries.map(entry => entry.reference)[Symbol.iterator](),
   };
   return api;
 };

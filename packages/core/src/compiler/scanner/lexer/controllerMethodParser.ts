@@ -2,11 +2,13 @@ import type { PhpAstValue, TokenDescriptor } from './phpAstTypes';
 import { classifyAstTokens } from './astClassifier';
 import { createAstIdentifier } from './phpAstTypes';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationProject, relationIndexOf, relationGate, relationFold, relationFirst, relationOptionFold, relationRange, relationTextSlice, relationAdvanceIndex, relationSome, relationNone, type RelationOption } from '../../../semantic/foundation/relationalSequence';
-import { relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { relationAny, relationAll, relationEqual, relationNotEqual } from '../../../semantic/relations/semanticRelations';
+import { relationProject, relationIndexOf, relationGate, relationFold, relationFirst, relationOptionFold, relationRange, relationTextSlice, relationAdvanceIndex, relationSome, relationNone, type RelationOption } from '../../../semantic/relations/relationalSequence';
+import { relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
 import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 import type { RequestName } from '../../../types/upstream/names';
+import type { LaravelControllerAstProjectionContext, LaravelControllerAstProjectionSemanticAuthorityInterface } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
+import { laravelControllerAstProjectionSemanticAuthority } from '../../../types/upstream/laravelControllerAstProjectionSemanticAuthority';
 import { parseControllerReturns } from './controllerReturnParser';
 import { parseControllerBody } from './controllerBodyParser';
 import { tokenAt, tokenValueEquals, tokenKindEquals } from './tokenEvidence';
@@ -74,11 +76,24 @@ const parseControllerMethodVisibility = (tokens: readonly TokenDescriptor[], ind
 };
 
 export function parseControllerMethod(
-    source: string,
-    tokens: readonly TokenDescriptor[],
-    functionIndex: number,
-    filePath = '<php-source>'
-): RelationOption<ControllerMethodAst> {
+    source: string, tokens: readonly TokenDescriptor[], functionIndex: number,
+    context: Extract<LaravelControllerAstProjectionContext, { readonly kind: 'syntax_only' }>,
+    projectionAuthority?: LaravelControllerAstProjectionSemanticAuthorityInterface,
+): RelationOption<ControllerMethodAst<false>>;
+export function parseControllerMethod(
+    source: string, tokens: readonly TokenDescriptor[], functionIndex: number,
+    context: Extract<LaravelControllerAstProjectionContext, { readonly kind: 'invocation_semantic_judgment' }>,
+    projectionAuthority?: LaravelControllerAstProjectionSemanticAuthorityInterface,
+): RelationOption<ControllerMethodAst<true>>;
+export function parseControllerMethod(
+    source: string, tokens: readonly TokenDescriptor[], functionIndex: number, context: LaravelControllerAstProjectionContext,
+    projectionAuthority?: LaravelControllerAstProjectionSemanticAuthorityInterface,
+): RelationOption<ControllerMethodAst<boolean>>;
+export function parseControllerMethod(
+    source: string, tokens: readonly TokenDescriptor[], functionIndex: number,
+    context: LaravelControllerAstProjectionContext,
+    projectionAuthority: LaravelControllerAstProjectionSemanticAuthorityInterface = laravelControllerAstProjectionSemanticAuthority,
+): RelationOption<ControllerMethodAst<boolean>> {
     const nameToken = tokens[relationAdvanceIndex(functionIndex, 1)];
     const bodyStart = findBodyStart(tokens, relationAdvanceIndex(functionIndex, 2));
     const bodyEnd = relationGate(bodyStart >= 0, () => findMatching(tokens, bodyStart, '{', '}'), () => -1);
@@ -99,9 +114,9 @@ export function parseControllerMethod(
             body: parseControllerBody(
                 source,
                 bodyTokens,
-                relationProject(parameters, parameter => parameter.name),
                 relationProject(parameters, parameterSemanticEntry),
-                filePath
+                context,
+                projectionAuthority,
             ),
             source: tokens[functionIndex],
         }));
@@ -277,10 +292,13 @@ function parseResponseAttribute(tokens: readonly TokenDescriptor[], functionInde
     return relationOptionFold(candidate, () => ({ kind: 'absent' }), index => {
         const classToken = tokens[index + 2];
         const valid = relationAll([tokenKindEquals(tokens, index + 2, 'IDENTIFIER'), tokenValueEquals(tokens, index + 3, '::'), tokenValueEquals(tokens, index + 4, 'class')]);
-        return relationGate(valid, () => {
-            const end = findAttributeEnd(tokens, index + 1, functionIndex);
-            return { kind: 'declared', className: createAstIdentifier(resolveImportedClassName(tokens, classToken.value, functionIndex)), collection: relationAny(relationProject(relationRange(tokens, relationAdvanceIndex(index, 1), end), token => relationEqual(token.value, 'true'))) };
-        }, () => ({ kind: 'absent' }));
+        const end = findAttributeEnd(tokens, index + 1, functionIndex);
+        return relationGate(relationAll([valid, end < functionIndex, tokenValueEquals(tokens, end, ']')]), () => ({
+            kind: 'declared',
+            className: createAstIdentifier(resolveImportedClassName(tokens, classToken.value, functionIndex)),
+            collection: relationAny(relationProject(relationRange(tokens, relationAdvanceIndex(index, 1), end), token => relationEqual(token.value, 'true'))),
+            source: Object.freeze({ ...tokens[index - 2], endOffset: tokens[end].endOffset }),
+        }), () => ({ kind: 'absent' }));
     });
 }
 

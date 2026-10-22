@@ -5,11 +5,10 @@
  */
 
 import type { RouteCapabilityContract, RouteIdentity } from '../../../../types/upstream/route';
-import { routeSecurityAuthority } from '../../../../types/upstream/routeSecurityAuthority';
 import { toUpstreamHttpErrorResponse, type HttpErrorResponseDescriptor } from "../../../../types/domain/httpErrors";
 import type { ResolvedRouteBoundaryOptions, IntermediateRouteBoundaryBasics } from "./boundaryBasicsTypes";
 import type { Sequence } from "../../../../types/upstream/collections";
-import { relationFoldRight } from "../../../../semantic/foundation/relationalSequence";
+import { relationFoldRight } from "../../../../semantic/relations/relationalSequence";
 
 const sequenceCons = <T>(head: T, tail: Sequence<T>): Sequence<T> => ({ kind: 'cons', head, tail });
 const sequenceFromArray = <T>(items: readonly T[]): Sequence<T> => {
@@ -33,7 +32,7 @@ export function buildRouteCapabilityContract(
         method: params.method,
         path: params.path,
     });
-    const security = routeSecurityAuthority.resolve(middleware, params.auth);
+    const security = params.security;
     // Preserve the exact proof produced by RouteCapabilitySemanticAuthority.
     // This builder composes the closed contract; it must not mint a second proof.
     const reasoning = params.reasoning;

@@ -1,0 +1,81 @@
+{
+  "phase": 1729,
+  "name": "canonical-subject-coverage-entry-regression",
+  "range": "1721-1729",
+  "phases": [
+    {
+      "phase": 1721,
+      "name": "static-source-bound-stage-context",
+      "total": 17,
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "phase": 1722,
+      "name": "static-stage-judgment-envelope",
+      "total": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": 1723,
+      "name": "domain-owned-invocation-stage-judgments",
+      "total": 14,
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "phase": 1724,
+      "name": "static-coverage-truthfulness-boundary",
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "phase": 1725,
+      "name": "total-invocation-coverage-publication",
+      "total": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    {
+      "phase": 1726,
+      "name": "inventory-bound-coverage-contract",
+      "total": 15,
+      "passed": 15,
+      "failed": 0
+    },
+    {
+      "phase": 1727,
+      "name": "coverage-publication-validation-outcome",
+      "total": 19,
+      "passed": 19,
+      "failed": 0
+    },
+    {
+      "phase": 1728,
+      "name": "analysis-correspondence-contract",
+      "total": 17,
+      "passed": 17,
+      "failed": 0
+    },
+    {
+      "phase": 1729,
+      "name": "canonical-subject-coverage-entry",
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    }
+  ],
+  "total": 138,
+  "passed": 138,
+  "failed": 0,
+  "status": "PASS",
+  "typescript": {
+    "command": "tsc --noEmit --strict --target ES2022 --moduleResolution bundler --module ESNext --skipLibCheck packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+    "exitCode": 2,
+    "diagnosticLines": 88,
+    "changedInterfaceDiagnostics": 0,
+    "note": "Diagnostics are in unrelated pre-existing domain/resource-model modules; full package build was not run."
+  }
+}

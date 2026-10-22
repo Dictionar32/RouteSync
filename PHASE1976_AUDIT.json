@@ -1,0 +1,41 @@
+{
+  "phase": 1976,
+  "title": "Pure interface subscanner retirement contract",
+  "scope": "interface-only; no runtime/scanner/wiring edits",
+  "checks": [
+    {
+      "name": "retirement module contains the domain ADT",
+      "passed": true
+    },
+    {
+      "name": "retirement module contains the interface declaration",
+      "passed": true
+    },
+    {
+      "name": "retirement module contains no runtime const declarations",
+      "passed": true
+    },
+    {
+      "name": "retirement module contains no function or class implementation",
+      "passed": true
+    },
+    {
+      "name": "runtime registry is removed from the module",
+      "passed": true
+    },
+    {
+      "name": "runtime registry is not re-exported by package barrel",
+      "passed": true
+    },
+    {
+      "name": "existing type contract remains exported",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner path introduced",
+      "passed": true
+    }
+  ],
+  "passed": 8,
+  "total": 8
+}

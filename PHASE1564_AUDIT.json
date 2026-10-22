@@ -1,0 +1,132 @@
+{
+  "phase": 1564,
+  "audit": "request-type-judgment-coherence",
+  "passed": 29,
+  "total": 29,
+  "checks": [
+    {
+      "name": "interface remains declaration-only",
+      "passed": true
+    },
+    {
+      "name": "semantic outcomes are discriminated judgments",
+      "passed": true
+    },
+    {
+      "name": "proof closure is correlated with judgment kind",
+      "passed": true
+    },
+    {
+      "name": "closed judgment requires closed proof closure",
+      "passed": true
+    },
+    {
+      "name": "incomplete judgment requires incomplete proof closure",
+      "passed": true
+    },
+    {
+      "name": "conflict judgment requires conflicted proof closure",
+      "passed": true
+    },
+    {
+      "name": "non-empty ledger algebra exists",
+      "passed": true
+    },
+    {
+      "name": "incomplete judgment cannot carry an empty unresolved ledger",
+      "passed": true
+    },
+    {
+      "name": "unresolved judgment entries are narrowed to unresolved dispositions",
+      "passed": true
+    },
+    {
+      "name": "conflict judgment cannot carry an empty conflict ledger",
+      "passed": true
+    },
+    {
+      "name": "conflicted proof closure requires a non-empty proof conflict ledger",
+      "passed": true
+    },
+    {
+      "name": "non-conflicted proof closures require an empty conflict ledger",
+      "passed": true
+    },
+    {
+      "name": "proof carries its own conflict ledger",
+      "passed": true
+    },
+    {
+      "name": "policy states outcome and closure coherence",
+      "passed": true
+    },
+    {
+      "name": "policy requires judgment groups to match proof outputs",
+      "passed": true
+    },
+    {
+      "name": "policy requires judgment ledgers to match proof ledgers",
+      "passed": true
+    },
+    {
+      "name": "judgment-kind closure law is declared",
+      "passed": true
+    },
+    {
+      "name": "judgment output proof law is declared",
+      "passed": true
+    },
+    {
+      "name": "incomplete ledger coherence law is declared",
+      "passed": true
+    },
+    {
+      "name": "conflict ledger coherence law is declared",
+      "passed": true
+    },
+    {
+      "name": "verifier distinguishes judgment closure mismatch",
+      "passed": true
+    },
+    {
+      "name": "verifier distinguishes output mismatch",
+      "passed": true
+    },
+    {
+      "name": "verifier distinguishes unresolved ledger mismatch",
+      "passed": true
+    },
+    {
+      "name": "verifier distinguishes conflict ledger mismatch",
+      "passed": true
+    },
+    {
+      "name": "previous transition algebra remains present",
+      "passed": true
+    },
+    {
+      "name": "group receipt continues to carry complete result",
+      "passed": true
+    },
+    {
+      "name": "source-domain evidence keys remain tagged",
+      "passed": true
+    },
+    {
+      "name": "authority interface returns judgment and verification contracts",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the interface",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "static interface-model audit only; no claim of authority implementation, scanner migration, runtime migration, package build, or Vitest validation",
+  "validationNotes": [
+    "static interface audit only",
+    "targeted global TypeScript 5.8.3 check reports 35 diagnostics in imported dependency modules and zero diagnostics directly on requestTypeDerivationInterface.ts",
+    "scanner aggregator, scanner entrypoint, and runtime executor remain byte-for-byte unchanged from Phase 1563",
+    "full package build and Vitest not run"
+  ]
+}

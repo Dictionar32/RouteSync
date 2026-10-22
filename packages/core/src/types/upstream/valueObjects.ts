@@ -32,6 +32,9 @@ export interface DescriptionText {
   readonly value: string;
 }
 
+export const descriptionText = (value: string): DescriptionText =>
+  Object.freeze({ kind: 'description_text' as const, value });
+
 export interface HttpStatusCode {
   readonly kind: 'http_status_code';
   readonly value: NumberValue;

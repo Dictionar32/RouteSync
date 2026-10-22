@@ -14,7 +14,7 @@ const upgraded = [
   'packages/core/src/compiler/analysis/astAnalysisInterface.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptNodeLowerer.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts',
+  'packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts',
   'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts',
   'packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts',
 ];

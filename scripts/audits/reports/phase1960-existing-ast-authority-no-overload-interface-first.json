@@ -1,0 +1,80 @@
+{
+  "phase": 1960,
+  "audit": "existing-ast-authority-no-overload-interface-first",
+  "passed": 13,
+  "total": 18,
+  "checks": [
+    {
+      "name": "classifier interface exposes one classify port over a closed request ADT",
+      "passed": false
+    },
+    {
+      "name": "classifier interface uses one request/response ADT port without overloads",
+      "passed": true
+    },
+    {
+      "name": "syntax request and response ADTs are closed to expression and block outcomes",
+      "passed": true
+    },
+    {
+      "name": "semantic evidence uses the pre-existing producer interface",
+      "passed": true
+    },
+    {
+      "name": "producer accepts a closed PHP AST syntax-kind vocabulary rather than arbitrary string",
+      "passed": true
+    },
+    {
+      "name": "closed syntax-kind vocabulary is a canonical upstream type reused by expression AST",
+      "passed": true
+    },
+    {
+      "name": "semantic judgment preserves syntax as a typed ADT term instead of flattening it to text",
+      "passed": true
+    },
+    {
+      "name": "semantic response reuses existing AstSemanticStageInterface",
+      "passed": true
+    },
+    {
+      "name": "classifier runtime remains syntax-only",
+      "passed": true
+    },
+    {
+      "name": "facade dispatches through the single classifier port and projects closed results",
+      "passed": false
+    },
+    {
+      "name": "invocation judgment preserves all four exact integrated-response outcomes",
+      "passed": true
+    },
+    {
+      "name": "integrated response remains a closed ADT owned by its existing interface",
+      "passed": true
+    },
+    {
+      "name": "Laravel controller scanner accepts the existing closed invocation inventory receipt",
+      "passed": true
+    },
+    {
+      "name": "manifest builder forwards the validated inventory into source AST scanning",
+      "passed": false
+    },
+    {
+      "name": "CLI closes invocation judgments through the existing inventory authority",
+      "passed": false
+    },
+    {
+      "name": "public barrels export the existing authority and canonical syntax type",
+      "passed": true
+    },
+    {
+      "name": "Laravel route scanner closure semanticReturn expression is syntactically closed",
+      "passed": false
+    },
+    {
+      "name": "no new parallel semantic authority was introduced",
+      "passed": true
+    }
+  ]
+}

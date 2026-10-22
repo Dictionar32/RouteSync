@@ -1,0 +1,24 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const contract = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProjectionInterface.ts');
+const lowering = read('packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts');
+const solver = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
+const facade = read('packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts');
+const projection = read('packages/core/src/compiler/scanner/wiring/routeManifestProjectionInterface.ts');
+const checks = [];
+const assert = (label, condition) => checks.push({ label, passed: Boolean(condition) });
+assert('projection operation requires canonical source evidence as input', /sourceEvidence: readonly RequestTypeEvidenceReference\[\]/.test(contract));
+assert('manifest lowering passes preflight evidence into the solver operation', /derive\(\{ \.\.\.sourceInput, sourceEvidence, interner, requestResolutionLedger, resourceResolutionLedger \}\)/.test(lowering));
+assert('solver checks source-evidence cardinality against the source inventory', /assertSourceEvidenceInventoryBinding[\s\S]*suppliedEvidence\.length !== expectedEvidence\.length/.test(solver));
+assert('solver binds each evidence item to one source domain and occurrence key', /candidate\.source\.kind === expected\.source\.kind[\s\S]*candidate\.occurrenceKey === expected\.occurrenceKey[\s\S]*matches\.length !== 1/.test(solver));
+assert('solver validates canonical identity and occurrence coordinates structurally', /sameCanonicalSourceEvidence[\s\S]*canonicalRouteIdentity\(actual\.source\.identity\)[\s\S]*canonicalResourceIdentity\(actual\.source\.identity\)[\s\S]*canonicalRequestIdentity\(actual\.source\.identity\)/.test(solver));
+assert('source-evidence validation executes before derivation context and grouping', /assertSourceEvidenceInventoryBinding\(routes, resources, requests, sourceEvidence\);\s*const context = createDerivationContext/.test(solver));
+assert('compatibility facade derives evidence and both ledgers from one inventory', /const inventory = requestTypeDerivationSourceEvidenceInventory\.inventory\(input\)[\s\S]*const sourceEvidence = Object\.freeze\(\[\.\.\.inventory\.routes, \.\.\.inventory\.resources, \.\.\.inventory\.requests\]\)[\s\S]*sourceEvidence, interner, requestResolutionLedger, resourceResolutionLedger/.test(facade));
+assert('source evidence and both resolution ledgers remain in the upstream projection packet', /interface RouteManifestProjectionInput[\s\S]*sourceEvidence: readonly RequestTypeEvidenceReference\[\][\s\S]*requestResolutionLedger[\s\S]*resourceResolutionLedger/.test(projection));
+assert('implementation does not claim the semantic judgment producer/verifier is complete', /RequestTypeDerivationSemanticPipelineInterface/.test(read('packages/core/src/types/upstream/requestTypeDerivationInterface.ts')) && !/requestTypeDerivationSolver\s+as\s+RequestTypeDerivationSemanticPipelineInterface/.test(solver));
+let failed = 0;
+for (const check of checks) { console.log(`${check.passed ? 'PASS' : 'FAIL'} ${check.label}`); if (!check.passed) failed += 1; }
+console.log(`Phase 2551 audit: ${checks.length - failed}/${checks.length} passed`);
+process.exitCode = failed === 0 ? 0 : 1;

@@ -1,0 +1,65 @@
+{
+  "phase": 2159,
+  "title": "CLI-to-Response Ownership Trace — Interface First",
+  "passed": 8,
+  "total": 14,
+  "checks": [
+    {
+      "name": "scan command uses shared invocation manifest composition",
+      "passed": false
+    },
+    {
+      "name": "sync command uses shared invocation manifest composition",
+      "passed": false
+    },
+    {
+      "name": "CLI builds manifest only from validated inventory receipt",
+      "passed": false
+    },
+    {
+      "name": "generate consumes manifest through compiler bridge",
+      "passed": true
+    },
+    {
+      "name": "controller scanner runs integrated response judgment",
+      "passed": true
+    },
+    {
+      "name": "response judgment retains exact invocation correlation in AST projection",
+      "passed": true
+    },
+    {
+      "name": "action judgment still enters legacy action scanner",
+      "passed": false
+    },
+    {
+      "name": "legacy action derivation remains explicitly identified after reference-judgment rename",
+      "passed": false
+    },
+    {
+      "name": "absent response attribute still maps to void descriptor",
+      "passed": false
+    },
+    {
+      "name": "integrated evidence distinguishes observed return from descriptor candidate",
+      "passed": true
+    },
+    {
+      "name": "descriptor candidate is not declared canonical return proof",
+      "passed": true
+    },
+    {
+      "name": "resource binding treats response_absent as unresolved rather than proven no-content",
+      "passed": true
+    },
+    {
+      "name": "no new duplicate response authority proposed",
+      "passed": true
+    },
+    {
+      "name": "trace records response declaration/reference as distinct from HTTP return semantics",
+      "passed": true
+    }
+  ],
+  "productionCodeChanged": false
+}

@@ -39,7 +39,7 @@ route/controller/model_relation/resource/schema evidence
 - The current source tree contains many zero-byte historical TypeScript files, including old SDK emitters and CLI resolver modules. This phase does not restore them without an import/reachability proof.
 - `scripts/audit/routesync-architecture.cjs` had two failures because it expected legacy helper implementations in the now-empty action map and expected a comment in the empty historical dataflow adapter. The audit has been aligned with the source's retired-in-place state, while preserving the no-consumer condition.
 - `semantic-ownership-coverage` and `semantic-interface-contract-phase1305` already pass. Those results verify source patterns, not the full TypeScript build.
-- Phase 1346's declaration-only config sets `isolatedDeclarations: false`. This is a compatibility fallback for declaration generation, not a stronger contract. The root config remains `true`; restore a single strict declaration path after resolving missing TypeScript 7 native package / declaration inference issues and adding explicit export annotations.
+- The current `tsdown.config.ts` enables `dts: true` and uses the root `tsconfig.json`; no `tsconfig.dts.json` exists in this archive. The root config keeps `isolatedDeclarations: true`. Declaration generator compatibility must be tested against the installed TypeScript/tsdown versions rather than assumed by audit scripts.
 
 ## Recommended order of further work
 

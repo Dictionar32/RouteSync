@@ -1,0 +1,18 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
+const contract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const start = wiring.indexOf('const createActionJudgmentAuthority = (');
+const end = wiring.indexOf('const bodySemanticJudgmentAuthority =', start);
+const authorityFactory = wiring.slice(start, end);
+assert.match(wiring, /resourceReturnSourceEvidenceProjection: LaravelControllerExecutionDependencies\['resourceReturnSourceEvidenceProjection'\]/);
+assert.match(authorityFactory, /resourceReturnSourceEvidenceProjection,\s*classNameResolutionContext:/);
+assert.doesNotMatch(authorityFactory, /resourceReturnSourceEvidenceProjection:\s*controllerResourceReturnSourceEvidenceProjection/);
+assert.match(wiring, /createActionJudgmentAuthority\([\s\S]*controllerResourceReturnSourceEvidenceProjection,/);
+assert.match(contract, /readonly resourceReturnSourceEvidenceProjection: ControllerResourceReturnSourceEvidenceProjectionInterface<PhpAstValue, SourceRange>/);
+assert.match(contract, /context\.resourceReturnSourceEvidenceProjection\.project\(/);
+assert.match(wiring, /readonly resourceReturnSourceEvidenceProjection: ControllerResourceReturnSourceEvidenceProjectionInterface<PhpAstValue, SourceRange>/);
+console.log('Phase 2257 upstream projection injection authority: 7/7 assertions passed');

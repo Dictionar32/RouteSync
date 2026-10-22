@@ -6,7 +6,7 @@
  * @module cli/generators/hooks
  */
 
-import { domainIntentCapabilitiesFromFrontend, type RouteManifest } from '@routesync/core';
+import { domainIntentCapabilitiesFromFrontend, type ResourceGroupCapabilityContract, type RouteManifest } from '@routesync/core';
 import type { ClassifiedDomainGraph, ClassifiedRoute } from '../route-capability-projection';
 import { lowerGroupHookConfig, addRouteInvalidations } from './hookConfigLowerer';
 
@@ -22,7 +22,7 @@ export function* lowerRuntimeManifestSource(manifest: RouteManifest): Iterable<s
 
 export function* lowerHookSource(
   graph: ClassifiedDomainGraph<ClassifiedRoute>,
-  _manifest: RouteManifest
+  manifest: RouteManifest
 ): Iterable<string> {
   const importedTypes = new Set<string>();
   const contractImportedTypes = new Set<string>();
@@ -60,8 +60,20 @@ export function* lowerHookSource(
   yield ``;
   yield `const baseHooks = defineHooks({`;
 
+  const capabilityByName = new Map<string, ResourceGroupCapabilityContract>();
+  for (const capability of manifest.resourceGroupCapabilities ?? []) {
+    if (capabilityByName.has(capability.groupName)) {
+      throw new Error(`Upstream manifest contains duplicate resource-group capability identity: ${capability.groupName}`);
+    }
+    capabilityByName.set(capability.groupName, capability);
+  }
   for (const group of graph.resourceGroupGraph.all) {
-    yield* lowerGroupHookConfig(group, addRouteInvalidations);
+    const canonicalGroupName = group.all[0]?.raw.identity.domain.group.value.value ?? group.groupName;
+    const capability = capabilityByName.get(canonicalGroupName) ?? capabilityByName.get(group.groupName);
+    if (!capability || capability.closed !== true || capability.executionSlots.closed !== true) {
+      throw new Error(`Missing closed upstream execution-slot contract for resource group: ${group.groupName}`);
+    }
+    yield* lowerGroupHookConfig(group, addRouteInvalidations, capability);
   }
 
   yield `}, runtimeManifest)`;

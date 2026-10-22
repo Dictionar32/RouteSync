@@ -1,0 +1,58 @@
+{
+  "phase": 1399,
+  "audit": "ast-classifier-runtime-port-separation",
+  "checks": [
+    {
+      "name": "upstreamContractDeclaresSingleRequestPort",
+      "passed": true
+    },
+    {
+      "name": "upstreamContractDeclaresClosedSemanticEvidencePort",
+      "passed": false
+    },
+    {
+      "name": "upstreamContractHasNoCompilerRuntimeImports",
+      "passed": true
+    },
+    {
+      "name": "facadeIsSmallAndDelegatesToRuntime",
+      "passed": true
+    },
+    {
+      "name": "facadeProvidesOnlyContractCapabilities",
+      "passed": false
+    },
+    {
+      "name": "parserImplementationIsSeparated",
+      "passed": true
+    },
+    {
+      "name": "classifierConsumesPortInsteadOfRuntimeNamespace",
+      "passed": false
+    },
+    {
+      "name": "semanticRelationsConsumePortInsteadOfRuntimeNamespace",
+      "passed": true
+    },
+    {
+      "name": "upstreamContractIsPubliclyExported",
+      "passed": true
+    },
+    {
+      "name": "runtimeImplementationIsNotImportedByOtherCoreConsumers",
+      "passed": false
+    },
+    {
+      "name": "packageVersionAndBuildPreserved",
+      "passed": true
+    }
+  ],
+  "passedChecks": 7,
+  "totalChecks": 11,
+  "failures": [
+    "upstreamContractDeclaresClosedSemanticEvidencePort",
+    "facadeProvidesOnlyContractCapabilities",
+    "classifierConsumesPortInsteadOfRuntimeNamespace",
+    "runtimeImplementationIsNotImportedByOtherCoreConsumers"
+  ]
+}

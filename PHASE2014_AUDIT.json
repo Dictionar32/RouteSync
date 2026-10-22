@@ -1,0 +1,44 @@
+{
+  "phase": 2014,
+  "audit": "source-ast-projection-executor-interface-first",
+  "passed": 6,
+  "total": 9,
+  "checks": [
+    {
+      "name": "pipeline contract returns outcome-indexed projection judgment",
+      "passed": true
+    },
+    {
+      "name": "scanner facade preserves the same generic receipt and ADT result",
+      "passed": false
+    },
+    {
+      "name": "runtime pipeline contract version matches interface v3",
+      "passed": false
+    },
+    {
+      "name": "runtime validates completeness before publishing projection",
+      "passed": true
+    },
+    {
+      "name": "blocked projection preserves partial AST and typed completeness judgment",
+      "passed": true
+    },
+    {
+      "name": "generic completeness validator preserves exact AST subtype",
+      "passed": true
+    },
+    {
+      "name": "manifest builder consumes complete projection instead of revalidating SourceAsts",
+      "passed": false
+    },
+    {
+      "name": "canonical SourceAsts continues to retain invocation receipt",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner was added by this phase",
+      "passed": true
+    }
+  ]
+}

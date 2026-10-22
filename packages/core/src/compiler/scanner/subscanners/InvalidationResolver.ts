@@ -29,8 +29,8 @@ import {
     relationSome,
     relationRefine,
     type RelationOption,
-} from "../../../semantic/foundation/relationalSequence";
-import { relationAny, relationEqual } from "../../../semantic/foundation/semanticRelations";
+} from "../../../semantic/relations/relationalSequence";
+import { relationAny, relationEqual } from "../../../semantic/relations/semanticRelations";
 
 type RouteInvalidationContext = Readonly<{
     readonly route: RouteSemanticFlow;

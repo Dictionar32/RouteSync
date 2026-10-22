@@ -1,0 +1,24 @@
+{
+  "phase": 2161,
+  "mode": "syntax-only-transpileModule",
+  "files": 4,
+  "diagnosticCount": 0,
+  "results": [
+    {
+      "file": "packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "diagnostics": []
+    }
+  ]
+}

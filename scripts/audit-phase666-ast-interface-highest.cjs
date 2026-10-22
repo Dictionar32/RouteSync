@@ -11,8 +11,6 @@ const boundaries = [
   'packages/core/src/types/upstream/astSemanticStagePreservation.ts',
   'packages/core/src/compiler/scanner/lexer/tokenEvidence.ts',
   'packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts',
-  'packages/core/src/semantic/kernel/semanticDecisionRewriteEngine.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts',
   'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts',
@@ -20,6 +18,8 @@ const boundaries = [
 const counts = Object.fromEntries(boundaries.map(file => [file, [...read(file).matchAll(new RegExp(forbidden.source, 'g'))].length]));
 const algebra = read(boundaries[0]);
 const stage = read(boundaries[1]);
+const stageAuthority = read('packages/core/src/types/upstream/astSemanticStageAuthority.ts');
+const legacyDataflowAdapter = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
 const legacyEmpty = [
   'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
   'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
@@ -41,7 +41,9 @@ const result = {
   legacySolverAndSyntaxCoreEmpty: legacyEmpty,
   boundaryForbidden: counts,
   cleanBoundary: Object.values(counts).every(value => value === 0),
+  legacyAdapterDelegatesUpstream: /@deprecated Compatibility facade/.test(legacyDataflowAdapter) && /createSemanticDataflowJudgment/.test(legacyDataflowAdapter) && !/relationFixedPoint|reachClosure/.test(legacyDataflowAdapter),
+  dedicatedRewriteAuthorityPresent: fs.existsSync(path.join(root, 'packages/core/src/semantic/kernel/semanticDecisionRewriteEngine.ts')),
 };
-result.success = interfaceClosed && stageJudgmentClosed && legacyEmpty && result.cleanBoundary;
+result.success = interfaceClosed && stageJudgmentClosed && legacyEmpty && result.cleanBoundary && result.legacyAdapterDelegatesUpstream && result.dedicatedRewriteAuthorityPresent;
 console.log(JSON.stringify(result, null, 2));
 process.exitCode = result.success ? 0 : 1;

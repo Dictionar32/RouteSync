@@ -16,14 +16,21 @@ const discoveredMany = <T>(discovery: SourceDiscovery<T>): readonly T[] =>
     }),
   });
 
-export const routeFlowsFromManifest = (manifest: RouteSyncManifest): readonly RouteSemanticFlow[] =>
-  Object.freeze(manifest.ast.ast.routeFlows);
+export interface RouteManifestProjectionInputsInterface {
+  readonly routeFlowsFromManifest: (manifest: RouteSyncManifest) => readonly RouteSemanticFlow[];
+  readonly modelAstsFromManifest: (manifest: RouteSyncManifest) => readonly ModelAst[];
+  readonly resourceAstsFromManifest: (manifest: RouteSyncManifest) => readonly ResourceAst[];
+  readonly requestAstsFromManifest: (manifest: RouteSyncManifest) => readonly RequestAst[];
+}
 
-export const modelAstsFromManifest = (manifest: RouteSyncManifest): readonly ModelAst[] =>
-  discoveredMany(manifest.ast.ast.models.items);
-
-export const resourceAstsFromManifest = (manifest: RouteSyncManifest): readonly ResourceAst[] =>
-  discoveredMany(manifest.ast.ast.resources.items);
-
-export const requestAstsFromManifest = (manifest: RouteSyncManifest): readonly RequestAst[] =>
-  discoveredMany(manifest.ast.ast.requests.items);
+/** Typed runtime projection boundary used by manifest lowering/preflight. */
+export const routeManifestProjectionInputs: RouteManifestProjectionInputsInterface = Object.freeze({
+  routeFlowsFromManifest: (manifest: RouteSyncManifest): readonly RouteSemanticFlow[] =>
+    Object.freeze(manifest.ast.ast.routeFlows),
+  modelAstsFromManifest: (manifest: RouteSyncManifest): readonly ModelAst[] =>
+    discoveredMany(manifest.ast.ast.models.items),
+  resourceAstsFromManifest: (manifest: RouteSyncManifest): readonly ResourceAst[] =>
+    discoveredMany(manifest.ast.ast.resources.items),
+  requestAstsFromManifest: (manifest: RouteSyncManifest): readonly RequestAst[] =>
+    discoveredMany(manifest.ast.ast.requests.items),
+});

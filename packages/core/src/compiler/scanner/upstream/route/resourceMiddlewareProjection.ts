@@ -10,7 +10,6 @@ import type { RouteResourceDeclarationAst, RouteResourceMiddlewareAst } from '..
 import { createActionName, createMiddlewareName } from '../../../../types/upstream/names';
 import type { StringValue } from '../../../../types/upstream/valueObjects';
 import type { RouteMiddlewareContract, RouteMiddlewareExclusionContract, RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
-import { relationProject } from '../../../../semantic/foundation/relationalSequence';
 
 export const routeMiddlewareReference = (raw: string) => {
   const separator = raw.indexOf(':');
@@ -23,8 +22,8 @@ const scope = (value: RouteResourceMiddlewareAst): RouteMiddlewareScope =>
   value.scope.kind === 'all'
     ? { kind: 'all' }
     : value.scope.kind === 'only'
-      ? { kind: 'only', actions: Object.freeze(relationProject(value.scope.actions, createActionName)) }
-      : { kind: 'except', actions: Object.freeze(relationProject(value.scope.actions, createActionName)) };
+      ? { kind: 'only', actions: Object.freeze(value.scope.actions.map(createActionName)) }
+      : { kind: 'except', actions: Object.freeze(value.scope.actions.map(createActionName)) };
 
 const declarations = (values: readonly RouteResourceMiddlewareAst[]): readonly RouteMiddlewareContract[] =>
   Object.freeze(values.flatMap(value => value.middleware.map(raw => Object.freeze({
@@ -46,7 +45,7 @@ export interface RouteResourceMiddlewareProjection {
 }
 
 export const projectRouteResourceMiddleware = (
-  resource: RouteResourceDeclarationAst,
+  resource: Pick<RouteResourceDeclarationAst, 'middleware' | 'middlewareExclusions'>,
 ): RouteResourceMiddlewareProjection => Object.freeze({
   declarations: declarations(resource.middleware),
   exclusions: exclusions(resource.middlewareExclusions),

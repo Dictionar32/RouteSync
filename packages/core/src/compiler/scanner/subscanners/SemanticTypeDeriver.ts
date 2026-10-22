@@ -1,30 +1,26 @@
-/** Relational semantic type derivation facade. */
+/** Compatibility facade. Semantic inference lives in compiler/semantic/type-derivation and is owned by the upstream authority contract. */
 import type { ObjectType } from '../../../types/domain/semanticType';
+import type { SemanticTypeDerivationJudgment } from '../../../types/upstream/semanticTypeDerivationInterface';
 import type { RouteSemanticFlow } from '../../../types/route';
 import type { ModelAst, ResourceAst } from '../../../types/upstream/ast';
 import { TypeInterner } from '../../types/TypeInterner';
-import { relationUnique } from '../../../semantic/foundation/relationMembership';
-import type { RelationMembership } from '../../../semantic/foundation/relationMembership';
-import { SemanticDerivationContext } from './semantic/SemanticDerivationContext';
-import { deriveResourceTypes } from './semantic/resourceTypeDeriver';
-import { deriveRouteResponseTypes } from './semantic/routeResponseDeriver';
-import { deriveModelTypes } from './semantic/modelTypeDeriver';
+import { SemanticDerivationContext } from '../../semantic/type-derivation/SemanticDerivationContext';
+import { semanticTypeDerivationAuthority } from '../../semantic/type-derivation/semanticTypeDerivationAuthority';
 
 export interface SemanticTypeDeriver {
   readonly context: SemanticDerivationContext;
-  readonly run: () => readonly ObjectType[];
+  readonly judgment: SemanticTypeDerivationJudgment;
 }
 
-const fromContext = (context: SemanticDerivationContext): SemanticTypeDeriver => {
-  const run = (): readonly ObjectType[] => {
-    const seenNames: RelationMembership<string> = relationUnique([]);
-    const resourceTypes = deriveResourceTypes(context, seenNames);
-    const routeTypes = deriveRouteResponseTypes(context, seenNames);
-    const modelTypes = deriveModelTypes(context, seenNames);
-    return Object.freeze([...resourceTypes, ...routeTypes, ...modelTypes]);
-  };
-  return Object.freeze({ context, run });
-};
+const fromContext = (context: SemanticDerivationContext): SemanticTypeDeriver => Object.freeze({
+  context,
+  judgment: semanticTypeDerivationAuthority.resolve({
+    resources: context.resources,
+    models: context.models,
+    routes: context.routes,
+    interner: context.interner,
+  }),
+});
 
 export const SemanticTypeDeriver = Object.freeze({
   create: fromContext,
@@ -39,7 +35,7 @@ export const SemanticTypeDeriver = Object.freeze({
     models: readonly ModelAst[] = [],
     interner: TypeInterner = TypeInterner.create(),
     routes: readonly RouteSemanticFlow[] = [],
-  ): readonly ObjectType[] => fromContext(SemanticDerivationContext.create(resources, models, interner, routes)).run(),
+  ): readonly ObjectType[] => fromContext(SemanticDerivationContext.create(resources, models, interner, routes)).judgment.result,
 });
 
 export {
@@ -47,4 +43,4 @@ export {
   deriveResourceTypes,
   deriveRouteResponseTypes,
   deriveModelTypes,
-};
+} from '../../semantic/type-derivation/index';

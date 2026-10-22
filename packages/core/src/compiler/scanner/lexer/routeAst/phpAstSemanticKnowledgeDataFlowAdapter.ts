@@ -1,15 +1,15 @@
 import { relationResolve } from '../../../relational/sequence';
 import { project, retain, expand, accumulate, visit } from './semanticRelationalCollections';
 import { projectRelation, visitRelation } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, relationIsPresent, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';
 import type { PhpAstValue, PhpBlock } from '../phpAstTypes';
 import { compileSemanticEvidenceRelations } from './semanticEvidenceRelationCompiler';
 import { createPhpAstExpressionProjector } from './phpAstExpressionSyntaxEvidenceRegistry';
 import { buildSemanticCompilationArtifact } from './semanticCompilationArtifact';
 import type { PhpStatement } from '../phpAstTypes';
 import { projectPhpStatementSyntaxEvidence } from './phpAstStatementSyntaxEvidenceRegistry';
-import { type SemanticFact, type SemanticKnowledgeDataFlow, type SemanticDataFlowFact, type SemanticOperatorCode, type SemanticDataFlowRelationCode, type SemanticDataFlowRoleCode, type SemanticLiteral, type SemanticPresence, semanticDependency, semanticValueFlow, semanticEdge, semanticFact, semanticSource, SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE, semanticText, semanticNumber, semanticBoolean, knowledgeId, knowledgeIdKey, semanticIdentifier, semanticOperation, semanticPresent, semanticAbsent, SEMANTIC_VALUE_KIND_KNOWLEDGE, SEMANTIC_OUTCOME_ROLE_KNOWLEDGE, SEMANTIC_ACCESS_MODE_KNOWLEDGE, SEMANTIC_OPERATOR_INDEX, SEMANTIC_CAST_KNOWLEDGE, SEMANTIC_EMISSION_KNOWLEDGE, SEMANTIC_INCLUDE_KNOWLEDGE, SEMANTIC_ASSIGNMENT_OPERATOR_KNOWLEDGE, SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE, SEMANTIC_BINDING_ORIGIN_KNOWLEDGE, SEMANTIC_PREDICATE_MEANING_KNOWLEDGE, SEMANTIC_MATCH_MODE_KNOWLEDGE, validateSemanticKnowledgeDataFlow, } from './semanticKnowledgeDataFlowRelations';
+import { type SemanticFact, type SemanticKnowledgeDataFlow, type SemanticDataFlowFact, type SemanticOperatorCode, type SemanticDataFlowRelationCode, type SemanticDataFlowRoleCode, type SemanticLiteral, type SemanticPresence, semanticDependency, semanticValueFlow, semanticEdge, semanticFact, semanticSource, SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE, semanticText, semanticNumber, semanticBoolean, knowledgeId, knowledgeIdKey, semanticIdentifier, semanticOperation, semanticPresent, semanticAbsent, semanticPresenceFold, SEMANTIC_VALUE_KIND_KNOWLEDGE, SEMANTIC_OUTCOME_ROLE_KNOWLEDGE, SEMANTIC_ACCESS_MODE_KNOWLEDGE, SEMANTIC_OPERATOR_INDEX, SEMANTIC_CAST_KNOWLEDGE, SEMANTIC_EMISSION_KNOWLEDGE, SEMANTIC_INCLUDE_KNOWLEDGE, SEMANTIC_ASSIGNMENT_OPERATOR_KNOWLEDGE, SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE, SEMANTIC_BINDING_ORIGIN_KNOWLEDGE, SEMANTIC_PREDICATE_MEANING_KNOWLEDGE, SEMANTIC_MATCH_MODE_KNOWLEDGE, validateSemanticKnowledgeDataFlow, } from './semanticKnowledgeDataFlowRelations';
 const sourceOf = (value: {
     readonly source: {
         readonly startOffset: number;
@@ -67,15 +67,26 @@ export function producePhpAstSemanticKnowledgeDataFlow(block: PhpBlock, filePath
         facts.push(semanticFact(fact));
         return id;
     };
-    const relate = (from: import('./semanticKnowledgeDataFlowRelations').KnowledgeId, to: import('./semanticKnowledgeDataFlowRelations').KnowledgeId, relation: SemanticDataFlowRelationCode, role: SemanticDataFlowRoleCode, guard?: import('./semanticKnowledgeDataFlowRelations').SemanticFlowGuard): void => {
-        const candidateRelations = retain([
-            relationResolve(
-                relationEqual(knowledgeIdKey(from), knowledgeIdKey(to)),
-                () => semanticAbsent('not_applicable'),
-                () => semanticPresent(relationResolve(relationEqual(relation, 'depends_on'), () => semanticDependency(from, to, role, guard), () => semanticValueFlow(from, to, role, guard))),
+    const relate = (from: import('./semanticKnowledgeDataFlowRelations').KnowledgeId, to: import('./semanticKnowledgeDataFlowRelations').KnowledgeId, relation: SemanticDataFlowRelationCode, role: SemanticDataFlowRoleCode, guard?: SemanticPresence<import('./semanticKnowledgeDataFlowRelations').SemanticFlowGuard>): void => {
+        const flowFact = semanticPresenceFold(
+            guard ?? semanticAbsent('not_provided'),
+            () => relationResolve(
+                relationEqual(relation, 'depends_on'),
+                () => semanticDependency(from, to, role),
+                () => semanticValueFlow(from, to, role),
             ),
-        ], item => relationIsPresent(item));
-        projectRelation(candidateRelations, item => { dataFlow.push(item); return item; });
+            flowGuard => relationResolve(
+                relationEqual(relation, 'depends_on'),
+                () => semanticDependency(from, to, role, flowGuard),
+                () => semanticValueFlow(from, to, role, flowGuard),
+            ),
+        );
+        const candidateRelation: SemanticPresence<SemanticDataFlowFact> = relationResolve(
+            relationEqual(knowledgeIdKey(from), knowledgeIdKey(to)),
+            () => semanticAbsent('not_applicable'),
+            () => semanticPresent(flowFact),
+        );
+        semanticPresenceFold(candidateRelation, () => undefined, fact => { dataFlow.push(fact); });
     };
     const outcome = (id: import('./semanticKnowledgeDataFlowRelations').KnowledgeId, role: import('./semanticKnowledgeDataFlowRelations').SemanticOutcomeRoleCode, value: import('./semanticKnowledgeDataFlowRelations').KnowledgeId, source: ReturnType<typeof semanticSource>): import('./semanticKnowledgeDataFlowRelations').KnowledgeId => {
         const outcomeId = add({ kind: 'outcome', value: { id, role: semanticOutcomeRole(role), value: semanticPresent(value), source } });
@@ -209,7 +220,7 @@ export function producePhpAstSemanticKnowledgeDataFlow(block: PhpBlock, filePath
             });
             visitRelation(semanticAnchors, anchor => members.push(anchor));
         });
-        add({ kind: 'scope', value: { id: scopeId, source: relationResolve(scopeSource, () => semanticPresent(scopeSource), () => semanticAbsent('not_provided')) } });
+        add({ kind: 'scope', value: { id: scopeId, source: semanticPresent(scopeSource) } });
         visitRelation(members, member => relate(scopeId, member, 'depends_on', 'member'));
         currentScopeKey = previousScopeKey;
         return scopeId;

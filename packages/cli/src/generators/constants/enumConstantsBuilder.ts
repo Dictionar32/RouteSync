@@ -1,8 +1,9 @@
 /**
  * enumConstantsBuilder.ts
  *
- * Extracts and formats status Enums and their TypeScript types from RouteManifest.
- * Active Consumer orchestrating enum extraction and formatting.
+ * Projects canonical model enum declarations and canonical request validation
+ * ADTs into generated enum constants. This layer does not parse Laravel rule
+ * strings or reconstruct validation semantics from legacy manifest payloads.
  *
  * @module cli/generators/constants
  */
@@ -10,19 +11,30 @@
 import {
   type RouteManifest,
   ValidationRuleKind,
-  ValidationRuleParser,
   toCamelCase,
-  capitalize
+  capitalize,
+  type RouteSchemaPayload,
 } from '@routesync/core';
 import { formatEnumLines } from './enumLinesFormatter';
 
 const sequenceToArray = <T>(sequence: { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: typeof sequence }): readonly T[] =>
   sequence.kind === 'empty' ? [] : [sequence.head, ...sequenceToArray(sequence.tail)];
 
+type AddEnum = (group: string, field: string, values: readonly string[]) => void;
+
+function projectValidationEnums(schema: RouteSchemaPayload, group: string, addEnum: AddEnum): void {
+  for (const field of schema.fields) {
+    const inRule = field.validation.find(rule => rule.kind === ValidationRuleKind.In);
+    if (inRule?.kind === ValidationRuleKind.In && inRule.values.length > 0) {
+      addEnum(group, field.name.value, inRule.values.map(value => value.value));
+    }
+  }
+}
+
 export function buildEnumsLines(manifest: RouteManifest): string[] {
   const enumGroups: Record<string, Record<string, string[]>> = {};
 
-  const addEnum = (group: string, field: string, values: string[]) => {
+  const addEnum: AddEnum = (group, field, values) => {
     const cleanGroup = capitalize(toCamelCase(group));
     const cleanField = capitalize(toCamelCase(field));
     if (!enumGroups[cleanGroup]) {
@@ -32,45 +44,24 @@ export function buildEnumsLines(manifest: RouteManifest): string[] {
     enumGroups[cleanGroup][cleanField] = Array.from(new Set([...existing, ...values]));
   };
 
-  if (manifest.models && Array.isArray(manifest.models)) {
-    for (const model of manifest.models) {
-      const properties = model.definition.semantic.surface.properties;
-      for (const property of sequenceToArray(properties)) {
-        if (property.kind !== 'column' || property.databaseType.kind !== 'enum') continue;
-        addEnum(
-          model.definition.semantic.identity.name.value.value,
-          property.property.value.value,
-          property.databaseType.values.items.map(value => value.value),
-        );
-      }
+  for (const model of manifest.models) {
+    const properties = model.definition.semantic.surface.properties;
+    for (const property of sequenceToArray(properties)) {
+      if (property.kind !== 'column' || property.databaseType.kind !== 'enum') continue;
+      addEnum(
+        model.definition.semantic.identity.name.value.value,
+        property.property.value.value,
+        property.databaseType.values.items.map(value => value.value),
+      );
     }
   }
 
-  if (manifest.routes && Array.isArray(manifest.routes)) {
-    for (const route of manifest.routes) {
-      const schema = route.contract.request.body.kind === 'body' ? route.contract.request.body.schema : route.binding.schema;
-      if (!schema?.rules) continue;
-      const group = route.identity.domain.group.value.value || 'App';
-      if (Array.isArray(schema.rules)) {
-        for (const ruleEntry of schema.rules) {
-          const field = ruleEntry.fieldName;
-          const inRule = ruleEntry.ast?.find((r: any) => r.kind === ValidationRuleKind.In);
-          if (inRule && inRule.kind === ValidationRuleKind.In && inRule.values && inRule.values.length > 0) {
-            addEnum(group, field, [...inRule.values]);
-          }
-        }
-      } else {
-        const rules = schema.rules as Record<string, unknown>;
-        for (const [field, ruleVal] of Object.entries(rules)) {
-          const ruleStr = String(ruleVal);
-          const astNodes = ValidationRuleParser.parseAll(ruleStr.split('|'));
-          const inRule = astNodes.find(r => r.kind === ValidationRuleKind.In);
-          if (inRule && inRule.kind === ValidationRuleKind.In && inRule.values && inRule.values.length > 0) {
-            addEnum(group, field, [...inRule.values]);
-          }
-        }
-      }
-    }
+  for (const route of manifest.routes) {
+    const schema = route.contract.request.body.kind === 'body'
+      ? route.contract.request.body.schema
+      : route.binding.schema;
+    const group = route.identity.domain.group.value.value || 'App';
+    projectValidationEnums(schema, group, addEnum);
   }
 
   return formatEnumLines(enumGroups);

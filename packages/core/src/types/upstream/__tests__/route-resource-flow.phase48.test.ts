@@ -28,6 +28,22 @@ describe('Laravel apiResource upstream route flow phase 48', () => {
       'PATCH /photos/{photo}',
       'DELETE /photos/{photo}',
     ]);
+    expect(plan.actions.map(action => `${action.method} ${action.runtimePath.value.value}`)).toEqual([
+      'GET /photos',
+      'POST /photos',
+      'GET /photos/:photo',
+      'PUT /photos/:photo',
+      'PATCH /photos/:photo',
+      'DELETE /photos/:photo',
+    ]);
+    expect(plan.actions.map(action => action.constantKey)).toEqual([
+      'PHOTOS',
+      'PHOTOS',
+      'PHOTO_PHOTO',
+      'PHOTO_PHOTO',
+      'PHOTO_PHOTO',
+      'PHOTO_PHOTO',
+    ]);
   });
 
   it('resolves nested resources according to Laravel resource URI conventions', () => {
@@ -45,6 +61,25 @@ describe('Laravel apiResource upstream route flow phase 48', () => {
       'PUT /photos/{photo}/comments/{comment}',
       'PATCH /photos/{photo}/comments/{comment}',
       'DELETE /photos/{photo}/comments/{comment}',
+    ]);
+  });
+
+  it('resolves the supplied API/group prefix before returning the closed plan', () => {
+    const resource = createResourceName('photos');
+    const plan = resolveApiResourceFlow({
+      declarationPath: createRoutePath('photos'),
+      prefix: [createRoutePath('api'), createRoutePath('v1')],
+      resource,
+      registration: registration('photos'),
+    });
+
+    expect(plan.actions.map(action => action.path.value.value)).toEqual([
+      '/api/v1/photos',
+      '/api/v1/photos',
+      '/api/v1/photos/{photo}',
+      '/api/v1/photos/{photo}',
+      '/api/v1/photos/{photo}',
+      '/api/v1/photos/{photo}',
     ]);
   });
 

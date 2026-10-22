@@ -13,13 +13,13 @@ import type { SchemaInterface, SchemaTable } from '../../../../types/upstream/sc
 import { schemaRelationIndexFrom, type SchemaRelationIndexInterface } from '../../../../types/upstream/schemaRelation';
 import { reconcileModelPrimaryKey } from '../../../../types/upstream/modelPrimaryKey';
 import { modelRelationInterfaceFrom } from '../../../../types/upstream/modelRelation';
-import { reconcileSemanticRelation } from '../../../../types/upstream/semanticReconciliation';
+import { semanticRelationReconciliationAuthority } from '../../../../types/upstream/semanticReconciliationAuthority';
 import type { ModelCast } from '../../../../types/upstream/model';
 import type { PropertyName } from "../../../../types/upstream/names";
 import { createPropertyName } from "../../../../types/upstream/names";
 import { modelSemanticRelationIdentityOf, type ModelSemanticAccessor, type ModelSemanticColumn, type ModelSemanticProperty, type ModelSemanticRelation, type ModelSemanticSurface } from "../../../../types/upstream/model";
-import { relationProject, relationSelect, relationAny, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
-import { relationAll, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationProject, relationSelect, relationAny, relationOptionFold, relationSome, relationNone, type RelationOption } from '../../../../semantic/relations/relationalSequence';
+import { relationAll, relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 function semanticTypeOfColumn(column: ModelColumnFact): import('../../../../types/upstream/typeVocabulary').TypeExpression {
     return column.type.value;
@@ -123,7 +123,7 @@ const modelSchemaFrom = (table: ModelSemanticDefinition['identity']['table'], sc
 
 function buildModelRelationInterface(relations: readonly EloquentRelationAst[], schema: SchemaRelationIndexInterface) {
     const seedSemantic = relationProject(relations, buildModelRelation);
-    return modelRelationInterfaceFrom(relations, seedSemantic, schema, reconcileSemanticRelation);
+    return modelRelationInterfaceFrom(relations, seedSemantic, schema, semanticRelationReconciliationAuthority.reconcile);
 }
 
 function buildModelProperties(
@@ -176,13 +176,13 @@ export function buildModelSemanticDefinition(params: {
     const guarded = Object.freeze(params.exposure.guarded);
     const hidden = Object.freeze(params.exposure.hidden);
     const appends = Object.freeze(params.exposure.appends);
+    const schemaRelations = schemaRelationIndexFrom(params.schema);
     const primaryKeyReconciliation = reconcileModelPrimaryKey(
-        params.schema,
+        schemaRelations,
         params.identity.table,
         params.identity.primaryKey,
         params.key.origin,
     );
-    const schemaRelations = schemaRelationIndexFrom(params.schema);
     const relationInterface = buildModelRelationInterface(params.relations, schemaRelations);
     const semanticRelations = relationInterface.semantic;
     const semanticProperties = buildModelProperties(params.columnFacts, params.accessors, semanticRelations, params.exposure.hidden);

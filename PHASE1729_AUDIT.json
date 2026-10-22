@@ -1,0 +1,57 @@
+{
+  "phase": 1729,
+  "name": "canonical-subject-coverage-entry",
+  "total": 12,
+  "passed": 9,
+  "failed": 3,
+  "checks": [
+    {
+      "name": "inventory entry is a domain-specific discriminated union",
+      "passed": true
+    },
+    {
+      "name": "inventory entry uses subject as the sole form/id/source owner",
+      "passed": true
+    },
+    {
+      "name": "publication entries no longer duplicate identity/source fields",
+      "passed": true
+    },
+    {
+      "name": "ordinary and static subjects remain distinct",
+      "passed": true
+    },
+    {
+      "name": "canonical ownership invariant exists in coverage contract type and value",
+      "passed": true
+    },
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "publication correlation no longer depends on duplicated entry fields",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "Laravel boundary type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "Laravel boundary preserves canonical subject ownership",
+      "passed": true
+    },
+    {
+      "name": "no generic wrapper or semantic foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

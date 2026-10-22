@@ -13,7 +13,7 @@ import type { GeneratedContractAction } from '../../generators/contract-generati
 import type { ActionResponseSchema } from '../../generators/contract-generation/ResponseActionBuilder';
 import type { ResponseFieldProjection } from '../../generators/contract-generation/response-field';
 import { partitionResults } from '../../domain/common/ResponseFieldLowering';
-import { relationProject, relationResolve, relationEqual, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
+import { relationProject, relationResolve, relationEqual, relationVariantFold } from '../../../semantic/relations/relationalSequence';
 import type {
     ContractField,
     ContractActionGeneratorLike,

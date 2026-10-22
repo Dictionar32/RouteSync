@@ -1,0 +1,19 @@
+{
+  "phase": 2344,
+  "title": "Controller Policy Inventory Contract",
+  "base": "RouteSync-Phase2343-Controller-Policy-Inventory-Identity.zip",
+  "changes": [
+    "Evolve existing LaravelControllerScanArtifact with policyInventory",
+    "Build controller policy inventory from declaration-level class attributes and HasMiddleware evidence",
+    "Stop inferring missing policy inventory from zero published actions",
+    "Advance Laravel controller scanner contract to 44 and Laravel route scanner contract to 16"
+  ],
+  "staticAudit": "scripts/audits/audit-phase2344-controller-policy-inventory-contract.cjs",
+  "tests": {
+    "staticAudit": "12/12 passed",
+    "vitest": "not run",
+    "typescriptTypecheck": "not run",
+    "cliEndToEnd": "not run",
+    "npmRunBuild": "not run"
+  }
+}

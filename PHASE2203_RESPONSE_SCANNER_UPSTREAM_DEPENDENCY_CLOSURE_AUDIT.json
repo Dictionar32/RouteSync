@@ -1,0 +1,36 @@
+{
+  "phase": 2203,
+  "title": "Response Scanner Upstream Dependency Closure",
+  "status": "implemented_with_validation_limits",
+  "root_cause": "Phase 2202 preserved response projection judgments but the source-AST pipeline still called the concrete scanResponseBundle function directly, leaving response acquisition outside its upstream dependency contract.",
+  "changes": [
+    "Added LaravelResponseScannerInterface and its typed input/result contracts under types/upstream.",
+    "Added LaravelSourceAstPipelineDependenciesInterface to the existing upstream pipeline contract.",
+    "Added createLaravelSourceAstPipeline(dependencies), injecting response acquisition through the interface.",
+    "Bound the default composition root to the existing response scanner adapter while retaining the compatibility function.",
+    "Bumped LaravelSourceAstPipelineInterface contractVersion from 4 to 5.",
+    "Added structural tests for the upstream scanner contract, injection, and delegation."
+  ],
+  "validation": {
+    "typescript_syntax_transpilation": "7/7 changed TypeScript files passed transpileModule syntax diagnostics",
+    "structural_assertions": "10/10 passed",
+    "zip_integrity": "passed after archive creation",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run"
+  },
+  "architecture_constraints": {
+    "new_relation_layer": false,
+    "new_foundation_layer": false,
+    "replacement_subscanner_layer": false,
+    "parallel_semantic_authority_added": false,
+    "invocation_judgment_reconstructed": false,
+    "response_projection_judgment_discarded": false
+  },
+  "remaining_gaps": [
+    "The concrete response scanner adapter remains in the legacy subscanners directory.",
+    "The response scanner implementation retains existing direct semantic/relations imports; this phase does not claim repository-wide relation dependency removal.",
+    "Other source-AST acquisition domains still use concrete scanner implementations and have not been closed under this dependency contract.",
+    "Full TypeScript typecheck, Vitest, and package build were not executed."
+  ]
+}

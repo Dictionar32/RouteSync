@@ -1,0 +1,32 @@
+{
+  "phase": 2302,
+  "title": "Laravel Attribute Scanner Datum Closure",
+  "status": "source-edited-syntax-checked-typecheck-pending",
+  "contract": {
+    "interface": "packages/core/src/types/upstream/laravelAttributeScannerInterface.ts",
+    "version": 18,
+    "input": "SourceProjectIdentity",
+    "fixedScope": "app/Attributes",
+    "outcome": "LaravelAttributeScanCompleteJudgment | LaravelAttributeScanBlockedJudgment"
+  },
+  "productionOwners": {
+    "scanner": "packages/core/src/compiler/scanner/laravelAttributeScanner.ts",
+    "producer": "packages/core/src/compiler/scanner/attributeProducer.ts",
+    "pipeline": "packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts",
+    "manifestFailureFormatting": "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts"
+  },
+  "checks": {
+    "syntaxTranspilation": "passed",
+    "productionLegacyScannerReferences": "none-found",
+    "directSemanticRelationsImportsInNewScannerAndProducer": "none",
+    "semanticFoundationImportsInNewScannerAndProducer": "none",
+    "fullTypecheck": "not-run",
+    "build": "not-run",
+    "runtimeTests": "not-run"
+  },
+  "residuals": [
+    "The existing resolveClosureBody helper still imports semantic/relations transitively.",
+    "The complete CLI scanner graph has not been migrated to interface-only execution.",
+    "Full typecheck and runtime test execution remain pending."
+  ]
+}

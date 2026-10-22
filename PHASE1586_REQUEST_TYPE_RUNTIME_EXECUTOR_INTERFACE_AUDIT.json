@@ -1,0 +1,39 @@
+{
+  "phase": 1586,
+  "title": "RequestType interface-first runtime executor contract",
+  "checks": [
+    {
+      "name": "executor consumes the canonical upstream semantic pipeline interface",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "executor projects only the judgment carried by a derivation-verified proof",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "incomplete, conflict, rejected, and verification failures remain distinct",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "executor contains no route/request/resource semantic solver or classifier",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "upstream semantic contract exposes closed assessment and judgment consumer interfaces",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "scanner cutover is accurately marked open while the authority producer is not wired",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "passed": 6,
+  "total": 6,
+  "status": "passed_with_open_end_to_end_cutover"
+}

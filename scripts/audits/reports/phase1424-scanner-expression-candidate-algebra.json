@@ -1,0 +1,57 @@
+{
+  "phase": 1424,
+  "title": "scanner-expression-candidate-algebra",
+  "checks": [
+    {
+      "name": "algebra declares generic candidate contract",
+      "passed": true
+    },
+    {
+      "name": "candidate resolution is a closed ADT",
+      "passed": true
+    },
+    {
+      "name": "candidate identity validation occurs before execution",
+      "passed": true
+    },
+    {
+      "name": "candidate resolution is lazy, priority-ordered, and stops at first resolved result",
+      "passed": false
+    },
+    {
+      "name": "compound expression runtime delegates arbitration to the algebra",
+      "passed": false
+    },
+    {
+      "name": "compound candidates are represented by named contracts and root operator is centralized",
+      "passed": false
+    },
+    {
+      "name": "AST construction remains with the PHP projection adapter after structural resolution",
+      "passed": true
+    },
+    {
+      "name": "runtime no longer uses eager optional-candidate arbitration for compound expressions",
+      "passed": true
+    },
+    {
+      "name": "tests cover lazy resolution and duplicate identity/priority violations",
+      "passed": true
+    },
+    {
+      "name": "new algebra contains no any",
+      "passed": true
+    },
+    {
+      "name": "build script remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "phase audit is registered",
+      "passed": true
+    }
+  ],
+  "passed": 9,
+  "total": 12,
+  "status": "failed"
+}

@@ -1,22 +1,6 @@
-/**
- * domainExtractor.ts
- *
- * Reads the canonical route resource identity produced by the route scanner.
- * Resource/domain classification belongs to the route origin boundary, not
- * to RequestType assembly.
- */
-
-import { type RouteSemanticFlow } from "../../../../types/route";
-
-export interface RouteDomainInfo {
-    readonly rawDomain: string;
-    readonly bareDomain: string;
-}
-
-export function extractRouteDomain(route: RouteSemanticFlow): RouteDomainInfo {
-    const resourceName = route.identity.domain.resource.value.value;
-    return {
-        rawDomain: resourceName,
-        bareDomain: resourceName
-    };
-}
+/** @deprecated Route identity evidence is owned by compiler/semantic/request-type-derivation/routeDomainEvidence. */
+export {
+  routeDomainEvidenceExtraction,
+  type RouteDomainEvidence,
+  type RouteDomainEvidenceExtractionInterface,
+} from '../../../semantic/request-type-derivation/routeDomainEvidence';

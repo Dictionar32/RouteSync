@@ -10,7 +10,7 @@ import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { ControllerParameter, ControllerResourceBinding } from './controller';
 import { semanticDataflowFactWithLineage, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
 import { stringValue } from './valueObjects';
-import { relationVariantFold, relationExpand, type Sequence } from '../../semantic/foundation/relationalSequence';
+import { relationVariantFold, relationExpand, type Sequence } from '../../semantic/relations/relationalSequence';
 
 const controllerName = (controller: ControllerActionFlowContract): string => controller.controller.value.value;
 const actionName = (controller: ControllerActionFlowContract): string => controller.action.value.value;
@@ -124,3 +124,13 @@ export const semanticDataflowControllerFacts = (
     ]);
   }),
 );
+
+export interface SemanticDataflowControllerProjectionAuthorityInterface {
+  readonly kind: 'semantic_dataflow_controller_projection_authority';
+  readonly project: (controller: ControllerActionFlowContract) => readonly SemanticDataflowInputFact[];
+}
+
+export const semanticDataflowControllerProjectionAuthority: SemanticDataflowControllerProjectionAuthorityInterface = Object.freeze({
+  kind: 'semantic_dataflow_controller_projection_authority',
+  project: semanticDataflowControllerFacts,
+});

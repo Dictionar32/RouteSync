@@ -1,0 +1,25 @@
+{
+  "phase": 1465,
+  "title": "Match Interface Invariant Closure",
+  "scope": "interface-only",
+  "checks": {
+    "phase1465": { "passed": 10, "total": 10 },
+    "phase1464": { "passed": 9, "total": 9 },
+    "packageJsonParse": true,
+    "focusedStrictTypecheck": true,
+    "runtimeWiringChanged": false,
+    "fullMonorepoBuildVerified": false
+  },
+  "contractAdditions": [
+    "typed malformed reason for empty match body",
+    "typed malformed reason for empty condition partition",
+    "typed malformed reason for multiple top-level fat-arrow candidates",
+    "explicit resolved-body, condition cardinality, arm-value, and token-identity reconstruction invariants"
+  ],
+  "deferred": [
+    "match algebra implementation",
+    "runtime wiring migration",
+    "runtime simplification",
+    "downstream AST verification"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "phase": 1526,
+  "name": "closed-obligation-ledger-interface",
+  "scope": "interface-types-and-public-type-exports-only",
+  "checks": 8,
+  "passed": 8,
+  "failed": 0,
+  "build": "blocked: tsdown executable unavailable",
+  "typecheck": "blocked: global TypeScript incompatible with tsconfig and project type definitions unavailable",
+  "runtime_reasoning_changed": false,
+  "scanner_changed": false
+}

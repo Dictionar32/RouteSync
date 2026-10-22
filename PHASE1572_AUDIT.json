@@ -1,0 +1,56 @@
+{
+  "phase": 1572,
+  "audit": "domain-correlated-duplicate-counterexample",
+  "passed": 10,
+  "total": 11,
+  "checks": [
+    {
+      "name": "location-reuse failure delegates to a named domain-correlated evidence union",
+      "passed": true
+    },
+    {
+      "name": "pairwise location-reuse failure delegates to a named domain-correlated evidence union",
+      "passed": true
+    },
+    {
+      "name": "route location counterexample correlates route key and route references",
+      "passed": true
+    },
+    {
+      "name": "resource location counterexample correlates resource key and resource references",
+      "passed": true
+    },
+    {
+      "name": "request location counterexample correlates request key and request references",
+      "passed": true
+    },
+    {
+      "name": "pairwise route witnesses contain route-only references and occurrence keys",
+      "passed": true
+    },
+    {
+      "name": "pairwise resource witnesses contain resource-only references and occurrence keys",
+      "passed": true
+    },
+    {
+      "name": "pairwise request witnesses contain request-only references and occurrence keys",
+      "passed": true
+    },
+    {
+      "name": "pairwise ledger remains non-empty",
+      "passed": true
+    },
+    {
+      "name": "the laws remain explicit and separate",
+      "passed": true
+    },
+    {
+      "name": "interface remains declarative and contains no exported runtime executor",
+      "passed": false
+    }
+  ],
+  "failures": [
+    "interface remains declarative and contains no exported runtime executor"
+  ],
+  "scope": "static structural audit of interface type correlations; does not claim semantic authority implementation, scanner migration, runtime executor migration, or full build success"
+}

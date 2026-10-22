@@ -1,0 +1,23 @@
+{
+  "phase": 2672,
+  "name": "resource-group-identity-verification",
+  "status": "structural_audit_passed",
+  "checks": {
+    "phase2665_cli_manifest_upstream": "9/9",
+    "phase2666_assessment_witness_closure": "8/8",
+    "phase2667_receipt_derived_closure": "6/6",
+    "phase2668_mixed_outcome_contribution_ledger": "8/8",
+    "phase2671_ast_contribution_replay": "12/12",
+    "phase2672_resource_group_identity": "19/19",
+    "phase2670_source_bound_incoming_receipts": "10/10"
+  },
+  "runtime_tests": {
+    "test_file": "packages/core/src/compiler/semantic/request-type-derivation/__test__/requestTypeDerivationGroupIdentityVerification.phase2672.test.ts",
+    "cases": 5,
+    "execution": "not_run_vitest_dependency_missing"
+  },
+  "typecheck": "not_completed_global_tsc_missing_project_standard_libraries_and_type_definitions",
+  "laravel_runtime": "not_run_vendor_autoload_missing",
+  "all_34_semantic_laws": "verification_incomplete",
+  "aggregate_structural_assertions": "72/72"
+}

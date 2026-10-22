@@ -1,0 +1,258 @@
+{
+  "scope": "packages/core/src/compiler/scanner",
+  "method": "declaration-line inventory; includes pure helpers and runtime functions, excludes tests/specs",
+  "fileCount": 220,
+  "declarationCount": 4749,
+  "topFiles": [
+    {
+      "declarations": 304,
+      "lines": 1751,
+      "path": "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts"
+    },
+    {
+      "declarations": 208,
+      "lines": 1142,
+      "path": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts"
+    },
+    {
+      "declarations": 138,
+      "lines": 913,
+      "path": "packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts"
+    },
+    {
+      "declarations": 104,
+      "lines": 424,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts"
+    },
+    {
+      "declarations": 99,
+      "lines": 240,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts"
+    },
+    {
+      "declarations": 97,
+      "lines": 419,
+      "path": "packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts"
+    },
+    {
+      "declarations": 97,
+      "lines": 462,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts"
+    },
+    {
+      "declarations": 95,
+      "lines": 271,
+      "path": "packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts"
+    },
+    {
+      "declarations": 95,
+      "lines": 309,
+      "path": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts"
+    },
+    {
+      "declarations": 82,
+      "lines": 357,
+      "path": "packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts"
+    },
+    {
+      "declarations": 78,
+      "lines": 262,
+      "path": "packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts"
+    },
+    {
+      "declarations": 71,
+      "lines": 335,
+      "path": "packages/core/src/compiler/scanner/subscanners/migrationProducer.ts"
+    },
+    {
+      "declarations": 67,
+      "lines": 260,
+      "path": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts"
+    },
+    {
+      "declarations": 64,
+      "lines": 425,
+      "path": "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts"
+    },
+    {
+      "declarations": 62,
+      "lines": 273,
+      "path": "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts"
+    },
+    {
+      "declarations": 60,
+      "lines": 233,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts"
+    },
+    {
+      "declarations": 58,
+      "lines": 227,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts"
+    },
+    {
+      "declarations": 57,
+      "lines": 325,
+      "path": "packages/core/src/compiler/scanner/subscanners/requestAstCanonical.ts"
+    },
+    {
+      "declarations": 54,
+      "lines": 261,
+      "path": "packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts"
+    },
+    {
+      "declarations": 51,
+      "lines": 227,
+      "path": "packages/core/src/compiler/scanner/subscanners/requestProducer.ts"
+    },
+    {
+      "declarations": 51,
+      "lines": 228,
+      "path": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts"
+    },
+    {
+      "declarations": 50,
+      "lines": 505,
+      "path": "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts"
+    },
+    {
+      "declarations": 49,
+      "lines": 268,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts"
+    },
+    {
+      "declarations": 48,
+      "lines": 146,
+      "path": "packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts"
+    },
+    {
+      "declarations": 44,
+      "lines": 306,
+      "path": "packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts"
+    },
+    {
+      "declarations": 44,
+      "lines": 365,
+      "path": "packages/core/src/compiler/scanner/subscanners/resourceProducer.ts"
+    },
+    {
+      "declarations": 44,
+      "lines": 332,
+      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts"
+    },
+    {
+      "declarations": 43,
+      "lines": 110,
+      "path": "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts"
+    },
+    {
+      "declarations": 42,
+      "lines": 167,
+      "path": "packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts"
+    },
+    {
+      "declarations": 41,
+      "lines": 198,
+      "path": "packages/core/src/compiler/scanner/lexer/arrayParser.ts"
+    },
+    {
+      "declarations": 41,
+      "lines": 249,
+      "path": "packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts"
+    },
+    {
+      "declarations": 40,
+      "lines": 237,
+      "path": "packages/core/src/compiler/scanner/subscanners/RouteScanner.ts"
+    },
+    {
+      "declarations": 39,
+      "lines": 160,
+      "path": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts"
+    },
+    {
+      "declarations": 37,
+      "lines": 271,
+      "path": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts"
+    },
+    {
+      "declarations": 36,
+      "lines": 203,
+      "path": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts"
+    },
+    {
+      "declarations": 35,
+      "lines": 264,
+      "path": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts"
+    },
+    {
+      "declarations": 35,
+      "lines": 92,
+      "path": "packages/core/src/compiler/scanner/subscanners/model/modelPropertyAstParser.ts"
+    },
+    {
+      "declarations": 34,
+      "lines": 267,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts"
+    },
+    {
+      "declarations": 34,
+      "lines": 343,
+      "path": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts"
+    },
+    {
+      "declarations": 33,
+      "lines": 225,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts"
+    },
+    {
+      "declarations": 33,
+      "lines": 415,
+      "path": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts"
+    },
+    {
+      "declarations": 31,
+      "lines": 191,
+      "path": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts"
+    },
+    {
+      "declarations": 31,
+      "lines": 236,
+      "path": "packages/core/src/compiler/scanner/subscanners/form-request/canonicalValidationRuleEntry.ts"
+    },
+    {
+      "declarations": 30,
+      "lines": 207,
+      "path": "packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts"
+    },
+    {
+      "declarations": 29,
+      "lines": 167,
+      "path": "packages/core/src/compiler/scanner/lexer/tokenizer.ts"
+    },
+    {
+      "declarations": 29,
+      "lines": 195,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts"
+    },
+    {
+      "declarations": 28,
+      "lines": 112,
+      "path": "packages/core/src/compiler/scanner/subscanners/responseScanner.ts"
+    },
+    {
+      "declarations": 27,
+      "lines": 142,
+      "path": "packages/core/src/compiler/scanner/subscanners/schemaProducer.ts"
+    },
+    {
+      "declarations": 27,
+      "lines": 163,
+      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts"
+    },
+    {
+      "declarations": 27,
+      "lines": 166,
+      "path": "packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts"
+    }
+  ]
+}

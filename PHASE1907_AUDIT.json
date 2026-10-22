@@ -1,0 +1,16 @@
+{
+  "phase": 1907,
+  "title": "Laravel Controller Dataflow Interface-First Trace",
+  "base": "Phase 1906",
+  "contractVersion": 73,
+  "checks": [
+    {"name": "canonical_judgment_remains_single", "status": "pass"},
+    {"name": "integrated_response_remains_distinct_from_judgment_response", "status": "pass"},
+    {"name": "remaining_analyzer_semantic_stages_recorded", "status": "pass"},
+    {"name": "binding_evidence_contract_gate_recorded", "status": "pass"},
+    {"name": "no_runtime_migration_overclaim", "status": "pass"},
+    {"name": "typescript_build", "status": "not_run"},
+    {"name": "package_tests", "status": "not_run"}
+  ],
+  "runtimeSemanticMigrationComplete": false
+}

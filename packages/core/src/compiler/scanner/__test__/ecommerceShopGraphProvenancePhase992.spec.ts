@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest';
 import path from 'node:path';
-import { manifestBuilder } from '../wiring/upstreamManifestBuilder';
-import { routeSyncManifestFlowFromManifest } from '../orchestrator/upstreamManifestScanner';
+import { manifestBuilderOperationPreparation } from '../wiring/upstreamManifestBuilder';
+import { routeSyncManifestFlowProjection } from '../orchestrator/upstreamManifestScanner';
 import { createLaravelSourceProjectIdentity } from '../../../types/upstream/sourceProjectIdentity';
+import { createNotConnectedControllerInventoryReceipt } from './createNotConnectedControllerInventoryReceipt';
 import { createServiceGraphBuilder } from '../../graph/ServiceGraphBuilder';
 import type { SemanticRelation } from '../../../types/upstream/semanticReferences';
 import { modelSemanticRelationIdentityKey } from '../../../types/upstream/model';
@@ -18,9 +19,29 @@ const modelName = (reference: { readonly kind: string; readonly name: { readonly
   reference.name.value.value;
 
 describe('Phase 992 ecommerce final graph provenance', () => {
+  test('build operation remains valid when its method is detached from the operation receiver', async () => {
+    const sourceProject = createLaravelSourceProjectIdentity(fixtureRoot);
+    const receipt = await createNotConnectedControllerInventoryReceipt(sourceProject);
+    const operation = manifestBuilderOperationPreparation.prepare({
+      kind: 'manifest_builder_input',
+      invocationInventoryReceipt: receipt,
+      routeSelection: { kind: 'laravel_route_source_selection_default' },
+    });
+    const build = operation.build;
+    const judgment = await build();
+
+    expect(judgment.kind).toBe('manifest_builder_complete');
+  });
+
   test('retains OrderDetail -> Order model relation and migration lineage in ServiceGraph.edgeRelations', async () => {
-    const manifest = await manifestBuilder.build(createLaravelSourceProjectIdentity(fixtureRoot));
-    const manifestFlow = routeSyncManifestFlowFromManifest(manifest);
+    const sourceProject = createLaravelSourceProjectIdentity(fixtureRoot);
+    const receipt = await createNotConnectedControllerInventoryReceipt(sourceProject);
+    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: { kind: 'laravel_route_source_selection_default' } }).build();
+    if (manifestJudgment.kind !== 'manifest_builder_complete') throw new Error(`Fixture manifest blocked: ${manifestJudgment.projection.kind}`);
+    const manifest = manifestJudgment.manifest;
+    const manifestFlow = routeSyncManifestFlowProjection.project(manifest);
+    // The interface-backed projection object is the canonical implementation used by runtime scanner operations.
+    expect(routeSyncManifestFlowProjection.project(manifest)).toEqual(manifestFlow);
     const sourceRelations = sequenceToArray(manifestFlow.relations.relations) as readonly SemanticRelation[];
     const modelRelation = sourceRelations.find(
       (relation): relation is Extract<SemanticRelation, { readonly kind: 'model_relation' }> =>

@@ -1,0 +1,23 @@
+{
+  "phase": 1540,
+  "name": "proof-grounded-semantic-dataflow-interface",
+  "scope": {
+    "interface_modified": ["packages/core/src/types/upstream/semanticDataflowInterface.ts"],
+    "audit_added": ["scripts/audits/audit-phase1540-proof-grounded-interface.cjs"],
+    "package_script_added": "audit:phase1540-proof-grounded-interface",
+    "semantic_authority_modified": false,
+    "scanner_modified": false
+  },
+  "checks": {
+    "phase1540_interface_audit": "7/7 passed",
+    "phase1534": "11/11 passed",
+    "phase1535": "7/7 passed",
+    "phase1536": "7/7 passed",
+    "phase1538": "9/9 passed",
+    "phase1539": "9/9 passed",
+    "phase1500": "passed",
+    "phase918": "clean",
+    "phase1384": "11/12 passed; canonical materialize API check remains failing",
+    "typescript_build": "not verified; dependencies/tsdown unavailable"
+  }
+}

@@ -7,13 +7,13 @@
  * @module core/compiler/scanner/subscanners/RouteScanner
  */
 
-import { relationContains, type RelationMembership } from '../../../semantic/foundation/relationMembership';
+import { relationContains, type RelationMembership } from '../../../semantic/relations/relationMembership';
 import path from "path";
-import { relationFoldRight } from '../../../semantic/foundation/relationalSequence';
+import { relationFoldRight } from '../../../semantic/relations/relationalSequence';
 import * as fs from "node:fs";
 import { routeAuthorizationKnowledge } from '../semantic/route/routeMiddlewareKnowledgeCatalog';
-import { relationIndexLookup, relationIndexAdd, type RelationIndex } from '../../../semantic/foundation/relationMembership';
-import { relationGate, relationLookup, relationOptionFold, relationEqual, relationAny, relationProject, relationFold, type RelationOption, relationNone, relationFirstOption, relationVariantFold } from '../../../semantic/foundation/relationalSequence';
+import { relationIndexLookup, relationIndexAdd, type RelationIndex } from '../../../semantic/relations/relationMembership';
+import { relationGate, relationLookup, relationOptionFold, relationEqual, relationAny, relationProject, relationFold, type RelationOption, relationNone, relationFirstOption, relationVariantFold } from '../../../semantic/relations/relationalSequence';
 
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 
@@ -37,7 +37,6 @@ import { createActionName, createControllerName, createMiddlewareName, createPro
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { routeDeclarationFlow, routeDeclarationSemanticKind, routeMethodSemanticKind, routeSourceFileContextKnowledge, type RouteDeclarationFlow } from "../lexer/routeAst/routeDataFlow";
 import { readSourceText } from './scannerUtils';
-import { ControllerScanner } from "./ControllerScanner";
 import { type ControllerActionInfo } from "../descriptors/requestDescriptors";
 import {
     extractPathParams,

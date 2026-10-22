@@ -1,0 +1,20 @@
+{
+  "phase": 2306,
+  "title": "Upstream PHP constructor selection closure",
+  "changes": [
+    "Add typed upstream constructor-selection authority with selected/missing/ambiguous ADT",
+    "Inject the authority into attribute producer and remove local constructor find",
+    "Propagate ambiguous constructor evidence through Laravel attribute scanner v19",
+    "Render ambiguity at manifest diagnostic boundary"
+  ],
+  "verification": {
+    "structuralAudit": "scripts/audits/audit-phase2306-upstream-constructor-selection.cjs",
+    "typecheck": "not run",
+    "build": "not run",
+    "runtimeIntegrationTests": "not run"
+  },
+  "remaining": [
+    "Controller dependency-injection scanner still performs a separate constructor lookup",
+    "Expression authority retains transitive semantic/relations dependency"
+  ]
+}

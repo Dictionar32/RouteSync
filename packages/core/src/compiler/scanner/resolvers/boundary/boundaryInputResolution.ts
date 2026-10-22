@@ -2,14 +2,14 @@ import type { RouteBoundaryOptions, ResolvedRouteBoundaryOptions } from "./bound
 import { routeBoundaryBasicsInterface } from "./boundaryBasics";
 import { resolveRouteCapability } from "./capabilityResolution";
 import { routeCapabilityAuthority } from "../../../../types/upstream/routeCapabilityAuthority";
+import { routeSecurityAuthority } from "../../../../types/upstream/routeSecurityAuthority";
 import { buildRouteProvenanceContract } from "./provenanceBuilder";
-import { relationEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationEqual } from "../../../../semantic/relations/semanticRelations";
 import { presenceOf, presenceFold } from "../../../../types/upstream/presence";
-import { truthValue } from "../../../../types/upstream/valueObjects";
 import type { RouteMiddleware } from "../../../../types/upstream/route";
 import { createMiddlewareName, type PropertyName } from "../../../../types/upstream/names";
 import type { RouteMiddlewares, Sequence } from "../../../../types/upstream/collections";
-import { relationFoldRight } from "../../../../semantic/foundation/relationalSequence";
+import { relationFoldRight } from "../../../../semantic/relations/relationalSequence";
 
 
 const sequenceCons = <T>(head: T, tail: Sequence<T>): Sequence<T> => ({ kind: "cons", head, tail });
@@ -30,31 +30,38 @@ export function resolveRouteBoundaryInput(
     const basicsJudgment = routeBoundaryBasicsInterface(params);
     const basics = basicsJudgment.result;
     const binding = params.binding;
-    const authInput = params.auth;
-    const crudResolution = routeCapabilityAuthority.crudRoleResolution(
-        params.method,
-        params.path,
-        basics.resolvedAction,
-        params.crudRole,
-    );
+    const middlewareInput: readonly PropertyName[] = params.middleware;
+    const middleware = routeMiddlewares(middlewareInput);
+    const security = routeSecurityAuthority.resolve({
+        kind: "route_security_authority_input",
+        middleware,
+        authorization: params.authorization,
+    });
+    const crudResolution = routeCapabilityAuthority.resolve({
+        kind: "route_capability_crud_input",
+        method: params.method,
+        path: params.path,
+        action: basics.resolvedAction,
+        ...(params.crudRole === undefined ? {} : { explicitRole: params.crudRole }),
+    });
     const capabilityInput = Object.freeze({
         hookKind: params.hookKind,
         executionSignature: params.executionSignature,
         payloadLocation: params.payloadLocation,
         schemaRole: params.schemaRole,
         requestContentType: params.requestContentType,
-        crudRole: params.crudRole ?? crudResolution.role,
+        crudRole: presenceFold(presenceOf(params.crudRole), () => crudResolution.role, role => role),
         crudEvidence: crudResolution.evidence,
         errorResponses: params.errorResponses,
         invalidation: params.invalidation,
         schema: params.schema,
     });
-    const capability = resolveRouteCapability(capabilityInput, basics, basics.resolvedParameters.length, truthValue(authInput), params.method, params.path, binding.request);
-    const middlewareInput: readonly PropertyName[] = params.middleware;
+    const capability = resolveRouteCapability(capabilityInput, basics, basics.resolvedParameters.length, security.auth, params.method, params.path, binding.request);
     const provenance = buildRouteProvenanceContract({
         sourceFile: params.sourceFile,
         sourceLine: params.sourceLine,
-        path: params.path
+        path: params.path,
+        sourceSpan: params.sourceSpan
     });
 
     return Object.freeze({
@@ -71,12 +78,16 @@ export function resolveRouteBoundaryInput(
         isMutating: basics.resolvedIsMutating,
         sourceFile: provenance.sourceFile,
         sourceLine: provenance.sourceLine,
-        auth: truthValue(relationEqual(params.auth, true)),
-        middleware: routeMiddlewares(middlewareInput),
+        sourceSpan: provenance.declarationSpan,
+        authorization: params.authorization,
+        auth: security.auth,
+        middleware,
+        security,
         parameters: basics.resolvedParameters,
         pathParameters: basics.resolvedPathParameters,
         queryParameters: basics.resolvedQueryParameters,
         response: params.response,
+        responseProjection: params.responseProjection,
         errorResponses: capability.errorResponses,
         invalidation: capability.invalidation,
         executionSignature: capability.executionSignature,

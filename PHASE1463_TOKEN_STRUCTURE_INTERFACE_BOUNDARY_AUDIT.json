@@ -1,0 +1,23 @@
+{
+  "phase": 1463,
+  "name": "token-structure-interface-boundary",
+  "scope": "interface-contract-only",
+  "dedicated_interface_module": "packages/core/src/types/upstream/scannerTokenStructureInterface.ts",
+  "match_interface_depends_on_contract_not_algebra": true,
+  "algebra_implementation_changed": false,
+  "runtime_wiring_changed": false,
+  "runtime_ast_projection_changed": false,
+  "build_status": "not-run",
+  "focused_typescript_check": "passed",
+  "audit_results": {
+    "phase1462_match_expression_contract": "8/8 passed",
+    "phase1463_token_structure_interface_boundary": "8/8 passed",
+    "phase1460_typed_expression_precedence_contract": "7/7 passed"
+  },
+  "runtime_file_unchanged_from_phase1462": true,
+  "notes": [
+    "Public token-structure evidence and interface declarations were moved to a dedicated contract module.",
+    "scannerTokenStructureAlgebra re-exports the public contract types for compatibility.",
+    "No match-expression algebra, runtime wiring, or downstream AST projection was implemented in this phase."
+  ]
+}

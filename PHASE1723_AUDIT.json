@@ -1,0 +1,65 @@
+{
+  "phase": 1723,
+  "name": "domain-owned-invocation-stage-judgments",
+  "total": 14,
+  "passed": 12,
+  "failed": 2,
+  "checks": [
+    {
+      "name": "generic stage judgment abstraction is removed from upstream model",
+      "passed": true
+    },
+    {
+      "name": "all five invocation stage outputs have domain-owned interfaces",
+      "passed": true
+    },
+    {
+      "name": "each stage judgment carries source-bound context and a semantically named result field",
+      "passed": true
+    },
+    {
+      "name": "binding requires target-resolution and positional-evidence domain judgments",
+      "passed": true
+    },
+    {
+      "name": "effect projection requires the target-resolution domain judgment",
+      "passed": true
+    },
+    {
+      "name": "assembly requires target, binding, and effect judgments of their exact domain types",
+      "passed": true
+    },
+    {
+      "name": "derived algebra result hands a named judgment candidate to authority",
+      "passed": true
+    },
+    {
+      "name": "authority receives the derived result only and does not accept detached knowledge or judgment",
+      "passed": true
+    },
+    {
+      "name": "algebra type/value contract synchronized at v6",
+      "passed": true
+    },
+    {
+      "name": "authority contract and validation receipt synchronized at v9",
+      "passed": true
+    },
+    {
+      "name": "pipeline type/value contract synchronized at v46 and states named stage judgments",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary v25 preserves scanner-only collection/delegation responsibility",
+      "passed": false
+    },
+    {
+      "name": "all named domain judgment interfaces are publicly exported",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency or any/as-any escape hatch introduced",
+      "passed": true
+    }
+  ]
+}

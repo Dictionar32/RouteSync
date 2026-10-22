@@ -1,0 +1,54 @@
+{
+  "phase": 1407,
+  "name": "source-ast-semantic-producer-boundary",
+  "status": "passed_with_residuals",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "scanner delegates semantic products through one upstream producer",
+      "passed": true
+    },
+    {
+      "name": "scanner no longer imports expression producer",
+      "passed": true
+    },
+    {
+      "name": "scanner no longer imports assignment producer",
+      "passed": true
+    },
+    {
+      "name": "scanner no longer imports property producer",
+      "passed": true
+    },
+    {
+      "name": "scanner no longer traverses PHP statement semantics",
+      "passed": true
+    },
+    {
+      "name": "producer owns expression, assignment and property production through the active producers and typed assignment constructor",
+      "passed": true
+    },
+    {
+      "name": "producer implements closed upstream contract",
+      "passed": true
+    },
+    {
+      "name": "contract preserves all semantic products as typed outputs",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the contract",
+      "passed": true
+    },
+    {
+      "name": "active Laravel source-AST pipeline consumes the three typed products without reselecting producers",
+      "passed": true
+    }
+  ],
+  "residuals": [
+    "sourceAstSemanticProducer still orchestrates evidence acquisition and syntax parsing internally; this is an open architecture boundary, not a claim that parsing and semantic judgment are already separate.",
+    "Route action collision resolution has moved upstream; source-order independence is enforced by sorting canonical route keys before resolving names.",
+    "full typecheck/build and end-to-end Laravel fixture execution require project dependencies not included in this workspace."
+  ]
+}

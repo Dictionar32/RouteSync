@@ -1,0 +1,53 @@
+{
+  "phase": 1574,
+  "audit": "verified-authority-outcome-contract",
+  "passed": 8,
+  "total": 10,
+  "checks": [
+    {
+      "name": "authority outcome is a named public contract",
+      "passed": true
+    },
+    {
+      "name": "verified outcome couples a non-rejected judgment with valid verification",
+      "passed": true
+    },
+    {
+      "name": "input rejection couples invalid-input judgment with confirmed rejection",
+      "passed": true
+    },
+    {
+      "name": "verification failure cannot be mistaken for a verified judgment",
+      "passed": true
+    },
+    {
+      "name": "public derive no longer returns a bare judgment",
+      "passed": true
+    },
+    {
+      "name": "independent verify operation remains available",
+      "passed": true
+    },
+    {
+      "name": "exhaustive law coverage remains part of contract",
+      "passed": false
+    },
+    {
+      "name": "verified law coverage remains explicit on successful verification",
+      "passed": true
+    },
+    {
+      "name": "typed duplicate location evidence remains domain-correlated",
+      "passed": true
+    },
+    {
+      "name": "interface remains declarative without executable authority implementation",
+      "passed": false
+    }
+  ],
+  "failures": [
+    "exhaustive law coverage remains part of contract",
+    "interface remains declarative without executable authority implementation"
+  ],
+  "scope": "static structural audit only; it checks that the interface cannot return a bare judgment, not that an implementation currently verifies semantic laws"
+}

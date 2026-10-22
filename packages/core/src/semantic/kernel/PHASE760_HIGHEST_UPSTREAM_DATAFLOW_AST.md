@@ -46,18 +46,22 @@ resolver graph / type lowering / target projection
 
 ## Model elevation
 
-`packages/core/src/types/upstream/astDataflowInterface.ts` is now the upstream
-authority for data-flow. It contains no open predicate, subject, or payload slot.
-The only semantic carriers are closed identities, closed roles, closed fact
-variants, derivations, and a least-fixed-point closure.
+`packages/core/src/types/upstream/semanticDataflow.ts` and
+`semanticDataflowAuthority.ts` are the canonical upstream data-flow ADT and
+semantic constructor. `astDataflowInterface.ts` is the AST-facing type contract
+that aliases this canonical ADT and exposes only the read-only
+`DataFlowAuthorityInterface` to downstream analysis; it is not a second solver
+or a second semantic authority. It contains no open predicate, subject, or
+payload slot.
 
-`packages/core/src/compiler/analysis/astDataflowAuthority.ts` is the boundary
-adapter from syntax-neutral `SemanticKnowledgeDataFlow` into that upstream ADT.
-The scanner remains an evidence producer; it does not become the owner of the
-upstream data-flow model.
+`packages/core/src/compiler/analysis/astDataflowAuthority.ts` is retired and kept
+empty in place because no active production consumer imports it. The scanner
+remains an evidence producer; it does not become the owner of the upstream
+data-flow model.
 
-`AstAnalysisJudgment` now requires `AstDataflowJudgment` and exposes its closure
-as an explicit analysis fact. Analysis therefore cannot silently proceed with a
+`AstAnalysisJudgment` now requires the read-only `AstDataflowInterface` (whose
+state is the canonical `AstDataflowJudgment`) and exposes its closure as an
+explicit analysis fact. Analysis therefore cannot silently proceed with a
 resolver judgment while carrying data-flow outside the AST semantic contract.
 
 The cross-stage analysis vocabulary also has explicit relations for:

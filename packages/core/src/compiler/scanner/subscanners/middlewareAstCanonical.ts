@@ -1,15 +1,16 @@
+import { sourceFileAcquisition } from '../sourceFiles';
 import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import * as path from 'node:path';
-import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
 import { createAstIdentifier } from '../lexer/phpAstTypes';
-import { collectPhpFiles } from './scannerUtils';
 import type { MiddlewareAst } from '../../../types/upstream/ast';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { StringValue } from '../../../types/upstream/valueObjects';
+import { createSourceFile } from '../../../types/upstream/names';
+import { laravelControllerInvocationSemanticJudgmentAuthority } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentAuthority';
 import { middlewareProducer } from './middlewareProducer';
-import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationIndexOf, relationAdvanceIndex, relationAt, relationOptionFold, relationAsyncFold } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const source = (file: string, line: number): SourceSpan => ({
@@ -27,12 +28,13 @@ function className(tokens: readonly { readonly value: string }[]): string {
 export async function scanMiddlewareAsts(sourceProject: SourceProjectIdentity): Promise<readonly MiddlewareAst[]> {
     const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Http', 'Middleware');
-  const files = await collectPhpFiles(directory);
+  const files = await sourceFileAcquisition.collectPhpFiles(directory);
   const asts = await relationAsyncFold(files, [] as MiddlewareAst[], async (result, file) => {
-    const text = await readSourceText(file);
+    const text = await sourceFileAcquisition.readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(text);
     const name = className(tokens);
-    const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name));
+    const invocationJudgment = laravelControllerInvocationSemanticJudgmentAuthority.judge({ kind: 'controller_invocation_pipeline_not_provided', sourceFile: createSourceFile(file) });
+    const declaration = LaravelSourceLexer.parseControllerDeclaration(text, tokens, createAstIdentifier(name), { kind: 'invocation_semantic_judgment', judgment: invocationJudgment });
     const span = source(file, Number(declaration.source.line));
     return [...result, middlewareProducer.produce({ declaration, source: span })];
   });

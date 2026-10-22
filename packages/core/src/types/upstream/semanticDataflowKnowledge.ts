@@ -1,7 +1,7 @@
 /** Canonical upstream semantic knowledge/dataflow vocabulary. Scanner syntax is evidence only. */
-import { relationContains, relationUnique } from '../../semantic/foundation/relationMembership';
-import { relationOptionalFold, relationVariant, relationVariantValue } from '../../semantic/foundation/relationalSequence';
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/foundation/relationalSequence';
+import { relationContains, relationUnique } from '../../semantic/relations/relationMembership';
+import { relationOptionalFold, relationVariant, relationVariantValue } from '../../semantic/relations/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';
 /**
  * Phase 163 — semantic Knowledge/Data-Flow source of truth.
  *

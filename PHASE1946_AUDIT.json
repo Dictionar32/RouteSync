@@ -1,0 +1,48 @@
+{
+  "phase": 1946,
+  "audit": "controller-body-invocation-outcome-adt",
+  "passed": 8,
+  "total": 10,
+  "checks": [
+    {
+      "name": "body AST variants distinguish syntax-only absence from semantic judgment presence",
+      "passed": true
+    },
+    {
+      "name": "semantic body documentation explicitly does not claim invocation completion",
+      "passed": true
+    },
+    {
+      "name": "invocation semantic judgment preserves all four discriminated pipeline outcomes",
+      "passed": true
+    },
+    {
+      "name": "upstream dataflow model retains exact invocation judgment and integrated response as separate correlated fields",
+      "passed": true
+    },
+    {
+      "name": "parser emits semantic AST only from the canonical invocation-judgment context without synthesizing a response outcome",
+      "passed": false
+    },
+    {
+      "name": "body resolver is typed to consume semantic body AST rather than syntax-only AST",
+      "passed": false
+    },
+    {
+      "name": "upstream model contract and live contract value agree on version 18 and outcome independence",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner boundary and live contract value agree on version 109 and outcome preservation",
+      "passed": true
+    },
+    {
+      "name": "existing authority remains the sole semantic closure owner",
+      "passed": true
+    },
+    {
+      "name": "Phase 1946 audit is registered in package scripts",
+      "passed": true
+    }
+  ]
+}

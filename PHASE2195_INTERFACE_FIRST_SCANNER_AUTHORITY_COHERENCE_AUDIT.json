@@ -1,0 +1,34 @@
+{
+  "phase": 2195,
+  "title": "Interface-first scanner authority coherence",
+  "scope": [
+    "packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts",
+    "packages/core/src/compiler/scanner/LaravelSourceLexer.ts",
+    "packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts",
+    "packages/core/src/types/upstream/laravelControllerScannerInterface.ts"
+  ],
+  "trace_findings": [
+    "Production scanner carried a separately injected AST projection authority from the response pipeline's AST projection authority.",
+    "Controller inheritance parsing invoked the concrete PHP class-name resolution authority rather than the pipeline's injectable authority."
+  ],
+  "changes": [
+    "Scanner AST projection property now delegates to responseSemanticPipeline.astProjection.",
+    "Canonical parser receives AST projection and PHP class-name resolution authorities from the same response pipeline dependency contract.",
+    "Parent class name resolution now uses the supplied PhpClassNameResolutionRuleInterface.",
+    "Scanner interface and judgment contract version advanced from 35 to 36.",
+    "Added phase documentation; no new relation/foundation/subscanner layer or semantic authority was introduced."
+  ],
+  "validation": {
+    "typescript_syntax_transpilation": "passed 6/6 changed/adjacent TypeScript files",
+    "zip_integrity": "pending",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run",
+    "production_boundary_trace": "passed 5/5 static boundary assertions"
+  },
+  "remaining_gaps": [
+    "Direct parser compatibility entry points retain concrete defaults.",
+    "Other upstream authorities may still compose their own defaults internally.",
+    "DTO inventory timing and canonical per-method response product closure remain open."
+  ]
+}

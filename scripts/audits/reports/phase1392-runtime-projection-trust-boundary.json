@@ -1,0 +1,37 @@
+{
+  "phase": 1392,
+  "audit": "runtime-projection-trust-boundary",
+  "passed": true,
+  "passedChecks": 7,
+  "totalChecks": 7,
+  "checks": [
+    {
+      "name": "runtime-facing projection uses unknown payload boundary",
+      "pass": true
+    },
+    {
+      "name": "upstream semantic manifest preserves precise contract type",
+      "pass": true
+    },
+    {
+      "name": "upstream producer contract remains versioned and closed",
+      "pass": true
+    },
+    {
+      "name": "orchestration accepts untrusted candidate payloads",
+      "pass": true
+    },
+    {
+      "name": "executor decodes candidate against closed judgment before use",
+      "pass": true
+    },
+    {
+      "name": "decoder rejects unknown contract version by exact version check",
+      "pass": true
+    },
+    {
+      "name": "package version and build command preserved",
+      "pass": true
+    }
+  ]
+}

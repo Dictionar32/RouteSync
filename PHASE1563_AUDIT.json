@@ -1,0 +1,108 @@
+{
+  "phase": 1563,
+  "audit": "request-type-transition-algebra",
+  "passed": 23,
+  "total": 23,
+  "checks": [
+    {
+      "name": "source evidence keys are domain tagged",
+      "passed": true
+    },
+    {
+      "name": "group identity is a domain-separated resource key",
+      "passed": true
+    },
+    {
+      "name": "route contribution cannot claim an unresolved resource",
+      "passed": true
+    },
+    {
+      "name": "unresolved resource remains an explicit route disposition",
+      "passed": true
+    },
+    {
+      "name": "route request binding preserves framework versus absent binding",
+      "passed": true
+    },
+    {
+      "name": "evidence reference correlates source kind and key prefix",
+      "passed": true
+    },
+    {
+      "name": "action contribution receipts are modeled",
+      "passed": true
+    },
+    {
+      "name": "response contribution receipts are modeled",
+      "passed": true
+    },
+    {
+      "name": "group contribution records initial versus merge transition",
+      "passed": true
+    },
+    {
+      "name": "group contribution records complete before state",
+      "passed": true
+    },
+    {
+      "name": "group contribution records incoming actions and response",
+      "passed": true
+    },
+    {
+      "name": "group contribution records complete after state",
+      "passed": true
+    },
+    {
+      "name": "policy defines initial and merge transition semantics",
+      "passed": true
+    },
+    {
+      "name": "policy defines contribution-chain continuity",
+      "passed": true
+    },
+    {
+      "name": "policy binds group output to final transition",
+      "passed": true
+    },
+    {
+      "name": "group receipt carries complete semantic result",
+      "passed": true
+    },
+    {
+      "name": "group keys are typed consistently in route and resource relations",
+      "passed": true
+    },
+    {
+      "name": "transition laws are represented in the law algebra",
+      "passed": true
+    },
+    {
+      "name": "resolved-resource and canonical-key laws are represented",
+      "passed": true
+    },
+    {
+      "name": "verification can distinguish transition and group-key failures",
+      "passed": true
+    },
+    {
+      "name": "transition obligations belong to the type-level law algebra",
+      "passed": true
+    },
+    {
+      "name": "upstream interface contains no runtime policy objects or executor values",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the interface",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "static interface-model audit only; scanner, authority implementation, runtime executor, tests, and full build are not claimed as migrated or verified",
+  "validationNotes": [
+    "static interface audit only",
+    "requestTypeDerivationInterface.ts has no runtime policy objects",
+    "scanner and runtime executor unchanged byte-for-byte",
+    "no package install, TypeScript build, or Vitest run performed"
+  ]
+}

@@ -49,13 +49,15 @@ export type SemanticRelation = StructuralSemanticRelation | ControllerActionPoli
 export const isControllerActionPolicyRelation = (
   relation: SemanticRelation,
 ): relation is ControllerActionPolicyRelation =>
-  relation.kind === 'controller_action_middleware_policy'
+  relation.kind === 'controller_action_policy_blocked'
+  || relation.kind === 'controller_action_middleware_policy'
   || relation.kind === 'controller_action_authorization_policy';
 
 export const isRouteActionPolicyRelation = (
   relation: SemanticRelation,
 ): relation is RouteActionPolicyRelation =>
-  relation.kind === 'route_action_middleware_policy'
+  relation.kind === 'route_action_policy_blocked'
+  || relation.kind === 'route_action_middleware_policy'
   || relation.kind === 'route_action_authorization_policy';
 
 export const isPolicySemanticRelation = (

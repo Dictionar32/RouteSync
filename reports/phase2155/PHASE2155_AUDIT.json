@@ -1,0 +1,80 @@
+{
+  "phase": 2155,
+  "title": "Legacy Request Derivation Retirement — Interface First",
+  "passed": 18,
+  "total": 18,
+  "checks": [
+    {
+      "name": "legacy resolveRequest semantic classifier is retired",
+      "passed": true
+    },
+    {
+      "name": "action contract consumes the existing upstream request ADT",
+      "passed": true
+    },
+    {
+      "name": "subscanner retirement contract records canonical request ADT ownership",
+      "passed": true
+    },
+    {
+      "name": "resolver context requires a closed request judgment",
+      "passed": true
+    },
+    {
+      "name": "resolver projects the supplied judgment without reclassification",
+      "passed": true
+    },
+    {
+      "name": "request evidence adapter delegates judgment to existing authority",
+      "passed": true
+    },
+    {
+      "name": "evidence adapter represents all parameter origins exhaustively",
+      "passed": true
+    },
+    {
+      "name": "action scanner forwards one judgment into the legacy projection",
+      "passed": true
+    },
+    {
+      "name": "production composition computes the request judgment once and passes it through",
+      "passed": true
+    },
+    {
+      "name": "published action semantic knowledge reuses the exact judgment value",
+      "passed": true
+    },
+    {
+      "name": "legacy route projection preserves typed request outcomes",
+      "passed": true
+    },
+    {
+      "name": "legacy route projection preserves unresolved type judgments",
+      "passed": true
+    },
+    {
+      "name": "endpoint projection preserves unresolved action/type outcomes",
+      "passed": true
+    },
+    {
+      "name": "schema compatibility consumes canonical request ADT exhaustively",
+      "passed": true
+    },
+    {
+      "name": "retired schema-request compatibility obligation is removed from live coverage",
+      "passed": true
+    },
+    {
+      "name": "action judgment contract version is synchronized at 19",
+      "passed": true
+    },
+    {
+      "name": "request contract tests use upstream request judgment",
+      "passed": true
+    },
+    {
+      "name": "changed production files do not introduce relation/foundation or a new subscanner dependency",
+      "passed": true
+    }
+  ]
+}

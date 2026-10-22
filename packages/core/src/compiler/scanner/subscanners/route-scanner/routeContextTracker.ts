@@ -9,7 +9,7 @@
 import type { TokenDescriptor } from "../../lexer/phpAstTypes";
 import { routeAuthorizationKnowledge } from "../../semantic/route/routeMiddlewareKnowledgeCatalog";
 import { createMiddlewareName } from "../../../../types/upstream/names";
-import { relationAll, relationEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationAll, relationEqual } from "../../../../semantic/relations/semanticRelations";
 import {
     relationGate,
     relationExpand,
@@ -20,7 +20,7 @@ import {
     relationSome,
     relationNone,
     type RelationOption,
-} from "../../../../semantic/foundation/relationalSequence";
+} from "../../../../semantic/relations/relationalSequence";
 
 type ContextToken = TokenDescriptor;
 

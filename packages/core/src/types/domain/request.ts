@@ -5,6 +5,8 @@
 
 import type { SourceFilePath } from './semanticValues';
 import type { SourceSpan } from '../upstream/provenance';
+import type { TypeExpression } from '../upstream/typeVocabulary';
+import type { UnresolvedPhpParameterTypeJudgment } from '../upstream/laravelControllerRequestSemanticBinding';
 
 import type { ObjectProperty } from "./semanticType";
 import type { RequestFieldMeaning } from './requestFieldMeaning';
@@ -47,6 +49,9 @@ export interface RequestField {
     readonly presence: RequestFieldPresence;
     readonly requirement: RequestFieldRequirement;
     readonly validation: readonly ValidationRuleNode[];
+    /** All source spans contributing to this field after validation-path aggregation. */
+    readonly sources: readonly SourceSpan[];
+    /** Compatibility primary source; `sources` is authoritative for merged fields. */
     readonly source: SourceSpan;
 }
 
@@ -110,6 +115,18 @@ export type RouteRequestBinding =
     | {
         readonly kind: 'framework_request';
         readonly type: ClassName;
+    }
+    | {
+        readonly kind: 'typed_request';
+        readonly type: TypeExpression;
+    }
+    | {
+        readonly kind: 'unresolved_request';
+        readonly judgment: UnresolvedPhpParameterTypeJudgment;
+    }
+    | {
+        readonly kind: 'unresolved_action_request';
+        readonly reason: 'action_judgment_unmatched' | 'action_judgment_ambiguous' | 'action_judgment_provenance_invalid';
     }
     | {
         readonly kind: 'no_request';

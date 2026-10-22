@@ -5,6 +5,7 @@
  */
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { type PhpAstValue, matchPhpAstValue } from "../../lexer/PhpAst";
+import type { SourceFile } from "../../../../types/upstream/names";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import { bindWhenLoadedField } from "./whenLoadedBinder";
 import { readWhenLoadedRelation } from "./whenLoadedRelationArgument";
@@ -13,9 +14,9 @@ import { bindPropertyPathField } from "./propertyPathBinder";
 import { matchPhpAccessMode, matchPhpPropertyPath } from "../../lexer/phpAstAlgebra";
 import { matchResourceOperationKind, resourceOperationKindForMethod } from "../../../../types/upstream/resourceVocabulary";
 import { matchLookup } from "../../../../types/upstream/collections";
-import { relationAll, relationGate, relationProject, relationEqual } from "../../../../semantic/foundation/semanticRelations";
-import { relationContains, relationInsert, relationIndexLookup, type RelationMembership, type RelationIndex } from "../../../../semantic/foundation/relationMembership";
-import { relationOptionFold, relationRefine } from "../../../../semantic/foundation/relationalSequence";
+import { relationAll, relationGate, relationProject, relationEqual } from "../../../../semantic/relations/semanticRelations";
+import { relationContains, relationInsert, relationIndexLookup, type RelationMembership, type RelationIndex } from "../../../../semantic/relations/relationMembership";
+import { relationOptionFold, relationRefine } from "../../../../semantic/relations/relationalSequence";
 import {
     bindResourceCollectionField,
     bindNestedArrayField,
@@ -145,14 +146,17 @@ export function bindField({
     modelSymbol,
     modelSymbolTable,
     variableDefinitions = Object.freeze([]),
+    sourceFile,
 }: {
     readonly key: string;
     readonly value: PhpAstValue;
     readonly modelSymbol: OriginModelSymbol;
     readonly modelSymbolTable: ModelSymbolTable;
+    readonly sourceFile: SourceFile;
     readonly variableDefinitions?: RelationIndex<string, PhpAstValue>;
 }): BoundResourceFieldResult {
     const semanticValue = resolveVariableReceivers(value, variableDefinitions);
+    const bindNestedField = (params: { readonly key: string; readonly value: PhpAstValue; readonly modelSymbol: OriginModelSymbol; readonly modelSymbolTable: ModelSymbolTable }): BoundResourceFieldResult => bindField({ ...params, sourceFile });
     return matchPhpAstValue(semanticValue, {
         methodChain: val => matchResourceOperationKind(resourceOperationKindForMethod(val.property), {
             when: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
@@ -181,22 +185,22 @@ export function bindField({
         }),
         propertyAccess: val => matchPhpPropertyPath(val.target, {
             single: () => bindPropertyAccessWithAccess(key, val.property, val.access, modelSymbol),
-            chain: () => bindPropertyPathField(key, val, modelSymbol, modelSymbolTable),
+            chain: () => bindPropertyPathField(key, val, modelSymbol, modelSymbolTable, sourceFile),
         }),
         resourceSingle: val => bindResourceCollectionField(key, val, modelSymbol),
         resourceCollection: val => bindResourceCollectionField(key, val, modelSymbol),
-        nestedArray: val => bindNestedArrayField(key, val, modelSymbol, modelSymbolTable, bindField),
+        nestedArray: val => bindNestedArrayField(key, val, modelSymbol, modelSymbolTable, bindNestedField, sourceFile),
         literal: val => bindLiteralField(key, val),
         interpolatedString: () => bindFallbackField(key),
-        ternaryExpression: val => bindTernaryField(key, val, modelSymbol, modelSymbolTable, bindField),
+        ternaryExpression: val => bindTernaryField(key, val, modelSymbol, modelSymbolTable, bindNestedField),
         arrayAccess: () => bindFallbackField(key),
         functionCall: () => bindFallbackField(key),
         callableCall: () => bindFallbackField(key),
-        shortTernary: val => bindShortTernaryField(key, val, modelSymbol, modelSymbolTable, bindField),
-        nullCoalesce: val => bindNullCoalesceField(key, val, modelSymbol, modelSymbolTable, bindField),
-        binaryExpression: val => bindBinaryField(key, val, modelSymbol, modelSymbolTable, bindField),
+        shortTernary: val => bindShortTernaryField(key, val, modelSymbol, modelSymbolTable, bindNestedField),
+        nullCoalesce: val => bindNullCoalesceField(key, val, modelSymbol, modelSymbolTable, bindNestedField),
+        binaryExpression: val => bindBinaryField(key, val, modelSymbol, modelSymbolTable, bindNestedField),
         unaryExpression: () => bindFallbackField(key),
-        castExpression: val => bindCastField(key, val, modelSymbol, modelSymbolTable, bindField),
+        castExpression: val => bindCastField(key, val, modelSymbol, modelSymbolTable, bindNestedField),
         assignmentExpression: () => bindFallbackField(key),
         matchExpression: () => bindFallbackField(key),
         magicConstant: () => bindFallbackField(key),

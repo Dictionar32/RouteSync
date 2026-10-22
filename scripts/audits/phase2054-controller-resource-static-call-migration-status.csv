@@ -1,0 +1,6 @@
+file,symbol,prior_responsibility,phase2054_change,status
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,resourceBindingCandidate,decided collection-method applicability while projecting AST,projects typed static_call evidence without deciding method applicability,migrated
+packages/core/src/types/upstream/controllerResourceBindingInterface.ts,ControllerResourceBindingAuthorityInterface,contract omitted explicit static-call applicability ownership,contract v3 explicitly assigns applicability to existing authority,migrated
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,controllerResourceBindingAuthority,accepted preclassified resource_collection candidates,judges typed MethodName and closes non-applicable outcomes upstream,migrated
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,modelOriginFromEvidence,extracts model origin from closed judgments,unchanged existing semantic authority,retained
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,controllerStaticCallOriginAuthority,judges model/table origin for static calls,unchanged; separate origin concern,retained

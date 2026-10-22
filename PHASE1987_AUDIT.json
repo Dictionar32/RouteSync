@@ -1,0 +1,58 @@
+{
+  "phase": 1987,
+  "title": "Integrated invocation-response AST projection interface first",
+  "scope": "upstream interface/type contract and public type exports only; runtime executor and scanner implementations untouched",
+  "checks": [
+    {
+      "name": "AST projection consumes existing response ADTs through type-only imports",
+      "passed": true
+    },
+    {
+      "name": "semantic projection context requires both canonical judgments",
+      "passed": true
+    },
+    {
+      "name": "response projection is indexed by the exact invocation subtype",
+      "passed": true
+    },
+    {
+      "name": "projection result returns the same correlated invocation and response ADTs",
+      "passed": true
+    },
+    {
+      "name": "AST projection authority declares generic input-to-output preservation",
+      "passed": true
+    },
+    {
+      "name": "authority contract forbids response reclassification and reconstruction",
+      "passed": true
+    },
+    {
+      "name": "controller artifact already owns both judgments as one ADT",
+      "passed": true
+    },
+    {
+      "name": "response outcome remains closed and rejected source binding is preserved",
+      "passed": true
+    },
+    {
+      "name": "new projection context and response projection type are publicly exported",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation replacement layer is introduced",
+      "passed": true
+    },
+    {
+      "name": "no new scanner or parallel invocation authority is introduced",
+      "passed": true
+    },
+    {
+      "name": "existing AST projection runtime remains unchanged for interface-first sequencing",
+      "passed": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "knownGap": "The current runtime AST projection authority still emits invocation-only projection and must be migrated later to forward responseJudgment; this phase deliberately does not modify runtime before the contract is settled."
+}

@@ -1,0 +1,35 @@
+{
+  "phase": 1515,
+  "title": "Interface rule-obligation closure",
+  "status": "PASS",
+  "verification": "source-audit-and-transpile-only",
+  "typescript_build": "NOT_VERIFIED_NODE_MODULES_MISSING_AND_GLOBAL_TSC_VERSION_INCOMPATIBLE_WITH_PROJECT_CONFIG",
+  "unit_tests": "NOT_RUN_NODE_MODULES_MISSING",
+  "checks": [
+    {
+      "status": "PASS",
+      "check": "existing upstream interface owns a rule-family obligation matrix"
+    },
+    {
+      "status": "PASS",
+      "check": "catalog validation rejects missing family-specific premises and constraints"
+    },
+    {
+      "status": "PASS",
+      "check": "catalog validation checks evidence and outcome contracts, not only non-empty arrays"
+    },
+    {
+      "status": "PASS",
+      "check": "exists-family declaration includes nested-query evidence obligation"
+    },
+    {
+      "status": "PASS",
+      "check": "scanner continues to delegate claimed families and retains only explicit legacy frontier"
+    },
+    {
+      "status": "PASS",
+      "check": "regression test rejects incomplete family-specific semantic declarations"
+    }
+  ],
+  "remaining_semantic_gap": "Rule-family evaluators still validate evidence and construct QueryOperationAst; executor-only runtime requires derivation-carrying judgments and per-family parity tests."
+}

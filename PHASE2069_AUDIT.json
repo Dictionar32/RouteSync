@@ -1,0 +1,16 @@
+{
+  "phase": 2069,
+  "title": "Source-Ordered Semantic Judgment Selection, Interface First",
+  "status": "implemented",
+  "primaryFinding": "latestAvailableSemanticJudgment retained the first semantic judgment instead of selecting the final source-ordered definition",
+  "contractChange": "ControllerVariableBinding.definitions explicitly documents source-occurrence order and final-definition selection",
+  "implementation": "controllerDataflowContract.ts now replaces the accumulated semantic judgment for each definition; an empty definition sequence remains missing",
+  "regression": "controllerDataflowSemanticJudgmentSelection.phase2069.test.ts",
+  "audit": "scripts/audits/audit-phase2069-source-ordered-semantic-judgment-selection-interface-first.cjs",
+  "auditResult": "12/12",
+  "typescriptSyntaxDiagnostics": 0,
+  "fullTypecheck": "not-run",
+  "build": "not-run",
+  "vitest": "not-run; Vitest binary unavailable in extracted workspace",
+  "newRelationFoundationSubscanner": false
+}

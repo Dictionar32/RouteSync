@@ -1,0 +1,56 @@
+{
+  "phase": 1552,
+  "title": "Semantic type derivation interface-first ownership migration",
+  "passed": 9,
+  "total": 10,
+  "inventory": {
+    "sourceFiles": 455,
+    "productionFiles": 362,
+    "testFiles": 93,
+    "filesWithReasoningSignals": 182,
+    "filesWithDirectSolverCalls": 5,
+    "productionFilesWithDirectSolverCalls": 0
+  },
+  "checks": [
+    {
+      "name": "upstream contract declares request and closed judgment",
+      "passed": true
+    },
+    {
+      "name": "authority consumes typed request",
+      "passed": true
+    },
+    {
+      "name": "authority composes existing derivation algebras",
+      "passed": true
+    },
+    {
+      "name": "runtime executor delegates without derivation logic",
+      "passed": true
+    },
+    {
+      "name": "scanner facade delegates through executor",
+      "passed": true
+    },
+    {
+      "name": "semantic implementation no longer lives under scanner/subscanners/semantic",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports contract",
+      "passed": true
+    },
+    {
+      "name": "request type derivation frontier documented honestly",
+      "passed": true
+    },
+    {
+      "name": "current inventory covers every scanner TS/TSX file",
+      "passed": false
+    },
+    {
+      "name": "ownership map inventory matches current scan",
+      "passed": true
+    }
+  ]
+}

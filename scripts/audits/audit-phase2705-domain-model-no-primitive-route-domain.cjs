@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, pass) => { checks.push({ name, pass: Boolean(pass) }); console.log(`${pass ? 'PASS' : 'FAIL'} ${name}`); };
+const evidencePath = 'packages/core/src/compiler/semantic/request-type-derivation/routeDomainEvidence.ts';
+const extractorPath = 'packages/core/src/compiler/scanner/subscanners/request-deriver/domainExtractor.ts';
+const indexPath = 'packages/core/src/compiler/scanner/subscanners/request-deriver/index.ts';
+const evidence = read(evidencePath);
+const extractor = read(extractorPath);
+const index = read(indexPath);
+const verifier = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProofVerifier.ts');
+const reasoning = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticReasoning.ts');
+check('route domain evidence retains ResourceName and DomainName semantic values', /readonly resource: ResourceName/.test(evidence) && /readonly domain: DomainName/.test(evidence) && /readonly group: DomainName/.test(evidence));
+check('route domain model no longer flattens semantic identity to rawDomain/bareDomain strings', !/rawDomain\s*:\s*string|bareDomain\s*:\s*string/.test(evidence) && !/rawDomain|bareDomain/.test(evidence));
+check('route domain extraction is an interface-typed runtime operation object', /export interface RouteDomainEvidenceExtractionInterface/.test(evidence) && /export const routeDomainEvidenceExtraction:\s*RouteDomainEvidenceExtractionInterface\s*=\s*Object\.freeze\(\{/.test(evidence));
+check('route domain evidence is copied from canonical route identity without string round-tripping', /resource:\s*route\.identity\.domain\.resource/.test(evidence) && /domain:\s*route\.identity\.domain\.domain/.test(evidence) && /group:\s*route\.identity\.domain\.group/.test(evidence) && !/\.value\.value/.test(evidence));
+check('request-deriver public boundary exports the operation object and semantic contract types', /routeDomainEvidenceExtraction/.test(extractor) && /RouteDomainEvidenceExtractionInterface/.test(extractor) && /routeDomainEvidenceExtraction/.test(index));
+check('changed domain source contains no exported function declaration or loose exported callable constant', !/^export\s+function\s/m.test(evidence) && !/^export\s+const\s+\w+\s*=\s*(?:async\s*)?(?:function\s*\(|\([^\n]*\)\s*(?::[^=]+)?=>)/m.test(evidence));
+check('proof verifier remains fail-closed for laws not independently verified', /kind: 'verification_incomplete' as const/.test(verifier) && /missingLaws: REQUEST_TYPE_DERIVATION_LAW_IDS/.test(verifier));
+check('semantic reasoning and proof verifier remain wired into typed runtime operations', /export const requestTypeDerivationSemanticReasoning:\s*RequestTypeDerivationSemanticReasoningInterface/.test(reasoning) && /export const requestTypeDerivationProofVerifier:\s*RequestTypeDerivationProofVerificationInterface/.test(verifier));
+const failed = checks.filter(result => !result.pass);
+console.log(`\nPhase 2705 domain-model audit: ${checks.length - failed.length}/${checks.length} assertions passed.`);
+console.log('SCOPE: static source assertions only; full workspace typecheck, runtime tests, and complete canonical-law verification remain separate gates.');
+if (failed.length) process.exitCode = 1;

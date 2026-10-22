@@ -11,6 +11,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ServiceConfig } from '../types/config';
 import { snakeCaseKeys } from '../utils';
 import { prepareRequest } from './http';
+import type { HttpRequestExecution } from './HttpRequestExecution';
 
 export class HttpClient {
   private client: AxiosInstance;
@@ -77,6 +78,24 @@ export class HttpClient {
 
   removeToken() {
     delete this.client.defaults.headers.common['Authorization'];
+  }
+
+  /**
+   * Execute an already-classified HTTP operation from the upstream route contract.
+   * Method meaning is supplied by the caller; this executor does not infer it.
+   */
+  async request<TResponse, TBody>(
+    operation: HttpRequestExecution<TBody>
+  ): Promise<TResponse> {
+    const { url, method, body, config } = operation;
+    const { processedBody, processedConfig } = prepareRequest(body, config);
+    const response = await this.client.request<TResponse>({
+      ...processedConfig,
+      url,
+      method,
+      data: processedBody
+    });
+    return response.data;
   }
 
   async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {

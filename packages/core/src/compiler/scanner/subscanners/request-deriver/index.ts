@@ -6,11 +6,17 @@
  * @module core/compiler/scanner/subscanners/request-deriver
  */
 
-export { extractRouteDomain, type RouteDomainInfo } from "./domainExtractor";
-export { deriveRouteAction, type DerivedActionInfo } from "./actionDeriver";
 export {
-    deriveActionResponseData,
-    extractResourceResponseFields
+    routeDomainEvidenceExtraction,
+    type RouteDomainEvidence,
+    type RouteDomainEvidenceExtractionInterface,
+} from "./domainExtractor";
+export { requestTypeRouteActionDerivation, type RequestTypeRouteActionDerivationInterface, type DerivedActionInfo } from "./actionDeriver";
+export {
+    requestTypeResponseContributionDerivation,
+    requestTypeResourceResponseFieldProjection,
+    type RequestTypeResponseContributionDerivationInterface,
+    type RequestTypeResourceResponseFieldProjectionInterface,
 } from "./responseDeriver";
 export {
     createDerivationContext,

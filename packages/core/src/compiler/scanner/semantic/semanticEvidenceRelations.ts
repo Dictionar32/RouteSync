@@ -5,9 +5,9 @@
  * Their observations are lifted into Presence relations and then exposed to
  * the semantic solver/rewrite layer.
  */
-import { absent, present, presenceFold, type Presence } from '../../../semantic/foundation/presenceRelations';
-import { relationGate, relationProject } from '../../../semantic/foundation/relationalSequence';
-import * as astEvidence from '../lexer/astClassifierEvidence';
+import { absent, present, presenceFold, type Presence } from '../../../semantic/relations/presenceRelations';
+import { relationGate, relationProject } from '../../../semantic/relations/relationalSequence';
+import { classifyAstTokens, classifyAstValue, classifyPhpBlock } from '../lexer/astClassifierEvidence';
 import { queryEvidenceProducer, type QueryProducerInput } from '../subscanners/queryEvidenceProducer';
 import type { PhpAstValue, PhpBlock, TokenDescriptor } from '../lexer/PhpAst';
 import type { QueryAst } from '../../../types/upstream/query';
@@ -20,13 +20,13 @@ export type SemanticEvidence<T> = Readonly<{
 const evidence = <T>(value: T): SemanticEvidence<T> => Object.freeze({ relation: 'evidence', value });
 
 export const astValueRelation = (raw: string): Presence<SemanticEvidence<PhpAstValue>> =>
-  present(evidence(astEvidence.classifyAstValue(raw)));
+  present(evidence(classifyAstValue(raw)));
 
 export const astTokenRelation = (tokens: readonly TokenDescriptor[]): Presence<SemanticEvidence<PhpAstValue>> =>
-  present(evidence(astEvidence.classifyAstTokens(tokens)));
+  present(evidence(classifyAstTokens(tokens)));
 
 export const phpBlockRelation = (tokens: readonly TokenDescriptor[]): Presence<SemanticEvidence<PhpBlock>> =>
-  present(evidence(astEvidence.classifyPhpBlock(tokens)));
+  present(evidence(classifyPhpBlock(tokens)));
 
 export const queryRelation = (input: QueryProducerInput): Presence<readonly QueryAst[]> =>
   relationGate(input.expressions.length > 0, () => present(queryEvidenceProducer.produce(input)), absent);

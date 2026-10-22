@@ -1,0 +1,55 @@
+{
+  "phase": 1408,
+  "name": "upstream-evidence-and-action-identity-migration",
+  "status": "passed_with_residuals",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "semantic producer consumes acquired source evidence",
+      "passed": true
+    },
+    {
+      "name": "semantic producer no longer discovers or reads source files",
+      "passed": true
+    },
+    {
+      "name": "source acquisition owns filesystem discovery and reads",
+      "passed": true
+    },
+    {
+      "name": "source evidence is represented by a closed typed contract",
+      "passed": true
+    },
+    {
+      "name": "action identity resolution has a closed upstream contract",
+      "passed": true
+    },
+    {
+      "name": "upstream authority resolves duplicate action names independent of input order",
+      "passed": true
+    },
+    {
+      "name": "CLI delegates final action identity to upstream authority",
+      "passed": true
+    },
+    {
+      "name": "CLI projection no longer mints duplicate suffixes",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports both migration contracts",
+      "passed": true
+    },
+    {
+      "name": "route lookup rejects missing upstream identity",
+      "passed": true
+    }
+  ],
+  "residuals": [
+    "The semantic producer still parses acquired PHP syntax; parser construction and semantic judgment production remain coupled.",
+    "The source evidence acquisition contract currently covers models, resources, controllers and services; other Laravel source families retain their existing scanner paths.",
+    "Full TypeScript typecheck, build and end-to-end Laravel fixture verification require project dependencies that are absent from this workspace.",
+    "Dataflow/relational-calculus authority audits remain separate unresolved migrations."
+  ]
+}

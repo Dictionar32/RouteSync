@@ -1,0 +1,85 @@
+{
+  "phase": 1743,
+  "name": "composition-migration-gate-interface",
+  "total": 19,
+  "passed": 11,
+  "failed": 8,
+  "checks": [
+    {
+      "name": "scanner boundary interface and value are synchronized at v31",
+      "passed": false
+    },
+    {
+      "name": "pipeline interface and value are synchronized at v52",
+      "passed": false
+    },
+    {
+      "name": "full-static-coverage gate is distinct from integrated-response composition gate",
+      "passed": false
+    },
+    {
+      "name": "composition gate permits explicit uncovered static subjects",
+      "passed": false
+    },
+    {
+      "name": "composition still uses existing inventory, pipeline, and publication ownership",
+      "passed": true
+    },
+    {
+      "name": "no duplicate semantic authority interface was added",
+      "passed": true
+    },
+    {
+      "name": "composition public boundary remains integrate-only",
+      "passed": true
+    },
+    {
+      "name": "inventory completeness includes ordinary and static source facts",
+      "passed": true
+    },
+    {
+      "name": "static subjects remain explicitly uncovered until static semantics are implemented",
+      "passed": true
+    },
+    {
+      "name": "ordinary semantic analysis remains owned by the canonical pipeline",
+      "passed": true
+    },
+    {
+      "name": "publication authority remains sole correspondence validator",
+      "passed": true
+    },
+    {
+      "name": "integrated response still carries validated and rejected publication outcomes",
+      "passed": false
+    },
+    {
+      "name": "scanner runtime remains unchanged and does not invoke composition",
+      "passed": false
+    },
+    {
+      "name": "scanner runtime status remains truthful",
+      "passed": false
+    },
+    {
+      "name": "existing integrated-response contract remains v4",
+      "passed": false
+    },
+    {
+      "name": "judgment model is reused without a duplicate wrapper",
+      "passed": true
+    },
+    {
+      "name": "core index continues exporting existing composition contract and interface",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency is introduced",
+      "passed": true
+    },
+    {
+      "name": "Phase 1743 direct and regression audits are registered",
+      "passed": true
+    }
+  ]
+}

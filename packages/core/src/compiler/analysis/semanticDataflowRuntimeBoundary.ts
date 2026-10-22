@@ -1,19 +1,19 @@
-import type { DataFlowInterface } from '../../types/dataflow/dataFlowInterface';
+import type { DataFlowAuthorityInterface } from '../../types/dataflow/dataFlowInterface';
 import type { UpstreamWiringInterface } from '../../types/interfaces/interfaceDependencyBoundary';
-import type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
+import type { SemanticDataflowIdentity, SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
 
-export type SemanticDataflowRuntimeDataFlow = DataFlowInterface<
-  SemanticDataflowInput,
+/** Read-only execution surface built from an upstream-closed judgment. */
+export type SemanticDataflowRuntimeDataFlow = DataFlowAuthorityInterface<
+  SemanticDataflowJudgment,
   SemanticDataflowJudgment,
   SemanticDataflowIdentity
 >;
 
 /**
- * Downstream-owned wiring contract from upstream semantic input to the
- * canonical generic DataFlowInterface. The generic dependency boundary owns
- * the direction: upstream is consumed by downstream wiring, never reversed.
+ * Runtime wiring accepts only a closed judgment. Raw semantic inputs cannot
+ * cross this boundary, so runtime cannot invoke or reconstruct semantic reasoning.
  */
 export interface SemanticDataflowRuntimeBoundary extends UpstreamWiringInterface<
-  SemanticDataflowInput,
+  SemanticDataflowJudgment,
   SemanticDataflowRuntimeDataFlow
 > {}

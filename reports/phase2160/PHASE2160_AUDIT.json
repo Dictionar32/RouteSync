@@ -1,0 +1,72 @@
+{
+  "phase": 2160,
+  "title": "Response Reference Judgment — Upstream Interface-First",
+  "passed": 11,
+  "total": 15,
+  "checks": [
+    {
+      "name": "controller response-reference judgment has declared and not-declared outcomes",
+      "passed": true
+    },
+    {
+      "name": "legacy ControllerResponse name is only a compatibility alias",
+      "passed": true
+    },
+    {
+      "name": "descriptor interface names response-reference ownership",
+      "passed": true
+    },
+    {
+      "name": "resource/model/inline descriptors publish declared references",
+      "passed": true
+    },
+    {
+      "name": "void descriptor publishes not-declared reference, not no HTTP response",
+      "passed": true
+    },
+    {
+      "name": "action resolver consumes descriptor judgment without match visitor",
+      "passed": false
+    },
+    {
+      "name": "action contract publishes explicit response-reference field",
+      "passed": true
+    },
+    {
+      "name": "published action semantic knowledge uses explicit response-reference name",
+      "passed": false
+    },
+    {
+      "name": "production authority wiring publishes same reference judgment",
+      "passed": false
+    },
+    {
+      "name": "controller scanner forwards published judgment into existing AST projection",
+      "passed": true
+    },
+    {
+      "name": "integrated response pipeline distinguishes reference candidate from observed return evidence",
+      "passed": true
+    },
+    {
+      "name": "resource binding consumes reference ADT and preserves unresolved not-declared outcome",
+      "passed": true
+    },
+    {
+      "name": "scan and sync use shared source-to-judgment manifest composition",
+      "passed": false
+    },
+    {
+      "name": "generate remains a manifest consumer rather than Laravel semantic classifier",
+      "passed": true
+    },
+    {
+      "name": "no new relation/foundation layer or response subscanner",
+      "passed": true
+    }
+  ],
+  "productionCodeChanged": true,
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

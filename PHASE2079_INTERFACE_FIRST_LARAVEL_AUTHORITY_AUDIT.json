@@ -1,0 +1,16 @@
+{
+  "phase": 2079,
+  "kind": "interface_first_laravel_semantic_authority_trace",
+  "productionSourceChanged": false,
+  "folderMoveIntroduced": false,
+  "invocationDiscriminatedUnionExists": true,
+  "integratedResponseAndAstProjectionContractsExist": true,
+  "scannerImportsSemanticRelations": true,
+  "scannerCallsControllerSubscanner": true,
+  "actionContractContainsRuntimeSemanticDerivation": true,
+  "declarationAuthorityContainsImperativeSemanticHelpers": true,
+  "scannerRuntimeExecutorOnly": false,
+  "relationFoundationSubscannerFree": false,
+  "productionSemanticMigrationComplete": false,
+  "buildTypecheckVitest": "not_run"
+}

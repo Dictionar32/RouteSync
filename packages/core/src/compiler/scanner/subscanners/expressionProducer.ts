@@ -2,7 +2,8 @@ import type { ExpressionAst, ExpressionOrigin } from '../../../types/upstream/as
 import type { PhpAstValue } from '../lexer/phpAstExpressionTypes';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import { expressionAstFromPhpAst } from './expressionAstCanonical';
-import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
+import { resourcePhpAstExpressionSemanticAuthority } from './resource/resourceUpstreamExpressionCanonical';
+import { createSourceFile } from '../../../types/upstream/names';
 
 /**
  * Source → ExpressionAst producer boundary.
@@ -28,7 +29,12 @@ export interface ExpressionProducer {
  * the PHP expression syntax itself to this boundary.
  */
 export const expressionFromPhpAst = (syntax: PhpAstValue, file: string): import('../../../types/upstream/expression').Expression =>
-    mapResourcePhpAstToUpstream(syntax, file);
+    resourcePhpAstExpressionSemanticAuthority.derive({
+        kind: 'php_ast_expression_evidence',
+        evidence: syntax,
+        sourceFile: createSourceFile(file),
+        classContext: { kind: 'none' },
+    });
 
 export const expressionProducer: ExpressionProducer = {
     produce(input): ExpressionAst {

@@ -3,7 +3,7 @@ import {
   solveSemanticRelations,
   type SemanticRelation,
   type SemanticRelationRewrite,
-} from '../../../semantic/foundation/semanticRewriteEngine';
+} from '../../../semantic/relations/semanticRewriteEngine';
 
 export type ResponseContractSemanticRelation =
   | 'response_value_kind'

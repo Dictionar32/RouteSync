@@ -68,7 +68,7 @@ const semanticAuthority = [
   resource.includes('resolveResourceAstMappingInterface'),
   resolver.includes("readonly mapping: AstMappingInterface['judgment']"),
   resolver.includes('const mapping = input.mapping.judgment'),
-  capability.includes('RouteCapabilitySemanticInput'),
+  capability.includes('routeCapabilitySemanticAuthority') && capability.includes('routeCapabilitySemanticAuthority.resolve'),
   capability.includes('Presence<RouteHookKindType>'),
   analysis.includes("kind: 'semantic_type'"),
   lowering.includes('resolveTypeScriptLoweringFromAnalysis'),

@@ -1,0 +1,16 @@
+{
+  "phase": 2706,
+  "title": "Request Identity Dispatch Source Fix",
+  "scope": "Static source audit and TypeScript syntax transpilation; not a full typecheck or runtime test suite.",
+  "results": {
+    "requestIdentityDispatchAssertions": { "passed": 7, "total": 7 },
+    "phase2704RuntimeOperationAssertions": { "passed": 11, "total": 11 },
+    "changedFileSyntaxDiagnostics": 0
+  },
+  "changedSource": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts",
+  "remainingBlockers": [
+    "Canonical semanticKey and occurrence keys are still serialized template strings.",
+    "Canonical request-type derivation proof verifier still fails closed when the complete proof-law set is not verified.",
+    "Full workspace typecheck and runtime/unit tests are not claimed as passing."
+  ]
+}

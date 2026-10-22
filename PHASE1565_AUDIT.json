@@ -1,0 +1,110 @@
+{
+  "phase": 1565,
+  "audit": "request-type-counterexample-interface",
+  "passed": 23,
+  "total": 23,
+  "checks": [
+    {
+      "name": "interface remains declaration-only",
+      "passed": true
+    },
+    {
+      "name": "verification exposes valid proof kind",
+      "passed": true
+    },
+    {
+      "name": "invalid verification is a named counterexample union",
+      "passed": true
+    },
+    {
+      "name": "each invalid variant has an evidence payload",
+      "passed": true
+    },
+    {
+      "name": "inventory and coverage failures identify domain and key sets",
+      "passed": true
+    },
+    {
+      "name": "source-key mismatch carries source domain and key",
+      "passed": true
+    },
+    {
+      "name": "route disposition failures identify route and expected/actual states",
+      "passed": true
+    },
+    {
+      "name": "group membership failures identify group and route sets",
+      "passed": true
+    },
+    {
+      "name": "output failures carry expected and actual semantic outputs",
+      "passed": true
+    },
+    {
+      "name": "resource-resolution failures identify the affected route",
+      "passed": true
+    },
+    {
+      "name": "transition failures identify group, route, and transition",
+      "passed": true
+    },
+    {
+      "name": "invalid group key evidence can represent malformed keys",
+      "passed": true
+    },
+    {
+      "name": "relation mismatch carries expected and actual relations",
+      "passed": true
+    },
+    {
+      "name": "policy mismatch carries expected and actual policies",
+      "passed": true
+    },
+    {
+      "name": "closure failures carry expected and actual closure kinds",
+      "passed": true
+    },
+    {
+      "name": "incomplete-ledger mismatch carries both ledgers",
+      "passed": true
+    },
+    {
+      "name": "conflict-ledger mismatch carries both ledgers",
+      "passed": true
+    },
+    {
+      "name": "judgment closure coherence remains represented",
+      "passed": true
+    },
+    {
+      "name": "source identity remains domain tagged",
+      "passed": true
+    },
+    {
+      "name": "group output remains fully attested",
+      "passed": true
+    },
+    {
+      "name": "contribution transitions remain replayable",
+      "passed": true
+    },
+    {
+      "name": "authority interface returns semantic judgment and typed verification",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports request type interface",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "static interface-model audit only; no claim of semantic authority implementation, scanner migration, runtime migration, package build, or Vitest validation",
+  "validationNotes": [
+    "static interface audit: 23/23 checks passed",
+    "targeted global TypeScript 5.8.3 check exits 2 with 35 diagnostics in imported dependency modules; zero diagnostics directly on requestTypeDerivationInterface.ts",
+    "scanner RequestTypeDeriver.ts SHA-256: 79ee5322bd073312ba955edd5908f3532c57cc16b0c1a13a9ffd96c50d37e608",
+    "scanner groupAggregator.ts SHA-256: 12c285dffa60562c1114cd610fd3bc7251ac0c95099cf22222c51fa8a2e5a6ee",
+    "runtime executor SHA-256: 1d65161d82d8cb358dc0e032bf62d6deaa23dba568ccdbf93177a07bb8c97b21",
+    "full package build and Vitest not run"
+  ]
+}

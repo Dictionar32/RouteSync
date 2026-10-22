@@ -1,0 +1,27 @@
+{
+  "phase": 1450,
+  "title": "Statement Boundary Interface First",
+  "scope": "core/src/types/upstream statement-boundary public contract",
+  "staticAudit": {
+    "script": "scripts/audits/audit-phase1450-statement-boundary-interface-first.cjs",
+    "passed": 12,
+    "total": 12
+  },
+  "typeCheck": {
+    "command": "tsc --noEmit --skipLibCheck --target ES2020 --module ESNext --moduleResolution bundler packages/core/src/types/upstream/scannerStatementBoundaryInterface.ts",
+    "passed": true,
+    "diagnostics": 0
+  },
+  "build": {
+    "passed": false,
+    "reason": "tsdown executable is not installed in this workspace"
+  },
+  "runtimeTests": {
+    "executed": false,
+    "reason": "This phase only defines the interface; runtime and algebra are intentionally unchanged, and Vitest is unavailable"
+  },
+  "runtimeChanged": false,
+  "algebraChanged": false,
+  "wiringChanged": false,
+  "downstreamVerified": false
+}

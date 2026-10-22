@@ -1,8 +1,8 @@
 /** Reverse-postorder traversal as recursive relation closure. */
 import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
 import { basicBlockLookup } from '../../utils/ControlFlowGraph';
-import { relationContains } from '../../../semantic/foundation/relationMembership';
-import { relationOptionFold, relationResolve } from '../../../semantic/foundation/relationalSequence';
+import { relationContains } from '../../../semantic/relations/relationMembership';
+import { relationOptionFold, relationResolve } from '../../../semantic/relations/relationalSequence';
 
 export function computeRPO(cfg: ControlFlowGraph): readonly number[] {
     const visit = (node: number, visited: readonly number[], order: readonly number[]): readonly number[] => {

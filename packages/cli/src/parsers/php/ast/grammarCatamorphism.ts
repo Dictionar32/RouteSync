@@ -86,6 +86,13 @@ const dispatch = <R>(visitor: PhpGrammarVisitor<R>): GrammarDispatch<R> => Objec
   entry: unsupportedGrammarNode<R>(),
 });
 
-export function matchPhpGrammar<R>(node: PhpGrammarNode, visitor: PhpGrammarVisitor<R>): R {
-  return dispatch(visitor)[node.kind](node);
+const matchPhpGrammarImplementation = <R>(node: PhpGrammarNode, visitor: PhpGrammarVisitor<R>): R =>
+  dispatch(visitor)[node.kind](node);
+
+export interface PhpGrammarMatchingOperationInterface {
+  readonly match: <R>(node: PhpGrammarNode, visitor: PhpGrammarVisitor<R>) => R;
 }
+
+export const phpGrammarMatchingOperation: PhpGrammarMatchingOperationInterface = Object.freeze({
+  match: matchPhpGrammarImplementation,
+});

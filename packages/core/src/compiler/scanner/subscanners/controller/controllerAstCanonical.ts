@@ -1,10 +1,22 @@
 import { PHP_STATEMENT_KINDS } from '../../lexer/phpAstStatementKinds';
+import type { SourceFile } from '../../../../types/upstream/names';
+import type { ControllerBodySemanticJudgmentAuthorityInterface } from '../../../../types/upstream/controllerBodySemanticJudgmentInterface';
+import type { ControllerBodyAst } from '../../lexer/controllerBodyAstTypes';
+import { ScannedRouteValidationRuleEntry } from '../../descriptors/validation/validationRuleEntry';
+import type { RouteValidationRuleEntry } from '../../../../types/domain/validationRules';
+import type { HttpErrorResponseDescriptor } from '../../../../types/domain/httpErrors';
+import { httpErrorResponseBadRequest, httpErrorResponseUnauthorized, httpErrorResponseForbidden, httpErrorResponseNotFound, httpErrorResponseValidation, httpErrorResponseServerError } from '../../../../types/domain/httpErrors';
+import { numberValue } from '../../../../types/upstream/valueObjects';
+import { createRouteSchemaPayload } from '../../../../types/domain/validationRules';
+import { RouteSemanticFlowValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
+import { TypeInterner } from '../../../types/TypeInterner';
 import type { ControllerMethodAst, ControllerParameterAst } from '../../lexer/controllerAstTypes';
+import type { ControllerDataflowPayloadJudgment } from '../../lexer/controllerBodyAstTypes';
 import type { PhpAstValue, PhpStatement, PhpAssignmentTarget, PhpIfAlternative, PhpForClause } from '../../lexer/phpAstTypes';
 import type { ControllerAst } from '../../../../types/upstream/ast';
 import type { QueryAst, QueryOperationAst } from '../../../../types/upstream/query';
 import type { QueryCondition } from '../../../../types/upstream/expression';
-import type { ControllerAction, ControllerParameter, ControllerDependency, ControllerSemanticDataflow, ControllerResponse, ControllerMethodAttribute, ControllerPolicyRelation, ControllerPolicyActionScope, ControllerQueryEvidence, ControllerQueryInput } from '../../../../types/upstream/controller';
+import type { ControllerAction, ControllerParameter, ControllerDependency, ControllerSemanticDataflow, ControllerResponseReferenceJudgment, ControllerMethodAttribute, ControllerPolicyRelation, ControllerPolicyActionScopeJudgment, ControllerQueryEvidence, ControllerQueryInput, ControllerMethodSemanticProjection } from '../../../../types/upstream/controller';
 import type { SourceStatement, SourceStatements } from '../../../../types/upstream/sourceStatements';
 import type { Assignment, AssignmentTarget } from '../../../../types/upstream/assignment';
 import type { Expression, ResolvedExpression, ExpressionArgument } from '../../../../types/upstream/expression';
@@ -14,13 +26,16 @@ import type { ResourceReference, ResponseReference } from '../../../../types/ups
 import type { ResponseResult, ResponseStatus } from '../../../../types/upstream/response';
 import type { HttpStatusCode, StringValue } from '../../../../types/upstream/valueObjects';
 import type { ActionName } from '../../../../types/upstream/names';
+import type { ControllerStaticCallClassNameResolutionContextEvidence } from '../../../../types/upstream/controllerStaticCallOriginInterface';
 import type { SemanticValue } from '../../../../types/upstream/primitiveVocabulary';
-import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
-import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from '../resource/resourceUpstreamExpressionMappings';
-import { createControllerDataflowContract, createControllerReturnSet, type ControllerResourceResponseEvidence } from './controllerDataflowContract';
-import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, relationRefine, relationSelect, relationFold, relationFoldRight, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
-import { relationAll, relationAny } from '../../../../semantic/foundation/semanticRelations';
-import { createSemanticDataflowInput } from '../../wiring/semanticDataflowInputAdapter';
+import { projectPhpAstExpressionToUpstream } from '../../lexer/routeAst/phpAstExpressionSemanticAuthority';
+import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from '../../lexer/routeAst/phpAstExpressionMappings';
+import { createControllerDataflowContract, createControllerReturnSet } from './controllerDataflowContract';
+import { controllerResourceBindingAuthority } from '../../../../types/upstream/controllerResourceBindingAuthority';
+import { relationGate, relationFirst, relationFirstOption, relationProject, relationExpand, relationOptionFold, relationOptionMap, relationEqual, relationNone, relationSome, relationRefine, relationSelect, relationFold, relationFoldRight, type RelationOption } from '../../../../semantic/relations/relationalSequence';
+import { relationAll, relationAny } from '../../../../semantic/relations/semanticRelations';
+import { semanticDataflowInputAdapter } from '../../wiring/semanticDataflowInputAdapter';
+import { controllerPolicyActionScopeJudgmentAuthority } from '../../../../types/upstream/controllerPolicyActionScopeJudgmentAuthority';
 
 const relationCase = <T, R>(value: T, key: (value: T) => string, cases: Readonly<Record<string, (value: T) => R>>, fallback: (value: T) => R): R => relationOptionFold(relationFirstOption(Object.entries(cases), ([candidate]) => relationEqual(candidate, key(value))), () => fallback(value), ([, branch]) => branch(value));
 
@@ -46,7 +61,7 @@ const tokenSpan = (file: string, token: { readonly startOffset: number; readonly
 const valueSpan = (file: string, value: PhpAstValue): SourceSpan =>
   span(file, value.source.startOffset, value.source.endOffset);
 
-const expression = (value: PhpAstValue, file: string): Expression => mapResourcePhpAstToUpstream(value, file);
+const expression = (value: PhpAstValue, file: string): Expression => projectPhpAstExpressionToUpstream(value, file);
 
 function assignmentTarget(target: PhpAssignmentTarget, file: string): AssignmentTarget {
   return resolveAssignmentTarget(target, expression, file);
@@ -62,36 +77,43 @@ function sequenceToArray<T>(value: import('../../../../types/upstream/collection
   );
 }
 
-export function resolvedExpression(value: PhpAstValue, method: ControllerMethodAst, file: string, statementIndex: number): ResolvedExpression {
-  const definitions = relationExpand(sequenceToArray(method.body.dataflow.semanticVariables.variables), binding => sequenceToArray(binding.definitions));
-  const semantic = relationOptionMap(relationFirstOption(definitions, definition => relationEqual(definition.expression, expression(value, file))), definition => definition.semantic);
-  const result: SemanticValue = semanticValue(semantic);
-  return { kind: 'resolved_expression', expression: expression(value, file), result };
-}
+const isMatchingPayloadJudgment = (
+  judgment: ControllerDataflowPayloadJudgment,
+  value: PhpAstValue,
+): boolean => Object.is(judgment.payload.payload.value, value);
 
-type ControllerVariableSemantic = import('../../../../types/upstream/controller').ControllerVariableSemantic;
+const unreachablePayloadJudgment = (judgment: never): never => judgment;
 
-type SemanticRule = {
-  readonly matches: (value: ControllerVariableSemantic) => boolean;
-  readonly resolve: (value: ControllerVariableSemantic) => SemanticValue;
+const projectPayloadJudgment = (
+  judgment: ControllerDataflowPayloadJudgment,
+  value: PhpAstValue,
+  file: string,
+): ResolvedExpression => {
+  switch (judgment.kind) {
+    case 'controller_dataflow_payload_semantics_resolved':
+      return {
+        kind: 'resolved_expression',
+        expression: judgment.bindingJudgment.definition.semanticResolution.sourceExpression,
+        result: judgment.bindingJudgment.definition.semanticResolution.expressionValue,
+      };
+    case 'controller_dataflow_payload_semantics_unresolved':
+      return { kind: 'resolved_expression', expression: expression(value, file), result: { kind: 'unresolved', reason: 'external' } };
+    case 'controller_dataflow_payload_semantics_ambiguous':
+      return { kind: 'resolved_expression', expression: expression(value, file), result: { kind: 'unresolved', reason: 'ambiguous' } };
+    default:
+      return unreachablePayloadJudgment(judgment);
+  }
 };
 
-const semanticRules: readonly SemanticRule[] = Object.freeze([
-  { matches: value => relationEqual(value.kind, 'model_origin'), resolve: value => ({ kind: 'reference', name: { kind: 'domain_type_name', value: value.origin.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } }) },
-  { matches: value => relationEqual(value.kind, 'request_origin'), resolve: value => ({ kind: 'reference', name: { kind: 'domain_type_name', value: value.name.value }, cardinality: { kind: 'one' }, nullability: { kind: 'non_nullable' } }) },
-  { matches: value => relationEqual(value.kind, 'expression'), resolve: () => ({ kind: 'unresolved', reason: 'unsupported' }) },
-  { matches: value => relationEqual(value.kind, 'external'), resolve: () => ({ kind: 'unresolved', reason: 'external' }) },
-]);
-
-function semanticValue(value: RelationOption<ControllerVariableSemantic>): SemanticValue {
+export function resolvedExpression(value: PhpAstValue, method: ControllerMethodAst, file: string, statementIndex: number): ResolvedExpression {
+  const payloadJudgment = relationFirstOption(
+    method.body.dataflow.payloadJudgments,
+    judgment => isMatchingPayloadJudgment(judgment, value),
+  );
   return relationOptionFold(
-    value,
-    () => ({ kind: 'unresolved', reason: 'external' }),
-    candidate => relationOptionFold(
-      relationFirst(semanticRules, rule => rule.matches(candidate)),
-      () => ({ kind: 'unresolved', reason: 'external' }),
-      rule => rule.resolve(candidate),
-    ),
+    payloadJudgment,
+    () => ({ kind: 'resolved_expression', expression: expression(value, file), result: { kind: 'unresolved', reason: 'external' } }),
+    judgment => projectPayloadJudgment(judgment, value, file),
   );
 }
 
@@ -170,14 +192,19 @@ function requestBinding(method: ControllerMethodAst): ControllerAction['request'
   );
 }
 
-function semantic(method: ControllerMethodAst, controllerName: string, file: string, response: ControllerResponse, queries: readonly QueryAst[] = []): ControllerSemanticDataflow {
-  const contract = createControllerDataflowContract(
-    method.body.dataflow,
-    method.parameters,
-    createControllerReturnSet(relationProject(method.returns, item => item.expression)),
-    relationGate(relationEqual(response.kind, 'response_present'), () => ({ kind: 'present', response: response.response } satisfies ControllerResourceResponseEvidence), () => ({ kind: 'absent' } satisfies ControllerResourceResponseEvidence)),
-    file,
-  );
+function semantic(method: ControllerMethodAst, controllerName: string, file: string, responseReferenceJudgment: ControllerResponseReferenceJudgment, queries: readonly QueryAst[] = []): ControllerSemanticDataflow {
+  const classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence = Object.freeze({
+    kind: 'unavailable',
+    reason: 'controller_method_lexical_context_missing',
+  });
+  const contract = createControllerDataflowContract({
+    evidence: method.body.dataflow,
+    returned: createControllerReturnSet(relationProject(method.returns, item => item.expression)),
+    response: responseReferenceJudgment,
+    modelClasses: Object.freeze([]),
+    classNameResolutionContextEvidence,
+    resourceBindingAuthority: controllerResourceBindingAuthority,
+  });
 
   const variables = contract.semantic.variables;
 
@@ -200,8 +227,25 @@ function semantic(method: ControllerMethodAst, controllerName: string, file: str
     role: 'scope' as const,
     slot: stringValue(`${controllerName}.${method.name}`),
   };
-  const dataflow = createSemanticDataflowInput(node, source, method.body.dataflow.semanticKnowledgeDataFlow, 'controller');
+  const dataflow = semanticDataflowInputAdapter.create(node, source, method.body.dataflow.semanticKnowledgeDataFlow, 'controller');
   return { dataflow, variables, resources: sequence(resources), returned, queries: sequence(controllerQueryEvidence(method, file, queries)) };
+}
+
+/** Build one source-correlated semantic projection for every view of the same controller method. */
+export function controllerMethodSemanticProjectionFromMethod(
+  method: ControllerMethodAst,
+  controllerName: string,
+  file: string,
+  responseReferenceJudgment: ControllerResponseReferenceJudgment,
+  queries: readonly QueryAst[] = [],
+): ControllerMethodSemanticProjection {
+  return Object.freeze({
+    kind: 'controller_method_semantic_projection',
+    controller: { kind: 'controller_name', value: stringValue(controllerName) },
+    source: tokenSpan(file, method.source),
+    responseReferenceJudgment,
+    semantic: semantic(method, controllerName, file, responseReferenceJudgment, queries),
+  });
 }
 
 
@@ -295,7 +339,7 @@ function unwrapTransactionReturns(
   return relationGate(
     relationAll([
       relationEqual(value.kind, 'static_call'),
-      relationEqual(value.className.value, 'DB'),
+      relationEqual(value.classReference.sourceName, 'DB'),
       relationEqual(value.method.value, 'transaction'),
     ]),
     () => relationOptionFold(
@@ -365,8 +409,8 @@ function toUpstreamModel(origin: import('./controllerDataflowContract').Controll
   return relationGate(relationEqual(origin.kind, 'table'), () => ({ kind: 'table', name: { kind: 'table_name', value: origin.name.value } }), () => ({ kind: 'model_class', name: { kind: 'model_name', value: origin.name.value } }));
 }
 
-export function controllerReturnSemanticFromMethod(method: ControllerMethodAst, file: string, response: ControllerResponse): import('../../../../types/upstream/controller').ControllerReturnSemantic {
-  return semantic(method, 'Controller', file, response).returned;
+export function controllerReturnSemanticFromMethod(method: ControllerMethodAst, file: string, responseReferenceJudgment: ControllerResponseReferenceJudgment): import('../../../../types/upstream/controller').ControllerReturnSemantic {
+  return semantic(method, 'Controller', file, responseReferenceJudgment).returned;
 }
 
 export function controllerReturnSemanticFromValues(
@@ -408,10 +452,10 @@ export function controllerMethodAttributesFromAttributes(
 ): import('../../../../types/upstream/collections').Sequence<import('../../../../types/upstream/controller').ControllerMethodAttribute> {
   const argument = (value: import('../lexer/controllerAstTypes').ControllerParameterAttributeArgumentAst): import('../../../../types/upstream/expression').ExpressionArgument =>
     relationGate(Object.is(value.kind, 'named'),
-      () => ({ kind: 'named' as const, name: { kind: 'expression_argument_name' as const, value: { kind: 'string_value' as const, value: value.name.value } }, value: mapResourcePhpAstToUpstream(value.value, file) }),
+      () => ({ kind: 'named' as const, name: { kind: 'expression_argument_name' as const, value: { kind: 'string_value' as const, value: value.name.value } }, value: projectPhpAstExpressionToUpstream(value.value, file) }),
       () => relationGate(Object.is(value.kind, 'unpacked'),
-        () => ({ kind: 'unpacked' as const, value: mapResourcePhpAstToUpstream(value.value, file) }),
-        () => ({ kind: 'positional' as const, value: mapResourcePhpAstToUpstream(value.value, file) })));
+        () => ({ kind: 'unpacked' as const, value: projectPhpAstExpressionToUpstream(value.value, file) }),
+        () => ({ kind: 'positional' as const, value: projectPhpAstExpressionToUpstream(value.value, file) })));
   const classAttributes: readonly ControllerMethodAttribute[] = relationProject(controllerAttributes, attribute => ({
     kind: 'controller_method_attribute' as const,
     scope: { kind: 'class' as const },
@@ -437,26 +481,17 @@ function controllerMethodAttributesFromMethod(
   return controllerMethodAttributesFromAttributes(method.attributes, controllerAttributes, file);
 }
 
-function policyActionScope(attribute: ControllerMethodAttribute): ControllerPolicyActionScope {
-  const arguments_ = sequenceToArray(attribute.arguments.items);
-  const named = relationFirstOption(arguments_, argument => argument.kind === 'named' && (argument.name.value.value === 'only' || argument.name.value.value === 'except'));
-  return relationOptionFold(named, () => ({ kind: 'all' as const }), argument => {
-    const name = argument.kind === 'named' ? argument.name.value.value : '';
-    const value = argument.kind === 'named' ? argument.value : ({ kind: 'unsupported_expression', reason: { kind: 'unsupported' }, source: attribute.source } as Expression);
-    const actions = value.kind === 'array'
-      ? relationProject(sequenceToArray(value.entries), entry => entry.value).filter(item => item.kind === 'literal' && item.value.kind === 'string_literal').map(item => ({ kind: 'action_name' as const, value: { kind: 'string_value' as const, value: item.value.value.value } }))
-      : [];
-    return name === 'only' ? { kind: 'only' as const, actions: sequence(actions) } : { kind: 'except' as const, actions: sequence(actions) };
-  });
+function policyActionScope(attribute: ControllerMethodAttribute): ControllerPolicyActionScopeJudgment {
+  return controllerPolicyActionScopeJudgmentAuthority.analyze(attribute.arguments);
 }
 
-function controllerPolicyRelationsFromAttributes(attributes: Sequence<ControllerMethodAttribute>, action?: ActionName): Sequence<ControllerPolicyRelation> {
+export function controllerPolicyRelationsFromAttributes(attributes: Sequence<ControllerMethodAttribute>, action?: ActionName): Sequence<ControllerPolicyRelation> {
   const values = sequenceToArray(attributes);
   const relations = relationExpand(values, attribute => {
     const name = attribute.name.value.value;
     if (name !== 'Middleware' && name !== 'WithoutMiddleware' && name !== 'Authorize') return [];
     if (name === 'Authorize') {
-      return [{ kind: 'controller_authorization_relation' as const, scope: attribute.scope, actions: action ? { kind: 'only' as const, actions: sequence([action]) } : policyActionScope(attribute), arguments: attribute.arguments, source: attribute.source }];
+      return [{ kind: 'controller_authorization_relation' as const, scope: attribute.scope, actions: controllerPolicyActionScopeJudgmentAuthority.analyzeAttribute(attribute.scope, action, attribute.arguments), arguments: attribute.arguments, source: attribute.source }];
     }
     const args = sequenceToArray(attribute.arguments.items);
     const first = relationFirstOption(args, argument => argument.kind === 'positional');
@@ -472,22 +507,29 @@ function controllerPolicyRelationsFromAttributes(attributes: Sequence<Controller
 }
 
 
-function controllerHasMiddlewareActionScope(expression: Expression): ControllerPolicyActionScope {
-  const arguments_ = expression.kind === 'construct' ? sequenceToArray(expression.arguments.items) : [];
-  const named = relationFirstOption(arguments_, argument => argument.kind === 'named' && (argument.name.value.value === 'only' || argument.name.value.value === 'except'));
-  return relationOptionFold(named, () => ({ kind: 'all' as const }), argument => {
-    if (argument.kind !== 'named') return { kind: 'all' as const };
-    const values = argument.value.kind === 'array' ? sequenceToArray(argument.value.entries) : [];
-    const stringEntries = relationSelect(values, entry => entry.value.kind === 'literal' && entry.value.value.kind === 'string_literal');
-    const actions = relationProject(stringEntries, entry => {
-      const value = entry.value as Extract<Expression, { readonly kind: 'literal' }>;
-      return { kind: 'action_name' as const, value: { kind: 'string_value' as const, value: value.value.value.value } };
-    });
-    return argument.name.value.value === 'only' ? { kind: 'only' as const, actions: sequence(actions) } : { kind: 'except' as const, actions: sequence(actions) };
-  });
+/**
+ * Canonical controller-level policy inventory. It is produced from declaration
+ * evidence, not reconstructed from published actions; actionless controllers can
+ * still declare class attributes or HasMiddleware middleware policy.
+ */
+export function controllerPolicyInventoryFromDeclaration(
+  attributes: Sequence<ControllerMethodAttribute>,
+  methods: readonly ControllerMethodAst[],
+  interfaces: readonly import('../../lexer/phpAstTypes').AstIdentifier[],
+  file: string,
+): readonly ControllerPolicyRelation[] {
+  return Object.freeze([
+    ...sequenceToArray(controllerPolicyRelationsFromAttributes(attributes)),
+    ...sequenceToArray(controllerHasMiddlewareRelations(methods, interfaces, file)),
+  ]);
 }
 
-function controllerHasMiddlewareRelations(
+function controllerHasMiddlewareActionScope(expression: Expression): ControllerPolicyActionScopeJudgment {
+  const arguments_ = expression.kind === 'construct' ? expression.arguments : { kind: 'expression_arguments' as const, items: { kind: 'empty' as const } };
+  return controllerPolicyActionScopeJudgmentAuthority.analyze(arguments_);
+}
+
+export function controllerHasMiddlewareRelations(
   methods: readonly ControllerMethodAst[],
   interfaces: readonly import('../../lexer/phpAstTypes').AstIdentifier[],
   file: string,
@@ -497,8 +539,8 @@ function controllerHasMiddlewareRelations(
     const middlewareMethod = relationFirst(methods, method => relationAll([relationEqual(method.name, 'middleware'), relationEqual(method.storage, 'static')]));
     return relationOptionFold(middlewareMethod, () => ({ kind: 'empty' as const }), method => {
       const expressions = relationExpand(method.returns, returned => returned.expression.kind === 'nested_array'
-        ? relationProject(returned.expression.entries, entry => mapResourcePhpAstToUpstream(entry.value, file))
-        : [mapResourcePhpAstToUpstream(returned.expression, file)]);
+        ? relationProject(returned.expression.entries, entry => projectPhpAstExpressionToUpstream(entry.value, file))
+        : [projectPhpAstExpressionToUpstream(returned.expression, file)]);
       const projected = relationProject(expressions, expression => {
         const target = expression.kind === 'construct' && relationEqual(expression.className.value.value, 'Middleware')
           ? relationOptionFold(relationFirstOption(sequenceToArray(expression.arguments.items), argument => argument.kind === 'positional'), () => expression, argument => argument.kind === 'positional' ? argument.value : expression)
@@ -830,14 +872,14 @@ export function controllerQueryOperations(
   });
 }
 
-function controllerOperationsFromMethod(method: ControllerMethodAst, semanticDataflow: ControllerSemanticDataflow, response: ControllerResponse, file: string, queries: readonly QueryAst[]): readonly import('../../../../types/upstream/controller').ControllerOperation[] {
+function controllerOperationsFromMethod(method: ControllerMethodAst, semanticDataflow: ControllerSemanticDataflow, responseReferenceJudgment: ControllerResponseReferenceJudgment, file: string, queries: readonly QueryAst[]): readonly import('../../../../types/upstream/controller').ControllerOperation[] {
   const resourceOperations = relationProject(semanticDataflow.resources, binding => ({
     kind: 'resource' as const,
     resource: binding.resource,
   }));
-  const responseOperations = relationGate(relationEqual(response.kind, 'response_present'), () => [{
+  const responseOperations = relationGate(relationEqual(responseReferenceJudgment.kind, 'response_reference_declared'), () => [{
     kind: 'response' as const,
-    response: response.response,
+    response: responseReferenceJudgment.response,
   }], () => []);
   const queryOperations = controllerQueryOperations(method, file, queries);
   const withQueries = relationExpand([queryOperations, resourceOperations], value => value);
@@ -848,22 +890,24 @@ export function controllerMethodContractFromMethod(
   method: ControllerMethodAst,
   controllerName: string,
   file: string,
-  response: ControllerResponse,
+  responseReferenceJudgment: ControllerResponseReferenceJudgment,
   dependencies: readonly ControllerDependency[] = [],
   controllerAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[] = [],
   queries: readonly QueryAst[] = [],
   controllerInterfaces: readonly import('../lexer/phpAstTypes').AstIdentifier[] = [],
   controllerMethods: readonly ControllerMethodAst[] = [],
   controllerInheritedAttributes: readonly import('../lexer/controllerAstTypes').ControllerParameterAttributeAst[] = [],
+  semanticProjection: ControllerMethodSemanticProjection = controllerMethodSemanticProjectionFromMethod(method, controllerName, file, responseReferenceJudgment, queries),
 ): import('../../../../types/upstream/controller').ControllerMethodContract {
-  const semanticDataflow = semantic(method, file, response, queries);
+  const semanticDataflow = semanticProjection.semantic;
+  const attributes = controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file);
   return {
-    attributes: controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file),
-    policy: sequence(relationExpand([sequenceToArray(controllerPolicyRelationsFromAttributes(controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file), { kind: 'action_name' as const, value: { kind: 'string_value' as const, value: method.name.value } })), sequenceToArray(controllerHasMiddlewareRelations(controllerMethods, controllerInterfaces, file))], value => value)),
+    attributes,
+    policy: sequence(relationExpand([sequenceToArray(controllerPolicyRelationsFromAttributes(attributes, { kind: 'action_name' as const, value: { kind: 'string_value' as const, value: method.name.value } })), sequenceToArray(controllerHasMiddlewareRelations(controllerMethods, controllerInterfaces, file))], value => value)),
     visibility: controllerMethodVisibilityFromMethod(method),
     parameters: controllerParameters(method, dependencies, file),
     dependencies: sequence(dependencies),
-    operations: sequence(controllerOperationsFromMethod(method, semanticDataflow, response, file, queries)),
+    operations: sequence(controllerOperationsFromMethod(method, semanticDataflow, responseReferenceJudgment, file, queries)),
     queries: sequence(controllerQueryEvidence(method, file, queries)),
     failure: controllerFailureFromMethod(method),
     source: tokenSpan(file, method.source),
@@ -888,11 +932,12 @@ export function controllerActionFromMethod(
   method: ControllerMethodAst,
   controllerName: string,
   file: string,
-  response: ControllerResponse,
+  responseReferenceJudgment: ControllerResponseReferenceJudgment,
   dependencies: readonly ControllerDependency[] = [],
   policy: Sequence<ControllerPolicyRelation> = { kind: 'empty' },
   inheritedFrom: readonly import('../../../../types/upstream/names').ControllerName[] = [],
   queries: readonly QueryAst[] = [],
+  semanticProjection: ControllerMethodSemanticProjection = controllerMethodSemanticProjectionFromMethod(method, controllerName, file, responseReferenceJudgment, queries),
 ): ControllerAction {
   const action: ControllerAction = {
     kind: 'controller_action',
@@ -902,11 +947,69 @@ export function controllerActionFromMethod(
     inheritedFrom: Object.freeze([...inheritedFrom]),
     parameters: controllerParameters(method, dependencies, file),
     request: requestBinding(method),
-    response,
+    response: responseReferenceJudgment,
     dependencies: sequence(dependencies),
     statements: controllerStatements(method.body.statements, file, method),
-    semantic: semantic(method, controllerName, file, response, queries),
+    semantic: semanticProjection.semantic,
     source: tokenSpan(file, method.source),
   };
   return action;
 }
+
+
+/** Typed status-to-error rules owned by the canonical body semantic authority. */
+const controllerBodyErrorResponseRules: readonly Readonly<{ status: number; create: () => HttpErrorResponseDescriptor }>[] = Object.freeze([
+  Object.freeze({ status: 400, create: httpErrorResponseBadRequest }),
+  Object.freeze({ status: 401, create: httpErrorResponseUnauthorized }),
+  Object.freeze({ status: 403, create: httpErrorResponseForbidden }),
+  Object.freeze({ status: 404, create: httpErrorResponseNotFound }),
+  Object.freeze({ status: 422, create: httpErrorResponseValidation }),
+  Object.freeze({ status: 500, create: httpErrorResponseServerError }),
+]);
+
+/**
+ * Canonical source-bound body authority. It consumes typed body AST evidence directly;
+ * validation lowering and known error-response interpretation are not delegated to a legacy resolver.
+ */
+export const controllerBodySemanticJudgmentAuthority: ControllerBodySemanticJudgmentAuthorityInterface<
+  ControllerBodyAst<true>,
+  ControllerMethodAst,
+  SourceFile
+> = Object.freeze({
+  kind: 'controller_body_semantic_judgment_authority',
+  contractVersion: 5,
+  sourceCorrelation: 'body-judgment-retains-the-exact-source-identity-supplied-as-input',
+  judgmentClosure: 'raw-typed-controller-body-evidence-is-consumed-by-the-existing-body-authority;validation-entry-lowering-and-known-error-response-judgment-are-authority-owned;source-identity-and-validation-provenance-remain-closed-through-schema-projection',
+  judge: input => {
+    const validationEntries: readonly RouteValidationRuleEntry[] = Object.freeze(input.body.validations.map(validation =>
+      ScannedRouteValidationRuleEntry.create(
+        validation.field,
+        validation.rules,
+        undefined,
+        Object.freeze({
+          kind: 'source_span' as const,
+          file: input.sourceIdentity,
+          start: numberValue(validation.source.startOffset),
+          end: numberValue(validation.source.endOffset),
+        }),
+      ),
+    ));
+    const errorResponses: readonly HttpErrorResponseDescriptor[] = Object.freeze(input.body.errors.flatMap(error => {
+      const rule = controllerBodyErrorResponseRules.find(candidate => Object.is(candidate.status, error.status));
+      return rule === undefined ? [] : [rule.create()];
+    }));
+    return Object.freeze({
+      kind: 'controller_body_semantic_judgment_completed',
+      sourceIdentity: input.sourceIdentity,
+      statements: controllerStatements(input.method.body.statements, input.sourceIdentity.value.value, input.method),
+      schema: createRouteSchemaPayload(
+        RouteSemanticFlowValidationRuleSet.create(validationEntries, TypeInterner.create()).fields,
+        [],
+        [],
+        validationEntries,
+      ),
+      validationEntries,
+      errorResponses,
+    });
+  },
+});

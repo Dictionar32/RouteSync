@@ -5,8 +5,8 @@ import type { Sequence } from '../../../../types/upstream/collections';
 import { createRoutePath } from '../../../../types/upstream/names';
 import type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 import type { RouteMiddlewareMutation } from '../../../../types/upstream/route';
-import { relationAdvanceIndex, relationGate, relationProject, relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationAdvanceIndex, relationGate, relationProject, relationVariantFold } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export interface RouteGroupResolutionJudgment {
   readonly kind: 'route_group_resolution_judgment';
@@ -21,7 +21,12 @@ export interface RouteGroupResolutionJudgment {
  * Laravel semantic boundary. This layer is deliberately AST-free: all
  * Laravel/domain decisions happen from semantic facts, before the interface.
  */
-export const resolveRouteGroupFactsJudgment = (facts: RouteGroupFact): RouteGroupResolutionJudgment => {
+export interface RouteGroupSemanticResolverInterface {
+  readonly resolveJudgment: (facts: RouteGroupFact) => RouteGroupResolutionJudgment;
+  readonly resolveContext: (facts: RouteGroupFact) => RouteGroupContext;
+}
+
+const resolveJudgment = (facts: RouteGroupFact): RouteGroupResolutionJudgment => {
   const prefix = resolvePrefix(facts.prefix);
 
   const middlewareItems: readonly RouteMiddlewareMutation[] = resolveMiddlewareItems(facts.middleware);
@@ -55,9 +60,12 @@ export const resolveRouteGroupFactsJudgment = (facts: RouteGroupFact): RouteGrou
   });
 };
 
-export function resolveRouteGroupFacts(facts: RouteGroupFact): RouteGroupContext {
-  return resolveRouteGroupFactsJudgment(facts).context;
-}
+const resolveContext = (facts: RouteGroupFact): RouteGroupContext => resolveJudgment(facts).context;
+
+export const routeGroupSemanticResolver: RouteGroupSemanticResolverInterface = Object.freeze({
+  resolveJudgment,
+  resolveContext,
+});
 
 
 function routeConstraintFromArgument(parameter: RouteGroupFact['constraints'][number]['parameter'], argument: RouteGroupFact['constraints'][number]['argument']): RouteConstraint {

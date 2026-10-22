@@ -1,0 +1,42 @@
+{
+  "phase": 2707,
+  "title": "ADT Request Identity Dispatch Source Correction",
+  "scope": "Actual runtime source refactor, static source audit, syntax transpilation, and attempted targeted TypeScript compiler check.",
+  "changes": [
+    {
+      "file": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts",
+      "change": "Replaced two runtime if guards in canonical request identity dispatch with a mapped ADT handler type. Each handler accepts only its Extract-narrowed source variant and returns the corresponding canonical identity variant."
+    },
+    {
+      "file": "scripts/audits/audit-phase2707-adt-identity-dispatch.cjs",
+      "change": "Added nine assertions for ADT dispatch structure and absence of if/switch branches inside this dispatch."
+    },
+    {
+      "file": "package.json",
+      "change": "Added audit:phase2707-adt-identity-dispatch script."
+    }
+  ],
+  "results": {
+    "adtDispatchAssertions": {
+      "passed": 9,
+      "total": 9
+    },
+    "phase2703RuntimeSourceAudit": {
+      "passed": 9,
+      "total": 9
+    },
+    "changedFileSyntaxDiagnostics": 0,
+    "targetedCompilerInvocation": {
+      "attempted": true,
+      "diagnosticCount": 44,
+      "changedFileDiagnostics": 0,
+      "status": "Not clean; unrelated existing workspace type errors were reported in dependencies and other files."
+    }
+  },
+  "remainingBlockers": [
+    "This change removes if/switch narrowing only from the canonical request-identity dispatch; other ADT-related if/switch branches elsewhere in the semantic pipeline remain and require their own audited migrations.",
+    "Canonical semanticKey and occurrence keys still use serialized template strings; the identity model is not yet fully structural.",
+    "The complete canonical proof-law set is not verified; proof verifier remains fail-closed.",
+    "Runtime/unit tests and full workspace typecheck are not claimed as passing."
+  ]
+}

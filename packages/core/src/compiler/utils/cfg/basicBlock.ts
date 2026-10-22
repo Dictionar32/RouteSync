@@ -7,8 +7,8 @@
 
 import type { Expression } from './constants';
 import type { Instruction } from './instructions';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
-import { relationResolve } from '../../../semantic/foundation/relationFoundation';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
+import { relationResolve } from '../../../semantic/relations/relationFoundation';
 
 export interface BasicBlock {
     readonly id: number;

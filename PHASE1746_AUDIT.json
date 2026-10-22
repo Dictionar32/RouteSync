@@ -1,0 +1,137 @@
+{
+  "phase": 1746,
+  "name": "integrated-response-authorities-and-scanner",
+  "total": 32,
+  "passed": 25,
+  "failed": 7,
+  "checks": [
+    {
+      "name": "inventory authority implements the existing upstream inventory interface",
+      "passed": true
+    },
+    {
+      "name": "inventory reads canonical knowledge facts rather than scanner AST",
+      "passed": true
+    },
+    {
+      "name": "ordinary invocation source facts are retained",
+      "passed": true
+    },
+    {
+      "name": "static invocation facts remain visible as uncovered",
+      "passed": true
+    },
+    {
+      "name": "inventory entries retain subject as the source of truth",
+      "passed": true
+    },
+    {
+      "name": "publication authority implements the existing authority interface",
+      "passed": true
+    },
+    {
+      "name": "publication authority receives canonical inventory and analysis only",
+      "passed": true
+    },
+    {
+      "name": "duplicate inventory identities are rejected",
+      "passed": true
+    },
+    {
+      "name": "duplicate analysis judgments are rejected",
+      "passed": true
+    },
+    {
+      "name": "analysis judgments outside the inventory are rejected",
+      "passed": true
+    },
+    {
+      "name": "static subjects cannot be claimed as ordinary judgments",
+      "passed": true
+    },
+    {
+      "name": "source evidence is compared structurally",
+      "passed": true
+    },
+    {
+      "name": "ordinary publication outcomes use distinct discriminants",
+      "passed": true
+    },
+    {
+      "name": "ordinary omissions remain explicit typed dispositions",
+      "passed": true
+    },
+    {
+      "name": "static coverage is explicitly uncovered",
+      "passed": true
+    },
+    {
+      "name": "validated receipt owns exact analysis and correspondence ledger",
+      "passed": true
+    },
+    {
+      "name": "rejected receipt carries exact analysis and non-empty typed violations",
+      "passed": true
+    },
+    {
+      "name": "identity validation remains typed and avoids loose string keys",
+      "passed": true
+    },
+    {
+      "name": "publication authority does not derive semantic judgments",
+      "passed": true
+    },
+    {
+      "name": "composition uses the same knowledge object for inventory and analysis",
+      "passed": false
+    },
+    {
+      "name": "composition delegates correspondence validation to publication authority",
+      "passed": true
+    },
+    {
+      "name": "production composition binds the implemented upstream authorities",
+      "passed": true
+    },
+    {
+      "name": "scanner invokes only the integrated composition public boundary",
+      "passed": false
+    },
+    {
+      "name": "scanner retains the source-bound integrated result",
+      "passed": false
+    },
+    {
+      "name": "legacy analysis projection comes only from validated receipt or typed rejection",
+      "passed": false
+    },
+    {
+      "name": "controller dataflow contract exposes the integrated response",
+      "passed": false
+    },
+    {
+      "name": "scanner boundary version 35 describes wired ordinary composition and explicit static gap",
+      "passed": false
+    },
+    {
+      "name": "coverage and pipeline contracts disclose implementation status",
+      "passed": false
+    },
+    {
+      "name": "new authorities and composition are package-exported",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency was introduced",
+      "passed": true
+    },
+    {
+      "name": "new authority implementation contains no TypeScript type assertions",
+      "passed": true
+    },
+    {
+      "name": "phase audit command is registered",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "phase": 1720,
+  "name": "static-source-bound-derivation-contract",
+  "total": 13,
+  "passed": 11,
+  "failed": 2,
+  "checks": [
+    {
+      "name": "derived algebra candidate carries the exact SemanticKnowledgeDataFlow snapshot used for derivation",
+      "passed": true
+    },
+    {
+      "name": "authority input accepts only the derived envelope and no independent knowledge snapshot",
+      "passed": true
+    },
+    {
+      "name": "authority input cannot independently pair another subject or judgment with the candidate",
+      "passed": true
+    },
+    {
+      "name": "authority contract states exact source-snapshot binding in type and value",
+      "passed": true
+    },
+    {
+      "name": "algebra contract v5 declares source-snapshot handoff",
+      "passed": true
+    },
+    {
+      "name": "authority validation and receipt versions synchronize at 8",
+      "passed": true
+    },
+    {
+      "name": "static judgment model and coverage versions synchronize at 16",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract synchronizes at version 32 and retains static authority validation",
+      "passed": false
+    },
+    {
+      "name": "public entry point exports authority input and algebra result envelope types",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner remains collection/delegation boundary and does not own semantic derivation",
+      "passed": true
+    },
+    {
+      "name": "prior authority handoff audit is preserved and updated for source-bound candidate",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency was introduced",
+      "passed": true
+    },
+    {
+      "name": "no any escape hatch was introduced in the changed authority/algebra interface section",
+      "passed": true
+    }
+  ]
+}

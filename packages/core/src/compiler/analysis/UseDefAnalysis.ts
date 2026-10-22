@@ -1,7 +1,7 @@
 /** Relation-backed use-def analysis. */
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/foundation/relationMembership';
-import { relationOptionFold, relationSelect, relationFold, relationGate, type RelationOption } from '../../semantic/foundation/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../semantic/foundation/semanticRelations';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';
+import { relationOptionFold, relationSelect, relationFold, relationGate, type RelationOption } from '../../semantic/relations/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';
 
 export interface UseDefGraph {
     readonly recordDef: (valueId: number, instructionId: number) => void;

@@ -1,0 +1,30 @@
+{
+  "phase": 1458,
+  "title": "Typed semantic expression contract",
+  "source": "Phase 1457 workspace",
+  "scope": [
+    "packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts",
+    "packages/core/src/types/upstream/scannerAstExpressionCandidateAlgebra.ts",
+    "packages/core/src/types/upstream/semanticDecisionInterface.ts",
+    "packages/core/src/types/upstream/semanticDecisionAlgebra.ts",
+    "packages/core/src/types/upstream/scannerAssignmentPartsInterface.ts",
+    "packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts",
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts"
+  ],
+  "changes": {
+    "candidateIdentity": "unique-symbol vocabulary",
+    "decisionRuleIdentity": "symbol identity",
+    "precedence": "explicit typed relation; numeric priority removed",
+    "instanceof": "upstream operator partition passed into AST runtime",
+    "assignmentExpression": "candidate operator partitions passed into assignment-parts algebra",
+    "runtimeFallbacks": "statement assignment still retains locator fallback when no candidate evidence is available"
+  },
+  "verification": {
+    "phase1456Audit": "14/14 passed",
+    "phase1457Audit": "16/16 passed",
+    "phase1458Audit": "17/17 passed",
+    "build": "blocked: tsdown is not installed in this workspace",
+    "vitest": "blocked: vitest is not installed in this workspace",
+    "targetedTypeScript": "changed upstream contract/algebra files emitted no diagnostics; runtime dependency graph has existing unrelated strict diagnostics and the full project type-check is not claimed"
+  }
+}

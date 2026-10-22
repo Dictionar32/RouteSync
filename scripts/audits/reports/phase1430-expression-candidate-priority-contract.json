@@ -1,0 +1,41 @@
+{
+  "phase": 1430,
+  "title": "expression-candidate-priority-contract",
+  "checks": [
+    {
+      "name": "candidate priority is part of the upstream contract",
+      "passed": true
+    },
+    {
+      "name": "priority validity and uniqueness are rejected before candidate evaluation",
+      "passed": true
+    },
+    {
+      "name": "the algebra sorts by declared priority instead of relying on array order",
+      "passed": true
+    },
+    {
+      "name": "scanner consumes upstream policy while leaving candidate resolution to the algebra",
+      "passed": false
+    },
+    {
+      "name": "tests cover duplicate identity, duplicate priority, invalid priority, and lazy resolution",
+      "passed": true
+    },
+    {
+      "name": "candidate algebra and policy are exported from the upstream interface surface",
+      "passed": true
+    },
+    {
+      "name": "new algebra remains free of any",
+      "passed": true
+    },
+    {
+      "name": "phase 1430 audit is registered",
+      "passed": true
+    }
+  ],
+  "passed": 7,
+  "total": 8,
+  "status": "failed"
+}

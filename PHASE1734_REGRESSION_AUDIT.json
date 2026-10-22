@@ -1,0 +1,115 @@
+{
+  "phase": 1734,
+  "name": "interface-regression-audit",
+  "status": "PASS",
+  "direct_phase1734": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0
+  },
+  "regression_scripts": [
+    {
+      "phase": 1721,
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1722,
+      "total": 16,
+      "passed": 16,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1723,
+      "total": 14,
+      "passed": 14,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1724,
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1725,
+      "total": 16,
+      "passed": 16,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1726,
+      "total": 90,
+      "passed": 90,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1727,
+      "total": 109,
+      "passed": 109,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1728,
+      "total": 17,
+      "passed": 17,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1729,
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1730,
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1731,
+      "total": 12,
+      "passed": 12,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1732,
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1733,
+      "total": 15,
+      "passed": 15,
+      "failed": 0,
+      "status": "PASS"
+    },
+    {
+      "phase": 1734,
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "status": "PASS"
+    }
+  ],
+  "notes": [
+    "Phase 1726 and 1727 are cumulative regression suites and overlap with earlier phase assertions; totals are not additive.",
+    "Publication authority implementation and Laravel production wiring remain unimplemented.",
+    "Full TypeScript check and package build were not run."
+  ]
+}

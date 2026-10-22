@@ -1,0 +1,81 @@
+{
+  "phase": 1738,
+  "name": "publication-receipt-single-authority",
+  "total": 18,
+  "passed": 12,
+  "failed": 6,
+  "checks": [
+    {
+      "name": "publication authority boundary type/value are synchronized at v2",
+      "passed": true
+    },
+    {
+      "name": "single publication authority explicitly owns exact-analysis receipt binding",
+      "passed": true
+    },
+    {
+      "name": "validated receipt captures the exact analysis object",
+      "passed": true
+    },
+    {
+      "name": "published ordinary correspondence links inventory, exact analysis judgment, and judgment-published entry",
+      "passed": true
+    },
+    {
+      "name": "omitted ordinary judgments use a distinct correspondence variant without fabricating an analysis judgment",
+      "passed": true
+    },
+    {
+      "name": "publication receipt invariant requires exact judgment binding",
+      "passed": true
+    },
+    {
+      "name": "integrated response contract/value synchronized at v3",
+      "passed": false
+    },
+    {
+      "name": "publication authority is declared the single correspondence owner",
+      "passed": true
+    },
+    {
+      "name": "accepted response exposes validated receipt without an independent unbound analysis field",
+      "passed": false
+    },
+    {
+      "name": "rejected response preserves analysis and typed rejected publication without receipt",
+      "passed": false
+    },
+    {
+      "name": "redundant integrated-response authority interface and boundary are removed from source",
+      "passed": true
+    },
+    {
+      "name": "public exports no longer expose redundant authority symbols",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract/value synchronized at v47 without second integrated authority boundary",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary/value synchronized at v26 and assigns correspondence to receipt owner",
+      "passed": false
+    },
+    {
+      "name": "production scanner remains a delegator and contains no integrated response authority",
+      "passed": false
+    },
+    {
+      "name": "static invocation coverage remains explicitly uncovered",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+PASS existing DTO scanner is reused
+PASS DTO scan occurs before controller scan
+PASS controller input owns typed DTO inventory
+PASS source pipeline passes exact DTO inventory
+PASS controller scanner forwards DTO inventory to integrated response
+PASS integrated response input carries DTO inventory
+PASS evidence producer input carries DTO inventory
+PASS produced inventory retains DTO inventory
+PASS binding receipt retains DTO inventory as separate context
+PASS response pipeline forwards inventory into producer
+PASS missing semantic evidence remains explicit
+PASS scanner implementation and interface versions agree
+PASS invocation runtime executor remains an authority delegate
+PASS response executor remains an authority delegate
+PASS response judgment contract version matches implementation
+PASS no new response subscanner or authority introduced
+RESULT 16/16

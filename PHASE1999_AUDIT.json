@@ -1,0 +1,16 @@
+{
+  "phase": 1999,
+  "title": "Declaration Source Correlation Interface First",
+  "checks": 11,
+  "passed": 11,
+  "failed": 0,
+  "syntaxDiagnostics": {
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts": 0,
+    "packages/core/src/index.ts": 0
+  },
+  "fullTypecheck": "not-run",
+  "build": "not-run",
+  "runtimeIntegration": "not-implemented-in-this-interface-first-phase",
+  "relationFoundationSubscannerAdded": false,
+  "scannerRuntimeGap": "laravelControllerScanner.ts still does not consume responseSemanticPipeline; responseJudgment remains unpopulated by current implementation"
+}

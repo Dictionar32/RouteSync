@@ -7,7 +7,7 @@
 import type { CompleteLaravelSourceModel } from './highLevelSourceModel';
 import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { RouteHighLevelContract } from './highLevelContracts';
-import type { Sequence } from '../../semantic/foundation/relationalSequence';
+import type { Sequence } from '../../semantic/relations/relationalSequence';
 import { semanticDataflowFactWithLineage, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
 import type { RouteParameter } from './route';
 import { routeBindingInterfaceFrom } from './routeBinding';
@@ -99,3 +99,13 @@ export const semanticDataflowRouteParameterFacts = (
   }
   return Object.freeze(facts);
 };
+
+export interface SemanticDataflowRouteProjectionAuthorityInterface {
+  readonly kind: 'semantic_dataflow_route_projection_authority';
+  readonly project: (sourceModel: CompleteLaravelSourceModel, controller: ControllerActionFlowContract) => readonly SemanticDataflowInputFact[];
+}
+
+export const semanticDataflowRouteProjectionAuthority: SemanticDataflowRouteProjectionAuthorityInterface = Object.freeze({
+  kind: 'semantic_dataflow_route_projection_authority',
+  project: semanticDataflowRouteParameterFacts,
+});

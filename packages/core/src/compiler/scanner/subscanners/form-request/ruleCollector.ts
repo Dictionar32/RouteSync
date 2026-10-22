@@ -8,8 +8,8 @@ import {
   relationSelect,
   relationSome,
   type RelationOption,
-} from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual, relationNormalizeWhitespace } from '../../../../semantic/foundation/semanticRelations';
+} from '../../../../semantic/relations/relationalSequence';
+import { relationEqual, relationNormalizeWhitespace } from '../../../../semantic/relations/semanticRelations';
 
 /**
  * Validation rules are resolved once at the scanner origin boundary.
@@ -25,7 +25,7 @@ import type { RouteValidationRuleEntry } from '../../../../types/domain/validati
 import { CanonicalRouteValidationRuleEntry } from './canonicalValidationRuleEntry';
 import type { RouteValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
 import { RouteSemanticFlowValidationRuleSet } from '../../descriptors/validation/validationRuleSet';
-import { mapResourcePhpAstToUpstream } from '../resource/resourceUpstreamExpressionCanonical';
+import { projectPhpAstExpressionToUpstream } from '../../lexer/routeAst/phpAstExpressionSemanticAuthority';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { SourceSpan } from '../../../../types/upstream/provenance';
 
@@ -87,7 +87,7 @@ function readValidationRules(value: PhpAstValue, sourceFile: string): readonly V
   );
 
   const staticRule = relationGate(
-    relationAll([relationEqual(value.kind, 'static_call'), relationAll([relationEqual(value.kind, 'static_call'), relationEqual((value as StaticRuleCall).className, 'Rule')])]),
+    relationAll([relationEqual(value.kind, 'static_call'), relationAll([relationEqual(value.kind, 'static_call'), relationEqual((value as StaticRuleCall).classReference.sourceName, 'Rule')])]),
     () => {
       const call = value as StaticRuleCall;
       return [parseFluentRule(call, sourceFile)];
@@ -99,7 +99,7 @@ function readValidationRules(value: PhpAstValue, sourceFile: string): readonly V
     relationAll([
       relationEqual(value.kind, 'method_chain'),
       relationAll([relationEqual(value.kind, 'method_chain'), relationEqual((value as RuleChain).receiver.kind, 'static_call')]),
-      relationAll([relationEqual(value.kind, 'method_chain'), relationEqual((value as RuleChain).receiver.kind, 'static_call'), relationEqual(((value as RuleChain).receiver as StaticRuleCall).className, 'Rule')]),
+      relationAll([relationEqual(value.kind, 'method_chain'), relationEqual((value as RuleChain).receiver.kind, 'static_call'), relationEqual(((value as RuleChain).receiver as StaticRuleCall).classReference.sourceName, 'Rule')]),
     ]),
     () => {
       const chain = value as RuleChain;
@@ -142,7 +142,7 @@ function parseFluentRule(
           ignore => ValidationRuleNodeFactory.unique(
             SemanticValueFactory.tableName(tableName),
             columnDescriptor(column),
-            { kind: 'ignore', value: mapResourcePhpAstToUpstream(ignore.value, sourceFile) },
+            { kind: 'ignore', value: projectPhpAstExpressionToUpstream(ignore.value, sourceFile) },
           ),
         ),
         () => ValidationRuleNodeFactory.unique(

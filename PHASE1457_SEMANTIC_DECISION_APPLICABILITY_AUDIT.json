@@ -1,0 +1,34 @@
+{
+  "phase": 1457,
+  "name": "semantic-decision-applicability-contract",
+  "status": "focused-contract-and-runtime-probes-passed",
+  "source": "RouteSync Phase 1456",
+  "interface": "packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts",
+  "algebra": "packages/core/src/types/upstream/scannerAstExpressionCandidateAlgebra.ts",
+  "semanticDecisionContract": "packages/core/src/types/upstream/semanticDecisionInterface.ts",
+  "semanticDecisionAlgebra": "packages/core/src/types/upstream/semanticDecisionAlgebra.ts",
+  "wiring": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+  "tests": [
+    "packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1457.test.ts",
+    "packages/core/src/types/upstream/__test__/scannerAstExpressionCandidateAlgebra.phase1457.test.ts"
+  ],
+  "results": {
+    "phase1457Audit": "16/16 passed",
+    "phase1456Audit": "14/14 passed",
+    "phase1455Audit": "14/14 passed",
+    "phase1454Audit": "13/13 passed",
+    "phase1453Audit": "10/10 passed",
+    "phase1452Audit": "12/12 passed",
+    "focusedTypecheck": "passed with 0 diagnostics",
+    "candidateAlgebraRuntimeProbes": "4/4 passed",
+    "astRuntimeProbes": "4 successful valid/unsupported cases; 2 malformed cases produced explicit diagnostics",
+    "semanticDecisionContractProbe": "inapplicable rule not derived; invalid callback contract rejected",
+    "directDiagnosticsInChangedRuntimeAndCandidateFiles": "none observed in broader tsc output"
+  },
+  "knownVerificationLimits": [
+    "Full npm build unavailable because tsdown is not installed in the workspace.",
+    "Vitest is not installed, so repository test files could not be run with Vitest.",
+    "Full runtime typecheck reports 452 diagnostics in transitive modules; none directly reference the changed runtime/candidate/semantic-decision files.",
+    "Downstream AST verification is focused and is not a complete end-to-end suite."
+  ]
+}

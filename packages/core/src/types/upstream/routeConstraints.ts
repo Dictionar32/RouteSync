@@ -15,6 +15,40 @@ export type RouteConstraintSource =
   | { readonly kind: 'group' }
   | { readonly kind: 'route' };
 
+export interface RouteConstraintArgumentVisitor<R> {
+  readonly pattern: (argument: Extract<RouteConstraintArgument, { readonly kind: 'pattern' }>) => R;
+  readonly values: (argument: Extract<RouteConstraintArgument, { readonly kind: 'values' }>) => R;
+  readonly none: (argument: Extract<RouteConstraintArgument, { readonly kind: 'none' }>) => R;
+}
+
+export interface RouteConstraintArgumentAlgebraInterface {
+  readonly match: <R>(argument: RouteConstraintArgument, visitor: RouteConstraintArgumentVisitor<R>) => R;
+}
+
+/** Exhaustive eliminator for the source-level route-constraint argument ADT. */
+export const matchRouteConstraintArgument = <R>(
+  argument: RouteConstraintArgument,
+  visitor: RouteConstraintArgumentVisitor<R>,
+): R => {
+  switch (argument.kind) {
+    case 'pattern':
+      return visitor.pattern(argument);
+    case 'values':
+      return visitor.values(argument);
+    case 'none':
+      return visitor.none(argument);
+    default: {
+      const exhaustive: never = argument;
+      return exhaustive;
+    }
+  }
+};
+
+/** Canonical interface-first operation for exhaustive route-constraint ADT elimination. */
+export const routeConstraintArgumentAlgebra: RouteConstraintArgumentAlgebraInterface = Object.freeze({
+  match: matchRouteConstraintArgument,
+});
+
 /** Syntax facts extracted from the AAT/AST; Laravel meaning is resolved downstream. */
 export type RouteConstraintArgument =
   | { readonly kind: 'pattern'; readonly value: StringValue }

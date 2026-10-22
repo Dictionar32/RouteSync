@@ -1,30 +1,20 @@
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../semantic/foundation/relationalSequence';
+/** Compatibility facade; control-kind reasoning is owned by upstream algebra. */
+import { scannerStatementControlContractAlgebra } from '../../../types/upstream/scannerStatementControlAlgebra';
+import type { ScannerStatementControlKind } from '../../../types/upstream/scannerStatementControlInterface';
+import { relationOptionFold, type RelationOption } from '../../../semantic/relations/relationalSequence';
 import type { TokenDescriptor } from './PhpAst';
 
-/** Raw syntax spellings are confined to lexer evidence. Semantic dispatch sees only abstract relations. */
-export type PhpControlEvidence =
-  | 'conditional'
-  | 'collection_iteration'
-  | 'counted_iteration'
-  | 'pretest_iteration'
-  | 'selection_dispatch'
-  | 'exception_guard'
-  | 'exception_raise';
+export type PhpControlEvidence = ScannerStatementControlKind;
 
-const CONTROL_KEYWORDS: readonly (readonly [string, PhpControlEvidence])[] = Object.freeze([
-  ['if', 'conditional'],
-  ['foreach', 'collection_iteration'],
-  ['for', 'counted_iteration'],
-  ['while', 'pretest_iteration'],
-  ['switch', 'selection_dispatch'],
-  ['try', 'exception_guard'],
-  ['throw', 'exception_raise'],
-]);
-
-export const phpControlEvidence = (token: TokenDescriptor): RelationOption<PhpControlEvidence> =>
-  relationOptionFold(
-    relationFirstOption(CONTROL_KEYWORDS, entry => relationEqual(entry[0], token.value)),
-    () => ({ kind: 'none' }),
-    entry => ({ kind: 'some', value: entry[1] }),
-  );
+export const phpControlEvidence = (token: TokenDescriptor): RelationOption<PhpControlEvidence> => {
+  const judgment = scannerStatementControlContractAlgebra.resolve({
+    tokens: [token],
+    tokenValue: evidence => evidence.value,
+  });
+  switch (judgment.kind) {
+    case 'not_structured':
+      return { kind: 'none' };
+    case 'structured':
+      return { kind: 'some', value: judgment.control };
+  }
+};

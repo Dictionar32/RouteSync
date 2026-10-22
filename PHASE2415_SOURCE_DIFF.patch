@@ -1,0 +1,166 @@
+--- Phase2414/RouteSync/packages/core/src/types/upstream/laravelRouteScannerInterface.ts
++++ Phase2415/RouteSync/packages/core/src/types/upstream/laravelRouteScannerInterface.ts
+@@ -17,7 +17,7 @@
+ export interface LaravelRouteScannerInterface {
+   readonly kind: 'laravel_route_scanner';
+   readonly closed: true;
+-  readonly contractVersion: 30;
++  readonly contractVersion: 31;
+   /** Upstream semantic authority is part of the scanner wiring contract, not a hidden scanner decision. */
+   readonly declarationMethodAuthority: LaravelRouteDeclarationMethodJudgmentAuthority;
+   /** Effective controller-action policy is delegated to the canonical upstream executor. */
+@@ -58,7 +58,7 @@
+ 
+ export interface LaravelRouteScanJudgment {
+   readonly kind: 'laravel_route_scan_judgment';
+-  readonly contractVersion: 26;
++  readonly contractVersion: 27;
+   /** Every selected source path has an explicit scanned/absent observation; absence is never silently represented as an empty file. */
+   readonly sourceFiles: readonly LaravelRouteSourceFileObservation[];
+   readonly artifacts: readonly LaravelRouteScanArtifact[];
+@@ -70,7 +70,7 @@
+ 
+ export interface LaravelRouteScanBlockedJudgment {
+   readonly kind: 'laravel_route_scan_blocked';
+-  readonly contractVersion: 26;
++  readonly contractVersion: 27;
+   readonly reason: 'explicitly_selected_route_source_file_absent';
+   readonly missingFiles: readonly SourceFile[];
+ }
+@@ -78,7 +78,7 @@
+ /** A route scan may be syntactically complete while a required controller policy judgment is blocked. */
+ export interface LaravelRouteScanPolicyBlockedJudgment {
+   readonly kind: 'laravel_route_scan_policy_blocked';
+-  readonly contractVersion: 26;
++  readonly contractVersion: 27;
+   /** Preserve the complete route evidence; policy blockage does not erase source observations or route artifacts. */
+   readonly scan: LaravelRouteScanJudgment;
+   /** Exact blocked upstream policies correlated to their route AST; no downstream reconstruction. */
+@@ -88,4 +88,18 @@
+   }>[];
+ }
+ 
+-export type LaravelRouteScanOutcome = LaravelRouteScanJudgment | LaravelRouteScanBlockedJudgment | LaravelRouteScanPolicyBlockedJudgment;
++/** A blocked response projection is a compilation blocker, not an empty/void response. */
++export interface LaravelRouteScanResponseBlockedJudgment {
++  readonly kind: 'laravel_route_scan_response_blocked';
++  readonly contractVersion: 27;
++  /** Preserve the complete route scan and all response blockers so callers can report exact source routes. */
++  readonly scan: LaravelRouteScanJudgment;
++  readonly responses: readonly Readonly<{
++    readonly route: RouteAst;
++    readonly response: Extract<import('./endpointBindings').EndpointResponseBinding, { readonly kind: 'controller_response_projection_blocked' }>;
++  }>[];
++  /** Preserve any policy blockers found in the same scan instead of discarding one failure class. */
++  readonly policies: LaravelRouteScanPolicyBlockedJudgment['policies'];
++}
++
++export type LaravelRouteScanOutcome = LaravelRouteScanJudgment | LaravelRouteScanBlockedJudgment | LaravelRouteScanPolicyBlockedJudgment | LaravelRouteScanResponseBlockedJudgment;
+--- Phase2414/RouteSync/packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts
++++ Phase2415/RouteSync/packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts
+@@ -265,7 +265,7 @@
+   const selectedFiles = routeFiles(sourceProject.root.value.value, sourceSelectionIntent);
+   const missingFiles = Object.freeze(selectedFiles.filter(file => !fs.existsSync(file)).map(createSourceFile));
+   if (sourceSelectionIntent.kind === 'laravel_route_source_selection_explicit' && missingFiles.length > 0) {
+-    return Object.freeze({ kind: 'laravel_route_scan_blocked', contractVersion: 26, reason: 'explicitly_selected_route_source_file_absent', missingFiles });
++    return Object.freeze({ kind: 'laravel_route_scan_blocked', contractVersion: 27, reason: 'explicitly_selected_route_source_file_absent', missingFiles });
+   }
+   const sourceFiles: readonly LaravelRouteSourceFileObservation[] = Object.freeze(selectedFiles.map(file =>
+     missingFiles.some(missing => missing.value.value === file)
+@@ -306,15 +306,23 @@
+     const flow = routeSemanticFlowFromRouteBoundary(boundary, controllerActionPolicy);
+     return Object.freeze({ kind: 'laravel_route_scan_artifact' as const, ast, flow, binding, authorization: boundary.authorization });
+   });
+-  const scan: import('../../../types/upstream/laravelRouteScannerInterface').LaravelRouteScanJudgment = Object.freeze({ kind: 'laravel_route_scan_judgment', contractVersion: 26, sourceFiles, artifacts: Object.freeze(artifacts) });
++  const scan: import('../../../types/upstream/laravelRouteScannerInterface').LaravelRouteScanJudgment = Object.freeze({ kind: 'laravel_route_scan_judgment', contractVersion: 27, sourceFiles, artifacts: Object.freeze(artifacts) });
+   const policies: import('../../../types/upstream/laravelRouteScannerInterface').LaravelRouteScanPolicyBlockedJudgment['policies'] = Object.freeze(scan.artifacts.flatMap(artifact =>
+     artifact.flow.controllerActionPolicy.kind === 'present' && artifact.flow.controllerActionPolicy.value.judgment.kind === 'blocked'
+       ? [Object.freeze({ route: artifact.ast, policy: artifact.flow.controllerActionPolicy.value })]
+       : [],
+   ));
++  const responses: import('../../../types/upstream/laravelRouteScannerInterface').LaravelRouteScanResponseBlockedJudgment['responses'] = Object.freeze(scan.artifacts.flatMap(artifact =>
++    artifact.ast.bindings.response.kind === 'controller_response_projection_blocked'
++      ? [Object.freeze({ route: artifact.ast, response: artifact.ast.bindings.response })]
++      : [],
++  ));
++  if (responses.length > 0) {
++    return Object.freeze({ kind: 'laravel_route_scan_response_blocked', contractVersion: 27, scan, responses, policies });
++  }
+   return policies.length === 0
+     ? scan
+-    : Object.freeze({ kind: 'laravel_route_scan_policy_blocked', contractVersion: 26, scan, policies });
++    : Object.freeze({ kind: 'laravel_route_scan_policy_blocked', contractVersion: 27, scan, policies });
+ };
+ 
+ type LaravelRouteScannerAuthorities = Pick<
+@@ -332,7 +340,7 @@
+ ): LaravelRouteScannerInterface => Object.freeze({
+   kind: 'laravel_route_scanner',
+   closed: true,
+-  contractVersion: 30,
++  contractVersion: 31,
+   ...authorities,
+   scan: input => scanRoutes(
+     authorities.routeProducer,
+--- Phase2414/RouteSync/packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts
++++ Phase2415/RouteSync/packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts
+@@ -89,6 +89,13 @@
+       readonly scan: import('./laravelRouteScannerInterface').LaravelRouteScanPolicyBlockedJudgment;
+     }>
+   | Readonly<{
++      readonly kind: 'laravel_source_ast_projection_route_response_blocked';
++      readonly sourceProject: import('./highLevelSourceModel').SourceProjectIdentity;
++      readonly invocationInventoryReceipt: Receipt;
++      /** An unresolved response is not normalized to void and cannot produce a complete manifest. */
++      readonly scan: import('./laravelRouteScannerInterface').LaravelRouteScanResponseBlockedJudgment;
++    }>
++  | Readonly<{
+       readonly kind: 'laravel_source_ast_projection_controller_scan_blocked';
+       readonly sourceProject: import('./highLevelSourceModel').SourceProjectIdentity;
+       readonly invocationInventoryReceipt: Receipt;
+@@ -129,7 +136,7 @@
+ export interface LaravelSourceAstPipelineInterface {
+   readonly kind: 'laravel_source_ast_pipeline';
+   readonly closed: true;
+-  readonly contractVersion: 15;
++  readonly contractVersion: 16;
+   /**
+    * Executes the existing pipeline contract and publishes an explicit completion
+    * judgment. A success-shaped SourceAsts object alone is not a closed outcome. The result must preserve the exact receipt subtype admitted at this boundary, inside the canonical AST aggregate rather than in a detached sidecar.
+--- Phase2414/RouteSync/packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts
++++ Phase2415/RouteSync/packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts
+@@ -160,6 +160,14 @@
+     if (routeScan.kind === 'laravel_route_scan_blocked') {
+         return Object.freeze({
+             kind: 'laravel_source_ast_projection_route_scan_blocked',
++            sourceProject,
++            invocationInventoryReceipt,
++            scan: routeScan,
++        });
++    }
++    if (routeScan.kind === 'laravel_route_scan_response_blocked') {
++        return Object.freeze({
++            kind: 'laravel_source_ast_projection_route_response_blocked',
+             sourceProject,
+             invocationInventoryReceipt,
+             scan: routeScan,
+@@ -266,7 +274,7 @@
+     return Object.freeze({
+         kind: "laravel_source_ast_pipeline",
+         closed: true,
+-        contractVersion: 15,
++        contractVersion: 16,
+         execute: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(
+             input: LaravelSourceAstPipelineExecutionInput<Receipt>,
+         ): Promise<LaravelSourceAstProjectionJudgment<Receipt>> =>
+--- Phase2414/RouteSync/packages/core/src/index.ts
++++ Phase2415/RouteSync/packages/core/src/index.ts
+@@ -1278,7 +1278,7 @@
+ 
+ export type { LaravelSourceAstPipelineInterface } from './types/upstream/laravelSourceAstPipelineInterface'
+ export type { LaravelSourceAstProjectionJudgment, LaravelSourceAstPipelineExecutionInput } from './types/upstream/laravelSourceAstPipelineInterface'
+-export type { LaravelRouteScannerInterface, LaravelRouteScanInput, LaravelRouteScanJudgment, LaravelRouteScanArtifact, LaravelRouteScanOutcome, LaravelRouteScanBlockedJudgment, LaravelRouteScanPolicyBlockedJudgment, LaravelRouteSourceFileObservation, LaravelRouteMethod, LaravelResourceRouteMethod, LaravelStandardRouteMethod, LaravelRouteDeclarationMethodJudgment, LaravelRouteDeclarationMethodJudgmentInput, LaravelRouteDeclarationMethodJudgmentAuthority } from './types/upstream/laravelRouteScannerInterface';
++export type { LaravelRouteScannerInterface, LaravelRouteScanInput, LaravelRouteScanJudgment, LaravelRouteScanArtifact, LaravelRouteScanOutcome, LaravelRouteScanBlockedJudgment, LaravelRouteScanPolicyBlockedJudgment, LaravelRouteScanResponseBlockedJudgment, LaravelRouteSourceFileObservation, LaravelRouteMethod, LaravelResourceRouteMethod, LaravelStandardRouteMethod, LaravelRouteDeclarationMethodJudgment, LaravelRouteDeclarationMethodJudgmentInput, LaravelRouteDeclarationMethodJudgmentAuthority } from './types/upstream/laravelRouteScannerInterface';
+ export type { RouteResourceFlowAuthority, RouteResourceFlowJudgment, RouteResourceFlowPlan, RouteResourceActionPlan, RouteResourceMode, RouteResourceDeclarationInput } from './types/upstream/routeResourceFlow';
+ export type { LaravelRouteAuthorizationSemanticJudgment, LaravelRouteAuthorizationSemanticJudgmentAuthorityInterface } from './types/upstream/routeAuthorizationSemanticJudgmentInterface';
+ export { laravelRouteDeclarationMethodSemanticAuthority } from './types/upstream/laravelRouteDeclarationMethodSemanticAuthority';

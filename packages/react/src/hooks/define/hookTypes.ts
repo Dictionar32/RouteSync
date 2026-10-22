@@ -118,6 +118,33 @@ export type CrudHooks<TTypes, TEndpoint, TGroupName extends string, TError = Res
   deleteSelf: CrudHooks<TTypes, TEndpoint, TGroupName, TError>['useDeleteSelf']
 }
 
+
+/**
+ * Closed CRUD wiring emitted by the CLI from upstream route capabilities.
+ * React consumes these slots directly instead of scanning endpoint metadata
+ * and reclassifying CRUD roles at hook-construction time.
+ */
+export interface CrudGroupExecutionContract {
+  readonly kind: 'crud_group_execution_contract'
+  readonly closed: true
+  readonly indexService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly showService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly createService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly updateService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly updateSelfService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly deleteService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly deleteSelfService: EndpointCallable<unknown, unknown, unknown, HttpMethod> | undefined
+  readonly showParamKey: string | undefined
+  readonly updateParamKey: string | undefined
+  readonly deleteParamKey: string | undefined
+  readonly customEndpoints: readonly {
+    readonly action: string
+    readonly service: EndpointCallable<unknown, unknown, unknown, HttpMethod>
+    readonly hookKind: RouteHookKind
+    readonly crudRole: 'custom'
+  }[]
+}
+
 export type InvalidateList = Array<((...args: never[]) => readonly unknown[]) | readonly unknown[]>
 
 export interface HookConfig {
@@ -130,6 +157,8 @@ export interface HookConfig {
   queryKey: unknown
   actionKeys?: Record<string, (...args: never[]) => readonly unknown[]>
   endpoint: unknown
+  /** Closed slot wiring emitted from upstream CRUD capabilities. */
+  crudSlots: CrudGroupExecutionContract
   cache?: {
     list?: () => readonly unknown[]
     detail?: (id: number) => readonly unknown[]

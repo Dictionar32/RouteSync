@@ -1,21 +1,21 @@
-/** Production analysis boundary for canonical scanner dataflow input. */
-import type { DataFlowInterface } from '../../types/dataflow/dataFlowInterface';
-import type { SemanticDataflowInput, SemanticDataflowIdentity, SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
+/** Runtime execution boundary for an already-closed upstream dataflow judgment. */
+import type { DataFlowAuthorityInterface } from '../../types/dataflow/dataFlowInterface';
+import type { SemanticDataflowIdentity, SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
 import type { SemanticDataflowRuntimeBoundary } from './semanticDataflowRuntimeBoundary';
 
 export interface SemanticDataflowAnalysisResult {
   readonly kind: 'semantic_dataflow_analysis_result';
-  readonly input: SemanticDataflowInput;
-  readonly interface: DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>;
+  readonly input: SemanticDataflowJudgment;
+  readonly interface: DataFlowAuthorityInterface<SemanticDataflowJudgment, SemanticDataflowJudgment, SemanticDataflowIdentity>;
   readonly closed: true;
 }
 
 /**
- * Consumes canonical scanner output and closes it through the analysis authority.
- * Scanner never imports this module; ownership therefore remains downstream.
+ * Projects the upstream-closed judgment into a read-only runtime interface.
+ * This function cannot close an input or invoke semantic authority.
  */
-export const analyzeSemanticDataflowInput = (
-  input: SemanticDataflowInput,
+export const projectClosedSemanticDataflowJudgment = (
+  input: SemanticDataflowJudgment,
   runtime: SemanticDataflowRuntimeBoundary,
 ): SemanticDataflowAnalysisResult => {
   const dataflow = runtime.project(input);

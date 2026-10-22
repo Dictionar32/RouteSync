@@ -1,0 +1,33 @@
+{
+  "phase": 2221,
+  "title": "Canonical Action Publication Uses Upstream Identity",
+  "base": "RouteSync-Phase2220-Canonical-Action-Controller-Identity.zip",
+  "changes": [
+    "ControllerActionJudgmentPublication controller/action identity is now sourced from canonical semantic knowledge.",
+    "Source file and method span remain sourced from canonical semantic knowledge.",
+    "Regression assertions cover publication source and integrated response ownership boundaries."
+  ],
+  "architecture": {
+    "new_relation_layer": false,
+    "new_semantic_foundation_layer": false,
+    "new_subscanner": false,
+    "parallel_response_authority": false,
+    "integrated_response_owner": "LaravelControllerResponseSemanticPipelineInterface"
+  },
+  "open_obligations": [
+    "resolveControllerActionContract still calls resolveResponse",
+    "responseAttributeScanner still resolves DTO classes and merges observed return fields",
+    "method-scoped integrated response product must be correlated to exact canonical method source before compatibility ResponseDescriptor projection",
+    "resource binding domain publication still traverses the legacy action adapter",
+    "remaining semantic/relations usages require call-by-call tracing"
+  ],
+  "validation": {
+    "syntax_transpilation": "3/3 TypeScript files passed with zero syntax diagnostics",
+    "structural_assertions": "8/8 passed",
+    "audit_json": "valid JSON",
+    "zip_integrity": "pending archive creation",
+    "vitest": "not_run",
+    "full_typecheck": "not_run",
+    "package_build": "not_run"
+  }
+}

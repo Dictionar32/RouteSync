@@ -1,10 +1,12 @@
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { LaravelSourceLexer } from '../../core/src/compiler/scanner/LaravelSourceLexer';
 import { createAstIdentifier } from '../../core/src/compiler/scanner/lexer/phpAstTypes';
-import { attributeProducer } from '../../core/src/compiler/scanner/subscanners/attributeProducer';
-import { scanAttributeAsts } from '../../core/src/compiler/scanner/subscanners/attributeAstCanonical';
+import { attributeProducer } from '../../core/src/compiler/scanner/attributeProducer';
+import { laravelAttributeScanner } from '../../core/src/compiler/scanner/laravelAttributeScanner';
+import type { LaravelAttributeContextualityJudgment } from '../../core/src/types/upstream/laravelAttributeScannerInterface';
 import type { Sequence } from '../../core/src/types/upstream/collections';
 import type { SourceProjectIdentity } from '../../core/src/types/upstream/highLevelSourceModel';
 import type { SourceSpan } from '../../core/src/types/upstream/provenance';
@@ -43,12 +45,25 @@ describe('AttributeAst producer', () => {
       text,
       tokens,
       createAstIdentifier('Response'),
+      { kind: 'syntax_only' },
     );
-
-    const attribute = attributeProducer.produce({
-      declaration,
-      source: source(fixtureFile, Number(declaration.source.line)),
-    });
+    const declarationSource = source(fixtureFile, Number(declaration.source.line));
+    const contextuality: LaravelAttributeContextualityJudgment = {
+      kind: 'laravel_attribute_non_contextual_declaration',
+      closed: true,
+      qualifiedIdentity: declaration.classIdentity,
+      source: declarationSource,
+      interfaceInventory: {
+        kind: 'laravel_attribute_resolved_interface_inventory',
+        closed: true,
+        declarationSource,
+        entries: { kind: 'laravel_attribute_resolved_interface_sequence_empty' },
+      },
+    };
+    const judgment = attributeProducer.produce({ declaration, source: declarationSource, contextuality });
+    expect(judgment.kind).toBe('attribute_producer_complete');
+    if (judgment.kind === 'attribute_producer_blocked') return;
+    const attribute = judgment.attribute;
     const constructor = attribute.definition.constructor;
 
     expect(attribute).toMatchObject({
@@ -58,7 +73,7 @@ describe('AttributeAst producer', () => {
         name: { kind: 'class_name', value: { kind: 'string_value', value: 'Response' } },
         file: { kind: 'source_file', value: { kind: 'string_value', value: fixtureFile } },
       },
-      source: source(fixtureFile, 1),
+      source: declarationSource,
     });
     expect(constructor.kind).toBe('closure');
     if (constructor.kind !== 'closure') throw new Error('Expected attribute constructor closure');
@@ -74,19 +89,37 @@ describe('AttributeAst producer', () => {
     });
     expect(constructor.value.captures.items).toEqual({ kind: 'empty' });
     expect(constructor.value.returnType).toEqual({ kind: 'absent' });
-    expect(constructor.source).toEqual(source(fixtureFile, 8));
+    expect(constructor.source.start.value.value).toBe(Number(declaration.methods.find(method => method.name === '__construct')?.source.line));
   });
 
   it('routes discovered attribute syntax through attributeProducer into SourceAsts-compatible AttributeAst values', async () => {
-    const attributes = await scanAttributeAsts(project(fixtureRoot));
+    const scan = await laravelAttributeScanner.scan(project(fixtureRoot));
 
-    expect(attributes).toHaveLength(1);
-    expect(attributes[0]).toMatchObject({
+    expect(scan.kind).toBe('laravel_attribute_scan_complete');
+    if (scan.kind === 'laravel_attribute_scan_blocked') return;
+    const files = scan.discoveryReceipt.files;
+    expect(files.kind).toBe('laravel_attribute_scanned_file_sequence_entry');
+    if (files.kind === 'laravel_attribute_scanned_file_sequence_empty') return;
+    expect(files.evidence.attribute).toMatchObject({
       kind: 'attribute_ast',
       definition: {
         kind: 'attribute',
         name: { kind: 'class_name', value: { kind: 'string_value', value: 'Response' } },
       },
     });
+  });
+
+  it('blocks a missing app/Attributes scope instead of publishing an empty complete inventory', async () => {
+    const root = await mkdtemp(path.join(tmpdir(), 'routesync-attribute-scope-'));
+    try {
+      const scan = await laravelAttributeScanner.scan(project(root));
+      expect(scan.kind).toBe('laravel_attribute_scan_blocked');
+      if (scan.kind === 'laravel_attribute_scan_complete') return;
+      expect(scan.blockers.kind).toBe('laravel_attribute_scan_failure_sequence_end');
+      if (scan.blockers.kind === 'laravel_attribute_scan_failure_sequence_entry') return;
+      expect(scan.blockers.failure.kind).toBe('laravel_attribute_discovery_scope_missing');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });

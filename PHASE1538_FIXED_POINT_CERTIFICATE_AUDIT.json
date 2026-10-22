@@ -1,0 +1,54 @@
+{
+  "phase": 1538,
+  "title": "closed fixed-point certificate and interface admission",
+  "source_trace": [
+    "packages/core/src/types/upstream/semanticDataflow.ts",
+    "packages/core/src/types/upstream/semanticDataflowAuthority.ts",
+    "packages/core/src/types/upstream/semanticDataflowInterface.ts",
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts"
+  ],
+  "checks": [
+    {
+      "name": "judgment model requires closure certificate",
+      "passed": true
+    },
+    {
+      "name": "certificate records fact convergence and rounds",
+      "passed": true
+    },
+    {
+      "name": "certificate records path convergence and rounds",
+      "passed": true
+    },
+    {
+      "name": "fact solver fails closed when fixed point is not reached",
+      "passed": true
+    },
+    {
+      "name": "path solver fails closed when closure is incomplete",
+      "passed": true
+    },
+    {
+      "name": "path expansion prevents revisiting path identities",
+      "passed": true
+    },
+    {
+      "name": "boundary rejects missing closure certificate",
+      "passed": true
+    },
+    {
+      "name": "boundary validates convergence flags and round counts",
+      "passed": true
+    },
+    {
+      "name": "scanner admits judgment before downstream projection",
+      "passed": true
+    }
+  ],
+  "static_audit": "9/9 passed",
+  "syntax_transpile": "5 changed/connected TypeScript files passed transpile syntax diagnostics",
+  "full_build": "not verified: tsdown and workspace dependencies unavailable",
+  "targeted_typecheck": "not clean under globally installed TypeScript; existing transitive diagnostics remain, and repository requires TypeScript 7.0.2 which is not installed in workspace",
+  "known_preexisting_audit": "Phase 1384 runtime boundary audit 11/12; route producer canonical materialize API check remains failed",
+  "package_version": "1.0.49"
+}

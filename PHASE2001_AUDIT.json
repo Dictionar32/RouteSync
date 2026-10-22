@@ -1,0 +1,84 @@
+{
+  "phase": 2001,
+  "audit": "interface-driven-controller-response-runtime",
+  "passed": 8,
+  "total": 15,
+  "status": "failed",
+  "checks": [
+    {
+      "name": "pipeline-implements-existing-interface",
+      "passed": true,
+      "detail": "Concrete composition is exposed through the existing upstream pipeline interface."
+    },
+    {
+      "name": "source-identity-owner-reused",
+      "passed": false,
+      "detail": "Source correlation and evidence binding use the existing source identity authority."
+    },
+    {
+      "name": "declaration-correlation-precedes-production",
+      "passed": false,
+      "detail": "Declaration correlation is evaluated before response evidence production."
+    },
+    {
+      "name": "rejected-correlation-stops-production",
+      "passed": false,
+      "detail": "A mismatched declaration source produces a rejected ADT instead of entering evidence production."
+    },
+    {
+      "name": "evidence-producer-retains-candidate-origin",
+      "passed": true,
+      "detail": "Descriptor-derived evidence retains candidate provenance."
+    },
+    {
+      "name": "source-binding-delegates-identity",
+      "passed": true,
+      "detail": "Each response candidate receives an explicit source identity judgment."
+    },
+    {
+      "name": "runtime-executor-delegates-authority",
+      "passed": false,
+      "detail": "Runtime executor delegates to the response semantic authority."
+    },
+    {
+      "name": "descriptor-candidate-does-not-promote-to-success",
+      "passed": true,
+      "detail": "Descriptor candidates are conservatively blocked rather than promoted into a complete response product."
+    },
+    {
+      "name": "scanner-consumes-response-pipeline",
+      "passed": false,
+      "detail": "Scanner executes the injected response pipeline."
+    },
+    {
+      "name": "artifact-retains-response-judgment",
+      "passed": true,
+      "detail": "The scanner artifact preserves the response judgment and AST projection judgment."
+    },
+    {
+      "name": "ast-projection-consumes-pair",
+      "passed": true,
+      "detail": "AST projection receives the exact invocation/response pair."
+    },
+    {
+      "name": "scanner-contract-version-aligned",
+      "passed": false,
+      "detail": "Runtime scanner and public scanner contract both use current version 26."
+    },
+    {
+      "name": "no-new-relation-foundation-subscanner",
+      "passed": true,
+      "detail": "No relation/foundation response subscanner was introduced; composition lives in upstream contracts."
+    },
+    {
+      "name": "public-export-present",
+      "passed": false,
+      "detail": "The interface-driven pipeline is available through public and upstream exports."
+    },
+    {
+      "name": "contract-forbids-semantic-reclassification",
+      "passed": true,
+      "detail": "The existing contract continues to forbid runtime semantic reclassification."
+    }
+  ]
+}

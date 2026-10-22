@@ -1,0 +1,11 @@
+{
+  "phase": 1444,
+  "title": "Assignment Algebra Enforces Interface Contract",
+  "scope": "upstream algebra only; scanner runtime wiring intentionally unchanged; downstream AST projection contract audited",
+  "audit": "scripts/audits/audit-phase1444-assignment-algebra-contract.cjs",
+  "validation": {
+    "static_audit": "13/13; historical Phase 1436-1443 audits pass",
+    "build": "not run; tsdown unavailable",
+    "runtime_tests": "not run; Vitest unavailable"
+  }
+}

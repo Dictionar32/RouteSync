@@ -1,0 +1,61 @@
+{
+  "phase": 2062,
+  "audit": "grouped-class-import-resolution-interface-first",
+  "passed": 8,
+  "total": 13,
+  "checks": [
+    {
+      "name": "grouped import parser preserves prefix and expands each member",
+      "passed": false
+    },
+    {
+      "name": "grouped aliases produce canonical target and alias bindings",
+      "passed": false
+    },
+    {
+      "name": "known function and constant imports in a mixed group do not invalidate class inventory",
+      "passed": false
+    },
+    {
+      "name": "multiple ungrouped class imports are split into independent bindings",
+      "passed": false
+    },
+    {
+      "name": "malformed or unsupported import syntax still marks the inventory incomplete",
+      "passed": false
+    },
+    {
+      "name": "the previous grouped-import regression now expects successful canonical resolution",
+      "passed": true
+    },
+    {
+      "name": "the resolution contract continues to represent alias and canonical qualified-name identity",
+      "passed": true
+    },
+    {
+      "name": "dedicated regression coverage includes aliases, nested members, mixed imports, and comma-separated imports",
+      "passed": true
+    },
+    {
+      "name": "facade rules match canonical PHP class identities instead of short DB spellings",
+      "passed": true
+    },
+    {
+      "name": "facade alias, FQCN, and unimported-short-name regressions are represented",
+      "passed": true
+    },
+    {
+      "name": "origin authority exposes the evolved class-reference rule contract",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered in package.json",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner or duplicate authority was introduced",
+      "passed": true
+    }
+  ],
+  "note": "Structural audit only; no full TypeScript typecheck, build, or Vitest execution is asserted."
+}

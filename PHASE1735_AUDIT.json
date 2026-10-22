@@ -1,0 +1,57 @@
+{
+  "phase": 1735,
+  "name": "correspondence-form-alignment",
+  "total": 12,
+  "passed": 6,
+  "failed": 6,
+  "checks": [
+    {
+      "name": "correspondence is a closed discriminated union, not an unrestricted inventory/publication pair",
+      "passed": true
+    },
+    {
+      "name": "ordinary inventory is statically paired only with ordinary publication entries",
+      "passed": false
+    },
+    {
+      "name": "static inventory is statically paired only with static publication entries",
+      "passed": true
+    },
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "publication implementation and Laravel wiring remain honestly marked pending",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary v25 preserves typed form alignment without repairing mismatches",
+      "passed": false
+    },
+    {
+      "name": "runtime authority still owns value-level identity and evidence validation",
+      "passed": true
+    },
+    {
+      "name": "publication authority remains one existing operational interface",
+      "passed": true
+    },
+    {
+      "name": "Laravel analyzer continues delegating invocation analysis upstream",
+      "passed": false
+    },
+    {
+      "name": "no semantic/foundation dependency was introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

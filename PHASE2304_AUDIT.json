@@ -1,0 +1,27 @@
+{
+  "phase": 2304,
+  "title": "Provider Expression Authority Alignment",
+  "scope": [
+    "provider method body projection",
+    "reuse existing PHP AST expression semantic authority",
+    "consumer bypass audit"
+  ],
+  "changedFiles": [
+    "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts",
+    "packages/core/src/types/upstream/docs/PHASE2304-PROVIDER-EXPRESSION-AUTHORITY-ALIGNMENT.md",
+    "scripts/audits/audit-phase2304-provider-expression-authority.cjs"
+  ],
+  "checks": {
+    "providerUsesExistingAuthority": true,
+    "providerDirectResolveClosureBodyCallRemoved": true,
+    "attributeProducerUsesExistingAuthority": true,
+    "authorityOwnsClosureBodyProjection": true,
+    "fullTypecheck": "not-run",
+    "runtimeTests": "not-run"
+  },
+  "remaining": [
+    "attribute producer constructor selection remains local to producer",
+    "transitive semantic/relations usage remains inside the existing expression authority implementation",
+    "provider scanner still contains unrelated semantic relations dependencies"
+  ]
+}

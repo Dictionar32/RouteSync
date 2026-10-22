@@ -1,0 +1,22 @@
+{
+  "phase": 2307,
+  "title": "Controller Constructor Authority Alignment",
+  "scope": "Align Laravel controller scanner with the existing upstream PHP constructor-selection authority.",
+  "changes": [
+    "Injected PhpClassConstructorSelectionAuthorityInterface into LaravelControllerScannerInterface and executor.",
+    "Removed local constructor .find selection from controller scanner.",
+    "Mapped missing constructor to an empty parameter sequence for controller scanning.",
+    "Mapped ambiguous constructor selection to a blocked controller scan before action work.",
+    "Advanced LaravelControllerScannerInterface contract version to 41."
+  ],
+  "verification": {
+    "audit": "scripts/audits/audit-phase2307-controller-constructor-authority-alignment.cjs",
+    "typecheck": "not run",
+    "build": "not run",
+    "runtimeIntegration": "not run"
+  },
+  "remaining": [
+    "Transitive semantic/relations dependencies remain in expression authority path.",
+    "Full typecheck and runtime integration tests remain outstanding."
+  ]
+}

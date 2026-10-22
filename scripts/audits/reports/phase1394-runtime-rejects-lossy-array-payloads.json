@@ -1,0 +1,33 @@
+{
+  "phase": 1394,
+  "audit": "runtime-rejects-lossy-array-payloads",
+  "passed": true,
+  "passedChecks": 6,
+  "totalChecks": 6,
+  "checks": [
+    {
+      "name": "preflight checks sparse arrays before JSON snapshotting",
+      "pass": true
+    },
+    {
+      "name": "preflight checks every array index descriptor",
+      "pass": true
+    },
+    {
+      "name": "array extras cannot be silently discarded by JSON.stringify",
+      "pass": true
+    },
+    {
+      "name": "contract decoder still validates before and after snapshot",
+      "pass": true
+    },
+    {
+      "name": "contract version remains explicit and fail-closed",
+      "pass": true
+    },
+    {
+      "name": "package version and build command are preserved",
+      "pass": true
+    }
+  ]
+}

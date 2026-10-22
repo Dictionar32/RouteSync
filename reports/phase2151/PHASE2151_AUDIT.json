@@ -1,0 +1,69 @@
+{
+  "phase": 2151,
+  "title": "Route Request ADT Closure Interface-First",
+  "passed": 14,
+  "total": 14,
+  "checks": [
+    {
+      "name": "route request ADT distinguishes typed request from no request",
+      "passed": true
+    },
+    {
+      "name": "route request ADT retains the original unresolved type judgment",
+      "passed": true
+    },
+    {
+      "name": "endpoint request ADT preserves unresolved judgment",
+      "passed": true
+    },
+    {
+      "name": "route boundary projection preserves typed request as inline input",
+      "passed": true
+    },
+    {
+      "name": "route boundary projection preserves unresolved request as unresolved input",
+      "passed": true
+    },
+    {
+      "name": "high-level source model handles unresolved endpoint input",
+      "passed": true
+    },
+    {
+      "name": "request-type solver explicitly skips unresolved instead of casting it as FormRequest",
+      "passed": true
+    },
+    {
+      "name": "canonical action judgment wiring remains explicitly open",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation or subscanner added",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/domain/request.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/endpointBindings.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "The canonical action request judgment is not yet wired into route-boundary construction; route construction still consumes the legacy ControllerActionInfo.request projection.",
+    "Full build, full typecheck, and Vitest were not run.",
+    "Static assertions and syntax-only transpilation do not establish full runtime correctness."
+  ]
+}

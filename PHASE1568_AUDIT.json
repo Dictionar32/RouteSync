@@ -1,0 +1,84 @@
+{
+  "phase": 1568,
+  "audit": "typed-duplicate-source-occurrence-contract",
+  "passed": 13,
+  "total": 16,
+  "checks": [
+    {
+      "name": "interface remains declaration-only",
+      "passed": false
+    },
+    {
+      "name": "duplicate witness names semantic collision key",
+      "passed": true
+    },
+    {
+      "name": "duplicate witness carries actual route occurrences",
+      "passed": true
+    },
+    {
+      "name": "duplicate witness carries actual resource occurrences",
+      "passed": true
+    },
+    {
+      "name": "duplicate witness carries actual request occurrences",
+      "passed": true
+    },
+    {
+      "name": "duplicate occurrences require at least two source records",
+      "passed": false
+    },
+    {
+      "name": "duplicate input rejection requires non-empty witness ledger",
+      "passed": false
+    },
+    {
+      "name": "duplicate input evidence no longer uses key-only duplicate ledger",
+      "passed": true
+    },
+    {
+      "name": "duplicate witness law is part of semantic law vocabulary",
+      "passed": true
+    },
+    {
+      "name": "duplicate mismatch has typed counterexample",
+      "passed": true
+    },
+    {
+      "name": "input rejection still distinguishes route/resource/request domains",
+      "passed": true
+    },
+    {
+      "name": "rejection confirmation remains distinct from successful derivation",
+      "passed": true
+    },
+    {
+      "name": "verification failures bind law and evidence",
+      "passed": true
+    },
+    {
+      "name": "authority verifier retains input and judgment",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the interface",
+      "passed": true
+    },
+    {
+      "name": "scanner and runtime implementations are not embedded in the interface",
+      "passed": true
+    }
+  ],
+  "failures": [
+    "interface remains declaration-only",
+    "duplicate occurrences require at least two source records",
+    "duplicate input rejection requires non-empty witness ledger"
+  ],
+  "scope": "static interface-model audit only; does not claim authority implementation, scanner migration, runtime migration, full TypeScript build, package build, or Vitest validation",
+  "findings": [
+    "a duplicate identity now requires the collision key plus at least two typed source occurrences",
+    "occurrence/key equality is an explicit semantic law that authority must verify",
+    "route, resource, and request collision witnesses are domain-specific",
+    "scanner and runtime files intentionally unchanged"
+  ]
+}

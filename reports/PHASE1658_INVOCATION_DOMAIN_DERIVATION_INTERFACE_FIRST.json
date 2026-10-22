@@ -1,0 +1,18 @@
+{
+  "phase": 1658,
+  "title": "Invocation Domain Derivation Interface-First",
+  "modelVersion": 4,
+  "contractVersion": 14,
+  "staticAudit": { "passed": 9, "failed": 0 },
+  "phase1657Audit": { "passed": 9, "failed": 0 },
+  "targetedTypeScript": {
+    "changedFilesDiagnostics": 0,
+    "overallExitCode": 2,
+    "overallDiagnostics": 864,
+    "typescriptAvailable": "5.8.3",
+    "packageDeclaredTypescript": "7.0.2"
+  },
+  "build": { "status": "blocked", "reason": "tsdown is not installed" },
+  "runtimeTests": { "status": "not-run", "reason": "workspace dependencies are not installed" },
+  "scanner": "delegates invocation batch analysis through invocationSemanticRuntimeExecutor.executeAll"
+}

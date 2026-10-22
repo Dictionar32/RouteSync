@@ -1,4 +1,4 @@
-import { type RouteDefinition } from '@routesync/core'
+import { type RouteDefinition, type RetryConfig } from '@routesync/core'
 
 export type EndpointDefinition = RouteDefinition
 
@@ -21,10 +21,10 @@ export interface ResourceConfig<
   headers?: Record<string, string>
 
   /** Default cache config applied to endpoints that don't override it. */
-  cache?: unknown
+  cache?: boolean
 
   /** Default retry config applied to endpoints that don't override it. */
-  retry?: unknown
+  retry?: boolean | RetryConfig
 }
 
 export type ResourceDefinition<

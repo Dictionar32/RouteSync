@@ -1,0 +1,28 @@
+{
+  "phase": 1442,
+  "title": "Expression runtime partition wiring",
+  "pipeline": ["source evidence", "semantic reasoning algebra", "closed judgment/contract", "interface", "wiring", "runtime executor", "downstream projection"],
+  "staticAudit": {
+    "script": "scripts/audits/audit-phase1442-expression-runtime-partition-wiring.cjs",
+    "passed": 10,
+    "total": 10
+  },
+  "changes": [
+    "inline array key/value consumer uses token occurrence partitions",
+    "match arm consumer uses token occurrence partitions",
+    "instanceof consumer uses token occurrence partitions",
+    "collection iteration consumer uses the as occurrence partition",
+    "removed runtime findTopLevelOperator numeric-offset compatibility helper",
+    "added AST projection regression tests for the four migrated consumers"
+  ],
+  "validation": {
+    "staticAudit": "10/10",
+    "vitest": "not run until the repository Vitest toolchain is available",
+    "build": "not claimed; prior workspace did not contain tsdown"
+  },
+  "remainingFrontier": [
+    "internal delimiter and statement traversal cursor algorithms",
+    "assignment algebra compatibility callbacks using TokenStructureResolution indices",
+    "other scanner parser paths using numeric offsets"
+  ]
+}

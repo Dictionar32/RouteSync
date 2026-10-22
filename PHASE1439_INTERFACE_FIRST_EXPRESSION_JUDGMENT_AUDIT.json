@@ -1,0 +1,20 @@
+{
+  "phase": 1439,
+  "title": "Interface-first expression judgment contract",
+  "status": "source-boundary-audit-passed",
+  "scope": [
+    "packages/core/src/types/upstream/scannerExpressionJudgmentInterface.ts",
+    "packages/core/src/types/upstream/scannerExpressionStructure.ts",
+    "packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts",
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts"
+  ],
+  "invariants": [
+    "The public judgment interface is declared separately from its implementation.",
+    "The PHP evidence provider wires through expressionStructureJudgmentAuthority.resolve.",
+    "Closed malformed judgments reference source evidence rather than exposing a raw numeric cursor.",
+    "Runtime consumes the closed judgment and does not reconstruct the arbitration result."
+  ],
+  "source_audit": "12/12 interface contract checks passed; inherited audits Phase 1433-1438 all pass",
+  "focused_typecheck": "interface, candidate algebra, judgment implementation, and contract regression test type-check passed; 2/2 executable authority checks passed; full provider/runtime typecheck reports unrelated imported-module errors",
+  "build": "blocked-by-missing-dependencies"
+}

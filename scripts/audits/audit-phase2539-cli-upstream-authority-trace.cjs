@@ -1,0 +1,37 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (label, condition) => checks.push({ label, passed: Boolean(condition) });
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+const publicEntry = read('packages/core/src/index.ts');
+const projection = read('packages/core/src/compiler/scanner/wiring/routeManifestProjection.ts');
+const lowering = read('packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts');
+const pipeline = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProjectionPipeline.ts');
+const solver = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
+const contract = read('packages/core/src/types/upstream/requestTypeDerivationInterface.ts');
+const assembler = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticPipelineAssembler.ts');
+const authority = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationAuthority.ts');
+const pkg = JSON.parse(read('package.json'));
+check('CLI scan forwards the complete manifest and upstream request-resolution preflight', /projectRouteSyncManifestForRouteManifest\(completeManifest, requestResolutionPreflight\)/.test(scan));
+check('CLI sync forwards the complete manifest and upstream request-resolution preflight', /projectRouteSyncManifestForRouteManifest\(completeManifest, requestResolutionPreflight\)/.test(sync));
+check('manifest projection delegates the complete preflight packet to route manifest type lowering', /routeManifestTypeLowering\.project\(input\)/.test(projection) && /routeManifestProjection\.project\(Object\.freeze\(\{ manifest, \.\.\.preflight \}\)\)/.test(projection));
+check('active lowering still calls the legacy projection pipeline', /requestTypeDerivationProjectionPipeline\.derive/.test(lowering));
+check('legacy projection still returns raw RequestType[]', /derive: \(input: RequestTypeDerivationProjectionInput\) => readonly RequestType\[\]/.test(read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProjectionInterface.ts')));
+check('legacy pipeline is only an alias to the relation-backed solver (root cause remains open)', /requestTypeDerivationProjectionPipeline: RequestTypeDerivationProjectionInterface = requestTypeDerivationSolver/.test(pipeline) && /semantic\/relations\/relationalSequence/.test(solver));
+check('closed semantic judgment models derived/incomplete/conflict/invalid_input', /kind: 'derived'/.test(contract) && /kind: 'incomplete'/.test(contract) && /kind: 'conflict'/.test(contract) && /kind: 'invalid_input'/.test(contract));
+check('canonical reasoning interface exists', /interface RequestTypeDerivationSemanticReasoningInterface/.test(contract));
+check('assembler only composes injected reasoning/verifier/decision/authority capabilities', /composition\.reasoning\.infer\(input\)/.test(assembler) && /composition\.verifier/.test(assembler) && /composition\.decision\.decide/.test(assembler) && /composition\.authority\.evaluate/.test(assembler));
+check('authority delegates judgment production and proof verification to injected kernel', /kernel\.deriveJudgment\(input\)/.test(authority) && /kernel\.verify\(input, judgment\)/.test(authority));
+check('public package exports manifest projection entry', /projectRouteSyncManifestForRouteManifest/.test(publicEntry));
+check('audit is registered in package scripts', pkg.scripts['audit:phase2539-cli-upstream-authority-trace'] === 'node scripts/audits/audit-phase2539-cli-upstream-authority-trace.cjs');
+let failed = 0;
+for (const item of checks) {
+  process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.label}\n`);
+  if (!item.passed) failed += 1;
+}
+process.stdout.write(`RESULT ${checks.length - failed}/${checks.length} assertions passed\n`);
+if (failed > 0) process.exitCode = 1;

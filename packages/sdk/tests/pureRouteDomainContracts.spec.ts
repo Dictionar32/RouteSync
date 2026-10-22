@@ -1,4 +1,7 @@
 import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
+import { createMiddlewareName } from '../../core/src/types/upstream/names';
+import type { RouteMiddleware } from '../../core/src/types/upstream/route';
+import type { RouteMiddlewares, Sequence } from '../../core/src/types/upstream/collections';
 /**
  * pureRouteDomainContracts.spec.ts
  *
@@ -40,6 +43,17 @@ import {
   type RouteParameterSpecification,
   type RouteSemanticFlow
 } from "@routesync/core";
+
+const routeMiddlewareFlow = (names: readonly string[]): RouteMiddlewares => ({
+  kind: 'route_middlewares',
+  items: names.reduceRight<Sequence<RouteMiddleware>>(
+    (tail, name) => ({ kind: 'cons', head: { kind: 'direct', name: createMiddlewareName(name) }, tail }),
+    { kind: 'empty' },
+  ),
+});
+
+const sequenceValues = <T>(sequence: Sequence<T>, output: readonly T[] = []): readonly T[] =>
+  sequence.kind === 'empty' ? output : sequenceValues(sequence.tail, [...output, sequence.head]);
 
 describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
   it("1. RouteSemanticFlowFactory.create() aggregates 4 frozen non-nullable sub-contracts at Origin Boundary", () => {
@@ -293,19 +307,27 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
   });
 
   it("7. RouteSecurityResolver extracts security, auth, policies, and rate limits at Origin Boundary", () => {
-    const res = RouteSecurityResolver.resolve(
-      ["auth:sanctum", "can:update,post", "throttle:120,2"],
-      false
-    );
+    const authMiddleware = createMiddlewareName('auth:sanctum');
+    const res = RouteSecurityResolver.resolve({
+      kind: 'route_security_authority_input',
+      middleware: routeMiddlewareFlow(["auth:sanctum", "can:update,post", "throttle:120,2"]),
+      authorization: { kind: 'laravel_route_authorization_middleware_present', middleware: Object.freeze([authMiddleware]) },
+    });
+    const policies = sequenceValues(res.policies);
 
-    expect(res.auth).toBe(true);
-    expect(res.security.isProtected).toBe(true);
-    expect(res.policies.length).toBe(1);
-    expect(res.policies[0].ability).toBe("update");
-    expect(res.policies[0].modelParameter).toBe("post");
-    expect(res.rateLimit).toBeDefined();
-    expect(res.rateLimit?.maxAttempts).toBe(120);
-    expect(res.rateLimit?.decayMinutes).toBe(2);
+    expect(res.auth.value).toBe(true);
+    expect(res.security.isProtected.value).toBe(true);
+    expect(policies).toHaveLength(1);
+    expect(policies[0].ability.value.value).toBe("update");
+    expect(policies[0].kind).toBe('ability_model');
+    if (policies[0].kind === 'ability_model') {
+      expect(policies[0].modelParameter.value.value).toBe("post");
+    }
+    expect(res.rateLimit.kind).toBe('fixed');
+    if (res.rateLimit.kind === 'fixed' && res.rateLimit.limit.kind === 'fixed') {
+      expect(res.rateLimit.limit.maxAttempts.value).toBe(120);
+      expect(res.rateLimit.limit.decayMinutes.value).toBe(2);
+    }
     expect(Object.isFrozen(res)).toBe(true);
   });
 
@@ -320,7 +342,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
       action: SemanticValueFactory.actionName("store"),
       resourceName: SemanticValueFactory.resourceName("articles"),
       domain: SemanticValueFactory.domainName("Article"),
-      auth: true,
+      authorization: { kind: 'laravel_route_authorization_middleware_present', middleware: Object.freeze([createMiddlewareName('auth')]) },
       middleware: [],
       parameters: [],
       pathParameters: [],

@@ -1,0 +1,29 @@
+{
+  "phase": 2217,
+  "title": "Invocation Executor Authority Identity",
+  "baseline": "RouteSync-Phase2216-DTO-Projection-Binding-Scope.zip",
+  "finding": "The executor contract exposed individual and batch contracts but not the exact authority instances that own the delegated calls.",
+  "change": "Expose invocationAuthority and batchAuthority on the existing runtime executor interface and publish the exact factory-bound instances; retain direct delegation.",
+  "verified": {
+    "zipIntegrity": "passed; zip -T returned OK",
+    "typescriptSyntax": "4/4 changed TypeScript files transpiled without syntax diagnostics",
+    "structuralAssertions": "7/7 passed",
+    "fullTypecheck": "not-run",
+    "fullVitest": "not-run",
+    "packageBuild": "not-run"
+  },
+  "architectureConstraints": {
+    "newSemanticAuthority": false,
+    "semanticFoundationLayerAdded": false,
+    "replacementRelationLayerAdded": false,
+    "subscannerAdded": false,
+    "runtimeSemanticReasoningAdded": false
+  },
+  "notCompleted": [
+    "legacy scanControllerAction and resolveControllerActionContract retirement",
+    "action-level response product compatibility projection",
+    "resource-binding publication cutover",
+    "semantic/relations call-site trace closure",
+    "channel client-subscription evidence closure"
+  ]
+}

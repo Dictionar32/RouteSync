@@ -1,0 +1,30 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, ok, detail) => checks.push({ name, ok: Boolean(ok), detail });
+const cli = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');
+const builder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
+const scanner = read('packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts');
+const contract = read('packages/core/src/types/upstream/manifestBuilderInterface.ts');
+const flowContract = read('packages/core/src/compiler/scanner/orchestrator/RouteSyncManifestFlowProjectionInterface.ts');
+const projection = read('packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts');
+
+check('CLI injects the upstream preparation interface', cli.includes('manifestBuilderPreparation: manifestBuilderOperationPreparation'));
+check('builder preparation value is explicitly interface-typed', builder.includes('export const manifestBuilderOperationPreparation: ManifestBuilderOperationPreparationInterface'));
+check('builder exposes named typed preparation function', builder.includes('export function prepareManifestBuilderOperation(input: ManifestBuilderInput): ManifestBuilderInterface'));
+check('runtime scanner invokes the interface seam, not direct implementation', scanner.includes('manifestBuilderOperationPreparation.prepare(') && !scanner.includes('prepareManifestBuilderOperation('));
+check('manifest builder input binds inventory receipt and route selection', contract.includes('readonly invocationInventoryReceipt: LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt') && contract.includes('readonly routeSelection: LaravelRouteSourceSelectionIntent'));
+check('builder preserves explicit source-AST blocked judgment', contract.includes("readonly stage: 'source_ast'") && contract.includes('projection: Exclude<LaravelSourceAstProjectionJudgment'));
+check('builder preserves source-model blocked judgment', contract.includes("readonly stage: 'source_model'") && contract.includes('sourceModel: CompleteSourceModelBuildBlockedResult'));
+check('runtime flow projection is a typed function expression', projection.includes('export const projectRouteSyncManifestFlow = (manifest: RouteSyncManifest): RouteSyncManifestFlow =>'));
+check('projection is wired through its explicit interface', projection.includes('export const routeSyncManifestFlowProjection: RouteSyncManifestFlowProjectionInterface'));
+check('downstream projection contract is AST-free semantic flow', flowContract.includes('UpstreamWiringInterface<RouteSyncManifest, RouteSyncManifestFlow>') && !/readonly\\s+ast\\s*:/.test(flowContract));
+check('invocation semantic judgments cross manifest boundary from canonical field', projection.includes('invocationSemanticJudgments: manifest.invocationSemanticJudgments'));
+check('manifest build judgment is imported and used in scanner facade', scanner.includes('ManifestBuilderJudgment') && scanner.includes('Promise<ManifestBuilderJudgment>'));
+for (const item of checks) console.log(`${item.ok ? 'PASS' : 'FAIL'} ${item.name}${item.detail ? ` — ${item.detail}` : ''}`);
+console.log(`RESULT ${checks.filter(x => x.ok).length}/${checks.length}`);
+if (checks.some(x => !x.ok)) process.exitCode = 1;

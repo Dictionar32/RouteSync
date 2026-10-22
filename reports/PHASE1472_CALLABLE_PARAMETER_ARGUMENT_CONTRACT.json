@@ -1,0 +1,11 @@
+{
+  "phase": 1472,
+  "name": "callable-parameter-argument-contract",
+  "pipeline": ["source evidence", "typed semantic knowledge", "semantic reasoning algebra", "closed judgment", "interface contract", "wiring", "runtime AST projection"],
+  "audit": { "passed": 9, "total": 9 },
+  "focusedTypeScript": "passed for callable-list interface/algebra and token-structure modules",
+  "compiledSmokeTests": { "passed": 4, "total": 4 },
+  "fullBuild": "not verified: tsdown dependency unavailable in workspace",
+  "vitest": "not run: project dependencies unavailable",
+  "knownExistingTypeScriptDiagnostics": ["scannerLoopStatement wiring", "semanticEvidenceRelations.ts", "queryEvidenceProducer.ts"]
+}

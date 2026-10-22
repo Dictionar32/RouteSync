@@ -1,0 +1,6 @@
+PASS packages/core/src/types/upstream/laravelControllerScannerInterface.ts
+PASS packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts
+PASS packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts
+PASS packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts
+PASS packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts
+RESULT 5/5

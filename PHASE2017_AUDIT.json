@@ -1,0 +1,44 @@
+{
+  "phase": 2017,
+  "audit": "source-correlated-controller-declaration-judgment-interface-first",
+  "passed": 6,
+  "total": 9,
+  "checks": [
+    {
+      "name": "declaration candidate contract requires typed SourceFile identity",
+      "passed": true
+    },
+    {
+      "name": "selection ADT preserves source identity from its base contract",
+      "passed": true
+    },
+    {
+      "name": "authority carries exact source identity into the judgment",
+      "passed": true
+    },
+    {
+      "name": "scanner derives candidate identity from the canonical invocation judgment",
+      "passed": true
+    },
+    {
+      "name": "scanner binds selection by source-file identity rather than basename/controller label",
+      "passed": false
+    },
+    {
+      "name": "missing correspondence error reports source identity",
+      "passed": false
+    },
+    {
+      "name": "scanner interface and executor use the same evolved contract version",
+      "passed": false
+    },
+    {
+      "name": "authority regression test covers duplicate controller names in distinct source files",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation subscanner introduced",
+      "passed": true
+    }
+  ]
+}

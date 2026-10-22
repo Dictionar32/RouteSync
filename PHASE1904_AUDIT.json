@@ -1,0 +1,23 @@
+{
+  "phase": 1904,
+  "title": "Laravel Scanner Interface-First Upstream Evidence Contract",
+  "status": "static-interface-audit-passed",
+  "checks": {
+    "staticAudit": "7/7",
+    "typescriptBuild": "not-run",
+    "typescriptTests": "not-run"
+  },
+  "scope": [
+    "promoted existing SemanticKnowledgeEvidenceAdapter contract to types/upstream",
+    "preserved scanner compatibility factory and PHP producer implementation",
+    "advanced existing Laravel controller boundary contract version 70 to 71",
+    "documented analyzer semantic-runtime leakage and response-composition identity uncertainty",
+    "did not add semantic/foundation dependency"
+  ],
+  "openFindings": [
+    "controllerDataflowAnalyzer still performs semantic work",
+    "response composition result is not established to be type-identical to judgment.response",
+    "ControllerDataflowAst duplicate response projections need consumer trace",
+    "controllerDataflowContract resource binding needs separate trace"
+  ]
+}

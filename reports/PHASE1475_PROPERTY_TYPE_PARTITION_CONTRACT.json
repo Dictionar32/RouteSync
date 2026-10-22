@@ -1,0 +1,20 @@
+{
+  "phase": 1475,
+  "title": "Property Type Partition Contract",
+  "filesChanged": [
+    "packages/core/src/compiler/scanner/subscanners/model/propertyProducer.ts",
+    "packages/core/src/types/upstream/__test__/scannerPropertyTypePartition.phase1475.test.ts",
+    "scripts/audits/audit-phase1475-property-type-partition-contract.cjs",
+    "packages/core/src/types/upstream/docs/PHASE1475_PROPERTY_TYPE_PARTITION_CONTRACT.md",
+    "persistent:reports/PHASE1475_PROPERTY_TYPE_PARTITION_CONTRACT.json"
+  ],
+  "verification": {
+    "architectureAudit": "8/8 PASS",
+    "upstreamStructureTypeScript": "PASS: scannerTokenStructureInterface.ts + scannerTokenStructureAlgebra.ts strict compile",
+    "runtimePartitionSmoke": "3/3 PASS: nested union, nested intersection, malformed delimiter",
+    "vitest": "not-run: vitest dependency unavailable in workspace",
+    "packageBuild": "FAIL: npm run build invokes tsdown but tsdown is not installed (exit 127)",
+    "expandedTypeScript": "FAIL: broad workspace typecheck surfaces existing diagnostics in unrelated runtime/dataflow/upstream modules; no diagnostics on new partition lines; propertyProducer has pre-existing narrowing diagnostics elsewhere"
+  },
+  "boundary": "Partition authority migrated; complete PHP type grammar and DNF normalization remain out of scope."
+}

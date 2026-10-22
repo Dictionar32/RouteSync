@@ -41,7 +41,8 @@ export const HttpMethod = Object.freeze({
   PATCH: 'PATCH',
   DELETE: 'DELETE',
   OPTIONS: 'OPTIONS',
-  HEAD: 'HEAD'
+  HEAD: 'HEAD',
+  QUERY: 'QUERY'
 } as const);
 export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod];
 

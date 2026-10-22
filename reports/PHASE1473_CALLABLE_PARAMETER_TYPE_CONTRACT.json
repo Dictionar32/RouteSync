@@ -1,0 +1,33 @@
+{
+  "phase": 1473,
+  "title": "Callable Parameter Type Contract",
+  "status": "implemented_with_build_environment_limitations",
+  "architecture": [
+    "source token evidence",
+    "typed callable parameter type evidence",
+    "upstream semantic reasoning algebra",
+    "closed parameter judgment",
+    "runtime wiring",
+    "PhpParameter AST projection"
+  ],
+  "changes": [
+    "CallableParameterTypeEvidence distinguishes absent, primitive, named, and nullable types.",
+    "Parameter type grammar is validated inside scannerCallableListAlgebra.",
+    "parseParameters projects typeEvidence to PhpParameterTypeAst rather than forcing type=absent.",
+    "Unsupported union syntax fails closed rather than silently dropping type evidence.",
+    "Qualified names preserve original token evidence until the AST boundary."
+  ],
+  "verification": {
+    "architecture_audit": "9/9 passed",
+    "focused_upstream_typescript_compile": "passed",
+    "compiled_algebra_smoke_tests": "5/5 passed",
+    "runtime_ast_projection_smoke_tests": "4/4 passed",
+    "zip_integrity": "passed",
+    "full_build": "blocked: tsdown not installed in workspace",
+    "strict_runtime_typecheck": "has existing diagnostics in loop statement wiring and semantic evidence/query producer modules; no diagnostics in changed callable type contract/algebra modules"
+  },
+  "scope_limitations": [
+    "Union/intersection/DNF parameter types are intentionally rejected until the AST type vocabulary and contract support them.",
+    "Vitest suite was authored but not executed because dependencies are not installed."
+  ]
+}

@@ -1,4 +1,4 @@
-import { RequestTypeDeriver } from '../subscanners/RequestTypeDeriver';
+import { requestTypeDerivationProjectionPipeline } from '../../semantic/request-type-derivation/requestTypeDerivationProjectionPipeline';
 import { SemanticTypeDeriver } from '../subscanners/SemanticTypeDeriver';
 import { TypeInterner } from '../../types/TypeInterner';
 import { routeFlowsFromManifest, modelAstsFromManifest, resourceAstsFromManifest, requestAstsFromManifest } from './routeManifestProjectionInputs';
@@ -20,7 +20,7 @@ const lower = (manifest: RouteSyncManifest): RouteManifestTypeLowering => {
 
   return Object.freeze({
     kind: 'route_manifest_type_lowering',
-    requestTypes: RequestTypeDeriver.derive(routes, resources, requests, interner),
+    requestTypes: requestTypeDerivationProjectionPipeline.derive({ routes, resources, requests, interner }),
     semanticTypes: SemanticTypeDeriver.derive(resources, models, interner, routes),
   });
 };

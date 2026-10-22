@@ -1,97 +1,27 @@
-import type { CrudRole } from "./lifecycle";
 import { SemanticValueFactory } from "./semanticValues";
-import { relationGate, relationFoldRight, relationVariantFold, relationTextFind, relationTextFields, relationTextLower, relationTextSlice, relationTextStartsWith } from "../../semantic/foundation/relationalSequence";
-import { relationAny, relationEqual, relationNormalizeWhitespace } from "../../semantic/foundation/semanticRelations";
+import { relationGate } from "../../semantic/relations/relationalSequence";
 import type { TruthValue } from "../upstream/valueObjects";
 import { truthValue, stringValue } from "../upstream/valueObjects";
 import {
   SecuritySchemeKind,
   RoutePolicyKind,
-  createRouteSecurityDescriptor,
   type RouteSecurityDescriptor,
   type RoutePolicyDescriptor,
 } from "../upstream/route";
-import type { RouteMiddlewares, Sequence } from "../upstream/collections";
-import type { RouteMiddleware } from "../upstream/route";
-import { createAbilityName, type GuardName, type AbilityName } from "../upstream/names";
+import type { RouteMiddlewares } from "../upstream/collections";
+import { routeSecurityAuthority } from "../upstream/routeSecurityAuthority";
+import { createAbilityName } from "../upstream/names";
 
 export { SecuritySchemeKind, RoutePolicyKind, createRouteSecurityDescriptor } from "../upstream/route";
 export type { RouteSecurityDescriptor, RoutePolicyDescriptor } from "../upstream/route";
 
-const emptySequence = <T>(): Sequence<T> => ({ kind: 'empty' });
-
-
-const sequenceAppend = <T>(sequence: Sequence<T>, item: T): Sequence<T> =>
-  relationVariantFold(sequence, 'cons', () => ({ kind: 'cons', head: item, tail: emptySequence<T>() }), candidate => ({ kind: 'cons', head: candidate.head, tail: sequenceAppend(candidate.tail, item) }));
-
-
-const sequenceMapText = <U>(items: readonly string[], project: (item: string) => U): Sequence<U> =>
-  relationFoldRight(items, emptySequence<U>(), (item, tail) => ({ kind: 'cons', head: project(item), tail }));
-
-const guardName = (value: string): GuardName => Object.freeze({ kind: 'guard_name', value: stringValue(value) });
-const abilityName = (value: string): AbilityName => createAbilityName(value);
-
-interface SecurityClassificationState {
-  readonly isProtected: TruthValue;
-  readonly scheme: SecuritySchemeKind;
-  readonly guards: Sequence<GuardName>;
-  readonly abilities: Sequence<AbilityName>;
-}
-
-const initialSecurityClassificationState: SecurityClassificationState = Object.freeze({
-  isProtected: truthValue(false),
-  scheme: SecuritySchemeKind.Public,
-  guards: emptySequence<GuardName>(),
-  abilities: emptySequence<AbilityName>(),
-});
-
-const middlewareSecurityState = (state: SecurityClassificationState, middleware: RouteMiddleware): SecurityClassificationState => {
-  const trimmed = relationNormalizeWhitespace(middleware.name.value.value);
-  const lower = relationTextLower(trimmed);
-  const authSanctum = relationEqual(lower, 'auth:sanctum');
-  const authBearer = relationAny([relationEqual(lower, 'auth:api'), relationEqual(lower, 'auth:bearer')]);
-  const authCookie = relationAny([relationEqual(lower, 'auth'), relationTextStartsWith(lower, 'auth:')]);
-  const abilityPrefix = relationAny([relationTextStartsWith(lower, 'ability:'), relationTextStartsWith(lower, 'abilities:')]);
-  const rolePrefix = relationAny([relationTextStartsWith(lower, 'role:'), relationTextStartsWith(lower, 'roles:')]);
-  const admin = relationAny([relationEqual(lower, 'admin'), relationEqual(lower, 'superadmin')]);
-  const colon = relationTextFind(trimmed, ':');
-  const payload = relationGate(relationEqual(colon, -1), () => trimmed, () => relationTextSlice(trimmed, colon + 1));
-  const abilityItems = relationTextFields(payload, ',');
-  const normalizedAbilities = sequenceMapText(abilityItems, item => abilityName(relationNormalizeWhitespace(item)));
-  const normalizedRoles = sequenceMapText(abilityItems, item => abilityName(`role:${relationNormalizeWhitespace(item)}`));
-  const authState = relationGate(
-    authSanctum,
-    () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Sanctum, guards: sequenceAppend(state.guards, guardName('sanctum')) }),
-    () => relationGate(
-      authBearer,
-      () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Bearer, guards: sequenceAppend(state.guards, guardName('api')) }),
-      () => relationGate(
-        authCookie,
-        () => Object.freeze({ ...state, isProtected: truthValue(true), scheme: SecuritySchemeKind.Cookie, guards: sequenceAppend(state.guards, guardName('web')) }),
-        () => relationGate(
-          abilityPrefix,
-          () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedAbilities) }),
-          () => relationGate(
-            rolePrefix,
-            () => Object.freeze({ ...state, abilities: sequenceConcat(state.abilities, normalizedRoles) }),
-            () => relationGate(admin, () => Object.freeze({ ...state, abilities: sequenceAppend(state.abilities, abilityName(`role:${lower}`)) }), () => state),
-          ),
-        ),
-      ),
-    ),
-  );
-  return authState;
-};
-
-const sequenceConcat = <T>(left: Sequence<T>, right: Sequence<T>): Sequence<T> =>
-  relationVariantFold(left, 'cons', () => right, candidate => ({ kind: 'cons', head: candidate.head, tail: sequenceConcat(candidate.tail, right) }));
-
+/**
+ * Compatibility facade. Security reasoning is owned by the upstream authority;
+ * this domain-facing class only projects its already-closed security descriptor.
+ */
 export class RouteSecurityClassifier {
   public static classify(middleware: RouteMiddlewares): RouteSecurityDescriptor {
-    const classifySequence = (items: Sequence<RouteMiddleware>, state: SecurityClassificationState): SecurityClassificationState =>
-      relationVariantFold(items, 'cons', () => state, candidate => classifySequence(candidate.tail, middlewareSecurityState(state, candidate.head)));
-    const state = classifySequence(middleware.items, initialSecurityClassificationState);
-    return createRouteSecurityDescriptor(state.isProtected, state.scheme, state.guards, state.abilities);
+    return routeSecurityAuthority.resolve({ kind: 'route_security_authority_input', middleware, authorization: { kind: 'laravel_route_authorization_middleware_absent', middleware: Object.freeze([]) } }).security;
   }
 }
 

@@ -1,0 +1,40 @@
+{
+  "phase": 2018,
+  "audit": "controller-parent-ambiguity-interface-first",
+  "passed": 6,
+  "total": 8,
+  "checks": [
+    {
+      "name": "existing ancestry ADT owns the parent ambiguity outcome",
+      "passed": true
+    },
+    {
+      "name": "authority resolves a parent only when exactly one candidate exists",
+      "passed": true
+    },
+    {
+      "name": "ambiguous outcome preserves source identities for every candidate",
+      "passed": true
+    },
+    {
+      "name": "ambiguous parent cannot be published as a complete selection",
+      "passed": true
+    },
+    {
+      "name": "regression test covers duplicate parent names across distinct source files",
+      "passed": true
+    },
+    {
+      "name": "blocker propagation accepts the stronger ancestry ADT without reclassification",
+      "passed": false
+    },
+    {
+      "name": "scanner contract version and executor agree on version 26",
+      "passed": false
+    },
+    {
+      "name": "no relation/foundation subscanner directories are introduced",
+      "passed": true
+    }
+  ]
+}

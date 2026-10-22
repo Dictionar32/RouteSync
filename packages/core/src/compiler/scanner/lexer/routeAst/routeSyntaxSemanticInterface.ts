@@ -13,8 +13,8 @@ import {
     type RouteSyntaxSemanticFact,
     type RouteSyntaxSemanticJudgment,
 } from './semanticRouteSyntaxRelations';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationFirst, relationOptionFold, relationProject, relationUnique } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationFirst, relationOptionFold, relationProject, relationUnique } from '../../../../semantic/relations/relationalSequence';
 
 export type RouteSyntaxSemanticRelation =
     | 'syntax_observes_path'

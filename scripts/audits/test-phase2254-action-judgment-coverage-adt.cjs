@@ -1,0 +1,14 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const assert = require('node:assert/strict');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const source = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
+const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
+assert.match(source, /export interface LaravelControllerActionSemanticKnowledge\s*\{/);
+assert.match(source, /readonly semantic: LaravelControllerActionSemanticKnowledge;/);
+assert.match(source, /readonly projectionMigration: LaravelControllerActionProjectionMigration;/);
+assert.doesNotMatch(source, /action_semantic_knowledge_partial|action_semantic_knowledge_complete|readonly coverage:/);
+assert.match(wiring, /projectionMigration: controllerActionProjectionMigration/);
+assert.doesNotMatch(wiring, /coverage: controllerActionSemanticKnowledgeCoverage|knowledgeCoverage:/);
+console.log('Evolved Phase 2254 action judgment contract audit: 6/6 checks passed');

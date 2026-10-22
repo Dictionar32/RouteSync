@@ -1,4 +1,4 @@
-import { relationNotEqual } from "../../../../semantic/foundation/semanticRelations";
+import { relationNotEqual } from "../../../../semantic/relations/semanticRelations";
 import { relationResolve } from '../../../relational/sequence';
 /**
  * Syntax/evidence boundary for PHP expression spellings.
@@ -13,8 +13,8 @@ import type { PhpInterpolatedStringPart, PhpArrayEntry, PhpArrayKey, PhpClosureR
 import type { KnowledgeId, SemanticFact, SemanticLiteral, SemanticPresence, SemanticDataFlowRelationCode, SemanticDataFlowRoleCode, SemanticFlowGuard, SemanticValueKindCode, SemanticValueKindDefinition, SemanticAccessModeCode, SemanticAccessModeDefinition, SemanticOperatorDefinition, SemanticAssignmentOperatorCode, SemanticAssignmentOperatorDefinition, SemanticAssignmentReferenceCode, SemanticAssignmentReferenceDefinition, SemanticPredicateMeaningCode, SemanticPredicateMeaningDefinition, SemanticMatchModeCode, SemanticMatchModeDefinition, SemanticOutcomeRoleCode, SemanticOutcomeRoleDefinition, SemanticCastDefinition, SemanticAbsenceReasonCode, SemanticSource, SemanticIdentifier, SemanticOperation } from './semanticKnowledgeDataFlowRelations';
 import { semanticText, semanticNumber, knowledgeId } from './semanticKnowledgeDataFlowRelations';
 import { projectRelation } from '../../../relational/sequence';
-import { relationFirstOption, relationOptionFold, relationVariantValue, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationVariantValue, type RelationOption } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 type EvidenceSource = SemanticSource;
 type EvidenceCode = string;
 type EvidenceRelation = SemanticDataFlowRelationCode;
@@ -189,7 +189,7 @@ export const createPhpAstExpressionProjector = (context: PhpAstExpressionEvidenc
             }>) => {
                 {
                     const args = projectRelation(value.arguments, (argument, index) => expressionArgument(argument, `${base}:arg:${index}`));
-                    const id = add({ kind: 'static-invocation', value: { id: base, className: semanticIdentifier(value.className), operation: semanticOperation(value.method), arguments: args, source } });
+                    const id = add({ kind: 'static-invocation', value: { id: base, className: semanticIdentifier(value.classReference.sourceName), operation: semanticOperation(value.method), arguments: args, source } });
                     projectRelation(args, argument => { relate(id, argument, 'depends_on', 'argument'); return argument; });
                     return id;
                 }

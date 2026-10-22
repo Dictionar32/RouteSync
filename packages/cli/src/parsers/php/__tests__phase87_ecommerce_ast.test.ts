@@ -1,4 +1,4 @@
-import { adaptPhpAstBoundary } from '../boundaryAdapter';
+import { phpAstBoundaryAdapter } from '../boundaryAdapter';
 
 /**
  * Phase 87 contract fixtures derived from ecommerce_shop evidence:
@@ -9,7 +9,7 @@ import { adaptPhpAstBoundary } from '../boundaryAdapter';
 
 describe('Phase 87 ecommerce_shop PHP AST boundary', () => {
     test('preserves closure parameters, captures, block statements and argument roles', () => {
-        const closure = adaptPhpAstBoundary({
+        const closure = phpAstBoundaryAdapter.adapt({
             kind: 'closure',
             arguments: [{ kind: 'parameter', name: 'query' }],
             uses: [{ kind: 'useitem', variable: { kind: 'variable', name: 'request' }, byref: false }],
@@ -33,7 +33,7 @@ describe('Phase 87 ecommerce_shop PHP AST boundary', () => {
     });
 
     test('preserves associative array key structure instead of flattening key to string', () => {
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'array',
             items: [{
                 kind: 'entry',
@@ -50,7 +50,7 @@ describe('Phase 87 ecommerce_shop PHP AST boundary', () => {
     });
 
     test('preserves arrow-function body as expression and parameters', () => {
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'arrowfunc',
             arguments: [{ kind: 'parameter', name: 'q' }],
             body: {
@@ -69,14 +69,14 @@ describe('Phase 87 ecommerce_shop PHP AST boundary', () => {
 
 describe('Phase 87.3 boundary rejection', () => {
     test('rejects missing property member instead of creating an empty property name', () => {
-        expect(() => adaptPhpAstBoundary({
+        expect(() => phpAstBoundaryAdapter.adapt({
             kind: 'propertylookup',
             what: { kind: 'variable', name: 'request' }
         }, '$request->?')).toThrow(/missing|invalid/i);
     });
 
     test('rejects invalid method member instead of creating an empty method name', () => {
-        expect(() => adaptPhpAstBoundary({
+        expect(() => phpAstBoundaryAdapter.adapt({
             kind: 'call',
             what: {
                 kind: 'propertylookup',

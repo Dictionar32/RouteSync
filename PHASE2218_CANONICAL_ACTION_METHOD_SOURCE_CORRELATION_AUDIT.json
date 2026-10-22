@@ -1,0 +1,34 @@
+{
+  "phase": 2218,
+  "title": "Canonical Action Method Source Correlation",
+  "status": "implemented_with_remaining_legacy_derivation",
+  "changes": [
+    "action judgment input carries exact method SourceSpan",
+    "canonical action semantic knowledge preserves the same SourceSpan",
+    "action publication exposes the canonical method SourceSpan",
+    "action judgment contract version incremented to 25",
+    "regression test covers span preservation across scanner and publication"
+  ],
+  "authority_policy": {
+    "reuse_existing_interfaces": true,
+    "new_semantic_authority_added": false,
+    "new_relation_foundation_or_subscanner_added": false,
+    "invocation_judgment_reconstructed": false,
+    "integrated_response_judgment_reconstructed": false
+  },
+  "remaining_gaps": [
+    "scanControllerAction and resolveControllerActionContract remain in production derivation path",
+    "response DTO products are not yet fully consumed by per-action compatibility projection",
+    "resource-binding publication still traverses legacy action adapter",
+    "channel client-subscription evidence is not yet authoritative",
+    "semantic/relations call sites require per-call ownership trace"
+  ],
+  "validation": {
+    "typescript_transpile_changed_files": "5/5 passed with zero syntax diagnostics",
+    "structural_assertions": "7/7 passed",
+    "zip_integrity": "verified after archive creation",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run"
+  }
+}

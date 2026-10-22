@@ -6,7 +6,7 @@ import type { SourceSpan } from './provenance';
 import type { Sequence } from './collections';
 import type { ModelReference, ServiceReference } from './semanticReferences';
 import type { SemanticValue } from './primitiveVocabulary';
-import { relationEqual, relationFirstOption, relationOptionFold } from '../../semantic/foundation/relationalSequence';
+import { relationEqual, relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';
 
 
 export type ServiceReturnType =

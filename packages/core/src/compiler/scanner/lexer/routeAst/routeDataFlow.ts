@@ -1,4 +1,4 @@
-import { relationNotEqual, relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationNotEqual, relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';
 import { relationResolve, relationFirstOption, relationOptionFold, relationVariantFold, projectRelation, selectRelation, expandRelation, accumulateRelation, visitRelation } from '../../../relational/sequence';
 import { absent, present, presenceOf, cardinalityOf, type Cardinality, type Presence } from '../../../../types/upstream/presence';
 import type { RouteDeclarationAst, RouteTargetAst, LaravelRouteMethod, RouteConstraintArgumentAst } from './routeDeclarationAst';
@@ -84,6 +84,7 @@ const ROUTE_DECLARATION_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, Route
     delete: 'standard',
     options: 'standard',
     head: 'standard',
+    query: 'standard',
     match: 'standard',
     any: 'standard',
 });
@@ -102,6 +103,7 @@ const ROUTE_METHOD_SEMANTIC_KIND: Readonly<Record<LaravelRouteMethod, RouteMetho
     delete: 'standard',
     options: 'standard',
     head: 'standard',
+    query: 'standard',
     match: 'match',
     any: 'all_methods',
 });

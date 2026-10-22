@@ -1,0 +1,78 @@
+{
+  "phase": 1582,
+  "audit": "closed-semantic-authority-candidate-interface",
+  "passed": 6,
+  "total": 10,
+  "checks": [
+    {
+      "name": "decision proof remains a closed discriminated union with eleven rule branches",
+      "passed": true,
+      "detail": "branches=11"
+    },
+    {
+      "name": "every rule premise carries its original source input",
+      "passed": true,
+      "detail": "input premises=11"
+    },
+    {
+      "name": "semantic authority candidate is the already-classified proof union",
+      "passed": true
+    },
+    {
+      "name": "authority evaluate consumes candidate rather than independent raw premises",
+      "passed": false
+    },
+    {
+      "name": "authority contract forbids re-derivation and consumer-side reclassification",
+      "passed": true
+    },
+    {
+      "name": "all proof branches retain discriminant ruleId and conclusion",
+      "passed": true
+    },
+    {
+      "name": "coverage remains separate from verification witness",
+      "passed": true
+    },
+    {
+      "name": "scanner facade is still an orchestrator and has no local classification added in this phase",
+      "passed": false
+    },
+    {
+      "name": "group aggregator still contains legacy derivation decisions and is explicitly marked for later wiring migration",
+      "passed": false
+    },
+    {
+      "name": "scanner, aggregator, authority implementation, and runtime executor remain byte-identical to Phase 1581",
+      "passed": false
+    }
+  ],
+  "failures": [
+    {
+      "name": "authority evaluate consumes candidate rather than independent raw premises",
+      "passed": false
+    },
+    {
+      "name": "scanner facade is still an orchestrator and has no local classification added in this phase",
+      "passed": false
+    },
+    {
+      "name": "group aggregator still contains legacy derivation decisions and is explicitly marked for later wiring migration",
+      "passed": false
+    },
+    {
+      "name": "scanner, aggregator, authority implementation, and runtime executor remain byte-identical to Phase 1581",
+      "passed": false
+    }
+  ],
+  "scope": "interface-first contract strengthening; scanner wiring deliberately not migrated before the closed candidate contract is established",
+  "validation": {
+    "typescript": "5.8.3",
+    "transpileDiagnostics": 0,
+    "strictTypecheckErrorsPhase1581": 35,
+    "strictTypecheckErrorsPhase1582": 35,
+    "strictTypecheckDiagnosticsIdenticalToBaseline": true,
+    "packageBuild": "blocked: tsdown executable unavailable",
+    "scannerAuthorityExecutorFiles": "byte-identical to Phase 1581"
+  }
+}

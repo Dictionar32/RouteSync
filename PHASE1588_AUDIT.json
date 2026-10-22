@@ -1,0 +1,16 @@
+{
+  "phase": 1588,
+  "name": "interface-first-authority-projection-composition",
+  "date": "2026-10-11",
+  "structuralAudit": { "passed": 6, "total": 6 },
+  "build": { "status": "blocked", "reason": "tsdown executable unavailable in environment" },
+  "defaultCutover": "open",
+  "proofProducingSemanticPipeline": "not present in default composition root",
+  "legacyProjection": "still active in routeManifestTypeLowering.ts and routeManifestProjection.ts",
+  "changes": [
+    "Added routeManifestProjectionAuthority.ts requiring injected RequestTypeDerivationSemanticPipelineInterface",
+    "Preserved explicit not_projectable outcomes instead of fabricating empty output",
+    "Exported the authority-backed composition API from core index",
+    "Added phase1588 structural audit"
+  ]
+}

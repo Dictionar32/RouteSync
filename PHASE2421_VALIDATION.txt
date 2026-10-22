@@ -1,0 +1,25 @@
+RouteSync Phase2421 — RequestType Semantic Pipeline Assembler
+
+PASS: node scripts/audits/audit-phase2421-request-type-pipeline-assembler.cjs
+  16/16 assertions
+
+PASS: node scripts/audits/audit-phase2420-request-type-coverage-operation.cjs
+  12/12 assertions
+
+PASS: node scripts/audits/audit-phase2419-active-manifest-interface-first-closure.cjs
+  13/13 assertions
+
+PASS: TypeScript 5.8.3 transpileModule, target ESNext
+  2/2 changed TypeScript files, zero syntax diagnostics
+
+Targeted typecheck:
+  tsc --noEmit --target ES2022 --module ESNext --moduleResolution Bundler --strict --skipLibCheck packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticPipelineAssembler.ts
+  The command emits 185 diagnostics while traversing the existing project imports, including errors in requestTypeDerivationAssessmentIntegrityRuntime.ts and unrelated domain/upstream files. Zero diagnostics directly name requestTypeDerivationSemanticPipelineAssembler.ts. Full project typecheck is not green.
+
+Not run:
+  - Vitest
+  - package build
+  - live CLI scan/sync against Laravel fixtures
+
+Important limitation:
+  This phase implements the existing pipeline assembler contract only. The concrete proof-producing RequestType reasoning/verifier/decision/authority capabilities remain absent, and active routeManifestTypeLowering still invokes the legacy projection pipeline. No fake semantic pipeline or fallback was introduced.

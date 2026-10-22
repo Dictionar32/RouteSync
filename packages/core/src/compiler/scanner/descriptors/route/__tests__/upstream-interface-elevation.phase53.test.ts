@@ -1,6 +1,6 @@
 import type { RouteGroupContext, RouteProducer, RouteProducerInput } from '../../../../../types/upstream/route';
 import type { RouteDeclarationAst } from '../../../lexer/routeAst/routeDeclarationAst';
-import { resolveRouteGroupContext } from '../routeGroupContextResolver';
+import { routeGroupContextResolver } from '../routeGroupContextResolver';
 
 const semanticProducer: RouteProducer = {
   produce(input: RouteProducerInput) {
@@ -36,7 +36,7 @@ const declaration = {
   end: { value: ')' },
 } as unknown as RouteDeclarationAst;
 
-const group: RouteGroupContext = resolveRouteGroupContext(declaration);
+const group: RouteGroupContext = routeGroupContextResolver.fromDeclaration(declaration);
 if (group.prefix.kind !== 'some' || group.middlewareMutations.kind !== 'cons') {
   throw new Error('Phase 53 route-group semantic boundary failed');
 }

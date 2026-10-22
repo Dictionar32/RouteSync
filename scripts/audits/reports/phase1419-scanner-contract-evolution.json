@@ -1,0 +1,45 @@
+{
+  "phase": 1419,
+  "title": "scanner-contract-evolution",
+  "checks": [
+    {
+      "name": "statement sequence returns closed completion or contract-violation ADT",
+      "passed": false
+    },
+    {
+      "name": "statement sequence rejects non-progress instead of returning prefix",
+      "passed": true
+    },
+    {
+      "name": "token structure algebra owns top-level traversal",
+      "passed": true
+    },
+    {
+      "name": "token structure distinguishes found, absent, and malformed",
+      "passed": true
+    },
+    {
+      "name": "runtime top-level operator delegates to token algebra",
+      "passed": false
+    },
+    {
+      "name": "runtime refuses sequence contract violation",
+      "passed": false
+    },
+    {
+      "name": "assignment resolution no longer searches selected operator twice",
+      "passed": false
+    },
+    {
+      "name": "no any introduced in new scanner algebra",
+      "passed": true
+    },
+    {
+      "name": "build script preserved",
+      "passed": true
+    }
+  ],
+  "passed": 5,
+  "total": 9,
+  "status": "failed"
+}

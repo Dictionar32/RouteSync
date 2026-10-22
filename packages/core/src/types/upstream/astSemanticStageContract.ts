@@ -5,8 +5,8 @@
  * the legal direction of semantic evidence and the authority that may derive it.
  */
 import type { AstSemanticStage, AstSemanticStageContract } from './astSemanticStageInterface';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
-import { relationResolve } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/relations/semanticRelations';
+import { relationProject, relationResolve } from '../../semantic/relations/relationalSequence';
 
 export type AstSemanticStageEdge = Readonly<{
   readonly from: AstSemanticStageContract['stage'] | 'source_syntax';
@@ -32,3 +32,8 @@ export const AST_SEMANTIC_STAGE_GRAPH: AstSemanticStageGraph = Object.freeze({
 });
 
 export const stageGraphContains = (stage: AstSemanticStage, index = 0): boolean => relationResolve(index >= AST_SEMANTIC_STAGE_GRAPH.edges.length, () => false, () => relationResolve(relationEqual(AST_SEMANTIC_STAGE_GRAPH.edges[index].to, stage), () => true, () => stageGraphContains(stage, index + 1)));
+
+/** Canonical ordered stage sequence projected from the semantic stage graph. */
+export const astSemanticStageOrder = (): readonly AstSemanticStage[] => Object.freeze(
+  relationProject(AST_SEMANTIC_STAGE_GRAPH.edges, edge => edge.to),
+);

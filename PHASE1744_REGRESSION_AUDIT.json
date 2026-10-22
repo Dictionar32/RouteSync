@@ -1,0 +1,28 @@
+{
+  "phase": 1744,
+  "total": 5,
+  "passed": 3,
+  "failed": 2,
+  "checks": [
+    {
+      "name": "no duplicated integrated-response authority",
+      "passed": true
+    },
+    {
+      "name": "scanner does not own semantic analysis or correspondence validation",
+      "passed": true
+    },
+    {
+      "name": "source-bound composition result does not claim runtime implementation",
+      "passed": false
+    },
+    {
+      "name": "scanner runtime status remains truthful",
+      "passed": false
+    },
+    {
+      "name": "no semantic foundation dependency was reintroduced",
+      "passed": true
+    }
+  ]
+}

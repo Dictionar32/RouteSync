@@ -1,0 +1,69 @@
+{
+  "phase": 1736,
+  "name": "integrated-semantic-response",
+  "total": 15,
+  "passed": 4,
+  "failed": 11,
+  "checks": [
+    {
+      "name": "integrated response contract is a typed domain contract v2 with analysis ownership",
+      "passed": false
+    },
+    {
+      "name": "integrated response distinguishes validated publication from rejected publication",
+      "passed": false
+    },
+    {
+      "name": "both integrated variants retain the complete analysis and response contract",
+      "passed": false
+    },
+    {
+      "name": "validated publication is explicitly not equivalent to every judgment being closed",
+      "passed": false
+    },
+    {
+      "name": "rejected publication retains analysis without exposing a validated receipt",
+      "passed": false
+    },
+    {
+      "name": "ordinary judgment correspondence remains subject/evidence bound",
+      "passed": false
+    },
+    {
+      "name": "static invocation coverage remains explicitly unimplemented/uncovered",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46 and includes integrated response contract",
+      "passed": false
+    },
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary type/value synchronized at v25 and preserves integrated response",
+      "passed": false
+    },
+    {
+      "name": "integrated response contract and type are exported from public core entry",
+      "passed": true
+    },
+    {
+      "name": "existing scanner still delegates analysis without new semantic reasoning or production wiring",
+      "passed": false
+    },
+    {
+      "name": "publication authority implementation and Laravel wiring remain accurately marked pending",
+      "passed": false
+    },
+    {
+      "name": "no semantic/foundation dependency was introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

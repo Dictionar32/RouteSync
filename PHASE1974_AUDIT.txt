@@ -1,0 +1,10 @@
+PASS projection judgment has complete and blocked ADT variants
+PASS complete outcome requires existing proof-bearing CompleteSourceAst
+PASS blocked outcome retains partial ASTs and typed IncompleteUpstream
+PASS pipeline interface returns outcome-indexed judgment
+PASS scanner interface preserves the same outcome-indexed judgment
+PASS public API exports the judgment type
+PASS no relation/foundation subscanner folder added
+PASS runtime pipeline implementation remains untouched by this phase
+PASS runtime scanner facade remains untouched by this phase
+RESULT 9/9

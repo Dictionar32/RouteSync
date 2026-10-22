@@ -64,7 +64,7 @@ export interface ControllerActionHandlerDescriptor extends BaseRouteHandlerDescr
 export interface InvokableControllerHandlerDescriptor extends BaseRouteHandlerDescriptor {
   readonly kind: typeof RouteHandlerKind.InvokableController;
   readonly controllerName: ClassName;
-  readonly actionName: ActionName & '__invoke';
+  readonly actionName: ActionName;
   readonly target: ClassName; // e.g. 'DashboardController@__invoke'
 }
 

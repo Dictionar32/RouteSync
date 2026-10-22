@@ -1,0 +1,8 @@
+PASS existing DTO inventory producer
+PASS source AST pipeline publishes DTO ASTs
+PASS controller scan occurs before DTO scan
+PASS controller scan input lacks DTO inventory
+PASS integrated response input only receives controller declaration evidence
+PASS binding requires exact invocation source
+PASS legacy resolver remains active
+PASS no new relation/foundation/subscanner proposed

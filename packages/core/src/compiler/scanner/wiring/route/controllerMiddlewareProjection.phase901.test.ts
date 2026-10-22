@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { projectControllerMiddlewareRelations } from './controllerMiddlewareProjection';
 import type { ControllerMiddlewareRelation } from '../../../../types/upstream/controller';
 import { createMiddlewareName, createSourceFile } from '../../../../types/upstream/names';
-import { relationFoldRight } from '../../../../semantic/foundation/relationalSequence';
+import { relationFoldRight } from '../../../../semantic/relations/relationalSequence';
 import type { Sequence } from '../../../../types/upstream/collections';
 
 const sequence = <T>(items: readonly T[]): Sequence<T> => relationFoldRight(items, { kind: 'empty' } as Sequence<T>, (item, tail) => ({ kind: 'cons' as const, head: item, tail }));

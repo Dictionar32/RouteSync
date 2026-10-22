@@ -1,7 +1,7 @@
 import type { PhpClassPropertyAst, PhpPropertyVisibility, PhpPropertyTypeAst, TokenDescriptor } from '../../lexer';
 import { createAstIdentifier, createSourceOffset, createSourceLineNumber, classifyAstTokens } from '../../lexer';
-import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/foundation/semanticRelations';
-import { relationAdvanceIndex, relationFold, relationLastIndexOf, relationSlice, relationTextSlice } from '../../../../semantic/foundation/relationalSequence';
+import { relationAll, relationAny, relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';
+import { relationAdvanceIndex, relationFold, relationLastIndexOf, relationSlice, relationTextSlice } from '../../../../semantic/relations/relationalSequence';
 
 type PropertyScanState = Readonly<{
     readonly classSeen: boolean;

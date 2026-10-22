@@ -1,0 +1,19 @@
+{
+  "phase": 1528,
+  "title": "Provenance-Correlated Authority Interface",
+  "scope": "interface-first; no runtime function bodies or scanner implementation changed",
+  "changed": [
+    "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "packages/core/src/index.ts",
+    "scripts/audits/audit-phase1528-provenance-correlated-authority-interface.cjs",
+    "PHASE1528_PROVENANCE_CORRELATED_AUTHORITY_INTERFACE.md",
+    "PHASE1528_AUDIT.json",
+    "package.json",
+    "scripts/audits/audit-phase1527-runtime-authority-interface.cjs"
+  ],
+  "trace_only": [
+    "packages/core/src/types/upstream/queryProducerSemanticReasoning.ts",
+    "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts"
+  ],
+  "claims_runtime_migration_complete": false
+}

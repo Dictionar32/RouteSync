@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 
 const files = {
-  producer: 'packages/core/src/compiler/scanner/subscanners/modelProducer.ts',
+  producer: 'packages/core/src/compiler/scanner/modelProducer.ts',
+  producerContract: 'packages/core/src/types/upstream/modelProducerInterface.ts',
   scanner: 'packages/core/src/compiler/scanner/subscanners/ModelScanner.ts',
   orchestrator: 'packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts',
   collections: 'packages/core/src/types/upstream/collections.ts',
@@ -10,7 +11,7 @@ const files = {
 };
 const text = Object.fromEntries(Object.entries(files).map(([k, f]) => [k, fs.readFileSync(f, 'utf8')]));
 const checks = {
-  modelProducerResult: /interface ModelProducerResult/.test(text.producer) && /produceResult\(input\): ModelProducerResult/.test(text.producer),
+  modelProducerResult: /export interface ModelProducerResult/.test(text.producerContract) && /produceResult:\s*\(input: ModelProducerInput\) => ModelProducerResult/.test(text.producerContract),
   modelDefinitionFromSameAst: /const ast = modelAstFromSemantic\(/.test(text.producer) && /return \{ definition: ast\.definition, ast \}/.test(text.producer),
   modelCanonicalBundle: /scanModelBundle\(/.test(text.scanner) && /definitions: Object\.freeze\(relationProject\(results, result => result\.definition\)\)/.test(text.scanner),
   orchestratorUsesCanonicalBundle: /ModelScanner\.scanCanonicalBundle\(/.test(text.orchestrator) && /const modelDefinitions = modelBundle\.definitions/.test(text.orchestrator),

@@ -1,0 +1,52 @@
+{
+  "phase": 1948,
+  "audit": "invocation-semantic-reasoning-interface-first",
+  "passed": 3,
+  "total": 11,
+  "checks": [
+    {
+      "name": "existing invocation judgment interface owns a declarative reasoning ADT",
+      "passed": false
+    },
+    {
+      "name": "input absence is explicitly not-connected and cannot be promoted to an empty successful batch",
+      "passed": false
+    },
+    {
+      "name": "provided pipeline rule requires exact source binding before integration projection",
+      "passed": false
+    },
+    {
+      "name": "response provenance and exact discriminated outcome are preserved by the contract",
+      "passed": false
+    },
+    {
+      "name": "canonical contract version 10 embeds the exact reasoning contract executed by the authority instead of creating a parallel authority",
+      "passed": false
+    },
+    {
+      "name": "existing authority remains the sole interpreter and delegates source binding/integration to their owners",
+      "passed": false
+    },
+    {
+      "name": "judgment response remains outcome-indexed rather than widened to the full integration union",
+      "passed": true
+    },
+    {
+      "name": "integration interface already owns lossless evidence projection and distinct blocked/rejected outcomes",
+      "passed": true
+    },
+    {
+      "name": "scanner projection consumes a closed invocation judgment rather than declaring invocation semantics locally",
+      "passed": false
+    },
+    {
+      "name": "contract rules account for every input variant and every integration outcome",
+      "passed": false
+    },
+    {
+      "name": "phase 1948 audit is registered",
+      "passed": true
+    }
+  ]
+}

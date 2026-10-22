@@ -10,12 +10,12 @@ import type { AstMappingInterface } from '../../../types/upstream/astMappingInte
 import type { RouteDomainResolutionContext, RouteDomainResolutionJudgment } from '../../../types/upstream/routeDomainAuthority';
 import type { RouteSecurityResolution } from './RouteSecurityResolver';
 import { routeDomainAuthority } from '../../../types/upstream/routeDomainAuthority';
-import { routeSecurityAuthority } from '../../../types/upstream/routeSecurityAuthority';
 import type { RouteCapabilityContract } from '../../../types/upstream/route';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 import { truthValue } from '../../../types/upstream/valueObjects';
-import { relationProject } from '../../../semantic/foundation/relationalSequence';
-import { solveClosedSemanticRelations, semanticTextTerm, type SemanticRewriteFact, type SemanticRewritePattern, type SemanticRewritePatternTerm, type SemanticRewriteRule } from '../lexer/routeAst/semanticRewriteInterface';
+import { relationProject } from '../../../semantic/relations/relationalSequence';
+import { semanticTextTerm, type SemanticRewriteFact, type SemanticRewritePattern, type SemanticRewritePatternTerm, type SemanticRewriteRule } from '../lexer/routeAst/semanticRewriteInterface';
+import { solveClosedSemanticRelations } from '../../../types/upstream/semanticRewriteAuthority';
 
 export type ResolverGraphRelation =
   | 'route_input'
@@ -63,8 +63,8 @@ export type ResolverGraphSemanticInterface = Readonly<{
 
 export type ResolverGraphInput = Readonly<{
   readonly domain: RouteDomainResolutionContext;
-  readonly middleware: import("../../../types/upstream/collections").RouteMiddlewares;
-  readonly auth: import("../../../types/upstream/valueObjects").TruthValue;
+  /** Pre-resolved closed judgment; this graph consumes it without re-running security reasoning. */
+  readonly security: RouteSecurityResolution;
   readonly method: HttpMethod;
   readonly path: RoutePath;
   readonly mapping: AstMappingInterface;
@@ -109,7 +109,7 @@ const relation = <R extends ResolverGraphRelation>(name: R, route: string): Sema
 export const resolveResolverGraphJudgment = (input: ResolverGraphInput): ResolverGraphSemanticJudgment => {
   const route = 'route';
   const domain = routeDomainAuthority.resolveJudgment(input.domain);
-  const security = routeSecurityAuthority.resolve(input.middleware, input.auth);
+  const security = input.security;
   const crudRole = input.capability.crudRole;
   const mapping = input.mapping.judgment;
   const seeds: readonly SemanticRewriteFact<ResolverGraphRelation>[] = Object.freeze([

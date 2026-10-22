@@ -1,0 +1,73 @@
+{
+  "phase": 1725,
+  "name": "total-invocation-coverage-publication",
+  "total": 16,
+  "passed": 10,
+  "failed": 6,
+  "checks": [
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "coverage requires total source-subject publication",
+      "passed": true
+    },
+    {
+      "name": "publication correlation binds judgment form, identity, and source span",
+      "passed": true
+    },
+    {
+      "name": "publication has domain-specific ordinary and static variants",
+      "passed": false
+    },
+    {
+      "name": "ordinary omission has an explicit non-coverage disposition",
+      "passed": true
+    },
+    {
+      "name": "static source fact remains explicitly uncovered without fabricated judgment",
+      "passed": true
+    },
+    {
+      "name": "publication authority consumes canonical inventory and ordinary analysis",
+      "passed": true
+    },
+    {
+      "name": "publication contract is explicit that implementation is not yet wired",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "pipeline type/value both disclose publication status",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner contract type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner only forwards publication after upstream authority exists",
+      "passed": true
+    },
+    {
+      "name": "new publication types are exported from package index",
+      "passed": true
+    },
+    {
+      "name": "production scanner does not claim coverage publication is wired",
+      "passed": false
+    },
+    {
+      "name": "no generic judgment wrapper, any/as escape hatch, or semantic foundation dependency added",
+      "passed": true
+    },
+    {
+      "name": "existing source-form subject inventory remains available",
+      "passed": true
+    }
+  ]
+}

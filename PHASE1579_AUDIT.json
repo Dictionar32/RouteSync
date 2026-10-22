@@ -1,0 +1,50 @@
+{
+  "phase": 1579,
+  "audit": "proof-carrying-semantic-authority-interface",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "all 11 authority decision rules remain uniquely registered",
+      "passed": true
+    },
+    {
+      "name": "rule coverage is exhaustive through a mapped type",
+      "passed": true
+    },
+    {
+      "name": "coverage evidence carries the contract and verified law ledger",
+      "passed": true
+    },
+    {
+      "name": "coverage failure cases carry typed missing-law evidence",
+      "passed": true
+    },
+    {
+      "name": "successful derivation proof carries actual derived judgment, valid verification, and complete coverage",
+      "passed": true
+    },
+    {
+      "name": "incomplete and conflict judgments are carried as distinct proof premises",
+      "passed": true
+    },
+    {
+      "name": "failure and rejection proofs retain actual verification evidence",
+      "passed": true
+    },
+    {
+      "name": "assessment no longer duplicates judgment and verification outside its proof",
+      "passed": true
+    },
+    {
+      "name": "interface evaluate returns the closed proof-carrying assessment",
+      "passed": true
+    },
+    {
+      "name": "scanner, authority implementation, and runtime executor remain byte-for-byte unchanged",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "upstream interface contract only; scanner wiring, authority implementation, and runtime executor remain unchanged"
+}

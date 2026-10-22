@@ -1,0 +1,16 @@
+{
+  "phase": 2340,
+  "scope": "existing upstream policy authority contract closure",
+  "staticAssertions": {
+    "passed": 11,
+    "total": 11
+  },
+  "runtimeWiringComplete": false,
+  "tests": {
+    "typecheck": false,
+    "vitest": false,
+    "build": false,
+    "cliEndToEnd": false
+  },
+  "npmRunBuild": false
+}

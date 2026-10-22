@@ -1,0 +1,20 @@
+{
+  "phase": 2133,
+  "name": "controller-body-semantic-authority-interface-first",
+  "status": "focused-static-audits-passed",
+  "auditChecksPassed": 189,
+  "auditChecksTotal": 189,
+  "focusedTranspileFilesPassed": 7,
+  "focusedTranspileFilesTotal": 7,
+  "packageJsonParse": "passed",
+  "zipIntegrity": "passed",
+  "fullBuild": "not-run",
+  "fullTypecheck": "not-run",
+  "vitest": "not-run",
+  "remainingDebt": [
+    "production action judgment still delegates to scanControllerAction and resolveControllerActionContract",
+    "request-aware schema derivation remains in the legacy action resolver",
+    "raw body AST remains in the consumer projection",
+    "full upstream semantic derivation closure is not claimed"
+  ]
+}

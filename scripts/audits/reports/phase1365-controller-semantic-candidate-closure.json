@@ -1,0 +1,53 @@
+{
+  "phase": 1365,
+  "title": "Controller Semantic Candidate Closure",
+  "result": "failed",
+  "passed": 4,
+  "total": 11,
+  "checks": [
+    {
+      "name": "controller variable definitions receive semantic facts from semanticForValue",
+      "passed": false
+    },
+    {
+      "name": "semanticForValue is implemented",
+      "passed": false
+    },
+    {
+      "name": "semanticForValue returns the upstream semantic contract",
+      "passed": false
+    },
+    {
+      "name": "candidate solver retains parameter semantic evidence",
+      "passed": false
+    },
+    {
+      "name": "database table candidate requires a non-empty table identity",
+      "passed": false
+    },
+    {
+      "name": "database table candidate is constrained to DB::table source evidence",
+      "passed": false
+    },
+    {
+      "name": "semantic candidate fallback remains explicit external knowledge",
+      "passed": false
+    },
+    {
+      "name": "controller semantic result remains a discriminated upstream union",
+      "passed": true
+    },
+    {
+      "name": "audit script is registered in package.json",
+      "passed": true
+    },
+    {
+      "name": "build script remains unchanged",
+      "passed": true
+    },
+    {
+      "name": "package version remains unchanged",
+      "passed": true
+    }
+  ]
+}

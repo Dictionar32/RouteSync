@@ -1,0 +1,73 @@
+{
+  "phase": 1401,
+  "audit": "operation-identity-dataflow-loss-boundary",
+  "trace": {
+    "scannedFiles": 3380,
+    "upstreamTypeFiles": 521,
+    "cliFiles": 219,
+    "sdkFiles": 27,
+    "reactFiles": 39,
+    "ecommerceFiles": 228
+  },
+  "checks": [
+    {
+      "name": "identityProjectionDeclaresUpstreamToDownstreamDirection",
+      "passed": true
+    },
+    {
+      "name": "identityProjectionDeclaresUpstreamAuthority",
+      "passed": true
+    },
+    {
+      "name": "identityProjectionMakesLossPolicyExplicit",
+      "passed": true
+    },
+    {
+      "name": "identityProjectionPreservesCanonicalIdentityTuple",
+      "passed": true
+    },
+    {
+      "name": "identityProjectionDeclaresOmittedProofFields",
+      "passed": true
+    },
+    {
+      "name": "identityProjectionDoesNotClaimToRebuildOmittedEvidence",
+      "passed": true
+    },
+    {
+      "name": "operationIdentityContractRetainsReasoningAndEvidence",
+      "passed": true
+    },
+    {
+      "name": "dataflowJudgmentContainsClosureAndDerivations",
+      "passed": true
+    },
+    {
+      "name": "dataflowAdapterPreservesExactJudgmentAsInputAndState",
+      "passed": true
+    },
+    {
+      "name": "dataflowAdapterUsesJudgmentReasoningContract",
+      "passed": true
+    },
+    {
+      "name": "dataflowIrConsumesJudgmentAuthorityRatherThanReclassifying",
+      "passed": true
+    },
+    {
+      "name": "sdkConsumesOperationIdentityReference",
+      "passed": true
+    },
+    {
+      "name": "targetPackagesDoNotImportAstClassifierRuntime",
+      "passed": true
+    },
+    {
+      "name": "packageVersionAndBuildScriptUnchanged",
+      "passed": true
+    }
+  ],
+  "passedChecks": 14,
+  "totalChecks": 14,
+  "failures": []
+}

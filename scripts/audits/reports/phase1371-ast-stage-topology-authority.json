@@ -1,0 +1,77 @@
+{
+  "phase": 1371,
+  "audit": "ast-stage-topology-authority",
+  "topology": "AST_SEMANTIC_STAGE_GRAPH -> astSemanticStageOrder -> AstSemanticAuthorityPipeline -> proof-checked stage transitions",
+  "passed": true,
+  "passedChecks": 13,
+  "totalChecks": 13,
+  "failures": [],
+  "results": [
+    {
+      "name": "canonical stage graph remains the topology authority",
+      "passed": true,
+      "detail": "The declared AST semantic stage graph remains the canonical topology contract."
+    },
+    {
+      "name": "stage order is projected from graph edges",
+      "passed": true,
+      "detail": "The stage sequence is derived from the graph rather than maintained as a second ordered list."
+    },
+    {
+      "name": "stage order projection is immutable",
+      "passed": true,
+      "detail": "The projected sequence is frozen before it is exposed to consumers."
+    },
+    {
+      "name": "pipeline imports canonical stage-order projection",
+      "passed": true,
+      "detail": "The authority pipeline consumes the topology projection from the graph contract."
+    },
+    {
+      "name": "pipeline construction uses canonical stage order",
+      "passed": true,
+      "detail": "Both pipeline construction paths derive their stage order from the same graph authority."
+    },
+    {
+      "name": "duplicated hard-coded stage-order array is retired",
+      "passed": true,
+      "detail": "The pipeline no longer owns a parallel manually ordered list of semantic stages."
+    },
+    {
+      "name": "stage membership and stage order share one graph",
+      "passed": true,
+      "detail": "Stage membership and ordering are both derived from the same graph declaration."
+    },
+    {
+      "name": "stage graph preserves the six-stage semantic path",
+      "passed": true,
+      "detail": "All six expected stages remain represented in the graph."
+    },
+    {
+      "name": "pipeline transitions remain proof-checked",
+      "passed": true,
+      "detail": "Stage topology derivation does not bypass transition proof validation."
+    },
+    {
+      "name": "pipeline facts still come from stage interfaces",
+      "passed": true,
+      "detail": "The change does not introduce a second facts store or a second semantic solver."
+    },
+    {
+      "name": "upstream AST stage interface remains type-level contract",
+      "passed": true,
+      "detail": "The existing AST stage ADT/interface and its algebra remain in place."
+    },
+    {
+      "name": "phase audit is registered without package/build changes",
+      "passed": true,
+      "detail": "The focused audit is reproducible while package version and build command remain unchanged."
+    },
+    {
+      "name": "phase documentation records the authority boundary",
+      "passed": true,
+      "detail": "The design decision and validation limits are documented."
+    }
+  ],
+  "validationBoundary": "Static source audit only; TypeScript build/runtime tests require installed dependencies."
+}

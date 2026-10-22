@@ -16,7 +16,7 @@ import type { ActionName } from '../../types/upstream/names';
 import type { ControllerNodeName, ServiceNodeName } from '../../types/semantic/nominalVocabulary';
 import { createConfidenceScore } from '../../types/semantic/nominalVocabulary';
 import { EXECUTION_LAYER_KNOWLEDGE } from '../../types/semantic/semanticKnowledge';
-import { relationAny, relationAnyMatch, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/foundation/relationalSequence';
+import { relationAny, relationAnyMatch, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';
 
 export const EXECUTION_LAYER_RULES = EXECUTION_LAYER_KNOWLEDGE;
 

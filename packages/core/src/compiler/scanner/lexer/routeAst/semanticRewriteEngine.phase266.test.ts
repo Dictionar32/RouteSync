@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rewriteSemanticRelations, type SemanticRelation } from './semanticRewriteEngine';
+import { rewriteSemanticRelations, type SemanticRelation } from '../../../../semantic/relations/semanticRewriteEngine';
 
 const v = (variable: string) => ({ variable } as const);
 const relation = <R extends string>(name: R, ...args: SemanticRelation<R>['arguments']): SemanticRelation<R> => ({

@@ -1,0 +1,21 @@
+{
+  "phase": 1996,
+  "title": "Response Pipeline Dependency Interface First",
+  "audit": "scripts/audits/audit-phase1996-response-pipeline-interface-first.cjs",
+  "auditResult": "11/11 PASS",
+  "syntaxCheck": {
+    "typescriptVersion": "5.8.3",
+    "filesChecked": 3,
+    "diagnostics": 0
+  },
+  "fullTypecheck": "not run",
+  "build": "not run",
+  "runtimeWiring": "not implemented in this interface-first phase",
+  "knownFrontier": [
+    "LaravelControllerScannerInterface now requires responseSemanticPipeline; scanner implementation is not yet wired to it",
+    "scanner wiring still omits responseJudgment from LaravelControllerScanArtifact",
+    "descriptor-derived response candidate is not direct PHP return evidence",
+    "existing semantic/relations references remain in the legacy controller scanner tree"
+  ],
+  "subscannerConstraint": "No relation/foundation subscanner added"
+}

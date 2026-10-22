@@ -12,7 +12,7 @@ export {
 } from "./columnInferrer";
 
 export {
-    buildModelSemanticDefinitionFromAst
+    modelSemanticDefinitionFromAst
 } from "./modelParser";
 
 export { resolveModelSchema } from './columnInferrer';

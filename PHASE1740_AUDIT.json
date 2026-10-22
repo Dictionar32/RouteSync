@@ -1,0 +1,65 @@
+{
+  "phase": 1740,
+  "name": "integrated-response-composition-interface",
+  "total": 14,
+  "passed": 6,
+  "failed": 8,
+  "checks": [
+    {
+      "name": "composition contract/value is explicitly versioned and records same-knowledge order",
+      "passed": false
+    },
+    {
+      "name": "composition interface reuses existing pipeline, inventory, and publication interfaces",
+      "passed": false
+    },
+    {
+      "name": "composition input has one canonical SemanticKnowledgeDataFlow input, not independently supplied analysis and inventory",
+      "passed": false
+    },
+    {
+      "name": "composition is explicitly not a second semantic or publication authority",
+      "passed": true
+    },
+    {
+      "name": "response projection preserves existing validated/rejected publication result variants",
+      "passed": false
+    },
+    {
+      "name": "composition failure semantics forbid fallback analysis and fabricated receipts",
+      "passed": true
+    },
+    {
+      "name": "composition implementation and Laravel wiring are truthfully marked pending",
+      "passed": false
+    },
+    {
+      "name": "no duplicate integrated-response authority interface or boundary was introduced",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract/value synchronized at v49 and owns the composition contract",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary/value synchronized at v28 and remains a consumer-only boundary",
+      "passed": false
+    },
+    {
+      "name": "scanner runtime is unchanged and remains delegated to the canonical invocation pipeline",
+      "passed": false
+    },
+    {
+      "name": "public index exports composition contract, input, and interface",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "Phase 1740 audit command is registered",
+      "passed": true
+    }
+  ]
+}

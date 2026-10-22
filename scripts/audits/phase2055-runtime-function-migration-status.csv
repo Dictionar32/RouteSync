@@ -1,0 +1,5 @@
+file,symbol,previous_behavior,phase2055_disposition,status
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,static_call method switch,hardcoded method-name switch selected resource collection semantics,typed ControllerResourceStaticCallRuleInterface registration with explicit method identity and judgment,removed
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,judgeStaticCallCandidate,implicit branch embedded in authority judgment,rule registry resolves matching typed rule and returns closed not_applicable when none matches,added
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,resourceBindingCandidate,projects static call name and argument evidence,still structural evidence projection and does not classify collection applicability,retained
+packages/core/src/types/upstream/controllerResourceBindingAuthority.ts,judgeResourceCollection,judges response identity argument shape and model origin,reused as the implementation of the registered semantic rule,retained

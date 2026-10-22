@@ -1,0 +1,77 @@
+{
+  "phase": 2060,
+  "title": "PHP class-reference context judgment interface first",
+  "source_phase": 2059,
+  "structural_audits": {
+    "scripts_passed": 12,
+    "checks_passed": 117,
+    "scripts": [
+      {
+        "name": "phase2051-runtime-function-interface-first",
+        "checks": "12/12"
+      },
+      {
+        "name": "phase2052-response-attribute-semantic-judgment-interface-first",
+        "checks": "12/12"
+      },
+      {
+        "name": "phase2053-ast-inline-array-judgment-interface-first",
+        "checks": "9/9"
+      },
+      {
+        "name": "phase2054-controller-resource-static-call-judgment-interface-first",
+        "checks": "8/8"
+      },
+      {
+        "name": "phase2055-controller-resource-static-call-rule-interface-first",
+        "checks": "9/9"
+      },
+      {
+        "name": "phase2056-controller-model-origin-closed-judgment-interface-first",
+        "checks": "9/9"
+      },
+      {
+        "name": "phase2057-static-call-origin-rule-interface-first",
+        "checks": "10/10"
+      },
+      {
+        "name": "phase2058-static-call-origin-argument-rule-interface-first",
+        "checks": "10/10"
+      },
+      {
+        "name": "phase2059-static-call-model-catalog-identity-interface-first",
+        "checks": "10/10"
+      },
+      {
+        "name": "phase2060-php-class-reference-context-judgment-interface-first",
+        "checks": "10/10"
+      },
+      {
+        "name": "phase1869-laravel-invocation-integrated-response-interface-first",
+        "checks": "10/10"
+      },
+      {
+        "name": "phase1944-controller-ast-adt-semantic-judgment",
+        "checks": "8/8"
+      }
+    ]
+  },
+  "typescript_parser_only": {
+    "files_checked": 8,
+    "parse_diagnostics": 0
+  },
+  "package_json_parse": "passed",
+  "zip_integrity": "passed (unzip -t)",
+  "not_run": [
+    "full TypeScript typecheck",
+    "build",
+    "Vitest"
+  ],
+  "architecture": {
+    "relation_foundation_subscanner_added": false,
+    "duplicate_invocation_authority_added": false,
+    "duplicate_integrated_response_authority_added": false,
+    "duplicate_ast_authority_added": false,
+    "duplicate_static_call_origin_authority_added": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "phase": 2244,
+  "name": "Controller Dependency Semantic Authority Interface First",
+  "structuralAudit": {
+    "script": "scripts/audits/test-phase2244-controller-dependency-semantic-ownership.cjs",
+    "passed": 11,
+    "total": 11
+  },
+  "regressionAudits": {
+    "phase2243": "10/10",
+    "phase2242": "11/11",
+    "phase2241": "9/9"
+  },
+  "archiveIntegrity": "verified after ZIP creation",
+  "typescriptTypecheck": "not-run",
+  "vitest": "not-run",
+  "build": "not-run"
+}

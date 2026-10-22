@@ -19,8 +19,8 @@ import type { OriginModelSymbol } from '../../symbols/model/originModelSymbol';
 import { resolveAstValueToExpression } from './resourceAstExpressionMapper';
 import { expressionAstFromPhpAst } from '../expressionAstCanonical';
 import { semanticType } from '../model/semanticTypeCanonical';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from '../../../../semantic/relations/relationalSequence';
 import { matchLookup, type Lookup } from '../../../../types/upstream/collections';
 import type { ResolvedPropertyBinding } from '../../symbols/model/types';
 

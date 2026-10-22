@@ -1,0 +1,17 @@
+{
+  "phase": 1527,
+  "title": "Runtime Authority Interface Contract",
+  "scope": "interface-first; runtime reasoning and scanner implementations unchanged",
+  "changed": [
+    "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "packages/core/src/index.ts",
+    "scripts/audits/audit-phase1527-runtime-authority-interface.cjs",
+    "PHASE1527_RUNTIME_AUTHORITY_INTERFACE.md",
+    "PHASE1527_AUDIT.json"
+  ],
+  "trace_only": [
+    "packages/core/src/types/upstream/queryProducerSemanticReasoning.ts",
+    "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts"
+  ],
+  "claims_runtime_migration_complete": false
+}

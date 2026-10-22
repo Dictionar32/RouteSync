@@ -1,0 +1,53 @@
+{
+  "phase": 2702,
+  "title": "Fully Typed Runtime Scanner Operations — Domain Source ADT",
+  "scope": "Runtime upstream CLI manifest composition source boundary",
+  "changes": [
+    {
+      "file": "packages/cli/src/standaloneCompositionLoader.ts",
+      "change": "Replaced loader input string | undefined with RouteSyncStandaloneCompositionModuleSource discriminated union; added branded module specifier and interface-typed source factory."
+    },
+    {
+      "file": "packages/cli/src/index.ts",
+      "change": "Normalizes process.env at CLI boundary via routeSyncStandaloneCompositionModuleSourceFactory.fromEnvironment(process.env) before invoking loader."
+    },
+    {
+      "file": "packages/cli/src/__tests__/standaloneCompositionLoader.phase2661.test.ts",
+      "change": "Updated tests to pass typed source descriptors rather than raw optional strings."
+    },
+    {
+      "file": "scripts/audits/audit-phase2661-cli-composition-fail-closed.cjs",
+      "change": "Updated structural assertion to verify source ADT."
+    },
+    {
+      "file": "scripts/audits/audit-phase2702-fully-typed-runtime-source.cjs",
+      "change": "Added 7 static assertions for typed source boundary and runtime interface rules."
+    },
+    {
+      "file": "package.json",
+      "change": "Added audit:phase2702-fully-typed-runtime-source script."
+    }
+  ],
+  "trace": [
+    "process.env",
+    "routeSyncStandaloneCompositionModuleSourceFactory.fromEnvironment(process.env)",
+    "RouteSyncStandaloneCompositionModuleSource",
+    "routeSyncStandaloneCompositionLoader.load(source)",
+    "closed RouteSyncStandaloneCompositionLoadResult ADT",
+    "routeSyncCliProgramFactory.createFromSemanticComposition(composition)",
+    "routeSyncCliUpstreamCompositionFactory.compose(...)",
+    "CLI scan/sync manifest runtime"
+  ],
+  "verification": {
+    "phase2661_fail_closed_static_audit": "6/6 passed",
+    "phase2702_typed_runtime_source_static_audit": "7/7 passed",
+    "typescript_typecheck": "not run; workspace dependencies not installed in supplied archive",
+    "unit_tests": "not run",
+    "cli_end_to_end": "not run",
+    "semantic_proof_verification": "not claimed"
+  },
+  "remaining_risks": [
+    "The branded specifier is a compile-time brand; runtime validity is enforced by the source factory's nonblank check, not by the brand itself.",
+    "Full build and semantic proof obligations still require the repository toolchain and upstream semantic verifier."
+  ]
+}

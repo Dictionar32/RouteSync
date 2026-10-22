@@ -1,0 +1,39 @@
+{
+  "phase": 2365,
+  "title": "Resource Middleware Evidence Flow",
+  "status": "partial-architectural-progress",
+  "checks": {
+    "phase2350": 16,
+    "phase2351": 14,
+    "phase2352": 15,
+    "phase2353": 15,
+    "phase2354": 21,
+    "phase2355": 18,
+    "phase2356": 18,
+    "phase2357": 20,
+    "phase2358": 18,
+    "phase2359": 16,
+    "phase2360": 11,
+    "phase2361": 12,
+    "phase2362": 9,
+    "phase2363": 8,
+    "phase2364": 8,
+    "phase2365": 8,
+    "totalPassed": 227,
+    "totalFailed": 0
+  },
+  "verified": [
+    "Existing RouteDeclarationEvidence already carries resource middleware and exclusion facts.",
+    "Resource registration middleware projection now consumes RouteDeclarationEvidence rather than RouteDeclarationAst.",
+    "The active Laravel route scanner still calls routeProducerInputFromRouteBoundary and the injected RouteProducer.",
+    "No semantic/foundation dependency or duplicate registration ADT was introduced by this phase."
+  ],
+  "notVerified": [
+    "TypeScript type-check",
+    "Vitest or runtime contract tests",
+    "End-to-end CLI execution",
+    "Complete route-emission semantic judgment owned by upstream authority",
+    "Removal of semantic/relations and subscanner dependencies from the active route path"
+  ],
+  "environment": "node_modules is absent; npm run build was not run."
+}

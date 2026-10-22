@@ -1,0 +1,57 @@
+{
+  "phase": 1576,
+  "behavioralCases": 10,
+  "passed": 10,
+  "cases": [
+    {
+      "name": "derived judgment + exhaustive valid proof",
+      "actual": "verified",
+      "passed": true
+    },
+    {
+      "name": "invalid input + confirmed rejection",
+      "actual": "input_rejected",
+      "passed": true
+    },
+    {
+      "name": "invalid input + verifier counterexample",
+      "actual": "rejection_verification_failed",
+      "passed": true
+    },
+    {
+      "name": "derived judgment + verifier counterexample",
+      "actual": "verification_failed",
+      "passed": true
+    },
+    {
+      "name": "derived judgment + rejection confirmation",
+      "actual": "authority_inconsistent",
+      "passed": true
+    },
+    {
+      "name": "invalid input + valid verification",
+      "actual": "authority_inconsistent",
+      "passed": true
+    },
+    {
+      "name": "invalid input + mismatched rejection reason",
+      "actual": "authority_inconsistent",
+      "passed": true
+    },
+    {
+      "name": "invalid input + mismatched rejection evidence",
+      "actual": "rejection_witness_mismatch",
+      "passed": true
+    },
+    {
+      "name": "contract missing a required law",
+      "actual": "contract_law_coverage_incomplete",
+      "passed": true
+    },
+    {
+      "name": "verification missing a verified law",
+      "actual": "verified_law_coverage_incomplete",
+      "passed": true
+    }
+  ]
+}

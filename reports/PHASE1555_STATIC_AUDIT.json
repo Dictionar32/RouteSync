@@ -1,0 +1,39 @@
+{
+  "phase": 1555,
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "name": "interface defines typed ordered stage receipts",
+      "passed": true
+    },
+    {
+      "name": "contract binds evidence counts to request coverage",
+      "passed": true
+    },
+    {
+      "name": "contract reconciles stage contributions with result length",
+      "passed": true
+    },
+    {
+      "name": "authority receipts are derived from actual stage outputs",
+      "passed": true
+    },
+    {
+      "name": "executor delegates and validates only",
+      "passed": true
+    },
+    {
+      "name": "test fixture uses stage receipts",
+      "passed": true
+    },
+    {
+      "name": "test covers mismatched stage accounting",
+      "passed": true
+    },
+    {
+      "name": "trace documents remaining scanner semantic frontiers",
+      "passed": true
+    }
+  ]
+}

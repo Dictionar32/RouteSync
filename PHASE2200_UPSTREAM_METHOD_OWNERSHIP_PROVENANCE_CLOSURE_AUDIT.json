@@ -1,0 +1,36 @@
+{
+  "phase": 2200,
+  "title": "Upstream Method Ownership and Provenance Closure",
+  "status": "implemented_with_validation_limits",
+  "root_cause": "The integrated response pipeline reconstructed the owner of a DTO declaration judgment by finding a method whose response attribute source span matched the judgment request source. This made method ownership an inferred join rather than closed upstream provenance.",
+  "changes": [
+    "Added a closed LaravelControllerResponseDtoDeclarationRequestOwner ADT with controller-response-attribute and DTO-property-type-reference variants.",
+    "Controller DTO declaration requests now retain the exact ControllerMethodEvidence owner that supplied the response attribute.",
+    "DTO property type-reference binding uses the distinct property owner variant.",
+    "The declaration-resolution authority preserves owner provenance when narrowing to a resolved request; unresolved and ambiguous judgments already retain the original request.",
+    "DTO response-contract projection now consumes response shape from the judgment owner and no longer re-joins controller methods by source-span equality.",
+    "Bumped the existing DTO declaration-resolution contract version from 4 to 5.",
+    "Added focused structural tests and phase documentation."
+  ],
+  "validation": {
+    "typescript_syntax_transpilation": "7/7 changed TypeScript files passed",
+    "structural_assertions": "10/10 passed",
+    "zip_integrity": "passed after archive creation",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run"
+  },
+  "remaining_gaps": [
+    "Compatibility singleton exports remain and direct consumers still require a separate call-site audit.",
+    "The full integrated response provenance closure and per-method response-product coverage still need an end-to-end audit.",
+    "Static TypeScript typecheck, Vitest, and package build have not been executed in this environment."
+  ],
+  "architecture_constraints": {
+    "new_relation_layer": false,
+    "new_foundation_layer": false,
+    "new_subscanner_layer": false,
+    "parallel_semantic_authority_added": false,
+    "runtime_executor_reclassifies_semantics": false,
+    "method_owner_reconstructed_by_source_span_lookup": false
+  }
+}

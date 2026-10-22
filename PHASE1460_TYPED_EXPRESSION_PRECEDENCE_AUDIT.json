@@ -1,0 +1,43 @@
+{
+  "phase": 1460,
+  "title": "Typed expression precedence contract",
+  "passed": 7,
+  "total": 7,
+  "checks": [
+    {
+      "name": "interface-first typed tier identity",
+      "passed": true,
+      "detail": "Precedence tier and judgment tags use unique-symbol identities."
+    },
+    {
+      "name": "no numeric precedence field",
+      "passed": true,
+      "detail": "Operator root selection no longer uses numeric precedence tiers."
+    },
+    {
+      "name": "associativity uses typed identities",
+      "passed": true,
+      "detail": "Associativity is a closed symbol vocabulary."
+    },
+    {
+      "name": "algebra validates relation closure",
+      "passed": true,
+      "detail": "Cycles and incomparable precedence tiers are rejected."
+    },
+    {
+      "name": "algebra preserves source partition",
+      "passed": true,
+      "detail": "Resolved judgment carries operator evidence and source partitions."
+    },
+    {
+      "name": "PHP adapter supplies typed precedence relation",
+      "passed": true,
+      "detail": "PHP wiring supplies an explicit typed order."
+    },
+    {
+      "name": "tests cover invalid precedence contracts",
+      "passed": true,
+      "detail": "Focused tests cover cycle, incomparability, and non-associativity."
+    }
+  ]
+}

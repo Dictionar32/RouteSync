@@ -1,0 +1,66 @@
+{
+  "phase": 1727,
+  "name": "coverage-publication-validation-outcome-regression",
+  "phases": [
+    {
+      "phase": 1721,
+      "exitCode": 1,
+      "passed": false,
+      "total": 17,
+      "checksPassed": 15,
+      "failed": 2
+    },
+    {
+      "phase": 1722,
+      "exitCode": 1,
+      "passed": false,
+      "total": 16,
+      "checksPassed": 14,
+      "failed": 2
+    },
+    {
+      "phase": 1723,
+      "exitCode": 1,
+      "passed": false,
+      "total": 14,
+      "checksPassed": 12,
+      "failed": 2
+    },
+    {
+      "phase": 1724,
+      "exitCode": 1,
+      "passed": false,
+      "total": 12,
+      "checksPassed": 8,
+      "failed": 4
+    },
+    {
+      "phase": 1725,
+      "exitCode": 1,
+      "passed": false,
+      "total": 16,
+      "checksPassed": 10,
+      "failed": 6
+    },
+    {
+      "phase": 1726,
+      "exitCode": 1,
+      "passed": false,
+      "total": 15,
+      "checksPassed": 11,
+      "failed": 4
+    },
+    {
+      "phase": 1727,
+      "exitCode": 1,
+      "passed": false,
+      "total": 19,
+      "checksPassed": 15,
+      "failed": 4
+    }
+  ],
+  "total": 109,
+  "passed": 85,
+  "failed": 24,
+  "status": "failed"
+}

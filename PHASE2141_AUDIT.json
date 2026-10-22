@@ -1,0 +1,23 @@
+{
+  "phase": 2141,
+  "title": "Action Derivation Ownership Closure — Interface First",
+  "status": "focused-audit-passed",
+  "contractVersion": 11,
+  "checks": {
+    "phase2141": "9/9",
+    "relatedHistoricalAudits": ["17/17", "16/16", "14/14", "13/13", "18/18", "18/18"],
+    "syntaxOnlyTranspile": "2/2"
+  },
+  "notRun": ["full build", "full typecheck", "Vitest"],
+  "remainingDebt": [
+    "legacy scanControllerAction action derivation remains active",
+    "body source AST remains in the compiler projection",
+    "resource-binding aggregation still traverses the legacy action contract",
+    "request binding still uses a compatibility adapter"
+  ],
+  "constraints": [
+    "no relation/foundation layer",
+    "no new subscanner layer",
+    "no runtime function relocation presented as semantic migration"
+  ]
+}

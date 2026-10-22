@@ -3,6 +3,8 @@ import type { AstIdentifier, PhpAstValue, TokenDescriptor } from './phpAstTypes'
 import type { ControllerBodyAst } from './controllerBodyAstTypes';
 import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 import type { PhpParameterTypeAst as SharedPhpParameterTypeAst, PhpParameterDefaultAst as SharedPhpParameterDefaultAst } from './phpMethodAstTypes';
+import type { PhpClassNameResolution, PhpQualifiedClassName } from '../../../types/upstream/phpClassNameResolutionInterface';
+import type { ControllerStaticCallClassNameResolutionContext } from '../../../types/upstream/controllerStaticCallOriginInterface';
 
 export type PhpParameterTypeAst = SharedPhpParameterTypeAst;
 
@@ -41,6 +43,8 @@ export interface DeclaredResponseAttributeAst {
     readonly kind: 'declared';
     readonly className: AstIdentifier;
     readonly collection: boolean;
+    /** Exact source span of the PHP attribute, from `#[` through its closing bracket. */
+    readonly source: TokenDescriptor;
 }
 
 export type ResponseAttributeAst = AbsentResponseAttributeAst | DeclaredResponseAttributeAst;
@@ -53,7 +57,10 @@ export interface ReturnStatementAst {
 export type ControllerMethodVisibilityAst = 'public' | 'protected' | 'private' | 'implicit';
 export type ControllerMethodStorageAst = 'instance' | 'static';
 
-export interface ControllerMethodAst {
+export type ControllerMethodClassNameResolutionContext = ControllerStaticCallClassNameResolutionContext;
+
+
+export interface ControllerMethodAst<Semantic extends boolean = true> {
     /** Method-level PHP attributes are syntax evidence; semantic interpretation remains upstream. */
     readonly attributes: readonly ControllerParameterAttributeAst[];
     readonly visibility: ControllerMethodVisibilityAst;
@@ -64,21 +71,38 @@ export interface ControllerMethodAst {
     readonly responseAttribute: ResponseAttributeAst;
     readonly declaredReturnType: ControllerDeclaredReturnTypeAst;
     readonly returns: readonly ReturnStatementAst[];
-    readonly body: ControllerBodyAst;
+    readonly body: ControllerBodyAst<Semantic>;
     readonly source: TokenDescriptor;
+    /** Lexical class-resolution context from the owning PHP namespace region. */
+    readonly classNameResolutionContext?: ControllerMethodClassNameResolutionContext;
 }
 
 export type ControllerInheritanceAst =
     | { readonly kind: 'none' }
-    | { readonly kind: 'class'; readonly name: AstIdentifier; readonly source: TokenDescriptor };
+    | { readonly kind: 'class'; readonly name: AstIdentifier; readonly identity: PhpClassNameResolution; readonly source: TokenDescriptor };
 
-export interface ControllerDeclarationAst {
+/** Parser-owned closure of named method declarations within a class body. */
+export type ControllerMethodDeclarationInventory<Semantic extends boolean = true> =
+    | Readonly<{
+        readonly kind: 'controller_method_declaration_inventory_complete';
+        readonly declarations: readonly ControllerMethodAst<Semantic>[];
+    }>
+    | Readonly<{
+        readonly kind: 'controller_method_declaration_inventory_blocked';
+        readonly candidates: readonly TokenDescriptor[];
+    }>;
+
+export interface ControllerDeclarationAst<Semantic extends boolean = true> {
     readonly attributes: readonly ControllerParameterAttributeAst[];
     readonly className: AstIdentifier;
+    /** Canonical declared class identity from namespace evidence. */
+    readonly classIdentity: PhpQualifiedClassName;
     /** Direct PHP parent-class evidence; unresolved parents remain explicit evidence. */
     readonly inheritance: ControllerInheritanceAst;
     /** Interfaces declared by the controller class; syntax evidence only. */
     readonly interfaces: readonly AstIdentifier[];
-    readonly methods: readonly ControllerMethodAst[];
+    readonly methods: readonly ControllerMethodAst<Semantic>[];
+    /** Closed parser evidence; consumers must not treat a dropped parse candidate as absence. */
+    readonly methodDeclarationInventory: ControllerMethodDeclarationInventory<Semantic>;
     readonly source: TokenDescriptor;
 }

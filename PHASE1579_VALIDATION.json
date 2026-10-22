@@ -1,0 +1,18 @@
+{
+  "phase": 1579,
+  "structuralAudit": { "passed": 10, "total": 10 },
+  "typescriptTranspile": { "status": "passed", "diagnostics": 0 },
+  "strictTypeCheck": {
+    "status": "blocked_by_existing_imported_module_diagnostics",
+    "phase1578DiagnosticCount": 35,
+    "phase1579DiagnosticCount": 35,
+    "diagnosticSetIdenticalToPhase1578": true,
+    "diagnosticsInChangedInterfaceFile": 0
+  },
+  "packageBuild": {
+    "status": "blocked",
+    "command": "npm run build",
+    "reason": "tsdown executable is not installed in this workspace"
+  },
+  "scope": "interface-only; scanner wiring, authority implementation, and runtime executor unchanged"
+}

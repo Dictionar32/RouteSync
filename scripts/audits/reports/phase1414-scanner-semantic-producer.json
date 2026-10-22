@@ -1,0 +1,40 @@
+{
+  "phase": 1414,
+  "status": "passed",
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "name": "syntax contract has no semantic request branch",
+      "status": "passed"
+    },
+    {
+      "name": "syntax contract has no semantic stage result",
+      "status": "passed"
+    },
+    {
+      "name": "scanner runtime no longer imports semantic stage authority",
+      "status": "passed"
+    },
+    {
+      "name": "scanner runtime no longer constructs semantic judgments",
+      "status": "passed"
+    },
+    {
+      "name": "upstream producer owns stage port construction",
+      "status": "passed"
+    },
+    {
+      "name": "upstream producer contract is observation-based",
+      "status": "passed"
+    },
+    {
+      "name": "scanner adapter forwards syntax observation",
+      "status": "passed"
+    },
+    {
+      "name": "package build script preserved",
+      "status": "passed"
+    }
+  ]
+}

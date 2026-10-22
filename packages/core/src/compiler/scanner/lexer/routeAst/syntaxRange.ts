@@ -1,9 +1,7 @@
 import type { TokenDescriptor } from '../phpAstTypes';
 import { TokenCursor } from './relationalSyntaxCursor';
 import { presenceFold, type Presence } from '../../../../types/upstream/presence';
-import { relationEqual, relationAll } from '../../../../semantic/foundation/semanticRelations';
 import { SYNTAX_KIND_GROUPS, tokenHasKind, tokenHasOperation } from './syntaxValue';
-import { projectRelation, selectRelation, expandRelation, relationGate, relationResolve } from '../../../relational/sequence';
 
 const STRING_ARROW_STRING_PATTERN = Object.freeze({
     key: SYNTAX_KIND_GROUPS.strings,
@@ -13,11 +11,9 @@ const STRING_ARROW_STRING_PATTERN = Object.freeze({
 
 const matchesStringArrowString = (cursor: TokenCursor): boolean =>
     presenceFold(cursor.currentPresence, () => false, token =>
-        relationGate(tokenHasKind(token, STRING_ARROW_STRING_PATTERN.key),
-            () => relationAll([tokenHasKind(cursor.next, STRING_ARROW_STRING_PATTERN.operator), tokenHasKind(cursor.afterNext, STRING_ARROW_STRING_PATTERN.value)]),
-            () => false));
-
-const presenceFromValue = <T>(value: Presence<T>): Presence<T> => value;
+        tokenHasKind(token, STRING_ARROW_STRING_PATTERN.key) &&
+        tokenHasKind(cursor.next, STRING_ARROW_STRING_PATTERN.operator) &&
+        tokenHasKind(cursor.afterNext, STRING_ARROW_STRING_PATTERN.value));
 
 /**
  * A bounded syntax-navigation model.
@@ -54,67 +50,49 @@ const rangeTraversal = (start: TokenCursor, end: TokenCursor): RangeTraversal =>
     start,
     end,
     cursors: () => {
-        const collect = (cursor: TokenCursor, output: readonly TokenCursor[]): readonly TokenCursor[] =>
-            relationGate(cursor.isBefore(end), () => collect(cursor.advance(), Object.freeze([...output, cursor])), () => output);
-        return Object.freeze(collect(start, Object.freeze([])));
+        const output: TokenCursor[] = [];
+        let cursor = start;
+        while (cursor.isBefore(end)) {
+            output.push(cursor);
+            cursor = cursor.advance();
+        }
+        return Object.freeze(output);
     },
 });
-
-const mapPresent = <T, R>(values: readonly T[], mapper: (value: T) => Presence<R>): readonly R[] =>
-    projectRelation(
-        selectRelation(
-            projectRelation(values, mapper),
-            (value): value is Extract<typeof value, { readonly kind: 'present' }> => Object.is(value.kind, 'present'),
-        ),
-        value => value.value,
-    );
 
 export const syntaxRange = (start: TokenCursor, end: TokenCursor): SyntaxRange => {
     const traversal = rangeTraversal(start, end);
     const cursors = traversal.cursors();
     const matching = (predicate: (token: TokenDescriptor, cursor: TokenCursor) => boolean): readonly TokenCursor[] =>
-        Object.freeze(selectRelation(cursors, cursor =>
+        Object.freeze(cursors.filter(cursor =>
             presenceFold(cursor.currentPresence, () => false, token => predicate(token, cursor))));
     const tokenValues = Object.freeze(
-        projectRelation(
-            selectRelation(
-                projectRelation(cursors, cursor => cursor.currentPresence),
-                value => Object.is(value.kind, 'present'),
-            ),
-            value => value.value,
-        ),
+        cursors.flatMap(cursor =>
+            presenceFold(cursor.currentPresence, () => [], token => [token])),
     );
     const findPresence = (predicate: (token: TokenDescriptor, cursor: TokenCursor) => boolean): Presence<TokenCursor> => {
         const values = matching(predicate);
-        return relationResolve(values.length > 0, () => ({ kind: 'present', value: values[0] }), () => ({ kind: 'absent' }));
+        return values.length > 0 ? { kind: 'present', value: values[0] } : { kind: 'absent' };
     };
     return Object.freeze({
         start,
         end,
         contains: cursor => cursor.isBefore(end),
         find: predicate => findPresence(predicate),
-        findPresence: predicate => presenceFromValue(matching(predicate)[0]),
+        findPresence: predicate => findPresence(predicate),
         findAll: predicate => matching(predicate),
-        project: <T>(mapper: RangeVisit<T>) => mapPresent(tokenValues, (token, index) => mapper(token, cursors[index])),
+        project: <T>(mapper: RangeVisit<T>) => Object.freeze(cursors.flatMap(cursor => presenceFold(cursor.currentPresence, () => [], token => { const result = mapper(token, cursor); return Object.is(result.kind, 'present') ? [result.value] : []; }))),
         tokens: () => tokenValues,
         cursorAtEnd: () => end,
-        stringArrowStringPairs: () => Object.freeze(expandRelation(cursors, cursor => {
-            const values = projectRelation(
-                selectRelation(
-                    [cursor.currentPresence, cursor.afterNextPresence],
-                    value => Object.is(value.kind, 'present'),
-                ),
-                value => value.value,
-            );
-            return relationGate(
-                relationAll([matchesStringArrowString(cursor), relationEqual(values.length, 2)]),
-                () => [{ key: values[0].value, value: values[1].value }],
-                () => [],
-            );
+        stringArrowStringPairs: () => Object.freeze(cursors.flatMap(cursor => {
+            const values = [cursor.currentPresence, cursor.afterNextPresence].flatMap(value =>
+                presenceFold(value, () => [], token => [token]));
+            return matchesStringArrowString(cursor) && values.length === 2
+                ? [{ key: values[0].value, value: values[1].value }]
+                : [];
         })),
         calls: method => Object.freeze(matching((token, cursor) =>
-            relationGate(tokenHasKind(cursor.callOpen, SYNTAX_KIND_GROUPS.openParens),
-                () => tokenHasOperation(token, Object.freeze([method])),
-                () => false))),
+            tokenHasKind(cursor.callOpen, SYNTAX_KIND_GROUPS.openParens) &&
+            tokenHasOperation(token, Object.freeze(method === undefined ? [] : [method])))),
     });
 };

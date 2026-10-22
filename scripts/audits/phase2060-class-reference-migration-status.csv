@@ -1,0 +1,5 @@
+file,symbol,classification,status
+packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts,classifyStaticCall,lexical evidence projection,updated to preserve complete class spelling
+packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts,staticCallOriginInput,typed evidence projection,updated with explicit class-reference ADT
+packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts,ControllerStaticCallClassReferenceEvidence,semantic contract,added closed class-reference evidence variants
+packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts,modelClassIdentityRule,semantic judgment,qualified references blocked until context is available

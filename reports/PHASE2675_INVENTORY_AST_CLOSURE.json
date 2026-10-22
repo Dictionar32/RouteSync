@@ -1,0 +1,62 @@
+{
+  "phase": 2675,
+  "title": "Inventory AST closure",
+  "rootCause": "The conflict ledger closure verified receipt completeness against preparedInput.inventory, but did not independently establish that the inventory references themselves matched the raw AST input. A self-consistent forged inventory semantic key could therefore be trusted as its own authority.",
+  "changes": [
+    "Added RequestTypeDerivationInventoryAstVerificationInterface to the upstream type contract.",
+    "Added requestTypeDerivationInventoryMatchesAst to independently compare route/resource/request inventory cardinality, occurrence identity, canonical semantic keys, source identities, and source spans against raw AST nodes.",
+    "Integrated AST inventory closure before accepting conflict ledger receipts.",
+    "Added regression test for a forged resource semantic key whose canonicalIdentity was forged consistently too.",
+    "Registered audit:phase2675-inventory-ast-closure."
+  ],
+  "structuralAudit": "121/121 assertions passed across phases 2665-2675 (10 audit scripts); Phase 2669 excluded because its audit is a historical patch audit and is not in this cumulative list.",
+  "runtimeStatus": {
+    "vitest": "not run until local dependency availability is confirmed",
+    "typescript": "not run until local compiler availability is confirmed",
+    "laravel": "not run until examples/ecommerce-shop-source/vendor/autoload.php is available",
+    "semanticLaws": "34 canonical semantic laws remain verification_incomplete"
+  },
+  "scope": "This phase strengthens AST-to-inventory correlation only. It does not claim full semantic proof, typecheck, Laravel scan/sync, or manifest equivalence.",
+  "auditRuns": [
+    {
+      "phase": 2665,
+      "passed": "9/9"
+    },
+    {
+      "phase": 2666,
+      "passed": "8/8"
+    },
+    {
+      "phase": 2667,
+      "passed": "6/6"
+    },
+    {
+      "phase": 2668,
+      "passed": "8/8"
+    },
+    {
+      "phase": 2670,
+      "passed": "10/10"
+    },
+    {
+      "phase": 2671,
+      "passed": "12/12"
+    },
+    {
+      "phase": 2672,
+      "passed": "19/19"
+    },
+    {
+      "phase": 2673,
+      "passed": "12/12"
+    },
+    {
+      "phase": 2674,
+      "passed": "17/17"
+    },
+    {
+      "phase": 2675,
+      "passed": "20/20"
+    }
+  ]
+}

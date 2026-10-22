@@ -45,6 +45,8 @@ export {
 export {
     type RouteResponseAnalysis,
     type ResponseDescriptorBase,
+  type ResponseDescriptorPresenceContract,
+  type ResponseDescriptorReferenceContract,
     type ResourceResponseParams,
     ResourceResponseDescriptor,
     type ModelResponseParams,

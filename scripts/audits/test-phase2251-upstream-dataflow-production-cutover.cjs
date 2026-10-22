@@ -1,0 +1,44 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+let passed = 0;
+const check = (label, condition) => {
+  if (!condition) {
+    process.stderr.write(`FAIL ${label}\n`);
+    process.exitCode = 1;
+    return;
+  }
+  passed += 1;
+  process.stdout.write(`PASS ${label}\n`);
+};
+const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const projection = read('packages/core/src/compiler/scanner/lexer/routeAst/controllerResourceReturnSourceEvidenceProjection.ts');
+const projectionContract = read('packages/core/src/types/upstream/controllerResourceReturnSourceEvidenceProjectionInterface.ts');
+const dataflowAuthority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
+const correspondenceAuthority = read('packages/core/src/types/upstream/controllerDataflowBindingPayloadCorrespondenceAuthority.ts');
+const identityAuthority = read('packages/core/src/types/upstream/controllerDataflowVariableIdentityAuthority.ts');
+const flowAuthority = read('packages/core/src/types/upstream/controllerSemanticVariableFlowCompositionAuthority.ts');
+const actionContract = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
+const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
+const executor = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
+const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
+const routeHandlerTypes = read('packages/core/src/types/domain/routeHandlers.ts');
+const actionTypeBuilder = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts');
+const legacyCanonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+check('production resolver no longer imports or invokes createControllerDataflowContract', !/createControllerDataflowContract|subscanners\/controller\/controllerDataflowContract/.test(resolver));
+check('production resolver invokes the existing upstream return-resource evidence projection', /controllerResourceReturnSourceEvidenceProjection\.project/.test(resolver));
+check('projection adapter implements the already-declared upstream interface', /ControllerResourceReturnSourceEvidenceProjectionInterface<PhpAstValue, SourceRange>/.test(projection) && /ControllerResourceReturnSourceEvidenceProjectionInterface/.test(projectionContract));
+check('each projected candidate retains its exact expression source range', /source: value\.source/.test(projection) && /readonly source: TSourceLocation/.test(projectionContract));
+check('projection adapter contains no semantic relations or foundation imports', !/semantic\/relations|semantic\/foundation/.test(projection));
+check('resource applicability is judged by the existing injected resource authority', /context\.resourceBindingAuthority\.judge\(evidence\.candidate\)/.test(resolver));
+check('resolved resource products preserve authority-owned name, model, response and source provenance', /resourceName: judgment\.resourceName/.test(resolver) && /model: judgment\.model/.test(resolver) && /response: judgment\.response/.test(resolver) && /source: evidence\.source/.test(resolver));
+check('canonical dataflow judgment authority has no direct relation/foundation imports', !/semantic\/relations|semantic\/foundation/.test(dataflowAuthority));
+check('correspondence, variable identity and variable-flow authorities have no direct relation/foundation imports', !/semantic\/relations|semantic\/foundation/.test(correspondenceAuthority + identityAuthority + flowAuthority));
+check('action contract and production wiring agree on contract version 45', /readonly version: 45;/.test(actionContract) && /version: 45 as const/.test(wiring));
+check('integrated response remains owned by the existing response pipeline', /judgeIntegratedResponse/.test(responsePipeline));
+check('runtime executor remains a judgment-forwarding boundary', /semanticJudgment/.test(executor) && /without-semantic-reclassification/.test(actionContract));
+check('remaining relation debt is scoped to transitive knowledge/collection dependencies, not falsely declared fully closed', /transitive_dataflow_knowledge_and_collection_vocabulary_dependencies/.test(actionContract) && /readonly projectionMigration: LaravelControllerActionProjectionMigration/.test(actionContract) && /legacy_dataflow_relation_algebra/.test(actionContract));
+check('route-handler interface preserves typed ActionName for invokable controllers', /readonly actionName: ActionName;/.test(routeHandlerTypes) && /actionName: SemanticValueFactory\.actionName\('__invoke'\)/.test(actionTypeBuilder));
+check('separate legacy controllerAstCanonical path remains explicitly open rather than falsely marked fully retired', /createControllerDataflowContract/.test(legacyCanonical));
+process.stdout.write(`Phase 2251 action-resolver dataflow cutover audit: ${passed}/15 passed\n`);

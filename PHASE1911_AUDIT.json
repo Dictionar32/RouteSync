@@ -1,0 +1,27 @@
+{
+  "phase": 1911,
+  "title": "Laravel Controller Origin Judgment Interface First",
+  "result": "PASS_WITH_REMAINING_RUNTIME_MIGRATION",
+  "staticAudit": { "passed": 9, "total": 9 },
+  "contractVersions": {
+    "controllerDataflowBindingPayloadCorrespondence": 3,
+    "laravelControllerInvocationSemanticBoundary": 77
+  },
+  "changes": [
+    "Matched binding-payload judgment now carries canonical ControllerVariableOrigin.",
+    "Origin derives from existing SemanticBindingOriginCode and typed StatementIndex.",
+    "Removed analyzer-local canonicalVariableOrigin classifier.",
+    "Exported correspondence contract and authority from upstream index.",
+    "Preserved canonical invocation judgment and integrated response as distinct values."
+  ],
+  "remainingRuntimeWork": [
+    "PHP AST payload traversal remains source-specific analyzer work.",
+    "PHP-to-upstream expression projection remains analyzer work.",
+    "Variable semantic resolution still runs from analyzer through the existing runtime executor.",
+    "Identifier reconstruction and variable grouping remain analyzer work.",
+    "The parameters argument is currently not consumed by controllerDataflowAnalyzer and needs consumer tracing."
+  ],
+  "buildRun": false,
+  "typecheckRun": false,
+  "fullTestsRun": false
+}

@@ -1,0 +1,56 @@
+{
+  "phase": 2692,
+  "audit": "cli-manifest-runtime-operation-wiring",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "name": "operation interface declares explicit typed scan input/output",
+      "passed": true
+    },
+    {
+      "name": "named function binds operation to supplied composition authority",
+      "passed": true
+    },
+    {
+      "name": "typed function-expression binding is exported",
+      "passed": true
+    },
+    {
+      "name": "CLI composition contract carries runtime scan operation",
+      "passed": true
+    },
+    {
+      "name": "composition root injects operation bound to exact authority",
+      "passed": true
+    },
+    {
+      "name": "scan command invokes interface-backed operation",
+      "passed": true
+    },
+    {
+      "name": "sync command invokes interface-backed operation",
+      "passed": true
+    },
+    {
+      "name": "scan command no longer bypasses operation via direct compose",
+      "passed": true
+    },
+    {
+      "name": "sync command no longer bypasses operation via direct compose",
+      "passed": true
+    },
+    {
+      "name": "compatibility helper routes through operation interface",
+      "passed": true
+    },
+    {
+      "name": "operation contract/factory exported from CLI entry",
+      "passed": true
+    },
+    {
+      "name": "route selection remains part of explicit composition input",
+      "passed": true
+    }
+  ]
+}

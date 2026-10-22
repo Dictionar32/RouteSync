@@ -3,7 +3,7 @@ import { createClassName, createModelName, createRelationName, createTableName }
 import type { EloquentRelationAst } from '../eloquent';
 import type { SchemaInterface } from '../schema';
 import { schemaRelationIndexFrom } from '../schemaRelation';
-import { reconcileSemanticRelation } from '../semanticReconciliation';
+import { reconcileSemanticRelation } from '../semanticReconciliationAuthority';
 
 const span = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: 'fixture' }, start: 0, end: 1 };
 const stringValue = (value: string) => ({ kind: 'string_value' as const, value });

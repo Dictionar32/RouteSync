@@ -1,0 +1,160 @@
+{
+  "phase": 1405,
+  "audit": "semantic-ownership-closure",
+  "status": "failed",
+  "passed": 12,
+  "total": 14,
+  "checks": [
+    {
+      "name": "upstream resource group contract carries a closed route/absent/ambiguous ADT",
+      "pass": true
+    },
+    {
+      "name": "upstream algebra is the CRUD slot selection authority",
+      "pass": true
+    },
+    {
+      "name": "manifest transports closed capabilities alongside dataflow and source-model contracts",
+      "pass": true
+    },
+    {
+      "name": "manifest builder completes AST before semantic model/dataflow and capability publication",
+      "pass": false
+    },
+    {
+      "name": "operation identity has a closed semantic contract and explicit materializer boundary",
+      "pass": true
+    },
+    {
+      "name": "SDK emitter projects upstream operation identity instead of deriving identity from HTTP/path",
+      "pass": true
+    },
+    {
+      "name": "hook lowerer rejects missing/duplicate route identities and consumes upstream cache-operation keys",
+      "pass": true
+    },
+    {
+      "name": "manifest wiring rejects duplicate group capability identity instead of map overwrite",
+      "pass": true
+    },
+    {
+      "name": "React runtime requires a closed contract and has no role-scan fallback",
+      "pass": true
+    },
+    {
+      "name": "React HookConfig requires a closed CRUD contract",
+      "pass": true
+    },
+    {
+      "name": "scanner delegates semantic products through a typed upstream producer boundary",
+      "pass": false
+    },
+    {
+      "name": "route action identity is resolved upstream and projection no longer suffixes names",
+      "pass": true
+    },
+    {
+      "name": "SDK endpoint contract exposes operation identity metadata",
+      "pass": true
+    },
+    {
+      "name": "package version and build script are unchanged",
+      "pass": true
+    }
+  ],
+  "relatedAudits": [
+    {
+      "script": "scripts/audits/audit-phase918-semantic-dataflow-upstream-boundary.cjs",
+      "status": "failed",
+      "exitCode": 1,
+      "summary": [
+        "  \"legacyProductionImports\": [],",
+        "  \"semanticDiscriminants\": true,"
+      ]
+    },
+    {
+      "script": "scripts/audits/audit-phase1309-interface-no-semantic-reasoning.cjs",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": [
+        "Phase 1309 PASS 2/2"
+      ]
+    },
+    {
+      "script": "scripts/audits/audit-phase1310-downstream-no-method-semantic-fallback.cjs",
+      "status": "passed",
+      "exitCode": 0,
+      "summary": [
+        "Phase 1310 PASS"
+      ]
+    },
+    {
+      "script": "scripts/audit-phase729-semantic-relation-calculus-frontier.cjs",
+      "status": "failed",
+      "exitCode": 1,
+      "summary": [
+        "    \"relationSolverUsesStratumClosure\": false,",
+        "    \"relationSolverUsesStratumClosure\","
+      ]
+    },
+    {
+      "script": "scripts/audit-relational-authority-strict.cjs",
+      "status": "failed",
+      "exitCode": 1,
+      "summary": [
+        "  \"filesWithViolations\": 123,"
+      ]
+    }
+  ],
+  "trace": {
+    "source": "Laravel source files and source evidence",
+    "astAdt": "sourceAstScanner -> CompleteSourceAst -> validateCompleteSourceAst",
+    "semanticReasoning": "CompleteLaravelSourceModel + route semantic capabilities + operation identity contracts",
+    "dataflow": "SemanticDataflowInput -> SemanticDataflowJudgment -> query policy contract",
+    "manifest": "RouteSyncManifest carries AST, source model, dataflow, and resource-group capability contracts",
+    "wiring": "CLI hookSourceLowerer and SDK apiObjectEmitter project closed manifest contracts",
+    "runtime": "SDK endpoint metadata and React hook resolvers execute projected capabilities"
+  },
+  "residuals": [
+    {
+      "id": "R1",
+      "severity": "medium",
+      "owner": "packages/core/src/compiler/semantic/sourceAstSemanticProducer.ts",
+      "detail": "Source file discovery and reading now use a typed acquisition contract; PHP syntax parsing and semantic judgment production remain coupled and should be split next."
+    },
+    {
+      "id": "R2",
+      "severity": "closed",
+      "owner": "packages/react/src/hooks/define/groupSlotResolver.ts",
+      "detail": "Closed: React requires crudSlots and all 18 checked-in ecommerce example groups now declare explicit no-slot contracts because their hand-authored endpoint declarations carry no upstream route capability manifest."
+    },
+    {
+      "id": "R3",
+      "severity": "closed",
+      "owner": "packages/core/src/types/upstream/routeActionIdentityCapabilityAuthority.ts",
+      "detail": "Closed: action-name collision resolution now runs in the upstream authority in stable route-key order; CLI only projects the closed identity result."
+    },
+    {
+      "id": "R4",
+      "severity": "closed",
+      "owner": "packages/core/src/types/upstream/resourceGroupCapabilityAlgebra.ts",
+      "detail": "Closed: cacheOperationKey is now materialized by upstream resource-group algebra and transported through ResourceGroupRouteReference; the generator only projects it."
+    },
+    {
+      "id": "R5",
+      "severity": "medium",
+      "owner": "packages/core/src/types/domain/resourceGroupDescriptors.ts",
+      "detail": "Legacy role-based descriptor helpers need a complete call-site trace before retirement."
+    },
+    {
+      "id": "R6",
+      "severity": "medium",
+      "owner": "packages/core/src/types/upstream/semanticDataflowManifestSurface.ts",
+      "detail": "The manifest currently publishes input and judgment collections; verify that all consumers use judgment/contract results rather than independently rebuilding semantic relations."
+    }
+  ],
+  "package": {
+    "version": "1.0.49",
+    "build": "tsdown"
+  }
+}

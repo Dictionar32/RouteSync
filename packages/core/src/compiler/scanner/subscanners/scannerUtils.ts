@@ -16,8 +16,8 @@ import {
     relationOptionFold,
     relationNone,
     relationSome,
-} from '../../../semantic/foundation/relationalSequence';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+} from '../../../semantic/relations/relationalSequence';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
 
 let sourceTextCache: RelationIndex<string, string> = Object.freeze([]);
 

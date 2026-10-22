@@ -1,0 +1,69 @@
+{
+  "phase": 1726,
+  "name": "inventory-bound-coverage-contract",
+  "total": 15,
+  "passed": 11,
+  "failed": 4,
+  "checks": [
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "publication contract requires canonical inventory ownership",
+      "passed": true
+    },
+    {
+      "name": "publication contract defines one-to-one cardinality",
+      "passed": true
+    },
+    {
+      "name": "publication input consumes inventory authority output and analysis",
+      "passed": true
+    },
+    {
+      "name": "publication input no longer rebuilds inventory from raw knowledge",
+      "passed": true
+    },
+    {
+      "name": "publisher owns publication only and depends on explicit contract",
+      "passed": true
+    },
+    {
+      "name": "inventory interface remains the single inventory producer boundary",
+      "passed": true
+    },
+    {
+      "name": "ordinary judgment and static uncovered dispositions remain distinct",
+      "passed": true
+    },
+    {
+      "name": "source form, subject identity, and source-span correlation remain required",
+      "passed": true
+    },
+    {
+      "name": "pipeline type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "pipeline discloses inventory-bound publication as not yet implemented",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner contract type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "Laravel boundary requires inventory and publication authorities before wiring",
+      "passed": true
+    },
+    {
+      "name": "coverage interfaces are exported through the package index",
+      "passed": true
+    },
+    {
+      "name": "no generic stage judgment or semantic foundation dependency introduced",
+      "passed": true
+    }
+  ]
+}

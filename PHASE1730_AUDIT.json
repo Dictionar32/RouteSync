@@ -1,0 +1,53 @@
+{
+  "phase": 1730,
+  "name": "correspondence-identity-ownership",
+  "total": 11,
+  "passed": 7,
+  "failed": 4,
+  "checks": [
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "coverage contract defines correspondence identity ownership",
+      "passed": true
+    },
+    {
+      "name": "identity must derive from inventory subject and correlate publication and judgment subjects",
+      "passed": true
+    },
+    {
+      "name": "correspondence still retains source entries as audit evidence",
+      "passed": false
+    },
+    {
+      "name": "scanner contract preserves upstream identity without recomputation",
+      "passed": true
+    },
+    {
+      "name": "canonical subject remains sole owner of entry identity/source fields",
+      "passed": true
+    },
+    {
+      "name": "scanner remains delegation boundary and does not own semantic classification",
+      "passed": true
+    },
+    {
+      "name": "no semantic foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "phase": 1566,
+  "audit": "law-bound-request-type-counterexample-interface",
+  "passed": 18,
+  "total": 18,
+  "checks": [
+    {
+      "name": "interface remains type/declaration-only",
+      "passed": true
+    },
+    {
+      "name": "each invalid counterexample carries a law identifier",
+      "passed": true
+    },
+    {
+      "name": "source inventory failures bind to source disposition/closure laws",
+      "passed": true
+    },
+    {
+      "name": "source key mismatch binds to the domain identity law",
+      "passed": true
+    },
+    {
+      "name": "route disposition failures bind to request-binding laws",
+      "passed": true
+    },
+    {
+      "name": "group membership failures bind to contribution reconciliation laws",
+      "passed": true
+    },
+    {
+      "name": "output failures bind to output/proof coherence laws",
+      "passed": true
+    },
+    {
+      "name": "resource failure binds to resolved-resource law",
+      "passed": true
+    },
+    {
+      "name": "transition failures bind to transition algebra laws",
+      "passed": true
+    },
+    {
+      "name": "group-key failure binds to canonical identity law",
+      "passed": true
+    },
+    {
+      "name": "policy mismatch binds to policy-contract law",
+      "passed": true
+    },
+    {
+      "name": "closure mismatch binds to closure coherence laws",
+      "passed": true
+    },
+    {
+      "name": "incomplete ledger binds to unresolved ledger law",
+      "passed": true
+    },
+    {
+      "name": "conflict ledger binds to conflict ledger law",
+      "passed": true
+    },
+    {
+      "name": "counterexamples retain typed evidence payloads",
+      "passed": true
+    },
+    {
+      "name": "authority verifier contract still accepts source input and judgment",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the interface",
+      "passed": true
+    },
+    {
+      "name": "scanner and runtime ownership remain outside this interface file",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "static interface-model audit only; no claim of authority implementation, scanner migration, runtime migration, full TypeScript build, package build, or Vitest validation",
+  "validationNotes": [
+    "each verifier failure variant now names the violated semantic law alongside typed evidence",
+    "authority policy mismatch has an explicit law identifier",
+    "scanner aggregator, scanner entrypoint, and runtime executor intentionally unchanged"
+  ]
+}

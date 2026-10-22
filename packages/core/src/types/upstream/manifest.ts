@@ -6,6 +6,8 @@ import type { CompleteLaravelSourceModel } from './highLevelSourceModel';
 import type { LaravelSemanticContractCatalog } from './highLevelContracts';
 import type { SemanticRelationGraph } from './semanticReferences';
 import type { ManifestDataflowSeedSurface } from './semanticDataflowManifestSurface';
+import type { ResourceGroupCapabilityContract } from './resourceGroupCapability';
+import type { LaravelControllerInvocationSemanticJudgmentInterface } from './laravelControllerInvocationSemanticJudgmentInterface';
 
 export interface ManifestVersion {
   readonly kind: 'manifest_version';
@@ -23,8 +25,9 @@ export interface ManifestSource {
 /**
  * Dumb manifest flow exposed downstream.
  *
- * The flow transports already-resolved upstream meaning. Consumers must not
- * inspect AST/ADT nodes or re-classify Laravel syntax from this boundary.
+ * The flow transports already-resolved upstream meaning, including the source-correlated
+ * invocation judgment ADT and its integrated-response outcome. Consumers must not
+ * inspect AST syntax or re-classify Laravel semantics from this boundary.
  * AST remains an upstream construction artifact carried only by the concrete
  * manifest implementation.
  */
@@ -34,6 +37,10 @@ export interface RouteSyncManifestFlow extends ManifestDataflowSeedSurface {
   readonly source: ManifestSource;
   readonly contracts: LaravelSemanticContractCatalog;
   readonly relations: SemanticRelationGraph;
+  /** Closed resource-group semantics produced upstream; wiring only transports it. */
+  readonly resourceGroupCapabilities: readonly ResourceGroupCapabilityContract[];
+  /** Source-correlated invocation judgments, including their exact integrated-response ADT outcomes. */
+  readonly invocationSemanticJudgments: readonly LaravelControllerInvocationSemanticJudgmentInterface[];
 }
 
 
@@ -44,6 +51,12 @@ export interface RouteSyncManifest {
   readonly source: ManifestSource;
   readonly sourceModel: CompleteLaravelSourceModel;
   readonly dataflowInputs: RouteSyncManifestFlow['dataflowInputs'];
+  readonly dataflowJudgments: RouteSyncManifestFlow['dataflowJudgments'];
+  readonly dataflowQueryPolicyContracts: RouteSyncManifestFlow['dataflowQueryPolicyContracts'];
+  /** Closed resource-group capability set composed before the downstream wiring boundary. */
+  readonly resourceGroupCapabilities: readonly ResourceGroupCapabilityContract[];
+  /** Exact authority-closed invocation judgments carried forward from the validated inventory receipt. */
+  readonly invocationSemanticJudgments: readonly LaravelControllerInvocationSemanticJudgmentInterface[];
   readonly ast: CompleteSourceAst;
 }
 

@@ -1,0 +1,114 @@
+{
+  "phase": 1403,
+  "audit": "semantic-reasoning-interface-boundary",
+  "status": "failed",
+  "passed": 6,
+  "total": 13,
+  "residualCount": 2,
+  "principle": "Source evidence -> upstream semantic reasoning -> closed AST/ADT capability contract -> wiring/projection -> runtime execution; runtime must not infer business meaning.",
+  "checks": [
+    {
+      "name": "CLI scan enters the canonical manifest producer interface",
+      "pass": false,
+      "detail": "scan consumes manifestBuilder rather than constructing semantic routes locally"
+    },
+    {
+      "name": "CLI sync enters the same canonical manifest producer interface",
+      "pass": false,
+      "detail": "sync shares the same upstream manifest construction boundary"
+    },
+    {
+      "name": "source-AST executor publishes complete/blocked projection ADT before manifest construction",
+      "pass": false,
+      "detail": "completeness is judged by the source-AST executor and the manifest builder consumes its complete arm"
+    },
+    {
+      "name": "upstream builder creates complete Laravel source model",
+      "pass": false,
+      "detail": "source model is built from a validated complete AST"
+    },
+    {
+      "name": "semantic dataflow is derived upstream of manifest consumers",
+      "pass": false,
+      "detail": "dataflow input and judgments are materialized before manifest publication"
+    },
+    {
+      "name": "manifest retains AST, source model, dataflow, and group capability surfaces",
+      "pass": true,
+      "detail": "manifest exposes distinct semantic products instead of collapsing them to route-only data"
+    },
+    {
+      "name": "operation identity is a closed upstream capability contract",
+      "pass": true,
+      "detail": "identity materialization preserves reasoning, derivation, and provenance"
+    },
+    {
+      "name": "operation identity projection consumes upstream capability",
+      "pass": true,
+      "detail": "projection reads resolved identity rather than reclassifying method/path"
+    },
+    {
+      "name": "resource-group shape is computed by upstream algebra",
+      "pass": false,
+      "detail": "group-shape reasoning occurs before CLI projection"
+    },
+    {
+      "name": "React receives an explicit CRUD slot contract on generated config",
+      "pass": true,
+      "detail": "generated contract carries direct endpoint slots into React wiring"
+    },
+    {
+      "name": "React contract path does not need role inference",
+      "pass": false,
+      "detail": "contract-present branch directly consumes endpoint references"
+    },
+    {
+      "name": "package identity/build script are preserved",
+      "pass": true,
+      "detail": "version=1.0.49; build=tsdown"
+    },
+    {
+      "name": "existing semantic ownership and data-loss audits remain available",
+      "pass": true,
+      "detail": "prior audits are retained and not replaced by a shallow aggregate check"
+    }
+  ],
+  "residuals": [
+    {
+      "id": "R4",
+      "severity": "high",
+      "owner": "packages/core/src/types/upstream/resourceGroupCapability.ts",
+      "detail": "The closed resource-group contract carries only group shape/evidence, not the executable CRUD slot assignment needed by generators.",
+      "nextMove": "Represent slot selection as a closed ADT of route references plus explicit absence; preserve provenance and ambiguity diagnostics."
+    },
+    {
+      "id": "R6",
+      "severity": "medium",
+      "owner": "packages/core/src/types/domain/resourceGroupDescriptors.ts",
+      "detail": "Legacy descriptor APIs still expose role-based route selection/classification helpers.",
+      "nextMove": "Trace callers and move remaining selection to upstream resource-group capability algebra before retiring compatibility APIs."
+    }
+  ],
+  "externalDesignReferences": [
+    {
+      "topic": "MLIR interfaces",
+      "url": "https://mlir.llvm.org/docs/Interfaces/",
+      "relevance": "Consumers should operate through semantic interfaces rather than hard-code per-operation special cases."
+    },
+    {
+      "topic": "CodeQL AST and dataflow",
+      "url": "https://codeql.github.com/docs/codeql-language-guides/analyzing-data-flow-in-javascript-and-typescript/",
+      "relevance": "AST nodes and dataflow nodes are related but distinct models; preserve both rather than flattening them."
+    },
+    {
+      "topic": "TanStack Query keys",
+      "url": "https://tanstack.com/query/latest/docs/framework/react/guides/query-keys",
+      "relevance": "Query keys must uniquely identify returned data and include variables affecting the query."
+    },
+    {
+      "topic": "TypeScript 7",
+      "url": "https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/",
+      "relevance": "Compiler/toolchain version must be verified separately from architecture audits."
+    }
+  ]
+}

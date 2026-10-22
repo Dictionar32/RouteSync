@@ -1,0 +1,20 @@
+{
+  "phase": 1376,
+  "title": "Route Capability Authority Composition",
+  "passed": false,
+  "checks": 23,
+  "passedChecks": 19,
+  "failedChecks": [
+    "Operation identity remains composed from its own canonical algebra",
+    "AST input and judgment reuse canonical dataflow ADTs",
+    "Dataflow runtime adapter executes the injected upstream authority",
+    "Manifest remains a seed/input projection rather than a solver"
+  ],
+  "decisions": [
+    "Keep route/action classification in the canonical CRUD algebra; authority composition only delegates through its interface.",
+    "Keep non-CRUD route capability inference in the canonical semantic reasoning algebra; the authority wrapper adds ownership/closure and delegates.",
+    "Retain RouteActionKind as the source ADT for mutability and preserve schema, payload, error, and reasoning provenance.",
+    "Keep AST, semantic dataflow, structural graph, IR, manifest, CLI, SDK, and React as distinct producer/wiring/consumer boundaries.",
+    "Do not claim build/runtime validation from static source-contract checks."
+  ]
+}

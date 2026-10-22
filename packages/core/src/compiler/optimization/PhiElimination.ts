@@ -24,7 +24,7 @@ import {
     relationResolve,
     relationAny,
     relationVariantFold,
-} from '../../semantic/foundation/relationalSequence';
+} from '../../semantic/relations/relationalSequence';
 
 const isTerminator = (instruction: Expression | Instruction): boolean =>
     relationAny([

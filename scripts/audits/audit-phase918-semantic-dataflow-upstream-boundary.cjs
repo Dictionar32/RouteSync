@@ -31,7 +31,7 @@ const concreteAstLeaks = productionUpstream.flatMap(file => {
     ? [path.relative(root, file)] : [];
 });
 
-const authority = fs.readFileSync(path.join(analysis, 'astDataflowAuthority.ts'), 'utf8');
+const authority = fs.readFileSync(path.join(upstream, 'semanticDataflow.ts'), 'utf8');
 const semanticDiscriminants = [
   'semantic_dataflow_identity',
   'semantic_dataflow_judgment',
@@ -40,11 +40,16 @@ const semanticDiscriminants = [
 ].every(value => authority.includes(value));
 
 const fixtureCandidates = [
-  path.join(root, 'examples/ecomerce-shop-source'),
   path.join(root, 'examples/ecommerce-shop-source'),
 ];
 const missingNamedFixtures = fixtureCandidates.filter(file => !fs.existsSync(file)).map(file => path.relative(root, file));
-const inlineCorpus = fs.readFileSync(path.join(root, 'packages/core/src/compiler/analysis/__tests__/ecommerceShopHighestAstDataflowPhase760.spec.ts'), 'utf8');
+const fixtureSources = [
+  'app/Http/Controllers/ProdukController.php',
+  'app/Http/Requests/StoreOrderRequest.php',
+  'app/Models/ProdukItem.php',
+  'app/Http/Resources/ProdukItemResource.php',
+].map(relative => path.join(root, 'examples/ecommerce-shop-source', relative));
+const fixtureSourceCoverage = fixtureSources.every(file => fs.existsSync(file) && fs.statSync(file).size > 0);
 
 const report = {
   semanticInterfacePresent: fs.existsSync(semanticInterface),
@@ -53,14 +58,14 @@ const report = {
   concreteAstLeaks,
   semanticDiscriminants,
   missingNamedFixtures,
-  inlineCorpusPresent: /const requestSource = `|const modelSource = `|const controllerSource = `/m.test(inlineCorpus),
+  fixtureSourceCoverage,
   clean: fs.existsSync(semanticInterface)
     && fs.existsSync(legacyInterface)
     && legacyProductionImports.length === 0
     && concreteAstLeaks.length === 0
     && semanticDiscriminants
-    && missingNamedFixtures.length === 2
-    && /const requestSource = `|const modelSource = `|const controllerSource = `/m.test(inlineCorpus),
+    && missingNamedFixtures.length === 0
+    && fixtureSourceCoverage,
 };
 
 console.log(JSON.stringify(report, null, 2));

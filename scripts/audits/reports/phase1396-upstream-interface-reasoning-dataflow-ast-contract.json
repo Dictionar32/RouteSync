@@ -1,0 +1,111 @@
+{
+  "phase": 1396,
+  "audit": "upstream-interface-reasoning-dataflow-ast-contract",
+  "topology": "Laravel/AST evidence -> upstream reasoning + capability contract -> closed DataFlow/AST ADT -> wiring -> manifest/graph/IR -> SDK/React",
+  "checks": [
+    {
+      "name": "operationIdentityHasClosedContract",
+      "passed": true
+    },
+    {
+      "name": "operationIdentityAuthorityDelegatesToMaterializer",
+      "passed": true
+    },
+    {
+      "name": "routeProducerUsesAuthorityNotRawMaterializer",
+      "passed": true
+    },
+    {
+      "name": "semanticCapabilityComposesProofAndClosure",
+      "passed": true
+    },
+    {
+      "name": "reasoningSeparatesProducerAndConsumer",
+      "passed": true
+    },
+    {
+      "name": "canonicalDataflowUsesClosedFactAdt",
+      "passed": true
+    },
+    {
+      "name": "inputProducerPreservesLineage",
+      "passed": true
+    },
+    {
+      "name": "genericDataflowSeparatesExecutionFromAuthority",
+      "passed": true
+    },
+    {
+      "name": "astDataflowAliasesCanonicalInputAndJudgment",
+      "passed": false
+    },
+    {
+      "name": "astSemanticInterfaceCarriesFactsAndProofs",
+      "passed": true
+    },
+    {
+      "name": "dataflowAdapterForwardsExactProof",
+      "passed": true
+    },
+    {
+      "name": "runtimeBoundaryAcceptsClosedJudgmentOnly",
+      "passed": true
+    },
+    {
+      "name": "manifestBuildsJudgmentsUpstream",
+      "passed": false
+    },
+    {
+      "name": "manifestProjectionForwardsClosedJudgments",
+      "passed": true
+    },
+    {
+      "name": "runtimePolicyDecodesBeforeExecution",
+      "passed": true
+    },
+    {
+      "name": "graphUsesStructuralRelationsNotDataflowClosure",
+      "passed": true
+    },
+    {
+      "name": "irConsumesClosedDataflowClosure",
+      "passed": true
+    },
+    {
+      "name": "sdkFailsClosedWithoutOperationIdentity",
+      "passed": true
+    },
+    {
+      "name": "cliProjectsIdentityCapability",
+      "passed": true
+    },
+    {
+      "name": "reactConsumesResolvedHookCapability",
+      "passed": true
+    },
+    {
+      "name": "relationCalculusIsExplicit",
+      "passed": false
+    },
+    {
+      "name": "laravelEcommerceFixturePresent",
+      "passed": true
+    },
+    {
+      "name": "packageUsesTypeScript7WithoutBuildScriptMutation",
+      "passed": true
+    }
+  ],
+  "passedChecks": 20,
+  "totalChecks": 23,
+  "failures": [
+    "astDataflowAliasesCanonicalInputAndJudgment",
+    "manifestBuildsJudgmentsUpstream",
+    "relationCalculusIsExplicit"
+  ],
+  "references": {
+    "typescript": "runtime data requires narrowing; static annotations do not validate external values",
+    "codeql": "AST nodes and dataflow nodes are distinct representations with separate analyses",
+    "mlir": "interfaces let generic passes operate without hard-coding each dialect operation"
+  }
+}

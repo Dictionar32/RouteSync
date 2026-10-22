@@ -1,0 +1,31 @@
+{
+  "phase": 1502,
+  "name": "upstream-query-rule-authority-expansion",
+  "scope": [
+    "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "packages/core/src/types/upstream/queryProducerSemanticAlgebra.ts",
+    "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts",
+    "packages/core/src/types/upstream/__test__/queryProducerSemanticAlgebra.phase1487.test.ts"
+  ],
+  "migratedRuleFamilies": [
+    "query_column_range_condition_rule",
+    "query_value_range_condition_rule",
+    "query_null_safe_equality_rule"
+  ],
+  "removedScannerCatalogFamilies": [
+    "whereBetweenColumns",
+    "whereValueBetween",
+    "whereNullSafeEquals"
+  ],
+  "staticAudit": "passed",
+  "typescriptSyntaxTranspilation": "passed",
+  "build": "not_verified: tsdown executable missing",
+  "focusedAlgebraDiagnosticScan": "no diagnostics in queryProducerSemanticAlgebra.ts; transitive dependency graph reports unrelated baseline errors under TypeScript 5.8.3",
+  "fullTypecheck": "not_verified: scanner-wide TypeScript 5.8.3 check reports pre-existing/baseline incompatibilities and project targets TypeScript 7.0.2",
+  "fullTestSuite": "not_run: vitest dependency unavailable",
+  "remainingBoundary": [
+    "queryNamedMethodOperationCatalog still owns unmigrated query families",
+    "QueryAst.operations compatibility projection still coexists with operationJudgments",
+    "downstream single-source-of-truth migration remains open"
+  ]
+}

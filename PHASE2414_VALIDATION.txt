@@ -1,0 +1,29 @@
+RouteSync Phase2414 validation record
+
+Production source changes: applied to the extracted Phase2413 workspace.
+
+Phase2414 audit:
+  scripts/audits/audit-phase2414-route-response-boundary-ownership.cjs
+  PASS: 12/12 assertions.
+
+Regression audits:
+  scripts/audits/audit-phase2394-route-producer-input-operation-contract.cjs
+  PASS: 10/10 assertions.
+  scripts/audits/audit-phase2393-route-producer-input-evidence-closure.cjs
+  PASS: 8/8 assertions.
+
+TypeScript syntax transpilation using the globally available TypeScript compiler:
+  PASS: 7/7 modified production files.
+
+Targeted TypeScript semantic compilation:
+  ATTEMPTED, BLOCKED by existing repository dependency-graph diagnostics. Compared with the same command against Phase2413, there were no new diagnostic signatures; one pre-existing missing-name diagnostic for LaravelControllerScanJudgment disappeared after the type was explicitly imported. The full compiler remains unsuccessful, so no typecheck pass is claimed.
+
+Full typecheck:
+  ATTEMPTED, BLOCKED. The repository tsconfig uses target/lib values not accepted by the globally installed compiler, and the baseline includes parse errors in packages/core/src/compiler/scanner/upstream/route/effectiveControllerActionPolicyResolver.phase921.test.ts at lines 47 and 221. A targeted compilation attempt also reported numerous existing dependency-graph diagnostics. No full typecheck pass is claimed.
+
+Vitest: NOT RUN (workspace dependencies/node_modules are unavailable).
+Package build: NOT RUN.
+Live scan/sync CLI: NOT RUN.
+
+Known remaining migration:
+  RouteBoundaryOptions.response and RouteBindingContract.response remain legacy ResponseDescriptor consumers, and the active scanner still creates VoidResponseDescriptor.create() for that compatibility field. The new canonical responseProjection is carried by RouteBoundaryContract.binding and is the source used to populate RouteAst bindings.response. Full removal of the compatibility descriptor, its schema/analysis consumers, and end-to-end CLI verification remain outstanding.

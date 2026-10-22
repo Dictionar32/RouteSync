@@ -1,0 +1,87 @@
+{
+  "phase": 1715,
+  "name": "static-proof-ledger-contract",
+  "scope": "interface-first upstream contract only; no production scanner wiring or static invocation algebra/authority implementation",
+  "regression_audits": [
+    {
+      "phase": 1702,
+      "checks": 14,
+      "passed": 14
+    },
+    {
+      "phase": 1703,
+      "checks": 13,
+      "passed": 13
+    },
+    {
+      "phase": 1704,
+      "checks": 12,
+      "passed": 12
+    },
+    {
+      "phase": 1705,
+      "checks": 21,
+      "passed": 21
+    },
+    {
+      "phase": 1706,
+      "checks": 10,
+      "passed": 10
+    },
+    {
+      "phase": 1707,
+      "checks": 14,
+      "passed": 14
+    },
+    {
+      "phase": 1708,
+      "checks": 15,
+      "passed": 15
+    },
+    {
+      "phase": 1709,
+      "checks": 20,
+      "passed": 20
+    },
+    {
+      "phase": 1710,
+      "checks": 20,
+      "passed": 20
+    },
+    {
+      "phase": 1711,
+      "checks": 15,
+      "passed": 15
+    },
+    {
+      "phase": 1712,
+      "checks": 19,
+      "passed": 19
+    },
+    {
+      "phase": 1713,
+      "checks": 16,
+      "passed": 16
+    },
+    {
+      "phase": 1714,
+      "checks": 15,
+      "passed": 15
+    },
+    {
+      "phase": 1715,
+      "checks": 14,
+      "passed": 14
+    }
+  ],
+  "total_checks": 218,
+  "passed_checks": 218,
+  "failed_checks": 0,
+  "targeted_typescript": {
+    "command": "tsc --noEmit --strict --target ES2022 --moduleResolution bundler --module ESNext --skipLibCheck packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts",
+    "exit_code": 0,
+    "diagnostics": 0
+  },
+  "package_build": "not run by design",
+  "zip_integrity": "passed: unzip -t reported no errors"
+}

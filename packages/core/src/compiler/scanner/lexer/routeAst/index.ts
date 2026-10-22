@@ -12,9 +12,10 @@ export {
   createRoutePrefixAst
 } from './routeDeclarationAst';
 export { parseRouteDeclarations } from './routeDeclarationParser';
+export type { SyntaxRange } from './syntaxRange';
+export { syntaxRange } from './syntaxRange';
 
 export * from './semanticKnowledgeDataFlowRelations';
-export * from './semanticKnowledgeEvidenceAdapter';
 export * from './semanticKnowledgeDataFlowProducer';
 export { phpAstSemanticKnowledgeEvidenceAdapter } from './semanticKnowledgeDataFlowProducer';
 
@@ -30,7 +31,7 @@ export * from './semanticObjectIdentityRelations';
 
 
 export * from './semanticConstraintCalculus';
-export * from './semanticRewriteEngine';
+export type { SemanticRelation, SemanticRelationAtom, SemanticRelationBindings, SemanticRelationDerivation, SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationRewriteResult, SemanticRelationSolveResult } from '../../../../semantic/relations/semanticRewriteEngine';
 export * from './semanticRewriteInterface';
 export * from './semanticRelationalBehaviorKernel';
 export * from './semanticRelationTheory';

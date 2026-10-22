@@ -1,11 +1,12 @@
 /** Production orchestration boundary for RouteSync manifest dataflow. */
 import type { RouteSyncManifestDataflowSurface } from './routeSyncManifestDataflowProjectionInterface';
 import type { SemanticDataflowAnalysisResult } from './semanticDataflowPipeline';
-import { analyzeSemanticDataflowInput } from './semanticDataflowPipeline';
+import { projectClosedSemanticDataflowJudgment } from './semanticDataflowPipeline';
 import type { SemanticDataflowRuntimeBoundary } from './semanticDataflowRuntimeBoundary';
 import { semanticDataflowIdentityEqual } from '../../types/upstream/semanticDataflow';
 import type { Sequence } from '../../types/upstream/collections';
-import type { SemanticDataflowFactPolicyContext, SemanticDataflowAnalysisPolicy } from './dataflow/semanticDataflowFactAnalysisPolicy';
+import type { SemanticDataflowAnalysisPolicy } from './dataflow/semanticDataflowFactAnalysisPolicy';
+import { semanticDataflowQueryPolicyMatches } from '../../types/upstream/semanticDataflowQueryPolicy';
 import { createSemanticDataflowAnalysisPolicy } from './dataflow/semanticDataflowFactAnalysisPolicy';
 
 const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>
@@ -22,9 +23,8 @@ export interface RouteSyncControllerDataflowPolicyAnalysis extends RouteSyncCont
 }
 
 /**
- * Production compiler orchestration: consumes the scanner's canonical manifest
- * without making the scanner depend on analysis. The resulting interface is
- * intentionally returned to the caller as the downstream semantic contract.
+ * Production orchestration consumes upstream-closed judgments. Runtime wiring
+ * only projects them; it never receives raw inputs or invokes semantic closure.
  */
 export const analyzeRouteSyncManifestDataflow = (
   manifest: RouteSyncManifestDataflowSurface,
@@ -33,15 +33,15 @@ export const analyzeRouteSyncManifestDataflow = (
   manifest.controllers.map(controller => Object.freeze({
     controller: controller.controller,
     action: controller.action,
-    analysis: analyzeSemanticDataflowInput(
+    analysis: projectClosedSemanticDataflowJudgment(
       (() => {
-        const input = sequenceToArray(manifest.dataflowInputs).find(
+        const judgment = sequenceToArray(manifest.dataflowJudgments).find(
           candidate => semanticDataflowIdentityEqual(candidate.node, controller.dataflowNode),
         );
-        if (!input) {
-          throw new Error(`Missing canonical manifest dataflow input for controller action: ${controller.controller}.${controller.action}`);
+        if (!judgment) {
+          throw new Error(`Missing upstream-closed dataflow judgment for controller action: ${controller.controller}.${controller.action}`);
         }
-        return input;
+        return judgment;
       })(),
       runtime,
     ),
@@ -49,17 +49,27 @@ export const analyzeRouteSyncManifestDataflow = (
 );
 
 /**
- * Production query-policy boundary. The caller supplies the analysis meaning
- * of source and sink; this function only applies that policy to each already
- * closed semantic-dataflow result. It never changes semantic closure.
+ * Runtime query boundary. Upstream must materialize source/sink policy contracts
+ * before calling this function. Missing or mismatched contracts fail closed;
+ * Runtime never classifies producer domains or reconstructs the policy.
  */
 export const analyzeRouteSyncManifestDataflowWithPolicy = (
   manifest: RouteSyncManifestDataflowSurface,
   runtime: SemanticDataflowRuntimeBoundary,
-  context: SemanticDataflowFactPolicyContext,
+  contracts: readonly unknown[] = manifest.dataflowQueryPolicyContracts,
 ): readonly RouteSyncControllerDataflowPolicyAnalysis[] => Object.freeze(
-  analyzeRouteSyncManifestDataflow(manifest, runtime).map(result => Object.freeze({
-    ...result,
-    policy: createSemanticDataflowAnalysisPolicy(result.analysis.interface, context),
-  })),
+  analyzeRouteSyncManifestDataflow(manifest, runtime).map(result => {
+    const matchingContracts = contracts.filter(candidate => semanticDataflowQueryPolicyMatches(candidate, result.analysis.input));
+    if (matchingContracts.length > 1) {
+      throw new Error(`Ambiguous upstream query-policy contracts for controller action: ${result.controller}.${result.action}`);
+    }
+    const contract = matchingContracts[0];
+    if (!contract) {
+      throw new Error(`Missing upstream query-policy contract for controller action: ${result.controller}.${result.action}`);
+    }
+    return Object.freeze({
+      ...result,
+      policy: createSemanticDataflowAnalysisPolicy(result.analysis.interface, contract),
+    });
+  }),
 );

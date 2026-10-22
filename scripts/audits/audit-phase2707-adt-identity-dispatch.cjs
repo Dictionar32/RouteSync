@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const sourcePath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts';
+const source = fs.readFileSync(path.join(root, sourcePath), 'utf8');
+const checks = [];
+const check = (name, pass) => { checks.push({ name, pass: Boolean(pass) }); console.log(`${pass ? 'PASS' : 'FAIL'} ${name}`); };
+const start = source.indexOf('type CanonicalRequestIdentityDispatchInterface');
+const end = source.indexOf('\nconst routeReference:', start);
+const dispatch = source.slice(start, end);
+check('request identity dispatch is a mapped ADT handler table keyed by the discriminant', /type CanonicalRequestIdentityDispatchInterface\s*=\s*\{[\s\S]*\[K in RequestIdentityKind\]/.test(dispatch));
+check('each handler input is narrowed with Extract<RequestIdentitySource, { kind: K }>', /type RequestIdentityVariant<K extends RequestIdentityKind> = Extract/.test(source));
+check('each handler output preserves the matching canonical identity variant', /type CanonicalRequestIdentityVariant<K extends RequestIdentityKind> = Extract/.test(source));
+check('HTTP handler accepts the HTTP ADT variant directly', /http_request_identity:\s*\(identity: RequestIdentityVariant<'http_request_identity'>\)/.test(dispatch));
+check('FormRequest handler accepts the FormRequest ADT variant directly', /form_request_identity:\s*\(identity: RequestIdentityVariant<'form_request_identity'>\)/.test(dispatch));
+check('dispatch handlers contain no if or switch narrowing branches', !(/\bif\s*\(|\bswitch\s*\(/.test(dispatch)));
+check('dispatch invocation uses the ADT discriminant to select the matching handler', /canonicalRequestIdentityDispatch\[identity\.kind\]\(identity\)/.test(dispatch));
+check('canonical identity operation remains wired into source evidence inventory', /canonicalRequestIdentity:\s*canonicalRequestIdentityImplementation/.test(source));
+check('legacy runtime mismatch guards are absent from this dispatch', !/identity dispatch received a different source variant/.test(dispatch));
+const failed = checks.filter(item => !item.pass);
+console.log(`\nPhase 2707 ADT dispatch audit: ${checks.length - failed.length}/${checks.length} assertions passed.`);
+console.log('SCOPE: static source assertions only; not a full typecheck or runtime test.');
+if (failed.length) process.exitCode = 1;

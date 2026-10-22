@@ -1,0 +1,60 @@
+{
+  "phase": 2158,
+  "title": "Response Descriptor Reference Contract — Historical Regression",
+  "passed": 10,
+  "total": 13,
+  "checks": [
+    {
+      "name": "descriptor reference contract is an explicit interface",
+      "passed": true
+    },
+    {
+      "name": "base descriptor extends the reference contract",
+      "passed": true
+    },
+    {
+      "name": "resource descriptor publishes declared-reference judgment",
+      "passed": true
+    },
+    {
+      "name": "model descriptor publishes declared-reference judgment",
+      "passed": true
+    },
+    {
+      "name": "inline descriptor publishes declared-reference judgment",
+      "passed": true
+    },
+    {
+      "name": "void descriptor publishes not-declared judgment",
+      "passed": true
+    },
+    {
+      "name": "action resolver consumes upstream judgment without visitor dispatch",
+      "passed": false
+    },
+    {
+      "name": "canonical return projection receives reference judgment without renaming it as response presence",
+      "passed": false
+    },
+    {
+      "name": "dataflow receives the same reference judgment",
+      "passed": false
+    },
+    {
+      "name": "action contract publishes the same reference judgment",
+      "passed": true
+    },
+    {
+      "name": "new contract is exported through domain index",
+      "passed": true
+    },
+    {
+      "name": "new contract is exported through response module",
+      "passed": true
+    },
+    {
+      "name": "legacy descriptor contract name is compatibility-only",
+      "passed": true
+    }
+  ]
+}

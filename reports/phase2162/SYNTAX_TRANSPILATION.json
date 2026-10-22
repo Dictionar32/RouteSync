@@ -1,0 +1,16 @@
+{
+  "phase": 2162,
+  "mode": "syntax-only-transpile",
+  "files": 2,
+  "diagnosticCount": 0,
+  "results": [
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts",
+      "diagnostics": []
+    }
+  ]
+}

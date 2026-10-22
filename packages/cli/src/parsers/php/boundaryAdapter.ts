@@ -10,8 +10,8 @@ import type {
     PhpVariableName, ArrayKey, PhpStatement, PhpReturnExpression, BoundLiteralValue, PhpAstSource
 } from '@routesync/core';
 import type { PhpGrammarNode, GrammarStatement } from './ast/grammar';
-import { matchPhpGrammar, type PhpGrammarVisitor } from './ast/grammarCatamorphism';
-import { matchCallee, createCalleeAstVisitor } from './ast/calleeCatamorphism';
+import { phpGrammarMatchingOperation, type PhpGrammarVisitor } from './ast/grammarCatamorphism';
+import { phpCalleeMatchingOperation, phpCalleeAstVisitorFactory } from './ast/calleeCatamorphism';
 import { phpAstBoundaryJudgment, type PhpAstBoundaryJudgment } from './astBoundarySemanticInterface';
 import { relationResolve, relationOptionFold, relationOptionalFold, relationFirst, relationFirstOption, relationEqual, relationNotEqual, relationNone, relationSome, relationAll, relationVariant, projectRelation } from '@routesync/core';
 const propertyName = (value: string): PhpPropertyName => ({ kind: 'property_name', value });
@@ -144,19 +144,18 @@ const arrayKey = (key: PhpGrammarNode | null, adapt: (node: PhpGrammarNode) => P
         value => ({ kind: 'explicit', expression: adapt(value) }),
     );
 
-export function adaptPhpAstBoundaryJudgment(node: PhpGrammarNode, code: string): PhpAstBoundaryJudgment {
+const adaptPhpAstBoundaryJudgmentImplementation = (node: PhpGrammarNode, code: string): PhpAstBoundaryJudgment => {
     const ast = adaptGrammarNode(node, code, true);
     return phpAstBoundaryJudgment(node, ast, relationEqual(ast.originalCode, code));
 }
 
-export function adaptPhpAstBoundary(node: PhpGrammarNode, code: string): PhpAstNode {
-    return adaptPhpAstBoundaryJudgment(node, code).ast;
-}
+const adaptPhpAstBoundaryImplementation = (node: PhpGrammarNode, code: string): PhpAstNode =>
+    phpAstBoundaryAdapter.adaptJudgment(node, code).ast;
 
 function adaptGrammarNode(node: PhpGrammarNode, sourceText: string, root: boolean): PhpAstNode {
     const code = relationResolve(root, () => sourceText, () => requireNodeSource(node, sourceText));
     const adaptChild = (child: PhpGrammarNode): PhpAstNode => adaptGrammarNode(child, sourceText, false);
-    const calleeVisitor = createCalleeAstVisitor(adaptChild);
+    const calleeVisitor = phpCalleeAstVisitorFactory.create(adaptChild);
     const args = (values: readonly PhpGrammarNode[]): readonly PhpArgument[] => projectRelation(values, value => ({ kind: 'positional', value: adaptChild(value) }));
 
     const visitor: PhpGrammarVisitor<PhpAstNode> = {
@@ -164,7 +163,7 @@ function adaptGrammarNode(node: PhpGrammarNode, sourceText: string, root: boolea
         nullsafepropertylookup: n => ({ kind: 'nullsafe_property_lookup', originalCode: code, source, target: adaptChild(n.what), property: propertyName(memberName(n.offset, 'property')) }),
         offsetlookup: n => ({ kind: 'offset_lookup', originalCode: code, source, target: adaptChild(n.what), offset: adaptChild(n.offset) }),
         staticlookup: n => staticLookup(n, code),
-        call: n => matchCallee(n.what, args(n.arguments), code, calleeVisitor),
+        call: n => phpCalleeMatchingOperation.match(n.what, args(n.arguments), code, calleeVisitor),
         new: n => ({ kind: 'new_instance', originalCode: code, source, className: className(classReference(n.what)), args: args(n.arguments) }),
         closure: n => ({ kind: 'closure', originalCode: code, source, parameters: projectRelation(n.arguments, parameter), captures: projectRelation(n.uses, capture), body: block(n.body, adaptChild) }),
         arrowfunc: n => ({ kind: 'arrow_func', originalCode: code, source, parameters: projectRelation(n.arguments, parameter), body: adaptChild(n.body) }),
@@ -181,7 +180,7 @@ function adaptGrammarNode(node: PhpGrammarNode, sourceText: string, root: boolea
         variable: n => ({ kind: 'variable', originalCode: code, source, name: variableName(n.name) }),
         unknown: () => ({ kind: 'unsupported', originalCode: code, source, reason: { kind: 'parser_gap' } }),
     };
-    return matchPhpGrammar(node, visitor);
+    return phpGrammarMatchingOperation.match(node, visitor);
 }
 
 function requireNodeSource(node: PhpGrammarNode, sourceText: string): string {
@@ -192,3 +191,14 @@ function requireNodeSource(node: PhpGrammarNode, sourceText: string): string {
         value => sourceText.slice(value.start.offset, value.end.offset),
     );
 }
+
+
+export interface PhpAstBoundaryAdapterInterface {
+    readonly adaptJudgment: (node: PhpGrammarNode, code: string) => PhpAstBoundaryJudgment;
+    readonly adapt: (node: PhpGrammarNode, code: string) => PhpAstNode;
+}
+
+export const phpAstBoundaryAdapter: PhpAstBoundaryAdapterInterface = Object.freeze({
+    adaptJudgment: adaptPhpAstBoundaryJudgmentImplementation,
+    adapt: adaptPhpAstBoundaryImplementation,
+});

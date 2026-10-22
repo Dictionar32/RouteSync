@@ -2,8 +2,8 @@
  * Declarative lexical character relations.
  */
 import type { TokenType } from '../PhpAst';
-import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationTextCharIn } from '../../../../semantic/foundation/relationalSequence';
+import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationTextCharIn } from '../../../../semantic/relations/relationalSequence';
 
 export const KEYWORDS = {
   true: 'TRUE',

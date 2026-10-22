@@ -1,0 +1,56 @@
+{
+  "phase": 1959,
+  "audit": "php-source-text-removal-interface-first",
+  "passed": 11,
+  "total": 12,
+  "checks": [
+    {
+      "name": "classifier contract has no PhpSourceText dependency",
+      "passed": true
+    },
+    {
+      "name": "single syntax port consumes a closed request ADT carrying typed PHP token sequences",
+      "passed": true
+    },
+    {
+      "name": "source-text value request was removed rather than renamed",
+      "passed": true
+    },
+    {
+      "name": "syntax classifier does not use overloaded classify signatures",
+      "passed": false
+    },
+    {
+      "name": "legacy source-string API tokenizes before entering typed syntax capability",
+      "passed": true
+    },
+    {
+      "name": "classifier implementation consumes token evidence",
+      "passed": true
+    },
+    {
+      "name": "semantic producer uses a closed syntax-kind ADT",
+      "passed": true
+    },
+    {
+      "name": "semantic result projects the existing semantic stage authority",
+      "passed": true
+    },
+    {
+      "name": "tokenizer output is a concrete TokenDescriptor sequence",
+      "passed": true
+    },
+    {
+      "name": "PhpSourceText remains outside the classifier contract",
+      "passed": true
+    },
+    {
+      "name": "public barrel exports strengthened syntax and semantic contracts",
+      "passed": true
+    },
+    {
+      "name": "no assertion-based escape was introduced in the classifier facade",
+      "passed": true
+    }
+  ]
+}

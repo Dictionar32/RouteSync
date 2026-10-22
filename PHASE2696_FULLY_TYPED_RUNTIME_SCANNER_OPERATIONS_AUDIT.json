@@ -1,0 +1,92 @@
+{
+  "phase": 2696,
+  "audit": "fully-typed-runtime-scanner-operations",
+  "passed": 16,
+  "total": 16,
+  "checks": [
+    {
+      "name": "Laravel attribute scanner is a named interface-typed runtime object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "attribute pipeline binds the object directly, with no exported scan function alias",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "source-AST pipeline factory has a generic interface call contract and object implementation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "manifest builder calls the interface factory object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route scanner factory is interface-typed and its runtime singleton is factory-created",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route boundary emitter operations are members of one explicit interface object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route declaration evidence adapter is an interface object and caller uses its method",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route boundary contract projection is interface-owned and used by the authority path",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route semantic-flow projection is interface-owned and consumed by scanner runtime",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route producer-input composition is interface-typed, not an untyped exported arrow",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "operation identity projection uses the typed projection object instead of an exported forwarding function",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "targeted runtime path contains no exported function declarations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "targeted runtime path contains no exported untyped arrow aliases for converted operations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI manifest operation and composition remain interface-typed runtime objects",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI scan/sync continue through the typed manifest scan operation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI program factory remains an interface-typed object",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "typecheck": "blocked-by-environment",
+  "notes": [
+    "Structural audit does not replace full TypeScript typecheck or runtime integration tests."
+  ]
+}

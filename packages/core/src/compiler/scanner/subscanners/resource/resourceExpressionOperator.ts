@@ -1,5 +1,5 @@
 import type { PhpBinaryOperator } from '../../lexer/phpAstTypes';
-import { relationFirstOption, relationOptionFold, relationEqual } from '../../../../semantic/foundation/relationalSequence';
+import { relationFirstOption, relationOptionFold, relationEqual } from '../../../../semantic/relations/relationalSequence';
 import type { SemanticOperator } from '../../../../types/domain/semanticValues';
 
 export function mapResourceBinaryOperator(kind: PhpBinaryOperator['kind']): SemanticOperator['value'] {

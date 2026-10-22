@@ -1,0 +1,14 @@
+{
+  "phase": 2153,
+  "name": "Action Judgment Publication Contract Design",
+  "kind": "source_trace_and_contract_design_audit",
+  "result": "PASS_WITH_OPEN_SEMANTIC_GAP",
+  "checks": { "passed": 12, "total": 12 },
+  "productionSourceChanged": false,
+  "openObligations": ["typed_request_binding_projection_loss", "upstream_safe_action_judgment_projection_type", "canonical_action_judgment_route_boundary_wiring"],
+  "fullBuildRun": false,
+  "typecheckRun": false,
+  "vitestRun": false,
+  "newRelationFoundationAuthority": false,
+  "newSubscanner": false
+}

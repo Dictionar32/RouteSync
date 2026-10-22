@@ -7,10 +7,10 @@ import { resolveResourceMethodInvocation, type ResourceQueryState, type Resource
 import type { ResourcePropertyPathResult, ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
 import type { PhpAstValue } from "../../lexer/PhpAst";
 import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
-import { resolveAstValueToExpression } from "../../subscanners/resource/resourceAstExpressionMapper";
+import { mapResourceAstExpression } from "../../operations/resourceAstExpressionMapper";
 import { matchLookup } from "../../../../types/upstream/collections";
-import { createPropertyName } from "../../../../types/upstream/names";
-import { relationFold, relationOptionFold, relationProject, relationResolve, relationSome, relationNone, type RelationOption } from "../../../../semantic/foundation/relationalSequence";
+import { createPropertyName, type SourceFile } from "../../../../types/upstream/names";
+import { relationFold, relationOptionFold, relationProject, relationResolve, relationSome, relationNone, type RelationOption } from "../../../../semantic/relations/relationalSequence";
 
 type Member = Extract<PhpAstValue, { kind: 'property_access' | 'method_chain' }>;
 type ResultOption = { readonly kind: 'none' } | { readonly kind: 'some'; readonly value: SemanticType };
@@ -45,11 +45,12 @@ const methodTransition = (
     current: PathState,
     table: ModelSymbolTable,
     terminal: boolean,
+    sourceFile: SourceFile,
 ): Transition => {
     const invocation = resolveResourceMethodInvocation(
         current.query,
         SemanticValueFactory.methodName(member.property),
-        relationProject(member.arguments, argument => resolveAstValueToExpression(argument.value)),
+        relationProject(member.arguments, argument => mapResourceAstExpression({ value: argument.value, sourceFile })),
     );
     return relationResolve(
         Object.is(invocation.result.kind, 'unsupported'),
@@ -174,13 +175,13 @@ const propertyTransition = (
     );
 };
 
-const MEMBER_HANDLERS: Readonly<Record<Member['kind'], (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean) => Transition>> = Object.freeze({
-    method_chain: methodTransition as (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean) => Transition,
-    property_access: propertyTransition as (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean) => Transition,
+const MEMBER_HANDLERS: Readonly<Record<Member['kind'], (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean, sourceFile: SourceFile) => Transition>> = Object.freeze({
+    method_chain: methodTransition as (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean, sourceFile: SourceFile) => Transition,
+    property_access: propertyTransition as (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean, sourceFile: SourceFile) => Transition,
 });
-const transitionMember = (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean): Transition => MEMBER_HANDLERS[member.kind](member, current, table, terminal);
+const transitionMember = (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean, sourceFile: SourceFile): Transition => MEMBER_HANDLERS[member.kind](member, current, table, terminal, sourceFile);
 
-export function resolvePropertyPath(value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable): ResourcePropertyPathResult {
+export function resolvePropertyPath(value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable, sourceFile: SourceFile): ResourcePropertyPathResult {
     const members = collectMembers(value);
     const initial: PathState = {
         model: rootModel,
@@ -191,7 +192,7 @@ export function resolvePropertyPath(value: Member, rootModel: OriginModelSymbol,
     };
     const final = relationFold(members, initial, (state, member, index) => {
         const terminal = Object.is(index, members.length - 1);
-        const transition = transitionMember(member, state, table, terminal);
+        const transition = transitionMember(member, state, table, terminal, sourceFile);
         return relationResolve(Object.is(transition.kind, 'reject'), () => ({ ...state, terminal: terminalSome(transition.result) }), () => transition.state);
     });
     return relationOptionFold(

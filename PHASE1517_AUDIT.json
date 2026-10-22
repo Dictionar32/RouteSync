@@ -1,0 +1,23 @@
+{
+  "phase": 1517,
+  "name": "family-indexed-query-interface",
+  "status": "PASS",
+  "checks": [
+    { "name": "rule obligations preserve tuple-level types", "status": "PASS" },
+    { "name": "rule declaration is indexed by its semantic family", "status": "PASS" },
+    { "name": "public declaration is a mapped closed union over rule families", "status": "PASS" },
+    { "name": "each family declaration encodes its required premises", "status": "PASS" },
+    { "name": "each family declaration encodes its required constraints", "status": "PASS" },
+    { "name": "rule authoring helper is generic over the rule identity", "status": "PASS" },
+    { "name": "public index exports the family-indexed contract", "status": "PASS" },
+    { "name": "scanner consumes upstream judgment without declaring obligations", "status": "PASS" }
+  ],
+  "typescript": {
+    "command": "tsc --noEmit --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --strict --noUnusedLocals false --noUnusedParameters false packages/core/src/types/upstream/queryProducerSemanticReasoning.ts",
+    "status": "BLOCKED_BY_PREEXISTING_REPOSITORY_DIAGNOSTICS",
+    "changed_interface_and_reasoning_files_have_diagnostics": false,
+    "note": "The command reports errors in other upstream/domain files; it emitted no diagnostics for queryProducerSemanticInterface.ts or queryProducerSemanticReasoning.ts."
+  },
+  "full_build": "NOT_RUN_DEPENDENCIES_MISSING",
+  "unit_tests": "NOT_RUN_DEPENDENCIES_MISSING"
+}

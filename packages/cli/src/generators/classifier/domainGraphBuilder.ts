@@ -15,7 +15,6 @@ import {
 import { toTypeName } from '../names';
 import type { ClassifiedRoute } from './classifierTypes';
 import { projectRoutes, buildResourceMap } from './routeGrouper';
-import { resourceGroupCapabilitiesFromRoutes } from '@routesync/core';
 import { resolveGroupErrorType, getStandardMutationKeys } from './typeResolver';
 import { buildCrudGroupDescriptor, buildCustomOrSingletonGroupDescriptor } from './builders';
 
@@ -23,7 +22,10 @@ export function buildClassifiedDomainGraph(manifest: RouteManifest): ClassifiedD
   const groupAliases = manifest.frontend && manifest.frontend.groupAliases ? manifest.frontend.groupAliases : undefined;
   const classified = projectRoutes(manifest.routes, groupAliases);
   const rawResources = buildResourceMap(classified);
-  const groupCapabilities = manifest.resourceGroupCapabilities ?? resourceGroupCapabilitiesFromRoutes(manifest.routes);
+  const groupCapabilities = manifest.resourceGroupCapabilities;
+  if (!groupCapabilities) {
+    throw new Error('Missing closed upstream ResourceGroupCapability set; refusing downstream semantic reconstruction.');
+  }
   const groupCapabilityByName = new Map(groupCapabilities.map(capability => [capability.groupName, capability]));
 
   const resourceGroups: ResourceGroupDescriptor<ClassifiedRoute>[] = [];

@@ -3,7 +3,7 @@
  * Candidate selection is a relation/constraint problem, not a source-control
  * dispatch mechanism.
  */
-import { relationFirstOption, relationOptionMap, relationOptionFold, relationProject, relationVariant, type RelationOption, type RelationVariant } from './relationalSequence';
+import { relationFirstOption, relationOptionMap, relationOptionFold, relationOptionalFold, relationProject, relationVariant, type RelationOption, type RelationVariant } from './relationalSequence';
 import { candidateAdmissible, dependency, exclusion, requirement, solveDecision, decisionCandidate, type DecisionCandidate } from './semanticDecisionEngine';
 
 export type Requirement = Readonly<{ readonly id: string; readonly satisfied: boolean }>;
@@ -19,10 +19,9 @@ export type SemanticCandidate<T> = Readonly<{
 }>;
 
 /**
- * Boundary form for declarative candidates. Omitted exclusion/dependency
- * relations denote empty relations; they are not host-language fallbacks.
- * This keeps candidate declarations concise while preserving a closed
- * semantic decision model at the solver boundary.
+ * Input form for declarative candidates. Missing exclusion/dependency
+ * relations are normalized to empty relations through the optional-value
+ * algebra before entering the closed semantic decision model.
  */
 export type SemanticCandidateInput<T> = Readonly<{
   readonly id: string;
@@ -32,12 +31,18 @@ export type SemanticCandidateInput<T> = Readonly<{
   readonly dependencies?: readonly Dependency[];
 }>;
 
+const optionalRelations = <T>(value: readonly T[] | void): readonly T[] => relationOptionalFold(
+  value,
+  () => [],
+  relations => relations,
+);
+
 const canonical = <T>(candidate: SemanticCandidateInput<T>): DecisionCandidate<T> => decisionCandidate(
   candidate.id,
   candidate.value,
   relationProject(candidate.requirements, item => requirement(item.id, item.satisfied)),
-  relationProject(candidate.exclusions ?? [], item => exclusion(item.id, item.active)),
-  relationProject(candidate.dependencies ?? [], item => dependency(item.id, item.available)),
+  relationProject(optionalRelations(candidate.exclusions), item => exclusion(item.id, item.active)),
+  relationProject(optionalRelations(candidate.dependencies), item => dependency(item.id, item.available)),
 );
 
 export const candidateSatisfies = <T>(candidate: SemanticCandidateInput<T>): boolean => candidateAdmissible(canonical(candidate));
@@ -88,7 +93,7 @@ export const variantRewriteCandidate = <T extends { readonly kind: string }, K e
   dependencies: candidate.dependencies,
   rewrite: () => relationOptionFold(
     relationVariant(candidate.subject, candidate.variant),
-    () => { throw Error(`Missing refinement witness for ${candidate.id}`); },
+    () => { throw Error(`No refinement witness: ${candidate.id}`); },
     candidate.rewrite,
   ),
 });
@@ -119,8 +124,8 @@ export const solveOptionalCandidate = <T>(candidates: readonly OptionalSemanticC
     candidate.id,
     candidate.value,
     relationProject(candidate.requirements, item => requirement(item.id, item.satisfied)),
-    relationProject(candidate.exclusions ?? [], item => exclusion(item.id, item.active)),
-    relationProject(candidate.dependencies ?? [], item => dependency(item.id, item.available)),
+    relationProject(optionalRelations(candidate.exclusions), item => exclusion(item.id, item.active)),
+    relationProject(optionalRelations(candidate.dependencies), item => dependency(item.id, item.available)),
   )));
   return relationOptionFold(selected, () => ({ kind: 'none' }), witness => witness.value);
 };

@@ -1,0 +1,33 @@
+{
+  "phase": 2056,
+  "title": "Controller Model-Origin Closed Judgment Interface First",
+  "result": "structural-audits-passed",
+  "changes": [
+    "ControllerResourceModelOriginEvidence carries typed ControllerStaticCallOriginInput instead of a nested static-call judgment.",
+    "ControllerResourceBindingAuthorityInterface exposes judgeModelOrigin returning resolved, missing, or unresolved closed judgment.",
+    "The existing resource binding authority composes the existing static-call origin authority upstream.",
+    "Scanner evidence projection no longer invokes controllerStaticCallOriginAuthority directly.",
+    "Resource binding consumes one closed model-origin judgment and retains canonical ControllerResponse correlation."
+  ],
+  "checks": {
+    "selectedAuditScriptsPassed": 11,
+    "selectedAuditScriptsTotal": 11,
+    "selectedAuditChecksPassed": 117,
+    "selectedAuditChecksTotal": 117,
+    "typescriptParserOnlyFilesPassed": 4,
+    "typescriptParserOnlyDiagnostics": 0,
+    "packageJsonParse": "passed",
+    "zipIntegrity": "checked-after-archive"
+  },
+  "notRun": [
+    "full TypeScript typecheck",
+    "build",
+    "Vitest execution"
+  ],
+  "architectureConstraints": [
+    "no relation/foundation subscanner added",
+    "no parallel resource-binding authority added",
+    "invocation and integrated-response authorities unchanged",
+    "existing AST classification rule algebra retained"
+  ]
+}

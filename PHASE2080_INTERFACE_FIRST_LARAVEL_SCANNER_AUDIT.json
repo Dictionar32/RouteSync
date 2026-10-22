@@ -1,0 +1,25 @@
+{
+  "phase": 2080,
+  "kind": "interface_first_laravel_scanner_source_trace",
+  "production_source_changed": false,
+  "folder_moves": false,
+  "parallel_interfaces_added": false,
+  "trace": {
+    "invocation_discriminated_union": "present in prior source; preserve as canonical judgment",
+    "declaration_selection_adt": "present; authority still performs imperative semantic decisions",
+    "action_closed_judgment": "missing at resolveControllerActionContract boundary",
+    "integrated_response": "existing owner; preserve",
+    "ast_projection": "existing owner; preserve correlation",
+    "scanner_executor_only": false,
+    "scanner_relation_free": false,
+    "controller_subscanner_free": false,
+    "runtime_semantic_helpers_free": false
+  },
+  "verification": {
+    "source_trace": "performed against Phase 2079 archive",
+    "build": "not_run",
+    "typecheck": "not_run",
+    "vitest": "not_run"
+  },
+  "verdict": "trace_and_migration_specification_only"
+}

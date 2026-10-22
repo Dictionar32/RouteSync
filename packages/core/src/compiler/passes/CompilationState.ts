@@ -16,7 +16,7 @@ import {
     relationResolve,
     type RelationIndex,
     type RelationOption,
-} from '../../semantic/foundation/relationalSequence';
+} from '../../semantic/relations/relationalSequence';
 
 export type CompilationState = Readonly<{
     readonly artifacts: RelationIndex<ArtifactKey, ArtifactRegistry[ArtifactKey]>;

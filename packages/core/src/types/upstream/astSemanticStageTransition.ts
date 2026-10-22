@@ -1,8 +1,8 @@
 /** Closed AST semantic transition algebra. */
 import type { AstSemanticPreservationRelation, AstSemanticStage, AstSemanticStageContract } from './astSemanticStageInterface';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
-import { relationOptionFold, relationResolve, relationVariantFold, type RelationOption, type RelationVariant } from '../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../semantic/relations/semanticRelations';
+import { relationOptionFold, relationResolve, relationVariantFold, type RelationOption, type RelationVariant } from '../../semantic/relations/relationalSequence';
 
 export type AstSemanticTransitionRelation =
   | 'observe_to_map'

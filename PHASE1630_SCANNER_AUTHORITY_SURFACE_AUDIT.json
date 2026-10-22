@@ -1,0 +1,40 @@
+{
+  "phase": 1630,
+  "title": "Scanner authority surface and executor proliferation boundary",
+  "checks": [
+    {
+      "name": "scanner-facade-does-not-export-concrete-authority",
+      "passed": true,
+      "detail": "Concrete upstream authority is not re-exported through the scanner facade."
+    },
+    {
+      "name": "scanner-facade-does-not-export-runtime-factory",
+      "passed": true,
+      "detail": "Scanner consumers cannot instantiate a parallel executor through the compatibility facade."
+    },
+    {
+      "name": "canonical-runtime-delegates-through-authority-contract",
+      "passed": true,
+      "detail": "Runtime is a composition adapter; semantic decisions remain on the injected authority contract."
+    },
+    {
+      "name": "canonical-authority-owns-solver-entrypoints",
+      "passed": true,
+      "detail": "The scanner facade does not implement or invoke the solver directly."
+    },
+    {
+      "name": "no-production-factory-import-from-scanner-facade",
+      "passed": true,
+      "detail": "0 production consumers import executor factories from the scanner facade."
+    },
+    {
+      "name": "direct-solver-calls-are-inventoried",
+      "passed": true,
+      "detail": "0 scanner production files still contain direct solver calls; inspect inventory rather than assuming zero."
+    }
+  ],
+  "directSolverFiles": [],
+  "factoryImportsFromScannerFacade": [],
+  "passed": 6,
+  "total": 6
+}

@@ -10,7 +10,6 @@ import {
 export {
   pushUnique,
   addRouteInvalidations,
-  toNormalizedActionKey,
   lowerGroupCacheLines,
   lowerGroupHookConfig,
   lowerRuntimeManifestSource,

@@ -1,0 +1,24 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const checks = [];
+const assert = (label, condition) => checks.push({ label, passed: Boolean(condition) });
+const contract = read('packages/core/src/types/upstream/requestTypeDerivationInterface.ts');
+const inventory = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationResourceResolutionInventory.ts');
+const assessment = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationResourceResolutionAssessment.ts');
+const solver = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+assert('resource resolution ADT records route/binding identity mismatch', /kind: 'identity_mismatch'[\s\S]*?routeResourceName[\s\S]*?bindingResourceName/.test(contract));
+assert('FormRequest preflight compares canonical route and binding resource identities', /canonicalResourceIdentity\(route\.identity\.domain\.resource\)[\s\S]*?canonicalResourceIdentity\(requestBinding\.identity\.resource\)[\s\S]*?identity_mismatch/.test(inventory));
+assert('resource lookup uses the binding resource identity used by RequestType grouping', /resourceName: requestBinding\.identity\.resource/.test(inventory));
+assert('assessment classifies identity mismatch as conflict', /receipt\.resolution\.kind === 'identity_mismatch'/.test(assessment) && /kind: 'conflict'[\s\S]*?conflicts/.test(contract));
+assert('grouping key consumes the upstream resolved canonical resource identity', /receipt\.resolution\.resource\.canonicalIdentity\.semanticKey/.test(solver) && /resolvedResourceGroupKey\(ctx, route\)/.test(solver));
+assert('CLI scan gates projection on resource assessment', scan.indexOf('resourceAssessment.kind') < scan.indexOf('projectRouteSyncManifestForRouteManifest(completeManifest, requestResolutionPreflight)'));
+assert('CLI sync gates projection on resource assessment', sync.indexOf('resourceAssessment.kind') < sync.indexOf('projectRouteSyncManifestForRouteManifest(completeManifest, requestResolutionPreflight)'));
+assert('new identity-alignment path avoids foundation and relations', !/semantic\/foundation|semantic\/relations/.test(inventory + assessment));
+let failed = 0;
+for (const check of checks) { console.log(`${check.passed ? 'PASS' : 'FAIL'} ${check.label}`); if (!check.passed) failed += 1; }
+console.log(`RESULT ${checks.length - failed}/${checks.length} checks passed`);
+process.exitCode = failed === 0 ? 0 : 1;

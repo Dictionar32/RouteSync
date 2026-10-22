@@ -1,0 +1,124 @@
+{
+  "phase": 2676,
+  "title": "CLI Manifest Upstream Identity Gate",
+  "kind": "structural_source_audit",
+  "status": "passed_with_runtime_gaps",
+  "audits": [
+    {
+      "script": "scripts/audits/audit-phase2657-cli-manifest-upstream-source-path.cjs",
+      "passed": 17,
+      "total": 17,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2659-identity-conflict-policy-alignment.cjs",
+      "passed": 14,
+      "total": 14,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2660-resource-resolution-conflict-witnesses.cjs",
+      "passed": 10,
+      "total": 10,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2661-cli-composition-fail-closed.cjs",
+      "passed": 5,
+      "total": 5,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2663-cli-composition-required.cjs",
+      "passed": 10,
+      "total": 10,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2664-semantic-group-fold-source-wiring.cjs",
+      "passed": 11,
+      "total": 11,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2665-cli-manifest-upstream-source-path.cjs",
+      "passed": 9,
+      "total": 9,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2666-assessment-witness-closure.cjs",
+      "passed": 8,
+      "total": 8,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2667-receipt-derived-closure.cjs",
+      "passed": 6,
+      "total": 6,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2668-mixed-outcome-contribution-ledger.cjs",
+      "passed": 8,
+      "total": 8,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2670-source-bound-incoming-receipts.cjs",
+      "passed": 10,
+      "total": 10,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2671-ast-contribution-replay.cjs",
+      "passed": 12,
+      "total": 12,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2672-resource-group-identity.cjs",
+      "passed": 19,
+      "total": 19,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2673-conflict-group-closure.cjs",
+      "passed": 12,
+      "total": 12,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2674-conflict-inventory-closure.cjs",
+      "passed": 17,
+      "total": 17,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2675-inventory-ast-closure.cjs",
+      "passed": 20,
+      "total": 20,
+      "status": "passed"
+    },
+    {
+      "script": "scripts/audits/audit-phase2676-cli-manifest-upstream-identity-gate.cjs",
+      "passed": 20,
+      "total": 20,
+      "status": "passed"
+    }
+  ],
+  "passed_assertions": 208,
+  "total_assertions": 208,
+  "implementation": [
+    "Proof verifier now validates prepared inventory identity against raw AST before dispatching any judgment kind.",
+    "Inventory mismatch raises RequestTypeDerivationSemanticProducerGapError at verification stage.",
+    "Fixed literal escaped newline in verifier import list.",
+    "Updated stale Phase 2657, 2659, and 2664 structural audit predicates to match current source implementation."
+  ],
+  "limitations": [
+    "Structural source assertions do not prove TypeScript compilation or runtime correctness.",
+    "Vitest and tsc binaries are absent from node_modules.",
+    "examples/ecommerce-shop-source/vendor/autoload.php is absent, so Laravel runtime scan/sync was not executed.",
+    "The full canonical semantic law set remains verification_incomplete; end-to-end scan/sync remains unproven."
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "phase": 2338,
+  "focus": "existing upstream policy input contract before scanner runtime wiring",
+  "contract": "packages/core/src/types/upstream/effectiveControllerActionPolicy.ts#EffectiveControllerActionPolicyUpstreamInput",
+  "changes": [
+    "policy evidence required",
+    "inheritance lineage required",
+    "source provenance required",
+    "removed empty-collection fallbacks from the existing upstream resolver",
+    "updated all seven existing resolver call sites to supply evidence explicitly",
+    "no duplicate V2 interface added"
+  ],
+  "staticAudit": {
+    "passed": 9,
+    "total": 9,
+    "command": "node scripts/audits/audit-phase2338-policy-input-contract.cjs"
+  },
+  "syntaxAudit": {
+    "passed": true,
+    "command": "node --check scripts/audits/audit-phase2338-policy-input-contract.cjs"
+  },
+  "notRun": ["TypeScript typecheck", "Vitest", "CLI end-to-end", "npm run build"],
+  "remaining": [
+    "decide whether controller policy evidence needs an explicit inventory-completeness ADT",
+    "trace the existing Laravel route scanner policy judgment through AST and manifest projection",
+    "audit remaining semantic/relations imports and legacy route subscanner reachability"
+  ]
+}

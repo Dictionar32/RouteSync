@@ -7,8 +7,8 @@
  */
 
 import type { RouteParameter } from '../../../../types/upstream/route';
-import { relationFirst, relationOptionalFold } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationFirst, relationOptionalFold } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export function compileBroadcastRuntimePattern(
   pattern: string,

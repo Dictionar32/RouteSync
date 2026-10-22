@@ -8,7 +8,10 @@
  * this boundary.
  */
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
+import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
 import type { PhpStatement, PhpAssignmentTarget } from "../../lexer/phpAstTypes";
+import type { PhpMethodAst } from "../../lexer/phpMethodAstTypes";
+import type { PhpClassPropertyAst } from "../../lexer/phpAstDeclarationTypes";
 import type { PhpArrayEntry, PhpAstValue, PhpArrayKey } from "../../lexer/PhpAst";
 import { createDomainAstJudgment, type ResourceAst } from "../../../../types/upstream/ast";
 import type {
@@ -27,18 +30,24 @@ import type { Expression } from "../../../../types/upstream/expression";
 import type { SourceSpan } from "../../../../types/upstream/provenance";
 import type { PropertyDefinition } from "../../../../types/upstream/property";
 import type { Assignment } from "../../../../types/upstream/assignment";
-import type { ResourceName, SourceFile, PropertyName, VariableName, ClassName } from "../../../../types/upstream/names";
+import { type ResourceName, type SourceFile, type PropertyName, type VariableName, type ClassName } from "../../../../types/upstream/names";
 import type { ModelReference, ResourceReference, ResponseReference } from "../../../../types/upstream/semanticReferences";
 import type { TruthValue, StringValue } from "../../../../types/upstream/valueObjects";
 import type { ResourceWrapping } from "../../../../types/upstream/resource";
-import { produceResourceField } from "../../subscanners/resource/resourceFieldProducer";
-import { mapResourcePhpStatementsToSourceStatements } from "../../subscanners/resource/resourceUpstreamExpressionCanonical";
-import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode, sourceSpanFromRange } from "../../subscanners/resource/resourceUpstreamExpressionMappings";
+import { resourceProducer } from "../../operations/resourceProducer";
+import type { ResourceProducerInterface, ResourceFieldProducerInput } from "../../../../types/upstream/resourceProducerInterface";
+import type { ResourceDefinitionBindingInput, ResourceDefinitionBindingOperationInterface } from "../../../../types/upstream/resourceDefinitionBindingInterface";
+import type { ResourceModelKnowledgeDataFlow } from "../../../../types/upstream/resourceModelKnowledgeDataFlowInterface";
+type ResourceProducerOperations = ResourceProducerInterface<PhpArrayEntry, PhpStatement, PhpMethodAst, PhpClassPropertyAst, PhpAstValue, OriginModelSymbol>;
+type ResourceDefinitionBindingParameters = ResourceDefinitionBindingInput<PhpArrayEntry, PhpStatement, PhpMethodAst, ModelSymbolTable, ResourceModelKnowledgeDataFlow>;
+type ResourceDefinitionBindingOperation = ResourceDefinitionBindingOperationInterface<ResourceDefinitionBindingParameters>;
+import { projectPhpStatementsToSourceStatements } from "../../lexer/routeAst/phpAstExpressionSemanticAuthority";
+import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode, sourceSpanFromRange } from "../../lexer/routeAst/phpAstExpressionMappings";
 import { ResourceModelResolver } from "../../resolvers/resource/ResourceModelResolver";
 import { matchResourceModelBinding } from "../../symbols/resource/resourceBindingTypes";
-import { relationEqual, relationGate } from "../../../../semantic/foundation/semanticRelations";
-import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from "../../../../semantic/foundation/relationalSequence";
-import { resolveAstValueToExpression } from "../../subscanners/resource/resourceAstExpressionMapper";
+import { relationEqual, relationGate } from "../../../../semantic/relations/semanticRelations";
+import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from "../../../../semantic/relations/relationalSequence";
+import { mapResourceAstExpression } from "../../operations/resourceAstExpressionMapper";
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const truthValue = (value: boolean): TruthValue => ({ kind: 'truth_value', value });
@@ -85,11 +94,11 @@ const fieldFromEntry = (
     entry: PhpArrayEntry,
     file: string,
     resource: string,
-    model: Parameters<typeof produceResourceField>[4],
+    model: ResourceFieldProducerInput<PhpAstValue, OriginModelSymbol>["model"],
 ): readonly ResourceField[] => relationOptionFold(
     keyedEntry(entry),
     () => [],
-    keyed => [produceResourceField(stringArrayKey(keyed.key), keyed.value, file, resource, model)],
+    keyed => [resourceProducer.produceField({ entryKey: stringArrayKey(keyed.key), value: keyed.value, file, resource, model })],
 );
 
 const operationFromField = (field: ResourceField): readonly ResourceOperation[] => relationOptionFold(
@@ -109,11 +118,11 @@ const assignmentFromStatement = (
         () => [],
         target => {
             const source = sourceSpanFromRange(sourceFile, assignment.source);
-            const mapped = resolveAstValueToExpression(assignment.value, sourceFile.value.value);
+            const mapped = mapResourceAstExpression({ value: assignment.value, sourceFile });
             const expression: Expression = mapped.upstream;
             return [{
                 kind: 'assignment',
-                target: resolveAssignmentTarget(target, (value, file) => resolveAstValueToExpression(value, file).upstream, sourceFile.value.value),
+                target: resolveAssignmentTarget(target, value => mapResourceAstExpression({ value, sourceFile }).upstream, sourceFile.value.value),
                 expression,
                 operator: resolveAssignmentOperator(assignment.operator.kind),
                 reference: assignmentReferenceMode(assignment.reference.kind),
@@ -123,15 +132,8 @@ const assignmentFromStatement = (
     ),
 );
 
-export function buildResourceField(
-    entryKey: string,
-    value: PhpAstValue,
-    file: string,
-    resource: string,
-    model: Parameters<typeof produceResourceField>[4],
-): ResourceField {
-    return produceResourceField(entryKey, value, file, resource, model);
-}
+export const buildResourceField: ResourceProducerOperations['produceField'] = input =>
+    resourceProducer.produceField(input);
 
 const resourceProperty = (field: ResourceField, source: SourceSpan): PropertyDefinition => ({
     kind: 'property',
@@ -149,19 +151,7 @@ const resourceProperty = (field: ResourceField, source: SourceSpan): PropertyDef
     source,
 });
 
-export function bindResourceDefinition(params: {
-    readonly resourceName: ResourceName;
-    readonly entries: readonly PhpArrayEntry[];
-    readonly source: SourceSpan;
-    readonly modelSymbolTable: ModelSymbolTable;
-    readonly knowledgeDataFlow?: import('../../subscanners/resource/resourceModelKnowledgeDataFlow').ResourceModelKnowledgeDataFlow;
-    readonly assignments?: readonly PhpStatement[];
-    readonly method: import('../../lexer/phpMethodAstTypes').PhpMethodAst;
-    readonly baseClass: ClassName;
-    readonly wrapping: ResourceWrapping;
-    readonly requestParameter: VariableName;
-    readonly documentationMixins: readonly import('../../../../types/upstream/semanticReferences').ModelReference[];
-}): ResourceAst {
+export const bindResourceDefinition: ResourceDefinitionBindingOperation = (params: ResourceDefinitionBindingParameters): ResourceAst => {
     const { resourceName, entries, source, modelSymbolTable, knowledgeDataFlow, assignments = [], method, baseClass, wrapping, requestParameter, documentationMixins } = params;
     const sourceFile: SourceFile = source.file;
     const fieldNames = relationExpand(entries, entry => relationOptionFold(
@@ -195,7 +185,7 @@ export function bindResourceDefinition(params: {
                 visibility: { kind: 'public' },
                 request: { kind: 'request_parameter_declared', parameter: requestParameter },
                 returnType: { kind: 'array', element: { kind: 'mixed' } },
-                body: mapResourcePhpStatementsToSourceStatements(method.body, sourceFile.value.value),
+                body: projectPhpStatementsToSourceStatements(method.body, sourceFile.value.value),
                 source,
             };
             const inheritance: ResourceInheritance = { kind: 'resource_inheritance', base: baseClass, source };
@@ -261,10 +251,7 @@ export function bindResourceDefinition(params: {
     });
 }
 
-export function requireVariableTargetName(target: PhpAssignmentTarget): string {
-    return relationOptionFold(variableTarget(target), () => { throw Error('Expected a variable assignment target at the Resource boundary'); }, value => value.name);
-}
+export const requireVariableTargetName = (target: PhpAssignmentTarget): string =>
+    relationOptionFold(variableTarget(target), () => { throw Error('Expected a variable assignment target at the Resource boundary'); }, value => value.name);
 
-export function requireStringArrayKey(key: PhpArrayKey): string {
-    return stringArrayKey(key);
-}
+export const requireStringArrayKey = (key: PhpArrayKey): string => stringArrayKey(key);

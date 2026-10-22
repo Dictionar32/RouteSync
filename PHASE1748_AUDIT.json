@@ -1,0 +1,115 @@
+{
+  "phase": 1748,
+  "title": "Channel Semantic Judgment Interface-First Contract",
+  "status": "FAIL",
+  "passed": 15,
+  "total": 20,
+  "checks": [
+    {
+      "name": "channel declaration evidence retains canonical channel identity and source span",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "client subscription is modeled as source-backed evidence",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel kind judgment is a closed resolved/unresolved/ambiguous ADT",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "unresolved channel kind has an explicit no-subscription-evidence reason",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "ambiguous channel kind requires at least two candidates",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel semantic authority is an explicit closed upstream interface",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "authority contract forbids deriving kind from channel-name heuristics",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "semantic judgment contract version is advanced",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "semantic judgment contract documents evidence-only channel classification",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel scanner interface version is advanced to v3",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "channel scan input injects classification authority rather than hiding it in scanner",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel scan input carries source-backed subscription evidence",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel scan artifact correlates declaration, AST, and judgment",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "migration contract truthfully discloses current heuristic runtime",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "migration contract defines the required authority cutover",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "current runtime heuristic remains explicitly identified as an open gap",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "new migration contract is exported from package public surface",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "audit script is registered in package scripts",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "no semantic/foundation dependency introduced in new interface",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "no production wiring is falsely claimed by the migration contract",
+      "passed": true,
+      "finding": ""
+    }
+  ],
+  "implementationStatus": {
+    "interfaceContract": "implemented",
+    "authorityImplementation": "not-implemented",
+    "scannerWiring": "not-implemented",
+    "reason": "ChannelScanner currently guesses public/private/presence from pattern text; client subscription evidence is not yet collected by the Laravel source pipeline."
+  }
+}

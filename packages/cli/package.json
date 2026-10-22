@@ -26,6 +26,12 @@
     "access": "public"
   },
   "scripts": {
-    "audit:phase836-production-semantic-pass-isolation": "node ../../scripts/audit-phase836-production-semantic-pass-isolation.cjs"
+    "audit:phase836-production-semantic-pass-isolation": "node ../../scripts/audit-phase836-production-semantic-pass-isolation.cjs",
+    "audit:phase2620-upstream-manifest-interface-export": "node scripts/audits/audit-phase2620-upstream-manifest-interface-export.cjs",
+    "audit:phase2621-upstream-manifest-authority-identity": "node scripts/audits/audit-phase2621-upstream-manifest-authority-identity.cjs",
+    "audit:phase2622-upstream-source-model-operation": "node scripts/audits/audit-phase2622-upstream-source-model-operation.cjs",
+    "audit:phase2624-upstream-source-model-sequence-authority": "node scripts/audits/audit-phase2624-upstream-source-model-sequence-authority.cjs",
+    "audit:phase2625-controller-action-identity-ambiguity": "node ../../scripts/audits/audit-phase2625-controller-action-identity-ambiguity.cjs",
+    "audit:phase2626-source-model-policy-inventory-closure": "node ../../scripts/audits/audit-phase2626-source-model-policy-inventory-closure.cjs"
   }
 }

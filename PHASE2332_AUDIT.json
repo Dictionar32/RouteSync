@@ -1,0 +1,31 @@
+{
+  "phase": 2332,
+  "name": "authorization-judgment-upstream-flow",
+  "status": "static-contract-audit-passed",
+  "checks": 10,
+  "contractVersion": 10,
+  "changedExistingContracts": [
+    "LaravelRouteScannerInterface",
+    "LaravelRouteScanArtifact.flow via RouteSemanticFlow",
+    "RouteBoundaryOptions",
+    "ResolvedRouteBoundaryOptions",
+    "RouteBoundaryContract",
+    "RouteSemanticFlow"
+  ],
+  "preservedJudgment": "LaravelRouteAuthorizationSemanticJudgment",
+  "verification": {
+    "staticAudit": "PASS 10/10",
+    "previousPhaseStaticAudit": "PASS 7/7",
+    "zipIntegrity": "pending packaging",
+    "typescriptBuild": "not run",
+    "vitest": "not run",
+    "cliIntegration": "not run",
+    "npmRunBuild": "not run per project workflow"
+  },
+  "remainingBoundaries": [
+    "auth:boolean remains as a lossy projection in route emission/boundary/AST paths",
+    "semantic/relations imports remain in route scanner and boundary resolver path",
+    "legacy subscanner path remains and requires reachability proof before retirement",
+    "route declaration middleware judgment is not a complete effective controller/action authorization policy"
+  ]
+}

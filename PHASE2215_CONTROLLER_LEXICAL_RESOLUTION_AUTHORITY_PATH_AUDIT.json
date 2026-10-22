@@ -1,0 +1,30 @@
+{
+  "phase": 2215,
+  "title": "Controller Lexical Resolution Authority Path",
+  "baseline": "RouteSync-Phase2214-Response-Product-Correlation-Cutover-Guard.zip",
+  "finding": "LaravelControllerScannerExecutor referenced classNameResolutionAuthority through a dependency object that does not declare that property.",
+  "change": "Scanner now reaches the existing PhpClassNameResolutionRuleInterface through the already-declared dtoTypeReferenceBindingAuthority dependency.",
+  "verified": {
+    "sourcePathCorrected": true,
+    "noParallelAuthorityAdded": true,
+    "testAdded": true,
+    "zipIntegrity": "passed-after-packaging",
+    "typescriptSyntax": "4/4 changed-or-reviewed TypeScript files transpiled without diagnostics",
+    "structuralAssertions": "5/5 passed"
+  },
+  "notCompleted": [
+    "full typecheck",
+    "full Vitest suite",
+    "package build",
+    "legacy scanControllerAction derivation retirement",
+    "action-level response product compatibility projection",
+    "semantic/relations call-site trace closure",
+    "channel client-subscription evidence closure"
+  ],
+  "architectureConstraints": {
+    "newSemanticAuthority": false,
+    "semanticFoundationLayerAdded": false,
+    "replacementRelationLayerAdded": false,
+    "subscannerAdded": false
+  }
+}

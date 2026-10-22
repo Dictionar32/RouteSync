@@ -1,0 +1,137 @@
+{
+  "phase": 1749,
+  "title": "Upstream Interface-First Subscanner Retirement and Source-Bound Channel Judgment",
+  "status": "FAIL",
+  "passed": 19,
+  "total": 24,
+  "checks": [
+    {
+      "name": "retirement target explicitly excludes a permanent subscanner layer",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "directory deletion is gated by zero production consumers and audit",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "route facade has an upstream interface and authority owner",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "controller facade retirement targets integrated response composition",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "model facade retirement has an explicit upstream boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "FormRequest facade retirement has an explicit upstream boundary",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "resource facade retirement delegates model binding to upstream authority",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel facade retirement delegates kind judgment to upstream authority",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "retirement contract includes all six named subscanner domains",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "retirement contract is exported from the public core surface",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "channel source declaration AST has no semantic kind field",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "source declaration AST retains source span",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "resolved channel artifact is the only artifact carrying canonical ChannelAst",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "unresolved channel artifact preserves source AST and judgment without canonical semantic AST",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "ambiguous channel artifact preserves source AST and judgment without canonical semantic AST",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel scan contract is advanced to v4",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel migration contract explicitly requires eventual deletion",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "global semantic judgment contract advances to v4",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "global judgment contract says canonical channel AST only exists after resolved judgment",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "legacy source pipeline still imports subscanner facades, accurately leaving migration open",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "current channel runtime still contains heuristic classification, so no false cutover claim",
+      "passed": true,
+      "finding": ""
+    },
+    {
+      "name": "channel interface does not claim runtime implementation is complete",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "new interface contracts avoid semantic/foundation dependency",
+      "passed": false,
+      "finding": ""
+    },
+    {
+      "name": "audit script registered in package scripts",
+      "passed": true,
+      "finding": ""
+    }
+  ],
+  "implementationStatus": {
+    "upstreamContract": "implemented",
+    "channelSourceAstContract": "implemented",
+    "productionSubscannerRetirement": "not-yet-complete",
+    "channelAuthorityImplementationAndWiring": "not-yet-complete",
+    "currentProductionConsumers": "legacy-subscanner-facades-remain-in-laravel-source-ast-pipeline",
+    "reason": "Interface-first contract now defines deletion as the terminal state and prevents unresolved or ambiguous channel judgments from pretending to be canonical channel ASTs; consumer migration and authority wiring remain open."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "phase": 2341,
+  "title": "Existing Policy Contract Upstream Ownership",
+  "focus": "existing upstream interfaces, ADT, semantic authority, runtime executor, Laravel scanner contract",
+  "contractChanges": [
+    "EffectiveControllerActionPolicyUpstreamInput now requires typed policyCatalog evidence",
+    "EffectiveControllerActionPolicyCatalogEntry is owned by upstream policy contract",
+    "Canonical upstream resolver closes inherited class-scope policy and excludes inherited method-scope policy",
+    "Existing semantic authority and runtime executor contracts evolved to version 3",
+    "LaravelRouteScannerInterface now requires the canonical policy runtime executor; contractVersion 14",
+    "Laravel scanner wiring delegates effective policy judgment to the injected executor"
+  ],
+  "staticAudit": { "passed": 12, "total": 12 },
+  "regressionTestAdded": "effective-route-action-policy.phase928.test.ts: inherits class policy but never leaks an ancestor method-only policy",
+  "notRun": ["Vitest", "TypeScript typecheck", "package build", "CLI end-to-end", "npm run build"],
+  "knownOpenIssues": [
+    "Policy catalog is currently action-derived; inherited ancestors without published actions need a closed completeness judgment",
+    "Source-model consumers call the same upstream resolver directly rather than through the runtime executor interface",
+    "Broader scanner wiring still has semantic/relations imports",
+    "AST/manifest/CLI end-to-end preservation is not verified"
+  ]
+}

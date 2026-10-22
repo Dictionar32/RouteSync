@@ -397,10 +397,10 @@ export type AstJudgmentVisitor<R> = {
 };
 
 /** Closed eliminator for the AST judgment algebra. */
-export const matchAstJudgment = <R>(judgment: AstJudgment, visitor: AstJudgmentVisitor<R>): R => {
-  const handlers = visitor as Readonly<Record<AstSemanticSchemaKind, (value: AstJudgment) => R>>;
-  return handlers[judgment.kind](judgment);
-};
+export const matchAstJudgment = <Kind extends AstSemanticSchemaKind, R>(
+  judgment: SemanticAstNode<Kind>,
+  visitor: AstJudgmentVisitor<R>,
+): R => visitor[judgment.kind](judgment);
 
 
 /** Narrowing projection from the SSOT judgment ADT; not an independent model. */

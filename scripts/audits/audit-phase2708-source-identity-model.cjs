@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = p => fs.readFileSync(path.join(root, p), 'utf8');
+const checks = [];
+const check = (name, pass) => { checks.push({ name, pass: Boolean(pass) }); console.log(`${pass ? 'PASS' : 'FAIL'} ${name}`); };
+const equivalencePath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeCanonicalResourceIdentityEquivalence.ts';
+const equivalence = read(equivalencePath);
+const resolutionPath = 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationResourceResolutionInventory.ts';
+const resolution = read(resolutionPath);
+const test = read('packages/core/src/compiler/semantic/request-type-derivation/__test__/requestTypeCanonicalResourceIdentityEquivalence.phase2708.test.ts');
+check('resource identity equivalence is an explicit interface contract', /interface RequestTypeCanonicalResourceIdentityEquivalenceInterface/.test(equivalence));
+check('operation is an interface-typed immutable object, not an exported function declaration', /export const requestTypeCanonicalResourceIdentityEquivalence:\s*RequestTypeCanonicalResourceIdentityEquivalenceInterface\s*=\s*Object\.freeze\(\{/.test(equivalence) && !/export\s+function\s+/.test(equivalence));
+check('equivalence compares canonical domain values rather than semanticKey serialization', /left\.canonicalName\.value\.value\s*===\s*right\.canonicalName\.value\.value/.test(equivalence) && !/left\.semanticKey|right\.semanticKey/.test(equivalence));
+check('runtime resource resolution consumes the typed equivalence operation', /requestTypeCanonicalResourceIdentityEquivalence\.equivalent\(routeResourceIdentity, bindingResourceIdentity\)/.test(resolution));
+check('resource resolution no longer compares semanticKey strings for identity matching', !/routeResourceIdentity\.semanticKey\s*!==?\s*bindingResourceIdentity\.semanticKey/.test(resolution));
+check('regression test covers different key encodings for equal identity', /sameIdentityWithDifferentEvidenceEncoding/.test(test));
+check('regression test covers same key encoding for different identity', /semanticKey:\s*first\.semanticKey/.test(test));
+const failed = checks.filter(item => !item.pass);
+console.log(`\nPhase 2708 source identity model audit: ${checks.length - failed.length}/${checks.length} assertions passed.`);
+console.log('SCOPE: static source assertions only; run typecheck and Vitest separately. This is not a whole-repository identity migration.');
+if (failed.length) process.exitCode = 1;

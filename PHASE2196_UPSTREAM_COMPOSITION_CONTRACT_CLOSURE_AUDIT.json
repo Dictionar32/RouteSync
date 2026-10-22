@@ -1,0 +1,32 @@
+{
+  "phase": 2196,
+  "title": "Upstream Composition Contract Closure",
+  "scope": [
+    "upstream response pipeline interface",
+    "Laravel scanner public interface",
+    "production scanner wiring",
+    "invocation judgment to integrated response to AST projection"
+  ],
+  "checks": {
+    "factory_requires_complete_dependency_contract": true,
+    "scanner_interface_has_no_duplicate_ast_projection_authority": true,
+    "scanner_production_uses_pipeline_ast_authority": true,
+    "scanner_production_uses_pipeline_class_name_authority": true,
+    "dto_judgment_helper_has_no_default_authority": true,
+    "no_new_relation_foundation_subscanner_layer": true
+  },
+  "passed": 6,
+  "total": 6,
+  "validation": {
+    "typescript_syntax_transpile": "passed: 5/5 changed TypeScript files",
+    "zip_integrity": "passed after packaging",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run"
+  },
+  "limitations": [
+    "Parser compatibility defaults remain for direct/legacy callers.",
+    "Composition root binds existing concrete authority implementations.",
+    "DTO inventory ordering and canonical per-method response closure remain open."
+  ]
+}

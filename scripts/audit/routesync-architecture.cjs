@@ -289,7 +289,7 @@ check('capability resolver/builder cannot re-query semantic authority', forbidde
 
 const wiringAuthority = read('packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts');
 check('boundary wiring resolves CRUD once upstream',
-  /routeCapabilityAuthority\.crudRoleResolution\(/.test(wiringAuthority)
+  /routeCapabilityAuthority\.resolve\(/.test(wiringAuthority)
     && /crudEvidence: crudResolution\.evidence/.test(wiringAuthority),
   'the wiring boundary obtains the closed upstream CRUD resolution exactly once.');
 
@@ -440,7 +440,7 @@ check('dataflow authority carries reasoning contract',
   /SemanticReasoningAuthorityInterface<Reasoning\['strategy'\], ReasoningEvidence, Reasoning>/.test(dataflow)
     && /Reasoning extends SemanticReasoningContract<SemanticReasoningStrategy, ReasoningEvidence>/.test(dataflow)
     && /DataFlowAuthorityInterface<Input, State, Node, ReasoningEvidence, Reasoning>/.test(dataflow)
-    && /reasoning:\s*state\.reasoningContract/.test(read('packages/core/src/compiler/analysis/semanticDataflowDataFlowAdapter.ts'))
+    && /reasoning:\s*judgment\.reasoningContract/.test(read('packages/core/src/compiler/analysis/semanticDataflowDataFlowAdapter.ts'))
     && !/semanticReasoningContract\s*\(/.test(read('packages/core/src/compiler/analysis/semanticDataflowDataFlowAdapter.ts')),
   'the read-only dataflow authority records the upstream reasoning contract without exposing re-solving downstream.');
 
@@ -657,9 +657,10 @@ check('semantic reasoning has explicit producer/consumer/wiring algebra',
 
 check('operation identity preserves upstream reasoning lineage',
   /OperationIdentityCapabilityAlgebraInterface[\s\S]*readonly reasoning: SemanticReasoningContract/.test(read('packages/core/src/types/upstream/operationIdentityCapability.ts'))
-    && /operationIdentityCapabilityFromRoute[\s\S]*route: Pick<RouteCapabilityContract,[^;]*reasoning/.test(read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts'))
-    && /const reasoning: SemanticReasoningContract = route\.reasoning/.test(read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts')),
-  'operation identity must inherit the route capability proof instead of opening a second reasoning authority.');
+    && /OperationIdentityCapabilityInput = Pick<[\s\S]*readonly identity: RouteIdentity/.test(read('packages/core/src/types/upstream/operationIdentityCapability.ts'))
+    && /const reasoning: SemanticReasoningContract = input\.reasoning/.test(read('packages/core/src/types/upstream/operationIdentityCapabilityAlgebra.ts'))
+    && /materializer\.materialize\(input\)/.test(read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts')),
+  'operation identity must inherit the route capability proof through the injected canonical algebra instead of opening a second reasoning authority.');
 check('semantic reasoning execution interface remains separate from closed contract',
   /interface SemanticReasoningInterface/.test(reasoningContractSurface)
     && /SemanticReasoningInterface[\s\S]*extends SemanticReasoningConsumerInterface/.test(reasoningContractSurface)
@@ -750,7 +751,7 @@ const routeSourceBoundaryFiles = [
 ];
 check('Laravel route evidence is raised once into upstream capability',
   routeSourceBoundaryFiles.every(file => exists(file))
-    && /routeCapabilityAuthority\.crudRoleResolution/.test(read(routeSourceBoundaryFiles[1]))
+    && /routeCapabilityAuthority\.resolve/.test(read(routeSourceBoundaryFiles[1]))
     && /RouteCapabilityContract/.test(read(routeSourceBoundaryFiles[0]))
     && /authority:\s*'upstream'/.test(read(routeSourceBoundaryFiles[0])),
   'Laravel route evidence resolves into a closed upstream capability before CLI projection.');

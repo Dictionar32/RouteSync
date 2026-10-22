@@ -1,21 +1,20 @@
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
+import { sourceFileAcquisition } from '../sourceFiles';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
 import { PHP_STATEMENT_KINDS } from '../lexer/phpAstStatementKinds';
 import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import * as path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
-import { readSourceText } from './scannerUtils';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
 import { createAstIdentifier } from '../lexer/phpAstTypes';
 import { classNameEquals } from '../../../types/upstream/names';
-import { collectPhpFiles } from './scannerUtils';
 import { serviceSourceStatements } from './serviceSourceStatements';
-import { mapResourcePhpAstToUpstream } from './resource/resourceUpstreamExpressionCanonical';
+import { projectPhpAstExpressionToUpstream } from '../lexer/routeAst/phpAstExpressionSemanticAuthority';
 import type { PhpMethodAst } from '../lexer/phpMethodAstTypes';
 import type { PhpParameterTypeAst } from '../lexer/phpMethodAstTypes';
 import { parsePhpMethodOrThrow } from '../lexer/phpMethodParser';
 import { createDomainAstJudgment, type ServiceAst } from '../../../types/upstream/ast';
 import type { ServiceDefinition, ServiceMethod, ServiceParameter, ServiceDependencyFact, ServiceMethodResultIndex, ServiceMethodResultEntry } from '../../../types/upstream/service';
-import type { ServiceProducerResult } from './serviceProducer';
+import type { ServiceProducer, ServiceProducerInput, ServiceProducerResult } from './serviceProducer';
 import type { ServiceDeclarationAst } from '../lexer/serviceAstTypes';
 import type { DeclaredType, TypeExpression } from '../../../types/upstream/typeVocabulary';
 import type { SemanticValue } from '../../../types/upstream/primitiveVocabulary';
@@ -23,7 +22,7 @@ import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { Option, Sequence } from '../../../types/upstream/collections';
 import type { StringValue } from '../../../types/upstream/valueObjects';
 import type { ModelSymbolTable } from '../symbols/ModelSymbolTable';
-import { relationGate, relationFold, relationAsyncFold, relationIndexOf, relationOptionFold, relationFixedPoint, relationProject, relationExpand, relationAll, relationAny, relationAdvanceIndex, relationLookup } from '../../../semantic/foundation/relationalSequence';
+import { relationGate, relationFold, relationAsyncFold, relationIndexOf, relationOptionFold, relationFixedPoint, relationProject, relationExpand, relationAll, relationAny, relationAdvanceIndex, relationLookup } from '../../../semantic/relations/relationalSequence';
 import { solveCandidate, requirement } from '../../../semantic/kernel/semanticDecisionRewriteEngine';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
@@ -157,7 +156,7 @@ function parameter(parameter: PhpMethodAst['parameters'][number], file: string):
     kind: 'service_parameter',
     name: { kind: 'variable_name', value: stringValue(parameter.name) },
     type: declaredType(parameter.type),
-    defaultValue: relationGate(Object.is(parameter.defaultValue.kind, 'absent'), () => ({ kind: 'absent' as const }), () => ({ kind: 'present' as const, value: mapResourcePhpAstToUpstream(parameter.defaultValue.value, file) })),
+    defaultValue: relationGate(Object.is(parameter.defaultValue.kind, 'absent'), () => ({ kind: 'absent' as const }), () => ({ kind: 'present' as const, value: projectPhpAstExpressionToUpstream(parameter.defaultValue.value, file) })),
     source: span,
   };
 }
@@ -288,7 +287,7 @@ function dependencyFactsForMethods(methods: readonly PhpMethodAst[], syntax: Ser
 function bodyDependencyFactsForMethod(methodItem: PhpMethodAst, span: SourceSpan): readonly ServiceDependencyFact[] {
   const parameterModels = parameterModelTypes(methodItem);
   return relationExpand(methodItem.body, statement => relationExpand(serviceSourceStatements(statement), rawExpression => {
-    const upstream = mapResourcePhpAstToUpstream(rawExpression, span.file.value.value);
+    const upstream = projectPhpAstExpressionToUpstream(rawExpression, span.file.value.value);
     const targets = collectTypedParameterModels(upstream, parameterModels, []);
     return relationProject(targets, target => ({
       kind: 'service_dependency_fact' as const,
@@ -299,7 +298,10 @@ function bodyDependencyFactsForMethod(methodItem: PhpMethodAst, span: SourceSpan
   }));
 }
 
-export function buildServiceProducerResult(syntax: ServiceDeclarationAst, span: SourceSpan, models: ModelSymbolTable): ServiceProducerResult {
+export const buildServiceProducerResult: ServiceProducer['produceResult'] = (input: ServiceProducerInput): ServiceProducerResult => {
+  const syntax = input.syntax;
+  const span = input.source;
+  const models = input.models;
   const seed: { readonly methods: readonly ServiceMethod[]; readonly results: ServiceMethodResultIndex } = {
     methods: Object.freeze([]),
     results: { kind: 'service_method_result_index', items: { kind: 'empty' } },
@@ -320,11 +322,9 @@ export function buildServiceProducerResult(syntax: ServiceDeclarationAst, span: 
   return { definition, ast };
 }
 
-export function buildServiceAstFromSource(syntax: ServiceDeclarationAst, span: SourceSpan, models: ModelSymbolTable): ServiceAst {
-  return buildServiceProducerResult(syntax, span, models).ast;
-}
 
 export interface ServiceScanBundle {
+  readonly artifacts: readonly ServiceProducerResult[];
   readonly asts: readonly ServiceAst[];
   readonly definitions: readonly ServiceDefinition[];
 }
@@ -332,10 +332,10 @@ export interface ServiceScanBundle {
 export async function scanServiceBundle(sourceProject: SourceProjectIdentity, models: ModelSymbolTable): Promise<ServiceScanBundle> {
   const sourceRoot = sourceProject.root.value.value;
   const directory = path.join(sourceRoot, 'app', 'Services');
-  const files = await collectPhpFiles(directory);
+  const files = await sourceFileAcquisition.collectPhpFiles(directory);
   const { serviceProducer } = await import('./serviceProducer');
   const results = await relationAsyncFold(files, Object.freeze([]) as readonly ServiceProducerResult[], async (current, file) => {
-    const text = await readSourceText(file);
+    const text = await sourceFileAcquisition.readSourceText(file);
     const tokens = LaravelSourceLexer.tokenize(text);
     const parsedMethods = relationFold(tokens, Object.freeze([]) as readonly PhpMethodAst[], (parsed, token, index) =>
       relationGate(Object.is(token.value, 'function'), () => [...parsed, parsePhpMethodOrThrow(text, tokens, index)], () => parsed),
@@ -346,6 +346,7 @@ export async function scanServiceBundle(sourceProject: SourceProjectIdentity, mo
     return [...current, serviceProducer.produceResult({ syntax, source: span, models })];
   });
   return {
+    artifacts: Object.freeze(results),
     asts: Object.freeze(relationProject(results, result => result.ast)),
     definitions: Object.freeze(relationProject(results, result => result.definition)),
   };

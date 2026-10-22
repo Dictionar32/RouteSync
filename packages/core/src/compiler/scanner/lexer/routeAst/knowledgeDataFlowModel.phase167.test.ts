@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { classifyPhpBlock } from '../astClassifier';
-import { tokenizePhpSource } from '../tokenizer';
+import { phpSourceTokenizer } from '../tokenizer';
 import { produceSemanticKnowledgeDataFlow } from './semanticKnowledgeDataFlowProducer';
 import {
   SEMANTIC_OPERATOR_KNOWLEDGE,
@@ -13,7 +13,7 @@ import {
 describe('Phase 180 semantic ontology is not parser statement ontology', () => {
   it('uses semantic choice/repetition facts instead of statement-shaped fact kinds', () => {
     const source = 'if ($a === $b) { $x = 1; } switch ($x) { case 1: $x = 2; } while ($x) { $x--; }';
-    const block = classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const kinds = graph.facts.map(fact => fact.kind);
 
@@ -25,7 +25,7 @@ describe('Phase 180 semantic ontology is not parser statement ontology', () => {
   });
 
   it('represents repetition by semantic participation rather than loop syntax', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('foreach ($items as $item) { $value = $item; }').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('foreach ($items as $item) { $value = $item; }').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const repetition = graph.facts.find(fact => fact.kind === 'repetition');
 
@@ -42,7 +42,7 @@ describe('Phase 180 semantic ontology is not parser statement ontology', () => {
 
 describe('Phase 167 semantic vocabulary is data', () => {
   it('represents operator meaning as a typed definition, not a raw semantic string', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('return $a === $b;').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('return $a === $b;').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const operator = graph.facts.find(fact => fact.kind === 'operator');
 
@@ -52,7 +52,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
   });
 
   it('raises unary operator applications into typed knowledge too', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('return !$ready;').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('return !$ready;').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const operation = graph.facts.find(fact => fact.kind === 'unary-operation');
     const operator = graph.facts.find(fact => fact.kind === 'operator' && fact.value.definition.code === 'not');
@@ -67,7 +67,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
   });
 
   it('raises non-comparison operator applications into typed knowledge too', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('return $a + $b && $c;').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('return $a + $b && $c;').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const operations = graph.facts.filter(fact => fact.kind === 'binary-operation');
     const operators = graph.facts.filter(fact => fact.kind === 'operator');
@@ -79,7 +79,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
   });
 
   it('materializes decision outcomes as facts instead of branch control-flow labels', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('if ($a === $b) { return $x; } else { return $y; }').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('if ($a === $b) { return $x; } else { return $y; }').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const outcomes = graph.facts.filter(fact => fact.kind === 'outcome');
 
@@ -98,7 +98,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
   });
 
   it('promotes variable identity into canonical knowledge instead of occurrence identity', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('$x = 1; $y = $x; $x === $y;').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('$x = 1; $y = $x; $x === $y;').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const variables = graph.facts.filter(fact => fact.kind === 'variable');
     const references = graph.facts.filter(fact => fact.kind === 'reference');
@@ -110,7 +110,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
   });
 
   it('keeps switch fall-through as choice semantics rather than a control-flow edge', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('switch ($x) { case 1: $a = 1; case 2: $b = 2; break; default: $c = 3; }').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('switch ($x) { case 1: $a = 1; case 2: $b = 2; break; default: $c = 3; }').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const choice = graph.facts.find(fact => fact.kind === 'choice');
 
@@ -124,7 +124,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
   });
 
   it('keeps comparison meaning and alternative predicate references as canonical data', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('if ($a !== $b) { $x = 1; } else { $x = 2; }').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('if ($a !== $b) { $x = 1; } else { $x = 2; }').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const comparison = graph.facts.find(fact => fact.kind === 'comparison');
     const choice = graph.facts.find(fact => fact.kind === 'choice');
@@ -144,7 +144,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
 
   it('materializes switch/match alternatives and exception boundaries as data', () => {
     const source = 'try { switch ($x) { case 1: return $a; default: return $b; } } catch (Error $e) { return $c; } finally { $d = $e; }';
-    const block = classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
 
     expect(graph.facts.some(fact => fact.kind === 'choice')).toBe(true);
@@ -162,7 +162,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
   });
 
   it('does not encode loop re-entry as a graph edge', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('while ($ready) { $value = 1; }').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('while ($ready) { $value = 1; }').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
 
     expect(graph.relations.some(edge => (edge.relation.code as string) === 'reenters')).toBe(false);
@@ -191,7 +191,7 @@ describe('Phase 167 semantic vocabulary is data', () => {
 
 describe('Phase 168 semantic absence is data', () => {
   it('does not encode domain absence with optional properties or undefined', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('for (;;) { return; }').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('for (;;) { return; }').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const iteration = graph.facts.find(fact => fact.kind === 'repetition');
 
@@ -207,7 +207,7 @@ describe('Phase 168 semantic absence is data', () => {
   });
 
   it('represents void result explicitly instead of omitting the emitted value', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('return;').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('return;').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const emission = graph.facts.find(fact => fact.kind === 'emission');
 
@@ -223,7 +223,7 @@ describe('Phase 168 semantic absence is data', () => {
 describe('Phase 174 expression knowledge is typed', () => {
   it('raises casts, arrays, static calls, constructions, and type checks as facts', () => {
     const source = '$a = (int) $x; $b = ["key" => $a, $x]; Foo::bar($b); new Foo($b); $x instanceof Foo;';
-    const block = classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
 
     expect(graph.facts.some(fact => fact.kind === 'cast')).toBe(true);
@@ -235,7 +235,7 @@ describe('Phase 174 expression knowledge is typed', () => {
 
   it('does not downgrade magic constants and interpolated strings to opaque values', () => {
     const source = '$x = __FILE__; $y = "hello $name";';
-    const block = classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
 
     expect(graph.facts.some(fact => fact.kind === 'magic-constant')).toBe(true);
@@ -245,7 +245,7 @@ describe('Phase 174 expression knowledge is typed', () => {
 
   it('represents closures and arrow functions as callable knowledge', () => {
     const source = '$f = function ($x) { return $x; }; $g = fn ($x) => $x;';
-    const block = classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
 
     expect(graph.facts.some(fact => fact.kind === 'closure')).toBe(true);
@@ -257,7 +257,7 @@ describe('Phase 174 expression knowledge is typed', () => {
 describe('Phase 176 canonical facts own identity; indexes only validate', () => {
   it('keeps every produced fact in the canonical facts collection instead of deduplicating through a Set', () => {
     const source = '$x = $a + $b; $y = $a + $b;';
-    const block = classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const operations = graph.facts.filter(fact => fact.kind === 'binary-operation');
 
@@ -266,7 +266,7 @@ describe('Phase 176 canonical facts own identity; indexes only validate', () => 
   });
 
   it('keeps data-flow edges as references into canonical facts', () => {
-    const block = classifyPhpBlock(tokenizePhpSource('$x = $a;').filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize('$x = $a;').filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const factIds = new Set(graph.facts.map(fact => knowledgeIdKey(fact.value.id)));
 
@@ -278,7 +278,7 @@ describe('Phase 176 canonical facts own identity; indexes only validate', () => 
 describe('Phase 177 knowledge identity is structured occurrence identity', () => {
   it('does not encode the syntax-node kind or a graph path inside KnowledgeId', () => {
     const source = '$x = $a === $b;';
-    const block = classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF'));
+    const block = classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF'));
     const graph = produceSemanticKnowledgeDataFlow(block);
     const comparison = graph.facts.find(fact => fact.kind === 'comparison');
 
@@ -294,7 +294,7 @@ describe('Phase 177 knowledge identity is structured occurrence identity', () =>
 
 describe('Phase 178 canonical data-flow facts', () => {
   it('stores dependency and value-flow as typed data, with relations only as a derived projection', () => {
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource('<?php $x = $a + $b; ?>').filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize('<?php $x = $a + $b; ?>').filter(token => token.type !== 'EOF')));
     expect(graph.dataFlow.length).toBeGreaterThan(0);
     expect(graph.dataFlow.every(flow => ['dependency', 'value-flow'].includes(flow.kind))).toBe(true);
     expect(graph.relations.length).toBe(graph.dataFlow.length);
@@ -306,7 +306,7 @@ describe('Phase 178 canonical data-flow facts', () => {
   });
 
   it('does not make the derived edge shape the canonical data-flow source', () => {
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource('<?php $x = $a; ?>').filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize('<?php $x = $a; ?>').filter(token => token.type !== 'EOF')));
     expect(Object.keys(graph)).toEqual(['facts', 'dataFlow', 'relations']);
     expect(graph.dataFlow.some(flow => flow.kind === 'value-flow')).toBe(true);
   });
@@ -316,7 +316,7 @@ describe('Phase 178 canonical data-flow facts', () => {
 describe('Phase 179 semantic data-flow roles', () => {
   it('raises operand, operator, predicate, and branch participation into typed flow data', () => {
     const source = 'if ($a === $b) { $x = $a + $b; } else { $x = $b; }';
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF')));
 
     expect(graph.dataFlow.some(flow => flow.kind === 'dependency' && flow.role.code === 'operator')).toBe(true);
     expect(graph.dataFlow.some(flow => flow.kind === 'dependency' && flow.role.code === 'operand_left')).toBe(true);
@@ -327,7 +327,7 @@ describe('Phase 179 semantic data-flow roles', () => {
 
   it('distinguishes argument, receiver, index, iterable, body, and assignment value-flow roles', () => {
     const source = '$x = $obj->run($items[$i]); foreach ($items as $item) { $x = $item; }';
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF')));
     const dependencyRoles = new Set(graph.dataFlow.filter(flow => flow.kind === 'dependency').map(flow => flow.role.code));
 
     expect(dependencyRoles.has('receiver')).toBe(true);
@@ -349,7 +349,7 @@ describe('Phase 179 semantic data-flow roles', () => {
 describe('Phase 179 statement semantics are not lost at the syntax boundary', () => {
   it('raises include and unset into semantic facts and typed data-flow', () => {
     const source = 'include $path; unset($a, $b); require_once $config;';
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF')));
 
     const includes = graph.facts.filter(fact => fact.kind === 'include');
     const unset = graph.facts.find(fact => fact.kind === 'unset');
@@ -367,7 +367,7 @@ describe('Phase 179 statement semantics are not lost at the syntax boundary', ()
 describe('Phase 179 assignment semantics', () => {
   it('raises assignment operator and reference mode into semantic data', () => {
     const source = '$x += $y; $z =& $x;';
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF')));
     const assignments = graph.facts.filter(fact => fact.kind === 'assignment');
 
     expect(assignments).toHaveLength(2);
@@ -380,7 +380,7 @@ describe('Phase 179 assignment semantics', () => {
 describe('Phase 181 control-flow concepts are not semantic ontology', () => {
   it('represents result and exception production as emission data, not transitions', () => {
     const source = 'return $value; throw $error;';
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource(source).filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize(source).filter(token => token.type !== 'EOF')));
     const emissions = graph.facts.filter(fact => fact.kind === 'emission');
 
     expect(emissions).toHaveLength(2);
@@ -390,7 +390,7 @@ describe('Phase 181 control-flow concepts are not semantic ontology', () => {
   });
 
   it('represents block containment as scope data rather than execution region data', () => {
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource('{ $x = 1; }').filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize('{ $x = 1; }').filter(token => token.type !== 'EOF')));
     expect(graph.facts.some(fact => fact.kind === 'scope')).toBe(true);
     expect(graph.facts.some(fact => fact.kind === 'region')).toBe(false);
     expect(graph.dataFlow.some(flow => flow.kind === 'dependency' && flow.role.code === 'member')).toBe(true);
@@ -401,7 +401,7 @@ describe('Phase 181 control-flow concepts are not semantic ontology', () => {
       'transition', 'region', 'successor', 'predecessor', 'reenters',
       'terminates', 'returns', 'throws', 'catches', 'executes', 'branches_to',
     ]);
-    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(tokenizePhpSource('if ($x) { while ($y) { $z = $x; } }').filter(token => token.type !== 'EOF')));
+    const graph = produceSemanticKnowledgeDataFlow(classifyPhpBlock(phpSourceTokenizer.tokenize('if ($x) { while ($y) { $z = $x; } }').filter(token => token.type !== 'EOF')));
     expect(graph.facts.map(fact => fact.kind).every(kind => !forbidden.has(kind))).toBe(true);
     expect(graph.dataFlow.every(flow => !forbidden.has(flow.role.code))).toBe(true);
   });

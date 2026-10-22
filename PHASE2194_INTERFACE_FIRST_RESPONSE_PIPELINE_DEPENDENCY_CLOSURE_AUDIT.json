@@ -1,0 +1,27 @@
+{
+  "phase": 2194,
+  "title": "Interface-first integrated response pipeline dependency closure",
+  "scope": [
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts"
+  ],
+  "changes": [
+    "Added a typed composition dependency interface over existing upstream authorities",
+    "Advanced the existing response pipeline contract from 25 to 26",
+    "Made source identity, PHP class-name resolution, DTO declaration resolution, DTO type-reference binding, DTO response projection and AST projection injectable through the existing pipeline factory",
+    "Bound evidence-source binding to the same source-identity interface selected by the pipeline"
+  ],
+  "forbidden_layers_added": [],
+  "validation": {
+    "changed_typescript_syntax_transpilation": "passed 2/2 changed TypeScript files",
+    "zip_integrity": "passed after packaging",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run"
+  },
+  "remaining_gaps": [
+    "lower-level response semantic authority retains canonical default identity metadata",
+    "parser compatibility defaults and other direct concrete authority imports need further trace",
+    "project-scoped DTO inventory still arrives after controller scanning in the source AST pipeline"
+  ]
+}

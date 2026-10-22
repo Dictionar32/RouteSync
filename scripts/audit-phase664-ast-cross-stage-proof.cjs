@@ -19,12 +19,13 @@ const existing = files.filter(file => fs.existsSync(path.join(root,file)));
 const counts = Object.fromEntries(existing.map(file => [file, [...read(file).matchAll(forbidden)].length]));
 const proof = read('packages/core/src/types/upstream/astSemanticStageProof.ts');
 const stage = read('packages/core/src/types/upstream/astSemanticStageInterface.ts');
+const stageAuthority = read('packages/core/src/types/upstream/astSemanticStageAuthority.ts');
 const result = {
  phase: 664,
  model: 'closed AST cross-stage refinement proof obligations',
  proofAlgebra: /AstSemanticStageProof/.test(proof),
  fiveTransitionProofs: ['scanner_to_mapping_proof','mapping_to_resolver_proof','resolver_to_analysis_proof','analysis_to_lowering_proof','lowering_to_target_proof'].every(k => proof.includes(k)),
- judgmentCarriesProofObligations: stage.includes('proofObligations: readonly AstSemanticStageProof[]') && stage.includes('proofObligations: stageProofObligations(stage, contract)'),
+ judgmentCarriesProofObligations: stage.includes('proofObligations: readonly AstSemanticStageProof[]') && stageAuthority.includes('proofObligations: stageProofObligations(stage, contract)'),
  inactiveVacuum: true,
  legacySolverEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts') === 0,
  syntaxCoreEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts') === 0,

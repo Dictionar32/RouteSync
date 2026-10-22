@@ -1,0 +1,73 @@
+{
+  "phase": 1722,
+  "name": "static-stage-judgment-envelope",
+  "total": 16,
+  "passed": 14,
+  "failed": 2,
+  "checks": [
+    {
+      "name": "stage judgment is modeled with named domain-owned contracts rather than a generic Judgment slot",
+      "passed": true
+    },
+    {
+      "name": "positional evidence output retains the source-bound context",
+      "passed": true
+    },
+    {
+      "name": "target resolution output retains the source-bound context",
+      "passed": true
+    },
+    {
+      "name": "binding accepts only context-bound target and positional judgments",
+      "passed": true
+    },
+    {
+      "name": "binding output retains context alongside the binding judgment",
+      "passed": true
+    },
+    {
+      "name": "effect projection accepts a context-bound target and returns a context-bound effect judgment",
+      "passed": true
+    },
+    {
+      "name": "judgment assembly consumes only context-bound subjudgments",
+      "passed": true
+    },
+    {
+      "name": "assembly output and final derived result retain context-bound judgment envelope",
+      "passed": true
+    },
+    {
+      "name": "authority accepts only the final derived envelope without detached knowledge or judgment",
+      "passed": true
+    },
+    {
+      "name": "algebra contract explicitly requires context-bound output at every stage",
+      "passed": true
+    },
+    {
+      "name": "algebra contract type/value synchronized at v5",
+      "passed": true
+    },
+    {
+      "name": "authority contract/receipt synchronized at v8",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract v46 declares stage-envelope invariant",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary v25 delegates and forwards without detaching stage context",
+      "passed": false
+    },
+    {
+      "name": "stage envelope type is publicly exported",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency or any escape hatch introduced in changed interface sections",
+      "passed": true
+    }
+  ]
+}

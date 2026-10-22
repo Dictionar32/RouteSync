@@ -37,6 +37,7 @@ const inactive = [
   'packages/core/src/compiler/generators/mapper-generation/MapperCodeBuilder.ts',
 ];
 const source = read('packages/core/src/types/upstream/astSemanticStageInterface.ts');
+const authority = read('packages/core/src/types/upstream/astSemanticStageAuthority.ts');
 const stages = [
   'scanner_evidence_fact',
   'upstream_mapping_fact',
@@ -58,7 +59,7 @@ const result = {
   phase: 660,
   model: 'closed stage-specific AST semantic ADTs plus declarative rewrite interfaces',
   stageFacts: stages.every(name => source.includes(name)),
-  stagePorts: stagePorts.every(name => source.includes(name)),
+  stagePorts: stagePorts.every(name => authority.includes(name)),
   decisionRewriteEngine: size('packages/core/src/semantic/kernel/semanticDecisionRewriteEngine.ts') > 0,
   legacySolverEmpty: size('packages/core/src/semantic/kernel/requirementSolver.ts') === 0,
   legacyRouteSolverEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts') === 0,
@@ -66,6 +67,8 @@ const result = {
   inactiveVacuum: inactive.every(file => size(file) === 0),
   noLegacySolverImports: !read('packages/core/src/semantic/kernel/index.ts').includes("requirementSolver"),
   canonicalForbidden,
+  contractHasNoRuntimeConstructors: !/export\s+(?:const|function)\s/.test(source),
+  runtimeAuthoritySeparated: /astSemanticStageContract/.test(authority) && /createAstSemanticStagePort/.test(authority),
 };
 result.cleanCanonicalBoundaries = Object.values(canonicalForbidden).every(count => count === 0);
 result.success = Object.values(result).every(value => typeof value !== 'boolean' || value) && result.cleanCanonicalBoundaries;

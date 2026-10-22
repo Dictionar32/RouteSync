@@ -1,0 +1,20 @@
+{
+  "phase": 2328,
+  "title": "Existing Authorization Contract and Executor Trace",
+  "scope": "evolve existing interface and regression coverage",
+  "new_authority": false,
+  "new_v2_interface": false,
+  "foundation_dependency_added": false,
+  "relations_dependency_added": false,
+  "changes": [
+    "Reject auth guard suffixes containing only whitespace",
+    "Add regression test to existing authorization authority test suite",
+    "Document existing CLI path, lossy boolean projection, and duplicate subscanner path"
+  ],
+  "verification": {
+    "zip_integrity": "pending packaging check",
+    "vitest": "not run",
+    "typescript_build": "not run",
+    "cli_integration": "not run"
+  }
+}

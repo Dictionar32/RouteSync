@@ -9,8 +9,7 @@ import type { AstSemanticPreservationRelation } from '../../types/upstream/astSe
 import type { AstSemanticStageProof } from '../../types/upstream/astSemanticStageProof';
 import type { ResolverGraphSemanticJudgment } from '../scanner/resolvers/resolverGraphSemanticInterface';
 import type { ResolvedSemanticTypeKind } from '../domain/common/ResolvedSemanticType';
-import type { DataFlowAuthorityInterface } from '../../types/dataflow/dataFlowInterface';
-import type { SemanticDataflowInput, SemanticDataflowIdentity, SemanticDataflowJudgment, SemanticDataflowFact } from '../../types/upstream/semanticDataflow';
+import type { AstDataflowFact, AstDataflowInterface } from '../../types/upstream/semanticDataflowInterface';
 
 export type AstAnalysisFact =
   | { readonly kind: 'cfg_reachable'; readonly blockId: number }
@@ -22,13 +21,13 @@ export type AstAnalysisFact =
    * exact fact rather than re-encoding identity as primitive source/target
    * numbers.
    */
-  | { readonly kind: 'dataflow_fact'; readonly value: SemanticDataflowFact }
+  | { readonly kind: 'dataflow_fact'; readonly value: AstDataflowFact }
   | { readonly kind: 'resolver_domain'; readonly value: ResolverGraphSemanticJudgment['domain']['result'] }
   | { readonly kind: 'resolver_security'; readonly value: ResolverGraphSemanticJudgment['security']['security'] }
   | { readonly kind: 'resolver_crud'; readonly value: ResolverGraphSemanticJudgment['crudRole'] }
   | { readonly kind: 'mapping_refinement'; readonly value: ResolverGraphSemanticJudgment['mapping'] }
   | { readonly kind: 'semantic_type'; readonly value: ResolvedSemanticTypeKind }
-  | { readonly kind: 'dataflow_closure'; readonly value: readonly SemanticDataflowFact[] };
+  | { readonly kind: 'dataflow_closure'; readonly value: readonly AstDataflowFact[] };
 
 export type AstAnalysisDerivation = Readonly<{
   readonly kind: 'ast_analysis_derivation';
@@ -40,7 +39,7 @@ export type AstAnalysisDerivation = Readonly<{
 export type AstAnalysisJudgment = Readonly<{
   readonly kind: 'ast_analysis_judgment';
   readonly resolver: ResolverGraphSemanticJudgment;
-  readonly dataflow: DataFlowAuthorityInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>;
+  readonly dataflow: AstDataflowInterface;
   readonly facts: readonly AstAnalysisFact[];
   readonly derivations: readonly AstAnalysisDerivation[];
   readonly preservation: readonly AstSemanticPreservationRelation[];
@@ -75,7 +74,7 @@ export type AstAnalysisInput = Readonly<{
   readonly kind: 'ast_analysis_input';
   readonly resolver: ResolverGraphSemanticJudgment;
   readonly semanticType: ResolvedSemanticTypeKind;
-  readonly dataflow: DataFlowAuthorityInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>;
+  readonly dataflow: AstDataflowInterface;
   readonly proof: AstSemanticStageProof;
 }>;
 
@@ -87,7 +86,7 @@ export const astAnalysisJudgment = (input: AstAnalysisInput): AstAnalysisJudgmen
     Object.freeze({ kind: 'resolver_crud' as const, value: resolver.crudRole }),
     Object.freeze({ kind: 'mapping_refinement' as const, value: resolver.mapping }),
     Object.freeze({ kind: 'semantic_type' as const, value: input.semanticType }),
-    ...input.dataflow.state.closure.map(fact => Object.freeze({ kind: 'dataflow_fact' as const, value: fact })),
+    ...relationProject(input.dataflow.state.closure, fact => Object.freeze({ kind: 'dataflow_fact' as const, value: fact })),
     Object.freeze({ kind: 'dataflow_closure' as const, value: input.dataflow.state.closure }),
   ]);
   return Object.freeze({
@@ -110,7 +109,7 @@ export type AstAnalysisInterface = Readonly<{
   readonly authority: 'ast_analysis_judgment';
   readonly judgment: AstAnalysisJudgment;
   /** Canonical upstream dataflow interface; no re-encoded source/target payload. */
-  readonly dataflow: DataFlowAuthorityInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>;
+  readonly dataflow: AstDataflowInterface;
   readonly closed: true;
 }>;
 

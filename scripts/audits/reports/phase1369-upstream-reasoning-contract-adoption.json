@@ -1,0 +1,102 @@
+{
+  "phase": 1369,
+  "title": "Upstream Reasoning Contract Adoption",
+  "scope": "packages/core/src/types/upstream plus the scanner-to-upstream capability adapter only",
+  "checks": 14,
+  "passed": 14,
+  "failed": 0,
+  "results": [
+    {
+      "name": "canonical relation identity ADT exists",
+      "passed": true,
+      "detail": "The existing upstream identity type and key function are the canonical identity authority."
+    },
+    {
+      "name": "relation evidence is converted to canonical identity",
+      "passed": true,
+      "detail": "Eloquent evidence is normalized into the same typed identity shape as semantic relations."
+    },
+    {
+      "name": "relation alignment uses canonical identity key",
+      "passed": true,
+      "detail": "Alignment compares canonical identity rather than repeating field-by-field matching logic."
+    },
+    {
+      "name": "duplicated relation field matching removed",
+      "passed": true,
+      "detail": "The weaker independent identity classifier no longer checks a partial field subset."
+    },
+    {
+      "name": "foreign-key identity participates in alignment",
+      "passed": true,
+      "detail": "Relations with the same names but different foreign-key identity do not silently align."
+    },
+    {
+      "name": "alignment test retains order-independent mapping",
+      "passed": true,
+      "detail": "Semantic relations remain aligned by identity when their array order differs."
+    },
+    {
+      "name": "foreign-key mismatch regression test exists",
+      "passed": true,
+      "detail": "A relation with a mismatched canonical foreign-key identity is rejected."
+    },
+    {
+      "name": "route action ADT remains the capability evidence",
+      "passed": true,
+      "detail": "The evidence contract no longer accepts a weaker boolean duplicate beside RouteActionKind."
+    },
+    {
+      "name": "mutability derives from canonical action registry",
+      "passed": true,
+      "detail": "Hook, payload, and default error behavior derive from the action ADT registry."
+    },
+    {
+      "name": "no raw mutability input is consumed",
+      "passed": true,
+      "detail": "The upstream authority cannot receive a contradictory mutability boolean from its adapter."
+    },
+    {
+      "name": "derived mutability is reused consistently",
+      "passed": true,
+      "detail": "The single derived value is reused instead of recomputed at separate call sites."
+    },
+    {
+      "name": "canonical reconciliation authority remains upstream",
+      "passed": true,
+      "detail": "Relation applicability and schema reconciliation remain owned by their canonical upstream authority/algebra."
+    },
+    {
+      "name": "route-domain judgment remains proof-carrying",
+      "passed": true,
+      "detail": "Domain inference remains an explicit upstream judgment with candidate provenance, not downstream fallback."
+    },
+    {
+      "name": "audit is registered",
+      "passed": true,
+      "detail": "The upstream-only audit is reproducible through npm run."
+    }
+  ],
+  "decisions": [
+    {
+      "area": "Model relation identity alignment",
+      "decision": "Adopt ModelSemanticRelationIdentity and modelSemanticRelationIdentityKey; remove partial field-by-field matching.",
+      "reason": "The canonical identity already includes the foreign-key key and is shared with graph provenance."
+    },
+    {
+      "area": "Route capability mutability",
+      "decision": "Use RouteActionKind plus ROUTE_ACTION_KIND_REGISTRY instead of accepting isMutating as a second input fact.",
+      "reason": "A boolean duplicate can contradict the stronger action ADT; derive it once and reuse it."
+    },
+    {
+      "area": "Route-domain inference",
+      "decision": "Keep reasoning inside RouteDomainResolutionJudgment.",
+      "reason": "This is the canonical authority producing ranked candidates and provenance, not duplicate downstream classification."
+    },
+    {
+      "area": "Semantic relation reconciliation",
+      "decision": "Keep applicability inside SemanticReconciliationEvidence and the canonical algebra.",
+      "reason": "The judgment is computed once and passed to candidate/status/schema-evidence consumers."
+    }
+  ]
+}

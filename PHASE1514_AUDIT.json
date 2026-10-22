@@ -1,0 +1,39 @@
+{
+  "phase": 1514,
+  "title": "Interface-owned query semantic model",
+  "status": "PASS",
+  "verification": "source-audit-only",
+  "typescript_build": "NOT_VERIFIED",
+  "unit_tests": "NOT_RUN_NODE_MODULES_MISSING",
+  "checks": [
+    {
+      "status": "PASS",
+      "check": "existing QueryProducerSemanticInterface owns immutable rule declarations"
+    },
+    {
+      "status": "PASS",
+      "check": "public rule model is derived once from upstream declarations"
+    },
+    {
+      "status": "PASS",
+      "check": "catalog validation and method dispatch use the same public rule model"
+    },
+    {
+      "status": "PASS",
+      "check": "semantic authority exposes the same rule model it resolves against"
+    },
+    {
+      "status": "PASS",
+      "check": "scanner delegates claimed query operations to the upstream interface"
+    },
+    {
+      "status": "PASS",
+      "check": "interface authority has a regression test"
+    },
+    {
+      "status": "PASS",
+      "check": "existing core public surface exports the rule model and authority type"
+    }
+  ],
+  "remaining_semantic_gap": "Rule-specific evaluator functions still validate argument shape and construct ASTs; executor-only migration is not complete."
+}

@@ -1,0 +1,52 @@
+{
+  "phase": 1571,
+  "audit": "pairwise-duplicate-occurrence-contract",
+  "passed": 9,
+  "total": 10,
+  "checks": [
+    {
+      "name": "pairwise occurrence law is part of the semantic law vocabulary",
+      "passed": true
+    },
+    {
+      "name": "pairwise reuse has a dedicated counterexample reason",
+      "passed": true
+    },
+    {
+      "name": "counterexample records a non-empty set of repeated pairs",
+      "passed": true
+    },
+    {
+      "name": "each repeated pair names both source evidence references",
+      "passed": true
+    },
+    {
+      "name": "each repeated pair identifies the repeated occurrence key",
+      "passed": true
+    },
+    {
+      "name": "counterexample retains collision domain and semantic key",
+      "passed": true
+    },
+    {
+      "name": "primary duplicate-pair contract remains explicit",
+      "passed": true
+    },
+    {
+      "name": "distinct-location and collision-key laws remain explicit",
+      "passed": true
+    },
+    {
+      "name": "source-location provenance law remains explicit",
+      "passed": true
+    },
+    {
+      "name": "interface contains no runtime implementation",
+      "passed": false
+    }
+  ],
+  "failures": [
+    "interface contains no runtime implementation"
+  ],
+  "scope": "static interface audit only; semantic authority, scanner wiring, runtime executor and full build are not claimed as migrated"
+}

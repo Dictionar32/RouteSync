@@ -1,0 +1,11 @@
+candidate,phase2053_status,semantic_boundary,next_action
+inlineArray,migrated_to_existing_closed_rule_judgment,upstream candidate judgment owns applicability; AstClassificationRuleAlgebra owns ordered selection,model top-level partitions and array entry semantics as typed evidence/judgment
+closure,remaining_legacy_adapter,parser classifier returns RelationOption,model captures parameters body and closure captures in a closed judgment
+arrow,remaining_legacy_adapter,parser classifier returns RelationOption,model arrow parameters expression and source span in a closed judgment
+instanceof,remaining_context_adapter,operator occurrence rediscovered in runtime callback,require typed operator occurrence witness from candidate evidence
+parenthesized,remaining_legacy_adapter,parser classifier returns RelationOption,model delimiter and inner-expression judgment with malformed distinction
+classConstant,remaining_legacy_adapter,parser classifier returns RelationOption,model class-constant name expression judgment
+classReference,remaining_legacy_adapter,parser classifier returns RelationOption,model PHP class-reference syntax judgment and separate name resolution
+construct,remaining_legacy_adapter,parser classifier returns RelationOption,model target and argument evidence in a construct judgment
+staticCall,remaining_legacy_adapter,parser classifier returns RelationOption,model class target method name and argument evidence in invocation judgment
+member,remaining_legacy_adapter,parser classifier returns RelationOption,model receiver member name and access kind in member-access judgment

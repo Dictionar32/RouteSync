@@ -1,12 +1,15 @@
-/** Parses controller-body syntax facts into a typed body AST. */
+/** Projects body syntax. The semantic ADT case means a canonical judgment is present, not that its nested invocation integration is complete. */
 import type { TokenDescriptor, PhpAstValue, PhpStatement, PhpBlock, AstIdentifier } from './phpAstTypes';
 import { createAstIdentifier } from './phpAstTypes';
-import { parsePhpArray } from './arrayParser';
+import { phpArrayParser } from './arrayParser';
 import type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, ControllerDataflowAst } from './controllerBodyAstTypes';
 import type { ControllerVariableSemantic } from '../../../types/upstream/controller';
 import { createHttpErrorStatus, createValidationRuleLiteral } from './controllerBodyAstTypes';
 import { classifyPhpBlock } from './astClassifier';
-import { analyzeControllerDataflow } from './controllerDataflowAnalyzer';
+import { analyzeControllerDataflowWithInvocationJudgment } from '../wiring/controllerVariableSemanticRuntimeBinding';
+import type { LaravelControllerAstProjectionContext, LaravelControllerInvocationSemanticJudgmentInterface } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
+import { laravelControllerAstProjectionSemanticAuthority } from '../../../types/upstream/laravelControllerAstProjectionSemanticAuthority';
+import type { LaravelControllerAstProjectionSemanticAuthorityInterface } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
 import {
     relationFold,
     relationGate,
@@ -20,9 +23,9 @@ import {
     relationSome,
     relationNone,
     type RelationOption,
-} from '../../../semantic/foundation/relationalSequence';
+} from '../../../semantic/relations/relationalSequence';
 import type { PhpArrayEntry, PhpArrayKey } from './PhpAst';
-import type { RelationVariant } from '../../../semantic/foundation/relationalSequence';
+import type { RelationVariant } from '../../../semantic/relations/relationalSequence';
 
 type ControllerParseState = Readonly<{
     readonly validations: readonly InlineValidationAst[];
@@ -35,12 +38,30 @@ const emptyControllerParseState = (): ControllerParseState => Object.freeze({
 });
 
 export function parseControllerBody(
+    source: string, tokens: readonly TokenDescriptor[],
+    parameterSemantics?: readonly (readonly [AstIdentifier, ControllerVariableSemantic])[],
+    context?: Extract<LaravelControllerAstProjectionContext, { readonly kind: 'syntax_only' }>,
+    projectionAuthority?: LaravelControllerAstProjectionSemanticAuthorityInterface,
+): ControllerBodyAst<false>;
+export function parseControllerBody(
     source: string,
     tokens: readonly TokenDescriptor[],
-    parameters: readonly AstIdentifier[],
+    parameterSemantics: readonly (readonly [AstIdentifier, ControllerVariableSemantic])[],
+    context: Extract<LaravelControllerAstProjectionContext, { readonly kind: 'invocation_semantic_judgment' }>,
+    projectionAuthority?: LaravelControllerAstProjectionSemanticAuthorityInterface,
+): ControllerBodyAst<true>;
+export function parseControllerBody(
+    source: string, tokens: readonly TokenDescriptor[],
+    parameterSemantics: readonly (readonly [AstIdentifier, ControllerVariableSemantic])[], context: LaravelControllerAstProjectionContext,
+    projectionAuthority?: LaravelControllerAstProjectionSemanticAuthorityInterface,
+): ControllerBodyAst<boolean>;
+export function parseControllerBody(
+    source: string,
+    tokens: readonly TokenDescriptor[],
     parameterSemantics: readonly (readonly [AstIdentifier, ControllerVariableSemantic])[] = [],
-    filePath = '<php-source>'
-): ControllerBodyAst {
+    context: LaravelControllerAstProjectionContext = Object.freeze({ kind: 'syntax_only' }),
+    projectionAuthority: LaravelControllerAstProjectionSemanticAuthorityInterface = laravelControllerAstProjectionSemanticAuthority,
+): ControllerBodyAst<boolean> {
     const state = relationFold(
         tokens,
         emptyControllerParseState(),
@@ -62,7 +83,7 @@ export function parseControllerBody(
                 validation,
                 () => next,
                 parsed => ({
-                    validations: [...current.validations, ...toValidations(parsed.entries, token)],
+                    validations: [...current.validations, ...toValidations(parsed.entries)],
                     errors: current.errors,
                 }),
             );
@@ -70,22 +91,37 @@ export function parseControllerBody(
     );
 
     const parsedBlock = classifyPhpBlock(tokens);
-    const dataflow = buildDataflow(parsedBlock, parameters, parameterSemantics, filePath);
-    return Object.freeze({
+    const bodyEvidence = {
         statements: parsedBlock.statements,
         validations: Object.freeze(state.validations),
         errors: Object.freeze(state.errors),
-        dataflow,
-    });
+    };
+    const projectionJudgment = projectionAuthority.judge(context);
+    switch (projectionJudgment.kind) {
+        case 'syntax_only_projection':
+            return Object.freeze({ kind: 'controller_body_syntax_only', ...bodyEvidence, dataflow: undefined });
+        case 'invocation_only_projection':
+            return Object.freeze({
+                kind: 'controller_body_semantic',
+                ...bodyEvidence,
+                dataflow: buildDataflow(parsedBlock, parameterSemantics, projectionJudgment.invocationJudgment),
+            });
+        case 'semantic_projection':
+            return Object.freeze({
+                kind: 'controller_body_semantic',
+                ...bodyEvidence,
+                dataflow: buildDataflow(parsedBlock, parameterSemantics, projectionJudgment.invocationJudgment),
+                responseJudgment: projectionJudgment.responseJudgment,
+            });
+    }
 }
 
 function buildDataflow(
     block: PhpBlock,
-    parameters: readonly AstIdentifier[],
     parameterSemantics: readonly (readonly [AstIdentifier, ControllerVariableSemantic])[],
-    filePath: string
+    judgment: LaravelControllerInvocationSemanticJudgmentInterface,
 ): ControllerDataflowAst {
-    return analyzeControllerDataflow(block, parameters, parameterSemantics, filePath);
+    return analyzeControllerDataflowWithInvocationJudgment(block, parameterSemantics, judgment);
 }
 
 function parseValidation(
@@ -100,7 +136,7 @@ function parseValidation(
             relationGate(
                 relationAll([relationEqual(current.value, 'validate'), relationEqual(next.value, '(')]),
                 () => {
-                    const parsed = parsePhpArray(source, tokens, index + 1);
+                    const parsed = phpArrayParser.parse(source, tokens, index + 1);
                     return relationSome({ entries: parsed.entries, endIndex: parsed.endIndex });
                 },
                 () => relationNone<{ readonly entries: readonly PhpArrayEntry[]; readonly endIndex: number }>(),
@@ -109,7 +145,7 @@ function parseValidation(
     );
 }
 
-function toValidations(entries: readonly PhpArrayEntry[], source: TokenDescriptor): readonly InlineValidationAst[] {
+function toValidations(entries: readonly PhpArrayEntry[]): readonly InlineValidationAst[] {
     return relationProject(entries, entry => {
         const keyed = relationRefine(
             entry,
@@ -133,7 +169,7 @@ function toValidations(entries: readonly PhpArrayEntry[], source: TokenDescripto
                 return Object.freeze({
                     field: createAstIdentifier(field),
                     rules: Object.freeze(relationProject(rules, createValidationRuleLiteral)),
-                    source,
+                    source: current.source,
                 });
             },
         );

@@ -1,0 +1,164 @@
+{
+  "phase": 1739,
+  "name": "interface-regression-phase1721-through-1739",
+  "totalChecks": 263,
+  "passedChecks": 178,
+  "failedChecks": 85,
+  "phases": [
+    {
+      "phase": 1721,
+      "total": 17,
+      "passed": 15,
+      "failed": 2,
+      "name": "static-source-bound-stage-context"
+    },
+    {
+      "phase": 1722,
+      "total": 16,
+      "passed": 14,
+      "failed": 2,
+      "name": "static-stage-judgment-envelope"
+    },
+    {
+      "phase": 1723,
+      "total": 14,
+      "passed": 12,
+      "failed": 2,
+      "name": "domain-owned-invocation-stage-judgments"
+    },
+    {
+      "phase": 1724,
+      "total": 12,
+      "passed": 8,
+      "failed": 4,
+      "name": "static-coverage-truthfulness-boundary"
+    },
+    {
+      "phase": 1725,
+      "total": 16,
+      "passed": 10,
+      "failed": 6,
+      "name": "total-invocation-coverage-publication"
+    },
+    {
+      "phase": 1726,
+      "total": 15,
+      "passed": 11,
+      "failed": 4,
+      "name": "inventory-bound-coverage-contract"
+    },
+    {
+      "phase": 1727,
+      "total": 19,
+      "passed": 15,
+      "failed": 4,
+      "name": "coverage-publication-validation-outcome"
+    },
+    {
+      "phase": 1728,
+      "total": 17,
+      "passed": 12,
+      "failed": 5,
+      "name": "analysis-correspondence-contract"
+    },
+    {
+      "phase": 1729,
+      "total": 12,
+      "passed": 9,
+      "failed": 3,
+      "name": "canonical-subject-coverage-entry"
+    },
+    {
+      "phase": 1730,
+      "total": 11,
+      "passed": 7,
+      "failed": 4,
+      "name": "correspondence-identity-ownership"
+    },
+    {
+      "phase": 1731,
+      "total": 12,
+      "passed": 8,
+      "failed": 4,
+      "name": "subject-derived-correspondence-receipt"
+    },
+    {
+      "phase": 1732,
+      "total": 13,
+      "passed": 9,
+      "failed": 4,
+      "name": "invocation-judgment-authority-boundary"
+    },
+    {
+      "phase": 1733,
+      "total": 15,
+      "passed": 9,
+      "failed": 6,
+      "name": "publication-authority-interface-contract"
+    },
+    {
+      "phase": 1734,
+      "total": 9,
+      "passed": 4,
+      "failed": 5,
+      "name": "publication-receipt-authority-binding"
+    },
+    {
+      "phase": 1735,
+      "total": 12,
+      "passed": 6,
+      "failed": 6,
+      "name": "correspondence-form-alignment"
+    },
+    {
+      "phase": 1736,
+      "total": 15,
+      "passed": 4,
+      "failed": 11,
+      "name": "integrated-semantic-response"
+    },
+    {
+      "phase": 1737,
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "name": "superseded-integrated-response-authority-model"
+    },
+    {
+      "phase": 1738,
+      "total": 18,
+      "passed": 12,
+      "failed": 6,
+      "name": "publication-receipt-single-authority"
+    },
+    {
+      "phase": 1739,
+      "total": 14,
+      "passed": 7,
+      "failed": 7,
+      "name": "rejection-analysis-binding"
+    }
+  ],
+  "checks": [
+    {
+      "name": "Phase 1721 through 1739 audit reports all exist",
+      "passed": true
+    },
+    {
+      "name": "all recorded direct-audit reports pass",
+      "passed": false
+    },
+    {
+      "name": "aggregate recorded direct-audit reports contain no failures",
+      "passed": false
+    },
+    {
+      "name": "Phase 1738 single-publication-authority model remains the baseline",
+      "passed": false
+    },
+    {
+      "name": "Phase 1739 rejection-analysis-binding audit passes all checks",
+      "passed": false
+    }
+  ]
+}

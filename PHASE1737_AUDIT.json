@@ -1,0 +1,33 @@
+{
+  "phase": 1737,
+  "name": "superseded-integrated-response-authority-model",
+  "total": 6,
+  "passed": 6,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "superseded integrated-response authority interface is removed",
+      "passed": true
+    },
+    {
+      "name": "superseded integrated-response authority boundary is removed",
+      "passed": true
+    },
+    {
+      "name": "superseded authority input and violation layer are removed",
+      "passed": true
+    },
+    {
+      "name": "integrated response contract remains as a projection of publication receipt",
+      "passed": true
+    },
+    {
+      "name": "public exports no longer expose superseded authority symbols",
+      "passed": true
+    },
+    {
+      "name": "Phase 1738 single-authority audit is registered",
+      "passed": true
+    }
+  ]
+}

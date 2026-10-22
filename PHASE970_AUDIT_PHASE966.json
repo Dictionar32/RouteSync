@@ -1,0 +1,19 @@
+{
+  "phase": 966,
+  "checks": {
+    "upstreamProjectionExists": true,
+    "upstreamProjectionExported": true,
+    "productionConsumesProjection": true,
+    "projectionOnlySeeds": true,
+    "projectionModelToResource": true,
+    "projectionResourceToResponse": true,
+    "authorityOwnsFixedPoint": true,
+    "legacySolverRemoved": true,
+    "ecommerceHasResourceReturns": true,
+    "ecommerceHasModelQueries": true,
+    "ecommerceHasModelParameters": true
+  },
+  "fixtureControllerPhpFiles": 11,
+  "clean": true,
+  "failed": []
+}

@@ -3,6 +3,9 @@ import { hasExplicitValidationType } from '../../core/src/compiler/scanner/subsc
 import { ValidationRuleFieldLowerer } from '../../core/src/compiler/scanner/subscanners/ValidationRuleFieldLowerer';
 import { detectActionError } from '../../core/src/compiler/scanner/subscanners/controller/controllerErrorDetector';
 import { RouteSecurityResolver } from '../../core/src/compiler/scanner/resolvers/RouteSecurityResolver';
+import { createMiddlewareName } from '../../core/src/types/upstream/names';
+import type { RouteMiddleware } from '../../core/src/types/upstream/route';
+import type { RouteMiddlewares, Sequence } from '../../core/src/types/upstream/collections';
 import { buildRouteCapabilityContract } from '../../core/src/compiler/scanner/resolvers/boundary/capabilityBuilder';
 import { IntermediateRouteBoundaryBasics } from '../../core/src/compiler/scanner/resolvers/boundary/boundaryBasics';
 import { LaravelSourceLexer } from '../../core/src/compiler/scanner/LaravelSourceLexer';
@@ -14,6 +17,17 @@ import {
     HttpStatusCode,
     RouteActionKind
 } from '../../core/src/types/route';
+
+const routeMiddlewareFlow = (names: readonly string[]): RouteMiddlewares => ({
+    kind: 'route_middlewares',
+    items: names.reduceRight<Sequence<RouteMiddleware>>(
+        (tail, name) => ({ kind: 'cons', head: { kind: 'direct', name: createMiddlewareName(name) }, tail }),
+        { kind: 'empty' },
+    ),
+});
+
+const sequenceValues = <T>(sequence: Sequence<T>, output: readonly T[] = []): readonly T[] =>
+    sequence.kind === 'empty' ? output : sequenceValues(sequence.tail, [...output, sequence.head]);
 
 describe('Improved IR Dataflow & Semantic Rule Resolution Suite', () => {
     describe('1. Semantic Validation Rule Recognizer', () => {
@@ -119,22 +133,36 @@ describe('Improved IR Dataflow & Semantic Rule Resolution Suite', () => {
 
     describe('4. Custom Role Middleware Resolution', () => {
         it('should resolve admin middleware into security abilities and gate policy', () => {
-            const resolution = RouteSecurityResolver.resolve(['auth:sanctum', 'admin']);
-            expect(resolution.auth).toBe(true);
+            const authMiddleware = createMiddlewareName('auth:sanctum');
+            const resolution = RouteSecurityResolver.resolve({
+                kind: 'route_security_authority_input',
+                middleware: routeMiddlewareFlow(['auth:sanctum', 'admin']),
+                authorization: { kind: 'laravel_route_authorization_middleware_present', middleware: Object.freeze([authMiddleware]) },
+            });
+            const abilities = sequenceValues(resolution.security.abilities);
+            const policies = sequenceValues(resolution.policies);
+            expect(resolution.auth.value).toBe(true);
             expect(resolution.security.scheme).toBe(SecuritySchemeKind.Sanctum);
-            expect(resolution.security.abilities).toContain('role:admin');
-            expect(resolution.policies).toHaveLength(1);
-            expect(resolution.policies[0].ability).toBe('role:admin');
-            expect(resolution.policies[0].kind).toBe(RoutePolicyKind.Gate);
+            expect(abilities.map(ability => ability.value.value)).toContain('role:admin');
+            expect(policies).toHaveLength(1);
+            expect(policies[0].ability.value.value).toBe('role:admin');
+            expect(policies[0].kind).toBe(RoutePolicyKind.Gate);
         });
 
         it('should resolve role:manager middleware into security abilities and gate policy', () => {
-            const resolution = RouteSecurityResolver.resolve(['auth:sanctum', 'role:manager,editor']);
-            expect(resolution.security.abilities).toContain('role:manager');
-            expect(resolution.security.abilities).toContain('role:editor');
-            expect(resolution.policies).toHaveLength(2);
-            expect(resolution.policies[0].ability).toBe('role:manager');
-            expect(resolution.policies[1].ability).toBe('role:editor');
+            const authMiddleware = createMiddlewareName('auth:sanctum');
+            const resolution = RouteSecurityResolver.resolve({
+                kind: 'route_security_authority_input',
+                middleware: routeMiddlewareFlow(['auth:sanctum', 'role:manager,editor']),
+                authorization: { kind: 'laravel_route_authorization_middleware_present', middleware: Object.freeze([authMiddleware]) },
+            });
+            const abilities = sequenceValues(resolution.security.abilities);
+            const policies = sequenceValues(resolution.policies);
+            expect(abilities.map(ability => ability.value.value)).toContain('role:manager');
+            expect(abilities.map(ability => ability.value.value)).toContain('role:editor');
+            expect(policies).toHaveLength(2);
+            expect(policies[0].ability.value.value).toBe('role:manager');
+            expect(policies[1].ability.value.value).toBe('role:editor');
         });
     });
 });

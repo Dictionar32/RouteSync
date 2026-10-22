@@ -1,0 +1,21 @@
+{
+  "phase": 1930,
+  "title": "Controller Integrated Response Single Knowledge Interface First",
+  "status": "targeted-static-audit-passed",
+  "checks": {
+    "phase1930": { "passed": 13, "total": 13 },
+    "phase1929-evolved-contract": { "passed": 11, "total": 11 },
+    "phase1928-authority-closure": { "passed": 7, "total": 7 },
+    "packageJsonParse": "passed"
+  },
+  "notRun": ["TypeScript compilation", "package build", "full test suite", "E2E"],
+  "legacyAuditNotes": [
+    "Older Phase1901/1902/1910/1915/1917/1918 audits assert earlier scanner boundary versions and prior analyzer ownership shapes; their failures are not treated as Phase1930 regressions."
+  ],
+  "semanticInvariants": [
+    "semanticKnowledgeProjection.knowledge is the only published controller dataflow knowledge graph",
+    "integrated response composition consumes the same canonical knowledge for inventory and analysis but does not republish the graph in its result",
+    "invocationJudgment and invocationSemanticIntegratedResponse remain distinct typed values",
+    "the exact invocationJudgment.response is forwarded into composition without reclassification"
+  ]
+}

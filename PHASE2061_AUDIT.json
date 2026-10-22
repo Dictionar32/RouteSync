@@ -1,0 +1,21 @@
+{
+  "phase": 2061,
+  "title": "PHP Class Reference Context Judgment Interface First",
+  "baseArchive": "RouteSync-phase2060-php-class-reference-context-judgment-interface-first-20261015.zip",
+  "structuralAuditScripts": 13,
+  "structuralAuditScriptsPassed": 13,
+  "selectedStructuralChecksPassed": 129,
+  "selectedStructuralChecksTotal": 129,
+  "typescriptParserOnlyFiles": 13,
+  "typescriptParserDiagnostics": 0,
+  "packageJsonParsed": true,
+  "fullTypecheckRun": false,
+  "buildRun": false,
+  "vitestRun": false,
+  "zipIntegrityChecked": true,
+  "limitations": [
+    "Full TypeScript typecheck, build, and Vitest were not run because the repository toolchain dependencies are unavailable in this environment.",
+    "The existing controller import inventory still marks grouped class imports incomplete; dependent references fail closed unless an explicit parsed import resolves the reference.",
+    "ModelScanner retains its existing app/Models discovery scope. Namespace identity is derived from source tokens, not inferred from the directory path."
+  ]
+}

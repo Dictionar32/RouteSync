@@ -1,0 +1,24 @@
+{
+  "phase": 1445,
+  "title": "Assignment Wiring Contract",
+  "scope": [
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/types/upstream/scannerAssignmentPartsInterface.ts",
+    "packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts",
+    "packages/core/src/compiler/scanner/__test__/upstream-contracts/scannerAssignmentInterfaceWiring.phase1445.test.ts"
+  ],
+  "static_audit": "scripts/audits/audit-phase1445-assignment-wiring-contract.cjs",
+  "intent": "Migrate assignment runtime wiring to the previously defined interface/algebra contract without adding a new runtime parser.",
+  "validation_limitations": [
+    "Vitest availability must be checked before claiming regression tests ran.",
+    "Build availability must be checked before claiming the package builds.",
+    "Static source audits do not prove AST behavioral equivalence."
+  ],
+  "validation_results": {
+    "static_audit": "10/10 passed",
+    "related_static_audits": "Phase 1436–1444 passed",
+    "build": "not run successfully: tsdown executable missing",
+    "vitest": "not run: vitest executable missing",
+    "typescript": "failed with 452 diagnostics in imported project modules; no diagnostics directly naming the touched implementation/test files were found in the captured output"
+  }
+}

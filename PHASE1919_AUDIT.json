@@ -1,0 +1,20 @@
+{
+  "phase": 1919,
+  "title": "Laravel knowledge adapter injection coherence",
+  "scope": [
+    "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+    "packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+    "scripts/audits/audit-phase1919-laravel-knowledge-adapter-injection.cjs",
+    "PHASE1919_LARAVEL_KNOWLEDGE_ADAPTER_INJECTION_COHERENCE.md"
+  ],
+  "staticAudit": {
+    "passed": 10,
+    "total": 10,
+    "command": "node scripts/audits/audit-phase1919-laravel-knowledge-adapter-injection.cjs"
+  },
+  "archiveIntegrity": "checked",
+  "packageBuild": "not-run",
+  "typecheck": "not-run",
+  "runtimeTests": "not-run",
+  "reason": "Project workflow excludes build and typecheck in this environment; focused static audit only."
+}

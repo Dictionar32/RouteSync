@@ -1,0 +1,19 @@
+{
+  "phase": 1590,
+  "title": "Interface-First Runtime Assessment Integrity",
+  "scope": [
+    "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationRuntimeExecutor.ts",
+    "packages/core/src/compiler/scanner/wiring/routeManifestTypeLoweringAuthority.ts"
+  ],
+  "change": "Runtime executor validates proof/discriminant/rule/judgment/verification/coverage coherence before projection and emits typed assessment_integrity_failed outcomes.",
+  "semantic_reasoning_added_to_executor": false,
+  "legacy_default_projection_removed": false,
+  "proof_producing_pipeline_connected_to_default_composition_root": false,
+  "build_status": "not_verified",
+  "verification": {
+    "audit_phase1590": "run separately",
+    "audit_phase1589": "run separately",
+    "zip_root": "RouteSync/"
+  }
+}

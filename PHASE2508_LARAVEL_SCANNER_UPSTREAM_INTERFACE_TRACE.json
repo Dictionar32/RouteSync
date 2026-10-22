@@ -1,0 +1,35 @@
+{
+  "phase": 2508,
+  "title": "Laravel Scanner Upstream Interface Trace",
+  "status": "audit_complete_implementation_not_claimed",
+  "sourceRoot": "packages/core/src",
+  "trace": [
+    "LaravelSourceAstPipelineDependenciesInterface",
+    "compiler/scanner/wiring/laravelSourceAstPipelineDependencies.ts",
+    "LaravelFormRequestScannerInterface",
+    "upstreamFormRequestScanner.scan",
+    "FormRequestScanner.scanCanonicalBundle",
+    "compiler/scanner/subscanners/FormRequestScanner.ts",
+    "subscanners/requestProducer.ts",
+    "semantic/relations/*",
+    "LaravelFormRequestScanJudgment"
+  ],
+  "findings": {
+    "activeWiringImportsSubscanners": true,
+    "formRequestContractExists": true,
+    "formRequestImplementationUpstreamOwned": false,
+    "requestProducerContractImportsCompilerTypes": true,
+    "sourceAstSemanticProducerImportsRelations": true,
+    "directFoundationImportFilesInScannerAndUpstreamTypes": 109,
+    "directRelationsImportFilesInScannerAndUpstreamTypes": 362
+  },
+  "verification": {
+    "sourceTrace": "performed",
+    "directImportCount": "performed",
+    "typecheck": "not_run",
+    "vitest": "not_run",
+    "packageBuild": "not_run",
+    "cliEndToEnd": "not_run"
+  },
+  "implementationClaimed": false
+}

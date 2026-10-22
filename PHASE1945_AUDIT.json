@@ -1,0 +1,52 @@
+{
+  "phase": 1945,
+  "audit": "controller-body-ast-adt-interface-first",
+  "passed": 9,
+  "total": 11,
+  "checks": [
+    {
+      "name": "body AST is an explicit discriminated union rather than a conditional dataflow field",
+      "passed": false
+    },
+    {
+      "name": "syntax-only projection emits its own ADT variant with no dataflow",
+      "passed": true
+    },
+    {
+      "name": "semantic projection emits its own ADT variant with the analyzed dataflow",
+      "passed": true
+    },
+    {
+      "name": "parser overloads preserve distinct syntax-only and semantic AST variants",
+      "passed": true
+    },
+    {
+      "name": "semantic AST dataflow still retains the existing canonical invocation judgment and integrated response",
+      "passed": false
+    },
+    {
+      "name": "syntax-only absence is explicitly not a not-connected or unresolved invocation outcome",
+      "passed": true
+    },
+    {
+      "name": "existing semantic model contract version and AST projection contract are synchronized",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner boundary version and body AST contract are synchronized",
+      "passed": true
+    },
+    {
+      "name": "AST ADT variants are exported through the existing lexer barrel",
+      "passed": true
+    },
+    {
+      "name": "no parallel semantic authority or invocation fallback was added",
+      "passed": true
+    },
+    {
+      "name": "Phase 1945 audit is registered in package scripts",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "scanner_file_count": 586,
+  "typescript_file_count": 458,
+  "imports": {
+    "semantic_foundation": {
+      "file_count": 168,
+      "examples": [
+        "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts",
+        "packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts",
+        "packages/core/src/compiler/scanner/wiring/routeManifestLowerer.ts",
+        "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts",
+        "packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts",
+        "packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/ModelScanner.ts",
+        "packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts",
+        "packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts"
+      ]
+    },
+    "semantic_relations": {
+      "file_count": 114,
+      "examples": [
+        "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts",
+        "packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts",
+        "packages/core/src/compiler/scanner/wiring/routeManifestLowerer.ts",
+        "packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts",
+        "packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts",
+        "packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts",
+        "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts",
+        "packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts"
+      ]
+    },
+    "relational_sequence": {
+      "file_count": 144,
+      "examples": [
+        "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts",
+        "packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts",
+        "packages/core/src/compiler/scanner/wiring/routeManifestLowerer.ts",
+        "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts",
+        "packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts",
+        "packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/ModelScanner.ts",
+        "packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts",
+        "packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts"
+      ]
+    },
+    "relation_membership": {
+      "file_count": 27,
+      "examples": [
+        "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts",
+        "packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts",
+        "packages/core/src/compiler/scanner/subscanners/scannerUtils.ts",
+        "packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts",
+        "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts",
+        "packages/core/src/compiler/scanner/subscanners/RouteScanner.ts",
+        "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts",
+        "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+        "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+        "packages/core/src/compiler/scanner/resolvers/resource/structuralFieldMatcher.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts"
+      ]
+    },
+    "rewrite_engine": {
+      "file_count": 11,
+      "examples": [
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/index.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.phase266.test.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+        "packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts"
+      ]
+    },
+    "rewrite_executor": {
+      "file_count": 3,
+      "examples": [
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts",
+        "packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts",
+        "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts"
+      ]
+    },
+    "upstream_authority": {
+      "file_count": 18,
+      "examples": [
+        "packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts",
+        "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts",
+        "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts",
+        "packages/core/src/compiler/scanner/resolvers/RouteSecurityResolver.ts",
+        "packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts",
+        "packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts",
+        "packages/core/src/compiler/scanner/resolvers/RouteCrudClassifier.ts",
+        "packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts",
+        "packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts",
+        "packages/core/src/compiler/scanner/resolvers/boundary/capabilityResolution.ts",
+        "packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts",
+        "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts"
+      ]
+    }
+  }
+}

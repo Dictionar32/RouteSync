@@ -1,0 +1,97 @@
+{
+  "phase": 2150,
+  "title": "Invocation Judgment, Integrated Response, Runtime Executor Interface Trace",
+  "passed": 21,
+  "total": 21,
+  "checks": [
+    {
+      "name": "single invocation executor delegates directly to upstream authority",
+      "passed": true
+    },
+    {
+      "name": "executor does not classify or fabricate a fallback judgment",
+      "passed": true
+    },
+    {
+      "name": "runtime contract forbids semantic derivation responsibilities",
+      "passed": true
+    },
+    {
+      "name": "authority validates rather than re-derives semantic meaning",
+      "passed": true
+    },
+    {
+      "name": "single invocation pipeline forwards executor judgment",
+      "passed": true
+    },
+    {
+      "name": "whole-knowledge analysis is distinct from independent batch analysis",
+      "passed": true
+    },
+    {
+      "name": "integrated response uses one canonical knowledge graph for inventory and analysis",
+      "passed": true
+    },
+    {
+      "name": "integrated response retains exact publication result and PHP source outcome",
+      "passed": true
+    },
+    {
+      "name": "controller dataflow verifies source-file identity before composition",
+      "passed": true
+    },
+    {
+      "name": "controller dataflow passes exact projection and exact invocation response to composition",
+      "passed": true
+    },
+    {
+      "name": "controller dataflow judgment retains both integrated response and exact invocation judgment",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner continues to delegate response judgment to existing response pipeline",
+      "passed": true
+    },
+    {
+      "name": "typed request projection loss remains explicitly open instead of falsely closed",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation or new subscanner introduced",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/invocationSemanticExecutionBoundaryContract.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/invocationSemanticPipeline.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "This phase hardens trace and regression coverage; it does not claim to close the downstream typed-request projection gap.",
+    "No full build, full typecheck, or Vitest run.",
+    "Static source assertions and syntax-only transpilation do not establish runtime correctness."
+  ]
+}

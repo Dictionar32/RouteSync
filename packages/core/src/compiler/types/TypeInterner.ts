@@ -1,38 +1,21 @@
-/**
- * Relation-backed semantic type interning.
- *
- * Identity is represented as immutable hash/type facts. The interner is a
- * projection over that relation rather than a host Map-backed cache.
- */
-
+/** Compiler implementation of the upstream semantic type interning contract. */
 import type { SemanticType } from '../../types/domain/semanticType';
+import type { TypeInternerInterface } from '../../types/upstream/typeInternerInterface';
 import { TypeHasher, createHashContext } from './TypeHasher';
-import {
-    relationIndexAdd,
-    relationIndexLookup,
-    type RelationIndex,
-} from '../../semantic/foundation/relationMembership';
-import { relationOptionFold } from '../../semantic/foundation/relationalSequence';
 
-export interface TypeInterner {
-    readonly intern: (type: SemanticType) => SemanticType;
-    readonly getCacheSize: () => number;
-    readonly clear: () => void;
-}
+export type TypeInterner = TypeInternerInterface;
 
-const createInterner = (): TypeInterner => {
-    let cache: RelationIndex<string, SemanticType> = Object.freeze([]);
+const createInterner = (): TypeInternerInterface => {
+    let cache: readonly { readonly identity: string; readonly type: SemanticType }[] = Object.freeze([]);
     return Object.freeze({
         intern: (type: SemanticType): SemanticType => {
-            const hash = TypeHasher.hash(type, createHashContext());
-            return relationOptionFold(
-                relationIndexLookup(cache, hash),
-                () => {
-                    cache = relationIndexAdd(cache, hash, type);
-                    return type;
-                },
-                value => value,
-            );
+            const identity = TypeHasher.hash(type, createHashContext());
+            const existing = cache.find(entry => entry.identity === identity);
+            if (existing !== undefined) {
+                return existing.type;
+            }
+            cache = Object.freeze([...cache, Object.freeze({ identity, type })]);
+            return type;
         },
         getCacheSize: (): number => cache.length,
         clear: (): void => {

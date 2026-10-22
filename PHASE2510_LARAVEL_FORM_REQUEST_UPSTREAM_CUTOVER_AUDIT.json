@@ -1,0 +1,51 @@
+{
+  "phase": 2510,
+  "checks": [
+    {
+      "name": "FormRequest scanner is explicitly typed by its upstream interface",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/laravelFormRequestScanner.ts"
+    },
+    {
+      "name": "Active FormRequest scanner has no direct relations/foundation imports",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/laravelFormRequestScanner.ts"
+    },
+    {
+      "name": "Active request producer has no direct relations/foundation imports",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/operations/requestProducer.ts"
+    },
+    {
+      "name": "TypeInterner implementation has no direct relations/foundation imports",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/types/TypeInterner.ts"
+    },
+    {
+      "name": "TypeInterner contract is upstream-owned",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/typeInternerInterface.ts"
+    },
+    {
+      "name": "Request producer contract no longer imports concrete TypeInterner implementation",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/requestProducerInterface.ts"
+    },
+    {
+      "name": "Active wiring uses the typed FormRequest scanner directly",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/wiring/laravelSourceAstPipelineDependencies.ts"
+    },
+    {
+      "name": "Active wiring no longer imports legacy FormRequestScanner",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/wiring/laravelSourceAstPipelineDependencies.ts"
+    }
+  ],
+  "unresolved": [
+    "Request producer input is still parser-evidence-shaped; concrete evidence types are supplied at the scanner composition boundary.",
+    "requestAstCanonical.ts and operations/form-request/* still directly import semantic/relations.",
+    "TypeHasher.ts still imports semantic/relations; therefore the transitive TypeInterner dependency closure is not relation-free.",
+    "The active Laravel pipeline still imports legacy subscanners for response, schema, migration, DTO, query, service, middleware, and provider."
+  ]
+}

@@ -1,8 +1,9 @@
 /** Relation-driven instruction and phi renaming. */
 import { basicBlockLookup, basicBlockReplace, type Instruction, type Operand, type Expression, type BasicBlockRelation } from '../../../utils/ControlFlowGraph';
+import type { CallInstruction } from '../../../utils/cfg/instructions';
 import type { VariableVersionScope } from './variableVersionScope';
-import { relationAll, relationRefine, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/relationFoundation';
+import { relationAll, relationRefine, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/relationFoundation';
 
 export interface RenamedBlockInstructions {
     readonly instructions: readonly (Expression | Instruction)[];
@@ -61,7 +62,7 @@ export const renameBlockInstructions = (
                 () => relationResolve(
                     relationEqual(inst.kind, 'Call'),
                     () => relationOptionFold(
-                        relationRefine(inst, (candidate): candidate is Extract<Instruction, { readonly kind: 'Call' }> => relationAll([relationEqual(candidate.kind, 'Call'), Object.hasOwn(candidate, 'target')])),
+                        relationRefine(inst, (candidate): candidate is CallInstruction => relationAll([relationEqual(candidate.kind, 'Call'), Object.hasOwn(candidate, 'target')])),
                         () => ({ instruction: inst, scope }),
                         call => ({ instruction: renamedCall(call.target, relationProject(call.args, argument => scope.renameOperand(argument))), scope }),
                     ),

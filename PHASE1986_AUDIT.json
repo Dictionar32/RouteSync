@@ -1,0 +1,61 @@
+{
+  "phase": 1986,
+  "title": "Response evidence binding closed outcome interface",
+  "scope": "interface/type declarations only; runtime and wiring implementations untouched",
+  "checks": [
+    {
+      "name": "each evidence binding is an explicit same-source/different-source ADT",
+      "passed": true
+    },
+    {
+      "name": "complete source-binding receipt requires a non-empty tuple",
+      "passed": true
+    },
+    {
+      "name": "rejected source-binding receipt requires at least one different-source entry and preserves remaining entries",
+      "passed": true
+    },
+    {
+      "name": "receipt declares exact evidence coverage with no omissions or duplicates",
+      "passed": true
+    },
+    {
+      "name": "authority result is indexed by the exact input binding outcome",
+      "passed": true
+    },
+    {
+      "name": "rejected evidence binding has a dedicated judgment retaining invocation and receipt",
+      "passed": true
+    },
+    {
+      "name": "controller artifact ADT can carry the evidence-binding rejected judgment for each matching invocation outcome",
+      "passed": true
+    },
+    {
+      "name": "wiring forwards the artifact-owned response judgment without rebuilding or intersecting another classification",
+      "passed": true
+    },
+    {
+      "name": "response source identity remains owned by the existing semantics interface",
+      "passed": true
+    },
+    {
+      "name": "public barrel exports the new type-only contract",
+      "passed": true
+    },
+    {
+      "name": "retirement contract version advanced",
+      "passed": true
+    },
+    {
+      "name": "no relation/foundation replacement layer is introduced",
+      "passed": true
+    },
+    {
+      "name": "response contract module remains declarations only",
+      "passed": true
+    }
+  ],
+  "passed": 13,
+  "total": 13
+}

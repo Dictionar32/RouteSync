@@ -27,27 +27,19 @@ export const resolveMutation = (
   hooksMap: Record<string, unknown>,
 ): unknown => getHookMethodResult(hooksMap[operation.resource], operation.action)
 
-const isDomainIntentCapability = (value: unknown): value is DomainIntentCapabilityReference => {
-  if (!hasKey(value, 'kind') || value.kind !== 'domain_intent_capability') return false
-  if (!hasKey(value, 'intentKind') || typeof value.intentKind !== 'string') return false
-  return value.closed === true && value.authority === 'upstream'
+/** Generated manifest contract; untyped external JSON must be decoded before this boundary. */
+export interface DomainIntentRuntimeManifest {
+  readonly domainIntentCapabilities?: Readonly<Record<string, DomainIntentCapabilityReference>>;
 }
 
 const readDomainIntentCapability = (
-  runtimeManifest: unknown,
+  runtimeManifest: DomainIntentRuntimeManifest | undefined,
   groupName: string,
-): DomainIntentCapabilityReference | undefined => {
-  if (!hasKey(runtimeManifest, 'domainIntentCapabilities')) return undefined
-  const capabilities = runtimeManifest.domainIntentCapabilities
-  if (!capabilities || typeof capabilities !== 'object') return undefined
-  if (!hasKey(capabilities, groupName)) return undefined
-  const capability = capabilities[groupName]
-  return isDomainIntentCapability(capability) ? capability : undefined
-}
+): DomainIntentCapabilityReference | undefined => runtimeManifest?.domainIntentCapabilities?.[groupName]
 
 export interface ResolveAndWrapIntentParams {
   readonly groupName: string
-  readonly runtimeManifest?: unknown
+  readonly runtimeManifest?: DomainIntentRuntimeManifest
   readonly unifiedHook: (optionsOrId?: number | { id?: number; list?: boolean }) => unknown
   readonly crudHooks: Record<string, unknown>
   readonly group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>
@@ -63,10 +55,11 @@ export function resolveAndWrapIntent({
   hooksMap
 }: ResolveAndWrapIntentParams): unknown {
   const capability = readDomainIntentCapability(runtimeManifest, groupName)
-  if (!capability || capability.intentKind !== 'aggregate_collection' || !capability.aggregateCollection) {
+  if (!capability || capability.intentKind !== 'aggregate_collection') {
     return unifiedHook
   }
 
+  // The closed upstream ADT guarantees this payload for the aggregate variant.
   const aggregateCollection = capability.aggregateCollection
   const wrappedHook = (optionsOrId?: number | { id?: number; list?: boolean }) => {
     const result = unifiedHook(optionsOrId)

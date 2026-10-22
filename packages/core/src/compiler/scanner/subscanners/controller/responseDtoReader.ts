@@ -1,4 +1,4 @@
-import { readSourceTextSync } from '../scannerUtils';
+import { sourceFileAcquisition } from '../../sourceFiles';
 /** Reads Laravel response DTOs into a verified contract boundary. */
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
 import { ResourceFieldSemanticBinding } from '../../../../types/domain/resourceFieldSemanticBinding';
@@ -12,7 +12,7 @@ import type { ResponseDtoDeclarationAst } from '../../lexer/responseDtoAstTypes'
 import type { ResponseContractField, ResponseNullability, ResponseValueContract } from '../../../../types/domain/responseContracts';
 import { BoundSemanticFactory } from '../../../../types/domain/boundAst';
 import { createResponseFieldName, createResponseTypeName } from '../../../../types/domain/semanticValueFactories';
-import { relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, relationVariantFold, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationAny, relationEqual, relationGate, relationProject, relationRange, relationOptionFold, relationSome, relationVariantFold, type RelationOption } from '../../../../semantic/relations/relationalSequence';
 
 export interface ResponseDtoAnalysis {
     readonly fields: readonly ResourceFieldSemanticBinding[];
@@ -34,7 +34,7 @@ export function readResponseDtoFields(file: string): readonly ResourceFieldSeman
 }
 
 function parse(file: string): ResponseDtoDeclarationAst {
-    const source = readSourceTextSync(file);
+    const source = sourceFileAcquisition.readSourceTextSync(file);
     const tokens = LaravelSourceLexer.tokenize(source);
     return LaravelSourceLexer.parseResponseDtoDeclaration(tokens, findClassName(tokens));
 }
@@ -92,12 +92,16 @@ function toPrimitiveResponseValue(type: Extract<TypeExpression, { readonly kind:
         relationEqual(type.value.kind, 'string'),
         () => ({ kind: 'scalar', value: { kind: 'textual' } }),
         () => relationGate(
-            relationEqual(type.value.kind, 'number'),
+            relationEqual(type.value.kind, 'integer'),
             () => ({ kind: 'scalar', value: { kind: 'whole_number' } }),
             () => relationGate(
-                relationEqual(type.value.kind, 'boolean'),
-                () => ({ kind: 'scalar', value: { kind: 'boolean_flag' } }),
-                () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+                relationEqual(type.value.kind, 'decimal'),
+                () => ({ kind: 'scalar', value: { kind: 'decimal_number' } }),
+                () => relationGate(
+                    relationEqual(type.value.kind, 'boolean'),
+                    () => ({ kind: 'scalar', value: { kind: 'boolean_flag' } }),
+                    () => ({ kind: 'unresolved_declaration', reason: 'mixed_declaration' }),
+                ),
             ),
         ),
     );
@@ -142,7 +146,7 @@ function primitiveKind(kind: PrimitiveVocabulary['kind']): PrimitiveKind {
             relationEqual(kind, 'boolean'),
             () => PrimitiveKind.BOOLEAN,
             () => relationGate(
-                relationEqual(kind, 'number'),
+                relationAny([relationEqual(kind, 'number'), relationEqual(kind, 'integer'), relationEqual(kind, 'decimal')]),
                 () => PrimitiveKind.NUMBER,
                 () => PrimitiveKind.INDETERMINATE,
             ),

@@ -1,0 +1,41 @@
+{
+  "phase": 1543,
+  "name": "runtime execution request algebra",
+  "checks": [
+    {
+      "check": "runtime request is a closed discriminated union for evidence and no-evidence",
+      "passed": true
+    },
+    {
+      "check": "single execute method accepts the closed request and returns a closed result union",
+      "passed": true
+    },
+    {
+      "check": "executor owns protocol dispatch and authority/admission composition",
+      "passed": true
+    },
+    {
+      "check": "no-evidence explicitly means not evaluated rather than semantic success",
+      "passed": true
+    },
+    {
+      "check": "scanner routes both branches through the same execute interface",
+      "passed": true
+    },
+    {
+      "check": "scanner no-evidence result is a distinct union variant, not a fabricated judgment",
+      "passed": true
+    },
+    {
+      "check": "scanner does not compose authority or admission directly",
+      "passed": true
+    },
+    {
+      "check": "executor adds no second reasoning engine",
+      "passed": true
+    }
+  ],
+  "passed": 8,
+  "total": 8,
+  "static_audit_only": true
+}

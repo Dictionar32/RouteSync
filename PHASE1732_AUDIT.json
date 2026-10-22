@@ -1,0 +1,61 @@
+{
+  "phase": 1732,
+  "name": "invocation-judgment-authority-boundary",
+  "total": 13,
+  "passed": 9,
+  "failed": 4,
+  "checks": [
+    {
+      "name": "canonical authority consumes typed invocation input and returns a closed judgment union",
+      "passed": true
+    },
+    {
+      "name": "authority boundary type/value synchronized at v2",
+      "passed": true
+    },
+    {
+      "name": "authority binds returned judgment, trace, witnesses, and obligations to requested subject",
+      "passed": true
+    },
+    {
+      "name": "authority validates algebra output without re-deriving or repairing meaning",
+      "passed": true
+    },
+    {
+      "name": "invalid authority output is rejected without fallback judgment",
+      "passed": true
+    },
+    {
+      "name": "runtime executor delegates to upstream authority",
+      "passed": true
+    },
+    {
+      "name": "scanner boundary type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "scanner contract states authority delegation and judgment subject binding",
+      "passed": true
+    },
+    {
+      "name": "scanner calls canonical pipeline rather than deriving invocation judgment locally",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "static invocation remains explicitly unimplemented and uncovered",
+      "passed": false
+    },
+    {
+      "name": "no semantic/foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command registered",
+      "passed": true
+    }
+  ]
+}

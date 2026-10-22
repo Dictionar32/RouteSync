@@ -1,0 +1,21 @@
+{
+  "phase": 2305,
+  "title": "Attribute upstream alignment and open constructor ownership",
+  "scope": [
+    "trace CLI to upstream Laravel attribute scanner contract",
+    "verify v18 contract alignment through composition root",
+    "verify complete/blocked producer judgment and error propagation",
+    "record constructor-selection authority gap without introducing a duplicate interface"
+  ],
+  "verification": {
+    "structuralAudit": "scripts/audits/audit-phase2305-attribute-upstream-alignment.cjs",
+    "typecheck": "not run",
+    "build": "not run",
+    "runtimeIntegrationTests": "not run"
+  },
+  "openIssues": [
+    "attributeProducer selects __construct locally",
+    "controller scanner has a separate constructor lookup for dependency injection",
+    "expression authority retains transitive semantic/relations dependencies"
+  ]
+}

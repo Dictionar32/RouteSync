@@ -1,0 +1,53 @@
+{
+  "phase": 1594,
+  "title": "RequestType semantic interface and migration-readiness audit",
+  "scope": "static source audit; no runtime behavior or package build is claimed",
+  "checks": [
+    {
+      "name": "consumer pipeline exposes only contract and source-bound derive",
+      "passed": true
+    },
+    {
+      "name": "semantic composition is separate from the assembled consumer pipeline",
+      "passed": false
+    },
+    {
+      "name": "runtime executor consumes only canonical pipeline operation",
+      "passed": true
+    },
+    {
+      "name": "scanner default is still the legacy projection path",
+      "passed": true
+    },
+    {
+      "name": "legacy projection still delegates to solver aggregation",
+      "passed": true
+    },
+    {
+      "name": "authority-backed lowering exists only as an injected alternative",
+      "passed": true
+    },
+    {
+      "name": "concrete reasoning implementation is present",
+      "passed": false
+    },
+    {
+      "name": "concrete proof verifier implementation is present",
+      "passed": false
+    },
+    {
+      "name": "concrete pipeline composition implementation is present",
+      "passed": false
+    }
+  ],
+  "passed": 5,
+  "total": 9,
+  "migrationReady": false,
+  "blockers": [
+    "semantic composition is separate from the assembled consumer pipeline",
+    "concrete reasoning implementation is present",
+    "concrete proof verifier implementation is present",
+    "concrete pipeline composition implementation is present"
+  ],
+  "decision": "not_ready_for_migration"
+}

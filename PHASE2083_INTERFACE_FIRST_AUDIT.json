@@ -1,0 +1,28 @@
+{
+  "phase": 2083,
+  "title": "Closed Action Selection Judgment",
+  "source_changed": true,
+  "new_parallel_interface": false,
+  "new_folder": false,
+  "contract_owner_evolved_in_place": true,
+  "checks": {
+    "complete_selection_uses_actionSelections": true,
+    "blocked_selection_has_no_actionSelections": true,
+    "action_exclusion_reasons_are_discriminated": true,
+    "authority_emits_selected_and_excluded_outcomes": true,
+    "scanner_consumes_selected_outcomes": true,
+    "test_covers_visibility_and_constructor_exclusion": true,
+    "test_covers_has_middleware_static_hook": true,
+    "test_covers_blocked_ancestry_without_action_selections": true
+  },
+  "known_remaining_gaps": {
+    "scanner_uses_semantic_relations": true,
+    "scanner_calls_controller_subscanner": true,
+    "action_scanner_calls_contract_derivation": true,
+    "action_contract_derivation_is_runtime_semantic_logic": true,
+    "declaration_authority_uses_helpers": true
+  },
+  "build": "NOT_RUN",
+  "typecheck": "NOT_RUN",
+  "vitest": "NOT_RUN"
+}

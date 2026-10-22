@@ -1,8 +1,8 @@
-import { adaptPhpAstBoundary } from '../boundaryAdapter';
+import { phpAstBoundaryAdapter } from '../boundaryAdapter';
 
 describe('Phase 87.6 PHP AST interface contract', () => {
     test('static property lookup preserves static-property semantics', () => {
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'staticlookup',
             what: { kind: 'name', name: 'App\\Models\\User' },
             offset: { kind: 'variable', name: 'email' }
@@ -16,7 +16,7 @@ describe('Phase 87.6 PHP AST interface contract', () => {
     });
 
     test('static constant lookup is not mislabeled as static property access', () => {
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'staticlookup',
             what: { kind: 'name', name: 'App\\Models\\User' },
             offset: { kind: 'identifier', name: 'STATUS' }
@@ -30,7 +30,7 @@ describe('Phase 87.6 PHP AST interface contract', () => {
     });
 
     test('qualified class identity is preserved at the AST boundary', () => {
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'staticlookup',
             what: { kind: 'name', name: 'App\\Domain\\Orders\\Order' },
             offset: { kind: 'identifier', name: 'STATUS' }

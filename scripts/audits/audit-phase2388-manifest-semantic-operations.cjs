@@ -1,0 +1,30 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, pass, evidence) => checks.push({ name, pass: Boolean(pass), evidence });
+const contract = read('packages/core/src/types/upstream/manifestBuilderInterface.ts');
+const builder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
+const surface = read('packages/core/src/types/upstream/semanticDataflowManifestSurface.ts');
+const capability = read('packages/core/src/types/upstream/resourceGroupCapability.ts');
+const authority = read('packages/core/src/types/upstream/resourceGroupCapabilityAuthority.ts');
+const sourceModel = read('packages/core/src/types/upstream/highLevelSourceModel.ts');
+const checksNoSemanticInline = builder.includes('dataflowManifestSurface.queryPolicyContractsFromJudgments(')
+  && !builder.includes('materializeSemanticDataflowQueryPolicy(')
+  && !builder.includes('resourceGroupCapabilitiesFromRoutes(');
+check('ManifestBuilder contract closes all four upstream operation dependencies', contract.includes('readonly sourceAstPipeline: LaravelSourceAstPipelineInterface') && contract.includes('readonly dataflowManifestSurface: SemanticDataflowManifestSurfaceInterface') && contract.includes('readonly resourceGroupCapabilityAlgebra: ResourceGroupCapabilityAlgebraInterface') && contract.includes('readonly sourceModelBuilder: CompleteLaravelSourceModelBuilderInterface'), 'source-AST + source-model + dataflow + resource capability contracts');
+check('ManifestBuilder contract version and implementation agree at v7', contract.includes('readonly contractVersion: 7') && builder.includes('contractVersion: 7'), 'contract version 7');
+check('Existing dataflow surface explicitly owns policy contract materialization', surface.includes('queryPolicyContractsFromJudgments:') && surface.includes('materializeSemanticDataflowQueryPolicy('), 'existing SemanticDataflowManifestSurfaceInterface operation');
+check('Manifest builder delegates query-policy composition through the surface contract', checksNoSemanticInline, 'no inline policy materializer in builder');
+check('Manifest builder delegates route-group capability composition through existing algebra', builder.includes('resourceGroupCapabilityAlgebra.compose(completeAst.ast.routeFlows)'), 'ResourceGroupCapabilityAlgebraInterface.compose');
+check('Canonical resource capability dependency is the existing authority', builder.includes('resourceGroupCapabilityAuthority') && authority.includes('resourceGroupCapabilityAlgebra.compose(routes)'), 'existing authority wired at composition root');
+check('Factory receives operation dependencies rather than resolving hidden singletons during build', builder.includes('createManifestBuilder = (') && builder.includes('build: input => constructRouteSyncManifest(input, sourceAstPipeline, dataflowManifestSurface, resourceGroupCapabilityAlgebra, sourceModelBuilder)'), 'explicit dependency closure');
+check('Builder preserves blocked source-AST judgment before invoking semantic manifest operations', builder.indexOf("if (projection.kind !== 'laravel_source_ast_projection_complete')") < builder.indexOf('dataflowManifestSurface.inputsFromSourceModel'), 'blocked gate precedes semantic products');
+check('No new semantic foundation dependency', ![contract, builder, surface].some(source => source.includes('semantic/foundation')), 'foundation remains absent');
+check('Source-model construction operation is declared at its semantic owner', sourceModel.includes('interface CompleteLaravelSourceModelBuilderInterface') && sourceModel.includes('CompleteLaravelSourceModelBuildInput') && builder.includes('sourceModelBuilder.build(Object.freeze('), 'existing source-model construction exposed as typed operation');
+check('No duplicate manifest or resource capability interface introduced', !contract.includes('interface ManifestDataflow') && !contract.includes('interface ManifestResourceGroup'), 'reuses existing upstream contracts');
+const failed = checks.filter(item => !item.pass);
+for (const item of checks) console.log(`${item.pass ? 'PASS' : 'FAIL'} ${item.name} — ${item.evidence}`);
+console.log(`\n${checks.length - failed.length}/${checks.length} assertions passed`);
+if (failed.length) process.exitCode = 1;

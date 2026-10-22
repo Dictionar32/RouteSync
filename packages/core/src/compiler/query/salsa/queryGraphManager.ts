@@ -1,10 +1,10 @@
 /** Relation-backed dependency graph and cache invalidation engine. */
 import type { QueryNode } from './salsaTypes';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/foundation/relationMembership';
-import { relationOptionFold, relationResolve, relationFold } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../../semantic/foundation/relationFoundation';
-import { relationContains, relationInsert, relationRemove } from '../../../semantic/foundation/relationMembership';
-import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
+import { relationOptionFold, relationResolve, relationFold } from '../../../semantic/relations/relationalSequence';
+import { relationEqual, relationNotEqual } from '../../../semantic/relations/relationFoundation';
+import { relationContains, relationInsert, relationRemove } from '../../../semantic/relations/relationMembership';
+import type { RelationOption } from '../../../semantic/relations/relationFoundation';
 
 export interface QueryGraphManager {
   readonly getNode: (keyId: string) => RelationOption<QueryNode>;

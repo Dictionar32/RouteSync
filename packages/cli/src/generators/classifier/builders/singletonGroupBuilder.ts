@@ -13,7 +13,8 @@ import {
   type SingletonTypeSignature,
   ScannedSingletonResourceGroupDescriptor,
   ScannedCustomResourceGroupDescriptor,
-  ScannedResourceGroupTypeSignature
+  ScannedResourceGroupTypeSignature,
+  hasCanonicalRequestFields
 } from '@routesync/core';
 import type { ClassifiedRoute, ResourceCrudMap } from '../classifierTypes';
 import {
@@ -33,7 +34,7 @@ export function buildCustomOrSingletonGroupDescriptor(
   shape: 'custom' | 'singleton' = 'singleton'
 ): ResourceGroupDescriptor<ClassifiedRoute> {
   const hasSchema = (route?: ClassifiedRoute): boolean =>
-    Boolean(route && route.contract.request.body.kind === 'body' && route.contract.request.body.schema.rules && Object.keys(route.contract.request.body.schema.rules).length > 0);
+    Boolean(route && route.contract.request.body.kind === 'body' && hasCanonicalRequestFields(route.contract.request.body.schema));
 
   const listRes = res.index ? resolveRouteResponseType(res.index) : { typeName: 'never', importedType: null };
 

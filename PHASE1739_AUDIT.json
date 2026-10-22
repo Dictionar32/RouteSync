@@ -1,0 +1,65 @@
+{
+  "phase": 1739,
+  "name": "rejection-analysis-binding",
+  "total": 14,
+  "passed": 7,
+  "failed": 7,
+  "checks": [
+    {
+      "name": "publication rejection owns the exact analysis input evaluated by the single publication authority",
+      "passed": true
+    },
+    {
+      "name": "publication rejection preserves a non-empty typed violation ledger",
+      "passed": true
+    },
+    {
+      "name": "failure contract binds rejection analysis and violation ledger without producing a validated receipt",
+      "passed": true
+    },
+    {
+      "name": "integrated response contract/value synchronized at v4",
+      "passed": false
+    },
+    {
+      "name": "integrated rejection meaning states the analysis cannot be independently rebound",
+      "passed": false
+    },
+    {
+      "name": "rejected integrated response carries publication rejection as its sole analysis/rejection owner",
+      "passed": false
+    },
+    {
+      "name": "accepted integrated response still obtains analysis only from validated publication receipt",
+      "passed": false
+    },
+    {
+      "name": "no second integrated-response authority interface or boundary was reintroduced",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract/value synchronized at v48 and points at integrated response v4",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary/value synchronized at v27 and forwards owned analysis without reconstruction",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner runtime remains a pipeline delegator without publication validation",
+      "passed": false
+    },
+    {
+      "name": "stale export of removed integrated-response authority boundary is removed",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "Phase 1739 audit command is registered",
+      "passed": true
+    }
+  ]
+}

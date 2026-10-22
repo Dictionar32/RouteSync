@@ -4,8 +4,8 @@ import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, Vali
 import type { RequestField } from "./request";
 import type { SourceSpan } from '../upstream/provenance';
 import { SemanticValueFactory } from './semanticValues';
-import { relationAnyMatch, relationFirst, relationFold, relationOptionFold, relationProject, relationResolve, relationRefine } from '../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
+import { relationAnyMatch, relationFirst, relationFold, relationOptionFold, relationProject, relationResolve, relationRefine } from '../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../semantic/relations/semanticRelations';
 
 /**
  * ValidationRuleKind
@@ -721,6 +721,9 @@ export interface ValidationFieldProperty {
   readonly presence: import('./requestFieldPresence').RequestFieldPresence;
   readonly validation: readonly ValidationRuleNode[];
   readonly shape: ValidationFieldShape;
+  /** Every source span contributing to this merged nested property. */
+  readonly sources: readonly SourceSpan[];
+  /** Compatibility primary source; `sources` retains the complete provenance. */
   readonly source: SourceSpan;
 }
 
@@ -767,7 +770,9 @@ export interface RouteSchemaPayload {
   readonly fields: readonly RequestField[];
   readonly messages: readonly RouteMessageEntry[];
   readonly attributes: readonly RouteAttributeEntry[];
+  /** Original source-bound inline validation facts survive field grouping and schema projection. */
+  readonly validationEntries: readonly RouteValidationRuleEntry[];
 }
 
-export const emptyRouteSchemaPayload = (): RouteSchemaPayload => Object.freeze({ fields: Object.freeze([]), messages: Object.freeze([]), attributes: Object.freeze([]) });
-export const createRouteSchemaPayload = (fields: readonly RequestField[], messages: readonly RouteMessageEntry[] = [], attributes: readonly RouteAttributeEntry[] = []): RouteSchemaPayload => Object.freeze({ fields: Object.freeze([...fields]), messages: Object.freeze([...messages]), attributes: Object.freeze([...attributes]) });
+export const emptyRouteSchemaPayload = (): RouteSchemaPayload => Object.freeze({ fields: Object.freeze([]), messages: Object.freeze([]), attributes: Object.freeze([]), validationEntries: Object.freeze([]) });
+export const createRouteSchemaPayload = (fields: readonly RequestField[], messages: readonly RouteMessageEntry[] = [], attributes: readonly RouteAttributeEntry[] = [], validationEntries: readonly RouteValidationRuleEntry[] = []): RouteSchemaPayload => Object.freeze({ fields: Object.freeze([...fields]), messages: Object.freeze([...messages]), attributes: Object.freeze([...attributes]), validationEntries: Object.freeze([...validationEntries]) });

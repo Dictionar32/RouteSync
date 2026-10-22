@@ -233,7 +233,8 @@ export type ResourceClosureStatement =
   | { readonly kind: 'foreach_statement'; readonly iterable: ResourceFieldExpression; readonly target: ResourceClosureForeachTarget; readonly body: readonly ResourceClosureStatement[] }
   | { readonly kind: 'for_statement'; readonly initializer: ResourceClosureForClause; readonly condition: ResourceClosureForClause; readonly update: ResourceClosureForClause; readonly body: readonly ResourceClosureStatement[] }
   | { readonly kind: 'try_statement'; readonly body: readonly ResourceClosureStatement[]; readonly catches: readonly ResourceClosureCatchClause[]; readonly finallyBlock: ResourceClosureFinallyClause }
-  | { readonly kind: 'throw_statement'; readonly expression: ResourceFieldExpression };
+  | { readonly kind: 'throw_statement'; readonly expression: ResourceFieldExpression }
+  | { readonly kind: 'unsupported_statement'; readonly statementKind: 'while_statement' | 'switch_statement' | 'unset_statement' | 'include_statement' };
 
 export type ResourceClosureIfAlternative =
   | { readonly kind: 'none' }

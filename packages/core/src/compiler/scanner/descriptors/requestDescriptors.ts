@@ -8,7 +8,7 @@
  * @module core/compiler/scanner/descriptors/requestDescriptors
  */
 
-import { relationProject } from "../../../semantic/foundation/relationalSequence";
+import { relationProject } from "../../../semantic/relations/relationalSequence";
 import type { SemanticType } from "../../../types/domain/semanticType";
 import type { RequestFieldPresence } from "../../../types/domain/requestFieldPresence";
 import type { FormActionName, RequestIdentity, FormRequestSource, RequestResponse } from "../../../types/domain/request";

@@ -1,5 +1,5 @@
-import { relationEqual, relationResolve } from '../../../../semantic/foundation/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationRefine, relationSlice, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationResolve } from '../../../../semantic/relations/semanticRelations';
+import { relationFirstOption, relationOptionFold, relationRefine, relationSlice, type RelationOption } from '../../../../semantic/relations/relationalSequence';
 
 export type DelimiterToken = '(' | ')' | '[' | ']' | '{' | '}';
 type OpeningDelimiter = '(' | '[' | '{';

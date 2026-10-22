@@ -1,0 +1,81 @@
+{
+  "phase": 1745,
+  "name": "composition-executor-interface-first",
+  "total": 18,
+  "passed": 7,
+  "failed": 11,
+  "checks": [
+    {
+      "name": "composition dependencies are a single typed upstream contract",
+      "passed": true
+    },
+    {
+      "name": "public composition boundary exposes integrate only",
+      "passed": true
+    },
+    {
+      "name": "composition executor consumes the same knowledge reference for inventory and analysis",
+      "passed": false
+    },
+    {
+      "name": "publication authority alone validates inventory-analysis correspondence",
+      "passed": true
+    },
+    {
+      "name": "validated publication is projected into the validated response ADT variant",
+      "passed": false
+    },
+    {
+      "name": "rejected publication preserves its typed violation result",
+      "passed": false
+    },
+    {
+      "name": "publication result handling is exhaustively typed",
+      "passed": false
+    },
+    {
+      "name": "result retains the exact input knowledge object",
+      "passed": false
+    },
+    {
+      "name": "composition contract and value are v4",
+      "passed": false
+    },
+    {
+      "name": "composition contract describes injected authority ownership",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract and value are v54",
+      "passed": false
+    },
+    {
+      "name": "scanner boundary and value are v33",
+      "passed": false
+    },
+    {
+      "name": "scanner contract prevents direct access to component authorities",
+      "passed": true
+    },
+    {
+      "name": "production scanner remains honestly unwired",
+      "passed": false
+    },
+    {
+      "name": "new executor is exported from the package entry point",
+      "passed": true
+    },
+    {
+      "name": "dependency contract is exported as a type",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency is introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": false
+    }
+  ]
+}

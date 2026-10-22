@@ -1,6 +1,6 @@
 import type { ResponseFieldData, ResponseFieldProjection } from './types';
 import { normalizeKind, extractType, isFieldNullable, isFieldOptional } from './typeNormalizer';
-import { relationOptionFold, relationProject, relationVariant } from '../../../../semantic/foundation/relationalSequence';
+import { relationOptionFold, relationProject, relationVariant } from '../../../../semantic/relations/relationalSequence';
 
 export function parseResponseField(fieldName: string, fieldData: ResponseFieldData): ResponseFieldProjection {
   const fields = relationOptionFold(

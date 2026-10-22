@@ -1,0 +1,149 @@
+{
+  "phase": 2697,
+  "audit": "interface-object-manifest-path",
+  "passed": 27,
+  "total": 27,
+  "syntaxFiles": 12,
+  "syntaxPassed": 12,
+  "checks": [
+    {
+      "name": "manifest route/model/resource/request projections share an explicit interface object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "request-resolution preflight consumes the projection object methods",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "type lowering consumes the same projection object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "PHP controller semantic evidence adapter has a named interface object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "controller semantic input binds adapter object method",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "migration AST adapter is interface-typed object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "source AST pipeline maps migrations through adapter object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route-group semantic judgment and context use interface object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route-group compatibility paths re-export object, not removed free functions",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route-group context projection is an interface-typed object",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "route declaration composition calls object method for route group facts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI manifest operation and upstream composition retain interface-object contracts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI scan and sync call the typed manifest scan operation",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "migrated runtime files have no exported function declarations",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "migrated runtime files have no removed free-function identifiers",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/routeManifestProjectionInputs.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/routeManifestRequestResolutionPreflight.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/routeManifestTypeLoweringAuthority.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/controllerVariableSemanticResolutionInputAdapter.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/migrationInterfaceAdapter.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/wiring/route/routeGroupSemanticResolver.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/descriptors/route/routeGroupSemanticResolver.ts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TypeScript syntax: packages/core/src/compiler/scanner/upstream/routeDeclarationComposition.ts",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "typecheck": "full project typecheck not run; transpileModule checks syntax only",
+  "notes": [
+    "Structural and syntax checks do not replace project typecheck, tests, build, or CLI integration."
+  ]
+}

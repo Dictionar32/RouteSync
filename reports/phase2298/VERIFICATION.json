@@ -1,0 +1,26 @@
+{
+  "phase": 2298,
+  "title": "Attribute Scanner Single-Coverage Contract",
+  "result": "structural-audits-passed",
+  "contract": {
+    "interface": "LaravelAttributeScannerInterface",
+    "version": 15,
+    "change": "replace parallel enumerated/scanned file sequences with one path-bound file coverage ADT"
+  },
+  "audits": {
+    "phase2298": "13/13 passed",
+    "phase2297-regression": "12/12 passed",
+    "phase2296-regression": "8/8 passed",
+    "phase2295-regression": "14/14 passed",
+    "phase2294-regression": "14/14 passed"
+  },
+  "not_run": ["TypeScript typecheck", "npm run build"],
+  "explicitly_unresolved": [
+    "attributeAstCanonical.ts still returns scanner v7-shaped outcomes",
+    "attributeProducer.ts still returns AttributeAst directly and throws on missing constructor",
+    "laravelSourceAstPipeline.ts still reads attributeScan.attributes",
+    "pipeline composition still imports the active scanner from subscanners/attributeAstCanonical.ts",
+    "attributeProducer.ts and scannerUtils.ts still import semantic/relations"
+  ],
+  "architecture_decision": "subscanners are migration surface, not target architecture; retire only after upstream authority and producer contracts are wired through the existing pipeline and CLI"
+}

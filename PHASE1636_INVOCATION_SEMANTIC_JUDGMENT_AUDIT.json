@@ -1,0 +1,74 @@
+{
+  "phase": 1651,
+  "title": "Invocation Semantic Judgment Interface-First / Contract-Enforced Callable Boundary",
+  "checks": [
+    {
+      "name": "canonical_judgment_interface_exists",
+      "passed": true,
+      "detail": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts"
+    },
+    {
+      "name": "interface_owns_declarative_rule_catalog",
+      "passed": true,
+      "detail": "rules and contract are declared in upstream interface"
+    },
+    {
+      "name": "interface_declares_rule_outcome_proof",
+      "passed": true,
+      "detail": "proof binds source evidence, rule outcomes, rewrite judgment, obligations"
+    },
+    {
+      "name": "closed_judgment_requires_empty_obligations",
+      "passed": true,
+      "detail": "closed variants encode an empty obligation tuple"
+    },
+    {
+      "name": "algebra_consumes_canonical_interface_owned_policy_and_witness_contracts",
+      "passed": true,
+      "detail": "domain policy and witness ownership are sourced from the canonical interface"
+    },
+    {
+      "name": "algebra_stays_behind_explicit_domain_algebra_boundary",
+      "passed": true,
+      "detail": "semantic derivation is owned by the domain algebra, not the runtime executor"
+    },
+    {
+      "name": "authority_validates_exact_request_and_algebra_produced_judgment",
+      "passed": true,
+      "detail": "authority validates input and returned judgment without deriving a second semantic result"
+    },
+    {
+      "name": "scanner_facade_delegates_to_canonical_contract",
+      "passed": true,
+      "detail": "scanner facade targets canonical invocation judgment modules"
+    },
+    {
+      "name": "scanner_facade_has_no_semantic_branching",
+      "passed": true,
+      "detail": "no control-flow or inference implementation in facade"
+    },
+    {
+      "name": "legacy_interface_is_compatibility_only",
+      "passed": true,
+      "detail": "legacy filename retained as a re-export facade"
+    },
+    {
+      "name": "upstream_index_exports_canonical_modules",
+      "passed": true,
+      "detail": "canonical public exports"
+    },
+    {
+      "name": "scanner_wide_foundation_frontier_measured",
+      "passed": true,
+      "detail": "385 production TypeScript files; 0 still import semantic/foundation"
+    }
+  ],
+  "scannerInventory": {
+    "productionTypeScriptFiles": 385,
+    "directFoundationImportFiles": 0,
+    "semanticRelationsImportFiles": 84,
+    "relationalSequenceImportFiles": 100,
+    "foundationConsumers": []
+  },
+  "passed": true
+}

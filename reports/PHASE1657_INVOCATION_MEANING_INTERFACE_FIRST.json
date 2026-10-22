@@ -1,0 +1,19 @@
+{
+  "phase": 1657,
+  "scope": "invocation-semantic-meaning-interface-first",
+  "contractVersion": 13,
+  "changes": [
+    "added explicit domain-level InvocationSemanticMeaningModel",
+    "exposed meaning through InvocationSemanticContract",
+    "model-driven target-cardinality closure and result/exception emission selection",
+    "kept executor as delegation and scanner as one-call wiring",
+    "added phase 1657 static audit"
+  ],
+  "verification": {
+    "phase1657StaticAudit": { "passed": 9, "failed": 0 },
+    "existingInvocationModelAudit": { "passed": 14, "failed": 0 },
+    "fullBuild": "blocked: node_modules/tsdown unavailable",
+    "typecheck": "blocked: global TypeScript compiler version is incompatible with repository config and dependencies are absent"
+  },
+  "remainingArchitecturalBlocker": "semanticJudgmentRuleCompiler.ts still lowers generic evidence-backed-identity, uniqueness, and ordered-correspondence laws to relation patterns; this phase does not claim that generic law registry has been removed"
+}

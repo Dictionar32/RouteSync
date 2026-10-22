@@ -1,0 +1,17 @@
+{
+  "typescript_version": "5.8.3",
+  "transpile_diagnostics_changed_typescript_files": 0,
+  "focused_strict_typecheck": {
+    "baseline_diagnostics": 783,
+    "phase1585_diagnostics": 779,
+    "clean": false,
+    "note": "Existing repository type errors remain; some diagnostics moved with the pre-existing solver body from scanner files to semantic files. No diagnostics in the new projection interface or pipeline files."
+  },
+  "package_build": {
+    "status": "blocked",
+    "reason": "tsdown executable is unavailable in the workspace"
+  },
+  "authority_assessment_wired_end_to_end": false,
+  "runtime_executor_changed": false,
+  "archive_root": "RouteSync/"
+}

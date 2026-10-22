@@ -1,0 +1,181 @@
+{
+  "phase": 1368,
+  "title": "Upstream Schema Parser Contract Adoption",
+  "checks": 22,
+  "passed": 21,
+  "failed": 1,
+  "results": [
+    {
+      "name": "upstream parser contract exists",
+      "passed": true,
+      "detail": "The parser contract is owned by core/src/types/upstream."
+    },
+    {
+      "name": "upstream parser requires parse",
+      "passed": true,
+      "detail": "The parse operation is mandatory."
+    },
+    {
+      "name": "upstream parser requires safeParse",
+      "passed": true,
+      "detail": "The result-based parse operation is mandatory."
+    },
+    {
+      "name": "legacy request boundary reuses upstream type",
+      "passed": true,
+      "detail": "The old import path remains compatible without a duplicate declaration."
+    },
+    {
+      "name": "core public API exports canonical parser",
+      "passed": true,
+      "detail": "Consumers can import the canonical parser through @routesync/core."
+    },
+    {
+      "name": "SDK parser alias uses upstream contract",
+      "passed": true,
+      "detail": "The SDK no longer owns a weaker duplicate parser interface."
+    },
+    {
+      "name": "SDK parser operations are not optional",
+      "passed": true,
+      "detail": "The SDK parser type requires the canonical upstream operations."
+    },
+    {
+      "name": "parseWithSchema requires a schema",
+      "passed": true,
+      "detail": "Unknown data cannot silently pass through the parser helper as T."
+    },
+    {
+      "name": "route schema map uses upstream shape contract",
+      "passed": true,
+      "detail": "Schema-part maps use the canonical core schema-map type."
+    },
+    {
+      "name": "route schema runtime contract is checked",
+      "passed": true,
+      "detail": "Missing schema remains explicit; malformed configured schema fails closed."
+    },
+    {
+      "name": "generic service handles optional schema explicitly",
+      "passed": true,
+      "detail": "Optional schema compatibility is decided at the service boundary, not hidden in parseWithSchema."
+    },
+    {
+      "name": "SDK public compatibility exports remain",
+      "passed": true,
+      "detail": "Existing SDK type export names are preserved."
+    },
+    {
+      "name": "React remains a consumer of closed endpoint contract",
+      "passed": true,
+      "detail": "The schema change does not reintroduce endpoint assertion-based reasoning."
+    },
+    {
+      "name": "runtime contract regression tests exist",
+      "passed": true,
+      "detail": "Tests cover valid parser, invalid data, malformed schema, absent schema, and undefined input validation."
+    },
+    {
+      "name": "audit script registered",
+      "passed": true,
+      "detail": "The audit is reproducible through npm run."
+    },
+    {
+      "name": "operation identity authority reaches SDK consumer",
+      "passed": true,
+      "detail": "The route identity authority/algebra feeds the SDK key without method/path reconstruction."
+    },
+    {
+      "name": "semantic ownership coverage audit exists",
+      "passed": true,
+      "detail": "Existing semantic ownership audits are retained and the new parser contract audit adds a focused boundary check."
+    },
+    {
+      "name": "AST and dataflow contracts remain distinct",
+      "passed": false,
+      "detail": "AST-derived dataflow input and closed semantic judgment remain separate contracts."
+    },
+    {
+      "name": "graph and IR have distinct projection boundaries",
+      "passed": true,
+      "detail": "Graph relations and IR projection are separate consumers, not one semantic authority."
+    },
+    {
+      "name": "CLI manifest/dataflow/IR wiring remains active",
+      "passed": true,
+      "detail": "Both scan and sync commands carry manifest flow through dataflow to IR projection."
+    },
+    {
+      "name": "Laravel ecommerce source evidence exists",
+      "passed": true,
+      "detail": "The Laravel source project is available for upstream scanning."
+    },
+    {
+      "name": "SDK/React endpoint boundaries remain present",
+      "passed": true,
+      "detail": "SDK schema contract validation and React endpoint capability validation remain wired."
+    }
+  ],
+  "trace": [
+    {
+      "stage": "Laravel source",
+      "owner": "examples/ecommerce-shop-source/routes/api.php and app/Http/Controllers",
+      "role": "source evidence; Laravel remains authoritative"
+    },
+    {
+      "stage": "Canonical schema parser",
+      "owner": "packages/core/src/types/upstream/runtimeSchemaParser.ts",
+      "role": "runtime parse capability contract; parse and safeParse required"
+    },
+    {
+      "stage": "Request compatibility boundary",
+      "owner": "packages/core/src/types/request.ts",
+      "role": "re-exports upstream parser contract without duplicate declaration"
+    },
+    {
+      "stage": "Route schema projection",
+      "owner": "packages/cli/src/generators/sdk/apiObjectEmitter.ts",
+      "role": "projects generated validation contract into SDK route definitions"
+    },
+    {
+      "stage": "SDK schema wiring",
+      "owner": "packages/sdk/src/api-runtime/schemaMapper.ts",
+      "role": "distinguishes schema map, configured parser, and absent schema"
+    },
+    {
+      "stage": "SDK parser",
+      "owner": "packages/sdk/src/mappers/schema.ts",
+      "role": "executes only a configured parser contract; no hidden raw-value cast fallback"
+    },
+    {
+      "stage": "Operation identity",
+      "owner": "packages/core/src/types/upstream/operationIdentityCapability.ts; operationIdentityCapabilityAlgebra.ts; operationIdentityCapabilityAuthority.ts",
+      "role": "canonical identity/capability source"
+    },
+    {
+      "stage": "Manifest and dataflow",
+      "owner": "packages/cli/src/commands/scan.ts; packages/cli/src/commands/sync.ts; packages/core/src/types/upstream/semanticDataflowInterface.ts",
+      "role": "manifest flow to semantic dataflow authority"
+    },
+    {
+      "stage": "Graph",
+      "owner": "packages/core/src/graph/service/graphEdgeRelation.ts",
+      "role": "structural relation projection; distinct from AST dataflow"
+    },
+    {
+      "stage": "IR",
+      "owner": "packages/core/src/compiler/ir/SemanticDataflowIRProjection.ts",
+      "role": "consumer projection from closed semantic dataflow interface"
+    },
+    {
+      "stage": "React",
+      "owner": "packages/react/src/hooks/createHooks.ts",
+      "role": "consumes SDK endpoint contract and closed hookKind capability"
+    },
+    {
+      "stage": "External framework boundaries",
+      "owner": "Laravel, Next.js, Zod, Axios, TanStack Query official documentation",
+      "role": "reference constraints; not used as proof of build/test success"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "phase": 1714,
+  "title": "Static Invocation Judgment Compatibility Interface Contract",
+  "status": "PASS",
+  "audits": [
+    {
+      "script": "audit-phase1702-laravel-scanner-interface-first-contract-correction.cjs",
+      "passed": 14,
+      "total": 14,
+      "summary": "14/14 PASS"
+    },
+    {
+      "script": "audit-phase1703-laravel-scanner-interface-first-contract-closure.cjs",
+      "passed": 13,
+      "total": 13,
+      "summary": "13/13 interface-contract trace checks passed"
+    },
+    {
+      "script": "audit-phase1704-laravel-scanner-interface-contract-correction.cjs",
+      "passed": 12,
+      "total": 12,
+      "summary": "12/12 interface-first correction checks passed"
+    },
+    {
+      "script": "audit-phase1705-laravel-scanner-interface-contract-model.cjs",
+      "passed": 21,
+      "total": 21,
+      "summary": "21/21 PASS"
+    },
+    {
+      "script": "audit-phase1706-invocation-coverage-interface-truth.cjs",
+      "passed": 10,
+      "total": 10,
+      "summary": "10/10 invocation coverage interface checks passed"
+    },
+    {
+      "script": "audit-phase1707-invocation-subject-interface-model.cjs",
+      "passed": 14,
+      "total": 14,
+      "summary": "14/14 invocation subject interface model checks passed"
+    },
+    {
+      "script": "audit-phase1708-static-target-resolution-interface-model.cjs",
+      "passed": 15,
+      "total": 15,
+      "summary": "15/15 Phase 1708 interface-model checks passed"
+    },
+    {
+      "script": "audit-phase1709-static-argument-effect-interface-model.cjs",
+      "passed": 20,
+      "total": 20,
+      "summary": "20/20 Phase 1709 interface-model checks passed"
+    },
+    {
+      "script": "audit-phase1710-static-aggregate-judgment-interface.cjs",
+      "passed": 20,
+      "total": 20,
+      "summary": "20/20 Phase 1710 interface-model checks passed"
+    },
+    {
+      "script": "audit-phase1711-static-proof-obligation-correspondence.cjs",
+      "passed": 15,
+      "total": 15,
+      "summary": "15/15 Phase 1711 interface checks passed"
+    },
+    {
+      "script": "audit-phase1712-static-authority-validation-interface.cjs",
+      "passed": 19,
+      "total": 19,
+      "summary": "19/19 Phase 1712 interface checks passed"
+    },
+    {
+      "script": "audit-phase1713-static-rule-obligation-contract.cjs",
+      "passed": 16,
+      "total": 16,
+      "summary": "16/16 Phase 1713 interface checks passed"
+    },
+    {
+      "script": "audit-phase1714-static-judgment-compatibility-contract.cjs",
+      "passed": 15,
+      "total": 15,
+      "summary": "15/15 Phase 1714 interface checks passed"
+    }
+  ],
+  "passed": 204,
+  "total": 204,
+  "failed": 0,
+  "scope": "Interface/semantic-model only. No static invocation algebra implementation, authority validator implementation, runtime change, or scanner wiring change.",
+  "typecheck": {
+    "command": "npx tsc --noEmit --strict --target ES2022 --moduleResolution bundler --module ESNext --skipLibCheck packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts",
+    "status": "PASS",
+    "notes": "Changed upstream interface compiles in targeted strict TypeScript check."
+  },
+  "build": {
+    "status": "NOT RUN",
+    "reason": "Repository build intentionally not run in this environment; user runs it in their Arch workspace."
+  }
+}

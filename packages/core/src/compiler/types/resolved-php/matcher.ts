@@ -1,6 +1,6 @@
 /** Catamorphic pattern matcher for the resolved PHP type algebra. */
 
-import { relationVariantFold } from '../../../semantic/foundation/relationalSequence';
+import { relationVariantFold } from '../../../semantic/relations/relationalSequence';
 import { PrimitivePhpType, EloquentModelPhpType, ResourceWrapperPhpType, VoidPhpType, UnknownPhpType } from './variants';
 
 export interface ResolvedPhpTypeVisitor<R> {

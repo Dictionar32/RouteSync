@@ -1,0 +1,70 @@
+{
+  "phase": 1402,
+  "audit": "runtime-crud-slot-contract",
+  "status": "passed",
+  "passed": 12,
+  "total": 12,
+  "knownMigrationFrontier": "Runtime role scanning is removed; hand-authored configurations must declare a closed CRUD slot contract.",
+  "checks": [
+    {
+      "name": "CLI emits a closed CRUD slot contract",
+      "pass": true,
+      "detail": "hook config lowering emits explicit slot contract"
+    },
+    {
+      "name": "CLI projects CRUD slots from closed upstream execution-slot ADT",
+      "pass": true,
+      "detail": "generator projects slot decisions without reclassifying routes"
+    },
+    {
+      "name": "CLI carries upstream parameter keys into wiring",
+      "pass": true,
+      "detail": "parameter names are projected from closed slot decisions before React runtime"
+    },
+    {
+      "name": "Contract contains direct endpoint slots",
+      "pass": true,
+      "detail": "slot contract declares CRUD and custom endpoint references"
+    },
+    {
+      "name": "React resolver accepts the closed contract",
+      "pass": true,
+      "detail": "resolver has explicit contract execution branch"
+    },
+    {
+      "name": "React orchestrator passes the contract",
+      "pass": true,
+      "detail": "consumer wiring forwards the emitted contract"
+    },
+    {
+      "name": "Create slot is no longer hardcoded to action name",
+      "pass": true,
+      "detail": "CRUD create endpoint comes from contract"
+    },
+    {
+      "name": "Synthetic query key guesses removed",
+      "pass": true,
+      "detail": "no group-name query key fabrication"
+    },
+    {
+      "name": "Route cache and retry are no longer untyped unknowns",
+      "pass": true,
+      "detail": "RouteDefinition cache/retry use boolean and boolean | RetryConfig"
+    },
+    {
+      "name": "SDK endpoint and resource policies are typed",
+      "pass": true,
+      "detail": "SDK endpoint/resource preserve policy types"
+    },
+    {
+      "name": "Build command and package version preserved",
+      "pass": true,
+      "detail": "version=1.0.49; build=tsdown"
+    },
+    {
+      "name": "Runtime role-scanning fallback is removed",
+      "pass": true,
+      "detail": "React consumes only the closed slot contract"
+    }
+  ]
+}

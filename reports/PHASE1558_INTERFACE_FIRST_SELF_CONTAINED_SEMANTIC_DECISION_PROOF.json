@@ -1,0 +1,43 @@
+{
+  "phase": 1558,
+  "title": "Interface-first self-contained semantic decision proof",
+  "checks": [
+    {
+      "name": "proof contains canonical rule order",
+      "passed": true
+    },
+    {
+      "name": "proof contains precedence snapshot",
+      "passed": true
+    },
+    {
+      "name": "interface exposes proof verification",
+      "passed": true
+    },
+    {
+      "name": "algebra builds canonical proof order",
+      "passed": true
+    },
+    {
+      "name": "algebra verifies receipts without callbacks",
+      "passed": true
+    },
+    {
+      "name": "scanner verifies before AST projection",
+      "passed": true
+    },
+    {
+      "name": "controller authority verifies before projection",
+      "passed": true
+    },
+    {
+      "name": "regression checks tampered proof order",
+      "passed": true
+    }
+  ],
+  "passed": 8,
+  "total": 8,
+  "runtimeAssertions": 7,
+  "build": "not verified; transitive pre-existing type errors",
+  "vitest": "not run; dependencies unavailable"
+}

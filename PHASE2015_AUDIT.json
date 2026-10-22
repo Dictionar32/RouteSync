@@ -1,0 +1,40 @@
+{
+  "phase": 2015,
+  "audit": "controller-declaration-selection-adt-runtime-alignment",
+  "passed": 7,
+  "total": 8,
+  "checks": [
+    {
+      "name": "authority emits declared complete discriminant",
+      "passed": true
+    },
+    {
+      "name": "authority emits declared blocked discriminant",
+      "passed": true
+    },
+    {
+      "name": "complete selection requires root-reached ancestry in contract",
+      "passed": true
+    },
+    {
+      "name": "blocked selection excludes root-reached ancestry in contract",
+      "passed": true
+    },
+    {
+      "name": "authority branches on ancestry judgment instead of inventing a third kind",
+      "passed": true
+    },
+    {
+      "name": "authority preserves existing controller and inherited evidence",
+      "passed": true
+    },
+    {
+      "name": "scanner receives existing declaration judgment authority",
+      "passed": false
+    },
+    {
+      "name": "no relation/foundation subscanner added",
+      "passed": true
+    }
+  ]
+}

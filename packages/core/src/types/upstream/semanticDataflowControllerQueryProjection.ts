@@ -72,3 +72,13 @@ export const semanticDataflowControllerQueryFacts = (
   }
   return Object.freeze(facts);
 };
+
+export interface SemanticDataflowControllerQueryProjectionAuthorityInterface {
+  readonly kind: 'semantic_dataflow_controller_query_projection_authority';
+  readonly project: (controller: ControllerActionFlowContract) => readonly SemanticDataflowInputFact[];
+}
+
+export const semanticDataflowControllerQueryProjectionAuthority: SemanticDataflowControllerQueryProjectionAuthorityInterface = Object.freeze({
+  kind: 'semantic_dataflow_controller_query_projection_authority',
+  project: semanticDataflowControllerQueryFacts,
+});

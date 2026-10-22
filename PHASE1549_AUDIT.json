@@ -1,0 +1,48 @@
+{
+  "phase": 1549,
+  "title": "Upstream semantic rewrite interface first",
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "name": "canonical-contract-is-upstream",
+      "passed": true,
+      "detail": "The upstream interface declares the authority/executor boundary without importing a solver."
+    },
+    {
+      "name": "judgment-distinguishes-closed-from-incomplete",
+      "passed": true,
+      "detail": "A round-limited result cannot be represented as a successful least-fixed-point judgment."
+    },
+    {
+      "name": "authority-uses-existing-foundation-solver",
+      "passed": true,
+      "detail": "Semantic reasoning is owned upstream and reuses the existing foundation solver rather than adding another solver."
+    },
+    {
+      "name": "runtime-forwarder-is-removed",
+      "passed": true,
+      "detail": "Consumers call the existing upstream authority directly; a parameterized forwarding executor is not retained."
+    },
+    {
+      "name": "scanner-file-is-compatibility-facade",
+      "passed": true,
+      "detail": "The scanner path delegates the closed relation operation directly to its upstream authority owner."
+    },
+    {
+      "name": "upstream-barrel-exports-contract-and-authority",
+      "passed": true,
+      "detail": "Upstream consumers have one canonical import surface for contract and authority, without a forwarding executor."
+    },
+    {
+      "name": "constraint-calculus-frontier-migrated-in-phase1550",
+      "passed": true,
+      "detail": "Constraint solving remains upstream-owned and the scanner facade exports the authority operation directly."
+    },
+    {
+      "name": "regression-tests-cover-closure-and-term-preservation",
+      "passed": true,
+      "detail": "Regression coverage describes saturation truthfulness, false/absence preservation, and direct authority use."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "phase": 2078,
+  "kind": "interface_first_trace_and_folder_correction",
+  "folderMoveFromPhase2077Reverted": true,
+  "newUpstreamSequenceFileRemoved": true,
+  "canonicalInvocationDiscriminatedUnionExists": true,
+  "integratedResponseAndAstProjectionContractsExist": true,
+  "scannerImportsSemanticRelations": true,
+  "scannerCallsControllerSubscanner": true,
+  "declarationAuthorityContainsImperativeSemanticHelpers": true,
+  "scannerRuntimeExecutorOnly": false,
+  "relationFoundationSubscannerFree": false,
+  "productionSemanticMigrationComplete": false,
+  "buildTypecheckVitest": "not_run"
+}

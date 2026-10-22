@@ -9,8 +9,8 @@ import {
   relationIndexAdd,
   relationIndexLookup,
   type RelationIndex,
-} from '../../semantic/foundation/relationMembership';
-import { relationOptionFold, type RelationOption } from '../../semantic/foundation/relationalSequence';
+} from '../../semantic/relations/relationMembership';
+import { relationOptionFold, type RelationOption } from '../../semantic/relations/relationalSequence';
 
 export interface TypeEnvironment {
   readonly bindings: RelationIndex<number, SemanticType>;

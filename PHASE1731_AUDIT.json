@@ -1,0 +1,57 @@
+{
+  "phase": 1731,
+  "name": "subject-derived-correspondence-receipt",
+  "total": 12,
+  "passed": 8,
+  "failed": 4,
+  "checks": [
+    {
+      "name": "correspondence receipt contains canonical inventory and publication entries",
+      "passed": false
+    },
+    {
+      "name": "correspondence receipt has no separately supplied identity field",
+      "passed": true
+    },
+    {
+      "name": "receipt documentation derives identity only from inventoryEntry.subject",
+      "passed": true
+    },
+    {
+      "name": "coverage contract type/value synchronized at v28",
+      "passed": false
+    },
+    {
+      "name": "coverage contract forbids duplicated correspondence identity",
+      "passed": true
+    },
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "Laravel scanner boundary type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "scanner forwards receipt and validation without synthesizing identity",
+      "passed": true
+    },
+    {
+      "name": "scanner boundary remains collection/delegation only",
+      "passed": true
+    },
+    {
+      "name": "static invocation is not falsely claimed as implemented",
+      "passed": true
+    },
+    {
+      "name": "no semantic foundation dependency introduced",
+      "passed": true
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true
+    }
+  ]
+}

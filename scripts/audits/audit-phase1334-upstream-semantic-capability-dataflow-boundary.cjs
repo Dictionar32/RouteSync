@@ -16,7 +16,7 @@ const staticScanner = read('packages/core/src/compiler/scanner/StaticLaravelScan
 const semanticCapability = read('packages/core/src/types/upstream/semanticCapability.ts');
 const dataFlow = read('packages/core/src/types/dataflow/dataFlowInterface.ts');
 const cliProjection = read('packages/cli/src/generators/classifier/routeGrouper.ts');
-const graphTrace = read('packages/core/src/types/upstream/PHASE1045_UPSTREAM_DOWNSTREAM_DATAFLOW_TRACE.md');
+const graphTrace = read('packages/core/src/types/docs/PHASE1347_UPSTREAM_WIRING_CONSUMER_TRACE.md');
 
 check('Diagnostic.FileSpan is a type-only import', /import type \{ FileSpan \} from ["']\.\.\/types\/FileSpan["']/.test(diagnostic));
 check('ASTArtifact.FileSpan and ASTBaseNode are type-only imports', /import type \{ ASTBaseNode, FileSpan \} from ['"]\.\.\/types\/FileSpan['"]/.test(astArtifact));
@@ -27,14 +27,15 @@ check('compiler public barrel retains LRUCache runtime export', /export \{ LRUCa
 check('fingerprint barrel exports CompilerFingerprint as a type', /export type \{ CompilerFingerprint \} from ['"]\.\/Fingerprint['"]/.test(fingerprintIndex));
 check('fingerprint hashing remains runtime-exported', /export \{ computeFingerprintHash \} from ['"]\.\/Fingerprint['"]/.test(fingerprintIndex));
 check('compiler public barrel keeps fingerprint type/runtime split', /export type \{ CompilerFingerprint \} from ['"]\.\/fingerprint['"]/.test(compilerIndex) && /export \{ computeFingerprintHash \} from ['"]\.\/fingerprint['"]/.test(compilerIndex));
-check('upstream manifest construction validates AST and creates complete source model', /scanSourceAsts/.test(manifestBuilder) && /validateCompleteSourceAst/.test(manifestBuilder) && /buildCompleteLaravelSourceModel/.test(manifestBuilder));
+check('source-AST executor publishes a completeness ADT consumed by the manifest builder', /laravelSourceAstScanner\.scan\(invocationInventoryReceipt\)/.test(manifestBuilder) && /laravel_source_ast_projection_complete/.test(manifestBuilder) && /buildCompleteLaravelSourceModel/.test(manifestBuilder) && /validateCompleteSourceAst\(ast, sourceProject\.source\)/.test(read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts')));
+check('retired duplicate scanner/upstream manifest builder stays empty', read('packages/core/src/compiler/scanner/upstream/upstreamManifestBuilder.ts').length === 0);
 check('manifest seeds dataflow from the complete source model', /semanticDataflowInputsFromSourceModel\(completeLaravelSourceModelBuildResult\.value\)/.test(manifestBuilder));
 check('legacy StaticLaravelScanner implementation is retired in place', staticScanner.length === 0);
 check('semantic capability contract encodes upstream authority and closed evidence', /SemanticCapabilityAuthority/.test(semanticCapability) && /readonly closed: true/.test(semanticCapability) && /SemanticCapabilityContractInterface/.test(semanticCapability));
 check('generic DataFlowInterface includes read-only state/query/authority facets', /DataFlowAuthorityInterface/.test(dataFlow) && /DataFlowQueryInterface/.test(dataFlow) && /readonly reaches:/.test(dataFlow) && /readonly authority: 'upstream'/.test(dataFlow));
 check('CLI route projection consumes upstream capability instead of method/path classification', /route\.capability\.crudRole/.test(cliProjection) && /route\.capability\.actionName/.test(cliProjection) && /No path inspection, HTTP-method classification/.test(cliProjection));
 check('source fixture contains Laravel route/controller/request/model evidence', exists('examples/ecommerce-shop-source/routes/api.php') && exists('examples/ecommerce-shop-source/app/Http/Controllers/ProdukController.php') && exists('examples/ecommerce-shop-source/app/Http/Requests/StoreCartItemRequest.php') && exists('examples/ecommerce-shop-source/app/Models/ProdukItem.php'));
-check('upstream/dataflow and structural graph lanes are explicitly separated', /Separate structural lane/.test(graphTrace) && /GraphEdgeRelation/.test(graphTrace) && /DataFlowInterface/.test(graphTrace));
+check('upstream/dataflow and structural graph lanes are explicitly separated', /structural graph path is separate/.test(graphTrace) && /GraphEdgeRelation/.test(graphTrace) && /DataFlowInterface/.test(graphTrace));
 
 const failures = checks.filter((entry) => !entry.passed);
 for (const entry of checks) process.stdout.write(`${entry.passed ? 'PASS' : 'FAIL'} ${entry.label}\n`);

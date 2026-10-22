@@ -1,4 +1,4 @@
-import { relationGate, relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationGate, relationEqual } from '../../../semantic/relations/semanticRelations';
 /** Immutable constructors for scanner-level PHP syntax AST. */
 import type { SourceRange, AstIdentifier, PhpArgument, PhpArrayEntry, PhpAstValue, PhpAstValueNode, PhpClosureCapture, PhpParameter, PhpPropertyPath, PhpBlock, PhpArrayKey, PhpBinaryOperator, PhpUnaryOperator, PhpCastType, PhpMatchArm, PhpStatement, PhpAccessMode, PhpAssignmentOperator, PhpIfAlternative, PhpForeachTarget, PhpForClause, PhpCatchClause, PhpFinallyClause, PhpSwitchCase } from './phpAstTypes';
 
@@ -23,7 +23,7 @@ export const PhpAstFactory = Object.freeze({
     methodChain(target: PhpPropertyPath, receiver: PhpAstValue, property: AstIdentifier, args: readonly PhpArgument[], access: PhpAccessMode): PhpAstValueNode { return Object.freeze({ kind: 'method_chain', target, receiver, property, arguments: Object.freeze([...args]), access }); },
     resourceSingle(resourceName: AstIdentifier, argument: PhpAstValue): PhpAstValueNode { return Object.freeze({ kind: 'resource_single', resourceName, argument }); },
     resourceCollection(resourceName: AstIdentifier, argument: PhpAstValue): PhpAstValueNode { return Object.freeze({ kind: 'resource_collection', resourceName, argument }); },
-    staticCall(className: AstIdentifier, method: AstIdentifier, args: readonly PhpArgument[]): PhpAstValueNode { return Object.freeze({ kind: 'static_call', className, method, arguments: Object.freeze([...args]) }); },
+    staticCall(classReference: import('./phpAstExpressionTypes').PhpClassReferenceSourceEvidence, method: AstIdentifier, args: readonly PhpArgument[]): PhpAstValueNode { return Object.freeze({ kind: 'static_call', classReference: Object.freeze(classReference), method, arguments: Object.freeze([...args]) }); },
     classReference(className: AstIdentifier): PhpAstValueNode { return Object.freeze({ kind: 'class_reference', className }); },
     classConstant(owner: AstIdentifier, name: AstIdentifier): PhpAstValueNode { return Object.freeze({ kind: 'class_constant', owner, name }); },
     construct(className: AstIdentifier, args: readonly PhpArgument[]): PhpAstValueNode { return Object.freeze({ kind: 'construct', className, arguments: Object.freeze([...args]) }); },
@@ -32,7 +32,8 @@ export const PhpAstFactory = Object.freeze({
     instanceOf(expression: PhpAstValue, className: AstIdentifier): PhpAstValueNode { return Object.freeze({ kind: 'instance_of', expression, className }); },
     ternaryExpression(condition: PhpAstValue, trueBranch: PhpAstValue, falseBranch: PhpAstValue): PhpAstValueNode { return Object.freeze({ kind: 'ternary_expression', condition, trueBranch, falseBranch }); },
     arrayAccess(target: PhpAstValue, index: PhpAstValue): PhpAstValueNode { return Object.freeze({ kind: 'array_access', target, index }); },
-    functionCall(functionName: AstIdentifier, args: readonly PhpArgument[]): PhpAstValueNode { return Object.freeze({ kind: 'function_call', functionName, arguments: Object.freeze([...args]) }); },
+    functionNameSourceEvidence(tokens: readonly TokenDescriptor[], source: SourceRange): import('./phpAstExpressionTypes').PhpFunctionNameSourceEvidence { return Object.freeze({ kind: 'php_function_name_source_evidence', tokens: Object.freeze([...tokens]), source }); },
+    functionCall(functionName: AstIdentifier, functionNameEvidence: import('./phpAstExpressionTypes').PhpFunctionNameSourceEvidence, args: readonly PhpArgument[]): PhpAstValueNode { return Object.freeze({ kind: 'function_call', functionName, functionNameEvidence, arguments: Object.freeze([...args]) }); },
     callableCall(callable: PhpAstValue, args: readonly PhpArgument[]): PhpAstValueNode { return Object.freeze({ kind: 'callable_call', callable, arguments: Object.freeze([...args]) }); },
     shortTernary(condition: PhpAstValue, falseBranch: PhpAstValue): PhpAstValueNode { return Object.freeze({ kind: 'short_ternary', condition, falseBranch }); },
     nullCoalesce(left: PhpAstValue, right: PhpAstValue): PhpAstValueNode { return Object.freeze({ kind: 'null_coalesce', left, right }); },

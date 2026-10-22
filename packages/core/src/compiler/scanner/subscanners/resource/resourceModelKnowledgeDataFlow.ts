@@ -7,8 +7,8 @@
 
 import type { ModelName, RelationName, ResourceName } from '../../../../types/upstream/names';
 import { absent, present, type Presence } from '../../../../types/upstream/presence';
-import { relationEqual, relationGate } from '../../../../semantic/foundation/semanticRelations';
-import { relationFold, relationFirstOption, relationOptionFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual, relationGate } from '../../../../semantic/relations/semanticRelations';
+import { relationFold, relationFirstOption, relationOptionFold } from '../../../../semantic/relations/relationalSequence';
 
 export type ResourceModelResolutionOrigin =
     | Readonly<{ readonly kind: 'controller_dataflow' }>

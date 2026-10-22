@@ -9,7 +9,7 @@
 import type { ArtifactKey } from '../../artifacts/types';
 import type { CompilationState } from '../CompilationState';
 import { tupleAt, type ResolveArtifacts } from '../ArtifactKeyWitness';
-import { relationFold } from '../../../semantic/foundation/relationalSequence';
+import { relationFold } from '../../../semantic/relations/relationalSequence';
 
 export function applyPassOutputs<O extends readonly ArtifactKey[]>(
     state: CompilationState,

@@ -1,6 +1,7 @@
 import type { ColumnName, TableName } from './names';
 import type { ModelKeyOrigin } from './model';
-import type { SchemaInterface, SchemaTable } from './schema';
+import type { SchemaRelationIndexInterface } from './schemaRelation';
+import type { Sequence } from './collections';
 
 export type ModelPrimaryKeyReconciliationStatus =
   | 'matched'
@@ -22,41 +23,64 @@ export interface ModelPrimaryKeyReconciliationInterface {
   readonly closed: true;
 }
 
-const items = <T>(value: import('./collections').Sequence<T>, output: readonly T[] = []): readonly T[] =>
-  value.kind === 'empty' ? output : items(value.tail, [...output, value.head]);
+const sequenceItems = (value: Sequence<ColumnName>): readonly ColumnName[] => {
+  switch (value.kind) {
+    case 'empty': return Object.freeze([]);
+    case 'cons': return Object.freeze([value.head, ...sequenceItems(value.tail)]);
+    default: return value satisfies never;
+  }
+};
 
-const tableFor = (schema: SchemaInterface, table: TableName): SchemaTable | undefined =>
-  items(schema.definition.tables.items).find(candidate => candidate.table.value.value === table.value.value);
-
-const primaryKeysOf = (table: SchemaTable | undefined): readonly ColumnName[] =>
-  table === undefined
-    ? []
-    : items(table.columns.items)
-      .filter(column => column.primary.value)
-      .map(column => column.name);
-
-export const reconcileModelPrimaryKey = (
-  schema: SchemaInterface,
+const primaryKeysOf = (
+  schema: SchemaRelationIndexInterface,
   table: TableName,
+): readonly ColumnName[] => {
+  const relation = schema.table(table);
+  if (relation === undefined) return Object.freeze([]);
+  return sequenceItems(relation.primaryColumns);
+};
+
+const statusOf = (
+  schemaPrimaryKeys: readonly ColumnName[],
   modelPrimaryKey: ColumnName,
-  modelPrimaryKeyOrigin: ModelKeyOrigin,
-): ModelPrimaryKeyReconciliationInterface => {
-  const schemaPrimaryKeys = primaryKeysOf(tableFor(schema, table));
-  const status: ModelPrimaryKeyReconciliationStatus =
-    schemaPrimaryKeys.length === 0
-      ? 'unresolved'
-      : schemaPrimaryKeys.length > 1
-        ? 'ambiguous'
-        : schemaPrimaryKeys[0].value.value === modelPrimaryKey.value.value
-          ? 'matched'
-          : 'conflict';
+): ModelPrimaryKeyReconciliationStatus => {
+  if (schemaPrimaryKeys.length === 0) return 'unresolved';
+  if (schemaPrimaryKeys.length > 1) return 'ambiguous';
+  const schemaPrimaryKey = schemaPrimaryKeys[0];
+  if (schemaPrimaryKey === undefined) return 'unresolved';
+  if (schemaPrimaryKey.value.value === modelPrimaryKey.value.value) return 'matched';
+  return 'conflict';
+};
+
+/**
+ * Reconcile against the canonical schema-relation index. Table identity and
+ * primary-column selection are already established by SchemaRelationIndex;
+ * this judgment consumes that contract instead of repeating table/column
+ * classification over the raw SchemaInterface.
+ */
+export interface ModelPrimaryKeyReconciliationOperationInterface {
+  (
+    schema: SchemaRelationIndexInterface,
+    table: TableName,
+    modelPrimaryKey: ColumnName,
+    modelPrimaryKeyOrigin: ModelKeyOrigin,
+  ): ModelPrimaryKeyReconciliationInterface;
+}
+
+export const reconcileModelPrimaryKey: ModelPrimaryKeyReconciliationOperationInterface = (
+  schema,
+  table,
+  modelPrimaryKey,
+  modelPrimaryKeyOrigin,
+) => {
+  const schemaPrimaryKeys = primaryKeysOf(schema, table);
   return Object.freeze({
     kind: 'model_primary_key_reconciliation',
     table,
     modelPrimaryKey,
     modelPrimaryKeyOrigin,
-    schemaPrimaryKeys: Object.freeze([...schemaPrimaryKeys]),
-    status,
+    schemaPrimaryKeys,
+    status: statusOf(schemaPrimaryKeys, modelPrimaryKey),
     closed: true,
   });
 };

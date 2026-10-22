@@ -1,4 +1,4 @@
-import { relationEqual, relationAll } from '../../../../semantic/foundation/semanticRelations';
+import { relationEqual, relationAll } from '../../../../semantic/relations/semanticRelations';
 import { relationFixedPoint, relationResolve, relationGate } from '../../../relational/sequence';
 import { TokenCursor } from './relationalSyntaxCursor';
 

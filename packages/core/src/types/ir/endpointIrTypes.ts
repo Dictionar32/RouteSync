@@ -14,6 +14,8 @@ import type { ActionName, CodeExpression, ControllerName, EndpointId, HttpHeader
 import type { ValidationRules } from '../upstream/collections';
 import { createPropertyName } from './nominalVocabulary';
 import type { DescriptionText } from '../upstream/valueObjects';
+import type { LaravelControllerMethodResponseProduct } from '../upstream/laravelControllerResponseSemanticJudgmentInterface';
+import type { EndpointResponseBinding } from '../upstream/endpointBindings';
 
 export interface ParameterIR {
     readonly name: PropertyName;
@@ -45,7 +47,16 @@ export type ResponseReference =
     | { readonly type: 'collection'; readonly resource: ResourceName; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: NoPagination }
     | { readonly type: 'paginated'; readonly resource: ResourceName; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PresentPagination }
     | { readonly type: 'custom'; readonly responseType: ResponseTypeName; readonly statusCode: number; readonly headers: readonly HeaderIR[]; readonly pagination: PaginationState }
-    | { readonly type: 'empty'; readonly statusCode: 204; readonly headers: readonly HeaderIR[]; readonly pagination: NoPagination };
+    | { readonly type: 'empty'; readonly statusCode: 204; readonly headers: readonly HeaderIR[]; readonly pagination: NoPagination }
+    /** Exact canonical Integrated Response product; no lossy ResponseDescriptor conversion occurs at the IR boundary. */
+    | { readonly type: 'integrated_response'; readonly product: LaravelControllerMethodResponseProduct }
+    /** Explicitly blocked upstream response projection; never reinterpret it as the legacy descriptor. */
+    | { readonly type: 'blocked'; readonly judgment: Extract<EndpointResponseBinding, { readonly kind: 'controller_response_projection_blocked' }> }
+    | { readonly type: 'declared_response'; readonly binding: Extract<EndpointResponseBinding, { readonly kind: 'declared_response' }> }
+    | { readonly type: 'inline_response'; readonly binding: Extract<EndpointResponseBinding, { readonly kind: 'inline_response' }> }
+    | { readonly type: 'redirect_response'; readonly binding: Extract<EndpointResponseBinding, { readonly kind: 'redirect_response' }> }
+    | { readonly type: 'file_response'; readonly binding: Extract<EndpointResponseBinding, { readonly kind: 'file_response' }> }
+    | { readonly type: 'empty_response'; readonly binding: Extract<EndpointResponseBinding, { readonly kind: 'empty_response' }> };
 
 export interface MiddlewareIR {
     readonly name: string;

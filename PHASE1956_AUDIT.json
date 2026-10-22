@@ -1,0 +1,60 @@
+{
+  "phase": 1956,
+  "audit": "controller-manifest-terminal-adt-interface-first",
+  "passed": 6,
+  "total": 13,
+  "checks": [
+    {
+      "name": "composition interface version advances with rejection-preservation semantics",
+      "passed": false
+    },
+    {
+      "name": "terminal inventory result is converted into the existing closed CLI terminal ADT",
+      "passed": false
+    },
+    {
+      "name": "terminal conversion is exhaustive over the upstream validated/rejected ADT",
+      "passed": true
+    },
+    {
+      "name": "validated terminal branch forwards the exact authority-produced receipt",
+      "passed": false
+    },
+    {
+      "name": "rejected terminal branch throws a typed error rather than losing the result to a string",
+      "passed": false
+    },
+    {
+      "name": "typed error retains the exact rejected terminal ADT and its full rejection ledger",
+      "passed": false
+    },
+    {
+      "name": "error message is only a summary while structured rejection details remain inspectable",
+      "passed": false
+    },
+    {
+      "name": "CLI terminal adapter does not reclassify invocation or integrated response semantics",
+      "passed": true
+    },
+    {
+      "name": "source AST pipeline retains exact inventory receipt rather than reconstructing invocation judgments",
+      "passed": true
+    },
+    {
+      "name": "SourceAsts models the receipt as part of the canonical AST bundle",
+      "passed": true
+    },
+    {
+      "name": "controller scanner receives only the authority-closed inventory receipt",
+      "passed": true
+    },
+    {
+      "name": "typed error is exposed from the CLI PHP composition surface",
+      "passed": false
+    },
+    {
+      "name": "new audit is registered as a package script",
+      "passed": true
+    }
+  ]
+}

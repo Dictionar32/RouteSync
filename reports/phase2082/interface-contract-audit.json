@@ -1,0 +1,21 @@
+{
+  "phase": 2082,
+  "title": "Closed Declaration Action Authority",
+  "sourceChanged": true,
+  "contract": {
+    "completeVariantOwnsActionMethods": true,
+    "blockedVariantExposesActionMethods": false,
+    "authorityComputesActionsOnlyForCompleteAncestry": true,
+    "existingInterfaceEvolvedInPlace": true,
+    "parallelInterfaceAdded": false
+  },
+  "regressionAssertionsAdded": 3,
+  "notClaimed": [
+    "scanner-free-of-semantic-relations",
+    "scanner-free-of-controller-subscanners",
+    "runtime-executor-only",
+    "build-passed",
+    "typecheck-passed",
+    "vitest-passed"
+  ]
+}

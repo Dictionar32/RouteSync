@@ -1,0 +1,23 @@
+{
+  "phase": 1446,
+  "title": "Assignment Target Interface First",
+  "scope": "interface-only; algebra and runtime wiring intentionally unchanged",
+  "contract": "ScannerAssignmentTargetInterface",
+  "static_audit": "10/10 passed",
+  "previous_static_audits": {
+    "phase1436": "10/10 passed",
+    "phase1437": "14/14 passed",
+    "phase1438": "13/13 passed",
+    "phase1439": "12/12 passed",
+    "phase1440": "10/10 passed",
+    "phase1441": "13/13 passed",
+    "phase1442": "10/10 passed",
+    "phase1443": "10/10 passed",
+    "phase1444": "13/13 passed",
+    "phase1445": "10/10 passed"
+  },
+  "validation": {
+    "build": "failed to start: tsdown executable unavailable",
+    "runtime_tests": "not run; vitest unavailable in source workspace"
+  }
+}

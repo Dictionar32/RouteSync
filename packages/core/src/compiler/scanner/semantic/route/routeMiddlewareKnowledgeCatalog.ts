@@ -1,43 +1,50 @@
 import type { ActionName, MiddlewareName } from '../../../../types/upstream/names';
 import type { RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
+import type { LaravelRouteAuthorizationSemanticJudgmentAuthorityInterface, LaravelRouteAuthorizationSemanticJudgment } from '../../../../types/upstream/routeAuthorizationSemanticJudgmentInterface';
 import type { Presence } from '../../../../types/upstream/presence';
-import { relationAll, relationAny, relationEqual, relationNotEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationGate, relationProject, relationSelect, relationVariantValue } from '../../../../semantic/foundation/relationalSequence';
 
 export const middlewareScopeApplicability = (
   scope: RouteMiddlewareScope,
   action: Presence<ActionName>,
 ): boolean => {
-  const actionKey = relationGate(
-    relationEqual(action.kind, 'present'),
-    () => action.value.value.value,
-    () => '',
-  );
-  const actions = relationGate(
-    relationEqual(scope.kind, 'all'),
-    () => [] as readonly ActionName[],
-    () => relationProject(relationVariantValue(scope, 'only').actions, item => item),
-  );
-  const contains = relationAny(relationProject(actions, item => relationEqual(item.value.value, actionKey)));
-  return relationGate(relationEqual(scope.kind, 'all'),
-    () => true,
-    () => relationGate(relationEqual(scope.kind, 'only'),
-      () => relationAll([relationEqual(action.kind, 'present'), contains]),
-      () => relationAll([relationEqual(action.kind, 'present'), relationNotEqual(contains, true)])));
+  switch (scope.kind) {
+    case 'blocked': return false;
+    case 'all': return true;
+    case 'only': return action.kind === 'present' && scope.actions.some(item => item.value.value === action.value.value.value);
+    case 'except': return action.kind === 'present' && !scope.actions.some(item => item.value.value === action.value.value.value);
+    case 'only_except': return action.kind === 'present'
+      && scope.only.some(item => item.value.value === action.value.value.value)
+      && !scope.except.some(item => item.value.value === action.value.value.value);
+  }
 };
 
+/** Laravel's built-in authentication aliases/classes, kept exact to avoid prefix collisions. */
+const authenticationMiddlewareNames: readonly string[] = Object.freeze([
+  'auth',
+  'auth.basic',
+  'auth.session',
+  'Illuminate\\Auth\\Middleware\\Authenticate',
+  'Illuminate\\Auth\\Middleware\\AuthenticateWithBasicAuth',
+  'Illuminate\\Session\\Middleware\\AuthenticateSession',
+]);
 
-export type RouteAuthorizationKnowledge =
-  | { readonly kind: 'authorized'; readonly middleware: readonly MiddlewareName[] }
-  | { readonly kind: 'unauthorized'; readonly middleware: readonly MiddlewareName[] };
+const isAuthenticationMiddleware = (middleware: MiddlewareName): boolean => {
+  const name = middleware.value.value;
+  return authenticationMiddlewareNames.includes(name) || (name.startsWith('auth:') && name.slice('auth:'.length).trim().length > 0);
+};
 
-/** Laravel authorization knowledge derived from middleware identity; callers consume the fact, not the string convention. */
-export function routeAuthorizationKnowledge(middlewares: readonly MiddlewareName[]): RouteAuthorizationKnowledge {
-  const authorization = Object.freeze(relationProject(
-    relationSelect(middlewares, middleware => middleware.value.value.startsWith('auth')),
-    middleware => middleware,
-  ));
-  return relationGate(relationEqual(authorization.length, 0),
-    () => ({ kind: 'unauthorized' as const, middleware: authorization }),
-    () => ({ kind: 'authorized' as const, middleware: authorization }));
-}
+/** Canonical authority: preserve only exact, known authentication evidence in the existing closed judgment. */
+export const routeAuthorizationSemanticJudgmentAuthority: LaravelRouteAuthorizationSemanticJudgmentAuthorityInterface = Object.freeze({
+  kind: 'laravel_route_authorization_semantic_judgment_authority',
+  closed: true,
+  contractVersion: 1,
+  judge: (middlewares: readonly MiddlewareName[]): LaravelRouteAuthorizationSemanticJudgment => {
+    const authorization = Object.freeze(middlewares.filter(isAuthenticationMiddleware));
+    switch (authorization.length) {
+      case 0:
+        return Object.freeze({ kind: 'laravel_route_authorization_middleware_absent', middleware: authorization });
+      default:
+        return Object.freeze({ kind: 'laravel_route_authorization_middleware_present', middleware: authorization });
+    }
+  },
+});

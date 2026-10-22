@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const size = file => fs.statSync(path.join(root, file)).size;
 const forbidden = /\b(if|while|for|switch)\s*\(|\.(map|filter|reduce|flatMap)\s*\(|\bundefined\b|\?\?|===|!==|as\s+unknown|new\s+(Set|Map)\b|\bany\b|as\s+Extract/;
 const files = [
-  'packages/core/src/semantic/kernel/relationalSequence.ts',
+  'packages/core/src/semantic/foundation/relationalSequence.ts',
   'packages/core/src/types/upstream/presence.ts',
   'packages/core/src/compiler/scanner/lexer/tokenEvidence.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts',
@@ -13,9 +13,10 @@ const files = [
   'packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts',
 ];
 const counts = Object.fromEntries(files.map(file => [file, [...read(file).matchAll(new RegExp(forbidden.source, 'g'))].length]));
-const relation = read('packages/core/src/semantic/kernel/relationalSequence.ts');
+const relation = read('packages/core/src/semantic/foundation/relationalSequence.ts');
 const presence = read('packages/core/src/types/upstream/presence.ts');
-const domain = read('packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts');
+const domain = read('packages/core/src/types/upstream/routeDomainAuthority.ts');
+const domainAdapter = read('packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts');
 const token = read('packages/core/src/compiler/scanner/lexer/tokenEvidence.ts');
 const legacy = [
   'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
@@ -39,7 +40,7 @@ const result = {
   model: 'highest AST interface closure: relation-variant algebra + explicit Presence ADT + closed route-domain resolver boundary',
   relationVariantClosed,
   presenceClosed,
-  routeDomainInterfaceClosed: domainClosed,
+  routeDomainInterfaceClosed: domainClosed && /@deprecated Compatibility adapter/.test(domainAdapter) && /routeDomainAuthority\.resolve/.test(domainAdapter),
   tokenInterfaceClosed: tokenClosed,
   legacySolverAndSyntaxCoreEmpty: legacy,
   inactiveVacuum: inactive.allCandidatesEmpty === true,

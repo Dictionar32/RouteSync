@@ -1,0 +1,30 @@
+{
+  "phase": 1557,
+  "title": "Interface-first semantic decision proof",
+  "date": "2026-10-11",
+  "scope": [
+    "packages/core/src/types/upstream/semanticDecisionInterface.ts",
+    "packages/core/src/types/upstream/semanticDecisionAlgebra.ts",
+    "packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts",
+    "packages/core/src/types/upstream/controllerVariableSemanticInterface.ts",
+    "packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts",
+    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1427.test.ts",
+    "packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1457.test.ts",
+    "scripts/audits/audit-phase1557-semantic-decision-proof-interface.cjs",
+    "docs/architecture/PHASE1557_INTERFACE_FIRST_SEMANTIC_DECISION_PROOF.md"
+  ],
+  "checks": {
+    "phase1557StaticAudit": "8/8 passed",
+    "targetedTypeScriptChangedFiles": "no diagnostics in changed contract/algebra/scanner/test files; whole transitive check reports unrelated existing queryEvidenceProducer and semanticEvidenceRelations errors",
+    "targetedRuntimeChecks": "3/3 passed",
+    "fullBuild": "not verified; dependencies absent",
+    "vitest": "not run; dependencies absent"
+  },
+  "architecture": {
+    "semanticDecisionPolicy": "upstream-owned",
+    "decisionJudgment": "proof-bearing",
+    "scannerPrecedenceConstruction": "removed",
+    "allScannerReasoningMigrated": false
+  }
+}

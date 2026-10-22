@@ -1,0 +1,18 @@
+{
+  "phase": 1377,
+  "title": "Runtime Security Contract Execution",
+  "passed": false,
+  "checks": 13,
+  "passedChecks": 11,
+  "failedChecks": [
+    "legacy domain classifier executes the upstream contract",
+    "resolver compatibility facade delegates to upstream authority"
+  ],
+  "decisions": [
+    "Middleware security reasoning remains owned by the upstream route security algebra.",
+    "The upstream boundary resolves the security judgment once; capability and graph composition consume that closed judgment without reclassification.",
+    "RouteSecurityClassifier remains as a backward-compatible facade and no longer contains a second classifier.",
+    "Middleware ability/role payload extraction uses the actual colon separator before projection.",
+    "Static contract audits do not substitute for TypeScript build or runtime tests."
+  ]
+}

@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
 import { extractRouteGroupFactsFromAst } from '../routeGroupAstAdapter';
-import { resolveRouteGroupFacts } from '../routeGroupSemanticResolver';
+import { routeGroupSemanticResolver } from '../../../upstream/route/routeGroupSemanticResolver';
 
 describe('phase 69 route group AST to semantic ADT elevation', () => {
   it('keeps the semantic resolver AST-free', () => {
@@ -14,7 +14,7 @@ describe('phase 69 route group AST to semantic ADT elevation', () => {
       groupConstraints: [{ parameter: 'id', value: '[0-9]+' }],
     } as any);
 
-    const context = resolveRouteGroupFacts(facts);
+    const context = routeGroupSemanticResolver.resolveContext(facts);
     assert.equal(context.namePrefix.kind, 'some');
     assert.equal(context.controller.kind, 'some');
     assert.equal(context.domain.kind, 'explicit');

@@ -7,7 +7,7 @@
  * @module sdk/defineApi
  */
 
-import { PathResolver, type ApiDefinition, type ServiceConfig, type OperationIdentityReference } from '@routesync/core';
+import { PathResolver, type ApiDefinition, type ServiceConfig } from '@routesync/core';
 import {
   type CallOptions,
   type EndpointCallableOptions,
@@ -77,18 +77,14 @@ export function defineApi<T extends ApiDefinition>(
 
         const resolvedPath = PathResolver.resolve(route.path, params);
 
-        const method = route.method.toLowerCase() as
-          | 'get' | 'post' | 'put' | 'patch' | 'delete';
-
         const requestConfig = { params: query, headers: { ...route.headers, ...resolvedOptions?.headers } };
 
-        let response: unknown;
-
-        if (method === 'get' || method === 'delete') {
-          response = await client[method](resolvedPath, requestConfig);
-        } else {
-          response = await client[method](resolvedPath, body, requestConfig);
-        }
+        let response: unknown = await client.request({
+          url: resolvedPath,
+          method: route.method,
+          body,
+          config: requestConfig
+        });
 
         const responseSchema = route.contract?.response ?? route.responseSchema;
         if (client.config.validateResponse && responseSchema) {
@@ -128,7 +124,7 @@ export function defineApi<T extends ApiDefinition>(
       if (!route.hookKind) {
         throw new Error(`RouteSync endpoint ${group}.${action} is missing the upstream hook-kind projection`);
       }
-      const operationIdentity = route.operationIdentity as OperationIdentityReference;
+      const operationIdentity = route.operationIdentity;
       callableObj.$def = route;
       callableObj.$key = [operationIdentity];
       callableObj.$queryKey = (options?: EndpointCallableOptions<unknown, unknown>) => {

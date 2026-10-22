@@ -1,0 +1,117 @@
+{
+  "phase": 1735,
+  "name": "interface-regression-phase1721-through-1735",
+  "totalChecks": 210,
+  "passedChecks": 149,
+  "failedChecks": 61,
+  "phases": [
+    {
+      "phase": 1721,
+      "total": 17,
+      "passed": 15,
+      "failed": 2
+    },
+    {
+      "phase": 1722,
+      "total": 16,
+      "passed": 14,
+      "failed": 2
+    },
+    {
+      "phase": 1723,
+      "total": 14,
+      "passed": 12,
+      "failed": 2
+    },
+    {
+      "phase": 1724,
+      "total": 12,
+      "passed": 8,
+      "failed": 4
+    },
+    {
+      "phase": 1725,
+      "total": 16,
+      "passed": 10,
+      "failed": 6
+    },
+    {
+      "phase": 1726,
+      "total": 15,
+      "passed": 11,
+      "failed": 4
+    },
+    {
+      "phase": 1727,
+      "total": 19,
+      "passed": 15,
+      "failed": 4
+    },
+    {
+      "phase": 1728,
+      "total": 17,
+      "passed": 12,
+      "failed": 5
+    },
+    {
+      "phase": 1729,
+      "total": 12,
+      "passed": 9,
+      "failed": 3
+    },
+    {
+      "phase": 1730,
+      "total": 11,
+      "passed": 7,
+      "failed": 4
+    },
+    {
+      "phase": 1731,
+      "total": 12,
+      "passed": 8,
+      "failed": 4
+    },
+    {
+      "phase": 1732,
+      "total": 13,
+      "passed": 9,
+      "failed": 4
+    },
+    {
+      "phase": 1733,
+      "total": 15,
+      "passed": 9,
+      "failed": 6
+    },
+    {
+      "phase": 1734,
+      "total": 9,
+      "passed": 4,
+      "failed": 5
+    },
+    {
+      "phase": 1735,
+      "total": 12,
+      "passed": 6,
+      "failed": 6
+    }
+  ],
+  "checks": [
+    {
+      "name": "Phase 1721 through 1735 audit reports all exist",
+      "passed": true
+    },
+    {
+      "name": "all 15 phase audits report zero failed checks",
+      "passed": false
+    },
+    {
+      "name": "aggregate direct-audit checks are 210/210",
+      "passed": false
+    },
+    {
+      "name": "latest phase confirms correspondence-form alignment and pending implementation status",
+      "passed": true
+    }
+  ]
+}

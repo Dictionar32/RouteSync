@@ -1,4 +1,4 @@
-import type { RouteIdentity } from './route';
+import type { RouteCapabilityContract, RouteIdentity } from './route';
 import type { SemanticReasoningContract } from './semanticReasoning';
 import type { SemanticCapabilityContractInterface, SemanticCapabilityEvidence } from './semanticCapability';
 
@@ -15,16 +15,48 @@ export interface OperationIdentity {
 }
 
 /**
- * Producer/consumer algebra for operation identity.
+ * Closed result contract for operation identity capability (legacy exported name).
  *
- * This file is intentionally type-only: it declares the semantic contract but
- * contains no resolver, classifier, derivation, or runtime constructor.
+ * This interface describes the resulting capability shape; it is not an
+ * executable algebra. Upstream materialization is specified separately by
+ * OperationIdentityCapabilityContractMaterializerInterface. This module remains type-only.
  */
 export interface OperationIdentityCapabilityAlgebraInterface
   extends SemanticCapabilityContractInterface<'operation_identity_capability', OperationIdentityCapabilityEvidence, OperationIdentity> {
   readonly identity: OperationIdentity;
   /** Proof-carrying semantic reasoning that established this identity. */
   readonly reasoning: SemanticReasoningContract;
+}
+
+/** Runtime input accepted by the canonical operation-identity algebra. */
+export type OperationIdentityCapabilityInput = Pick<
+  RouteCapabilityContract,
+  'evidence' | 'derivation' | 'provenance' | 'reasoning' | 'closed'
+> & Readonly<{ readonly identity: RouteIdentity }>;
+
+/**
+ * Upstream contract materializer: seals already-resolved route capability
+ * evidence into an operation-identity contract. It does not classify routes.
+ */
+export interface OperationIdentityCapabilityContractMaterializerInterface {
+  materialize(input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract;
+}
+
+/** @deprecated Compatibility name. This is a producer-side materializer, not a runtime executor. */
+export interface OperationIdentityCapabilityRuntimeAlgebraInterface
+  extends OperationIdentityCapabilityContractMaterializerInterface {
+  /** @deprecated Use materialize; the input must already contain resolved semantic evidence. */
+  fromRoute(input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract;
+}
+
+/** Upstream authority that materializes a closed contract from resolved evidence. */
+export interface OperationIdentityCapabilityAuthorityInterface
+  extends OperationIdentityCapabilityContractMaterializerInterface {
+  readonly kind: 'operation_identity_capability_authority';
+  readonly authority: 'upstream';
+  readonly closed: true;
+  /** @deprecated Use materialize. */
+  fromRoute(input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract;
 }
 
 export interface OperationIdentityCapabilityContract extends OperationIdentityCapabilityAlgebraInterface {}

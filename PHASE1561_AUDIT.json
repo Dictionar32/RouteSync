@@ -1,0 +1,75 @@
+{
+  "phase": 1561,
+  "audit": "request-type-interface-closure",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "name": "evidence key is domain tagged",
+      "passed": true
+    },
+    {
+      "name": "evidence reference correlates key and source domain",
+      "passed": true
+    },
+    {
+      "name": "route resource and request references are specialized",
+      "passed": true
+    },
+    {
+      "name": "source ADT preserves framework request binding",
+      "passed": true
+    },
+    {
+      "name": "explicit no-request and framework-request exclusions are distinct",
+      "passed": true
+    },
+    {
+      "name": "group action contribution is represented in proof model",
+      "passed": true
+    },
+    {
+      "name": "group response contribution is represented in proof model",
+      "passed": true
+    },
+    {
+      "name": "group membership cannot substitute for contribution receipts",
+      "passed": true
+    },
+    {
+      "name": "verification distinguishes source key and binding errors",
+      "passed": true
+    },
+    {
+      "name": "verification distinguishes missing contribution ledger",
+      "passed": true
+    },
+    {
+      "name": "new laws are included in canonical law list",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the canonical interface",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "static interface-model audit only; does not claim authority/runtime implementation or full build verification",
+  "validation": {
+    "focused_typescript_check": {
+      "command": "tsc --noEmit --skipLibCheck --strict --target ES2022 --moduleResolution bundler --module esnext src/types/upstream/requestTypeDerivationInterface.ts",
+      "exit_code": 2,
+      "diagnostics_total": 35,
+      "diagnostics_in_changed_interface": 0,
+      "interpretation": "Type-check is blocked by pre-existing diagnostics in imported modules; this is not a successful project type-check."
+    },
+    "unchanged_runtime_and_scanner_files": [
+      "packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts",
+      "packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts",
+      "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+      "packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts",
+      "packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts"
+    ],
+    "implementation_scope": "Interface-only semantic model change plus static audit; no authority implementation, scanner wiring, or runtime executor migration in this phase."
+  }
+}

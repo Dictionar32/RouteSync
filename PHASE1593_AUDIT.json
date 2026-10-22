@@ -1,0 +1,25 @@
+{
+  "phase": 1593,
+  "title": "Interface-first semantic reasoning contract binding",
+  "scope": "interface-only; no wiring changes",
+  "changedFiles": [
+    "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "PHASE1593_INTERFACE_FIRST_REASONING_CONTRACT_BINDING.md",
+    "PHASE1593_AUDIT.json"
+  ],
+  "assertions": {
+    "reasoningInterfaceHasContract": true,
+    "reasoningInterfaceContractIsGeneric": true,
+    "pipelineBindsReasoningToPipelineContractType": true,
+    "scannerWiringChanged": false,
+    "runtimeExecutorChanged": false,
+    "solverImplementationChanged": false,
+    "concreteProducerImplemented": false,
+    "buildVerified": false
+  },
+  "limitations": [
+    "Type-level contract binding does not prove runtime object identity.",
+    "A concrete proof-producing reasoning/verifier implementation remains a migration prerequisite.",
+    "Full TypeScript build was not asserted as passing."
+  ]
+}

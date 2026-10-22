@@ -1,6 +1,6 @@
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationContains } from '../../../../semantic/foundation/relationMembership';
-import { relationFirstOption, relationOptionFold, relationExpand, type RelationOption } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationContains } from '../../../../semantic/relations/relationMembership';
+import { relationFirstOption, relationOptionFold, relationExpand, type RelationOption } from '../../../../semantic/relations/relationalSequence';
 
 import type { TokenDescriptor } from '../phpAstTypes';
 
@@ -37,8 +37,10 @@ export type SyntaxOperation =
   | 'shallow' | 'creatable' | 'destroyable' | 'middleware' | 'middlewareFor'
   | 'withoutMiddlewareFor' | 'missing';
 
+export type SyntaxRouteTargetMethod = 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options' | 'head' | 'query';
+
 export type SyntaxRouteMethod =
-  | 'get' | 'post' | 'put' | 'patch' | 'delete' | 'options' | 'head'
+  | SyntaxRouteTargetMethod
   | 'match' | 'any' | 'resource' | 'apiResource' | 'singleton' | 'apiSingleton';
 
 export type SyntaxRouteConstraintMethod =
@@ -52,8 +54,13 @@ type Catalog<T> = readonly (readonly [string, T])[];
 
 const routeMethodValues: Catalog<SyntaxRouteMethod> = Object.freeze([
   ['get', 'get'], ['post', 'post'], ['put', 'put'], ['patch', 'patch'], ['delete', 'delete'],
-  ['options', 'options'], ['head', 'head'], ['match', 'match'], ['any', 'any'],
+  ['options', 'options'], ['head', 'head'], ['query', 'query'], ['match', 'match'], ['any', 'any'],
   ['resource', 'resource'], ['apiResource', 'apiResource'], ['singleton', 'singleton'], ['apiSingleton', 'apiSingleton'],
+]);
+
+const routeTargetMethodValues: Catalog<SyntaxRouteTargetMethod> = Object.freeze([
+  ['get', 'get'], ['post', 'post'], ['put', 'put'], ['patch', 'patch'],
+  ['delete', 'delete'], ['options', 'options'], ['head', 'head'], ['query', 'query'], ['QUERY', 'query'],
 ]);
 
 const routeConstraintMethodValues: Catalog<SyntaxRouteConstraintMethod> = Object.freeze([
@@ -177,6 +184,7 @@ const tokenMappedValue = <T>(token: TokenDescriptor, catalog: Catalog<T>): Relat
 
 export const tokenOperation = (token: TokenDescriptor): RelationOption<SyntaxOperation> => tokenMappedValue(token, operationValues);
 export const tokenRouteMethod = (token: TokenDescriptor): RelationOption<SyntaxRouteMethod> => tokenMappedValue(token, routeMethodValues);
+export const tokenRouteTargetMethod = (token: TokenDescriptor): RelationOption<SyntaxRouteTargetMethod> => tokenMappedValue(token, routeTargetMethodValues);
 export const tokenRouteConstraintMethod = (token: TokenDescriptor): RelationOption<SyntaxRouteConstraintMethod> => tokenMappedValue(token, routeConstraintMethodValues);
 export const tokenResourceMethod = (token: TokenDescriptor): RelationOption<SyntaxResourceMethod> => tokenMappedValue(token, resourceMethodValues);
 

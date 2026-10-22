@@ -1,0 +1,41 @@
+{
+  "phase": 1977,
+  "title": "Controller subscanner interface-first responsibility trace",
+  "scope": "type/interface declarations and type-only public export; runtime/wiring/scanner implementation untouched",
+  "checks": [
+    {
+      "name": "contract-version-4",
+      "pass": false
+    },
+    {
+      "name": "responsibility-union-exists",
+      "pass": true
+    },
+    {
+      "name": "all-12-nonempty-controller-modules-mapped",
+      "pass": false
+    },
+    {
+      "name": "each-responsibility-forbids-scanner-semantic-decisions",
+      "pass": false
+    },
+    {
+      "name": "invocation-to-response-to-ast-flow-closed",
+      "pass": false
+    },
+    {
+      "name": "runtime-executor-explicitly-non-reasoning",
+      "pass": false
+    },
+    {
+      "name": "no-relation-foundation-or-parallel-authority-replacement",
+      "pass": true
+    },
+    {
+      "name": "type-only-public-export",
+      "pass": false
+    }
+  ],
+  "passed": 2,
+  "total": 8
+}

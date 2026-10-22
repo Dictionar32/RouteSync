@@ -1,0 +1,53 @@
+{
+  "phase": 1978,
+  "title": "Controller subscanner typed contract map — interface first",
+  "checks": [
+    {
+      "name": "contract-version-5",
+      "pass": false,
+      "detail": "Retirement contract advances to version 5."
+    },
+    {
+      "name": "typed-product-map-exists",
+      "pass": true,
+      "detail": "Responsibilities map to actual imported type contracts and products."
+    },
+    {
+      "name": "all-12-typed-map-kinds",
+      "pass": false,
+      "detail": "All twelve controller responsibility keys have typed map entries."
+    },
+    {
+      "name": "all-12-legacy-modules",
+      "pass": true,
+      "detail": "All twelve non-empty controller modules remain explicitly accounted for."
+    },
+    {
+      "name": "type-only-upstream-imports",
+      "pass": true,
+      "detail": "Contract file imports semantic products as types only."
+    },
+    {
+      "name": "no-runtime-registry",
+      "pass": true,
+      "detail": "No runtime registry, factory, authority, or executor was added."
+    },
+    {
+      "name": "response-evidence-not-composition-input",
+      "pass": false,
+      "detail": "Response syntax evidence is owned by source AST projection, not falsely declared as input to integrated-response composition."
+    },
+    {
+      "name": "public-type-exports",
+      "pass": true,
+      "detail": "Typed map and indexed type projections are exported type-only."
+    }
+  ],
+  "passed": 5,
+  "total": 8,
+  "limitations": [
+    "Structural audit only; TypeScript build/typecheck was not run.",
+    "Legacy controller subscanner implementation files and relation imports are intentionally unchanged in this interface-only phase.",
+    "The type map clarifies ownership; it does not claim runtime migration or safe deletion of the legacy directory."
+  ]
+}

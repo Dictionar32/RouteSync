@@ -1,0 +1,13 @@
+{
+  "phase": 1720,
+  "name": "static-source-bound-derivation-contract",
+  "scope": "audit-phase1702-through-phase1720",
+  "auditScripts": 19,
+  "checksPassed": 284,
+  "checksFailed": 0,
+  "status": "pass",
+  "notes": [
+    "Phase 1700 and 1701 are not included in this regression range.",
+    "The audit scripts validate interface and contract shape; they do not prove runtime implementation or end-to-end static invocation coverage."
+  ]
+}

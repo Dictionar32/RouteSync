@@ -1,0 +1,53 @@
+{
+  "phase": 1422,
+  "title": "scanner-assignment-target-algebra-current-contract",
+  "checks": [
+    {
+      "name": "assignment target contract is explicit and parameterized",
+      "passed": true
+    },
+    {
+      "name": "canonical algebra implements the upstream interface",
+      "passed": true
+    },
+    {
+      "name": "target-shape precedence and recursive destructuring remain in algebra",
+      "passed": true
+    },
+    {
+      "name": "plain variable targets are resolved by canonical algebra",
+      "passed": true
+    },
+    {
+      "name": "malformed evidence is source-located without an index in the public contract",
+      "passed": true
+    },
+    {
+      "name": "PHP runtime delegates assignment target reasoning to canonical algebra",
+      "passed": true
+    },
+    {
+      "name": "runtime supplies AST-specific observations and constructors",
+      "passed": false
+    },
+    {
+      "name": "runtime does not own recursive destructuring recognition",
+      "passed": true
+    },
+    {
+      "name": "regression test uses canonical contract and covers variable, append, recursive destructuring, and malformed delimiters",
+      "passed": true
+    },
+    {
+      "name": "no any is introduced in the target algebra",
+      "passed": true
+    },
+    {
+      "name": "audit remains registered and existing build command is preserved",
+      "passed": true
+    }
+  ],
+  "passed": 10,
+  "total": 11,
+  "status": "failed"
+}

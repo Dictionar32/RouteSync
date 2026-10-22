@@ -1,0 +1,23 @@
+{
+  "phase": 1574,
+  "audits": [
+    {
+      "phase": 1573,
+      "passed": 12,
+      "total": 12
+    },
+    {
+      "phase": 1572,
+      "passed": 11,
+      "total": 11
+    },
+    {
+      "phase": 1574,
+      "passed": 10,
+      "total": 10
+    }
+  ],
+  "scannerAndExecutorChanged": false,
+  "typescriptFullBuild": "not_run_dependencies_not_installed",
+  "semanticImplementation": "not_present_in_packages/core/src; not claimed complete"
+}

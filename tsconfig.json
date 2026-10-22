@@ -27,6 +27,9 @@
       ],
       "@routesync/vue": [
         "./packages/vue/src"
+      ],
+      "@routesync/core/upstream": [
+        "./packages/core/src/upstream.ts"
       ]
     },
     "types": [

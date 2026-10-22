@@ -19,8 +19,8 @@ import {
 } from '../ResolvedSemanticType';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { SemanticTypeHandler, SemanticTypeResolverLike } from './resolverContracts';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationProject, relationSelect, relationResolve, relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
+import { relationProject, relationSelect, relationResolve, relationVariantFold } from '../../../../semantic/relations/relationalSequence';
 
 export const NullableWrapperHandler: SemanticTypeHandler = Object.freeze({
     supports: (type: SemanticType): boolean => relationEqual(type.kind, 'nullable'),

@@ -1,0 +1,26 @@
+{
+  "phase": 1638,
+  "title": "Invocation Single-Judgment Authority Binding",
+  "status": "implemented_with_validation_limits",
+  "scope": [
+    "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts"
+  ],
+  "invariants": {
+    "canonical_interface_is_one_input_one_judgment": true,
+    "authority_delegates_to_upstream_single_judgment_algebra": true,
+    "authority_constructs_no_semantic_obligations_or_proofs": true,
+    "missing_invocation_is_an_explicit_incomplete_judgment": true,
+    "missing_invocation_preserves_source_evidence_and_rewrite_proof": true,
+    "aggregate_compatibility_api_remains_separate": true,
+    "scanner_facade_owns_no_invocation_semantic_reasoning": true,
+    "single_invocation_solver_execution_optimized": false
+  },
+  "validation": {
+    "source_trace": "passed",
+    "full_typescript_check": "blocked_missing_dependencies_and_global_typescript_version_mismatch",
+    "legacy_phase1632_audit": "13_of_14_checks_passed; remaining check references superseded legacy module names"
+  }
+}

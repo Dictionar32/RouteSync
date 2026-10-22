@@ -1,0 +1,52 @@
+{
+  "phase": 1995,
+  "audit": "response-declaration-correlation-adt-interface-first",
+  "passed": 10,
+  "total": 11,
+  "checks": [
+    {
+      "name": "correlation judgment ADT exists",
+      "status": "pass"
+    },
+    {
+      "name": "success correlation outcome exists",
+      "status": "pass"
+    },
+    {
+      "name": "rejected correlation outcome exists",
+      "status": "pass"
+    },
+    {
+      "name": "success carries same-source judgment",
+      "status": "pass"
+    },
+    {
+      "name": "rejection carries different-source judgment",
+      "status": "pass"
+    },
+    {
+      "name": "production alias is success-only",
+      "status": "pass"
+    },
+    {
+      "name": "producer input retains successful correlation receipt",
+      "status": "pass"
+    },
+    {
+      "name": "rejection rule is explicit",
+      "status": "pass"
+    },
+    {
+      "name": "producer contract version is 4",
+      "status": "fail"
+    },
+    {
+      "name": "new ADT is publicly exported",
+      "status": "pass"
+    },
+    {
+      "name": "no new relation/foundation subscanner path in controller subscanner",
+      "status": "pass"
+    }
+  ]
+}

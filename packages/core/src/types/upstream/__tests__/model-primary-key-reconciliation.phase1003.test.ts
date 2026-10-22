@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { reconcileModelPrimaryKey } from '../modelPrimaryKey';
 import { createColumnName, createTableName } from '../names';
 import type { SchemaInterface } from '../schema';
+import { schemaRelationIndexFrom } from '../schemaRelation';
 
 const span = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: 'fixture' }, start: 0, end: 1 };
 const stringValue = (value: string) => ({ kind: 'string_value' as const, value });
@@ -46,27 +47,27 @@ const schema = (primaryKeys: readonly string[]): SchemaInterface => ({
 
 describe('phase1003 model primary-key reconciliation', () => {
   it('matches a conventional model key to schema id', () => {
-    const result = reconcileModelPrimaryKey(schema(['id']), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
+    const result = reconcileModelPrimaryKey(schemaRelationIndexFrom(schema(['id'])), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
     expect(result.status).toBe('matched');
   });
 
   it('detects explicit uuid model key against schema id', () => {
-    const result = reconcileModelPrimaryKey(schema(['id']), createTableName('accounts'), createColumnName('uuid'), { kind: 'explicit' });
+    const result = reconcileModelPrimaryKey(schemaRelationIndexFrom(schema(['id'])), createTableName('accounts'), createColumnName('uuid'), { kind: 'explicit' });
     expect(result.status).toBe('conflict');
   });
 
   it('detects schema uuid against Laravel conventional model id', () => {
-    const result = reconcileModelPrimaryKey(schema(['uuid']), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
+    const result = reconcileModelPrimaryKey(schemaRelationIndexFrom(schema(['uuid'])), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
     expect(result.status).toBe('conflict');
   });
 
   it('does not invent a primary key when schema evidence is absent', () => {
-    const result = reconcileModelPrimaryKey(schema([]), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
+    const result = reconcileModelPrimaryKey(schemaRelationIndexFrom(schema([])), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
     expect(result.status).toBe('unresolved');
   });
 
   it('keeps composite schema primary keys explicit as ambiguous for single-key Eloquent models', () => {
-    const result = reconcileModelPrimaryKey(schema(['tenant_id', 'id']), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
+    const result = reconcileModelPrimaryKey(schemaRelationIndexFrom(schema(['tenant_id', 'id'])), createTableName('accounts'), createColumnName('id'), { kind: 'conventional' });
     expect(result.status).toBe('ambiguous');
   });
 });

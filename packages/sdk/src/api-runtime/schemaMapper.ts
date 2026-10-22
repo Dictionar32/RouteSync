@@ -6,8 +6,8 @@
  * @module sdk/api-runtime/schemaMapper
  */
 
-import type { RouteDefinition } from '@routesync/core';
-import { type SchemaLike, parseWithSchema } from '../mappers/schema';
+import type { RouteDefinition, RouteSchemaMap } from '@routesync/core';
+import { isSchemaLike, parseWithSchema } from '../mappers/schema';
 import type { RouteSchemaPart } from './types';
 
 const routeSchemaKeys = ['params', 'query', 'body', 'request', 'response'];
@@ -20,7 +20,7 @@ function defaultSchemaPart(route: RouteDefinition): RouteSchemaPart {
   return schemaRole === 'response' ? 'response' : 'body';
 }
 
-function hasRouteSchemaKeys(value: unknown): value is Record<string, unknown> {
+function hasRouteSchemaKeys(value: unknown): value is Partial<RouteSchemaMap> {
   return Boolean(
     value &&
       typeof value === 'object' &&
@@ -31,6 +31,12 @@ function hasRouteSchemaKeys(value: unknown): value is Record<string, unknown> {
 export function pickRouteSchema(route: RouteDefinition, part: RouteSchemaPart): unknown {
   const schema = route.schema;
   if (!schema) return undefined;
+
+  // Prefer the canonical parser contract before interpreting an object as a
+  // route-part map; parser implementations may expose unrelated properties.
+  if (isSchemaLike(schema)) {
+    return defaultSchemaPart(route) === part ? schema : undefined;
+  }
 
   if (hasRouteSchemaKeys(schema)) {
     return schema[part] ?? (part === 'body' ? schema.request : undefined);
@@ -44,9 +50,12 @@ export function parseRouteSchema(
   part: RouteSchemaPart,
   value: unknown
 ): unknown {
-  if (value === undefined) return undefined;
   const schema = pickRouteSchema(route, part);
-  return parseWithSchema(schema as SchemaLike<unknown> | undefined, value);
+  if (schema === undefined) return value;
+  if (!isSchemaLike(schema)) {
+    throw new Error(`RouteSync ${part} schema does not satisfy the upstream parser contract`);
+  }
+  return parseWithSchema(schema, value);
 }
 
 export function applyMapper(

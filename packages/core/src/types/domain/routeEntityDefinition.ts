@@ -14,9 +14,9 @@ import {
   type SourceLineNumber,
 } from './semanticValues';
 import type { HttpMethod } from './httpVocabulary';
-import { relationGate, relationFirstOption, relationOptionFold } from '../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
-import { relationTextStartsWith } from '../../semantic/foundation/relationalSequence';
+import { relationGate, relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../semantic/relations/semanticRelations';
+import { relationTextStartsWith } from '../../semantic/relations/relationalSequence';
 
 export type { RouteName, RoutePath, PropertyName, SourceFilePath, SourceLineNumber };
 
@@ -53,6 +53,7 @@ const HTTP_VERB_CATALOG: readonly HttpVerb[] = Object.freeze([
   'DELETE',
   'OPTIONS',
   'HEAD',
+  'QUERY',
 ]);
 
 export function createRoutePath(path: string): RoutePath {

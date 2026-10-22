@@ -24,10 +24,14 @@ const project = (
   });
 };
 
-export const operationIdentityProjection: OperationIdentityProjectionInterface = Object.freeze({ project });
+export const operationIdentityProjection: OperationIdentityProjectionInterface = Object.freeze({
+  direction: 'upstream_to_downstream',
+  upstreamAuthority: 'upstream',
+  lossContract: Object.freeze({
+    policy: 'identity_reference_only',
+    preserves: Object.freeze(['key', 'method', 'path'] as const),
+    omits: Object.freeze(['evidence', 'derivation', 'provenance', 'reasoning'] as const),
+  }),
+  project,
+});
 
-export function operationIdentityReferenceFromCapability(
-  capability: OperationIdentityCapabilityContract,
-): OperationIdentityReference {
-  return operationIdentityProjection.project(capability);
-}

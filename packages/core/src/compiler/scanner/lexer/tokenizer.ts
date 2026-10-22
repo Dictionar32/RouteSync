@@ -21,7 +21,7 @@ import {
     scanSimpleOperator,
     scanWordOrUnknown,
 } from './tokenize';
-import { relationAny, relationEqual, relationGate, relationFirstOption, relationOptionFold } from '../../../semantic/foundation/semanticRelations';
+import { relationAny, relationEqual, relationGate, relationFirstOption, relationOptionFold } from '../../../semantic/relations/semanticRelations';
 
 export {
     KEYWORDS,
@@ -161,6 +161,12 @@ const scanClosure = (
         },
     );
 
-export function tokenizePhpSource(source: string): readonly TokenDescriptor[] {
-    return scanClosure(createSourceStream(source), []);
+/** Typed operation contract for the runtime PHP source tokenizer. */
+export interface PhpSourceTokenizerInterface {
+    readonly tokenize: (source: string) => readonly TokenDescriptor[];
 }
+
+/** Runtime scanner operation is an interface-typed object, not an exported free function. */
+export const phpSourceTokenizer: PhpSourceTokenizerInterface = Object.freeze({
+    tokenize: (source: string): readonly TokenDescriptor[] => scanClosure(createSourceStream(source), []),
+});

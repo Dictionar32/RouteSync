@@ -9,17 +9,13 @@
  */
 
 import type { RouteManifest } from './routeManifestInterface';
-import type { BroadcastChannelDescriptor, BroadcastChannelKind } from '../../../types/domain/channels';
-import type { ChannelAst } from '../../../types/upstream/ast';
+import type { BroadcastChannelDescriptor } from '../../../types/domain/channels';
 import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
 import type { ModelAst, ResourceAst } from '../../../types/upstream/ast';
 import { resourceModelKeyCapabilitiesFromAsts } from '../../../types/upstream/resourceModelKeyCapability';
-import { resourceGroupCapabilitiesFromRoutes } from '../../../types/upstream/resourceGroupCapability';
 import { matchDiscovered, matchSourceDiscovery } from '../../../types/upstream/collections';
 import type { Sequence, SourceDiscovery } from '../../../types/upstream/collections';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
-import { relationResolve, relationProject } from '../../../semantic/foundation/relationalSequence';
 import type { RouteManifestProjection } from './routeManifestProjectionInterface';
 
 const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>
@@ -43,43 +39,30 @@ const modelAsts = (manifest: RouteSyncManifest): readonly ModelAst[] =>
 const resourceAsts = (manifest: RouteSyncManifest): readonly ResourceAst[] =>
   discoveredMany(manifest.ast.ast.resources.items);
 
-const channelKind = (kind: ChannelAst['semantic']['channelKind']): BroadcastChannelKind =>
-    relationResolve(
-        relationEqual(kind.kind, 'public'),
-        () => 'public' as const,
-        () => relationResolve(
-            relationEqual(kind.kind, 'private'),
-            () => 'private' as const,
-            () => 'presence' as const,
-        ),
-    );
-
 const channelDescriptorsFromManifest = (manifest: RouteSyncManifest): readonly BroadcastChannelDescriptor[] => {
     const channels = discoveredMany(manifest.ast.ast.channels.items);
-    return Object.freeze(relationProject(channels, channel => {
-        const kind = channelKind(channel.semantic.channelKind);
+    return Object.freeze(channels.map(channel => {
+        const kind = channel.semantic.channelKind.kind;
         const parameters = sequenceToArray(channel.semantic.parameters);
-        const isPresence = relationEqual(kind, 'presence');
-        const isPrivate = relationResolve(relationEqual(kind, 'public'), () => false, () => true);
         return Object.freeze({
             name: channel.semantic.name.value.value,
             kind,
             pattern: channel.semantic.pattern.value.value,
             runtimePattern: channel.semantic.runtimePattern.value.value,
             parameters,
-            isPrivate,
-            isPresence,
+            isPrivate: channel.semantic.requiresAuthentication.kind === 'true',
+            isPresence: kind === 'presence',
         });
     }));
 };
 
 
-export function lowerRouteSyncManifestToRouteManifest(
+export const lowerRouteSyncManifestToRouteManifest: (
     manifest: RouteSyncManifest,
     baseURL: string,
     version: string,
     projection: RouteManifestProjection,
-): RouteManifest {
+) => RouteManifest = (manifest, baseURL, version, projection) => {
     const routes = routeFlowsFromManifest(manifest);
     const models = modelAsts(manifest);
     const resources = resourceAsts(manifest);
@@ -92,7 +75,7 @@ export function lowerRouteSyncManifestToRouteManifest(
         resources,
         models,
         resourceModelKeyCapabilities,
-        resourceGroupCapabilities: resourceGroupCapabilitiesFromRoutes(routes),
+        resourceGroupCapabilities: manifest.resourceGroupCapabilities,
         routeGroups: Object.freeze([]),
         requestTypes: projection.requestTypes,
         semanticTypes: projection.semanticTypes,
@@ -101,4 +84,6 @@ export function lowerRouteSyncManifestToRouteManifest(
         frontend: { kind: 'disabled' as const },
         pages: Object.freeze([]),
     });
-}
+};
+
+

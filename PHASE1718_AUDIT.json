@@ -1,0 +1,97 @@
+{
+  "phase": 1718,
+  "title": "Static Algebra Stage Interface Contract",
+  "date": "2026-10-12",
+  "phase_audit": {
+    "passed": 17,
+    "total": 17,
+    "checks": [
+      {
+        "name": "subject presence has a typed rejection result rather than a fabricated judgment",
+        "passed": true
+      },
+      {
+        "name": "positional evidence has a closed confirmed-or-unavailable result",
+        "passed": true
+      },
+      {
+        "name": "target-resolution stage has a dedicated input and typed result interface",
+        "passed": true
+      },
+      {
+        "name": "argument binding consumes target resolution and positional evidence instead of raw knowledge",
+        "passed": true
+      },
+      {
+        "name": "effect projection consumes an already-derived target judgment",
+        "passed": true
+      },
+      {
+        "name": "proof assembly consumes completed subjudgments instead of broad knowledge",
+        "passed": true
+      },
+      {
+        "name": "top-level algebra composes explicit typed stages",
+        "passed": true
+      },
+      {
+        "name": "algebra contract declares stage ownership and anti-reclassification boundaries",
+        "passed": true
+      },
+      {
+        "name": "algebra contract type and value synchronize at version 2",
+        "passed": true
+      },
+      {
+        "name": "aggregate judgment contract synchronizes at version 9",
+        "passed": true
+      },
+      {
+        "name": "model and coverage contracts synchronize at version 13",
+        "passed": true
+      },
+      {
+        "name": "pipeline contract synchronizes at version 26",
+        "passed": true
+      },
+      {
+        "name": "all stage interface and input types are publicly exported",
+        "passed": true
+      },
+      {
+        "name": "Laravel scanner contract forbids implementing or inlining static rule stages",
+        "passed": true
+      },
+      {
+        "name": "scanner boundary version value synchronizes at version 8",
+        "passed": true
+      },
+      {
+        "name": "prior Phase 1717 algebra contract audit remains in regression lineage",
+        "passed": true
+      },
+      {
+        "name": "new stage contracts do not introduce semantic/foundation dependency",
+        "passed": true
+      }
+    ]
+  },
+  "regression_audits": {
+    "range": "1702-1718",
+    "scripts": 17,
+    "passed": 257,
+    "total": 257
+  },
+  "typecheck": {
+    "command": "tsc --noEmit --strict --target ES2022 --moduleResolution bundler --module ESNext --skipLibCheck packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+    "exit_code": 2,
+    "diagnostics_total": 34,
+    "changed_file_diagnostics": 0,
+    "status": "unrelated existing module diagnostics; no diagnostics in changed interface files"
+  },
+  "build": "not run",
+  "production_static_algebra_implemented": false,
+  "authority_validator_implemented": false,
+  "production_scanner_wiring_changed": false,
+  "semantic_foundation_dependency_added": false
+}

@@ -1,18 +1,23 @@
-import type { PhpAstValue } from '../../lexer/phpAstTypes';
+import type { PhpAstValue, PhpClassReferenceSourceEvidence } from '../../lexer/phpAstTypes';
+import type { PhpArgument } from '../../lexer/phpAstExpressionTypes';
 import type { ControllerDataflowAst } from '../../lexer/controllerBodyAstTypes';
-import type { ControllerParameterAst } from '../../lexer/controllerAstTypes';
 import type { ResourceName, VariableName } from '../../../../types/domain/semanticValues';
 import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
 import type { Lookup } from '../../../../types/upstream/collections';
-import type { ControllerModelOrigin, ControllerVariableSemantic, ControllerVariableBinding } from '../../../../types/upstream/controller';
+import type { ControllerModelOrigin, ControllerResponseReferenceJudgment, ControllerVariableBinding, ControllerVariableDefinition, ControllerSemanticVariableFlow } from '../../../../types/upstream/controller';
+import type { ControllerVariableSemanticJudgment } from '../../../../types/upstream/controllerVariableSemanticInterface';
+import type { ControllerStaticCallModelClassIdentity, ControllerStaticCallOriginInput, ControllerStaticCallTableArgumentEvidence, ControllerStaticCallClassNameResolutionContextEvidence } from '../../../../types/upstream/controllerStaticCallOriginInterface';
+import type { ControllerResourceBindingAuthorityInterface } from '../../../../types/upstream/controllerResourceBindingInterface';
+import type { ControllerResourceBindingCandidate, ControllerResourceBindingJudgment, ControllerResourceModelOriginEvidence } from '../../../../types/upstream/controllerResourceBindingInterface';
+import { createClassName, createMethodName } from '../../../../types/upstream/names';
+import { stringValue } from '../../../../types/upstream/valueObjects';
 import type { Sequence } from '../../../../types/upstream/collections';
 export type { ControllerModelOrigin } from '../../../../types/upstream/controller';
 
 import type { ResponseReference } from '../../../../types/upstream/semanticReferences';
-import { relationGate, relationFold, relationProject, relationExpand, relationOptionFold, relationRefine, relationAll, relationAny } from '../../../../semantic/foundation/relationalSequence';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/foundation/relationMembership';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { solveCandidate, requirement } from '../../../../semantic/kernel/semanticDecisionRewriteEngine';
+import { relationGate, relationFold, relationProject, relationExpand, relationOptionFold, relationNone, relationRefine, relationAny, type RelationOption } from '../../../../semantic/relations/relationalSequence';
+import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/relations/relationMembership';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export type ControllerReturnExpression =
     | { readonly kind: 'absent' }
@@ -35,10 +40,6 @@ export interface ControllerResourceBinding {
     readonly source: import('../../lexer/phpAstCoreTypes').SourceRange;
 }
 
-export type ControllerResourceResponseEvidence =
-    | { readonly kind: 'present'; readonly response: ResponseReference }
-    | { readonly kind: 'absent' };
-
 export type ControllerSemanticVariableIndex = RelationIndex<string, ControllerVariableBinding>;
 
 export const createControllerSemanticVariableIndex = (bindings: readonly ControllerVariableBinding[]): ControllerSemanticVariableIndex =>
@@ -54,29 +55,32 @@ export const lookupControllerSemanticVariable = (
     value => ({ kind: 'found' as const, value }),
 );
 
-export const lookupControllerSemantic = (
+export const lookupControllerSemanticJudgment = (
     index: ControllerSemanticVariableIndex,
     variable: VariableName,
-): Lookup<ControllerVariableSemantic> => relationOptionFold(
+): Lookup<ControllerVariableSemanticJudgment> => relationOptionFold(
     relationIndexLookup(index, variable.value.value),
     () => ({ kind: 'missing' as const }),
-    value => latestAvailableSemantic(value),
+    value => latestAvailableSemanticJudgment(value),
 );
 
 export const controllerSemanticVariableIndexSize = (index: ControllerSemanticVariableIndex): number => index.length;
 
-function latestAvailableSemantic(binding: ControllerVariableBinding): Lookup<ControllerVariableSemantic> {
+function latestAvailableSemanticJudgment(binding: ControllerVariableBinding): Lookup<ControllerVariableSemanticJudgment> {
+    const judgment = relationFold<ControllerVariableDefinition, RelationOption<ControllerVariableSemanticJudgment>>(
+        sequenceToArray(binding.definitions),
+        relationNone<ControllerVariableSemanticJudgment>(),
+        (_current, definition) => ({ kind: 'some' as const, value: definition.semanticResolution }),
+    );
     return relationOptionFold(
-        relationFold(sequenceToArray(binding.definitions), { kind: 'none' as const } as { kind: 'none' } | { kind: 'some'; value: ControllerVariableSemantic }, (current, definition) =>
-            relationGate(Object.is(current.kind, 'some'), () => current, () => ({ kind: 'some' as const, value: definition.semantic })),
-        ),
+        judgment,
         () => ({ kind: 'missing' as const }),
         value => ({ kind: 'found' as const, value }),
     );
 }
 
 export interface ControllerDataflowContract {
-    readonly semantic: { readonly variables: Sequence<ControllerVariableBinding> };
+    readonly semantic: ControllerSemanticVariableFlow;
     readonly resourceBindings: readonly ControllerResourceBinding[];
 }
 
@@ -87,17 +91,20 @@ export function emptyControllerDataflowContract(): ControllerDataflowContract {
     });
 }
 
-export function createControllerDataflowContract(
-    evidence: ControllerDataflowAst,
-    _parameters: readonly ControllerParameterAst[],
-    returned: ControllerReturnSet,
-    response: ControllerResourceResponseEvidence,
-    _sourceFile = '<scanner>',
-): ControllerDataflowContract {
-    const semantic = buildSemanticDataflow(evidence);
+export interface ControllerDataflowContractInput {
+    readonly evidence: ControllerDataflowAst;
+    readonly returned: ControllerReturnSet;
+    readonly response: ControllerResponseReferenceJudgment;
+    readonly modelClasses: readonly ControllerStaticCallModelClassIdentity[];
+    readonly classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence;
+    readonly resourceBindingAuthority: ControllerResourceBindingAuthorityInterface;
+}
+
+export function createControllerDataflowContract(input: ControllerDataflowContractInput): ControllerDataflowContract {
+    const semantic = buildSemanticDataflow(input.evidence);
     const bindings = relationExpand(
-        returned.expressions,
-        item => relationOptionFold(relationRefine(item, (candidate): candidate is Extract<ControllerReturnExpression, { readonly kind: 'present' }> => relationEqual(candidate.kind, 'present')), () => [], candidate => collectResourceBindings(candidate.value, evidence.semanticVariables, response)),
+        input.returned.expressions,
+        item => relationOptionFold(relationRefine(item, (candidate): candidate is Extract<ControllerReturnExpression, { readonly kind: 'present' }> => relationEqual(candidate.kind, 'present')), () => [], candidate => collectResourceBindings(candidate.value, input.evidence.semanticVariables, input.response, input.modelClasses, input.classNameResolutionContextEvidence, input.resourceBindingAuthority)),
     );
     return Object.freeze({
         semantic,
@@ -105,61 +112,161 @@ export function createControllerDataflowContract(
     });
 }
 
-function buildSemanticDataflow(evidence: ControllerDataflowAst): { readonly variables: Sequence<ControllerVariableBinding> } {
+function buildSemanticDataflow(evidence: ControllerDataflowAst): ControllerSemanticVariableFlow {
     return evidence.semanticVariables;
 }
 
-function collectResourceBindings(value: PhpAstValue, semanticVariables: { readonly variables: Sequence<ControllerVariableBinding> }, response: ControllerResourceResponseEvidence): readonly ControllerResourceBinding[] {
+function collectResourceBindings(value: PhpAstValue, semanticVariables: ControllerSemanticVariableFlow, response: ControllerResponseReferenceJudgment, modelClasses: readonly ControllerStaticCallModelClassIdentity[], classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence, resourceBindingAuthority: ControllerResourceBindingAuthorityInterface): readonly ControllerResourceBinding[] {
     const semanticIndex = createControllerSemanticVariableIndex(sequenceToArray(semanticVariables.variables));
-    return collectResourceBindingsWithIndex(value, semanticIndex, response);
+    return collectResourceBindingsWithIndex(value, semanticIndex, response, modelClasses, classNameResolutionContextEvidence, resourceBindingAuthority);
 }
 
 function sequenceToArray<T>(value: Sequence<T>, output: readonly T[] = []): readonly T[] {
     return relationOptionFold(relationRefine(value, (candidate): candidate is Extract<Sequence<T>, { readonly kind: 'cons' }> => relationEqual(candidate.kind, 'cons')), () => output, current => sequenceToArray(current.tail, [...output, current.head]));
 }
 
-function collectResourceBindingsWithIndex(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex, response: ControllerResourceResponseEvidence): readonly ControllerResourceBinding[] {
-    const direct = relationGate(relationAny([Object.is(value.kind, 'resource_single'), Object.is(value.kind, 'resource_collection')]), () => {
-        const model = resolveModelOrigin(value.argument, semanticIndex);
-        return relationGate(relationAll([Object.is(model.kind, 'found'), Object.is(response.kind, 'present')]), () => [{ resourceName: SemanticValueFactory.resourceName(value.resourceName), model: model.value, response: response.response, source: value.source }], () => []);
-    }, () => []);
-
-    const collection = relationGate(relationAll([Object.is(value.kind, 'static_call'), Object.is(value.method, 'collection')]), () => {
-        const argument = relationGate(value.arguments.length > 0, () => ({ kind: 'some' as const, value: value.arguments[0] }), () => ({ kind: 'none' as const }));
-        return relationOptionFold(argument, () => [], item => relationGate(Object.is(item.kind, 'positional'), () => {
-            const model = resolveModelOrigin(item.value, semanticIndex);
-            return relationGate(relationAll([Object.is(model.kind, 'found'), Object.is(response.kind, 'present')]), () => [{ resourceName: SemanticValueFactory.resourceName(value.className), model: model.value, response: response.response, source: value.source }], () => []);
-        }, () => []));
-    }, () => []);
+function collectResourceBindingsWithIndex(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex, response: ControllerResponseReferenceJudgment, modelClasses: readonly ControllerStaticCallModelClassIdentity[], classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence, resourceBindingAuthority: ControllerResourceBindingAuthorityInterface): readonly ControllerResourceBinding[] {
+    const judgment = resourceBindingAuthority.judge(resourceBindingCandidate(value, semanticIndex, response, modelClasses, classNameResolutionContextEvidence));
+    const direct = relationOptionFold(
+        relationRefine(judgment, (candidate): candidate is Extract<ControllerResourceBindingJudgment, { readonly kind: 'resolved' }> => relationEqual(candidate.kind, 'resolved')),
+        () => [],
+        resolved => [{ resourceName: resolved.resourceName, model: resolved.model, response: resolved.response, source: value.source }],
+    );
 
     const nested = relationGate(Object.is(value.kind, 'method_chain'), () => [
-        ...relationExpand(value.arguments, argument => collectResourceBindingsWithIndex(argument.value, semanticIndex, response)),
-        ...collectResourceBindingsWithIndex(value.receiver, semanticIndex, response),
+        ...relationExpand(value.arguments, argument => collectResourceBindingsWithIndex(argument.value, semanticIndex, response, modelClasses, classNameResolutionContextEvidence, resourceBindingAuthority)),
+        ...collectResourceBindingsWithIndex(value.receiver, semanticIndex, response, modelClasses, classNameResolutionContextEvidence, resourceBindingAuthority),
     ], () =>
-        relationGate(Object.is(value.kind, 'function_call'), () => relationExpand(value.arguments, argument => collectResourceBindingsWithIndex(argument.value, semanticIndex, response)), () =>
-            relationGate(Object.is(value.kind, 'nested_array'), () => relationExpand(value.entries, entry => collectResourceBindingsWithIndex(entry.value, semanticIndex, response)), () =>
-                relationGate(Object.is(value.kind, 'ternary_expression'), () => relationExpand([value.trueBranch, value.falseBranch], branch => collectResourceBindingsWithIndex(branch, semanticIndex, response)), () =>
-                    relationGate(Object.is(value.kind, 'null_coalesce'), () => relationExpand([value.left, value.right], branch => collectResourceBindingsWithIndex(branch, semanticIndex, response)), () =>
-                        relationGate(Object.is(value.kind, 'method_chain'), () => collectResourceBindingsWithIndex(value.receiver, semanticIndex, response), () => []))))));
+        relationGate(Object.is(value.kind, 'function_call'), () => relationExpand(value.arguments, argument => collectResourceBindingsWithIndex(argument.value, semanticIndex, response, modelClasses, classNameResolutionContextEvidence, resourceBindingAuthority)), () =>
+            relationGate(Object.is(value.kind, 'nested_array'), () => relationExpand(value.entries, entry => collectResourceBindingsWithIndex(entry.value, semanticIndex, response, modelClasses, classNameResolutionContextEvidence, resourceBindingAuthority)), () =>
+                relationGate(Object.is(value.kind, 'ternary_expression'), () => relationExpand([value.trueBranch, value.falseBranch], branch => collectResourceBindingsWithIndex(branch, semanticIndex, response, modelClasses, classNameResolutionContextEvidence, resourceBindingAuthority)), () =>
+                    relationGate(Object.is(value.kind, 'null_coalesce'), () => relationExpand([value.left, value.right], branch => collectResourceBindingsWithIndex(branch, semanticIndex, response, modelClasses, classNameResolutionContextEvidence, resourceBindingAuthority)), () => [])))));
 
-    return [...direct, ...collection, ...nested];
+    return [...direct, ...nested];
 }
 
-function resolveModelOrigin(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex): Lookup<ControllerModelOrigin> {
-    return relationGate(Object.is(value.kind, 'variable_reference'), () => {
-        const result = lookupControllerSemantic(semanticIndex, SemanticValueFactory.variableName(value.name));
-        return relationGate(relationAll([Object.is(result.kind, 'found'), Object.is(result.value.kind, 'model_origin')]), () => ({ kind: 'found' as const, value: toDomainModelOrigin(result.value.origin) }), () => ({ kind: 'missing' as const }));
-    }, () => relationGate(Object.is(value.kind, 'static_call'), () => ({ kind: 'found' as const, value: resolveStaticCallOrigin(value) }), () => relationGate(Object.is(value.kind, 'method_chain'), () => resolveModelOrigin(value.receiver, semanticIndex), () => ({ kind: 'missing' as const }))));
+/** Converts AST node shape into candidate evidence; semantic applicability is owned by the upstream authority. */
+function resourceBindingCandidate(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex, response: ControllerResponseReferenceJudgment, modelClasses: readonly ControllerStaticCallModelClassIdentity[], classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence): ControllerResourceBindingCandidate {
+    const directResource = relationRefine(
+        value,
+        (candidate): candidate is Extract<PhpAstValue, { readonly kind: 'resource_single' | 'resource_collection' }> => relationAny([
+            relationEqual(candidate.kind, 'resource_single'),
+            relationEqual(candidate.kind, 'resource_collection'),
+        ]),
+    );
+    return relationOptionFold(
+        directResource,
+        () => {
+            const staticCall = relationRefine(value, (candidate): candidate is Extract<PhpAstValue, { readonly kind: 'static_call' }> => relationEqual(candidate.kind, 'static_call'));
+            return relationOptionFold(
+                staticCall,
+                () => ({ kind: 'other_expression' as const }),
+                candidate => ({
+                    kind: 'static_call' as const,
+                    resourceName: SemanticValueFactory.resourceName(candidate.classReference.terminalName),
+                    methodName: createMethodName(candidate.method),
+                    argument: staticCollectionModelOriginEvidence(candidate.arguments, semanticIndex, modelClasses, classNameResolutionContextEvidence),
+                    response,
+                }),
+            );
+        },
+        candidate => ({
+            kind: 'direct_resource' as const,
+            resourceName: SemanticValueFactory.resourceName(candidate.resourceName),
+            modelOrigin: modelOriginEvidence(candidate.argument, semanticIndex, modelClasses, classNameResolutionContextEvidence),
+            response,
+        }),
+    );
 }
 
-function toDomainModelOrigin(origin: import('../../../../types/upstream/controller').ControllerModelOrigin): ControllerModelOrigin {
-    return relationGate(Object.is(origin.kind, 'table'), () => ({ kind: 'table' as const, name: SemanticValueFactory.tableName(origin.name.value.value) }), () => ({ kind: 'model_class' as const, name: SemanticValueFactory.modelName(origin.name.value.value) }));
+function staticCollectionModelOriginEvidence(argumentsList: readonly PhpArgument[], semanticIndex: ControllerSemanticVariableIndex, modelClasses: readonly ControllerStaticCallModelClassIdentity[], classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence): Extract<ControllerResourceBindingCandidate, { readonly kind: 'static_call' }>['argument'] {
+    const firstArgument = argumentsList[0];
+    return relationGate(
+        firstArgument !== undefined,
+        () => relationGate(
+            Object.is(firstArgument.kind, 'positional'),
+            () => ({ kind: 'positional' as const, modelOrigin: modelOriginEvidence(firstArgument.value, semanticIndex, modelClasses, classNameResolutionContextEvidence) }),
+            () => ({ kind: 'unsupported_argument_shape' as const }),
+        ),
+        () => ({ kind: 'absent' as const }),
+    );
 }
 
-function resolveStaticCallOrigin(value: Extract<PhpAstValue, { kind: 'static_call' }>): ControllerModelOrigin {
-    const tableCandidate = relationGate(relationAll([Object.is(value.className, 'DB'), Object.is(value.method, 'table')]), () => {
-        const argument = relationGate(value.arguments.length > 0, () => ({ kind: 'some' as const, value: value.arguments[0] }), () => ({ kind: 'none' as const }));
-        return relationOptionFold(argument, () => ({ kind: 'model_class' as const, name: SemanticValueFactory.modelName(value.className) }), item => relationGate(relationAll([Object.is(item.kind, 'positional'), Object.is(item.value.kind, 'literal'), Object.is(item.value.literalType, 'string')]), () => ({ kind: 'table' as const, name: SemanticValueFactory.tableName(item.value.value) }), () => ({ kind: 'model_class' as const, name: SemanticValueFactory.modelName(value.className) })));
-    }, () => ({ kind: 'model_class' as const, name: SemanticValueFactory.modelName(value.className) }));
-    return tableCandidate;
+/** Preserves upstream semantic judgments as evidence; it does not interpret their outcomes. */
+function modelOriginEvidence(value: PhpAstValue, semanticIndex: ControllerSemanticVariableIndex, modelClasses: readonly ControllerStaticCallModelClassIdentity[], classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence): ControllerResourceModelOriginEvidence {
+    const variableReference = relationRefine(value, (candidate): candidate is Extract<PhpAstValue, { readonly kind: 'variable_reference' }> => relationEqual(candidate.kind, 'variable_reference'));
+    return relationOptionFold(
+        variableReference,
+        () => {
+            const staticCall = relationRefine(value, (candidate): candidate is Extract<PhpAstValue, { readonly kind: 'static_call' }> => relationEqual(candidate.kind, 'static_call'));
+            return relationOptionFold(
+                staticCall,
+                () => {
+                    const methodChain = relationRefine(value, (candidate): candidate is Extract<PhpAstValue, { readonly kind: 'method_chain' }> => relationEqual(candidate.kind, 'method_chain'));
+                    return relationOptionFold(
+                        methodChain,
+                        () => ({ kind: 'unsupported_expression' as const }),
+                        candidate => ({ kind: 'method_chain_receiver' as const, receiver: modelOriginEvidence(candidate.receiver, semanticIndex, modelClasses, classNameResolutionContextEvidence) }),
+                    );
+                },
+                candidate => ({ kind: 'static_call_origin_input' as const, input: staticCallOriginInput(candidate, modelClasses, classNameResolutionContextEvidence) }),
+            );
+        },
+        candidate => relationOptionFold(
+            lookupControllerSemanticJudgment(semanticIndex, SemanticValueFactory.variableName(candidate.name)),
+            () => ({ kind: 'variable_semantic_missing' as const }),
+            judgment => ({ kind: 'variable_semantic_judgment' as const, judgment }),
+        ),
+    );
+}
+
+function staticCallOriginInput(value: Extract<PhpAstValue, { kind: 'static_call' }>, modelClasses: readonly ControllerStaticCallModelClassIdentity[], classNameResolutionContextEvidence: ControllerStaticCallClassNameResolutionContextEvidence): ControllerStaticCallOriginInput {
+    return Object.freeze({
+        kind: 'controller_static_call_origin_input',
+        classReference: classReferenceEvidence(value.classReference),
+        classNameResolutionContext: classNameResolutionContextEvidence,
+        methodName: createMethodName(value.method),
+        tableArgument: staticCallTableArgumentEvidence(value.arguments),
+        modelClasses,
+    });
+}
+
+function classReferenceEvidence(evidence: PhpClassReferenceSourceEvidence): ControllerStaticCallOriginInput['classReference'] {
+    switch (evidence.kind) {
+        case 'simple_name':
+            return Object.freeze({ kind: 'simple_name', name: createClassName(evidence.sourceName) });
+        case 'qualified_name':
+            return Object.freeze({ kind: 'qualified_name', sourceName: createClassName(evidence.sourceName), form: evidence.form });
+    }
+}
+
+function staticCallTableArgumentEvidence(argumentsList: readonly PhpArgument[]): ControllerStaticCallTableArgumentEvidence {
+    const firstArgument = argumentsList[0];
+    return relationGate(
+        firstArgument !== undefined,
+        () => staticCallArgumentEvidence(firstArgument),
+        () => ({ kind: 'absent' as const }),
+    );
+}
+
+function staticCallArgumentEvidence(argument: PhpArgument): ControllerStaticCallTableArgumentEvidence {
+    const positional = relationRefine(argument, (candidate): candidate is Extract<PhpArgument, { readonly kind: 'positional' }> => relationEqual(candidate.kind, 'positional'));
+    return relationOptionFold(
+        positional,
+        () => ({ kind: 'unsupported_argument_shape' as const }),
+        value => staticCallPositionalValueEvidence(value.value),
+    );
+}
+
+function staticCallPositionalValueEvidence(value: PhpAstValue): ControllerStaticCallTableArgumentEvidence {
+    const literal = relationRefine(value, (candidate): candidate is Extract<PhpAstValue, { readonly kind: 'literal' }> => relationEqual(candidate.kind, 'literal'));
+    return relationOptionFold(
+        literal,
+        () => ({ kind: 'unsupported_argument_shape' as const }),
+        candidate => relationOptionFold(
+            relationRefine(candidate, (item): item is Extract<PhpAstValue, { readonly kind: 'literal' }> & { readonly literalType: 'string' } => relationEqual(item.literalType, 'string')),
+            () => ({ kind: 'unsupported_argument_shape' as const }),
+            stringLiteral => ({ kind: 'positional_string_literal' as const, value: stringValue(stringLiteral.value) }),
+        ),
+    );
 }

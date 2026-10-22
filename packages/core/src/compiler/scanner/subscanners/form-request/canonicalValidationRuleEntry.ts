@@ -28,7 +28,7 @@ import {
     relationAnyMatch,
     relationRange,
     relationVariantFold,
-} from "../../../../semantic/foundation/relationalSequence";
+} from "../../../../semantic/relations/relationalSequence";
 
 export interface ScannedRouteValidationRuleParams {
     readonly fieldName: PropertyName;
@@ -148,6 +148,7 @@ function buildNestedObjectShape(
                     presence: childPresence,
                     validation: childValidation,
                     shape: childShape,
+                    sources: Object.freeze([source]),
                     source
                 }])
             };

@@ -1,0 +1,48 @@
+{
+  "phase": 1560,
+  "audit": "request-type-semantic-relation-contract",
+  "passed": 9,
+  "total": 10,
+  "checks": [
+    {
+      "name": "interface defines declarative source-relation closure rather than procedural stage order",
+      "passed": true
+    },
+    {
+      "name": "semantic laws are declarative and canonically exported",
+      "passed": false
+    },
+    {
+      "name": "request identity resolution distinguishes exact, normalized, missing, and ambiguous",
+      "passed": true
+    },
+    {
+      "name": "route receipt records both resolution judgments and disposition",
+      "passed": true
+    },
+    {
+      "name": "source closure accounts routes, resources, and requests",
+      "passed": true
+    },
+    {
+      "name": "proof contains all source receipts, group membership, relations, and closure",
+      "passed": true
+    },
+    {
+      "name": "judgment distinguishes derived, incomplete, conflict, and invalid input",
+      "passed": true
+    },
+    {
+      "name": "authority interface returns judgment and exposes proof verification",
+      "passed": true
+    },
+    {
+      "name": "canonical interface is exported through upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "scanner runtime and aggregator remain unchanged in interface-first phase",
+      "passed": true
+    }
+  ]
+}

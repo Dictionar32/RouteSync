@@ -4,9 +4,9 @@
  * Scanner consumers must operate on the domain expression ADT rather than
  * maintaining a second scanner-specific semantic expression contract.
  */
-import { relationVariantFold } from '../../../../semantic/foundation/relationalSequence';
+import { relationVariantFold } from '../../../../semantic/relations/relationalSequence';
 import type { ControllerExpression } from '../../../../types/domain/controllerExpression';
-import type { RelationVariant } from '../../../../semantic/foundation/relationalSequence';
+import type { RelationVariant } from '../../../../semantic/relations/relationalSequence';
 
 type Handler<R, K extends ControllerExpression['kind']> = (
     expression: RelationVariant<ControllerExpression, K>

@@ -18,6 +18,7 @@ export {
     createAstIdentifier,
     type PhpLiteralValue,
     type PhpAstValue,
+    type PhpClassReferenceSourceEvidence,
     PhpAstFactory,
     type PhpAstValueVisitor,
     type PhpMicroAstVisitor,
@@ -33,18 +34,16 @@ export {
 
 export type { SourceStream } from "./SourceStream";
 
-export {
-    tokenizePhpSource
-} from "./tokenizer";
+export { phpSourceTokenizer } from "./tokenizer";
+export type { PhpSourceTokenizerInterface } from "./tokenizer";
 
 export {
     classifyAstTokens,
     classifyAstValue
 } from "./astClassifier";
 
-export {
-    parsePhpArray
-} from "./arrayParser";
+export { phpArrayParser } from "./arrayParser";
+export type { PhpArrayParserInterface } from "./arrayParser";
 
 export type { PhpClassPropertyAst, PhpPropertyVisibility, PhpPropertyStorage, PhpPropertyMutability, PhpPropertyTypeAst, PhpPropertyInitializationAst, PhpPropertyValueAst, PhpPropertyPromotionAst } from './phpAstDeclarationTypes';
 
@@ -58,10 +57,10 @@ export type {
 } from './controllerAstTypes';
 
 export { parseControllerDeclaration } from './controllerDeclarationParser';
-export type { ControllerBodyAst, InlineValidationAst, ControllerErrorAst, HttpErrorStatusAst, ValidationRuleLiteralAst, ControllerDataflowAst } from './controllerBodyAstTypes';
+export type { ControllerBodyAst, SyntaxOnlyControllerBodyAst, SemanticControllerBodyAst, InlineValidationAst, ControllerErrorAst, HttpErrorStatusAst, ValidationRuleLiteralAst, ControllerDataflowAst } from './controllerBodyAstTypes';
 export { parseControllerBody } from './controllerBodyParser';
 
-export type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst } from './responseDtoAstTypes';
+export type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst, ResponseDtoPropertyTypeEvidence } from './responseDtoAstTypes';
 export { parseResponseDtoDeclaration } from './responseDtoDeclarationParser';
 
 export type { ModelDeclarationAst, ModelDeclarationInheritanceAst, ModelMethodAst, ModelConstantAst } from './modelAstTypes';

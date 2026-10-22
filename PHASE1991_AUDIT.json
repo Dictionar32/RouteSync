@@ -1,0 +1,31 @@
+{
+  "phase": 1991,
+  "title": "Response Evidence Producer Interface First",
+  "result": "PASS_STRUCTURAL_AUDIT",
+  "audit": {
+    "passed": 13,
+    "total": 13,
+    "failed": 0
+  },
+  "syntaxTranspile": {
+    "file": "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts",
+    "diagnostics": 0
+  },
+  "trace": {
+    "controllerSubscannerTypeScriptFiles": 20,
+    "controllerSubscannerFilesReferencingSemanticRelations": 12,
+    "controllerSubscannerFilesReferencingSemanticFoundation": 0
+  },
+  "changes": {
+    "contractOnly": true,
+    "runtimeScannerChanged": false,
+    "subscannersAdded": false,
+    "subscannersDeleted": false,
+    "publicExportsUpdated": true
+  },
+  "limitations": [
+    "No full-project typecheck was run.",
+    "The evidence producer is declared but not implemented or wired into the scanner.",
+    "The scanner implementation still creates artifacts without responseJudgment; this remains the next integration gap."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "phase": 1576,
+  "audit": "authority-outcome-enforcement",
+  "passed": 13,
+  "total": 14,
+  "checks": [
+    {
+      "name": "canonical law registry contains all 32 laws",
+      "passed": true
+    },
+    {
+      "name": "canonical law registry contains no duplicate identifiers",
+      "passed": true
+    },
+    {
+      "name": "law identifiers have one canonical runtime registry",
+      "passed": true
+    },
+    {
+      "name": "runtime gate validates exact required and verified law coverage",
+      "passed": true
+    },
+    {
+      "name": "kernel separates semantic derivation from authority boundary",
+      "passed": true
+    },
+    {
+      "name": "authority derives a judgment and always invokes verification before classification",
+      "passed": true
+    },
+    {
+      "name": "verified result requires non-invalid judgment and valid verification",
+      "passed": true
+    },
+    {
+      "name": "input rejection requires rejection-confirmed verification",
+      "passed": true
+    },
+    {
+      "name": "failed rejection verification has its own outcome",
+      "passed": true
+    },
+    {
+      "name": "contradictory judgment and verification kinds are explicit",
+      "passed": true
+    },
+    {
+      "name": "rejection reason and evidence mismatch cannot be promoted to trusted rejection",
+      "passed": true
+    },
+    {
+      "name": "authority returns the contract and freezes its public surface",
+      "passed": true
+    },
+    {
+      "name": "scanner has not yet been falsely claimed as migrated",
+      "passed": false
+    },
+    {
+      "name": "runtime executor remains unchanged and last in migration sequence",
+      "passed": true
+    }
+  ],
+  "failures": [
+    "scanner has not yet been falsely claimed as migrated"
+  ],
+  "scope": "static structural audit; behavioral matrix was separately exercised against the transpiled authority boundary; semantic law verification remains delegated to the injected kernel"
+}

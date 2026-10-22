@@ -1,0 +1,78 @@
+{
+  "phase": 2148,
+  "title": "Request Binding Source Authority, Interface First",
+  "passed": 13,
+  "total": 16,
+  "checks": [
+    {
+      "name": "request evidence carries complete parameter inventory",
+      "passed": true
+    },
+    {
+      "name": "request parameter evidence separates request origins from other parameters",
+      "passed": true
+    },
+    {
+      "name": "upstream authority owns request-origin selection",
+      "passed": true
+    },
+    {
+      "name": "interface declares the semantic rule precedence executed by the authority",
+      "passed": true
+    },
+    {
+      "name": "upstream authority owns FormRequest and framework Request classification",
+      "passed": true
+    },
+    {
+      "name": "unsupported and malformed type outcomes remain unresolved",
+      "passed": true
+    },
+    {
+      "name": "wiring adapts source parameters instead of reading legacy request contract",
+      "passed": false
+    },
+    {
+      "name": "legacy schema request compatibility remains explicitly open",
+      "passed": false
+    },
+    {
+      "name": "action semantic contract version 18 aligns with production composition",
+      "passed": false
+    },
+    {
+      "name": "new evidence types are publicly exported",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/laravelControllerRequestSemanticBindingInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/laravelControllerRequestSemanticBindingAuthority.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/index.ts",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "No full build",
+    "No full typecheck",
+    "No Vitest run",
+    "Static contract audit and syntax-only transpilation do not establish runtime correctness"
+  ]
+}

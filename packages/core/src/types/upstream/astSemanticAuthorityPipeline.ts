@@ -7,11 +7,13 @@
  * projection.  Stage interfaces remain the transport representation; this
  * interface is the semantic authority boundary.
  */
-import type { AstSemanticPipeline, AstSemanticStage } from './astSemanticStageInterface';
-import type { AstSemanticStageInterface } from './astSemanticStageInterfaceAlgebra';
-import { astSemanticStageInterfaceAt } from './astSemanticStageInterfaceAlgebra';
-import { relationFirstOption, relationOptionFold } from '../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../semantic/foundation/semanticRelations';
+import type { AstSemanticPipeline, AstSemanticStage, AstSemanticStageFact } from './astSemanticStageInterface';
+import { astSemanticInterface } from './astSemanticInterface';
+import type { AstSemanticInterface } from './astSemanticInterface';
+import { astSemanticInterfaceFacts, astSemanticInterfaceProofs, astSemanticPipelineInterfaces, type AstSemanticStageInterface } from './astSemanticStageInterfaceAlgebra';
+import { astSemanticStageOrder, stageGraphContains } from './astSemanticStageContract';
+import { relationFirstOption, relationFold, relationOptionFold, relationRefine } from '../../semantic/relations/relationalSequence';
+import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
 import type { AstSemanticStageTransition } from './astSemanticStageTransition';
 import { astSemanticStageTransition } from './astSemanticStageTransition';
 
@@ -31,26 +33,47 @@ export type AstSemanticAuthorityPipeline = Readonly<{
   readonly lowering: SemanticTypeLoweringStageInterface;
   readonly target: TargetProjectionSemanticStageInterface;
   readonly transitions: readonly AstSemanticStageTransition[];
+  /** Ordered semantic facts projected from each closed stage interface. */
+  readonly facts: readonly AstSemanticStageFact[];
   readonly stageOrder: readonly AstSemanticStage[];
   readonly authority: 'ast_semantic_judgment';
+  /**
+   * Canonical semantic authority, not just strategy metadata. All closure,
+   * proof verification, and projection operations cross this existing contract.
+   * Consumers must not reconstruct a parallel reasoning executor.
+   */
+  readonly semanticAuthority: AstSemanticInterface;
   readonly closure: 'least_fixed_point';
   readonly rewriteEngine: 'semantic_rewrite_engine';
   readonly closed: true;
 }>;
 
-const requireStage = (pipeline: AstSemanticPipeline, stage: AstSemanticStage): AstSemanticStageInterface =>
-  relationOptionFold(
-    astSemanticStageInterfaceAt(pipeline, stage),
-    () => { throw Error(`Missing AST semantic stage '${stage}'.`); },
-    value => value,
+const requireStage = <Stage extends AstSemanticStage>(
+  interfaces: readonly AstSemanticStageInterface[],
+  stage: Stage,
+): AstSemanticStageInterface & Readonly<{ readonly stage: Stage }> =>
+  relationResolve(
+    stageGraphContains(stage),
+    () => { throw Error(`AST semantic stage '${stage}' is not declared by the upstream stage graph.`); },
+    () => relationOptionFold(
+      relationFirstOption(interfaces, candidate => relationEqual(candidate.stage, stage)),
+      () => { throw Error(`Missing AST semantic stage '${stage}'.`); },
+      value => relationOptionFold(
+        relationRefine(value, (candidate): candidate is AstSemanticStageInterface & Readonly<{ readonly stage: Stage }> => relationEqual(candidate.stage, stage)),
+        () => { throw Error(`AST semantic stage '${stage}' resolved to an incompatible stage interface.`); },
+        narrowed => narrowed,
+      ),
+    ),
   );
+
+
 
 
 const requireTransition = (
   from: AstSemanticStageInterface,
   to: AstSemanticStageInterface,
 ): AstSemanticStageTransition => relationOptionFold(
-  relationFirstOption(from.proofs, () => true),
+  relationFirstOption(astSemanticInterfaceProofs(from), () => true),
   () => { throw Error(`Missing AST semantic proof from '${from.stage}'.`); },
   proof => relationOptionFold(
     astSemanticStageTransition(from.stage, to.stage, from.judgment.contract, proof),
@@ -58,6 +81,13 @@ const requireTransition = (
     value => value,
   ),
 );
+
+const pipelineFacts = (interfaces: readonly AstSemanticStageInterface[]): readonly AstSemanticStageFact[] =>
+  Object.freeze(relationFold(
+    interfaces,
+    [] as readonly AstSemanticStageFact[],
+    (facts, stageInterface) => [...facts, ...astSemanticInterfaceFacts(stageInterface)],
+  ));
 
 const pipelineTransitions = (
   scanner: ScannerSemanticStageInterface,
@@ -75,35 +105,32 @@ const pipelineTransitions = (
 ]);
 export const astSemanticAuthorityPipeline = (
   pipeline: AstSemanticPipeline,
-): AstSemanticAuthorityPipeline => Object.freeze({
-  kind: 'ast_semantic_authority_pipeline',
-  scanner: requireStage(pipeline, 'scanner_evidence'),
-  mapping: requireStage(pipeline, 'upstream_mapping'),
-  resolver: requireStage(pipeline, 'resolver_graph'),
-  analysis: requireStage(pipeline, 'analysis'),
-  lowering: requireStage(pipeline, 'semantic_type_lowering'),
-  target: requireStage(pipeline, 'target_projection'),
-  transitions: pipelineTransitions(
-    requireStage(pipeline, 'scanner_evidence'),
-    requireStage(pipeline, 'upstream_mapping'),
-    requireStage(pipeline, 'resolver_graph'),
-    requireStage(pipeline, 'analysis'),
-    requireStage(pipeline, 'semantic_type_lowering'),
-    requireStage(pipeline, 'target_projection'),
-  ),
-  stageOrder: Object.freeze([
-    'scanner_evidence',
-    'upstream_mapping',
-    'resolver_graph',
-    'analysis',
-    'semantic_type_lowering',
-    'target_projection',
-  ]),
-  authority: 'ast_semantic_judgment',
-  closure: 'least_fixed_point',
-  rewriteEngine: 'semantic_rewrite_engine',
-  closed: true,
-});
+): AstSemanticAuthorityPipeline => {
+  const interfaces = astSemanticPipelineInterfaces(pipeline);
+  const scanner = requireStage(interfaces, 'scanner_evidence');
+  const mapping = requireStage(interfaces, 'upstream_mapping');
+  const resolver = requireStage(interfaces, 'resolver_graph');
+  const analysis = requireStage(interfaces, 'analysis');
+  const lowering = requireStage(interfaces, 'semantic_type_lowering');
+  const target = requireStage(interfaces, 'target_projection');
+  return Object.freeze({
+    kind: 'ast_semantic_authority_pipeline',
+    scanner,
+    mapping,
+    resolver,
+    analysis,
+    lowering,
+    target,
+    transitions: pipelineTransitions(scanner, mapping, resolver, analysis, lowering, target),
+    facts: pipelineFacts(interfaces),
+    stageOrder: astSemanticStageOrder(),
+    authority: 'ast_semantic_judgment',
+    semanticAuthority: astSemanticInterface,
+    closure: 'least_fixed_point',
+    rewriteEngine: 'semantic_rewrite_engine',
+    closed: true,
+  });
+};
 
 export const astSemanticAuthorityStage = (
   pipeline: AstSemanticAuthorityPipeline,
@@ -134,15 +161,10 @@ export const createAstSemanticAuthorityPipeline = (
   lowering,
   target,
   transitions: pipelineTransitions(scanner, mapping, resolver, analysis, lowering, target),
-  stageOrder: Object.freeze([
-    'scanner_evidence',
-    'upstream_mapping',
-    'resolver_graph',
-    'analysis',
-    'semantic_type_lowering',
-    'target_projection',
-  ]),
+  facts: pipelineFacts([scanner, mapping, resolver, analysis, lowering, target]),
+  stageOrder: astSemanticStageOrder(),
   authority: 'ast_semantic_judgment',
+  semanticAuthority: astSemanticInterface,
   closure: 'least_fixed_point',
   rewriteEngine: 'semantic_rewrite_engine',
   closed: true,

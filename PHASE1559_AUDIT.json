@@ -1,0 +1,48 @@
+{
+  "phase": 1559,
+  "audit": "request-type-interface-first",
+  "passed": 8,
+  "total": 10,
+  "checks": [
+    {
+      "name": "upstream authority contract declared",
+      "passed": true
+    },
+    {
+      "name": "closed judgment covers derived/incomplete/conflict/invalid_input",
+      "passed": true
+    },
+    {
+      "name": "typed source evidence spans route/resource/request",
+      "passed": true
+    },
+    {
+      "name": "explicit request ambiguity policy",
+      "passed": false
+    },
+    {
+      "name": "explicit missing evidence closure policy",
+      "passed": true
+    },
+    {
+      "name": "action and response reconciliation policies explicit",
+      "passed": true
+    },
+    {
+      "name": "source inventory and route coverage proof declared",
+      "passed": false
+    },
+    {
+      "name": "proof verification contract declared",
+      "passed": true
+    },
+    {
+      "name": "canonical contract exported from upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "runtime executor not modified in this interface-first phase",
+      "passed": true
+    }
+  ]
+}

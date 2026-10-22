@@ -1,6 +1,7 @@
 import type { ActionName, MiddlewareName } from './names';
 import type { Presence } from './presence';
 import type { StringValue } from './valueObjects';
+import type { ControllerPolicyActionScopeBlockReason } from './controller';
 
 export interface RouteMiddlewareReference {
   readonly name: MiddlewareName;
@@ -33,7 +34,9 @@ export type RouteMiddlewareSource =
 export type RouteMiddlewareScope =
   | { readonly kind: 'all' }
   | { readonly kind: 'only'; readonly actions: readonly ActionName[] }
-  | { readonly kind: 'except'; readonly actions: readonly ActionName[] };
+  | { readonly kind: 'except'; readonly actions: readonly ActionName[] }
+  | { readonly kind: 'only_except'; readonly only: readonly ActionName[]; readonly except: readonly ActionName[] }
+  | { readonly kind: 'blocked'; readonly reason: ControllerPolicyActionScopeBlockReason };
 
 export interface RouteMiddlewareContract {
   readonly middleware: RouteMiddlewareReference;
@@ -61,8 +64,13 @@ export interface RouteMiddlewareSemanticInput {
   readonly action: Presence<ActionName>;
 }
 
+export type RouteMiddlewareFlowJudgment =
+  | Readonly<{ readonly kind: 'complete' }>
+  | Readonly<{ readonly kind: 'blocked'; readonly reasons: readonly ControllerPolicyActionScopeBlockReason[] }>;
+
 export interface RouteMiddlewareFlow {
   readonly kind: 'route_middleware_flow';
+  readonly judgment: RouteMiddlewareFlowJudgment;
   /** Declared middleware facts, not execution order. */
   readonly middleware: readonly RouteMiddlewareContract[];
   /** Semantic exclusions produced by upstream route/controller analysis. */

@@ -1,0 +1,73 @@
+{
+  "phase": 1547,
+  "title": "Controller variable semantic interface first",
+  "passed": 6,
+  "total": 13,
+  "checks": [
+    {
+      "name": "upstream-contract-defines-typed-evidence-request",
+      "passed": true,
+      "detail": "Controller semantic resolution has a parser-neutral evidence/request contract."
+    },
+    {
+      "name": "upstream-contract-defines-authority-and-runtime-interfaces",
+      "passed": true,
+      "detail": "Authority and runtime executor responsibilities have separate interfaces."
+    },
+    {
+      "name": "authority-uses-existing-decision-algebra",
+      "passed": false,
+      "detail": "Controller rules are executed through the existing semantic decision algebra, not a second solver."
+    },
+    {
+      "name": "authority-owns-db-table-rule",
+      "passed": false,
+      "detail": "DB::table interpretation moved out of scanner into the upstream authority contract implementation."
+    },
+    {
+      "name": "executor-depends-on-authority-interface",
+      "passed": true,
+      "detail": "Runtime executor composes an authority through its interface."
+    },
+    {
+      "name": "scanner-analyzer-depends-on-runtime-interface",
+      "passed": false,
+      "detail": "Analyzer receives runtime behavior through the interface."
+    },
+    {
+      "name": "scanner-no-longer-solves-semantic-candidates",
+      "passed": true,
+      "detail": "Scanner no longer owns candidate solving or language-specific semantic rule selection."
+    },
+    {
+      "name": "scanner-adapts-ast-through-dedicated-evidence-adapter",
+      "passed": false,
+      "detail": "A dedicated adapter translates AST shape into typed evidence; semantic interpretation remains upstream."
+    },
+    {
+      "name": "single-composition-root-binds-concrete-authority",
+      "passed": false,
+      "detail": "Concrete authority is bound only at the scanner wiring composition root."
+    },
+    {
+      "name": "production-parser-uses-composition-root",
+      "passed": true,
+      "detail": "Production controller parser reaches the analyzer through the runtime binding."
+    },
+    {
+      "name": "semantic-model-retains-full-judgment",
+      "passed": false,
+      "detail": "Upstream controller definition preserves rule/evidence/closure judgment beside legacy projection."
+    },
+    {
+      "name": "upstream-index-exports-contract-authority-executor",
+      "passed": true,
+      "detail": "Contract, authority, and runtime executor are discoverable from upstream exports."
+    },
+    {
+      "name": "evidence-adapter-is-wiring-only",
+      "passed": false,
+      "detail": "Evidence extraction stays in the scanner adapter and is consumed by analyzer wiring."
+    }
+  ]
+}

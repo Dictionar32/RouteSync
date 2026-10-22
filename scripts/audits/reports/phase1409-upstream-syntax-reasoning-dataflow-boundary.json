@@ -1,0 +1,65 @@
+{
+  "phase": 1409,
+  "name": "upstream-syntax-reasoning-dataflow-boundary",
+  "status": "passed_with_residuals",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "name": "syntax parsing has its own closed upstream contract",
+      "passed": true
+    },
+    {
+      "name": "syntax parser owns lexical tokenization and method parsing",
+      "passed": true
+    },
+    {
+      "name": "syntax parser returns typed syntax evidence without semantic capability classification",
+      "passed": true
+    },
+    {
+      "name": "semantic producer consumes parsed syntax rather than lexing or parsing methods itself",
+      "passed": true
+    },
+    {
+      "name": "semantic producer retains semantic origin and expression/assignment/property production",
+      "passed": true
+    },
+    {
+      "name": "syntax contract is exported from upstream type surface",
+      "passed": true
+    },
+    {
+      "name": "AST dataflow aliases are owned by the canonical semantic interface",
+      "passed": true
+    },
+    {
+      "name": "legacy AST dataflow path is compatibility-only, not a production import",
+      "passed": true
+    },
+    {
+      "name": "runtime dataflow projection does not invoke semantic reasoning",
+      "passed": true
+    },
+    {
+      "name": "reachability closure remains owned by upstream authority",
+      "passed": true
+    },
+    {
+      "name": "phase 1408 audit is wired into package scripts without changing package identity",
+      "passed": true
+    },
+    {
+      "name": "phase 1409 audit is wired into package scripts",
+      "passed": true
+    }
+  ],
+  "residuals": [
+    "Source syntax parsing is now separated from semantic product construction, but the syntax parser still uses the existing PHP lexer and method/property parser implementations rather than a full language-neutral parser port.",
+    "The semantic producer still assigns semantic origin from source-family and owner context; that reasoning should eventually be represented as a source-family capability/judgment upstream of AST projection.",
+    "Other Laravel source families are still produced through their existing scanner paths and have not all been migrated onto the same evidence/parse/semantic contract pipeline.",
+    "The parser runtime smoke test is blocked during module initialization by a pre-existing ReferenceError: relationRuleEntries is not defined in packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts; trace and repair that relation catalog/import boundary before claiming runtime execution.",
+    "Full TypeScript build and integration tests require the repository dependency toolchain, which must be verified in the target workspace."
+  ],
+  "flow": "Laravel source -> SourceAstEvidenceAcquisitionInterface -> SourceAstSyntaxParserInterface -> syntax AST -> semantic producer/reasoning -> closed AST/ADT and dataflow judgment -> wiring -> runtime executor -> manifest/graph/IR/CLI/SDK/React"
+}

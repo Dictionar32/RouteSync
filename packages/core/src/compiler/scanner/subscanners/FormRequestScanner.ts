@@ -1,4 +1,4 @@
-import { readSourceText, collectPhpFiles } from './scannerUtils';
+import { sourceFileAcquisition } from '../sourceFiles';
 /**
  * FormRequestScanner.ts
  *
@@ -12,14 +12,16 @@ import type { FormRequestSource } from "../../../types/domain/request";
 import type { RequestAst } from "../../../types/upstream/ast";
 import { createRequestName } from "../../../types/upstream/names";
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
+import type { LaravelFormRequestScanArtifact } from "../../../types/upstream/laravelFormRequestScannerInterface";
 import type { RequestAsts, Sequence } from "../../../types/upstream/collections";
 import type { SourceSpan } from "../../../types/upstream/provenance";
 import type { NumberValue } from "../../../types/upstream/valueObjects";
-import { requestProducer, type RequestProducerResult } from "./requestProducer";
+import { requestProducer } from "./requestProducer";
+import type { RequestProducerResult } from "../../../types/upstream/requestProducerInterface";
 import { TypeInterner } from "../../types/TypeInterner";
 import { LaravelSourceLexer } from "../LaravelSourceLexer";
 import { parsePhpMethodOrThrow } from "../lexer/phpMethodParser";
-import { parseModelPropertyAsts } from "./model/modelPropertyAstParser";
+import { sourceAstSyntaxParser } from "../../semantic/sourceAstSyntaxParser";
 import { SemanticValueFactory } from "../../../types/domain/semanticValues";
 import { readFileSync } from "node:fs";
 import { partitionValidationRules } from "./form-request";
@@ -30,8 +32,8 @@ import {
     relationOptionFold,
     relationProject,
     relationResolve,
-} from "../../../semantic/foundation/relationalSequence";
-import { relationAll, relationEqual } from "../../../semantic/foundation/semanticRelations";
+} from "../../../semantic/relations/relationalSequence";
+import { relationAll, relationEqual } from "../../../semantic/relations/semanticRelations";
 
 export class FormRequestScanner {
     private static async scanSources(
@@ -41,12 +43,12 @@ export class FormRequestScanner {
     ): Promise<readonly FormRequestSource[]> {
         const sourceRoot = sourceProject.root.value.value;
         const reqDir = path.join(sourceRoot, 'app', 'Http', 'Requests');
-        const files = await collectPhpFiles(reqDir);
+        const files = await sourceFileAcquisition.collectPhpFiles(reqDir);
         const sources = await relationAsyncFold(
             files,
             [] as readonly FormRequestSource[],
             async (accumulator, fullPath) => {
-                const source = await readSourceText(fullPath);
+                const source = await sourceFileAcquisition.readSourceText(fullPath);
                 const tokens = LaravelSourceLexer.tokenize(source);
                 const reqName = path.basename(fullPath, '.php');
                 const rulesIndex = resolveRulesArrayIndex(tokens);
@@ -83,11 +85,11 @@ export class FormRequestScanner {
     private static async scanOnce(
         sourceProject: SourceProjectIdentity,
         interner: TypeInterner
-    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[]; readonly definitions: readonly import('../../../types/upstream/request').RequestDefinition[] }> {
+    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly artifacts: readonly LaravelFormRequestScanArtifact[]; readonly asts: readonly RequestAst[]; readonly definitions: readonly import('../../../types/upstream/request').RequestDefinition[] }> {
         const sources = await FormRequestScanner.scanSources(sourceProject, interner, false);
         const results = await relationAsyncFold(
             sources,
-            [] as readonly RequestProducerResult[],
+            [] as readonly Readonly<{ readonly source: FormRequestSource; readonly result: RequestProducerResult }>[],
             async (accumulator, source) => {
                 const sourceName = source.identity.requestClass.value.value;
                 const sourceText = readSourceForProducer(source.sourceFile.value.value);
@@ -111,17 +113,28 @@ export class FormRequestScanner {
                                 rules: rulesEntries,
                                 authorize,
                                 methods,
-                                properties: parseModelPropertyAsts(tokens),
-                                sourceFile: source.sourceFile.value.value,
+                                properties: sourceAstSyntaxParser.parseProperties(tokens),
+                                sourceFile: source.sourceFile,
                                 interner
                             });
-                            return [...accumulator, result];
+                            return [...accumulator, Object.freeze({ source, result })];
                         },
                     ),
                 );
             },
         );
-        return { sources, asts: Object.freeze(relationProject(results, result => result.ast)), definitions: Object.freeze(relationProject(results, result => result.definition)) };
+        const artifacts: readonly LaravelFormRequestScanArtifact[] = Object.freeze(relationProject(results, entry => Object.freeze({
+            kind: 'laravel_form_request_scan_artifact',
+            source: entry.source,
+            ast: entry.result.ast,
+            definition: entry.result.definition,
+        } satisfies LaravelFormRequestScanArtifact)));
+        return {
+            sources,
+            artifacts,
+            asts: Object.freeze(relationProject(artifacts, artifact => artifact.ast)),
+            definitions: Object.freeze(relationProject(artifacts, artifact => artifact.definition)),
+        };
     }
 
     public static async scan(
@@ -142,7 +155,7 @@ export class FormRequestScanner {
     public static async scanCanonicalBundle(
         sourceProject: SourceProjectIdentity,
         interner: TypeInterner = TypeInterner.create()
-    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly asts: readonly RequestAst[]; readonly definitions: readonly import('../../../types/upstream/request').RequestDefinition[] }> {
+    ): Promise<{ readonly sources: readonly FormRequestSource[]; readonly artifacts: readonly LaravelFormRequestScanArtifact[]; readonly asts: readonly RequestAst[]; readonly definitions: readonly import('../../../types/upstream/request').RequestDefinition[] }> {
         return FormRequestScanner.scanOnce(sourceProject, interner);
     }
 

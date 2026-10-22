@@ -1,0 +1,22 @@
+{
+  "phase": 2142,
+  "title": "Action Judgment Coverage Truthfulness — Interface First",
+  "status": "focused-audit-passed",
+  "contractVersion": 12,
+  "checks": {
+    "phase2142": "9/9",
+    "syntaxOnlyTranspile": "3/3"
+  },
+  "notRun": ["full build", "full typecheck", "Vitest"],
+  "remainingDebt": [
+    "legacy scanControllerAction and resolveControllerActionContract derivation remains active",
+    "body source AST remains in the compiler projection",
+    "resource-binding aggregation still traverses the legacy action contract",
+    "request binding still uses a compatibility adapter"
+  ],
+  "constraints": [
+    "no relation/foundation layer",
+    "no new subscanner layer",
+    "no runtime function relocation presented as semantic migration"
+  ]
+}

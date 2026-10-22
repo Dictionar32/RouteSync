@@ -15,6 +15,7 @@ import type { HttpErrorResponse } from './routeErrorVocabulary';
 import type { CrudRole, RouteHookKind, RouteActionKind, RequestContentType, RouteExecutionSignature, RoutePayloadLocation, RoutePayloadLocationDecision } from './routeExecutionVocabulary';
 import type { RouteAst } from './ast';
 import type { SemanticCapabilityContract, SemanticCapabilityContractInterface, SemanticCapabilityEvidence } from './semanticCapability';
+import type { LaravelRouteAuthorizationSemanticJudgment } from './routeAuthorizationSemanticJudgmentInterface';
 export interface RouteCacheInvalidation {
   readonly targets: Sequence<InvalidationTarget>;
   readonly queryKeyExpressions: Sequence<StringValue>;
@@ -73,7 +74,7 @@ export type RouteTarget =
   | { readonly kind: 'redirect'; readonly target: import('./expression').Expression; readonly status: HttpStatusCode }
   | { readonly kind: 'view'; readonly view: import('./expression').Expression; readonly data: RouteViewData }
   | { readonly kind: 'fallback'; readonly action: ActionName };
-export type RouteMethod = { readonly kind: 'get' } | { readonly kind: 'post' } | { readonly kind: 'put' } | { readonly kind: 'patch' } | { readonly kind: 'delete' } | { readonly kind: 'options' } | { readonly kind: 'head' } | { readonly kind: 'any' } | { readonly kind: 'match'; readonly methods: RouteMethods };
+export type RouteMethod = { readonly kind: 'get' } | { readonly kind: 'post' } | { readonly kind: 'put' } | { readonly kind: 'patch' } | { readonly kind: 'delete' } | { readonly kind: 'options' } | { readonly kind: 'head' } | { readonly kind: 'query' } | { readonly kind: 'any' } | { readonly kind: 'match'; readonly methods: RouteMethods };
 export type RouteMiddleware =
   | { readonly kind: 'direct'; readonly name: MiddlewareName }
   | { readonly kind: 'inherited'; readonly name: MiddlewareName; readonly group: RouteMiddlewareGroupReference };
@@ -275,6 +276,8 @@ export type RouteTransportContract = {
  * implementations must not source it from the legacy descriptor tree.
  */
 export interface RouteBoundaryContract {
+  /** Preserve the scanner's closed source judgment; security/capability projections must not recreate it from auth booleans. */
+  readonly authorization: LaravelRouteAuthorizationSemanticJudgment;
   readonly identity: import('../route').RouteIdentityContract;
   readonly binding: import('../route').RouteBindingContract;
   readonly capability: import('../route').RouteCapabilityContract;
@@ -296,6 +299,25 @@ export interface RouteProducerInput {
   readonly defaults: RouteDefaults;
   readonly transport: RouteTransportContract;
   readonly provenance: RouteProvenance;
+}
+
+/**
+ * Closed input contract for composing producer-ready route semantics.
+ * This operation is distinct from RouteProducer: it must consume the already
+ * judged boundary/evidence and return a complete producer input; AST creation
+ * remains exclusively owned by RouteProducer.produce.
+ */
+export interface RouteProducerInputCompositionInput {
+  readonly boundary: RouteBoundaryContract;
+  readonly declaration: import('./routeDeclarationEvidence').RouteDeclarationEvidence;
+  readonly source: SourceSpan;
+  readonly methodJudgment: import('./laravelRouteDeclarationMethodJudgment').LaravelRouteDeclarationMethodJudgment;
+}
+
+export interface RouteProducerInputComposition {
+  readonly kind: 'route_producer_input_composition';
+  readonly closed: true;
+  readonly compose: (input: RouteProducerInputCompositionInput) => RouteProducerInput;
 }
 
 export interface RouteProducer {

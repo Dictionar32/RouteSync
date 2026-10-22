@@ -1,0 +1,27 @@
+{
+  "phase": 2334,
+  "title": "Canonical Authorization Owns Security Classification",
+  "scope": [
+    "Evolve the existing routeSecurityAuthority implementation",
+    "Make LaravelRouteAuthorizationSemanticJudgment the sole source of authentication classification",
+    "Preserve the existing route-security contract and ADT; add no parallel V2 interface"
+  ],
+  "changed": [
+    "packages/core/src/types/upstream/routeSecurityAuthority.ts",
+    "packages/core/src/types/upstream/__tests__/route-security-authority.phase2333.test.ts",
+    "packages/core/src/types/upstream/__tests__/route-security-authority.phase2329.test.ts",
+    "packages/core/src/types/upstream/docs/PHASE2334-CANONICAL-AUTHORIZATION-SECURITY-CLASSIFICATION.md",
+    "scripts/audits/audit-phase2334-canonical-authorization-security-classification.cjs"
+  ],
+  "staticAudit": { "passed": 7, "total": 7 },
+  "zipIntegrity": "passed",
+  "vitest": "not run; dependencies are not installed in supplied archive",
+  "typescriptBuild": "not run",
+  "cliIntegration": "not run",
+  "npmRunBuild": "not run",
+  "remaining": [
+    "Connect existing EffectiveControllerActionPolicy and RouteMiddlewareFlow to the canonical Laravel route scan path per concrete action.",
+    "Trace and retire remaining semantic/relations imports from the relevant production path without relocating the same logic.",
+    "Audit downstream auth projections and manifest propagation end-to-end."
+  ]
+}

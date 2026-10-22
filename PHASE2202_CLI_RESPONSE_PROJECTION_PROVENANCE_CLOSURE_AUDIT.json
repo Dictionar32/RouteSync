@@ -1,0 +1,34 @@
+{
+  "phase": 2202,
+  "title": "CLI Response Projection Provenance Closure",
+  "status": "implemented_with_validation_limits",
+  "root_cause": "Phase 2201 enriched method response products with method-owned DTO contract judgments, but the response scanner discarded the resulting AST projection judgments and the CLI-facing SourceAsts aggregate retained only projected definitions and ASTs.",
+  "changes": [
+    "ResponseScannerBundle retains exact LaravelControllerMethodResponseAstProjectionJudgment values.",
+    "The response scanner derives ResponseDefinition and ResponseAst values from the same retained projection judgments.",
+    "SourceAsts now preserves responseProjectionJudgments from the response bundle.",
+    "LaravelSourceAstPipelineInterface, LaravelSourceAstScannerInterface, and both wired implementations increased from contract version 3 to 4.",
+    "Added structural tests for projection retention and CLI-facing source-AST forwarding."
+  ],
+  "validation": {
+    "typescript_syntax_transpilation": "7/7 changed TypeScript files passed transpileModule syntax diagnostics",
+    "structural_assertions": "7/7 passed",
+    "zip_integrity": "passed after archive creation",
+    "full_typecheck": "not_run",
+    "vitest": "not_run",
+    "package_build": "not_run"
+  },
+  "architecture_constraints": {
+    "new_relation_layer": false,
+    "new_foundation_layer": false,
+    "replacement_subscanner_layer": false,
+    "parallel_semantic_authority_added": false,
+    "runtime_executor_reclassifies_semantics": false,
+    "response_projection_judgment_discarded_after_ast_projection": false
+  },
+  "remaining_gaps": [
+    "The existing responseScanner remains under the legacy subscanners directory; its acquisition responsibilities still need an interface-first migration before the directory can be retired.",
+    "DTO contract judgments are preserved as provenance but are not yet an input to the canonical response output-type judgment; any such semantic contribution requires an upstream contract-level proof.",
+    "Full TypeScript typecheck, Vitest, and package build have not been executed."
+  ]
+}

@@ -10,7 +10,7 @@
 /**
  * Options contract for ConversionResult constructor
  */
-import { relationResolve } from '../../../semantic/foundation/relationalSequence';
+import { relationResolve } from '../../../semantic/relations/relationalSequence';
 
 export interface ConversionResultOptions<T> {
     readonly fields?: readonly T[];

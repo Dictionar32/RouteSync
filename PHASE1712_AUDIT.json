@@ -1,0 +1,35 @@
+{
+  "phase": 1712,
+  "name": "static-authority-validation-interface",
+  "scope": "interface-only",
+  "audit": {
+    "checks": 19,
+    "passed": 19,
+    "failed": 0,
+    "status": "PASS"
+  },
+  "regressionAudits": [
+    { "phase": 1703, "checks": 13, "passed": 13, "status": "PASS" },
+    { "phase": 1704, "checks": 12, "passed": 12, "status": "PASS" },
+    { "phase": 1705, "checks": 21, "passed": 21, "status": "PASS" },
+    { "phase": 1706, "checks": 10, "passed": 10, "status": "PASS" },
+    { "phase": 1707, "checks": 14, "passed": 14, "status": "PASS" },
+    { "phase": 1708, "checks": 15, "passed": 15, "status": "PASS" },
+    { "phase": 1709, "checks": 20, "passed": 20, "status": "PASS" },
+    { "phase": 1710, "checks": 20, "passed": 20, "status": "PASS" },
+    { "phase": 1711, "checks": 15, "passed": 15, "status": "PASS" }
+  ],
+  "totalChecksAcrossPhase1703Through1712": 159,
+  "build": {
+    "status": "NOT_VERIFIED",
+    "reason": "tsdown executable unavailable"
+  },
+  "typecheck": {
+    "status": "FAILED_WITH_PREEXISTING_CODEBASE_DIAGNOSTICS",
+    "changedInterfaceFilesDirectDiagnostics": 0
+  },
+  "runtimeStaticInvocationImplemented": false,
+  "productionWiringMigrated": false,
+  "semanticFoundationDependencyAdded": false,
+  "anyAddedToNewContractSurface": false
+}

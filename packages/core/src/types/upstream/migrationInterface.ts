@@ -12,3 +12,11 @@ export interface MigrationInterface {
   readonly source: SourceSpan;
   readonly closed: true;
 }
+
+/** Construct the canonical closed migration contract from scanned migration meaning. */
+export const migrationInterfaceFromDefinition = (definition: MigrationDefinition): MigrationInterface => Object.freeze({
+  kind: 'migration_interface',
+  definition,
+  source: definition.source,
+  closed: true,
+});

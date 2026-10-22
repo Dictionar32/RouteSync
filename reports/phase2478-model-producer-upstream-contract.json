@@ -1,0 +1,19 @@
+{
+  "phase": 2478,
+  "name": "model-producer-upstream-contract",
+  "scope": "Laravel model scanner producer ownership",
+  "checks": {
+    "phase2478Audit": "8/8 passed",
+    "phase2477Regression": "12/12 passed",
+    "phase2476Regression": "11/11 passed",
+    "phase2475Regression": "8/8 passed",
+    "typescriptSyntaxTranspilation": "5/5 passed"
+  },
+  "notRun": ["full TypeScript typecheck", "package build", "Vitest", "CLI end-to-end"],
+  "knownGaps": [
+    "modelProducerInterface imports ModelDeclarationAst and PhpClassPropertyAst from lexer-owned declarations",
+    "modelProducer implementation still delegates to subscanners/model/modelParser and modelCanonical",
+    "lexer and remaining subscanners are not retired",
+    "direct-import audits do not establish transitive relation/foundation independence"
+  ]
+}

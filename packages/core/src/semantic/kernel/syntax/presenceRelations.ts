@@ -1,1 +1,1 @@
-export * from '../../foundation/presenceRelations';
+export * from '../../relations/presenceRelations';

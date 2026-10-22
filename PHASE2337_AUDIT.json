@@ -1,0 +1,32 @@
+{
+  "phase": 2337,
+  "title": "Inherited Controller Policy Scope Closure",
+  "status": "static-audit-passed",
+  "changes": [
+    "Restrict inherited controller policy relations to class scope in the existing effective policy resolver",
+    "Preserve the resolved child action's own method-scoped policy",
+    "Add regression coverage preventing parent method-only middleware leakage into a child action",
+    "Advance the existing Laravel route scanner contract version to 13"
+  ],
+  "verification": {
+    "staticAudit": "11/11 passed",
+    "auditScriptSyntax": "passed",
+    "zipIntegrity": "passed",
+    "vitest": "not-run",
+    "typescriptTypecheck": "not-run",
+    "cliEndToEnd": "not-run",
+    "npmRunBuild": "not-run"
+  },
+  "constraints": {
+    "newSemanticFoundationDependency": false,
+    "newSemanticRelationsDependencyInResolver": false,
+    "newParallelV2Interface": false,
+    "legacySubscannerRetirementClaimed": false
+  },
+  "remaining": [
+    "Verify policy catalog completeness for inherited controllers without publishable actions",
+    "Trace closed policy to manifest and security projection",
+    "Migrate remaining semantic/relations imports in the broader scanner path to their proper upstream owners",
+    "Trace legacy route subscanner callers and exports before retirement"
+  ]
+}

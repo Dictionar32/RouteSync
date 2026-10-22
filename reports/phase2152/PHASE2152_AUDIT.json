@@ -1,0 +1,18 @@
+{
+  "phase": 2152,
+  "name": "Canonical Action Judgment to Route Boundary Trace",
+  "kind": "source_trace_audit",
+  "result": "PASS_WITH_OPEN_SEMANTIC_GAP",
+  "checks": {
+    "passed": 9,
+    "total": 9
+  },
+  "openObligations": [
+    "typed_request_binding_projection_loss"
+  ],
+  "fullBuildRun": false,
+  "typecheckRun": false,
+  "vitestRun": false,
+  "newRelationFoundationAuthority": false,
+  "newSubscanner": false
+}

@@ -1,0 +1,65 @@
+{
+  "phase": 1719,
+  "name": "static-authority-derivation-handoff-contract",
+  "total": 14,
+  "passed": 12,
+  "failed": 2,
+  "checks": [
+    {
+      "name": "authority validation input carries a source-bound algebra-derived candidate",
+      "passed": true
+    },
+    {
+      "name": "authority input contains only the source-bound derivation envelope",
+      "passed": true
+    },
+    {
+      "name": "authority contract explicitly defines the algebra-to-authority handoff",
+      "passed": true
+    },
+    {
+      "name": "authority validation contract and receipt synchronize at version 7",
+      "passed": true
+    },
+    {
+      "name": "authority still validates the original candidate without re-deriving or repairing semantics",
+      "passed": true
+    },
+    {
+      "name": "static algebra result has a derived branch carrying the aggregate candidate judgment",
+      "passed": true
+    },
+    {
+      "name": "model and coverage contracts synchronize at version 16",
+      "passed": false
+    },
+    {
+      "name": "pipeline contract synchronizes at version 32 and retains authority validation",
+      "passed": false
+    },
+    {
+      "name": "authority input type remains publicly exported",
+      "passed": true
+    },
+    {
+      "name": "prior authority audit is updated to assert the derivation handoff",
+      "passed": true
+    },
+    {
+      "name": "prior algebra-stage audit is preserved in the regression chain",
+      "passed": true
+    },
+    {
+      "name": "Laravel scanner remains a source-collection/delegation boundary",
+      "passed": true
+    },
+    {
+      "name": "authority handoff does not introduce semantic/foundation dependencies",
+      "passed": true
+    },
+    {
+      "name": "no any escape hatch was added to the authority/algebra contract section",
+      "passed": true
+    }
+  ]
+}

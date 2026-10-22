@@ -20,8 +20,8 @@ import type { PhpStatement } from "../lexer/phpAstTypes";
 import type { PhpMethodAst } from "../lexer/phpMethodAstTypes";
 import type { ResourceWrapping, ResourceFrameworkFeatures, ResourceCollectionFeatures, JsonApiResourceFeatures, JsonApiRelationshipDeclaration } from "../../../types/upstream/resource";
 import type { OriginModelSymbol } from "../symbols/model/originModelSymbol";
-import { relationLookup, relationOptionFold, relationProject, relationGate, relationSelect, relationFirstOption, relationExpand, relationRefine, relationSome, relationNone } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/semanticRelations';
+import { relationLookup, relationOptionFold, relationProject, relationGate, relationSelect, relationFirstOption, relationExpand, relationRefine, relationSome, relationNone } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 
 export type ResourceProducerInput = {
     readonly resourceName: ResourceName;
@@ -62,6 +62,10 @@ export const resourceProducer: ResourceProducer = {
     produceResult(input): ResourceProducerResult {
         const sourceFile: SourceFile = input.source.file;
         const model = input.model;
+        const classContext: import('../../../types/upstream/phpTypeAtomInterface').PhpTypeClassContext = {
+            enclosingClass: input.resourceName.value.value,
+            parentClass: input.baseClass.value.value,
+        };
         const fields: ResourceField[] = relationExpand(input.entries, entry => relationGate(
             relationEqual(entry.kind, 'keyed'),
             () => relationGate(
@@ -100,17 +104,17 @@ export const resourceProducer: ResourceProducer = {
             visibility: { kind: 'public' },
             request: { kind: 'request_parameter_declared', parameter: input.requestParameter },
             returnType: { kind: 'array', element: { kind: 'mixed' } },
-            body: mapResourcePhpStatementsToSourceStatements(input.method.body, sourceFile.value.value),
+            body: mapResourcePhpStatementsToSourceStatements(input.method.body, sourceFile.value.value, classContext),
             source: input.source,
         };
         const inheritance: ResourceInheritance = { kind: 'resource_inheritance', base: input.baseClass, source: input.source };
         const documentation: ResourceDocumentation = { kind: 'resource_documentation', mixins: seq(input.documentationMixins), source: input.source };
         const methods = relationProject(input.methods, method => [method.name.value, method] as const);
-        const sourceStatements = (method: PhpMethodAst) => mapResourcePhpStatementsToSourceStatements(method.body, sourceFile.value.value);
+        const sourceStatements = (method: PhpMethodAst) => mapResourcePhpStatementsToSourceStatements(method.body, sourceFile.value.value, classContext);
         const methodStatementsOr = <T>(name: string, absent: T) => relationOptionFold(
             relationLookup(methods, name),
             () => absent,
-            value => mapResourcePhpStatementsToSourceStatements(value.body, sourceFile.value.value),
+            value => mapResourcePhpStatementsToSourceStatements(value.body, sourceFile.value.value, classContext),
         );
         const jsonApi = relationGate(
             relationEqual(input.baseClass.value.value, 'JsonApiResource'),
@@ -265,7 +269,7 @@ function hasPropertyTrue(properties: readonly PhpClassPropertyAst[], name: strin
         ),
     );
 }
-function returnExpression(method: import('../../../semantic/foundation/relationalSequence').RelationOption<PhpMethodAst>, input: ResourceProducerInput, fallback: 'default_resource_type' | 'default_resource_id'): Expression | { readonly kind: 'default_resource_type' } | { readonly kind: 'default_resource_id' } {
+function returnExpression(method: import('../../../semantic/relations/relationalSequence').RelationOption<PhpMethodAst>, input: ResourceProducerInput, fallback: 'default_resource_type' | 'default_resource_id'): Expression | { readonly kind: 'default_resource_type' } | { readonly kind: 'default_resource_id' } {
     return relationOptionFold(
         method,
         () => ({ kind: fallback }),

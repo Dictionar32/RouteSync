@@ -50,3 +50,11 @@ export type SchemaProducerInput = {
 export interface SchemaProducer {
     readonly produce: (input: SchemaProducerInput) => SchemaInterface;
 }
+
+/** Construct the canonical closed schema contract from already-derived schema meaning. */
+export const schemaInterfaceFromDefinition = (definition: SchemaDefinition): SchemaInterface => Object.freeze({
+    kind: 'schema_interface',
+    definition,
+    source: definition.source,
+    closed: true,
+});

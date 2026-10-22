@@ -1,0 +1,14 @@
+{
+  "phase": 2167,
+  "kind": "interface_first_dto_inventory_order_and_binding_trace",
+  "result": "trace_complete_migration_not_applied",
+  "existingDtoInventory": "packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts:scanDtoAsts",
+  "inventoryPublication": "packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts:SourceAsts.dtos",
+  "orderingDefect": "scanDtoAsts currently runs after laravelControllerScanner.scan",
+  "bindingDefect": "response evidence source binding requires exact invocation-source file identity; DTO declaration is cross-file evidence",
+  "requiredChange": "evolve existing input and binding ADTs to distinguish controller-local source binding from project-contained uniquely-resolved DTO declaration evidence",
+  "forbidden": ["new relation/foundation layer", "new response subscanner", "duplicate authority", "runtime semantic classification", "premature legacy resolver retirement"],
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

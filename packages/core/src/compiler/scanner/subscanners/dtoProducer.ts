@@ -6,6 +6,9 @@ import type { PropertyDefinition } from '../../../types/upstream/property';
 import type { Presence } from '../../../types/upstream/primitiveVocabulary';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { DeclaredType, TypeExpression } from '../../../types/upstream/typeVocabulary';
+import type { DtoPropertyTypeEvidence } from '../../../types/upstream/dtoPropertyTypeEvidenceInterface';
+import { relationProject, relationFoldRight } from '../../../semantic/relations/relationalSequence';
+import { relationEqual, relationGate } from '../../../semantic/relations/semanticRelations';
 import type { ResponseDtoDeclarationAst, ResponseDtoPropertyAst } from '../lexer/responseDtoAstTypes';
 
 export type DtoProducerInput = {
@@ -35,6 +38,30 @@ const declared = (type: TypeExpression): DeclaredType => ({
 
 const propertyType = (type: TypeExpression): TypeExpression => type;
 
+
+const typeEvidence = (input: DtoProducerInput, item: ResponseDtoPropertyAst): DtoPropertyTypeEvidence => {
+  const source = sourceAtLine(input.source, Number(item.typeEvidence.source.line));
+  switch (item.typeEvidence.kind) {
+    case 'php_primitive_property_type':
+      return Object.freeze({ kind: 'dto_property_primitive_type_evidence', source });
+    case 'php_mixed_property_type':
+      return Object.freeze({ kind: 'dto_property_mixed_type_evidence', source });
+    case 'php_class_reference_property_type':
+      return Object.freeze({
+        kind: 'dto_property_class_reference_type_evidence',
+        sourceName: item.typeEvidence.sourceName,
+        lexicalContext: item.typeEvidence.lexicalContext,
+        source,
+      });
+    case 'php_unsupported_property_type_syntax':
+      return Object.freeze({
+        kind: 'dto_property_unsupported_type_evidence',
+        reason: 'unsupported_php_property_type_syntax',
+        source,
+      });
+  }
+};
+
 const property = (input: DtoProducerInput, item: ResponseDtoPropertyAst): DtoProperty => {
   const source = sourceAtLine(input.source, Number(item.source.line));
   const definition: PropertyDefinition = {
@@ -54,7 +81,7 @@ const property = (input: DtoProducerInput, item: ResponseDtoPropertyAst): DtoPro
     access: { kind: 'read_write' },
     source,
   };
-  return { kind: 'dto_property', property: definition, declared: declared(item.type), source };
+  return { kind: 'dto_property', property: definition, declared: declared(item.type), typeEvidence: typeEvidence(input, item), source };
 };
 
 export const dtoProducer: DtoProducer = {

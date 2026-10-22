@@ -25855,7 +25855,7 @@ function unresolved(key2) {
 // packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts
 init_semanticValues();
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts
+// packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts
 init_phpAstStatementKinds();
 init_semanticValues();
 init_LaravelSourceLexer();
@@ -25889,7 +25889,7 @@ function mapResourceBinaryOperator(kind) {
   return relationOptionFold2(relationFirstOption(table2, (entry2) => relationEqual2(entry2[0], kind)), () => "unknown", (entry2) => entry2[1]);
 }
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts
+// packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts
 init_resourceUpstreamExpressionCanonical();
 init_resourceUpstreamExpressionClosure();
 init_resourceUpstreamExpressionMappings();

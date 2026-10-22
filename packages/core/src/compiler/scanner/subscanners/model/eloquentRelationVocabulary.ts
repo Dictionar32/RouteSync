@@ -1,5 +1,5 @@
-import { relationOptionalFold, relationFirst } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationOptionalFold, relationFirst } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 import type { EloquentRelationDescriptor, EloquentRelationType } from '../../../../types/upstream/modelVocabulary';
 import type { StringValue } from '../../../../types/upstream/valueObjects';
 

@@ -1,0 +1,34 @@
+{
+  "phase": 2300,
+  "title": "Attribute Scanner Explicit Scope Input Contract",
+  "scope": "interface-only upstream contract change",
+  "changed": [
+    "packages/core/src/types/upstream/laravelAttributeScannerInterface.ts",
+    "packages/core/src/types/upstream/docs/PHASE2300-ATTRIBUTE-SCANNER-SCOPE-INPUT-CONTRACT.md"
+  ],
+  "contract": {
+    "interface": "LaravelAttributeScannerInterface",
+    "previousVersion": 15,
+    "newVersion": 16,
+    "scanInput": "LaravelAttributeScanScope",
+    "result": "LaravelAttributeScanJudgment"
+  },
+  "structuralChecks": {
+    "singleExistingScannerInterfaceEvolved": true,
+    "scopeExplicitInScanSignature": true,
+    "completeBlockedJudgmentPreserved": true,
+    "foundationImportsAdded": false,
+    "relationsImportsAdded": false,
+    "implementationWiringMigrated": false,
+    "typecheckRun": false,
+    "buildRun": false
+  },
+  "followUpRequired": [
+    "pipeline must pass explicit LaravelAttributeScanScope",
+    "legacy v7 scanner must produce v16 receipt and inventory",
+    "producer must comply with AttributeProducerInterface v2",
+    "remove attributeScan.attributes access",
+    "missing/unreadable directory must yield typed blocker",
+    "retire subscanner path after all consumers cut over"
+  ]
+}

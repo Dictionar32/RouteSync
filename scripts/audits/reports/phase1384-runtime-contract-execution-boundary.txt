@@ -1,0 +1,14 @@
+PASS runtime boundary accepts closed judgment: runtime boundary input is a judgment, not raw semantic input
+PASS runtime composition does not call semantic authority: runtime composition only projects through adapter
+PASS manifest analysis reads judgment sequence: analysis consumes upstream-closed judgments
+PASS missing judgment fails closed: no fallback re-judgment from raw input
+PASS upstream manifest surface owns initial reasoning: initial judgment construction remains upstream-owned
+PASS materializer interface is explicit: materialize contract makes already-resolved input intent explicit
+PASS canonical materializer only seals provided evidence: materializer carries evidence/proof without route classification
+PASS authority delegates to materializer: authority is composition around canonical materializer
+PASS route producer uses canonical materialize API: producer uses explicit materialize entry point
+PASS legacy fromRoute is deprecated compatibility only: legacy naming remains available but is not canonical
+PASS legacy AST analyzer is explicitly deprecated: legacy scanner facade still reasons; do not mistake it for runtime path
+PASS package version/build script preserved: version=1.0.49; build=tsdown
+
+Phase 1384 audit: 12/12 passed

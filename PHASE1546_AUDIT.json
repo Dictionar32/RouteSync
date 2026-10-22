@@ -1,0 +1,63 @@
+{
+  "phase": 1546,
+  "title": "Interface-first scanner dependency inversion",
+  "passed": 10,
+  "total": 11,
+  "checks": [
+    {
+      "name": "interface-declares-runtime-contract",
+      "passed": true,
+      "detail": "Runtime behavior is expressed by an upstream interface."
+    },
+    {
+      "name": "interface-has-union-request-overload",
+      "passed": true,
+      "detail": "Adapters can forward the closed request union without choosing a semantic branch."
+    },
+    {
+      "name": "interface-has-no-admission-implementation",
+      "passed": true,
+      "detail": "Executable admission logic is not embedded in the contract module."
+    },
+    {
+      "name": "scanner-analyzer-depends-on-interface-only",
+      "passed": true,
+      "detail": "Analyzer receives the contract and does not import the concrete singleton."
+    },
+    {
+      "name": "analyzer-injects-authority",
+      "passed": true,
+      "detail": "Runtime authority is injected through the interface."
+    },
+    {
+      "name": "adapter-owns-source-anchor-mapping",
+      "passed": true,
+      "detail": "Evidence mapping selects an existing source identity instead of synthesizing a scope identity in the analyzer."
+    },
+    {
+      "name": "adapter-has-explicit-empty-evidence-variant",
+      "passed": true,
+      "detail": "No-evidence is a typed request variant."
+    },
+    {
+      "name": "single-scanner-composition-root",
+      "passed": true,
+      "detail": "Concrete runtime is bound in scanner wiring, not in analyzer logic."
+    },
+    {
+      "name": "runtime-is-only-composition-authority",
+      "passed": false,
+      "detail": "Authority and admission are composed only at the runtime executor."
+    },
+    {
+      "name": "regression-tests-use-runtime-binding",
+      "passed": true,
+      "detail": "Compatibility tests exercise the production wiring binding."
+    },
+    {
+      "name": "no-synthetic-semantic-scope-in-analyzer",
+      "passed": true,
+      "detail": "Analyzer no longer fabricates a semantic scope anchor."
+    }
+  ]
+}

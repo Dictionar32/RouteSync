@@ -1,5 +1,5 @@
-import { adaptPhpAstBoundary } from '../boundaryAdapter';
-import { matchPhpGrammar } from '../ast/grammarCatamorphism';
+import { phpAstBoundaryAdapter } from '../boundaryAdapter';
+import { phpGrammarMatchingOperation } from '../ast/grammarCatamorphism';
 import type { PhpGrammarVisitor } from '../ast/grammarCatamorphism';
 
 describe('Phase 87.4 ecommerce_shop AST grammar boundary', () => {
@@ -27,11 +27,11 @@ describe('Phase 87.4 ecommerce_shop AST grammar boundary', () => {
             unknown: () => 'unknown'
         };
 
-        expect(() => matchPhpGrammar({ kind: 'identifier', name: 'noop' }, visitor)).toThrow();
+        expect(() => phpGrammarMatchingOperation.match({ kind: 'identifier', name: 'noop' }, visitor)).toThrow();
     });
 
     test('keeps ecommerce static method structure', () => {
-        const node = adaptPhpAstBoundary({
+        const node = phpAstBoundaryAdapter.adapt({
             kind: 'call',
             what: {
                 kind: 'staticlookup',

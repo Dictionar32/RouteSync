@@ -15,6 +15,7 @@ describe('Phase 923 controller action policy relations', () => {
   it('projects closed effective policy into semantic relations without dataflow facts', () => {
     const policy: EffectiveControllerActionPolicy = {
       kind: 'effective_controller_action_policy',
+      judgment: { kind: 'complete' },
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: [{

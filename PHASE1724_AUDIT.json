@@ -1,0 +1,57 @@
+{
+  "phase": 1724,
+  "name": "static-coverage-truthfulness-boundary",
+  "total": 12,
+  "passed": 8,
+  "failed": 4,
+  "checks": [
+    {
+      "name": "pipeline contract type/value synchronized at v46",
+      "passed": false
+    },
+    {
+      "name": "pipeline states ordinary-only judgments do not imply static coverage",
+      "passed": true
+    },
+    {
+      "name": "pipeline declares static stage model as contract-only until implementation",
+      "passed": true
+    },
+    {
+      "name": "scanner boundary type/value synchronized at v25",
+      "passed": false
+    },
+    {
+      "name": "scanner contract discloses ordinary-only current coverage",
+      "passed": true
+    },
+    {
+      "name": "scanner contract explicitly marks static algebra, authority, coverage publication and wiring as not implemented",
+      "passed": false
+    },
+    {
+      "name": "coverage model preserves static facts as uncovered rather than reclassifying them",
+      "passed": true
+    },
+    {
+      "name": "actual controller analyzer uses ordinary invocation knowledge analysis, confirming static path is not wired",
+      "passed": false
+    },
+    {
+      "name": "high-level interface documentation no longer contradicts existence of static stage contracts",
+      "passed": true
+    },
+    {
+      "name": "domain-specific stage judgments remain nongeneric",
+      "passed": true
+    },
+    {
+      "name": "no semantic/foundation dependency or any/as escape hatch added",
+      "passed": true
+    },
+    {
+      "name": "no production scanner runtime or semantic algebra implementation was changed in this contract-only phase",
+      "passed": true
+    }
+  ]
+}

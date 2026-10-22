@@ -1,0 +1,63 @@
+{
+  "phase": 1459,
+  "name": "typed-ast-operator-evidence",
+  "scope": "core/src/compiler/scanner and core/src/types/upstream",
+  "checks": [
+    {
+      "name": "typed operator identity uses unique symbols",
+      "status": "pass"
+    },
+    {
+      "name": "operator evidence judgment variants use unique symbols",
+      "status": "pass"
+    },
+    {
+      "name": "operator algebra delegates delimiter-aware lookup to canonical structure interface",
+      "status": "pass"
+    },
+    {
+      "name": "runtime helper findTopLevelOperatorEvidence removed",
+      "status": "pass"
+    },
+    {
+      "name": "match-arm and inline-array arrow consumers wired to typed operator contract",
+      "status": "pass"
+    },
+    {
+      "name": "collection iteration as consumer wired to typed operator contract",
+      "status": "pass"
+    },
+    {
+      "name": "instanceof candidate wired to typed operator contract",
+      "status": "pass"
+    },
+    {
+      "name": "upstream barrel exports new interface and algebra",
+      "status": "pass"
+    },
+    {
+      "name": "package audit script registered",
+      "status": "pass"
+    }
+  ],
+  "audit_passed": 9,
+  "audit_total": 9,
+  "build": {
+    "status": "blocked",
+    "reason": "npm run build fails because tsdown is not installed in this workspace"
+  },
+  "vitest": {
+    "status": "not_run",
+    "reason": "vitest is not installed in this workspace"
+  },
+  "typecheck": {
+    "status": "blocked",
+    "reason": "global tsc is older than project config and required Node/Vitest type definitions and standard library setup are unavailable"
+  },
+  "known_remaining": [
+    "assignment operator candidate vocabulary still represents source spellings as strings",
+    "scannerExpressionOperatorAlgebra still uses numeric precedence tiers",
+    "runtime-local splitTopLevel, indexOf, and delimiter traversal remain outside this phase",
+    "full downstream AST equivalence has not been established"
+  ]
+}

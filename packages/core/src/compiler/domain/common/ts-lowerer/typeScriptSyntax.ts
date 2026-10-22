@@ -7,8 +7,8 @@
  */
 
 import { TypeScriptToken, TypeScriptAliasSuffix } from './typeScriptVocabulary';
-import { relationProject, relationResolve } from '../../../../semantic/foundation/relationalSequence';
-import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationProject, relationResolve } from '../../../../semantic/relations/relationalSequence';
+import { relationAny, relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export class TypeScriptSyntax {
     /**

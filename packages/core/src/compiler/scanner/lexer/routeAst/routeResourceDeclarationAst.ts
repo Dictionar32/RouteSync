@@ -1,6 +1,6 @@
 import { projectRelation, selectRelation, expandRelation, accumulateRelation, relationResolve } from '../../../relational/sequence';
 import type { Presence } from '../../../../types/upstream/presence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 import type { TokenDescriptor } from '../phpAstTypes';
 import { resourceMiddlewareScope } from './semanticRouteSyntaxRelations';
 export type RouteResourceMethodAst = 'resource' | 'apiResource' | 'singleton' | 'apiSingleton';

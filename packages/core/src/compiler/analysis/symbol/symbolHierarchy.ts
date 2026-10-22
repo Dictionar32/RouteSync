@@ -1,8 +1,8 @@
 /** Declarative symbol hierarchy and relation projections. */
 import type { SymbolNode } from './symbolTypes';
-import type { RelationOption } from '../../../semantic/foundation/relationFoundation';
-import { relationOptionFold, relationSelect, relationResolve } from '../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../semantic/foundation/relationFoundation';
+import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+import { relationOptionFold, relationSelect, relationResolve } from '../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../semantic/relations/relationFoundation';
 
 export function resolveClassHierarchy(
     classId: string,

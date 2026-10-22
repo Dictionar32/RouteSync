@@ -1,0 +1,44 @@
+{
+  "phase": 1733,
+  "name": "publication-authority-interface-contract-regression",
+  "checks": [
+    {
+      "name": "Phase 1721\u20131725 regression audit",
+      "status": "PASS",
+      "result": "75/75"
+    },
+    {
+      "name": "Phase 1721\u20131726 regression audit",
+      "status": "PASS",
+      "result": "90/90"
+    },
+    {
+      "name": "Phase 1721\u20131727 regression audit",
+      "status": "PASS",
+      "result": "109/109"
+    },
+    {
+      "name": "Phase 1721\u20131733 direct interface audits",
+      "status": "PASS",
+      "result": "189/189"
+    },
+    {
+      "name": "Targeted TypeScript check",
+      "status": "BLOCKED_BY_EXISTING_ERRORS",
+      "result": "88 diagnostics in unrelated packages/core/src/types/domain/resourceModel* files; zero diagnostics reference changed interface files"
+    },
+    {
+      "name": "Full package build",
+      "status": "NOT_RUN",
+      "result": "per workspace constraint"
+    }
+  ],
+  "changedFiles": [
+    "packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts",
+    "packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+    "scripts/audits/audit-phase1733-publication-authority-interface-contract.cjs",
+    "package.json",
+    "PHASE1733_PUBLICATION_AUTHORITY_INTERFACE_CONTRACT.md"
+  ],
+  "implementationStatus": "interface contract only; publication authority implementation and Laravel wiring remain pending"
+}

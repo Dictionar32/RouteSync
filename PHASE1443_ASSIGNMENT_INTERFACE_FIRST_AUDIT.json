@@ -1,0 +1,11 @@
+{
+  "phase": 1443,
+  "title": "Assignment Interface First",
+  "scope": "public contract only; no runtime or algebra migration",
+  "audit": "scripts/audits/audit-phase1443-assignment-interface-first.cjs",
+  "validation": {
+    "static_audit": "pending",
+    "build": "not run",
+    "runtime_tests": "not run"
+  }
+}

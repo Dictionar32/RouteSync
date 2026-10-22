@@ -19,7 +19,7 @@ import {
   relationSlice,
   relationResolve,
   type RelationOption,
-} from '../../../semantic/foundation/relationalSequence';
+} from '../../../semantic/relations/relationalSequence';
 
 type ModelTokenOption = RelationOption<TokenDescriptor>;
 

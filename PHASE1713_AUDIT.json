@@ -1,0 +1,11 @@
+{
+  "phase": 1713,
+  "name": "static-rule-obligation-contract",
+  "scope": "interface-contract-only",
+  "build": "not-run (repository owner preference: do not run npm build in this environment)",
+  "typecheck": "targeted tsc attempted; whole dependency graph failed on existing unrelated diagnostics; changed interface files had no diagnostics",
+  "productionWiringChanged": false,
+  "staticAlgebraImplemented": false,
+  "staticAuthorityImplemented": false,
+  "changedInterfaceDiagnostics": 0
+}

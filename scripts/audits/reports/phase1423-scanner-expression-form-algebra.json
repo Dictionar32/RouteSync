@@ -1,0 +1,49 @@
+{
+  "phase": 1423,
+  "title": "scanner-expression-form-algebra",
+  "checks": [
+    {
+      "name": "algebra exposes generic prefix and conditional contracts",
+      "passed": true
+    },
+    {
+      "name": "conditional matching and nested ternary pairing belong to algebra",
+      "passed": true
+    },
+    {
+      "name": "prefix resolution validates rules and missing operands",
+      "passed": true
+    },
+    {
+      "name": "runtime delegates ternary structure to the algebra",
+      "passed": false
+    },
+    {
+      "name": "runtime no longer locally pairs ternary question and colon markers",
+      "passed": true
+    },
+    {
+      "name": "runtime delegates unary prefix selection to the algebra",
+      "passed": false
+    },
+    {
+      "name": "runtime retains PHP-specific operator facts while AST construction is delegated to the projector",
+      "passed": false
+    },
+    {
+      "name": "tests cover nested ternary, missing colon, prefix and missing operand",
+      "passed": true
+    },
+    {
+      "name": "new algebra introduces no any",
+      "passed": true
+    },
+    {
+      "name": "phase audit is registered and build script remains unchanged",
+      "passed": true
+    }
+  ],
+  "passed": 7,
+  "total": 10,
+  "status": "failed"
+}

@@ -1,0 +1,33 @@
+{
+  "phase": 2216,
+  "title": "DTO Projection Binding Scope",
+  "baseline": "RouteSync-Phase2215-Controller-Lexical-Resolution-Authority-Path.zip",
+  "finding": "The response pipeline passed the project-wide DTO property-reference binding inventory into each individual DTO response-contract projection request, relying on the projection implementation to filter by exact owner declaration.",
+  "change": "The existing response pipeline now scopes property-reference bindings to the exact resolved DTO declaration before invoking the existing projection authority; the scope rule is part of the closed pipeline contract.",
+  "contractVersion": {
+    "previous": 30,
+    "current": 31,
+    "interfaceRuntimeContractSynchronized": true
+  },
+  "verified": {
+    "zipIntegrity": "pending",
+    "typescriptSyntax": "4/4 changed TypeScript files transpiled without syntax diagnostics",
+    "structuralAssertions": "7/7 passed against Phase 2215 baseline",
+    "fullTypecheck": "not-run",
+    "fullVitest": "not-run",
+    "packageBuild": "not-run"
+  },
+  "architectureConstraints": {
+    "newSemanticAuthority": false,
+    "semanticFoundationLayerAdded": false,
+    "replacementRelationLayerAdded": false,
+    "subscannerAdded": false
+  },
+  "notCompleted": [
+    "legacy scanControllerAction derivation retirement",
+    "action-level response product compatibility projection",
+    "resource-binding publication cutover",
+    "semantic/relations call-site trace closure",
+    "channel client-subscription evidence closure"
+  ]
+}

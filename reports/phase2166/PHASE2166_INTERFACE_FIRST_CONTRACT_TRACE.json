@@ -1,0 +1,27 @@
+{
+  "phase": 2166,
+  "kind": "interface_first_contract_accuracy",
+  "changed": [
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts"
+  ],
+  "preserved": [
+    "existing invocation semantic authority and runtime executor",
+    "existing integrated response pipeline and response runtime executor",
+    "existing response evidence producer and source binding authority",
+    "no new relation/foundation/subscanner or parallel authority"
+  ],
+  "producedEvidence": [
+    "observed_controller_return",
+    "controller_action_response_reference_candidate",
+    "response_attribute_source"
+  ],
+  "missingEvidence": [
+    "resolved_response_attribute_descriptor",
+    "response_dto_declaration"
+  ],
+  "legacyResolverRetired": false,
+  "fullBuildRun": false,
+  "fullTypecheckRun": false,
+  "vitestRun": false
+}

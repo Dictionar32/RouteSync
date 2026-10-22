@@ -57,6 +57,7 @@ export type RequestHttpMethod =
   | { readonly kind: 'delete' }
   | { readonly kind: 'options' }
   | { readonly kind: 'head' }
+  | { readonly kind: 'query' }
   | { readonly kind: 'trace' }
   | { readonly kind: 'connect' }
   | { readonly kind: 'custom'; readonly value: StringValue };
@@ -435,7 +436,7 @@ export type RequestFieldTarget =
   | { readonly kind: 'input_property'; readonly property: PropertyReference }
   | { readonly kind: 'input_collection'; readonly property: PropertyReference; readonly element: PropertyReference };
 
-export type RequestField = { readonly kind: 'request_field'; readonly name: PropertyPath; readonly target: RequestFieldTarget; readonly type: TypeExpression; readonly presence: Presence; readonly requirement: RequestFieldRequirement; readonly rules: ValidationRules; readonly fileConstraints: FileValidationConstraints; readonly default: RequestDefault; readonly source: SourceSpan };
+export type RequestField = { readonly kind: 'request_field'; readonly name: PropertyPath; readonly target: RequestFieldTarget; readonly type: TypeExpression; readonly presence: Presence; readonly requirement: RequestFieldRequirement; readonly rules: ValidationRules; readonly fileConstraints: FileValidationConstraints; readonly default: RequestDefault; readonly sources: readonly SourceSpan[]; readonly source: SourceSpan };
 export type RequestSourceIdentity =
   | { readonly kind: 'http_request_identity'; readonly request: RequestName }
   | { readonly kind: 'form_request_identity'; readonly request: RequestName; readonly formType: FormTypeName };

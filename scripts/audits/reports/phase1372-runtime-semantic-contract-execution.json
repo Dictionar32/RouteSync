@@ -1,0 +1,131 @@
+{
+  "phase": 1372,
+  "title": "Runtime Semantic Contract Execution",
+  "flow": "upstream semantic reasoning authority -> SemanticDataflowReasoningAuthorityInterface -> runtime adapter -> DataFlowAuthorityInterface -> downstream consumers",
+  "checks": 24,
+  "passed": 17,
+  "failed": 7,
+  "results": [
+    {
+      "name": "upstream declares an executable semantic-dataflow reasoning contract",
+      "passed": true,
+      "detail": "Runtime code depends on a domain-specific contract composed from the shared typed judgment interface, not a concrete closure implementation."
+    },
+    {
+      "name": "upstream authority binds the contract to the canonical judgment constructor",
+      "passed": true,
+      "detail": "The existing semantic closure solver remains the sole implementation behind the contract."
+    },
+    {
+      "name": "runtime adapter receives authority through dependency wiring",
+      "passed": false,
+      "detail": "The adapter executes the upstream contract and does not own semantic reasoning."
+    },
+    {
+      "name": "runtime exposes the closed authority contract, not producer execution methods",
+      "passed": true,
+      "detail": "A closed judgment crosses the boundary without fake seed/derive/close execution methods."
+    },
+    {
+      "name": "runtime adapter has no direct solver dependency",
+      "passed": false,
+      "detail": "The wiring layer cannot call the concrete semantic closure constructor directly."
+    },
+    {
+      "name": "composition injects the canonical upstream authority",
+      "passed": false,
+      "detail": "The production composition is the explicit binding point between upstream authority and runtime execution."
+    },
+    {
+      "name": "runtime boundary preserves the closed dataflow authority contract",
+      "passed": true,
+      "detail": "The runtime receives a read-only state/query surface with explicit wiring direction."
+    },
+    {
+      "name": "legacy AST analyzer uses the same reasoning contract",
+      "passed": false,
+      "detail": "The deprecated compatibility facade no longer bypasses the authority contract."
+    },
+    {
+      "name": "semantic result interface remains a projection over a closed judgment",
+      "passed": true,
+      "detail": "The result interface does not introduce a second solver or duplicate the judgment ADT."
+    },
+    {
+      "name": "operation identity contract remains upstream-owned",
+      "passed": false,
+      "detail": "Operation identity still flows through the upstream contract, algebra, and authority."
+    },
+    {
+      "name": "operation identity algebra preserves reasoning evidence",
+      "passed": true,
+      "detail": "Runtime contract changes do not discard identity proof, provenance, or derivation."
+    },
+    {
+      "name": "operation identity wiring projects rather than reconstructs",
+      "passed": true,
+      "detail": "CLI projection continues consuming the closed upstream capability."
+    },
+    {
+      "name": "AST dataflow contract aliases canonical semantic ADTs",
+      "passed": false,
+      "detail": "AST and dataflow retain distinct roles while sharing canonical typed evidence/judgment."
+    },
+    {
+      "name": "generic dataflow separates producer execution from read-only consumer authority",
+      "passed": true,
+      "detail": "The public generic contract retains explicit execution and authority facets."
+    },
+    {
+      "name": "React and SDK remain downstream consumers of closed capabilities",
+      "passed": true,
+      "detail": "React hook selection and SDK operation identity remain fail-closed consumers."
+    },
+    {
+      "name": "manifest projection forwards canonical upstream dataflow inputs",
+      "passed": false,
+      "detail": "Manifest projection forwards typed input evidence and does not run semantic closure."
+    },
+    {
+      "name": "IR projects the closed authority state without reconstructing closure",
+      "passed": true,
+      "detail": "IR is a projection of closed upstream state, not another semantic solver."
+    },
+    {
+      "name": "structural graph consumes semantic relations through graph-edge projection",
+      "passed": true,
+      "detail": "Graph topology is projected from structural semantic relations through the typed edge contract."
+    },
+    {
+      "name": "SDK schema mapper consumes upstream parser contract and mapper boundary",
+      "passed": true,
+      "detail": "Schema parsing and mapping stay at the SDK boundary; they do not reclassify upstream semantic capability."
+    },
+    {
+      "name": "SDK query key derives from upstream operation identity",
+      "passed": true,
+      "detail": "Endpoint identity is required upstream and then used as the stable query-key seed."
+    },
+    {
+      "name": "React TanStack Query consumes the SDK query key",
+      "passed": true,
+      "detail": "React does not independently reconstruct endpoint identity or query semantics."
+    },
+    {
+      "name": "Axios remains the HTTP transport execution boundary",
+      "passed": true,
+      "detail": "HTTP transport and response-envelope handling remain runtime concerns, not upstream semantic reasoning."
+    },
+    {
+      "name": "Laravel source and frontend target remain in end-to-end trace scope",
+      "passed": true,
+      "detail": "Source ecosystem and target example remain present for end-to-end semantic trace."
+    },
+    {
+      "name": "audit registration preserves package version and build command",
+      "passed": true,
+      "detail": "The focused audit is registered without changing package version or build command."
+    }
+  ],
+  "validationBoundary": "Static source audit only; TypeScript build and runtime tests require installed dependencies."
+}

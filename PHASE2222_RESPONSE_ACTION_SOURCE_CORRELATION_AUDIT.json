@@ -1,0 +1,35 @@
+{
+  "phase": 2222,
+  "title": "Canonical Action and Integrated Response Source Correlation",
+  "base": "RouteSync-Phase2221-Canonical-Action-Publication-Upstream-Identity.zip",
+  "changes": [
+    "The existing method response AST projection interface now requires canonical action publications from the same controller artifact.",
+    "The upstream projection correlates action identity and exact source file/start/end span before producing response AST output.",
+    "Missing and ambiguous action correlations are explicit rejected judgments; rejected products do not produce ResponseAst values.",
+    "The response scanner forwards existing action publications and retains projection judgments without adding a parallel authority."
+  ],
+  "architecture": {
+    "new_relation_layer": false,
+    "new_semantic_foundation_layer": false,
+    "new_subscanner": false,
+    "parallel_response_authority": false,
+    "integrated_response_owner": "LaravelControllerResponseSemanticPipelineInterface",
+    "method_response_ast_projection_contract_version": 4
+  },
+  "open_obligations": [
+    "resolveControllerActionContract still calls resolveResponse",
+    "responseAttributeScanner still resolves DTO classes and merges observed return fields",
+    "legacy response descriptor compatibility projection has not been retired",
+    "resource binding domain publication still traverses the legacy action adapter",
+    "remaining semantic/relations usages require call-by-call tracing"
+  ],
+  "validation": {
+    "syntax_transpilation": "3/3 changed TypeScript source files passed with zero syntax diagnostics",
+    "structural_assertions": "8/8 passed",
+    "audit_json": "valid JSON",
+    "zip_integrity": "verified after archive creation",
+    "vitest": "not_run",
+    "full_typecheck": "not_run",
+    "package_build": "not_run"
+  }
+}

@@ -1,11 +1,11 @@
 import type {
   ModelAst, ResourceAst, RequestAst, RouteAst, ControllerAst, ResponseAst,
-  ServiceAst, MigrationAst, DtoAst, MiddlewareAst, ProviderAst, AttributeAst
+  ServiceAst, MigrationAst, DtoAst, MiddlewareAst, ProviderAst, AttributeAst, ChannelAst
 } from './ast';
 
 export type CanonicalSourceNode =
   | ModelAst | ResourceAst | RequestAst | RouteAst | ControllerAst | ResponseAst
-  | ServiceAst | MigrationAst | DtoAst | MiddlewareAst | ProviderAst | AttributeAst;
+  | ServiceAst | MigrationAst | DtoAst | MiddlewareAst | ProviderAst | AttributeAst | ChannelAst;
 
 export type SourceBoundaryInput =
   | { readonly kind: 'model_source'; readonly node: ModelAst }
@@ -19,4 +19,5 @@ export type SourceBoundaryInput =
   | { readonly kind: 'dto_source'; readonly node: DtoAst }
   | { readonly kind: 'middleware_source'; readonly node: MiddlewareAst }
   | { readonly kind: 'provider_source'; readonly node: ProviderAst }
-  | { readonly kind: 'attribute_source'; readonly node: AttributeAst };
+  | { readonly kind: 'attribute_source'; readonly node: AttributeAst }
+  | { readonly kind: 'channel_source'; readonly node: ChannelAst };

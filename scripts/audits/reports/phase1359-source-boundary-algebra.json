@@ -1,0 +1,128 @@
+{
+  "phase": 1359,
+  "audit": "source-boundary-algebra",
+  "purpose": "Close the canonical AST-to-boundary ADT projection without adding a second semantic classifier; preserve the upstream→wiring→downstream authority boundary.",
+  "checks": [
+    {
+      "name": "canonical AST ADT declares all 13 source semantic kinds",
+      "ok": true
+    },
+    {
+      "name": "CanonicalSourceNode covers channel AST as well as the previous source variants",
+      "ok": true
+    },
+    {
+      "name": "SourceBoundaryInput has a matching channel source variant",
+      "ok": true
+    },
+    {
+      "name": "boundary algebra maps every AST discriminant to a matching source variant",
+      "ok": true
+    },
+    {
+      "name": "boundary algebra is an exhaustive closed-ADT projection",
+      "ok": true
+    },
+    {
+      "name": "boundary algebra does not inspect source text or reclassify Laravel semantics",
+      "ok": true
+    },
+    {
+      "name": "boundary projection preserves the original node reference",
+      "ok": true
+    },
+    {
+      "name": "algebra is exported through the upstream public barrel",
+      "ok": true
+    },
+    {
+      "name": "operation identity remains authority/algebra-owned",
+      "ok": true
+    },
+    {
+      "name": "manifest wiring still validates canonical AST before source model construction",
+      "ok": false
+    },
+    {
+      "name": "source-boundary projection is not inserted as a redundant pass into canonical manifest wiring",
+      "ok": true
+    },
+    {
+      "name": "DataFlowInterface still separates producer and consumer contracts",
+      "ok": true
+    },
+    {
+      "name": "IR and structural graph remain separate projection lanes",
+      "ok": true
+    },
+    {
+      "name": "CLI and SDK consume explicit operation identity capability",
+      "ok": true
+    },
+    {
+      "name": "build script remains tsdown",
+      "ok": true
+    }
+  ],
+  "passedChecks": 14,
+  "totalChecks": 15,
+  "sourceKinds": [
+    {
+      "astKind": "model_ast",
+      "boundaryKind": "model_source"
+    },
+    {
+      "astKind": "resource_ast",
+      "boundaryKind": "resource_source"
+    },
+    {
+      "astKind": "request_ast",
+      "boundaryKind": "request_source"
+    },
+    {
+      "astKind": "route_ast",
+      "boundaryKind": "route_source"
+    },
+    {
+      "astKind": "controller_ast",
+      "boundaryKind": "controller_source"
+    },
+    {
+      "astKind": "response_ast",
+      "boundaryKind": "response_source"
+    },
+    {
+      "astKind": "service_ast",
+      "boundaryKind": "service_source"
+    },
+    {
+      "astKind": "migration_ast",
+      "boundaryKind": "migration_source"
+    },
+    {
+      "astKind": "dto_ast",
+      "boundaryKind": "dto_source"
+    },
+    {
+      "astKind": "middleware_ast",
+      "boundaryKind": "middleware_source"
+    },
+    {
+      "astKind": "provider_ast",
+      "boundaryKind": "provider_source"
+    },
+    {
+      "astKind": "attribute_ast",
+      "boundaryKind": "attribute_source"
+    },
+    {
+      "astKind": "channel_ast",
+      "boundaryKind": "channel_source"
+    }
+  ],
+  "designDecision": "The algebra maps only existing canonical AST discriminants. It does not infer Laravel semantics, read source text, duplicate source nodes, or replace DataFlowAuthority/GraphEdgeRelation.",
+  "validationLimits": [
+    "Static contract audit only; not a full TypeScript build or runtime test.",
+    "TypeScript 7 compatibility is not claimed unless the repository-pinned compiler executes the build."
+  ]
+}

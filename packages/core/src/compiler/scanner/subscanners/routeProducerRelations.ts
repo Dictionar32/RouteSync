@@ -7,9 +7,9 @@
  */
 
 import path from "path";
-import { relationFoldRight } from '../../../semantic/foundation/relationalSequence';
-import { relationGate, relationOptionFold, relationAny, relationEqual, relationVariantFold, relationFirstOption, relationNone, relationSome, relationFold, relationLookup, relationProject, type RelationOption } from '../../../semantic/foundation/relationalSequence';
-import { relationIndexLookup, relationIndexAdd, type RelationIndex, type RelationMembership } from '../../../semantic/foundation/relationMembership';
+import { relationFoldRight } from '../../../semantic/relations/relationalSequence';
+import { relationGate, relationOptionFold, relationAny, relationEqual, relationVariantFold, relationFirstOption, relationNone, relationSome, relationFold, relationLookup, relationProject, type RelationOption } from '../../../semantic/relations/relationalSequence';
+import { relationIndexLookup, relationIndexAdd, type RelationIndex, type RelationMembership } from '../../../semantic/relations/relationMembership';
 import { HttpMethod, RouteHandlerKind, type RouteParameter } from '../../../types/route';
 import type { RouteDeclarationAst } from '../lexer/routeAst';
 import type { RouteMethod, RouteTarget, RouteAuthentication, RouteSpecialKind, RouteGroupContext, RouteSecurityContract, RouteDefaults, RouteTransportContract, RouteDomain, RouteProducerInput, RouteFileContext } from '../../../types/upstream/route';

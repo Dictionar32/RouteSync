@@ -23,6 +23,8 @@ describe('Phase 931 effective route resource policy', () => {
         action: { kind: 'present', value: index },
       },
       policy: [],
+          policyCatalog: { kind: 'complete', entries: [] },
+      inheritedFrom: [],
       source: [source],
     });
     expect(result.controller).toEqual(controller);

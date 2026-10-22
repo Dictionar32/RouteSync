@@ -4,7 +4,7 @@ import { eloquentRelationMultiplicity } from '../upstream/modelVocabulary';
 import type { ModelName, PropertyName, RelationName } from '../upstream/names';
 import type { SemanticType } from './semanticType';
 import { createResourceModelMethodSurface, type ResourceModelMethodSurface } from './resourceModelMethodSurface';
-import { relationEqual, relationProject, relationResolve } from '../../semantic/foundation/relationalSequence';
+import { relationEqual, relationProject, relationResolve } from '../../semantic/relations/relationalSequence';
 
 export type ResourceModelMember =
   | { readonly kind: 'property'; readonly property: ModelSemanticProperty };

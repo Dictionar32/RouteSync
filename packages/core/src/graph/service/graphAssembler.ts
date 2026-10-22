@@ -3,9 +3,9 @@ import type { ServiceGraph, ServiceNode, ControllerNode, ServiceModelNode, Servi
 import type { GraphEdgeRelation } from './graphEdgeRelation';
 import { ModelServiceMap, ModelControllerMap, ModelNodeMap } from '../../types/domain/semanticCollections';
 import type { GraphNodeIndex, GraphNodeEntry } from './graphNodeIndex';
-import type { RelationIndex } from '../../semantic/foundation/relationMembership';
-import { relationEqual } from '../../semantic/foundation/relationFoundation';
-import { relationProject, relationSelect } from '../../semantic/foundation/relationalSequence';
+import type { RelationIndex } from '../../semantic/relations/relationMembership';
+import { relationEqual } from '../../semantic/relations/relationFoundation';
+import { relationProject, relationSelect } from '../../semantic/relations/relationalSequence';
 import type { ModelReference } from '../../types/upstream/semanticReferences';
 import { SemanticValueFactory } from '../../types/domain/semanticValues';
 

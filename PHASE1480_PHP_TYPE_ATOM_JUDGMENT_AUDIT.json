@@ -1,0 +1,39 @@
+{
+  "phase": 1480,
+  "title": "PHP Type Atom Judgment Separation",
+  "authority": "packages/core/src/types/upstream/phpTypeAtomAlgebra.ts",
+  "contract": "packages/core/src/types/upstream/phpTypeAtomInterface.ts",
+  "judgments": [
+    "resolved",
+    "unsupported",
+    "malformed"
+  ],
+  "unsupportedReasons": [
+    "context_required",
+    "missing_vocabulary"
+  ],
+  "audits": {
+    "phase1476PhpTypeExpression": {
+      "passed": 10,
+      "total": 10
+    },
+    "phase1479PhpTypeAtomAuthority": {
+      "passed": 7,
+      "total": 7
+    },
+    "phase1480PhpTypeAtomJudgment": {
+      "passed": 10,
+      "total": 10
+    }
+  },
+  "typescript": {
+    "command": "tsc --noEmit --strict --target ES2020 --module ESNext --moduleResolution Bundler --skipLibCheck <six PHP type contract/algebra files>",
+    "exitCode": 2,
+    "diagnostics": 37,
+    "diagnosticsInChangedInterfaceOrAlgebraFiles": 0,
+    "note": "TypeScript graph check remains blocked by diagnostics in existing domain/upstream modules; this is not a clean project typecheck."
+  },
+  "vitest": "not run: node_modules and local Vitest executable are absent",
+  "packageBuild": "not run: node_modules and local tsdown executable are absent",
+  "zipRoot": "RouteSync/"
+}

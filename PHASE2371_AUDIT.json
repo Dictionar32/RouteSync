@@ -1,0 +1,31 @@
+{
+  "phase": 2371,
+  "title": "Existing Declaration Evidence Authority",
+  "scope": "Resource declaration evidence contract ownership",
+  "status": "partial",
+  "checks": {
+    "audit-phase2366-resource-flow-authority-execution.cjs": "12/12 passed",
+    "audit-phase2367-resource-plan-path-consumption.cjs": "8/8 passed",
+    "audit-phase2369-resource-flow-contract-evolution.cjs": "10/10 passed",
+    "audit-phase2370-scanner-contract-first-resource-authority.cjs": "11/11 passed",
+    "audit-phase2371-existing-declaration-evidence-authority.cjs": "10/10 passed"
+  },
+  "typecheck": {
+    "command": "tsc --noEmit --target esnext --module esnext --moduleResolution bundler --skipLibCheck packages/core/src/types/upstream/routeResourceFlow.ts packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts",
+    "result": "failed",
+    "relevantChangedAuthorityFile": "No diagnostics reported in routeResourceFlow.ts after correction",
+    "remainingDiagnostics": [
+      "missing Node type declarations for node:fs and node:path",
+      "existing type mismatches in laravelRouteScanner.ts and routeProducerRelations.ts",
+      "missing or inconsistent declarations elsewhere in the repository dependency graph"
+    ]
+  },
+  "notRun": ["npm run build", "CLI end-to-end", "runtime integration tests"],
+  "remainingArchitectureWork": [
+    "LaravelRouteScannerInterface still does not contractually own a complete route-declaration judgment operation",
+    "scanner still computes routeDeclarationFlow and controller/action target projections",
+    "active scanner still imports semantic/relations and subscanners for emission and standard route path handling",
+    "RouteEmission to RouteBoundaryContract to RouteProducer needs a full contract sufficiency trace",
+    "CLI output is not verified end-to-end"
+  ]
+}

@@ -35,6 +35,15 @@ describe('ecommerce_shop PHP AST boundary Phase 87.2', () => {
         expect(ast.receiver.kind).toBe('method_chain');
     });
 
+    test('preserves fully qualified class spelling in static-call AST evidence', () => {
+        const ast = LaravelSourceLexer.classifyAstValue('\\App\\Models\\User::query()');
+
+        expect(ast.kind).toBe('static_call');
+        if (ast.kind !== 'static_call') return;
+        expect(ast.className).toBe('\\App\\Models\\User');
+        expect(ast.method).toBe('query');
+    });
+
     test('preserves associative array keys and argument roles in updateOrCreate shape', () => {
         const ast = LaravelSourceLexer.classifyAstValue(
             "ProductReview::updateOrCreate(['produk_item_id' => $produk->id], ['rating' => $request->integer('rating')])"

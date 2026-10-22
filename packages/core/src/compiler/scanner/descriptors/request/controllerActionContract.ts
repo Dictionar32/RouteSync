@@ -1,34 +1,29 @@
-import { type RelationIndex, relationIndexLookup } from '../../../../semantic/foundation/relationMembership';
 import type { FormRequestSource } from '../../../../types/domain/request';
-import type { SourceProjectIdentity } from '../../../../types/upstream/highLevelSourceModel';
-import { SemanticValueFactory } from '../../../../types/domain/semanticValues';
-import { createActionName, createClassName, type ActionName, type ControllerName, type SourceFile, type VariableName } from '../../../../types/upstream/names';
+import type { LaravelControllerRequestSemanticBinding, LaravelControllerRequestSemanticBinding as RequestBindingJudgment } from '../../../../types/upstream/laravelControllerRequestSemanticBinding';
+import { createActionName, type ActionName, type ControllerName, type SourceFile } from '../../../../types/upstream/names';
 import type { RouteSchemaPayload } from '../../../../types/route';
-import { ScannedFormRequestDescriptor, type ResponseDescriptor } from '../../../../types/route';
 import type { ControllerMethodAst, ControllerParameterAst, PhpParameterTypeAst } from '../../lexer/controllerAstTypes';
 import type { ControllerRuntimeReturn } from '../../../../types/domain/controllerExpression';
-import type { ControllerContextualAttributeName, ControllerDependency, ControllerDependencyInjection, ControllerDependencyResolution, ControllerVariableSemantic } from '../../../../types/upstream/controller';
-import { mapResourcePhpAstToUpstream } from '../../subscanners/resource/resourceUpstreamExpressionCanonical';
-import { resolveResponseAttributeAst } from '../../subscanners/controller/responseAttributeScanner';
-import { VoidResponseDescriptor } from '../../../../types/route';
-import { resolveControllerBody, type ControllerBodyResolution } from '../../subscanners/controller/controllerBodyResolver';
-import { resolveActionSchema } from '../../subscanners/controller/actionValidationExtractor';
-import { createControllerDataflowContract, createControllerReturnSet, type ControllerDataflowContract, type ControllerReturnSet, type ControllerResourceResponseEvidence } from '../../subscanners/controller/controllerDataflowContract';
-import { controllerReturnSemanticFromMethod } from '../../subscanners/controller/controllerAstCanonical';
-import { expressionFromPhpAst } from '../../subscanners/expressionProducer';
-import type { ExpressionArgument, ExpressionArguments } from '../../../../types/upstream/expression';
-import { sequence } from '../../subscanners/resource/resourceUpstreamExpressionMappings';
+import type { PhpParameterTypeEvidence } from '../../../../types/upstream/phpParameterTypeInterface';
+import type { LaravelControllerRequestBindingEvidence } from '../../../../types/upstream/laravelControllerRequestSemanticBindingInterface';
+import { laravelControllerRequestSemanticBindingAuthority } from '../../../../types/upstream/laravelControllerRequestSemanticBindingAuthority';
+import { createRequestName } from '../../../../types/upstream/names';
+import type { ControllerDependency, ControllerResponseReferenceJudgment } from '../../../../types/upstream/controller';
+import type { ControllerDataflowAst } from '../../lexer/controllerBodyAstTypes';
+import type { PhpStatement } from '../../lexer/phpAstTypes';
+import type { ControllerBodySemanticJudgment } from '../../../../types/upstream/controllerBodySemanticJudgmentInterface';
+import type { ControllerActionSchemaSemanticJudgment } from '../../../../types/upstream/controllerActionSchemaSemanticJudgmentInterface';
+import type { SourceRange } from '../../lexer/phpAstTypes';
+import type { ControllerSemanticVariableFlow, ControllerModelOrigin } from '../../../../types/upstream/controller';
+import type { ControllerDataflowSemanticJudgment } from '../../../../types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface';
+import type { ControllerDataflowDefinitionPayloadMetadata } from '../../../../types/upstream/controllerDataflowBindingPayloadCorrespondenceInterface';
 
 export interface ControllerActionIdentity {
     readonly controllerName: ControllerName;
     readonly actionName: ActionName;
 }
 
-export type ControllerRequestBinding =
-    | { readonly kind: 'no_request' }
-    | { readonly kind: 'form_request'; readonly source: FormRequestSource }
-    | { readonly kind: 'framework_request'; readonly type: import('../../../../types/upstream/names').ClassName }
-    | { readonly kind: 'typed'; readonly type: PhpParameterTypeAst };
+export type ControllerRequestBinding = LaravelControllerRequestSemanticBinding;
 
 /**
  * Controller-level request fact. It intentionally does not masquerade as the
@@ -36,7 +31,26 @@ export type ControllerRequestBinding =
  */
 export type RequestContract = ControllerRequestBinding;
 
+export type FormRequestSourceIndex = readonly (readonly [string, FormRequestSource])[];
+
 export type RuntimeReturnContract = ControllerRuntimeReturn;
+
+export interface ControllerActionResourceBinding {
+    readonly resourceName: import('../../../../types/domain/semanticValues').ResourceName;
+    readonly model: ControllerModelOrigin;
+    readonly response: import('../../../../types/upstream/semanticReferences').ResponseReference;
+    readonly source: SourceRange;
+}
+
+export interface ControllerActionBodyEvidenceProjection {
+    readonly statements: readonly PhpStatement[];
+    readonly dataflow: ControllerDataflowAst;
+}
+
+export interface ControllerActionDataflowContract {
+    readonly semantic: ControllerSemanticVariableFlow;
+    readonly resourceBindings: readonly ControllerActionResourceBinding[];
+}
 
 export interface ControllerActionContract {
     readonly identity: ControllerActionIdentity;
@@ -44,288 +58,129 @@ export interface ControllerActionContract {
     /** All container-resolved controller dependencies attached to this action, including constructor injection. */
     readonly dependencies: readonly ControllerDependency[];
     readonly request: RequestContract;
-    readonly response: ResponseDescriptor;
+    /** Canonical response-presence ADT shared by return semantics, dataflow, and action judgment. */
+    readonly responseReferenceJudgment: ControllerResponseReferenceJudgment;
     readonly runtimeReturn: RuntimeReturnContract;
     readonly semanticReturn: import('../../../../types/upstream/controller').ControllerReturnSemantic;
-    readonly body: ControllerBodyResolution;
-    readonly dataflow: ControllerDataflowContract;
+    readonly body: ControllerActionBodyEvidenceProjection;
+    readonly bodySemanticJudgment: ControllerBodySemanticJudgment<SourceFile>;
+    readonly schemaSemanticJudgment: ControllerActionSchemaSemanticJudgment<SourceFile>;
+    readonly dataflow: ControllerActionDataflowContract;
+    /** Exact upstream dataflow judgment carried by the parsed semantic body. */
+    readonly dataflowJudgment: ControllerDataflowSemanticJudgment<ControllerDataflowDefinitionPayloadMetadata>;
     readonly schema: RouteSchemaPayload;
     readonly sourceFile: SourceFile;
     readonly sourceLine: number;
 }
 
-export interface ControllerActionContractResolverContext {
-    readonly formRequestIndex: RelationIndex<string, FormRequestSource>;
-    readonly sourceProject: SourceProjectIdentity;
-    /** Controller constructor parameters are resolved by the container across each action on the controller. */
-    readonly constructorParameters?: readonly ControllerParameterAst[];
-    readonly customContextualAttributeNames?: RelationMembership<string>;
+/**
+ * Adapt parsed parameter facts into the existing upstream request-binding authority.
+ * This function prepares evidence only; request-kind selection and PHP type resolution
+ * remain owned by laravelControllerRequestSemanticBindingAuthority.
+ */
+export function controllerRequestBindingEvidenceFromMethod(
+    method: ControllerMethodAst,
+    formRequestIndex: FormRequestSourceIndex,
+): LaravelControllerRequestBindingEvidence {
+    const requestTypeEvidence = (type: PhpParameterTypeAst): PhpParameterTypeEvidence => {
+        switch (type.kind) {
+            case 'primitive': return Object.freeze({ kind: 'primitive', name: type.name });
+            case 'named': return Object.freeze({ kind: 'named', name: type.name });
+            case 'nullable': return Object.freeze({ kind: 'nullable', inner: requestTypeEvidence(type.inner) });
+        }
+    };
+    const evidence: LaravelControllerRequestBindingEvidence = Object.freeze({
+        kind: 'controller_method_parameters',
+        parameters: Object.freeze(method.parameters.map(parameter => {
+            switch (parameter.semantic.kind) {
+                case 'request_origin':
+                    return Object.freeze({
+                        kind: 'request_origin' as const,
+                        requestType: createRequestName(parameter.semantic.name.value.value),
+                        declaredType: requestTypeEvidence(parameter.type),
+                    });
+                case 'model_origin':
+                case 'external':
+                case 'expression':
+                    return Object.freeze({ kind: 'non_request_parameter' as const });
+            }
+        })),
+        formRequests: Object.freeze(formRequestIndex.map(([name, source]) => Object.freeze({
+            requestType: createRequestName(name),
+            source,
+        }))),
+    });
+    return evidence;
 }
 
-import { relationAny, relationEqual } from '../../../../semantic/foundation/semanticRelations';
-import { relationContains, type RelationMembership } from '../../../../semantic/foundation/relationMembership';
-import { relationFirstOption, relationGate, relationIsNone, relationIsPresent, relationNone, relationOptionFold, relationProject, relationSelect, relationSome, relationVariantValue, type RelationOption, type RelationVariant } from '../../../../semantic/foundation/relationalSequence';
+/** Compatibility path for legacy callers; the production authority wiring consumes evidence directly. */
+export function controllerRequestBindingJudgmentFromMethod(
+    method: ControllerMethodAst,
+    formRequestIndex: FormRequestSourceIndex,
+): LaravelControllerRequestSemanticBinding {
+    return laravelControllerRequestSemanticBindingAuthority.judge(
+        controllerRequestBindingEvidenceFromMethod(method, formRequestIndex),
+    );
+}
+
+/**
+ * The resolver receives completed upstream judgments and performs projection only.
+ * Semantic authorities close these products before invoking this boundary.
+ */
+export interface ControllerActionContractResolverContext {
+    readonly requestBindingJudgment: RequestBindingJudgment;
+    /** Canonical upstream dataflow judgment; semantic variables are never re-derived from body AST. */
+    readonly dataflowJudgment: ControllerDataflowSemanticJudgment<ControllerDataflowDefinitionPayloadMetadata>;
+    readonly bodyJudgment: ControllerBodySemanticJudgment<SourceFile>;
+    readonly responseReferenceJudgment: ControllerResponseReferenceJudgment;
+    readonly semanticReturn: import('../../../../types/upstream/controller').ControllerReturnSemantic;
+    readonly resourceBindings: readonly ControllerActionResourceBinding[];
+    readonly schemaSemanticJudgment: ControllerActionSchemaSemanticJudgment<SourceFile>;
+    readonly dependencies: readonly ControllerDependency[];
+    readonly runtimeReturn: ControllerRuntimeReturn;
+}
+
 export function resolveControllerActionContract(
     method: ControllerMethodAst,
     controllerName: ControllerName,
     sourceFile: SourceFile,
     context: ControllerActionContractResolverContext
 ): ControllerActionContract {
-    const body = resolveControllerBody(method.body);
-    const returned = createControllerReturnSet(relationProject(method.returns, item => item.expression));
-    const response = resolveResponse(method, context.sourceProject, returned);
-    const semanticReturn = relationGate(
-        relationEqual(response.kind, 'resource'),
-        () => controllerReturnSemanticFromMethod(method, sourceFile.value.value, {
-            kind: 'response_present',
-            response: { kind: 'response_reference', name: response.responseTypeName() },
-        }) as import('../../../../types/upstream/controller').ControllerReturnSemantic,
-        () => controllerReturnSemanticFromMethod(method, sourceFile.value.value, { kind: 'response_absent' }) as import('../../../../types/upstream/controller').ControllerReturnSemantic,
-    );
-    const resourceResponse: ControllerResourceResponseEvidence = relationGate(
-        relationEqual(response.kind, 'resource'),
-        () => ({ kind: 'present', response: { kind: 'response_reference', name: response.responseTypeName() } }),
-        () => ({ kind: 'absent' }) as ControllerResourceResponseEvidence,
-    );
-    const dataflow = createControllerDataflowContract(body.dataflow, method.parameters, returned, resourceResponse, sourceFile.value.value);
-    const request = resolveRequest(method.parameters, context.formRequestIndex);
-    const constructorParameters = relationOptionFold(
-        relationFirstOption([context.constructorParameters], (candidate): candidate is readonly ControllerParameterAst[] => Object.is(typeof candidate, 'object')),
-        () => [] as readonly ControllerParameterAst[],
-        value => value,
-    );
-    const contextualNames = relationOptionFold(
-        relationFirstOption([context.customContextualAttributeNames], (candidate): candidate is RelationMembership<string> => Object.is(typeof candidate, 'object')),
-        () => Object.freeze([] as string[]),
-        value => value,
-    );
-    const constructorDependencies = resolveConstructorDependencies(constructorParameters, contextualNames);
-    const methodDependencies = resolveMethodDependencies(method.parameters, contextualNames);
-    const dependencies = Object.freeze([...constructorDependencies, ...methodDependencies]);
+    const body: ControllerActionBodyEvidenceProjection = Object.freeze({
+        statements: Object.freeze([...method.body.statements]),
+        dataflow: method.body.dataflow,
+    });
+    const dataflow: ControllerActionDataflowContract = Object.freeze({
+        semantic: context.dataflowJudgment.semanticVariables,
+        resourceBindings: context.resourceBindings,
+    });
     return Object.freeze({
         identity: Object.freeze({ controllerName, actionName: createActionName(method.name) }),
         parameters: Object.freeze([...method.parameters]),
-        request,
-        response,
-        dependencies,
-        runtimeReturn: resolveRuntimeReturn(method),
-        semanticReturn,
+        request: context.requestBindingJudgment,
+        responseReferenceJudgment: context.responseReferenceJudgment,
+        dependencies: context.dependencies,
+        runtimeReturn: context.runtimeReturn,
+        semanticReturn: context.semanticReturn,
         body,
+        bodySemanticJudgment: context.bodyJudgment,
+        schemaSemanticJudgment: context.schemaSemanticJudgment,
         dataflow,
-        schema: resolveSchema(request, body),
+        dataflowJudgment: context.dataflowJudgment,
+        schema: context.schemaSemanticJudgment.derivation.schema,
         sourceFile,
         sourceLine: method.source.line,
     });
 }
 
-function controllerParameterClassName(semantic: ControllerVariableSemantic): RelationOption<string> {
-    return relationGate(
-        relationEqual(semantic.kind, 'model_origin'),
-        () => {
-            const origin = semantic.origin;
-            return relationGate(
-                relationEqual(origin.kind, 'model_class'),
-                () => relationSome(origin.name.value.value),
-                () => relationNone<string>(),
-            );
-        },
-        () => relationGate(
-            relationEqual(semantic.kind, 'request_origin'),
-            () => relationSome(semantic.name.value.value),
-            () => relationNone<string>(),
-        ),
-    );
-}
-
-function resolveConstructorDependencies(
-    parameters: readonly ControllerParameterAst[],
-    customContextualAttributeNames: RelationMembership<string>
-): readonly ControllerDependency[] {
-    const candidates = relationProject(parameters, parameter => {
-        const type = controllerParameterClassName(parameter.semantic);
-        return relationOptionFold(type, () => relationNone<ControllerDependency>(), typeName => relationSome<ControllerDependency>({
-            kind: 'controller_dependency',
-            injection: { kind: 'constructor' } satisfies ControllerDependencyInjection,
-            resolution: resolveDependencyResolution(parameter, customContextualAttributeNames),
-            parameter: createVariableName(parameter.name),
-            type: createClassName(typeName),
-        }));
-    });
-    return Object.freeze(relationProject(relationSelect(candidates, relationIsPresent), candidate => relationOptionFold(candidate, () => { throw Error('unreachable relation absence'); }, value => value)));
-}
-
-function resolveMethodDependencies(
-    parameters: readonly ControllerParameterAst[],
-    customContextualAttributeNames: RelationMembership<string>
-): readonly ControllerDependency[] {
-    const candidates = relationProject(parameters, parameter => {
-        const type = controllerParameterClassName(parameter.semantic);
-        return relationOptionFold(type, () => relationNone<ControllerDependency>(), typeName => {
-            const contextualResolution = resolveContextualAttributeResolution(parameter, customContextualAttributeNames);
-            const excluded = relationAny([
-                relationIsPresent(contextualResolution),
-                relationEqual(parameter.semantic.kind, 'model_origin'),
-                relationEqual(parameter.semantic.kind, 'request_origin'),
-            ]);
-            return relationGate(excluded, () => relationNone<ControllerDependency>(), () => relationSome<ControllerDependency>({
-                kind: 'controller_dependency',
-                injection: { kind: 'method' } satisfies ControllerDependencyInjection,
-                resolution: resolveDependencyResolution(parameter, customContextualAttributeNames),
-                parameter: createVariableName(parameter.name),
-                type: createClassName(typeName),
-            }));
-        });
-    });
-    return Object.freeze(relationProject(relationSelect(candidates, relationIsPresent), candidate => relationOptionFold(candidate, () => { throw Error('unreachable relation absence'); }, value => value)));
-}
-
-function resolveDependencyResolution(parameter: ControllerParameterAst, customContextualAttributeNames: RelationMembership<string>): ControllerDependencyResolution {
-    return relationOptionFold(resolveContextualAttributeResolution(parameter, customContextualAttributeNames), () => ({ kind: 'container' as const }), value => value);
-}
-
-function resolveContextualAttributeResolution(
-    parameter: ControllerParameterAst,
-    customContextualAttributeNames: RelationMembership<string>
-): RelationOption<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>> {
-    const candidates = relationProject(parameter.attributes, attribute => {
-        const known = contextualAttributeName(attribute.name);
-        return relationOptionFold<ControllerContextualAttributeName, RelationOption<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>>(known,
-            () => {
-                const normalized = relationOptionFold(
-                    relationFirstOption(attribute.name.split('\\').reverse(), value => value.length > 0),
-                    () => attribute.name,
-                    value => value,
-                );
-                const custom = relationAny([
-                    relationContains(customContextualAttributeNames, attribute.name),
-                    relationContains(customContextualAttributeNames, normalized),
-                ]);
-                return relationGate(custom, () => relationSome<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>({
-                    kind: 'contextual_attribute',
-                    attribute: {
-                        kind: 'custom_contextual_attribute',
-                        name: createClassName(attribute.name),
-                        arguments: expressionArgumentsFromParameterAttribute(attribute, '<controller-parameter>'),
-                    },
-                }), () => relationNone<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>());
-            },
-            name => relationSome<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>({
-                kind: 'contextual_attribute',
-                attribute: {
-                    kind: 'laravel_contextual_attribute',
-                    name,
-                    arguments: expressionArgumentsFromParameterAttribute(attribute, '<controller-parameter>'),
-                },
-            }),
-        );
-    });
-    return relationOptionFold(relationFirstOption(candidates, relationIsPresent), () => relationNone<RelationVariant<ControllerDependencyResolution, 'contextual_attribute'>>(), candidate => candidate);
-}
-
-const FRAMEWORK_REQUEST_TYPE_KNOWLEDGE: Readonly<Record<string, true>> = Object.freeze({
-    Request: true,
-    'Illuminate\\Http\\Request': true,
-});
-
-const CONTEXTUAL_ATTRIBUTE_KNOWLEDGE: Readonly<Record<string, ControllerContextualAttributeName>> = Object.freeze({
-    Auth: 'auth',
-    Authenticated: 'authenticated',
-    Cache: 'cache',
-    Config: 'config',
-    Context: 'context',
-    DB: 'db',
-    Database: 'database',
-    Give: 'give',
-    Log: 'log',
-    RequestAttribute: 'request_attribute',
-    RouteParameter: 'route_parameter',
-    Storage: 'storage',
-    Tag: 'tag',
-    CurrentUser: 'current_user',
-});
-
-function contextualAttributeName(value: string): RelationOption<ControllerContextualAttributeName> {
-    const normalized = relationOptionFold(
-        relationFirstOption(value.split('\\').reverse(), item => item.length > 0),
-        () => value,
-        item => item,
-    );
-    return relationFirstOption([CONTEXTUAL_ATTRIBUTE_KNOWLEDGE[normalized]], (candidate): candidate is ControllerContextualAttributeName => relationEqual(typeof candidate, 'string'));
-}
-
-function expressionArgumentsFromParameterAttribute(attribute: ControllerParameterAst['attributes'][number], file: string): ExpressionArguments {
-    const items: readonly ExpressionArgument[] = relationProject(attribute.arguments, argument => relationGate(
-        relationEqual(argument.kind, 'positional'),
-        () => ({ kind: 'positional', value: expressionFromPhpAst(argument.value, file) }),
-        () => relationGate(
-            relationEqual(argument.kind, 'unpacked'),
-            () => ({ kind: 'unpacked', value: expressionFromPhpAst(argument.value, file) }),
-            () => {
-                const named = relationVariantValue(argument, 'named');
-                return {
-                    kind: 'named',
-                    name: { kind: 'expression_argument_name', value: { kind: 'string_value', value: named.name } },
-                    value: expressionFromPhpAst(named.value, file),
-                };
-            },
-        ),
-    ));
-    return {
-        kind: 'expression_arguments',
-        items: sequence(items),
-    };
-}
-
-function createVariableName(value: string): VariableName {
-    return { kind: 'variable_name', value: { kind: 'string_value', value } };
+export function schemaRequestEvidence(request: RequestContract): ControllerActionSchemaRequestEvidence {
+    switch (request.kind) {
+        case 'form_request': return Object.freeze({ kind: 'form_request_schema_evidence', source: request.source });
+        case 'no_request': return Object.freeze({ kind: 'no_form_request_schema_evidence' });
+        case 'framework_request': return Object.freeze({ kind: 'no_form_request_schema_evidence' });
+        case 'typed': return Object.freeze({ kind: 'no_form_request_schema_evidence' });
+        case 'typed_unresolved': return Object.freeze({ kind: 'no_form_request_schema_evidence' });
+    }
 }
 
 
-function resolveRequest(
-    parameters: readonly ControllerParameterAst[],
-    formRequestIndex: RelationIndex<string, FormRequestSource>
-): RequestContract {
-    const candidates = relationProject(parameters, parameter => {
-        const typeName = relationGate(
-            relationEqual(parameter.semantic.kind, 'request_origin'),
-            () => relationSome(parameter.semantic.name.value.value),
-            () => relationNone<string>(),
-        );
-        return relationOptionFold(typeName, () => relationNone<RequestContract>(), name => {
-            const source = relationIndexLookup(formRequestIndex, name);
-            return relationGate(
-                relationEqual(source.kind, 'some'),
-                () => relationOptionFold(source, () => relationNone<RequestContract>(), value => relationSome<RequestContract>({ kind: 'form_request', source: value })),
-                () => relationGate(
-                    relationEqual(FRAMEWORK_REQUEST_TYPE_KNOWLEDGE[name], true),
-                    () => relationSome<RequestContract>({ kind: 'framework_request', type: SemanticValueFactory.className(name) }),
-                    () => relationNone<RequestContract>(),
-                ),
-            );
-        });
-    });
-    return relationOptionFold(relationFirstOption(candidates, relationIsPresent), () => ({ kind: 'no_request' as const }), candidate => relationOptionFold(candidate, () => ({ kind: 'no_request' as const }), value => value));
-}
-
-function resolveResponse(method: ControllerMethodAst, sourceProject: SourceProjectIdentity, returned: ControllerReturnSet): ResponseDescriptor {
-    return relationGate(
-        relationEqual(method.responseAttribute.kind, 'absent'),
-        () => VoidResponseDescriptor.create(),
-        () => resolveResponseAttributeAst(relationVariantValue(method.responseAttribute, 'declared'), sourceProject, returned),
-    );
-}
-
-function resolveRuntimeReturn(method: ControllerMethodAst): RuntimeReturnContract {
-    return relationGate(
-        relationEqual(method.returns.length, 0),
-        () => ({ kind: 'none' as const }),
-        () => ({
-            kind: 'expressions',
-            expressions: Object.freeze(relationProject(method.returns, item => mapResourcePhpAstToUpstream(item.expression, '<controller-action>'))),
-        }),
-    );
-}
-
-function resolveSchema(request: RequestContract, body: ControllerBodyResolution): RouteSchemaPayload {
-    return resolveActionSchema(request, body.schema);
-}

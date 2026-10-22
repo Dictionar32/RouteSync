@@ -17,6 +17,7 @@ import { toIndexFn, toShowFn } from './endpointAdapters'
 
 import {
   type HookConfig,
+  type CrudGroupExecutionContract,
   type InvalidateList,
   type InferResponse,
   type InferBody,
@@ -52,14 +53,15 @@ import {
 import {
   resolveAndWrapIntent,
   getHookMethodResult,
-  resolveMutation
+  resolveMutation,
+  type DomainIntentRuntimeManifest
 } from './define/intentWrapper'
 
 // ============================================================================
 // Active Consumer: defineHooks Pure Flow Orchestrator
 // ============================================================================
 
-export function defineHooks<TConfig extends Record<string, HookConfig>, TManifest = unknown>(
+export function defineHooks<TConfig extends Record<string, HookConfig>, TManifest extends DomainIntentRuntimeManifest = DomainIntentRuntimeManifest>(
   config: TConfig,
   runtimeManifest?: TManifest
 ): { [K in keyof TConfig]: HooksForGroup<TConfig, TConfig[K], K & string, TManifest> } {
@@ -71,8 +73,8 @@ export function defineHooks<TConfig extends Record<string, HookConfig>, TManifes
     const group = groupConfig.endpoint as Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>
     const groupQueryKeys = groupConfig.queryKey as Record<string, (...args: unknown[]) => readonly unknown[]> | undefined
 
-    const slots = resolveGroupSlots(group)
-    const extras = resolveGroupExtras(group, groupConfig, groupQueryKeys)
+    const slots = resolveGroupSlots(groupConfig.crudSlots)
+    const extras = resolveGroupExtras(groupConfig, groupQueryKeys, groupConfig.crudSlots)
     const { listKey, detailKey } = resolveGroupQueryKeyFns(groupName, groupConfig, groupQueryKeys)
 
     const crudHooks = createCrudHooks({
@@ -82,7 +84,7 @@ export function defineHooks<TConfig extends Record<string, HookConfig>, TManifes
       service: {
         index:      slots.indexService      ? toIndexFn(slots.indexService) : undefined,
         show:       slots.showService       ? toShowFn(slots.showService as EndpointCallable<unknown, Record<string, unknown>, unknown, HttpMethod>, slots.showParamKey!) : undefined,
-        create:     group.create            ?? undefined,
+        create:     slots.createService     ?? undefined,
         update:     slots.updateService
           ? (id: number, data: unknown) => slots.updateService!({ params: { [slots.updateParamKey!]: id }, body: data })
           : undefined,
@@ -127,6 +129,7 @@ export function defineHooks<TConfig extends Record<string, HookConfig>, TManifes
 
 export {
   type HookConfig,
+  type CrudGroupExecutionContract,
   type InvalidateList,
   type InferResponse,
   type InferBody,

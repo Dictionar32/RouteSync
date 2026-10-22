@@ -1,0 +1,61 @@
+{
+  "phase": 1550,
+  "title": "Scanner reasoning inventory and upstream authority consolidation",
+  "passed": 8,
+  "total": 9,
+  "inventory": {
+    "sourceFiles": 488,
+    "productionFiles": 382,
+    "testFiles": 106,
+    "filesWithReasoningSignals": 198,
+    "filesWithDirectSolverCalls": 5,
+    "productionFilesWithDirectSolverCalls": 0
+  },
+  "checks": [
+    {
+      "name": "all-scanner-typescript-files-accounted-for",
+      "passed": true,
+      "detail": "488 TS/TSX files have an inventory record."
+    },
+    {
+      "name": "constraint-calculus-scanner-path-is-facade",
+      "passed": true,
+      "detail": "Scanner compatibility module contains exports only, not constraint reasoning or solver orchestration."
+    },
+    {
+      "name": "relational-reasoning-cluster-is-upstream-owned",
+      "passed": true,
+      "detail": "Six scanner entrypoints are compatibility facades; relation program validation, theory, catalog, kernel, closure, and constraint calculus implementations live upstream."
+    },
+    {
+      "name": "upstream-semantic-owners-do-not-import-scanner",
+      "passed": true,
+      "detail": "The moved upstream semantic owners do not depend back on scanner implementation modules."
+    },
+    {
+      "name": "constraint-authority-uses-foundation-solver",
+      "passed": true,
+      "detail": "Constraint filtering and iterative closure live in upstream authority and reuse the foundation solver."
+    },
+    {
+      "name": "executor-delegates-to-authority",
+      "passed": true,
+      "detail": "Runtime executor delegates constraint and generic relation execution to one injected authority."
+    },
+    {
+      "name": "behavior-kernel-does-not-call-solver-directly",
+      "passed": true,
+      "detail": "Scanner behavior-kernel facade no longer owns generic relation closure."
+    },
+    {
+      "name": "resource-mapping-consumers-use-runtime-interface",
+      "passed": false,
+      "detail": "Resource mapping consumers use the canonical upstream runtime binding, do not instantiate per-consumer executors, and do not invoke the solver directly."
+    },
+    {
+      "name": "inventory-explicitly-preserves-unmigrated-frontiers",
+      "passed": true,
+      "detail": "The report does not claim the entire scanner has been purged of semantic reasoning."
+    }
+  ]
+}

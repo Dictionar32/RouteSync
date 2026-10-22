@@ -327,8 +327,8 @@ export {
     type ParsedPhpArrayResult,
     PhpAstFactory,
     type SourceStream,
-    tokenizePhpSource,
-    parsePhpArray,
+    phpSourceTokenizer,
+    phpArrayParser,
     classifyAstTokens,
     classifyAstValue,
     LaravelSourceLexer

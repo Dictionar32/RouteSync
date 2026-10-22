@@ -7,8 +7,8 @@
  */
 
 import type { ResolvedPrimitiveType } from './base';
-import { relationOptionFold, relationRefine } from '../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../semantic/foundation/semanticRelations';
+import { relationOptionFold, relationRefine } from '../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 import type {
     ResolvedReferenceType,
     ResolvedOptionalType,

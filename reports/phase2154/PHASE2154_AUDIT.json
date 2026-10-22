@@ -1,0 +1,117 @@
+{
+  "phase": 2154,
+  "title": "Canonical Action Judgment Publication and Route Boundary Wiring — Interface First",
+  "passed": 22,
+  "total": 26,
+  "checks": [
+    {
+      "name": "controller scanner preserves the exact action judgment from the existing executor",
+      "passed": false
+    },
+    {
+      "name": "controller artifact publishes source-correlated canonical action judgments",
+      "passed": true
+    },
+    {
+      "name": "publication retains the full semantic judgment with a stable projection identity",
+      "passed": false
+    },
+    {
+      "name": "route scanner consumes published judgments from the existing controller artifact",
+      "passed": true
+    },
+    {
+      "name": "route identity correlation distinguishes matched, unmatched, and ambiguous outcomes",
+      "passed": true
+    },
+    {
+      "name": "route boundary request projection consumes the canonical judgment",
+      "passed": true
+    },
+    {
+      "name": "unmatched and ambiguous action correlation remain explicit request ADT variants",
+      "passed": true
+    },
+    {
+      "name": "endpoint ADT preserves unresolved action correlation rather than no-input",
+      "passed": true
+    },
+    {
+      "name": "request derivation solver excludes unresolved action correlation from FormRequest aggregation",
+      "passed": true
+    },
+    {
+      "name": "all five canonical request variants are projected explicitly",
+      "passed": true
+    },
+    {
+      "name": "typed and unresolved request variants survive endpoint projection",
+      "passed": true
+    },
+    {
+      "name": "existing route binding authority remains owner of target-resolution judgment",
+      "passed": true
+    },
+    {
+      "name": "controller publication and prepared route-operation contracts retain their versions",
+      "passed": false
+    },
+    {
+      "name": "typed request projection-loss obligation no longer claims the route boundary is unwired",
+      "passed": false
+    },
+    {
+      "name": "no relation/foundation or new subscanner layer added",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/laravelRouteScannerInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/domain/request.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/endpointBindings.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/highLevelSourceModel.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/types/upstream/routeCapabilitySemanticAuthority.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts",
+      "passed": true
+    },
+    {
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts",
+      "passed": true
+    }
+  ],
+  "limitations": [
+    "Full TypeScript typecheck, build, and Vitest were not run.",
+    "The action semantic authority still delegates derivation through the legacy action adapter.",
+    "When route target correlation is unmatched or ambiguous, the route and endpoint request ADTs retain an explicit unresolved-action outcome; the existing route binding authority still owns target-resolution judgment."
+  ]
+}

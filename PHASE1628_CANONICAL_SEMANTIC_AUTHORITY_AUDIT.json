@@ -1,0 +1,35 @@
+{
+  "phase": 1628,
+  "title": "Canonical Semantic Authority Pipeline",
+  "scope": [
+    "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+    "packages/core/src/types/upstream/semanticClosureEngine.ts",
+    "packages/core/src/types/upstream/semanticRelationProgram.ts",
+    "packages/core/src/semantic/foundation",
+    "packages/core/src/compiler/scanner"
+  ],
+  "staticAudit": {
+    "phase1628": { "passed": 9, "failed": 0 },
+    "phase1627": { "passed": 6, "failed": 0 },
+    "phase1626": { "passed": 8, "failed": 0 },
+    "phase1624": { "passed": 5, "failed": 0 },
+    "phase1587": { "passed": 6, "failed": 0, "status": "passed_with_legacy_cutover_open" },
+    "phase1589": { "passed": 6, "failed": 0 }
+  },
+  "dependencyFinding": {
+    "scannerFilesDirectlyReferencingSemanticFoundation": 163,
+    "semanticFoundationDeletionSafe": false,
+    "reason": "The folder owns shared relation algebra and generic rewrite machinery consumed across scanner and non-scanner compiler layers."
+  },
+  "typecheck": {
+    "status": "blocked_by_environment_and_compiler_version",
+    "typescriptVersion": "5.8.3",
+    "reasons": [
+      "project targets ES2025, unsupported by installed TypeScript 5.8.3",
+      "node type definitions unavailable because node_modules is absent",
+      "vitest/globals type definitions unavailable because node_modules is absent"
+    ]
+  },
+  "buildAndVitest": "not_run_node_modules_absent"
+}

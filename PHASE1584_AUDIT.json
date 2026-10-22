@@ -1,0 +1,87 @@
+{
+  "phase": 1584,
+  "name": "semantic-pipeline-interface-first",
+  "scope": "upstream interface contract only; no scanner/wiring/authority/executor migration",
+  "checks": [
+    {
+      "name": "semantic reasoning has a dedicated source-evidence interface",
+      "passed": true,
+      "detail": "infer maps source evidence to a closed judgment"
+    },
+    {
+      "name": "proof verification is separate from inference",
+      "passed": true,
+      "detail": "verification checks an existing judgment rather than deriving one"
+    },
+    {
+      "name": "wiring has a single source-bound pipeline operation",
+      "passed": true,
+      "detail": "wiring consumes one closed authority assessment"
+    },
+    {
+      "name": "pipeline does not expose candidate assembly to wiring",
+      "passed": true,
+      "detail": "no candidate input on the source-bound pipeline interface"
+    },
+    {
+      "name": "consumer projection accepts judgment only",
+      "passed": true,
+      "detail": "projection has no raw source collections or policy arguments"
+    },
+    {
+      "name": "legacy low-level authority boundary remains distinct",
+      "passed": true,
+      "detail": "candidate adjudication is not confused with the public source-bound pipeline"
+    },
+    {
+      "name": "implementation untouched: packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts",
+      "passed": true,
+      "detail": "byte-for-byte identical to Phase 1583 baseline"
+    },
+    {
+      "name": "implementation untouched: packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts",
+      "passed": true,
+      "detail": "byte-for-byte identical to Phase 1583 baseline"
+    },
+    {
+      "name": "implementation untouched: packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationAuthority.ts",
+      "passed": true,
+      "detail": "byte-for-byte identical to Phase 1583 baseline"
+    },
+    {
+      "name": "implementation untouched: packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts",
+      "passed": true,
+      "detail": "byte-for-byte identical to Phase 1583 baseline"
+    },
+    {
+      "name": "implementation untouched: packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts",
+      "passed": true,
+      "detail": "byte-for-byte identical to Phase 1583 baseline"
+    }
+  ],
+  "passed": 11,
+  "total": 11,
+  "allPassed": true,
+  "validation": {
+    "phase": 1584,
+    "typescript_version": "5.8.3",
+    "interface_transpile_diagnostics": 0,
+    "strict_typecheck": {
+      "baseline_errors": 35,
+      "phase_errors": 35,
+      "diagnostics_identical_to_baseline": true
+    },
+    "package_build": {
+      "status": "blocked",
+      "reason": "tsdown executable unavailable in workspace",
+      "exit_code": 127
+    },
+    "audit": {
+      "passed": 11,
+      "total": 11
+    },
+    "scanner_aggregator_authority_wiring_executor_migrated": false,
+    "archive_root": "RouteSync/",
+    "claims_boundary": "Interface contract strengthened only; live wiring is not yet proven to consume it."
+  }
+}

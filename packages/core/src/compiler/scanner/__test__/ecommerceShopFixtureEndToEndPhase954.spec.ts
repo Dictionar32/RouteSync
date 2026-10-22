@@ -1,8 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import path from 'node:path';
-import { manifestBuilder } from '../wiring/upstreamManifestBuilder';
+import { manifestBuilderOperationPreparation } from '../wiring/upstreamManifestBuilder';
 import { createLaravelSourceProjectIdentity } from '../../../types/upstream/sourceProjectIdentity';
+import { createNotConnectedControllerInventoryReceipt } from './createNotConnectedControllerInventoryReceipt';
 import { createServiceGraphBuilder } from '../../graph/ServiceGraphBuilder';
+import { routeSyncManifestFlowProjection } from '../orchestrator/upstreamManifestScanner';
+import { routeSyncManifestGraphSurfaceFromFlow } from '../../../graph/RouteSyncManifestGraphProjection';
 import { isPolicySemanticRelation } from '../../../types/upstream/semanticReferences';
 import type { SemanticRelation } from '../../../types/upstream/semanticReferences';
 import type { Sequence } from '../../../types/upstream/collections';
@@ -14,14 +17,13 @@ const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): read
 
 describe('Phase 959 ecommerce production fixture end-to-end provenance', () => {
   test('consumes the canonical physical Laravel example through scanner, upstream semantic relations, and structural graph', async () => {
-    const manifest = await manifestBuilder.build(createLaravelSourceProjectIdentity(fixtureRoot));
-    const manifestFlow = Object.freeze({
-      kind: 'route_sync_manifest_flow' as const,
-      version: manifest.version,
-      source: manifest.source,
-      sourceModel: manifest.sourceModel,
-      dataflowInputs: manifest.dataflowInputs,
-    });
+    const sourceProject = createLaravelSourceProjectIdentity(fixtureRoot);
+    const receipt = await createNotConnectedControllerInventoryReceipt(sourceProject);
+    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: { kind: 'laravel_route_source_selection_default' } }).build();
+    if (manifestJudgment.kind !== 'manifest_builder_complete') throw new Error(`Fixture manifest blocked: ${manifestJudgment.projection.kind}`);
+    const manifest = manifestJudgment.manifest;
+    const manifestFlow = routeSyncManifestFlowProjection.project(manifest);
+    const graphSurface = routeSyncManifestGraphSurfaceFromFlow(manifestFlow);
     const relations = sequenceToArray(manifest.sourceModel.relations.relations) as readonly SemanticRelation[];
     const policyRelations = relations.filter(isPolicySemanticRelation);
     const structuralRelations = relations.filter(relation => !isPolicySemanticRelation(relation));
@@ -33,7 +35,7 @@ describe('Phase 959 ecommerce production fixture end-to-end provenance', () => {
     expect(policyRelations.some(relation => relation.kind === 'controller_action_authorization_policy')).toBe(true);
     expect(structuralRelations.some(relation => relation.kind === 'route_controller')).toBe(true);
 
-    const graph = createServiceGraphBuilder().project(manifestFlow);
+    const graph = createServiceGraphBuilder().project(graphSurface);
     expect(graph).toBeDefined();
     expect(graph.controllers.size).toBeGreaterThan(0);
     expect(graph.edges.length).toBeGreaterThan(0);

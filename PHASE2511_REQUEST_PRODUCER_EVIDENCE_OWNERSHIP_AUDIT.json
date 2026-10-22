@@ -1,0 +1,52 @@
+{
+  "phase": 2511,
+  "scope": "RequestProducer evidence ownership boundary",
+  "checks": [
+    {
+      "name": "Upstream request producer contract has no compiler/parser imports",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/requestProducerInterface.ts"
+    },
+    {
+      "name": "Upstream request producer input parameterizes parser evidence instead of owning it",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/requestProducerInterface.ts"
+    },
+    {
+      "name": "Upstream operation contract carries evidence parameters through both operations",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/requestProducerInterface.ts"
+    },
+    {
+      "name": "Active producer binds evidence types at its implementation boundary",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/operations/requestProducer.ts"
+    },
+    {
+      "name": "Active producer has no direct relations/foundation imports",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/operations/requestProducer.ts"
+    },
+    {
+      "name": "Active scanner remains interface-first and outside subscanners",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/laravelFormRequestScanner.ts"
+    },
+    {
+      "name": "Legacy producer receives only a type-level generic specialization",
+      "passed": true,
+      "evidence": "packages/core/src/compiler/scanner/subscanners/requestProducer.ts"
+    },
+    {
+      "name": "Existing TypeInterner contract remains upstream-owned",
+      "passed": true,
+      "evidence": "packages/core/src/types/upstream/requestProducerInterface.ts"
+    }
+  ],
+  "unresolved": [
+    "requestAstCanonical.ts and operations/form-request/* still directly import semantic/relations.",
+    "TypeHasher.ts still imports semantic/relations; TypeInterner transitive relation closure is not proven.",
+    "The active Laravel pipeline still imports legacy subscanners for response, schema, migration, DTO, query, service, middleware, and provider.",
+    "Full TypeScript typecheck, package build, Vitest, and CLI end-to-end remain unverified in this environment."
+  ]
+}

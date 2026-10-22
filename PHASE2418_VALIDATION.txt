@@ -1,0 +1,44 @@
+RouteSync Phase2418 validation
+
+Active response consumer trace:
+  node scripts/audits/audit-phase2418-active-response-consumer-trace.cjs
+  PASS 11/11 assertions
+
+Blocked response consumer closure:
+  node scripts/audits/audit-phase2418-blocked-response-consumer-closure.cjs
+  PASS 10/10 assertions
+
+Response resource consumer regression:
+  node scripts/audits/audit-phase2416-integrated-response-resource-consumer.cjs
+  PASS 8/8 assertions (updated to assert canonical ADT handling and no descriptor fallback)
+
+Prior closure audits:
+  node scripts/audits/audit-phase2415-route-response-blocker-propagation.cjs
+  PASS 14/14 assertions
+  node scripts/audits/audit-phase2417-canonical-response-ir-handoff.cjs
+  PASS 13/13 assertions (structural check only; endpointRefs helper has no production call sites)
+  node scripts/audits/audit-phase2391-invocation-pipeline-executor-injection.cjs
+  PASS 10/10 assertions
+  node scripts/audits/audit-phase2397-integrated-response-composition-injection.cjs
+  PASS 8/8 assertions
+  node scripts/audits/audit-phase2398-controller-dataflow-operation-closure.cjs
+  PASS 10/10 assertions
+  node scripts/audits/audit-phase2399-invocation-judgment-manifest-cli-closure.cjs
+  PASS 8/8 assertions
+
+TypeScript syntax transpilation (global TypeScript 5.8.3):
+  shapeExtractor.ts
+  responseContribution.ts
+  endpointRefs.ts
+  endpointIrTypes.ts
+  PASS 4/4 files; zero syntax diagnostics
+
+Targeted TypeScript typecheck:
+  tsc --noEmit --pretty false --skipLibCheck --target ES2022 --module ESNext --moduleResolution Bundler packages/core/src/compiler/semantic/type-derivation/route-response/shapeExtractor.ts packages/core/src/compiler/semantic/request-type-derivation/responseContribution.ts
+  FAIL: 69 diagnostics in imported/other project files; zero diagnostics named either targeted production file.
+  This is not a successful project typecheck.
+
+Not run:
+  - Vitest (workspace dependencies/node_modules unavailable)
+  - npm package build
+  - live CLI scan/sync against a Laravel fixture

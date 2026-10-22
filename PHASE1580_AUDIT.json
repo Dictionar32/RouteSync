@@ -1,0 +1,54 @@
+{
+  "phase": 1580,
+  "audit": "single-owner-verification-coverage-contract",
+  "passed": 11,
+  "total": 11,
+  "checks": [
+    {
+      "name": "all 11 authority decision rules remain uniquely registered",
+      "passed": true
+    },
+    {
+      "name": "rule coverage is exhaustive through a mapped type",
+      "passed": true
+    },
+    {
+      "name": "complete coverage binds the contract to the valid verification witness",
+      "passed": true
+    },
+    {
+      "name": "complete coverage no longer duplicates the verified-law ledger",
+      "passed": true
+    },
+    {
+      "name": "each successful outcome carries a correctly narrowed judgment and bound coverage",
+      "passed": true
+    },
+    {
+      "name": "failure and rejection proofs retain typed verification counterevidence",
+      "passed": true
+    },
+    {
+      "name": "contract and verification coverage failures carry non-empty missing-law ledgers",
+      "passed": true
+    },
+    {
+      "name": "assessment variants reference the proof as their sole decision evidence",
+      "passed": true
+    },
+    {
+      "name": "semantic authority interface returns the closed proof-carrying assessment",
+      "passed": true
+    },
+    {
+      "name": "scanner, authority implementation, and executor remain byte-for-byte unchanged",
+      "passed": true
+    },
+    {
+      "name": "contract documents that the successful verification witness has a single owner",
+      "passed": true
+    }
+  ],
+  "failures": [],
+  "scope": "upstream interface contract only; scanner wiring, authority implementation, and runtime executor remain unchanged"
+}

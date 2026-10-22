@@ -16,7 +16,7 @@ const boundary = Object.fromEntries(files.map(f => [f, {
   forbidden: (read(f).match(forbidden) || []).length,
   extractCasts: (read(f).match(extract) || []).length,
 }]));
-const relationSource = read('packages/core/src/semantic/kernel/relationalSequence.ts');
+const relationSource = read('packages/core/src/semantic/foundation/relationalSequence.ts');
 const solver = read('packages/core/src/semantic/kernel/semanticDecisionRewriteEngine.ts');
 const legacySolver = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts');
 const syntaxCore = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts');

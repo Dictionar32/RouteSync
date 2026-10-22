@@ -1,0 +1,27 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (label, condition) => { checks.push({ label, condition: Boolean(condition) }); console.log(`${condition ? 'PASS' : 'FAIL'} ${label}`); };
+const contract = read('packages/core/src/types/upstream/requestTypeDerivationInterface.ts');
+const algebra = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationGroupContributionAlgebra.ts');
+const reasoning = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticReasoning.ts');
+const test = read('packages/core/src/compiler/semantic/request-type-derivation/__test__/requestTypeDerivationGroupContributionAlgebra.phase2664.test.ts');
+const packageJson = JSON.parse(read('package.json'));
+check('upstream declares interface-first group fold input and operation', contract.includes('interface RequestTypeGroupFoldInput') && contract.includes('interface RequestTypeGroupContributionAlgebraInterface'));
+check('fold records before/incoming/after states and transition kind', algebra.includes('before: initial ?') && algebra.includes('    incoming,') && algebra.includes('after,') && algebra.includes("'initial_group' : 'merge_existing_group'"));
+check('action merge follows append/replace/retain policy', algebra.includes("kind: 'appended'") && algebra.includes("kind: 'replaced_existing'") && algebra.includes("kind: 'retained_existing'"));
+check('response merge distinguishes no incoming, accept, and retain', algebra.includes("kind: 'no_incoming_response'") && algebra.includes("kind: 'accepted_incoming'") && algebra.includes("kind: 'retained_existing'"));
+check('reasoning producer calls canonical group fold on source-bound route/request receipts', reasoning.includes('requestTypeDerivationGroupContributionAlgebra.fold') && reasoning.includes('requestTypeResolutionLedger') === false && reasoning.includes('preparedInput.requestResolutionLedger'));
+check('group receipts and route/group relations flow into proof', reasoning.includes('groupReceipts,') && reasoning.includes("relation: 'route_groups_by'") && reasoning.includes("relation: 'group_contains_route'"));
+check('resource responses reuse canonical response contributor and ResourceAst index', reasoning.includes('deriveActionResponseData(route, resourceIndex)') && reasoning.includes("responseProjection.product.result.kind === 'resource'") && reasoning.includes("kind: 'data', value: projectedResponse.value"));
+check('empty response requires correlated empty-response AST/ADT evidence', reasoning.includes('responseIsExplicitlyEmpty') && reasoning.includes("responseProjection.kind === 'empty_response'") && reasoning.includes("responseProjection.product.result.kind === 'no_content'"));
+check('unsupported response projections remain explicit typed gaps', reasoning.includes('correlated resource response or explicit empty-response evidence') && reasoning.includes('RequestTypeDerivationSemanticProducerGapError'));
+check('tests cover initial, replacement, and retention transitions', test.includes('initial group state') && test.includes('replaces an empty existing action') && test.includes('retains a nonempty existing action'));
+check('audit is registered in package scripts', packageJson.scripts?.['audit:phase2664-semantic-group-fold-source-wiring'] === 'node scripts/audits/audit-phase2664-semantic-group-fold-source-wiring.cjs');
+console.log(`\nPhase 2664 semantic group-fold source wiring: ${checks.filter(x => x.condition).length}/${checks.length} assertions passed.`);
+console.log('SCOPE: structural source audit only; does not claim TypeScript compilation, Vitest execution, full semantic verification, or all 34 proof laws.');
+process.exitCode = checks.every(x => x.condition) ? 0 : 1;

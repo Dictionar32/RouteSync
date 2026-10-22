@@ -1,0 +1,25 @@
+{
+  "phase": 2700,
+  "title": "Fully Typed Runtime Scanner Operations",
+  "status": "source_refactor_applied_static_checks_partial",
+  "changed_files": [
+    "packages/cli/src/commands/scan.ts",
+    "packages/cli/src/commands/sync.ts",
+    "packages/cli/src/index.ts"
+  ],
+  "checks": {
+    "scan_sync_factory_interfaces_added": true,
+    "scan_sync_factories_are_frozen_objects": true,
+    "index_runtime_call_sites_use_create_method": true,
+    "stale_direct_factory_calls_under_packages": true,
+    "phase2699_audit_script": "blocked_by_EACCES_on_report_output",
+    "typescript_typecheck": "not_run",
+    "build": "not_run",
+    "unit_tests": "not_run",
+    "cli_e2e": "not_run",
+    "typescript_transpile_syntax_3_of_3": true
+  },
+  "known_upstream_frontier": [
+    "Production semantic reasoning and independent proof verification remain incomplete; preserve fail-closed behavior."
+  ]
+}

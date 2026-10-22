@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "name": "Lint on Save",
+  "description": "Run ESLint after editing TypeScript or JavaScript files to catch issues immediately",
+  "version": "1.0.0",
+  "tags": [
+    "typescript",
+    "javascript",
+    "eslint",
+    "linting"
+  ],
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run lint"
+  },
+  "_sha": "3543dc751005ba1f37102c3d8f6b1707f275f6ba"
+}

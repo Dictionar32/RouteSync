@@ -7,8 +7,8 @@ import type { SemanticTypeResolverLike } from '../../semantic-resolver';
 import type { NullableWrapperResult, StageResult } from '../loweringContracts';
 import { convertResolvedTypeToResponseField } from './fieldConverter';
 import { NULLABLE_WRAPPER_RULES, resolveLoweringOperation } from '../../../../ir/semanticIRLoweringRelations';
-import { relationFirst, relationOptionFold, relationResolve } from '../../../../../semantic/foundation/relationalSequence';
-import { relationEqual } from '../../../../../semantic/foundation/semanticRelations';
+import { relationFirst, relationOptionFold, relationResolve } from '../../../../../semantic/relations/relationalSequence';
+import { relationEqual } from '../../../../../semantic/relations/semanticRelations';
 import type { ResolvedSemanticType } from '../../ResolvedSemanticType';
 
 export function resolveNullableWrapper(

@@ -1,4 +1,4 @@
-import type { EffectiveControllerActionPolicy } from './effectiveControllerActionPolicy';
+import type { EffectiveControllerActionPolicy, EffectiveControllerActionPolicyBlockReason } from './effectiveControllerActionPolicy';
 import type { RouteMiddlewareContract } from './routeMiddleware';
 import type { RouteReference, ControllerReference } from './semanticReferences';
 import type { SourceSpan } from './provenance';
@@ -13,6 +13,13 @@ export type RouteActionPolicyProvenance =
   | 'resource';
 
 export type RouteActionPolicyRelation = Readonly<{
+  readonly kind: 'route_action_policy_blocked';
+  readonly route: RouteReference;
+  readonly controller: ControllerReference;
+  readonly reasons: readonly EffectiveControllerActionPolicyBlockReason[];
+  readonly inheritedFrom: readonly import('./names').ControllerName[];
+  readonly source: readonly SourceSpan[];
+}> | Readonly<{
   readonly kind: 'route_action_middleware_policy';
   readonly route: RouteReference;
   readonly controller: ControllerReference;
@@ -30,6 +37,13 @@ export type RouteActionPolicyRelation = Readonly<{
   readonly source: SourceSpan;
 }>;
 
+const provenanceForScope = (scope: ControllerAuthorizationRelation['scope']): Extract<RouteActionPolicyProvenance, 'controller_class' | 'controller_method'> => {
+  switch (scope.kind) {
+    case 'method': return 'controller_method';
+    case 'class': return 'controller_class';
+  }
+};
+
 const controllerReferenceFromPolicy = (policy: EffectiveControllerActionPolicy): ControllerReference => ({
   kind: 'controller_reference',
   name: policy.controller,
@@ -39,26 +53,38 @@ const controllerReferenceFromPolicy = (policy: EffectiveControllerActionPolicy):
 export const routeActionPolicyRelationsFromEffectivePolicy = (
   route: RouteReference,
   policy: EffectiveControllerActionPolicy,
-): readonly RouteActionPolicyRelation[] => Object.freeze([
-  ...policy.middleware.map(entry => Object.freeze({
-    kind: 'route_action_middleware_policy' as const,
-    route,
-    controller: controllerReferenceFromPolicy(policy),
-    middleware: entry.middleware,
-    provenance: entry.source.kind,
-    inheritedFrom: policy.inheritedFrom,
-    source: policy.source,
-  })),
-  ...policy.authorization.map((relation: ControllerAuthorizationRelation) => Object.freeze({
-    kind: 'route_action_authorization_policy' as const,
-    route,
-    controller: controllerReferenceFromPolicy(policy),
-    arguments: relation.arguments,
-    provenance: relation.scope.kind === 'method' ? 'controller_method' as const : 'controller_class' as const,
-    inheritedFrom: policy.inheritedFrom,
-    source: relation.source,
-  })),
-]);
+): readonly RouteActionPolicyRelation[] => {
+  switch (policy.judgment.kind) {
+    case 'blocked': return Object.freeze([Object.freeze({
+      kind: 'route_action_policy_blocked' as const,
+      route,
+      controller: controllerReferenceFromPolicy(policy),
+      reasons: policy.judgment.reasons,
+      inheritedFrom: policy.inheritedFrom,
+      source: policy.source,
+    })]);
+    case 'complete': return Object.freeze([
+      ...policy.middleware.map(entry => Object.freeze({
+        kind: 'route_action_middleware_policy' as const,
+        route,
+        controller: controllerReferenceFromPolicy(policy),
+        middleware: entry.middleware,
+        provenance: entry.source.kind,
+        inheritedFrom: policy.inheritedFrom,
+        source: policy.source,
+      })),
+      ...policy.authorization.map((relation: ControllerAuthorizationRelation) => Object.freeze({
+        kind: 'route_action_authorization_policy' as const,
+        route,
+        controller: controllerReferenceFromPolicy(policy),
+        arguments: relation.arguments,
+        provenance: provenanceForScope(relation.scope),
+        inheritedFrom: policy.inheritedFrom,
+        source: relation.source,
+      })),
+    ]);
+  }
+};
 
 /**
  * Project already-canonical route middleware evidence before controller closure.
@@ -70,14 +96,33 @@ export const routeActionPolicyRelations = (
   controller: ControllerReference,
   middleware: readonly RouteMiddlewareContract[],
   source: SourceSpan,
-): readonly RouteActionPolicyRelation[] => Object.freeze(
-  middleware.map(entry => Object.freeze({
-    kind: 'route_action_middleware_policy' as const,
-    route,
-    controller,
-    middleware: entry.middleware,
-    provenance: entry.source.kind,
-    inheritedFrom: Object.freeze([] as import('./names').ControllerName[]),
-    source: [source],
-  })),
-);
+): readonly RouteActionPolicyRelation[] => {
+  const reasons = Object.freeze(middleware.flatMap(entry => {
+    switch (entry.scope.kind) {
+      case 'blocked': return [entry.scope.reason];
+      case 'all':
+      case 'only':
+      case 'except':
+      case 'only_except': return [];
+    }
+  }));
+  switch (reasons.length) {
+    case 0: return Object.freeze(middleware.map(entry => Object.freeze({
+      kind: 'route_action_middleware_policy' as const,
+      route,
+      controller,
+      middleware: entry.middleware,
+      provenance: entry.source.kind,
+      inheritedFrom: Object.freeze([] as import('./names').ControllerName[]),
+      source: [source],
+    })));
+    default: return Object.freeze([Object.freeze({
+      kind: 'route_action_policy_blocked' as const,
+      route,
+      controller,
+      reasons,
+      inheritedFrom: Object.freeze([] as import('./names').ControllerName[]),
+      source: [source],
+    })]);
+  }
+};

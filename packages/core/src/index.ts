@@ -827,6 +827,15 @@ export type { LaravelRouteSourceSelection, LaravelRouteSourceSelectionInterface 
 export type { ServiceGraphBuilderInterface } from './graph/ServiceGraphBuilderInterface'
 export { routeSyncManifestGraphProjection } from './graph/RouteSyncManifestGraphProjection'
 export type { RouteSyncManifestGraphSurface, RouteSyncManifestGraphProjectionInterface } from './graph/RouteSyncManifestGraphProjectionInterface'
+export {
+  routeSyncManifestFlowProjection,
+  routeSyncManifestDataflowProjection,
+  routeManifestRequestResolutionPreflight,
+  routeManifestProjectionCompositionFactory,
+  routeSyncManifestDataflowAnalysisOperations,
+  semanticDataflowIRProjection,
+  semanticDataflowRuntimeBoundary,
+} from './types/upstream/runtimeManifestOperations'
 
 export type { InterfaceComposition } from './types/interfaces/interfaceComposition';
 export type { DataFlowExecutionAlgebraInterface, DataFlowAuthorityAlgebraInterface } from './types/dataflow/dataFlowInterface';
@@ -1085,6 +1094,9 @@ export { PHP_SOURCE_DOCUMENT_IDENTITY_BINDING_CONTRACT, phpSourceDocumentIdentit
 export { phpSourceDocumentIdentityBindingBatchFactory } from './types/upstream/phpSourceDocumentIdentityBindingBatchAuthority';
 
 export { phpSourceFrontendExtractionValidationAuthority } from './types/upstream/phpSourceFrontendExtractionValidationAuthority';
+export { phpSourceDocumentReader, nodeFilesystemFailureObservation } from './types/upstream/phpSourceDocumentReader';
+export { laravelControllerInvocationSemanticJudgmentPreparationInputFactory } from './types/upstream/laravelControllerInvocationSemanticJudgmentPreparationAuthority';
+export { manifestBuilderOperationPreparation } from './types/upstream/runtimeCompositionOperations';
 export { phpFunctionResolutionSourceInventoryAuthority } from './types/upstream/phpFunctionResolutionSourceInventoryAuthority';
 export { phpFunctionResolutionEnvironmentProjectionAuthority } from './types/upstream/phpFunctionResolutionEnvironmentProjectionAuthority';
 export { phpFunctionNameResolutionAuthority } from './types/upstream/phpFunctionNameResolutionAuthority';

@@ -5,7 +5,6 @@
  * for continuing with a supported AST or an explicit parser-gap AST.
  */
 import type { PhpAstNode } from '@routesync/core';
-import { relationOptionFold, relationVariant } from '@routesync/core';
 import type { PhpGrammarNode } from './ast/grammar';
 
 export type PhpAstBoundaryRelation =

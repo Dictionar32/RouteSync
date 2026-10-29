@@ -38,21 +38,25 @@ export interface ManifestContractViolation {
   readonly message: string;
 }
 
-export interface ManifestContractValidationHandlers<Result> {
-  readonly onValidated: (judgment: ManifestContractValidatedJudgment) => Result;
-  readonly onRejected: (judgment: ManifestContractRejectedJudgment) => Result;
-}
-
 export interface ManifestContractValidatedJudgment {
   readonly kind: 'manifest_contract_validated';
   readonly manifest: RouteManifest;
-  readonly continueWith: <Result>(handlers: ManifestContractValidationHandlers<Result>) => Result;
+  readonly requireValidManifest: () => RouteManifest;
 }
 
 export interface ManifestContractRejectedJudgment {
   readonly kind: 'manifest_contract_rejected';
   readonly violations: readonly ManifestContractViolation[];
-  readonly continueWith: <Result>(handlers: ManifestContractValidationHandlers<Result>) => Result;
+  readonly requireValidManifest: () => never;
+}
+
+export class ManifestContractValidationBlockedError extends Error {
+  readonly kind = 'manifest_contract_validation_blocked_error' as const;
+
+  constructor(readonly judgment: ManifestContractRejectedJudgment) {
+    super('Manifest contract validation was rejected.');
+    this.name = 'ManifestContractValidationBlockedError';
+  }
 }
 
 /** Closed validation ADT: each terminal owns a typed domain continuation. */
@@ -68,7 +72,7 @@ const validatedJudgment = (manifest: RouteManifest): ManifestContractValidatedJu
   const judgment: ManifestContractValidatedJudgment = Object.freeze({
     kind: 'manifest_contract_validated',
     manifest,
-    continueWith: handlers => handlers.onValidated(judgment),
+    requireValidManifest: (): RouteManifest => judgment.manifest,
   });
   return judgment;
 };
@@ -77,7 +81,9 @@ const rejectedJudgment = (violations: readonly ManifestContractViolation[]): Man
   const judgment: ManifestContractRejectedJudgment = Object.freeze({
     kind: 'manifest_contract_rejected',
     violations,
-    continueWith: handlers => handlers.onRejected(judgment),
+    requireValidManifest: (): never => {
+      throw new ManifestContractValidationBlockedError(judgment);
+    },
   });
   return judgment;
 };

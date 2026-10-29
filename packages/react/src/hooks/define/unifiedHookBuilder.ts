@@ -14,12 +14,34 @@ export const hasKey = <K extends string>(obj: unknown, key: K): obj is Record<K,
   return (typeof obj === 'object' || typeof obj === 'function') && obj !== null && key in obj
 }
 
-export function buildUnifiedGroupHook(
+export interface UnifiedGroupHookResult {
+  readonly list: unknown
+  readonly detail: unknown
+  readonly create: unknown
+  readonly update: unknown
+  readonly updateSelf: unknown
+  readonly delete: unknown
+  readonly deleteSelf: unknown
+  readonly isLoading: boolean
+  readonly error: unknown
+  readonly [groupName: string]: unknown
+}
+
+export interface BuildUnifiedGroupHook {
+  (
+    groupName: string,
+    group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>,
+    slots: ResolvedGroupSlots,
+    crudHooks: Record<string, any>
+  ): (optionsOrId?: number | { id?: number; list?: boolean }) => UnifiedGroupHookResult
+}
+
+export const buildUnifiedGroupHook: BuildUnifiedGroupHook = (
   groupName: string,
   group: Record<string, EndpointCallable<unknown, unknown, unknown, HttpMethod>>,
   slots: ResolvedGroupSlots,
   crudHooks: Record<string, any>
-) {
+) => {
   const {
     indexService,
     showService,
@@ -36,14 +58,14 @@ export function buildUnifiedGroupHook(
     const shouldFetchList = !!indexService && id === undefined && listOption !== false
     const shouldFetchDetail = !!showService && id !== undefined
 
-    const listQueryResult = indexService !== undefined ? crudHooks.index({ enabled: shouldFetchList }) : undefined
-    const detailQueryResult = showService !== undefined ? crudHooks.show(id ?? 0, { enabled: shouldFetchDetail }) : undefined
+    const listQueryResult = indexService !== undefined ? crudHooks['index']({ enabled: shouldFetchList }) : undefined
+    const detailQueryResult = showService !== undefined ? crudHooks['show'](id ?? 0, { enabled: shouldFetchDetail }) : undefined
 
-    const createMutation = group.create !== undefined ? crudHooks.create() : undefined
-    const updateMutation = updateService !== undefined ? crudHooks.update() : undefined
-    const updateSelfMutation = resolvedUpdateSelf !== undefined ? crudHooks.updateSelf() : undefined
-    const deleteMutation = deleteService !== undefined ? crudHooks.delete() : undefined
-    const deleteSelfMutation = deleteSelfService !== undefined ? crudHooks.deleteSelf() : undefined
+    const createMutation = group['create'] !== undefined ? crudHooks['create']() : undefined
+    const updateMutation = updateService !== undefined ? crudHooks['update']() : undefined
+    const updateSelfMutation = resolvedUpdateSelf !== undefined ? crudHooks['updateSelf']() : undefined
+    const deleteMutation = deleteService !== undefined ? crudHooks['delete']() : undefined
+    const deleteSelfMutation = deleteSelfService !== undefined ? crudHooks['deleteSelf']() : undefined
 
     const data = shouldFetchDetail ? detailQueryResult?.data : listQueryResult?.data
     const isLoading = shouldFetchDetail ? detailQueryResult?.isLoading : listQueryResult?.isLoading

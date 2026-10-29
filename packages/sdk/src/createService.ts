@@ -159,7 +159,20 @@ export class GenericService<
   }
 }
 
-export function createService<
+export interface CreateService {
+  <
+    TEntity = unknown,
+    TCreateInput = Partial<TEntity>,
+    TUpdateInput = Partial<TCreateInput>,
+    TBackendEntity = unknown
+  >(
+    client: HttpClient,
+    endpoint: string,
+    options?: GenericServiceOptions<TEntity, TCreateInput, TUpdateInput, TBackendEntity>
+  ): GenericService<TEntity, TCreateInput, TUpdateInput, TBackendEntity>
+}
+
+export const createService: CreateService = <
   TEntity = unknown,
   TCreateInput = Partial<TEntity>,
   TUpdateInput = Partial<TCreateInput>,
@@ -168,7 +181,7 @@ export function createService<
   client: HttpClient,
   endpoint: string,
   options?: GenericServiceOptions<TEntity, TCreateInput, TUpdateInput, TBackendEntity>
-) {
+): GenericService<TEntity, TCreateInput, TUpdateInput, TBackendEntity> => {
   return new GenericService<TEntity, TCreateInput, TUpdateInput, TBackendEntity>(
     client,
     endpoint,

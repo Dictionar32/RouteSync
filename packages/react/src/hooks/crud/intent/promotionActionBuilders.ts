@@ -9,12 +9,28 @@
 import { callMutate } from './intentHelpers';
 import type { AggregateCollectionConfig } from './intentTypes';
 
-export function buildPromotionActions<TApply, TRemovePromo>(
+export interface PromotionActions<TApply, TRemovePromo> {
+  readonly apply: (code: string) => Promise<unknown>
+  readonly remove: () => Promise<unknown>
+  readonly applyMut: TApply
+  readonly removeMut: TRemovePromo
+}
+
+export interface BuildPromotionActions {
+  <TApply, TRemovePromo>(
+    applyPromo: TApply,
+    removePromo: TRemovePromo,
+    config: AggregateCollectionConfig,
+    emit: (event: string, ...args: unknown[]) => void
+  ): PromotionActions<TApply, TRemovePromo>
+}
+
+export const buildPromotionActions: BuildPromotionActions = <TApply, TRemovePromo>(
   applyPromo: TApply,
   removePromo: TRemovePromo,
   config: AggregateCollectionConfig,
   emit: (event: string, ...args: unknown[]) => void
-) {
+): PromotionActions<TApply, TRemovePromo> => {
   const { promotionCodeField } = config;
 
   const applyPromoCode = async (code: string): Promise<unknown> => {

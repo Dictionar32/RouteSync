@@ -9,14 +9,35 @@
 import { hasKey, getNumberValue, callMutate } from './intentHelpers';
 import type { AggregateCollectionConfig } from './intentTypes';
 
-export function buildItemActions<TCreate, TUpdate, TRemove>(
+export interface ItemActions<TCreate, TUpdate, TRemove> {
+  readonly add: (idVal: string | number, qty?: number) => Promise<unknown>
+  readonly changeQty: (idVal: string | number, delta: number) => Promise<unknown>
+  readonly setQty: (idVal: string | number, qty: number) => Promise<unknown>
+  readonly remove: (idVal: string | number) => Promise<unknown>
+  readonly createMut: TCreate
+  readonly updateMut: TUpdate
+  readonly removeMut: TRemove
+}
+
+export interface BuildItemActions {
+  <TCreate, TUpdate, TRemove>(
+    result: unknown,
+    createItem: TCreate,
+    updateItem: TUpdate,
+    removeItem: TRemove,
+    config: AggregateCollectionConfig,
+    emit: (event: string, ...args: unknown[]) => void
+  ): ItemActions<TCreate, TUpdate, TRemove>
+}
+
+export const buildItemActions: BuildItemActions = <TCreate, TUpdate, TRemove>(
   result: unknown,
   createItem: TCreate,
   updateItem: TUpdate,
   removeItem: TRemove,
   config: AggregateCollectionConfig,
   emit: (event: string, ...args: unknown[]) => void
-) {
+): ItemActions<TCreate, TUpdate, TRemove> => {
   const { collectionField, identityField, quantityField, groupName } = config;
 
   const getQty = (idVal: string | number): number => {
@@ -97,10 +118,10 @@ export function buildItemActions<TCreate, TUpdate, TRemove>(
   };
 
   return {
-    add: add as any,
-    changeQty: changeQty as any,
-    setQty: setQty as any,
-    remove: remove as any,
+    add,
+    changeQty,
+    setQty,
+    remove,
     createMut: createItem,
     updateMut: updateItem,
     removeMut: removeItem,

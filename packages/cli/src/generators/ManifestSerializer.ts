@@ -71,21 +71,25 @@ export const manifestContractSerializationOperation: ManifestContractSerializati
   },
 });
 
-export interface ManifestSerializationHandlers<Result> {
-  readonly onComplete: (judgment: ManifestSerializationCompleteJudgment) => Result;
-  readonly onRejected: (judgment: ManifestSerializationRejectedJudgment) => Result;
-}
-
 export interface ManifestSerializationCompleteJudgment {
   readonly kind: 'manifest_serialization_complete';
   readonly manifest: SerializableManifest;
-  readonly continueWith: <Result>(handlers: ManifestSerializationHandlers<Result>) => Result;
+  readonly requireSerializedManifest: () => SerializableManifest;
 }
 
 export interface ManifestSerializationRejectedJudgment {
   readonly kind: 'manifest_serialization_rejected';
   readonly message: string;
-  readonly continueWith: <Result>(handlers: ManifestSerializationHandlers<Result>) => Result;
+  readonly requireSerializedManifest: () => never;
+}
+
+export class ManifestSerializationBlockedError extends Error {
+  readonly kind = 'manifest_serialization_blocked_error' as const;
+
+  constructor(readonly judgment: ManifestSerializationRejectedJudgment) {
+    super(judgment.message);
+    this.name = 'ManifestSerializationBlockedError';
+  }
 }
 
 export type ManifestSerializationJudgment =
@@ -106,7 +110,7 @@ export const manifestSerializationJudgmentFactory: ManifestSerializationJudgment
     const judgment: ManifestSerializationCompleteJudgment = Object.freeze({
       kind: 'manifest_serialization_complete',
       manifest,
-      continueWith: handlers => handlers.onComplete(judgment),
+      requireSerializedManifest: (): SerializableManifest => judgment.manifest,
     });
     return judgment;
   },
@@ -114,7 +118,9 @@ export const manifestSerializationJudgmentFactory: ManifestSerializationJudgment
     const judgment: ManifestSerializationRejectedJudgment = Object.freeze({
       kind: 'manifest_serialization_rejected',
       message,
-      continueWith: handlers => handlers.onRejected(judgment),
+      requireSerializedManifest: (): never => {
+        throw new ManifestSerializationBlockedError(judgment);
+      },
     });
     return judgment;
   },

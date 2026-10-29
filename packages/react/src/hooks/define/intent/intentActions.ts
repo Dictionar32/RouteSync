@@ -8,11 +8,11 @@
  * @module react/hooks/define/intent/intentActions
  */
 
-import { AggregateCollectionIntentActions } from '../../createCrudHooks'
-import { CrudHooks, EndpointHooks, HookConfig } from '../hookTypes'
-import { UnifiedGroupHookResult } from './groupHookResult'
+import type { AggregateCollectionIntentActions } from '../../createCrudHooks'
+import type { CrudHooks, EndpointHooks, HookConfig } from '../hookTypes'
+import type { UnifiedGroupHookResult } from './groupHookResult'
 import type { DomainIntentCapabilityReference } from '@routesync/core'
-import { ResolveCapabilityOperation } from './mutationResolvers'
+import type { ResolveCapabilityOperation } from './mutationResolvers'
 
 type AggregateActions<TConfig, TCapability extends DomainIntentCapabilityReference> =
   TCapability extends { intentKind: 'aggregate_collection'; aggregateCollection: infer TAggregate }

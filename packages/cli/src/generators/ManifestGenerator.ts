@@ -11,8 +11,14 @@ import {
   type ObjectType,
 } from '@routesync/core'
 import fs from 'fs-extra'
-import { manifestContractValidationOperations } from './ManifestContractValidator'
-import { manifestSerializationOperations } from './ManifestSerializer'
+import {
+  manifestContractValidationOperations,
+  ManifestContractValidationBlockedError,
+} from './ManifestContractValidator'
+import {
+  manifestSerializationOperations,
+  ManifestSerializationBlockedError,
+} from './ManifestSerializer'
 
 export interface ManifestGeneratorOptions {
   readonly routes: readonly RouteSemanticFlow[];
@@ -28,21 +34,25 @@ export interface ManifestGeneratorOptions {
   readonly version: string;
 }
 
-export interface ManifestGenerationHandlers<Result> {
-  readonly onComplete: (judgment: ManifestGenerationCompleteJudgment) => Result;
-  readonly onRejected: (judgment: ManifestGenerationRejectedJudgment) => Result;
-}
-
 export interface ManifestGenerationCompleteJudgment {
   readonly kind: 'manifest_generation_complete';
   readonly manifest: RouteManifest;
-  readonly continueWith: <Result>(handlers: ManifestGenerationHandlers<Result>) => Result;
+  readonly requireCompleteGeneration: () => RouteManifest;
 }
 
 export interface ManifestGenerationRejectedJudgment {
   readonly kind: 'manifest_generation_rejected';
   readonly message: string;
-  readonly continueWith: <Result>(handlers: ManifestGenerationHandlers<Result>) => Result;
+  readonly requireCompleteGeneration: () => never;
+}
+
+export class ManifestGenerationBlockedError extends Error {
+  readonly kind = 'manifest_generation_blocked_error' as const;
+
+  constructor(readonly judgment: ManifestGenerationRejectedJudgment) {
+    super(judgment.message);
+    this.name = 'ManifestGenerationBlockedError';
+  }
 }
 
 export type ManifestGenerationJudgment =
@@ -59,7 +69,7 @@ export const manifestGenerationJudgmentFactory: ManifestGenerationJudgmentFactor
     const judgment: ManifestGenerationCompleteJudgment = Object.freeze({
       kind: 'manifest_generation_complete',
       manifest,
-      continueWith: handlers => handlers.onComplete(judgment),
+      requireCompleteGeneration: (): RouteManifest => judgment.manifest,
     });
     return judgment;
   },
@@ -67,42 +77,46 @@ export const manifestGenerationJudgmentFactory: ManifestGenerationJudgmentFactor
     const judgment: ManifestGenerationRejectedJudgment = Object.freeze({
       kind: 'manifest_generation_rejected',
       message,
-      continueWith: handlers => handlers.onRejected(judgment),
+      requireCompleteGeneration: (): never => {
+        throw new ManifestGenerationBlockedError(judgment);
+      },
     });
     return judgment;
   },
 });
 
-export interface ManifestPersistenceHandlers<Result> {
-  readonly onComplete: (judgment: ManifestPersistenceCompleteJudgment) => Result;
-  readonly onContractRejected: (judgment: ManifestPersistenceContractRejectedJudgment) => Result;
-  readonly onSerializationRejected: (judgment: ManifestPersistenceSerializationRejectedJudgment) => Result;
-  readonly onWriteRejected: (judgment: ManifestPersistenceWriteRejectedJudgment) => Result;
-}
-
 export interface ManifestPersistenceCompleteJudgment {
   readonly kind: 'manifest_persistence_complete';
   readonly outputPath: string;
-  readonly continueWith: <Result>(handlers: ManifestPersistenceHandlers<Result>) => Result;
+  readonly requireCompletePersistence: () => ManifestPersistenceCompleteJudgment;
 }
 
 export interface ManifestPersistenceContractRejectedJudgment {
   readonly kind: 'manifest_persistence_contract_rejected';
   readonly violations: readonly { readonly kind: 'manifest_contract_invariant_violated'; readonly message: string }[];
-  readonly continueWith: <Result>(handlers: ManifestPersistenceHandlers<Result>) => Result;
+  readonly requireCompletePersistence: () => never;
 }
 
 export interface ManifestPersistenceSerializationRejectedJudgment {
   readonly kind: 'manifest_persistence_serialization_rejected';
   readonly message: string;
-  readonly continueWith: <Result>(handlers: ManifestPersistenceHandlers<Result>) => Result;
+  readonly requireCompletePersistence: () => never;
 }
 
 export interface ManifestPersistenceWriteRejectedJudgment {
   readonly kind: 'manifest_persistence_write_rejected';
   readonly outputPath: string;
   readonly message: string;
-  readonly continueWith: <Result>(handlers: ManifestPersistenceHandlers<Result>) => Result;
+  readonly requireCompletePersistence: () => never;
+}
+
+export class ManifestPersistenceBlockedError extends Error {
+  readonly kind = 'manifest_persistence_blocked_error' as const;
+
+  constructor(readonly judgment: ManifestPersistenceJudgment) {
+    super('Manifest persistence was rejected.');
+    this.name = 'ManifestPersistenceBlockedError';
+  }
 }
 
 export type ManifestPersistenceJudgment =
@@ -114,7 +128,7 @@ export type ManifestPersistenceJudgment =
 const persistenceComplete = (outputPath: string): ManifestPersistenceCompleteJudgment => {
   const judgment: ManifestPersistenceCompleteJudgment = Object.freeze({
     kind: 'manifest_persistence_complete', outputPath,
-    continueWith: handlers => handlers.onComplete(judgment),
+    requireCompletePersistence: (): ManifestPersistenceCompleteJudgment => judgment,
   });
   return judgment;
 };
@@ -122,7 +136,9 @@ const persistenceComplete = (outputPath: string): ManifestPersistenceCompleteJud
 const persistenceContractRejected = (violations: ManifestPersistenceContractRejectedJudgment['violations']): ManifestPersistenceContractRejectedJudgment => {
   const judgment: ManifestPersistenceContractRejectedJudgment = Object.freeze({
     kind: 'manifest_persistence_contract_rejected', violations,
-    continueWith: handlers => handlers.onContractRejected(judgment),
+    requireCompletePersistence: (): never => {
+      throw new ManifestPersistenceBlockedError(judgment);
+    },
   });
   return judgment;
 };
@@ -130,7 +146,9 @@ const persistenceContractRejected = (violations: ManifestPersistenceContractReje
 const persistenceSerializationRejected = (message: string): ManifestPersistenceSerializationRejectedJudgment => {
   const judgment: ManifestPersistenceSerializationRejectedJudgment = Object.freeze({
     kind: 'manifest_persistence_serialization_rejected', message,
-    continueWith: handlers => handlers.onSerializationRejected(judgment),
+    requireCompletePersistence: (): never => {
+      throw new ManifestPersistenceBlockedError(judgment);
+    },
   });
   return judgment;
 };
@@ -138,7 +156,9 @@ const persistenceSerializationRejected = (message: string): ManifestPersistenceS
 const persistenceWriteRejected = (outputPath: string, message: string): ManifestPersistenceWriteRejectedJudgment => {
   const judgment: ManifestPersistenceWriteRejectedJudgment = Object.freeze({
     kind: 'manifest_persistence_write_rejected', outputPath, message,
-    continueWith: handlers => handlers.onWriteRejected(judgment),
+    requireCompletePersistence: (): never => {
+      throw new ManifestPersistenceBlockedError(judgment);
+    },
   });
   return judgment;
 };
@@ -241,39 +261,49 @@ export interface ManifestRuntimePersistenceOperationInterface {
 export const manifestRuntimePersistenceOperation: ManifestRuntimePersistenceOperationInterface = Object.freeze({
   save: async (manifest: RouteManifest, outputPath: string): Promise<ManifestPersistenceJudgment> => {
     const validation = manifestContractValidationOperations.validate(manifest);
-    return validation.continueWith<Promise<ManifestPersistenceJudgment>>({
-      onRejected: judgment => Promise.resolve(persistenceContractRejected(judgment.violations)),
-      onValidated: async judgment => {
-        const serialization = manifestSerializationOperations.serialize(judgment.manifest);
-        return serialization.continueWith<Promise<ManifestPersistenceJudgment>>({
-          onRejected: rejected => Promise.resolve(persistenceSerializationRejected(rejected.message)),
-          onComplete: async serialized => {
-            const mergedManifest: Record<string, unknown> = { ...serialized.manifest };
-            try {
-              if (await fs.pathExists(outputPath)) {
-                const existing: unknown = await fs.readJson(outputPath);
-                if (existing !== null && typeof existing === 'object') {
-                  if ('frontend' in existing) mergedManifest.frontend = existing.frontend;
-                  if ('pages' in existing) mergedManifest.pages = existing.pages;
-                }
-              }
-            } catch {
-              // Optional prior frontend/page state cannot override the current manifest judgment.
-            }
+    let validatedManifest: RouteManifest;
+    try {
+      validatedManifest = validation.requireValidManifest();
+    } catch (error: unknown) {
+      if (error instanceof ManifestContractValidationBlockedError) {
+        return persistenceContractRejected(error.judgment.violations);
+      }
+      throw error;
+    }
 
-            try {
-              await fs.writeJson(outputPath, mergedManifest, { spaces: 2 });
-              return persistenceComplete(outputPath);
-            } catch (error: unknown) {
-              return persistenceWriteRejected(
-                outputPath,
-                error instanceof Error ? error.message : String(error),
-              );
-            }
-          },
-        });
-      },
-    });
+    const serialization = manifestSerializationOperations.serialize(validatedManifest);
+    let serialized: import('./ManifestSerializer').SerializableManifest;
+    try {
+      serialized = serialization.requireSerializedManifest();
+    } catch (error: unknown) {
+      if (error instanceof ManifestSerializationBlockedError) {
+        return persistenceSerializationRejected(error.judgment.message);
+      }
+      throw error;
+    }
+
+    const mergedManifest: Record<string, unknown> = { ...serialized };
+    try {
+      if (await fs.pathExists(outputPath)) {
+        const existing: unknown = await fs.readJson(outputPath);
+        if (existing !== null && typeof existing === 'object') {
+          if ('frontend' in existing) mergedManifest.frontend = existing.frontend;
+          if ('pages' in existing) mergedManifest.pages = existing.pages;
+        }
+      }
+    } catch {
+      // Optional prior frontend/page state cannot override the current manifest judgment.
+    }
+
+    try {
+      await fs.writeJson(outputPath, mergedManifest, { spaces: 2 });
+      return persistenceComplete(outputPath);
+    } catch (error: unknown) {
+      return persistenceWriteRejected(
+        outputPath,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   },
 });
 

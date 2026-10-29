@@ -11,12 +11,12 @@ export type {
 } from './manifestCodeGenerationOperation';
 export type {
   ManifestContractViolation,
-  ManifestContractValidationHandlers,
   ManifestContractValidatedJudgment,
   ManifestContractRejectedJudgment,
   ManifestContractValidationJudgment,
   ManifestContractValidationOperationsInterface,
 } from './ManifestContractValidator';
+export { ManifestContractValidationBlockedError } from './ManifestContractValidator';
 
 export { manifestSerializationOperations } from './ManifestSerializer';
 export type {
@@ -26,9 +26,9 @@ export type {
   ManifestSerializationJudgment,
   ManifestSerializationCompleteJudgment,
   ManifestSerializationRejectedJudgment,
-  ManifestSerializationHandlers,
   ManifestSerializationOperationsInterface,
 } from './ManifestSerializer';
+export { ManifestSerializationBlockedError } from './ManifestSerializer';
 
 export {
   manifestGeneratorOperations,
@@ -41,7 +41,6 @@ export {
 export type {
   ManifestGeneratorOptions,
   ManifestGenerationJudgment,
-  ManifestGenerationHandlers,
   ManifestGenerationCompleteJudgment,
   ManifestGenerationRejectedJudgment,
   ManifestGenerationJudgmentFactoryInterface,
@@ -50,10 +49,13 @@ export type {
   ManifestGenerationFromOptionsOperationInterface,
   ManifestRuntimePersistenceOperationInterface,
   ManifestPersistenceJudgment,
-  ManifestPersistenceHandlers,
   ManifestPersistenceCompleteJudgment,
   ManifestPersistenceContractRejectedJudgment,
   ManifestPersistenceSerializationRejectedJudgment,
   ManifestPersistenceWriteRejectedJudgment,
   ManifestGeneratorOperationsInterface,
+} from './ManifestGenerator';
+export {
+  ManifestGenerationBlockedError,
+  ManifestPersistenceBlockedError,
 } from './ManifestGenerator';

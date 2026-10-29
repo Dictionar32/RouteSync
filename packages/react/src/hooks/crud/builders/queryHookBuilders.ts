@@ -6,13 +6,19 @@
  * @module react/hooks/crud/builders/queryHookBuilders
  */
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { CrudHooksConfig } from '../crudTypes';
 import { callIndex, callShow, requireValidId } from '../crudCallers';
 
-export function buildUseIndex<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+export interface BuildUseIndex {
+  <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+    config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
+  ): (options?: unknown) => UseQueryResult<unknown>
+}
+
+export const buildUseIndex: BuildUseIndex = <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
-) {
+): ((options?: unknown) => UseQueryResult<unknown>) => {
   const { service, queryKey, groupName } = config;
   return (options?: unknown) => {
     if (!service.index) throw new Error('Index is not supported for this resource');
@@ -25,16 +31,23 @@ export function buildUseIndex<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   };
 }
 
-export function buildUseShow<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+export interface BuildUseShow {
+  <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+    config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
+  ): (id: number, options?: unknown) => UseQueryResult<unknown>
+}
+
+export const buildUseShow: BuildUseShow = <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
-) {
+): ((id: number, options?: unknown) => UseQueryResult<unknown>) => {
   const { service, queryKey, groupName } = config;
   return (id: number, options?: unknown) => {
     if (!service.show) throw new Error('Show is not supported for this resource');
     const validId = Number(id);
     const enabled = Number.isInteger(validId) && validId > 0;
     const resolvedEnabled = options && typeof options === 'object' && 'enabled' in options
-      ? (options as { enabled?: boolean }).enabled
+      && typeof (options as { enabled?: unknown }).enabled === 'boolean'
+      ? (options as { enabled: boolean }).enabled
       : enabled;
     const query = useQuery({
       ...(options as Record<string, unknown>),

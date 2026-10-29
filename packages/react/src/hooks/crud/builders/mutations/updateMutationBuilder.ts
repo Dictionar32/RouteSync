@@ -6,7 +6,7 @@
  * @module react/hooks/crud/builders/mutations
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '@routesync/sdk';
 import type { CrudHooksConfig } from '../../crudTypes';
 import {
@@ -17,9 +17,15 @@ import {
 import { getSuccessMessage, getErrorMessage } from '../../crudNotifications';
 import { resolveInvalidate } from './invalidateResolver';
 
-export function buildUseUpdate<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+export interface BuildUseUpdate {
+  <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+    config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
+  ): (mutationOptions?: unknown) => UseMutationResult<unknown, unknown, { id: number; data: UpdateForm }>
+}
+
+export const buildUseUpdate: BuildUseUpdate = <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
-) {
+): ((mutationOptions?: unknown) => UseMutationResult<unknown, unknown, { id: number; data: UpdateForm }>) => {
   const { service, queryKey, groupName } = config;
   return (mutationOptions?: unknown) => {
     const svc = service.update;
@@ -58,9 +64,15 @@ export function buildUseUpdate<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   };
 }
 
-export function buildUseUpdateSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+export interface BuildUseUpdateSelf {
+  <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+    config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
+  ): (mutationOptions?: unknown) => UseMutationResult<unknown, unknown, UpdateForm>
+}
+
+export const buildUseUpdateSelf: BuildUseUpdateSelf = <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
-) {
+): ((mutationOptions?: unknown) => UseMutationResult<unknown, unknown, UpdateForm>) => {
   const { service, queryKey, groupName } = config;
   return (mutationOptions?: unknown) => {
     const svc = service.updateSelf;

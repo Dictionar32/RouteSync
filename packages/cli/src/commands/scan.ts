@@ -67,33 +67,9 @@ export const createScanCommand: ScanCommandFactoryInterface = Object.freeze({
       const resources = resolvedManifest.resources
       const irRegistry = new IRNodeRegistry()
 
-      manifestContractValidationOperations.validate(resolvedManifest).continueWith({
-        onValidated: () => undefined,
-        onRejected: judgment => {
-          spinner.fail(chalk.red(`Scan blocked by manifest contract validation: ${JSON.stringify(judgment.violations)}`))
-          process.exit(1)
-        },
-      })
+      manifestContractValidationOperations.validate(resolvedManifest).requireValidManifest()
       const persistenceJudgment = await manifestGeneratorOperations.save(resolvedManifest, outputPath)
-      const persistenceContinues = persistenceJudgment.continueWith({
-        onComplete: () => true,
-        onContractRejected: judgment => {
-          spinner.fail(chalk.red(`Scan blocked by manifest contract validation: ${JSON.stringify(judgment.violations)}`))
-          process.exitCode = 1
-          return false
-        },
-        onSerializationRejected: judgment => {
-          spinner.fail(chalk.red(`Scan blocked by manifest serialization: ${judgment.message}`))
-          process.exitCode = 1
-          return false
-        },
-        onWriteRejected: judgment => {
-          spinner.fail(chalk.red(`Scan blocked while writing manifest ${judgment.outputPath}: ${judgment.message}`))
-          process.exitCode = 1
-          return false
-        },
-      })
-      if (!persistenceContinues) return
+      persistenceJudgment.requireCompletePersistence()
       const fs = require('fs')
       const graphBuilder = serviceGraphBuilderFactory.createBuilder()
       const serviceGraph = graphBuilder.project(graphSurface)

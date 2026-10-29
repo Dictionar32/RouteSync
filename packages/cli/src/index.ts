@@ -162,7 +162,6 @@ export {
 } from './generators';
 export type {
   ManifestContractViolation,
-  ManifestContractValidationHandlers,
   ManifestContractValidatedJudgment,
   ManifestContractRejectedJudgment,
   ManifestContractValidationJudgment,
@@ -173,12 +172,12 @@ export type {
   ManifestSerializationJudgment,
   ManifestSerializationCompleteJudgment,
   ManifestSerializationRejectedJudgment,
-  ManifestSerializationHandlers,
   ManifestSerializationOperationsInterface,
   ManifestGeneratorOptions,
   ManifestGenerationJudgment,
+  ManifestGenerationCompleteJudgment,
+  ManifestGenerationRejectedJudgment,
   ManifestPersistenceJudgment,
-  ManifestPersistenceHandlers,
   ManifestPersistenceCompleteJudgment,
   ManifestPersistenceContractRejectedJudgment,
   ManifestPersistenceSerializationRejectedJudgment,
@@ -187,6 +186,12 @@ export type {
   ManifestCodeGenerationInput,
   ManifestCodeGenerationBlockedOutcome,
   ManifestCodeGenerationOperationInterface,
+} from './generators';
+export {
+  ManifestContractValidationBlockedError,
+  ManifestSerializationBlockedError,
+  ManifestGenerationBlockedError,
+  ManifestPersistenceBlockedError,
 } from './generators';
 
 export type { RouteSyncCliUpstreamCompositionInterface } from './upstreamCompositionInterface';

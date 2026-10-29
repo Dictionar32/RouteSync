@@ -1,6 +1,17 @@
 import { HttpClient, type ServiceConfig, TokenManager } from '@routesync/core'
 
-export function createClient(config: ServiceConfig) {
+export interface CreatedClient {
+  readonly client: HttpClient
+  readonly tokenManager: TokenManager
+  setToken(token: string): void
+  clearToken(): void
+}
+
+export interface CreateClient {
+  (config: ServiceConfig): CreatedClient
+}
+
+export const createClient: CreateClient = (config: ServiceConfig): CreatedClient => {
   const client = new HttpClient(config)
   const tokenManager = new TokenManager()
 

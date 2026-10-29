@@ -37,8 +37,8 @@
   },
   "migrationFrontier": {
     "inventory": {
-      "exportedFunctionDeclarations": 110,
-      "exportedArrowConstants": 35
+      "exportedFunctionDeclarations": 108,
+      "exportedArrowConstants": 36
     },
     "repositoryWideExportConversion": false,
     "primitiveAndControlFlowErasure": false,

@@ -8,7 +8,7 @@
  * @module react/hooks/define/intent/mutationResolvers
  */
 
-import { HookConfig, CrudHooks } from '../hookTypes'
+import type { HookConfig, CrudHooks } from '../hookTypes'
 import type { DomainIntentOperationReference } from '@routesync/core'
 
 export type ResolveCapabilityOperation<

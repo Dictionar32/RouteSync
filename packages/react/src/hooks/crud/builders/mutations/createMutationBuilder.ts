@@ -6,16 +6,22 @@
  * @module react/hooks/crud/builders/mutations
  */
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 import { getClient } from '@routesync/sdk';
 import type { CrudHooksConfig } from '../../crudTypes';
 import { callCreate } from '../../crudCallers';
 import { getSuccessMessage, getErrorMessage } from '../../crudNotifications';
 import { resolveInvalidate } from './invalidateResolver';
 
-export function buildUseCreate<ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+export interface BuildUseCreate {
+  <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
+    config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
+  ): (mutationOptions?: unknown) => UseMutationResult<unknown, unknown, CreateForm>
+}
+
+export const buildUseCreate: BuildUseCreate = <ReadIndexList, ReadShow, CreateForm, UpdateForm>(
   config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>
-) {
+): ((mutationOptions?: unknown) => UseMutationResult<unknown, unknown, CreateForm>) => {
   const { service, queryKey, groupName } = config;
   return (mutationOptions?: unknown) => {
     const svc = service.create;

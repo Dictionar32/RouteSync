@@ -1300,6 +1300,7 @@
     "audit:phase3115-static-upstream-interface": "node scripts/audits/audit-phase3115-static-upstream-interface.cjs",
     "audit:phase3116-runtime-interface-static-gate": "node scripts/audits/audit-phase3116-runtime-interface-static-gate.cjs",
     "audit:phase3130-upstream-cli-manifest-generator-trace": "node scripts/audits/audit-phase3130-upstream-cli-manifest-generator-trace.cjs",
+    "audit:phase3131-explicit-manifest-generator-operations": "node scripts/audits/audit-phase3131-explicit-manifest-generator-operations.cjs",
     "test:phase3117-static-datum-flow-interface": "node scripts/audits/test-phase3117-static-datum-flow-interface.cjs",
     "test:phase3118-static-datum-flow-ast": "node scripts/audits/test-phase3118-static-datum-flow-ast.cjs",
     "test:phase3119-semantic-value-factory-migration": "node scripts/audits/test-phase3119-semantic-value-factory-migration.cjs",
@@ -1320,13 +1321,14 @@
     "@types/fs-extra": "^11.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^19.2.17",
+    "@typescript/typescript-linux-x64": "^7.0.2",
     "react": "^19.2.7",
     "react-hook-form": "^7.71.2",
+    "tsdown": "^0.23.0",
     "turbo": "^2.9.16",
-    "typescript": "7.0.2",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.7",
-    "zod": "^4.4.3",
-    "tsdown": "^0.23.0"
+    "zod": "^4.4.3"
   },
   "engines": {
     "node": ">=20.0.0"

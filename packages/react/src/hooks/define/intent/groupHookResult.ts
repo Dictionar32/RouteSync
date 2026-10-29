@@ -6,10 +6,10 @@
  * @module react/hooks/define/intent/groupHookResult
  */
 
-import { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
-import { EndpointCallable } from '@routesync/sdk'
-import { HttpMethod } from '@routesync/core'
-import {
+import type { UseQueryResult, UseMutationResult } from '@tanstack/react-query'
+import type { EndpointCallable } from '@routesync/sdk'
+import type { HttpMethod } from '@routesync/core'
+import type {
   InferResponse,
   ResolveError
 } from '../hookTypes'

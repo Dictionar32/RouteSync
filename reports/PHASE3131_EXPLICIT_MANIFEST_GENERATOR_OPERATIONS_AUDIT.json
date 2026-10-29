@@ -1,0 +1,41 @@
+{
+  "phase": 3131,
+  "title": "Explicit manifest validation, serialization, persistence and generator operations",
+  "validator": {
+    "validatedOwnsRequireOperation": true,
+    "rejectedOwnsFailClosedOperation": true,
+    "noGenericVisitor": true
+  },
+  "serializer": {
+    "completeOwnsRequireOperation": true,
+    "rejectedOwnsFailClosedOperation": true,
+    "noGenericVisitor": true
+  },
+  "persistence": {
+    "completeOwnsRequireOperation": true,
+    "rejectedOwnsFailClosedOperation": true,
+    "noGenericVisitor": true
+  },
+  "runtimeTrace": {
+    "scanUsesValidationOperation": true,
+    "syncUsesValidationOperation": true,
+    "scanUsesPersistenceOperation": true,
+    "syncUsesPersistenceOperation": true,
+    "generatorRemainsExplicitlyTyped": true,
+    "noActiveManifestVisitor": true
+  },
+  "invariants": {
+    "noDeletedRelationFoundationRestored": true
+  },
+  "migrationFrontier": {
+    "inventory": {
+      "exportedFunctionDeclarations": 108,
+      "exportedArrowConstants": 36
+    },
+    "repositoryWideExportConversion": false,
+    "primitiveAndControlFlowErasure": false,
+    "fullTypecheckVerified": false,
+    "fullTestSuiteVerified": false,
+    "phpToCliManifestGeneratorE2eVerified": false
+  }
+}

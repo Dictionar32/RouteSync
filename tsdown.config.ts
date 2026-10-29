@@ -91,7 +91,7 @@ export default defineConfig([
   {
     ...cliShared,
     entry: {
-      cli: 'packages/cli/src/index.ts'
+      cli: 'packages/cli/src/bootstrap.ts'
     },
     format: ['cjs']
   }

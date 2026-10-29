@@ -133,9 +133,9 @@ const stringValue = (value: unknown): string | undefined =>
 
 const readOperationReference = (value: unknown): DomainIntentOperationReference | undefined => {
   const operationId = typeof value === 'string'
-    ? stringValue.create(value)
+    ? stringValue(value)
     : isRecord(value)
-      ? stringValue.create(value.operationId)
+      ? stringValue(value.operationId)
       : undefined;
   if (!operationId) return undefined;
 
@@ -162,7 +162,7 @@ const operation = (source: RecordLike, ...keys: readonly string[]): DomainIntent
 
 const field = (source: RecordLike, ...keys: readonly string[]): string | undefined => {
   for (const key of keys) {
-    const value = stringValue.create(source[key]);
+    const value = stringValue(source[key]);
     if (value) return value;
   }
   return undefined;
@@ -179,7 +179,7 @@ const domainIntentCapabilityFromRuntimeConfigImpl = (
 ): DomainIntentCapabilityContract | undefined => {
   if (!isRecord(input)) return undefined;
 
-  const type = stringValue.create(input.type);
+  const type = stringValue(input.type);
   const isAggregateCollection = type === 'AggregateCollection' || type === 'cart';
   if (!isAggregateCollection) {
     return Object.freeze({
@@ -293,7 +293,7 @@ const domainIntentCapabilitiesFromFrontendImpl = (
   if (Array.isArray(domains)) {
     for (const domain of domains) {
       if (!isRecord(domain) || !isRecord(domain.name) || !isRecord(domain.name.value)) continue;
-      const domainName = stringValue.create(domain.name.value.value);
+      const domainName = stringValue(domain.name.value.value);
       if (!domainName) continue;
       const capability = domainIntentCapabilityFromRuntimeConfigImpl(domainName, domain.intent);
       if (capability) capabilities[domainName] = domainIntentCapabilityReferenceFromCapabilityImpl(capability);

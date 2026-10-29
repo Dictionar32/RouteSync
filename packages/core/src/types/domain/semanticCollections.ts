@@ -76,7 +76,7 @@ export interface ModelRelationMapFactoryInterface {
 export const ModelRelationMap: ModelRelationMapFactoryInterface = Object.freeze({ empty: (): ModelRelationMap => modelRelationCatalog([]), fromEntries: (entries: readonly ModelRelationEntry[]): ModelRelationMap => modelRelationCatalog(entries), fromObject: (record: Readonly<{ readonly [key: string]: ModelRelationInfo }>): ModelRelationMap => modelRelationCatalog([]).fromObject(record), fromRecord: (record: Readonly<{ readonly [key: string]: ModelRelationInfo }>): ModelRelationMap => modelRelationCatalog([]).fromObject(record) });
 
 export type ModelAccessorMap<T> = Catalog<ModelAccessorEntry<T>, string, T>;
-const modelAccessorCatalog = <T>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> => catalog(entries, { key: entry => stringValue.create(entry.name), value: entry => entry.accessor, entry: (key, value) => ({ name: SemanticValueFactory.methodName(key), accessor: value }), keyText: value => value }) as ModelAccessorMap<T>;
+const modelAccessorCatalog = <T>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> => catalog(entries, { key: entry => stringValue(entry.name), value: entry => entry.accessor, entry: (key, value) => ({ name: SemanticValueFactory.methodName(key), accessor: value }), keyText: value => value }) as ModelAccessorMap<T>;
 export interface ModelAccessorMapFactoryInterface {
   readonly empty: <T>() => ModelAccessorMap<T>;
   readonly fromEntries: <T>(entries: readonly ModelAccessorEntry<T>[]) => ModelAccessorMap<T>;
@@ -86,7 +86,7 @@ export interface ModelAccessorMapFactoryInterface {
 export const ModelAccessorMap: ModelAccessorMapFactoryInterface = Object.freeze({ empty: <T>(): ModelAccessorMap<T> => modelAccessorCatalog<T>([]), fromEntries: <T>(entries: readonly ModelAccessorEntry<T>[]): ModelAccessorMap<T> => modelAccessorCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelAccessorMap<T> => modelAccessorCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelAccessorMap<T> => modelAccessorCatalog<T>([]).fromObject(record) });
 
 export type ModelServiceMap<T> = Catalog<ModelServiceEntry<T>, string, T>;
-const modelServiceCatalog = <T>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> => catalog(entries, { key: entry => stringValue.create(entry.name), value: entry => entry.service, entry: (key, value) => ({ name: SemanticValueFactory.propertyName(key), service: value }), keyText: value => value }) as ModelServiceMap<T>;
+const modelServiceCatalog = <T>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> => catalog(entries, { key: entry => stringValue(entry.name), value: entry => entry.service, entry: (key, value) => ({ name: SemanticValueFactory.propertyName(key), service: value }), keyText: value => value }) as ModelServiceMap<T>;
 export interface ModelServiceMapFactoryInterface {
   readonly empty: <T>() => ModelServiceMap<T>;
   readonly fromEntries: <T>(entries: readonly ModelServiceEntry<T>[]) => ModelServiceMap<T>;
@@ -96,7 +96,7 @@ export interface ModelServiceMapFactoryInterface {
 export const ModelServiceMap: ModelServiceMapFactoryInterface = Object.freeze({ empty: <T>(): ModelServiceMap<T> => modelServiceCatalog<T>([]), fromEntries: <T>(entries: readonly ModelServiceEntry<T>[]): ModelServiceMap<T> => modelServiceCatalog(entries), fromObject: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelServiceMap<T> => modelServiceCatalog<T>([]).fromObject(record), fromRecord: <T>(record: Readonly<{ readonly [key: string]: T }>): ModelServiceMap<T> => modelServiceCatalog<T>([]).fromObject(record) });
 
 export type ModelControllerMap<T> = Catalog<ModelControllerEntry<T>, string, T>;
-const modelControllerCatalog = <T>(entries: readonly ModelControllerEntry<T>[]): ModelControllerMap<T> => catalog(entries, { key: entry => stringValue.create(entry.name), value: entry => entry.controller, entry: (key, value) => ({ name: SemanticValueFactory.variableName(key), controller: value }), keyText: value => value }) as ModelControllerMap<T>;
+const modelControllerCatalog = <T>(entries: readonly ModelControllerEntry<T>[]): ModelControllerMap<T> => catalog(entries, { key: entry => stringValue(entry.name), value: entry => entry.controller, entry: (key, value) => ({ name: SemanticValueFactory.variableName(key), controller: value }), keyText: value => value }) as ModelControllerMap<T>;
 export interface ModelControllerMapFactoryInterface {
   readonly empty: <T>() => ModelControllerMap<T>;
   readonly fromEntries: <T>(entries: readonly ModelControllerEntry<T>[]) => ModelControllerMap<T>;

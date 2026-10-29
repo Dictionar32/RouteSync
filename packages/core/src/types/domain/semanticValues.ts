@@ -4,7 +4,8 @@ import type {
   ResponseTypeName, FormTypeName, TableName, SourceFile, DomainTypeName, AbilityName, HttpErrorName
 } from '../upstream/names';
 import { createHttpErrorName } from '../upstream/names';
-import type { NumberValue, StringValue } from '../upstream/valueObjects';
+import { stringValue as canonicalStringValue } from '../upstream/valueObjects';
+import type { NumberValue, StringValue, StringValueFactoryInterface } from '../upstream/valueObjects';
 import type { PhpFunctionName as UpstreamPhpFunctionName } from '../upstream/modelVocabulary';
 
 /**
@@ -149,7 +150,7 @@ export type BoundTargetModel =
   | { readonly kind: 'model'; readonly name: ModelName };
 
 
-const stringValue = (value: string): StringValue => Object.freeze({ kind: 'string_value', value });
+const stringValue: StringValueFactoryInterface = canonicalStringValue;
 
 export interface SemanticValueFactoryInterface {
   readonly stringValue: typeof stringValue;

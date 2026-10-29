@@ -9,6 +9,7 @@ import type {
   ControllerName,
 } from '../upstream/names';
 import type { NumberValue } from '../upstream/valueObjects';
+import { stringValue } from '../upstream/valueObjects';
 
 export type ModelNodeName = ModelName;
 export type ControllerNodeName = ControllerName;
@@ -26,9 +27,6 @@ export interface ServiceNodeName {
  * contract exists. Transport response confidence has its own richer model.
  */
 export type ConfidenceScore = number & { readonly __confidenceScore: unique symbol };
-
-const stringValue = (value: string) =>
-  Object.freeze({ kind: 'string_value' as const, value });
 
 export function createSourceColumnNumber(col: number): SourceColumnNumber {
   return Object.freeze({ kind: 'number_value' as const, value: Math.max(0, Math.floor(col)) });

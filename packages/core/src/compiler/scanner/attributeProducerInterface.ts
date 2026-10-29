@@ -1,8 +1,8 @@
 import type { AttributeAst } from '../../types/upstream/ast';
 import type { LaravelAttributeContextualityJudgment } from '../../types/upstream/laravelAttributeScannerInterface';
 import type { SourceSpan } from '../../types/upstream/provenance';
-import type { ControllerDeclarationAst } from './lexer/controllerAstTypes';
-import type { PhpAstValue } from './lexer/phpAstExpressionTypes';
+import type { ControllerDeclarationAst } from '../frontend/php/controllerAstTypes';
+import type { PhpAstValue } from '../frontend/php/phpAstExpressionTypes';
 import type { PhpAstExpressionSemanticAuthorityInterface } from '../../types/upstream/phpAstExpressionSemanticAuthorityInterface';
 import type { PhpClassConstructorSelectionAuthorityInterface } from '../../types/upstream/phpClassConstructorSelectionInterface';
 

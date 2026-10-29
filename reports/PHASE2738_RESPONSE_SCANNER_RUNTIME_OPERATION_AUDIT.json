@@ -1,0 +1,64 @@
+{
+  "phase": 2738,
+  "title": "Response AST ADT Runtime Scanner Operations and Upstream CLI Manifest Trace",
+  "checks": [
+    {
+      "name": "semantic relations directory remains empty",
+      "passed": true
+    },
+    {
+      "name": "semantic foundation directory remains empty",
+      "passed": true
+    },
+    {
+      "name": "response scanner bundle is internal, not an exported free function",
+      "passed": true
+    },
+    {
+      "name": "response AST scan is internal, not an exported free function",
+      "passed": true
+    },
+    {
+      "name": "response operations interface explicitly extends upstream scanner contract",
+      "passed": true
+    },
+    {
+      "name": "runtime scanner is interface-first and frozen",
+      "passed": true
+    },
+    {
+      "name": "production source AST dependency injects the response scanner operation",
+      "passed": true
+    },
+    {
+      "name": "source AST pipeline invokes response scanner through typed scan operation",
+      "passed": true
+    },
+    {
+      "name": "interface closure test checks operation contract and no free-function exports",
+      "passed": true
+    },
+    {
+      "name": "CLI scan and sync retain the shared manifest scan operation",
+      "passed": true
+    },
+    {
+      "name": "upstream composition still creates manifest scan operation",
+      "passed": true
+    },
+    {
+      "name": "manifest builder preserves complete and blocked ADT outcomes",
+      "passed": true
+    },
+    {
+      "name": "no relationFoundation references remain in core source",
+      "passed": true
+    }
+  ],
+  "passed": 13,
+  "total": 13,
+  "relationFoundationReferencesInCoreSource": 0,
+  "relationDirectoryFileCount": 0,
+  "foundationDirectoryFileCount": 0,
+  "verificationScope": "Static source audit only; does not claim full project typecheck, unit tests, build, or CLI end-to-end execution. Empty semantic directories are intentionally preserved without replacement abstractions."
+}

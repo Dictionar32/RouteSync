@@ -1,13 +1,13 @@
-import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
+import { semanticTypeConstruction } from '../../../semantic/semanticTypeConstruction';
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import { SemanticValueFactory } from "../../../../types/domain/semanticValues";
 import { NullableType, type SemanticType } from "../../../../types/domain/semanticType";
 import { collectMembers, relationCardinality } from "./propertyPathBindingSupport";
 import { resolveResourceMethodInvocation, type ResourceQueryState, type ResourceMethodResult } from "../../../../types/domain/resourceModelMethodSurface";
 import type { ResourcePropertyPathResult, ResourcePropertyPathStep } from "../../../../types/domain/resourcePropertyPathModel";
-import type { PhpAstValue } from "../../lexer/PhpAst";
-import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
-import { mapResourceAstExpression } from "../../operations/resourceAstExpressionMapper";
+import type { PhpAstValue } from "../../../frontend/php/PhpAst";
+import { matchPhpAccessMode } from "../../../frontend/php/phpAstAlgebra";
+import { resourceAstExpressionMapping } from "../../../semantic/resource-production/resourceAstExpressionMapping";
 import { matchLookup } from "../../../../types/upstream/collections";
 import { createPropertyName, type SourceFile } from "../../../../types/upstream/names";
 import { relationFold, relationOptionFold, relationProject, relationResolve, relationSome, relationNone, type RelationOption } from "../../../../semantic/relations/relationalSequence";
@@ -37,7 +37,7 @@ const isModelResult = (result: ResourceMethodResult): result is Extract<Resource
 const accessType = (member: Member, type: SemanticType): SemanticType =>
     matchPhpAccessMode(member.access, {
         direct: () => type,
-        nullsafe: () => relationResolve(type.isNullable(), () => type, () => scannerSemanticType.nullable(type)),
+        nullsafe: () => relationResolve(type.isNullable(), () => type, () => semanticTypeConstruction.nullable(type)),
     });
 
 const methodTransition = (
@@ -50,7 +50,7 @@ const methodTransition = (
     const invocation = resolveResourceMethodInvocation(
         current.query,
         SemanticValueFactory.methodName(member.property),
-        relationProject(member.arguments, argument => mapResourceAstExpression({ value: argument.value, sourceFile })),
+        relationProject(member.arguments, argument => resourceAstExpressionMapping.map({ value: argument.value, sourceFile })),
     );
     return relationResolve(
         Object.is(invocation.result.kind, 'unsupported'),
@@ -181,7 +181,11 @@ const MEMBER_HANDLERS: Readonly<Record<Member['kind'], (member: Member, current:
 });
 const transitionMember = (member: Member, current: PathState, table: ModelSymbolTable, terminal: boolean, sourceFile: SourceFile): Transition => MEMBER_HANDLERS[member.kind](member, current, table, terminal, sourceFile);
 
-export function resolvePropertyPath(value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable, sourceFile: SourceFile): ResourcePropertyPathResult {
+export interface ResolvePropertyPathOperation {
+  (value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable, sourceFile: SourceFile): ResourcePropertyPathResult;
+}
+
+export const resolvePropertyPath: ResolvePropertyPathOperation = Object.freeze((value: Member, rootModel: OriginModelSymbol, table: ModelSymbolTable, sourceFile: SourceFile): ResourcePropertyPathResult => {
     const members = collectMembers(value);
     const initial: PathState = {
         model: rootModel,
@@ -204,4 +208,4 @@ export function resolvePropertyPath(value: Member, rootModel: OriginModelSymbol,
         ),
         value => value,
     );
-}
+});

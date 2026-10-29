@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = process.cwd();
-const scannerFacadePath = 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts';
+const scannerFacadePath = 'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts';
 const runtimePath = 'packages/core/src/types/upstream/semanticRewriteRuntimeExecutor.ts';
 const authorityPath = 'packages/core/src/types/upstream/semanticRewriteAuthority.ts';
 const facade = fs.readFileSync(path.join(root, scannerFacadePath), 'utf8');

@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const authorityInterface = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');

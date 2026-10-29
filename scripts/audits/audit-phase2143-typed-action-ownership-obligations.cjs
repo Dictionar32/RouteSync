@@ -23,7 +23,7 @@ const checks = [
   ['scanner passes the same invocation judgment into action and integrated response paths', /actionJudgment\.judge\(\{[\s\S]*invocationJudgment,[\s\S]*judgeIntegratedResponse\(Object\.freeze\(\{[\s\S]*invocationJudgment,/.test(scanner)],
   ['runtime executor forwards the exact judgment without semantic reclassification', /semanticJudgment: input\.semanticJudgment/.test(wiring) && /forwards-canonical-action-semantic-knowledge/.test(execution)],
   ['integrated response remains owned by the existing response pipeline', /judgeIntegratedResponse\(/.test(scanner) && /integratedJudgmentOwner: 'LaravelControllerResponseSemanticPipelineInterface\.judgeIntegratedResponse'/.test(response)],
-  ['no relation/foundation or new subscanner layer is introduced', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|subscanners\/(relation|foundation)/.test(contract + wiring)],
+  ['no relation/foundation or new subscanner layer is introduced', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|operations\/(relation|foundation)/.test(contract + wiring)],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

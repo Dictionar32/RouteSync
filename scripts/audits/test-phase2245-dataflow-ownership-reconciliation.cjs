@@ -14,8 +14,8 @@ const check = (label, condition) => {
 };
 const action = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const resourceProjection = read('packages/core/src/types/upstream/controllerResourceReturnSourceEvidenceProjectionInterface.ts');
 const executor = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
 const dependencyAuthority = read('packages/core/src/types/upstream/controllerDependencySemanticJudgmentAuthority.ts');
@@ -24,7 +24,7 @@ check('action contract and production wiring are aligned at version 45', /readon
 check('resource return evidence projection is consumed by the production resolver', /controllerResourceReturnSourceEvidenceProjection\.project/.test(resolver) && !/createControllerDataflowContract/.test(resolver));
 check('dataflow obligation names the existing resource-binding authority rather than a duplicate authority', /controllerResourceReturnSourceEvidenceProjection.project/.test(resolver) && /ControllerResourceBindingAuthorityInterface/.test(resourceProjection));
 check('resolver context contains one dependency authority property', (resolverContext.match(/readonly dependencySemanticJudgmentAuthority:/g) || []).length === 1);
-check('dependency semantic authority remains free of scanner, subscanner, relation, and foundation imports', !/from ['"][^'"]*(?:compiler\/scanner|subscanners|semantic\/relations|semantic\/foundation|relation|foundation)[^'"]*['"]/.test(dependencyAuthority));
+check('dependency semantic authority remains free of scanner, subscanner, relation, and foundation imports', !/from ['"][^'"]*(?:compiler\/scanner|operations|semantic\/relations|semantic\/foundation|relation|foundation)[^'"]*['"]/.test(dependencyAuthority));
 check('resolver continues to use the existing dependency judgment authority', /dependencyAuthority\.judge\(dependencySemanticInput\(/.test(resolver));
 check('legacy projection is no longer imported by the production resolver while transitive relation debt remains explicit', !/createControllerDataflowContract/.test(resolver) && /legacy_dataflow_relation_algebra/.test(action));
 check('resource-binding judgment remains delegated to the existing upstream authority', /resourceBindingAuthority\.judge\(/.test(dataflow) && /ControllerResourceBindingAuthorityInterface/.test(dataflow) && /ControllerResourceBindingAuthorityInterface/.test(resourceProjection));

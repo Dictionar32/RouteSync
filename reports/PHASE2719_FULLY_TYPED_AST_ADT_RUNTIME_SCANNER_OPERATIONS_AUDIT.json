@@ -1,0 +1,82 @@
+{
+  "phase": 2719,
+  "title": "Fully Typed AST ADT Runtime Scanner Operations — Request Validation Ownership",
+  "checksPassed": 10,
+  "checksTotal": 10,
+  "checks": [
+    {
+      "name": "semantic request/validation owners exist",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "scanner no longer owns request producers or request validation subtrees",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "request producer runtime exports are interface typed immutable objects",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "FormRequest rule collection uses interface-first object, not exported free functions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "semantic type construction uses upstream interface-first object",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "runtime consumers use semantic ownership paths",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "relationFoundation implementation files remain absent",
+      "pass": true,
+      "detail": "implementation files found: 0"
+    },
+    {
+      "name": "legacy relationFoundation consumers are not hidden",
+      "pass": true,
+      "detail": "28 files still import the intentionally removed module; build remains expected to fail until those consumers are migrated"
+    },
+    {
+      "name": "upstream CLI manifest trace anchors exist",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI keeps blocked/rejected manifest judgments explicit",
+      "pass": true,
+      "detail": ""
+    }
+  ],
+  "sourceChanges": {
+    "semanticFilesMovedOrAdded": 8,
+    "scannerTypeScriptFilesRemaining": 318,
+    "scannerImplementationDirectoriesRemaining": [
+      "binders",
+      "descriptors",
+      "operations",
+      "orchestrator",
+      "resolvers",
+      "semantic",
+      "subscanners",
+      "symbols",
+      "upstream",
+      "wiring"
+    ],
+    "relationFoundationImplementationFiles": [],
+    "legacyRelationFoundationImportFiles": 28
+  },
+  "validation": {
+    "staticAudit": "PASS",
+    "typecheck": "NOT_RUN",
+    "unitTests": "NOT_RUN",
+    "cliEndToEnd": "NOT_RUN"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "phase": 2954,
+  "title": "Invocation Judgment-Owned Source Identity Operation",
+  "scope": [
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts",
+    "packages/core/src/types/upstream/__tests__/laravel-controller-invocation-judgment-source-identity-operation.phase2954.test.ts",
+    "scripts/audits/audit-phase2954-invocation-judgment-identity-operation.cjs"
+  ],
+  "verification": {
+    "structuralAudit": "9/9 passed",
+    "priorStructuralAudits": {
+      "phase2947": "10/10 passed",
+      "phase2948": "10/10 passed",
+      "phase2950": "13/13 passed",
+      "phase2951": "11/11 passed",
+      "phase2952": "11/11 passed",
+      "phase2953": "11/11 passed"
+    },
+    "typescriptSyntax": "5 changed TypeScript files transpiled with zero syntax diagnostics",
+    "packageJson": "valid JSON",
+    "collectionsTsBytes": 0,
+    "focusedVitest": "not run; vitest executable unavailable in workspace",
+    "fullTypecheck": "not run",
+    "fullTests": "not run",
+    "build": "not run",
+    "cliE2E": "not run"
+  }
+}

@@ -19,7 +19,7 @@ The previous derivation proof created one witness object for each target, argume
 - `packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts`
 - `packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts`
 - `packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts` (contract validation remains the same phase-boundary enforcement)
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts`
 - `scripts/audits/audit-phase1663-invocation-phase-evidence.cjs`
 - `scripts/audits/audit-phase1662-invocation-domain-witnesses.cjs` (updated to assert aggregate witnesses)
 - `package.json`

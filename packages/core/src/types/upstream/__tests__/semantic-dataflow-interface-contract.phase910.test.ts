@@ -33,7 +33,11 @@ const judgment = {
     closure: { kind: 'semantic_reasoning_closure', closed: true },
   },
   fixedPoint: 'least_fixed_point',
-  reasoning: 'declarative_relation_rewrite_fixed_point',
+  operations: {
+    containsFact: (_candidate: SemanticDataflowFact) => true,
+    reaches: (_source: SemanticDataflowIdentity, _target: SemanticDataflowIdentity) => true,
+    pathsBetween: (_source: SemanticDataflowIdentity, _target: SemanticDataflowIdentity) => [],
+  },
   authority: 'semantic_dataflow_judgment',
   closed: true,
 } satisfies SemanticDataflowJudgment;

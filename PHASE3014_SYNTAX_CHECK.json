@@ -1,0 +1,30 @@
+{
+  "phase": 3014,
+  "compiler": "global TypeScript transpileModule",
+  "target": "ES2022",
+  "files": [
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticAlgebraInterface.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/core/src/types/upstream/__tests__/invocation-semantic-algebra.phase1677.test.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts",
+      "syntaxDiagnostics": 0
+    }
+  ],
+  "totalFiles": 5,
+  "syntaxDiagnostics": 0,
+  "diagnostics": []
+}

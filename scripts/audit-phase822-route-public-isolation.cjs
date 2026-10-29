@@ -18,14 +18,14 @@ const publicFiles = [
   'packages/core/src/index.ts',
   'packages/core/src/compiler/index.ts',
   'packages/core/src/compiler/scanner/scannerExports.ts',
-  'packages/core/src/compiler/scanner/descriptors/index.ts',
-  'packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/index.ts'
+  'packages/core/src/compiler/scanner/operations/domain-model/index.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/index.ts'
 ];
 const publicLeaks = publicFiles.filter(f => fs.existsSync(path.join(root, f)) && fs.readFileSync(path.join(root, f), 'utf8').includes('RouteSemanticFlowFactory'));
 const coreRefs = refs(path.join(root, 'packages/core/src'), 'RouteSemanticFlowFactory');
 const sdkRefs = refs(path.join(root, 'packages/sdk/tests'), 'RouteSemanticFlowFactory');
-const sdkDirectImports = sdkRefs.filter(f => fs.readFileSync(path.join(root, f), 'utf8').includes("../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory"));
+const sdkDirectImports = sdkRefs.filter(f => fs.readFileSync(path.join(root, f), 'utf8').includes("../../core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory"));
 const nonLegacyCoreConsumers = coreRefs.filter(f =>
   !f.endsWith('/RouteSemanticFlowFactory.ts') &&
   !f.endsWith('/routeSemanticFactories.ts') &&

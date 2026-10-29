@@ -22,8 +22,8 @@ const checks = [
   },
   {
     name: 'Laravel scanner currently ignores functionNameEvidence (known gap)',
-    pass: read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts').includes('function: functionName(name),')
-      && !read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts').includes('functionNameEvidence'),
+    pass: read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts').includes('function: functionName(name),')
+      && !read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts').includes('functionNameEvidence'),
   },
   {
     name: 'generic integrated response is currently based on SemanticKnowledgeDataFlow',

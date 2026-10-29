@@ -1,12 +1,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const wiringPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const adapterPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/controllerRuntimeReturnProjection.ts');
+const adapterPath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/controllerRuntimeReturnProjection.ts');
 const interfacePath = path.join(root, 'packages/core/src/types/upstream/controllerRuntimeReturnProjectionInterface.ts');
-const testPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts');
-const actionScannerPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const testPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.phase10.test.ts');
+const actionScannerPath = path.join(root, 'packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
 const resolver = fs.readFileSync(resolverPath, 'utf8');
 const wiring = fs.readFileSync(wiringPath, 'utf8');
 const adapter = fs.readFileSync(adapterPath, 'utf8');

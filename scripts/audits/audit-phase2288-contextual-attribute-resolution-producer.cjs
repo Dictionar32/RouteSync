@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelAttributeScannerInterface.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const pipelineContract = read('packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts');
 const builder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');

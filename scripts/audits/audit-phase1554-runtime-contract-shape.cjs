@@ -6,7 +6,7 @@ const contractPath = 'packages/core/src/types/upstream/semanticTypeDerivationInt
 const contract = read(contractPath);
 const executor = read('packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts');
 const tests = read('packages/core/src/compiler/semantic/type-derivation/__test__/semanticTypeDerivationRuntimeExecutor.phase1552.test.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/SemanticTypeDeriver.ts');
 const checks = [
   ['runtime contract accepts unknown candidate at executable boundary', /candidate: unknown/.test(contract)],
   ['runtime validator guards object before property reads', /if \(!isRecord\(candidate\)\) return invalid\(\)/.test(contract)],

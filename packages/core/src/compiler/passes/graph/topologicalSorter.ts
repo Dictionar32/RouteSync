@@ -1,63 +1,46 @@
 import type { ArtifactKey } from '../../artifacts/types';
 import type { ExecutablePass } from '../ExecutablePass';
-import { relationContains, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
-import { relationAny, relationEqual, relationOptionFold, relationProject, relationResolve, relationSelect } from '../../../semantic/relations/relationalSequence';
-import { analyzePassGraph, type GraphAnalysis } from './graphAnalyzer';
+import { passGraphAnalysisOperations, type PassGraphAnalysisInterface } from './graphAnalyzer';
 
-const passProducerPresent = (
-  analysis: GraphAnalysis,
-  artifact: ArtifactKey,
-  remaining: readonly ExecutablePass[],
-): boolean => relationOptionFold(
-  relationIndexLookup(analysis.producers, artifact),
-  () => false,
-  producer => relationContains(remaining, producer),
-);
+export interface PassGraphOrderingOperationsInterface {
+  readonly resolveParallelLayers: (passes: readonly ExecutablePass[], externalInputs?: readonly ArtifactKey[]) => readonly (readonly ExecutablePass[])[];
+  readonly resolveTopologicalOrder: (passes: readonly ExecutablePass[], externalInputs?: readonly ArtifactKey[]) => readonly ExecutablePass[];
+}
 
-const passReady = (
-  analysis: GraphAnalysis,
+const passIsReady = (
+  analysis: PassGraphAnalysisInterface,
   pass: ExecutablePass,
   remaining: readonly ExecutablePass[],
-): boolean => !relationAny(relationProject(
-  pass.descriptor.consumes,
-  artifact => passProducerPresent(analysis, artifact, remaining),
-));
+): boolean => !pass.descriptor.consumes.some((artifact) => analysis.containsRemainingProducer(artifact, remaining));
 
-const resolveLayersFrom = (
-  analysis: GraphAnalysis,
+const resolveLayers = (
+  analysis: PassGraphAnalysisInterface,
   remaining: readonly ExecutablePass[],
-): readonly (readonly ExecutablePass[])[] => relationResolve(
-  relationEqual(remaining.length, 0),
-  () => [],
-  () => {
-    const ready = relationSelect(remaining, pass => passReady(analysis, pass, remaining));
-    return relationResolve(
-      relationEqual(ready.length, 0),
-      () => { throw Error('Compiler pass cycle detected'); },
-      () => [ready, ...resolveLayersFrom(analysis, relationSelect(remaining, pass => !relationContains(ready, pass)))],
-    );
-  },
+): readonly (readonly ExecutablePass[])[] => {
+  if (remaining.length === 0) return [];
+  const ready = remaining.filter((pass) => passIsReady(analysis, pass, remaining));
+  if (ready.length === 0) throw Error('Compiler pass cycle detected');
+  const readyNames = new Set(ready.map((pass) => pass.name));
+  const next = remaining.filter((pass) => !readyNames.has(pass.name));
+  return Object.freeze([Object.freeze(ready), ...resolveLayers(analysis, next)]);
+};
+
+const resolveParallelLayers = (
+  passes: readonly ExecutablePass[],
+  externalInputs: readonly ArtifactKey[] = [],
+): readonly (readonly ExecutablePass[])[] => resolveLayers(
+  passGraphAnalysisOperations.analyze(passes, externalInputs),
+  passes,
 );
 
-export function resolveParallelLayers(
+const resolveTopologicalOrder = (
   passes: readonly ExecutablePass[],
   externalInputs: readonly ArtifactKey[] = [],
-): readonly (readonly ExecutablePass[])[] {
-  const analysis = analyzePassGraph(passes, externalInputs);
-  return resolveLayersFrom(analysis, passes);
-}
+): readonly ExecutablePass[] => Object.freeze(
+  resolveParallelLayers(passes, externalInputs).flatMap((layer) => [...layer]),
+);
 
-export function resolveTopologicalOrder(
-  passes: readonly ExecutablePass[],
-  externalInputs: readonly ArtifactKey[] = [],
-): readonly ExecutablePass[] {
-  const analysis = analyzePassGraph(passes, externalInputs);
-  const layers = resolveLayersFrom(analysis, passes);
-  const flatten = (items: readonly (readonly ExecutablePass[])[], index = 0, output: readonly ExecutablePass[] = []): readonly ExecutablePass[] =>
-    relationResolve(
-      relationEqual(index, items.length),
-      () => output,
-      () => flatten(items, index + 1, [...output, ...items[index]]),
-    );
-  return flatten(layers);
-}
+export const passGraphOrderingOperations: PassGraphOrderingOperationsInterface = Object.freeze({
+  resolveParallelLayers,
+  resolveTopologicalOrder,
+});

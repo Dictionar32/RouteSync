@@ -1,0 +1,29 @@
+{
+  "phase": 3050,
+  "title": "Assignment Reference Fact-Domain Continuation",
+  "runtimeTrace": [
+    "PHP source producer creates canonical SemanticAssignment facts with a reference-mode definition.",
+    "The upstream semantic fact domain projects assignment facts into concrete identity-binding evidence.",
+    "Semantic object identity authority consumes projected bindings and no longer owns assignment-fact classification.",
+    "Bindings retain assignment identity, endpoint identities, and SemanticSource provenance.",
+    "Integrated semantic output continues through the existing interface-backed CLI scan and manifest-composition path."
+  ],
+  "checks": {
+    "concreteFactDomainOperationExists": true,
+    "operationProducesTypedIdentityBindings": true,
+    "objectIdentityAuthorityDelegatesFactProjection": true,
+    "noGenericVisitorOrGenericContinuationAdded": true,
+    "testCoversIdentityAndProvenance": true,
+    "cliManifestInterfacePathPreserved": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 8,
+  "total": 8,
+  "remainingDebt": [
+    "The upstream operation still has one localized discriminant branch for assignment facts; this is not global elimination of if/switch/control flow.",
+    "Primitive parser representations and lookup at syntax boundaries remain; no global primitive-elimination claim is made.",
+    "Full PHP reference semantics, heap aliasing, callable summaries, full repository typecheck, full Vitest, and CLI-to-manifest end-to-end execution remain unverified."
+  ],
+  "failedChecks": []
+}

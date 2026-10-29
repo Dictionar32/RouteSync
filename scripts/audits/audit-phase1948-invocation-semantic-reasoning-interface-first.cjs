@@ -9,8 +9,8 @@ const contract = read('packages/core/src/types/upstream/laravelControllerInvocat
 const authority = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts');
 const integrationContract = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts');
 const integrationAuthority = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 check('existing invocation judgment interface owns a declarative reasoning ADT',

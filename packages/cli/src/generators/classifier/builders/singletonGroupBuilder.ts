@@ -24,15 +24,11 @@ import {
 } from '../typeResolver';
 import { partitionGroupSubRoutes, type ErrorResolutionResult } from './subRoutePartitioner';
 
-export function buildCustomOrSingletonGroupDescriptor(
-  groupName: string,
-  keyName: string,
-  titleName: string,
-  res: ResourceCrudMap,
-  errorRes: ErrorResolutionResult,
-  standardKeys: readonly string[],
-  shape: 'custom' | 'singleton' = 'singleton'
-): ResourceGroupDescriptor<ClassifiedRoute> {
+export interface BuildCustomOrSingletonGroupDescriptorOperation {
+  (groupName: string, keyName: string, titleName: string, res: ResourceCrudMap, errorRes: ErrorResolutionResult, standardKeys: readonly string[], shape: 'custom' | 'singleton' = 'singleton'): ResourceGroupDescriptor<ClassifiedRoute>;
+}
+
+export const buildCustomOrSingletonGroupDescriptor: BuildCustomOrSingletonGroupDescriptorOperation = Object.freeze((groupName: string, keyName: string, titleName: string, res: ResourceCrudMap, errorRes: ErrorResolutionResult, standardKeys: readonly string[], shape: 'custom' | 'singleton' = 'singleton'): ResourceGroupDescriptor<ClassifiedRoute> => {
   const hasSchema = (route?: ClassifiedRoute): boolean =>
     Boolean(route && route.contract.request.body.kind === 'body' && hasCanonicalRequestFields(route.contract.request.body.schema));
 
@@ -93,4 +89,4 @@ export function buildCustomOrSingletonGroupDescriptor(
     extraMutations: subRoutes.extraMutations,
     customQueries: subRoutes.customQueries
   });
-}
+});

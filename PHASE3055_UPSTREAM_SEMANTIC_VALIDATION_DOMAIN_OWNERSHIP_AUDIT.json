@@ -1,0 +1,49 @@
+{
+  "phase": 3055,
+  "title": "Upstream semantic validation domain ownership",
+  "passed": 10,
+  "total": 10,
+  "status": "PASS",
+  "results": [
+    {
+      "name": "validation operation is owned by core/types/upstream",
+      "pass": true
+    },
+    {
+      "name": "upstream operation returns a closed typed outcome, not void",
+      "pass": true
+    },
+    {
+      "name": "domain violations remain closed and explicit",
+      "pass": true
+    },
+    {
+      "name": "identity invariants use the typed KnowledgeId operation instead of string keys",
+      "pass": true
+    },
+    {
+      "name": "compiler facade delegates validation upstream",
+      "pass": true
+    },
+    {
+      "name": "facade preserves the scanner extension model in the outcome",
+      "pass": true
+    },
+    {
+      "name": "runtime producer still consumes the validation outcome",
+      "pass": true
+    },
+    {
+      "name": "upstream barrel exports the validation operation",
+      "pass": true
+    },
+    {
+      "name": "deleted relation foundations remain absent",
+      "pass": true
+    },
+    {
+      "name": "collections invariant remains one newline byte",
+      "pass": true
+    }
+  ]
+}

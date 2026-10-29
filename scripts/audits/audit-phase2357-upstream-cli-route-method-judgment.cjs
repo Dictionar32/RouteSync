@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const authority = read('packages/core/src/types/upstream/laravelRouteDeclarationMethodSemanticAuthority.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const producerRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const producerRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const manifestBuilder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
 const cliComposition = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');

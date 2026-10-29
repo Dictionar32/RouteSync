@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const model = read('packages/core/src/types/upstream/semanticDataflow.ts');
 const authority = read('packages/core/src/types/upstream/semanticDataflowAuthority.ts');
 const boundary = read('packages/core/src/types/upstream/semanticDataflowInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const checks = [
   ['certificate requires complete derivation coverage', /derivationCoverage: Readonly<\{ readonly kind: 'derivation_coverage'; readonly complete: true; readonly coveredFacts: number \}>/.test(model)],
   ['authority binds covered-fact count to the computed closure', /coveredFacts: closure\.length/.test(authority)],

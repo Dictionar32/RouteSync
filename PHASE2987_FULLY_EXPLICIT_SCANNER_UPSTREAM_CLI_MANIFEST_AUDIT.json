@@ -1,0 +1,105 @@
+{
+  "phase": 2987,
+  "title": "Fully Explicit Scanner Operations — Upstream → CLI → Manifest Trace",
+  "passed": 14,
+  "total": 14,
+  "checks": [
+    {
+      "name": "PHP scanner control knowledge is upstream-owned",
+      "passed": true
+    },
+    {
+      "name": "scanner ADT has domain continuation operations",
+      "passed": true
+    },
+    {
+      "name": "PHP AST runtime consumes upstream control algebra",
+      "passed": true
+    },
+    {
+      "name": "legacy PHP control facade no longer imports deleted relation foundation",
+      "passed": true
+    },
+    {
+      "name": "legacy PHP control facade is an interface-typed runtime object",
+      "passed": true
+    },
+    {
+      "name": "scanner output remains a closed serializable ADT",
+      "passed": true
+    },
+    {
+      "name": "CLI composition is interface typed and consumes upstream assembly",
+      "passed": true
+    },
+    {
+      "name": "CLI manifest operation factory is interface typed",
+      "passed": true
+    },
+    {
+      "name": "CLI manifest scan delegates to manifest composition authority",
+      "passed": true
+    },
+    {
+      "name": "manifest scan factory is interface typed",
+      "passed": true
+    },
+    {
+      "name": "manifest scanner runtime facade is interface typed",
+      "passed": true
+    },
+    {
+      "name": "manifest builder preparation is interface typed and executes source AST pipeline",
+      "passed": true
+    },
+    {
+      "name": "manifest ADT continues into downstream flow projection",
+      "passed": true
+    },
+    {
+      "name": "deleted generic relation foundations remain absent",
+      "passed": true
+    }
+  ],
+  "runtimeTrace": [
+    {
+      "stage": "PHP source tokens",
+      "evidence": "TokenDescriptor evidence enters astClassifierRuntime.ts"
+    },
+    {
+      "stage": "Upstream scanner domain",
+      "evidence": "scannerStatementControlContractAlgebra.resolve -> structured/not_structured judgment; private ADTs own continueWith"
+    },
+    {
+      "stage": "CLI composition",
+      "evidence": "routeSyncCliUpstreamCompositionFactory.compose -> requestTypeDerivationProductionPipelineAssembler.assemble"
+    },
+    {
+      "stage": "CLI manifest operation",
+      "evidence": "routeSyncCliManifestScanOperationFactory.create -> authority.compose(input)"
+    },
+    {
+      "stage": "Manifest scanner",
+      "evidence": "routeSyncManifestScanOperationFactory.create -> preparation.prepare(...).build()"
+    },
+    {
+      "stage": "Manifest builder",
+      "evidence": "laravelSourceAstPipeline.execute -> source model builder -> manifest judgment -> continueToFlow projection"
+    }
+  ],
+  "remainingDeletedRelationFoundationImports": {
+    "allCoreAndCli": 478,
+    "core": 478,
+    "upstreamTypes": 63,
+    "phpFrontend": 76,
+    "compilerScanner": 81,
+    "cliDirect": 0,
+    "uniqueFiles": 256,
+    "note": "These are remaining imports of intentionally deleted modules, not a passing migration. Migrate consumer-owned domain boundaries; never restore the generic relation foundations."
+  },
+  "knownLimits": [
+    "The PHP control compatibility facade has no in-repository call sites; it is now typed and relation-free, but it is not evidence that the full PHP AST runtime is relation-free.",
+    "Structural trace proves the composition edges visible in source, not successful end-to-end output for every Laravel project.",
+    "Full workspace typecheck/build/tests are not claimed without installed dependencies."
+  ]
+}

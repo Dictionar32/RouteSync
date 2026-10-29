@@ -122,7 +122,7 @@ No real upstream producer was found for:
 Important: `scanMigrations()` is **not** a MigrationAst producer. It returns `Map<string, ParsedColumn[]>` and therefore cannot safely be wrapped as `MigrationAst` without semantic loss. No fake adapter was introduced.
 
 ### Saran
-Do not invent AST values and do not create another interface. The next repair must start from an actual scanner/lexer producer for one of the missing categories.
+Do not invent AST values and do not create another interface. The next repair must start from an actual frontend/php producer for one of the missing categories.
 
 ### Compile
 Command:
@@ -1034,7 +1034,7 @@ Recompile the canonical scanner and rerun the real `ecommerce_shop` scan. The ne
 After repairing the Resource binder import, the real canonical scan reached the Model scanner and stopped at:
 
 ```text
-packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts
+packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts
   ↓
 SemanticType / SemanticValueFactory
   ↓

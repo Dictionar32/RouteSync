@@ -1,0 +1,62 @@
+{
+  "phase": 2872,
+  "title": "Manifest Domain Continuation Decision-Point Audit",
+  "source": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+  "decisionPointCount": 7,
+  "decisionPoints": [
+    {
+      "syntax": "IfStatement",
+      "line": 300,
+      "expression": "discovery.kind === 'laravel_controller_source_discovery_blocked'",
+      "status": "decision-point-requires-domain-ownership-review"
+    },
+    {
+      "syntax": "ConditionalExpression",
+      "line": 316,
+      "expression": "binding.kind === 'php_source_document_identity_rejected'",
+      "status": "decision-point-requires-domain-ownership-review"
+    },
+    {
+      "syntax": "IfStatement",
+      "line": 318,
+      "expression": "identityRejections.length > 0",
+      "status": "decision-point-requires-domain-ownership-review"
+    },
+    {
+      "syntax": "ConditionalExpression",
+      "line": 325,
+      "expression": "binding.kind === 'php_source_document_identity_bound'",
+      "status": "decision-point-requires-domain-ownership-review"
+    },
+    {
+      "syntax": "ConditionalExpression",
+      "line": 327,
+      "expression": "result.kind === 'php_source_document_read_complete'",
+      "status": "decision-point-requires-domain-ownership-review"
+    },
+    {
+      "syntax": "ConditionalExpression",
+      "line": 328,
+      "expression": "result.kind === 'php_source_document_read_blocked'",
+      "status": "decision-point-requires-domain-ownership-review"
+    },
+    {
+      "syntax": "IfStatement",
+      "line": 329,
+      "expression": "blockedReads.length > 0",
+      "status": "decision-point-requires-domain-ownership-review"
+    }
+  ],
+  "checks": {
+    "canonicalizationHasNamedExistingContract": true,
+    "discoveryUsesExistingUpstreamADT": true,
+    "identityBindingHasClosedJudgment": true,
+    "manifestJudgmentAlreadyHasContinuation": true,
+    "collectionsRemainsEmpty": true,
+    "reportDoesNotClaimBranchesAlreadyRemoved": true
+  },
+  "passedChecks": 6,
+  "totalChecks": 6,
+  "collectionsBytes": 0,
+  "interpretation": "This phase records actual branch locations and maps each to its existing domain contract. It does not claim a migration, typecheck, build, or end-to-end test."
+}

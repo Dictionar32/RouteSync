@@ -2,7 +2,7 @@
 
 ## Goal
 
-Raise the remaining scanner/lexer control dispatch above source-language branching without pretending that source spellings can disappear from the lexer itself.
+Raise the remaining frontend/php control dispatch above source-language branching without pretending that source spellings can disappear from the lexer itself.
 
 The architecture is now:
 
@@ -12,7 +12,7 @@ Raw PHP control spellings are confined to `phpControlEvidence.ts`. The parser di
 
 ## Changes
 
-- Added `packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts`.
+- Added `packages/core/src/compiler/frontend/php/phpControlEvidence.ts`.
 - Introduced the abstract control relation vocabulary:
   - `conditional`
   - `collection_iteration`

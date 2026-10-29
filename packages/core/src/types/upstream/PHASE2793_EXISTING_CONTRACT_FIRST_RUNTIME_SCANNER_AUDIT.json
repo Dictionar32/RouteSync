@@ -1,0 +1,38 @@
+{
+  "phase": 2793,
+  "title": "Existing-contract-first runtime scanner and CLI manifest audit",
+  "status": "structural-audit-passed",
+  "checksPassed": 13,
+  "checksTotal": 13,
+  "newUpstreamContractsAdded": 0,
+  "existingContractsInspected": [
+    "PhpAstExpressionSemanticAuthorityInterface",
+    "ExpressionFromPhpAstOperationInterface",
+    "ResourceAstExpressionMappingOperationInterface",
+    "ResourceAstExpressionMappingAuthorityInterface",
+    "ScannerExpressionOperatorInterface",
+    "LaravelSourceAstPipelineInterface",
+    "ManifestBuilderOperationPreparationInterface",
+    "ManifestBuilderInterface",
+    "LaravelSourceAstProjectionJudgment",
+    "ManifestBuilderJudgment"
+  ],
+  "runtimeTrace": [
+    "CLI scan/sync",
+    "composition.manifestScanOperation",
+    "controller-invocation manifest composition",
+    "ManifestBuilderOperationPreparationInterface.prepare",
+    "ManifestBuilderInterface.build",
+    "LaravelSourceAstPipelineInterface.execute",
+    "LaravelSourceAstProjectionJudgment: complete | blocked",
+    "source-model judgment: complete | blocked",
+    "ManifestBuilderJudgment: manifest_builder_complete | manifest_builder_blocked",
+    "CLI manifest projection/validation/serialization"
+  ],
+  "notes": [
+    "No new interface or ADT was introduced in this phase.",
+    "Local PHP AST mapping/closure helper interfaces remain a review item: existing upstream authority contracts are top-level contracts and do not necessarily describe every low-level helper signature.",
+    "This is a structural audit, not proof of typecheck/build/test/CLI end-to-end success."
+  ],
+  "collectionsTsBytes": 0
+}

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const index = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/symbols/resource/index.ts'), 'utf8');
-const types = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/symbols/resource/resourceBindingTypes.ts'), 'utf8');
+const types = fs.readFileSync(path.join(root, 'packages/core/src/compiler/semantic/resource-model/resourceModelBinding.ts'), 'utf8');
 const publicIndex = fs.readFileSync(path.join(root, 'packages/core/src/index.ts'), 'utf8');
 const checks = {
   singleCanonicalBarrelExport: /export\s*\{[\s\S]*ResourceModelBindingSource,[\s\S]*type MonoModelBinding/.test(index) && !/ResourceModelBindingSource,\s*type ResourceModelBindingSource/.test(index),

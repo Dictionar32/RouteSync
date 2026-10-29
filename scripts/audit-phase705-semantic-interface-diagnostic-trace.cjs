@@ -4,11 +4,11 @@ const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const files = [
-  'packages/core/src/compiler/scanner/lexer/index.ts',
-  'packages/core/src/compiler/scanner/lexer/responseDtoAstTypes.ts',
-  'packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts',
-  'packages/core/src/compiler/scanner/subscanners/dtoProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/responseProducer.ts',
+  'packages/core/src/compiler/frontend/php/index.ts',
+  'packages/core/src/compiler/frontend/php/responseDtoAstTypes.ts',
+  'packages/core/src/compiler/frontend/php/responseDtoDeclarationParser.ts',
+  'packages/core/src/compiler/scanner/operations/dtoProducer.ts',
+  'packages/core/src/compiler/scanner/operations/responseProducer.ts',
   'packages/core/src/types/upstream/typeVocabulary.ts',
   'packages/core/src/types/upstream/astSemanticInterface.ts',
   'packages/core/src/compiler/diagnostics/Diagnostic.ts',
@@ -26,11 +26,11 @@ for (const file of files) {
     diagnostics.push({ file, code: diagnostic.code, message: ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ') });
   }
 }
-const lexerIndex = read('packages/core/src/compiler/scanner/lexer/index.ts');
-const responseTypes = read('packages/core/src/compiler/scanner/lexer/responseDtoAstTypes.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/dtoProducer.ts');
-const responseProducer = read('packages/core/src/compiler/scanner/subscanners/responseProducer.ts');
+const lexerIndex = read('packages/core/src/compiler/frontend/php/index.ts');
+const responseTypes = read('packages/core/src/compiler/frontend/php/responseDtoAstTypes.ts');
+const parser = read('packages/core/src/compiler/frontend/php/responseDtoDeclarationParser.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/dtoProducer.ts');
+const responseProducer = read('packages/core/src/compiler/scanner/operations/responseProducer.ts');
 const typeVocabulary = read('packages/core/src/types/upstream/typeVocabulary.ts');
 const astInterface = read('packages/core/src/types/upstream/astSemanticInterface.ts');
 const diagnostic = read('packages/core/src/compiler/diagnostics/Diagnostic.ts');

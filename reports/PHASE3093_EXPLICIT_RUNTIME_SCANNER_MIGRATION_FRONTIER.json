@@ -1,0 +1,34 @@
+{
+  "phase": 3093,
+  "scope": "repository-wide lexical frontier plus real PHP source-read → identity binding → CLI manifest composition path",
+  "sourceFiles": 2244,
+  "exportFunctionDeclarations": 523,
+  "exportedArrowConstDeclarations": 344,
+  "genericContinueWithOperations": 160,
+  "switchTokens": 575,
+  "ifTokens": 2247,
+  "nullishCoalescingTokens": 259,
+  "mapCalls": 827,
+  "reduceCalls": 11,
+  "sourceIdentityReadOperation": {
+    "genericReadResultHandlersRemoved": true,
+    "genericReadResultContinueWithRemoved": true,
+    "namedBindIdentityOperationPresent": true,
+    "genericBatchContinuationsRemain": true
+  },
+  "runtimeTrace": [
+    "packages/cli/src/commands/scan.ts",
+    "packages/cli/src/commands/sync.ts",
+    "packages/cli/src/manifestScanOperationInterface.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "packages/core/src/types/upstream/phpSourceFrontendInterface.ts",
+    "packages/core/src/types/upstream/phpSourceDocumentIdentityBindingInterface.ts",
+    "packages/core/src/types/upstream/phpSourceDocumentIdentityBindingAuthority.ts",
+    "packages/core/src/types/upstream/laravelRouteSourceSelection.ts",
+    "manifest builder / projection / validation / generator consumers"
+  ],
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false,
+  "countsAreLexicalNotAst": true
+}

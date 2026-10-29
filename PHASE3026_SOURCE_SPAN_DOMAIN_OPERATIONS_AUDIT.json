@@ -1,0 +1,24 @@
+{
+  "phase": 3026,
+  "title": "SourceSpan Domain Operations — Upstream Runtime Evidence Slice",
+  "scope": "Static contract audit. Typecheck and Vitest execution require project dependencies not installed in this workspace runtime.",
+  "checks": {
+    "sourceSpanHasNamedDomainContract": true,
+    "comparisonsReturnClosedJudgments": true,
+    "spanFactoryIsInterfaceBacked": true,
+    "sourceValidationDelegatesDomainSemantics": true,
+    "functionResolutionInventoryDelegatesDomainSemantics": true,
+    "routePayloadAdapterUsesTypedSpanFactory": true,
+    "cliPhpAdapterUsesTypedSpanFactory": true,
+    "testsCoverEqualityValidityContainmentAndCoverage": true,
+    "removedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "remainingDebt": [
+    "SourceSpan retains NumberValue fields as parser/serialization boundary evidence for compatibility; direct offset comparisons remain elsewhere and need consumer-by-consumer migration.",
+    "SourceSpan constructors in other scanner producers and fixtures have not all been migrated to sourceSpanFactory.",
+    "StatementIndex ordinal remains numeric boundary evidence; name factories still accept raw strings; numberValue/truthValue remain function-valued exports.",
+    "Repository-wide primitive checks, nullish fallbacks, ternaries, reductions, empty-array defaults, and parser traversal arithmetic are not globally removed.",
+    "No full typecheck, test suite, or CLI-to-manifest end-to-end run was possible because node_modules is absent."
+  ]
+}

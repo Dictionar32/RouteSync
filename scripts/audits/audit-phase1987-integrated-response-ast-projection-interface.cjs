@@ -22,7 +22,7 @@ const checks = [
   ['controller artifact already owns both judgments as one ADT', scanner.includes('readonly invocationJudgment: LaravelControllerInvocationOutcome') && scanner.includes("readonly responseJudgment:")],
   ['response outcome remains closed and rejected source binding is preserved', response.includes('LaravelControllerResponseEvidenceSourceBindingRejectedJudgment') && response.includes('LaravelControllerResponseSemanticJudgmentFromInput<Input>')],
   ['new projection context and response projection type are publicly exported', barrel.includes('LaravelControllerAstProjectionContext') && barrel.includes('LaravelControllerAstProjectionResponseJudgment')],
-  ['no relation/foundation replacement layer is introduced', !invocation.includes('subscanners/relation') && !invocation.includes('subscanners/foundation') && !retirement.includes('subscanners/relation') && !retirement.includes('subscanners/foundation')],
+  ['no relation/foundation replacement layer is introduced', !invocation.includes('operations/relation') && !invocation.includes('operations/foundation') && !retirement.includes('operations/relation') && !retirement.includes('operations/foundation')],
   ['no new scanner or parallel invocation authority is introduced', !invocation.includes('LaravelControllerIntegratedResponseScannerInterface') && !invocation.includes('ParallelInvocationAuthorityInterface')],
   ['existing AST projection runtime remains unchanged for interface-first sequencing', fs.existsSync(projectionRuntimePath)],
 ];

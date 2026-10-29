@@ -3,12 +3,13 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { LaravelSourceLexer } from '../../core/src/compiler/scanner/LaravelSourceLexer';
-import { createAstIdentifier } from '../../core/src/compiler/scanner/lexer/phpAstTypes';
+import { createAstIdentifier } from '../../core/src/compiler/frontend/php/phpAstTypes';
 import { attributeProducer } from '../../core/src/compiler/scanner/attributeProducer';
 import { laravelAttributeScanner } from '../../core/src/compiler/scanner/laravelAttributeScanner';
 import type { LaravelAttributeContextualityJudgment } from '../../core/src/types/upstream/laravelAttributeScannerInterface';
 import type { Sequence } from '../../core/src/types/upstream/collections';
 import type { SourceProjectIdentity } from '../../core/src/types/upstream/highLevelSourceModel';
+import { semanticDataflowQueryPolicySelectionFactory } from '../../core/src/types/upstream/semanticDataflowQueryPolicy';
 import type { SourceSpan } from '../../core/src/types/upstream/provenance';
 
 const fixtureRoot = path.resolve(__dirname, 'fixtures/ecommerce-shop-source');
@@ -35,6 +36,7 @@ const project = (root: string): SourceProjectIdentity => ({
   kind: 'laravel_project',
   root: source(root, 1).file,
   source: source(root, 1),
+  queryPolicySelection: semanticDataflowQueryPolicySelectionFactory.defaultSelection,
 });
 
 describe('AttributeAst producer', () => {

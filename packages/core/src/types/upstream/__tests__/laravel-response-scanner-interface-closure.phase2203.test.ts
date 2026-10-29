@@ -21,8 +21,12 @@ describe('Laravel response scanner interface closure phase 2203', () => {
   });
 
   it('implements the upstream contract without introducing a second semantic authority', () => {
-    const implementation = fs.readFileSync(path.resolve(__dirname, '../../../compiler/scanner/subscanners/responseScanner.ts'), 'utf8');
-    expect(implementation).toContain('export const laravelResponseScanner: LaravelResponseScannerInterface');
-    expect(implementation).toContain('scanResponseBundle(input.sourceProject, input.controllerScan, input.resourceDefinitions, input.responsePipeline)');
+    const implementation = fs.readFileSync(path.resolve(__dirname, '../../../compiler/scanner/operations/responseScanner.ts'), 'utf8');
+    expect(implementation).toContain('export interface LaravelResponseScannerOperationsInterface extends LaravelResponseScannerInterface');
+    expect(implementation).toContain('export const laravelResponseScanner: LaravelResponseScannerOperationsInterface = Object.freeze({');
+    expect(implementation).toContain('scan: scanResponseBundleImplementation');
+    expect(implementation).toContain('scanBundle: scanResponseBundleImplementation');
+    expect(implementation).toContain('scanAsts: scanResponseAstsImplementation');
+    expect(implementation).not.toMatch(/export\s+async\s+function\s+scanResponse(?:Bundle|Asts)\b/);
   });
 });

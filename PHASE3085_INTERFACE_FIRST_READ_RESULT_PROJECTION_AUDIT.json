@@ -1,0 +1,28 @@
+{
+  "phase": 3085,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations — interface-first read-result projection",
+  "status": "PASS_STRUCTURAL",
+  "passed": 9,
+  "total": 9,
+  "checks": {
+    "namedHelperFunctionRemoved": true,
+    "interfaceDeclaredForDomainOperation": true,
+    "exportedOperationUsesExplicitInterfaceObject": true,
+    "operationIsFrozen": true,
+    "projectionPreservesOrderAndResultIdentity": true,
+    "projectedResultIsFrozen": true,
+    "bothBatchOutcomesUseDomainProjection": true,
+    "noExportedFunctionDeclarationAdded": true,
+    "syntaxTranspileClean": true
+  },
+  "syntaxDiagnostics": [],
+  "runtimeTrace": "Identity-binding judgment → phpSourceDocumentIdentityBindingReadResultProjection.project(bindings) → immutable ordered read-result projection → CLI document-read batch → semantic invocation → manifest composition → canonical manifest generator.",
+  "verification": {
+    "focusedRuntimeProjection": "EXECUTED",
+    "syntaxTranspile": "PASS",
+    "strictWholeWorkspaceTypecheck": "NOT_RUN",
+    "fullTestSuite": "NOT_RUN",
+    "endToEnd": "NOT_RUN"
+  },
+  "remainingNote": "The object operation now follows the requested export const name: Interface = Object.freeze({...}) form. Its internal iteration remains intentionally visible as projection mechanics; this phase does not claim blanket elimination of all loops or control flow."
+}

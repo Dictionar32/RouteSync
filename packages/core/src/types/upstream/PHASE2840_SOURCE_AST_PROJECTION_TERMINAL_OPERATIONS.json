@@ -1,0 +1,12 @@
+{
+  "phase": 2840,
+  "name": "source_ast_projection_terminal_operations",
+  "rootCause": "source AST projection ADT carried terminal data only; the manifest builder dispatched on projection.kind downstream",
+  "runtimeOperation": "LaravelSourceAstProjectionJudgment.continueWith",
+  "producerOperations": ["laravelSourceAstProjectionOperations.complete", "laravelSourceAstProjectionOperations.blocked"],
+  "completeAndBlockedRemainDistinct": true,
+  "genericReasoningPrimitiveAdded": false,
+  "collectionsTsMustRemainEmpty": true,
+  "audit": "audit:phase2840-source-ast-projection-terminal-operations",
+  "verificationScope": "structural source assertions; not full typecheck/build/E2E"
+}

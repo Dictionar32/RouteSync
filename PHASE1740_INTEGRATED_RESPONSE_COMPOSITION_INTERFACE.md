@@ -21,7 +21,7 @@ The concrete gap is composition: there is no interface contract expressing that 
 - No second semantic/publication authority was added.
 - No correspondence validation was copied into composition or scanner.
 - No production composition implementation or Laravel wiring was added.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` remains unchanged and delegates to `invocationSemanticPipeline.analyzeKnowledge(...)`.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` remains unchanged and delegates to `invocationSemanticPipeline.analyzeKnowledge(...)`.
 - No dependency on `core/src/semantic/foundation` was introduced.
 - No full package build was run.
 

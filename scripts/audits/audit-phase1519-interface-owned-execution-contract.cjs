@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticInterface.ts'), 'utf8');
 const reasoning = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticReasoning.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts'), 'utf8');
 const tests = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/__test__/queryProducerSemanticAlgebra.phase1487.test.ts'), 'utf8');
 const checks = [
   ['resolved and malformed decisions carry the authoritative rule contract', /readonly contract: QueryOperationSemanticRuleDeclaration/.test(contract) && /kind: 'malformed' as const, rule: \{ kind: rule \}, contract: ruleBinding\.declaration/.test(reasoning) && /kind: 'resolved' as const, rule: \{ kind: rule \}, contract: ruleBinding\.declaration/.test(reasoning)],

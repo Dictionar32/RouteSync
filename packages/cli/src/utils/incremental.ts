@@ -19,12 +19,11 @@ import {
   type ScannedManifestContract, type RouteResponsePayloadContract, type RouteResponsePayloadVisitor
 } from './incremental/incrementalTypes';
 
-export function resolveManifestIncrementally(
-  newManifest: ScannedManifest,
-  _prevManifestPath?: string,
-  _kernel?: KernelResolver,
-  _models?: ScannedModel[]
-): ResolveManifestResult {
+export interface ResolveManifestIncrementallyOperation {
+  (newManifest: ScannedManifest, _prevManifestPath?: string, _kernel?: KernelResolver, _models?: ScannedModel[]): ResolveManifestResult;
+}
+
+export const resolveManifestIncrementally: ResolveManifestIncrementallyOperation = Object.freeze((newManifest: ScannedManifest, _prevManifestPath?: string, _kernel?: KernelResolver, _models?: ScannedModel[]): ResolveManifestResult => {
   const irRegistry = new IRNodeRegistry();
 
   // Compatibility transport only: the upstream scanner already owns semantic
@@ -32,7 +31,7 @@ export function resolveManifestIncrementally(
   // here. The remaining legacy signature is retained until CLI callers are
   // migrated to RouteSyncManifestFlow directly.
   return { manifest: newManifest, irRegistry };
-}
+});
 
 export {
   ScannedModel, ScannedResource, ScannedManifest,

@@ -64,7 +64,7 @@
     },
     {
       "severity": "medium",
-      "owner": "packages/core/src/compiler/scanner/lexer/astClassifier.ts",
+      "owner": "packages/core/src/compiler/frontend/php/astClassifier.ts",
       "detail": "Parser/scanner still produces AST classification; continue splitting syntax recognition from semantic judgment production using the AST semantic producer interface."
     },
     {

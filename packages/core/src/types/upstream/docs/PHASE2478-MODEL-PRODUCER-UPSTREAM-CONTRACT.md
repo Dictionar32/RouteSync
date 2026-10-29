@@ -14,7 +14,7 @@
 
 ## Remaining ownership debt (explicit)
 
-The producer's input currently includes `ModelDeclarationAst` and `PhpClassPropertyAst`, whose declarations still live under `compiler/scanner/lexer`. The new upstream contract currently imports those types from that legacy owner. Therefore this phase closes the subscanner-owned producer boundary but does **not** claim the lexer is retired or that the upstream dependency direction is fully closed. The next required change is to establish a canonical upstream syntax-evidence type contract and migrate lexer consumers before removing lexer implementation files. The producer also delegates semantic model construction to `subscanners/model/modelParser.ts` and `modelCanonical.ts`; those remain on the follow-up migration list.
+The producer's input currently includes `ModelDeclarationAst` and `PhpClassPropertyAst`, whose declarations still live under `compiler/frontend/php`. The new upstream contract currently imports those types from that legacy owner. Therefore this phase closes the subscanner-owned producer boundary but does **not** claim the lexer is retired or that the upstream dependency direction is fully closed. The next required change is to establish a canonical upstream syntax-evidence type contract and migrate lexer consumers before removing lexer implementation files. The producer also delegates semantic model construction to `subscanners/model/modelParser.ts` and `modelCanonical.ts`; those remain on the follow-up migration list.
 
 ## Relation/foundation
 

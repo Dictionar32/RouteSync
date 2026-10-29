@@ -6,7 +6,7 @@ Trace the supplied Phase 1906 archive. This phase updates the existing upstream 
 
 ## Source trace
 
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`
   - `produceSemanticKnowledgeDataFlow(block, filePath)` produces knowledge inside the analyzer path.
   - `collectStatementPayloads(block)` walks statement variants and constructs source-span payload records.
   - `canonicalDefinition(...)` correlates binding spans to payloads, manufactures an unsupported-expression fallback when no payload matches, projects a PHP AST value to the resource/upstream expression model, resolves semantic values, and derives variable origin.

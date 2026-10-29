@@ -1,0 +1,35 @@
+{
+  "phase": 3034,
+  "title": "KnowledgeId — Interface-Backed Typed Identity Operations",
+  "scope": "Static contract audit for replacing string-key identity comparisons in the invocation semantic authority with typed KnowledgeId equality and closed obligation identity comparison.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "Invocation semantic judgment authority validates requested invocation, argument correspondence, target, effect flow, trace, and obligations",
+    "semanticKnowledgeIdOperations.same compares source provenance, semantic role, and slot as a typed equality judgment",
+    "sameObligationIdentity compares obligation variant and domain identities without serializing a composite key",
+    "Existing proof trace, unresolved obligations, and rejection behavior remain in place"
+  ],
+  "checks": {
+    "knowledgeIdHasClosedEqualityJudgment": true,
+    "knowledgeIdOperationsAreInterfaceBacked": true,
+    "knowledgeIdentityUsesSourceRoleAndSlot": true,
+    "invocationAuthorityUsesTypedKnowledgeIdentity": true,
+    "invocationAuthorityDoesNotSerializeIdentityKeys": true,
+    "invocationAuthorityDoesNotProjectTraceThroughMap": true,
+    "obligationIdentityUsesClosedDomainComparison": true,
+    "focusedTestCoversSourceRoleAndSlot": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionRemainsInRuntimeTrace": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 12,
+  "total": 12,
+  "remainingDebt": [
+    "knowledgeIdKey remains a derived lookup key for other legacy semantic-algebra and object-identity consumers; this phase removes it only from invocationSemanticJudgmentAuthority.ts.",
+    "Other semantic algebra consumers still contain indexes, arrays, and control flow; this phase does not claim repository-wide elimination of map/reduce, primitive values, or branches.",
+    "The focused Vitest test is added but not claimed as executed unless project dependencies are available.",
+    "Full TypeScript typecheck, full Vitest, and CLI-to-manifest end-to-end execution remain unverified."
+  ]
+}

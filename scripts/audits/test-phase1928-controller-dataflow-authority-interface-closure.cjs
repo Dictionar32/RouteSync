@@ -7,7 +7,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 const contract = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 

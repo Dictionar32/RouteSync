@@ -6,7 +6,7 @@ Interface-first refinement only. This phase does not implement static invocation
 
 ## Trace findings
 
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts` emits `static-invocation` source facts.
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts` emits `static-invocation` source facts.
 - `packages/core/src/types/upstream/semanticDataflowKnowledge.ts` keeps static invocation as a distinct semantic fact.
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts` defines static target, argument-binding, effects, aggregate judgment, proof, and obligation contracts, but the static algebra and authority are explicitly not implemented.
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts` keeps controller scanning source-artifact-only and delegates invocation reasoning to the canonical pipeline.

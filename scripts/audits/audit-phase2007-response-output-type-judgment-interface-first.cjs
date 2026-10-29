@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
-const responseScanner = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
+const responseScanner = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2007_RESPONSE_OUTPUT_TYPE_JUDGMENT_INTERFACE_FIRST.md');
 const checks = [
   ['output-type judgment is a discriminated closed ADT', () => {
@@ -64,7 +64,7 @@ const checks = [
   }],
   ['no relation/foundation subscanner was added', () => {
     assert.match(docs, /No `relation` or `foundation` subscanner was added/);
-    assert.doesNotMatch(responseScanner, /subscanners\/(relation|foundation)/);
+    assert.doesNotMatch(responseScanner, /operations\/(relation|foundation)/);
   }],
   ['documentation does not misstate audit as full typecheck/build', () => {
     assert.match(docs, /not a claim that the full project typecheck\/build passes/);

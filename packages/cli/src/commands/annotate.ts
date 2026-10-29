@@ -14,17 +14,15 @@ import path from 'path';
 import {
     type AnnotationResult,
     type AnnotateOptions,
-    buildPhpDiscoveryScript,
-    ensureResponseAttributeClass,
-    applyAnnotationsToFile
+    phpDiscoveryTemplateOperations,
+    annotationWriterOperations
 } from './annotate/index';
 
 export {
     type AnnotationResult,
     type AnnotateOptions,
-    buildPhpDiscoveryScript,
-    ensureResponseAttributeClass,
-    applyAnnotationsToFile
+    phpDiscoveryTemplateOperations,
+    annotationWriterOperations
 };
 
 export const annotateCommand = new Command('annotate')
@@ -40,7 +38,7 @@ export const annotateCommand = new Command('annotate')
     }
 
     const projectRoot = path.resolve(path.dirname(filePath), '..');
-    const phpScript = buildPhpDiscoveryScript(!!options.force);
+    const phpScript = phpDiscoveryTemplateOperations.build(!!options.force);
 
     const tmpFile = path.join(projectRoot, `routesync-annotate-${Date.now()}.php`);
     fs.writeFileSync(tmpFile, phpScript);
@@ -79,12 +77,12 @@ export const annotateCommand = new Command('annotate')
       byFile.set(ann.controllerFile, existing);
     }
 
-    ensureResponseAttributeClass(projectRoot, !!options.dryRun);
+    annotationWriterOperations.ensureResponseAttributeClass(projectRoot, !!options.dryRun);
 
     let totalAnnotated = 0;
 
     for (const [ctrlFile, anns] of byFile) {
-      totalAnnotated += applyAnnotationsToFile(ctrlFile, anns, !!options.dryRun);
+      totalAnnotated += annotationWriterOperations.applyAnnotationsToFile(ctrlFile, anns, !!options.dryRun);
     }
 
     if (options.dryRun) {

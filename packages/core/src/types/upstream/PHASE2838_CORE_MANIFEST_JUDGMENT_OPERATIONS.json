@@ -1,0 +1,18 @@
+{
+  "phase": 2838,
+  "title": "Core Manifest Judgment Operations",
+  "rootCause": "ManifestBuilderJudgment was a data-only ADT, so consumers duplicated terminal interpretation outside the upstream contract.",
+  "contract": "packages/core/src/types/upstream/manifestBuilderInterface.ts",
+  "runtimeProducer": "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts",
+  "runtimeConsumer": "packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts",
+  "operation": "continueWith",
+  "terminalKinds": ["manifest_builder_complete", "manifest_builder_blocked"],
+  "blockedStages": ["source_ast", "source_model"],
+  "verification": {
+    "structuralAudit": "audit:phase2838-core-manifest-judgment-operations",
+    "structuralAuditResult": "11/11",
+    "transpileOnlyFiles": 4,
+    "fullTypecheck": "blocked by snapshot toolchain: TypeScript 5.8.3 does not accept configured ES2025 target/lib and node/vitest type dependencies are absent"
+  },
+  "collectionsBytes": 0
+}

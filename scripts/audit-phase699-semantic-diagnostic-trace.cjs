@@ -10,10 +10,10 @@ const run = file => {
 };
 
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const productionFiles = fs.readdirSync(path.join(root, 'packages/core/src/compiler/scanner/descriptors/route'));
-const legacyRouteParameter = read('packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts');
-const relationFactory = read('packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts');
-const relationDescriptor = read('packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts');
+const productionFiles = fs.readdirSync(path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/route'));
+const legacyRouteParameter = read('packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts');
+const relationFactory = read('packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts');
+const relationDescriptor = read('packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts');
 const eloquent = read('packages/core/src/types/domain/eloquentTypes.ts');
 
 const trace = {

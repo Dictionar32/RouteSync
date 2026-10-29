@@ -1,0 +1,58 @@
+{
+  "phase": 2976,
+  "scope": "relation-foundation import inventory for upstream/CLI/manifest/IR runtime migration",
+  "module_imports": {
+    "relationalSequence": 267,
+    "relationMembership": 71,
+    "semanticRewriteEngine": 34,
+    "semanticRelations": 161,
+    "semanticRelationalCollections": 7,
+    "presenceRelations": 1,
+    "semanticRelationalExecutionPlan": 1,
+    "semanticRelationalAlgebra": 1
+  },
+  "domains": {
+    "other core domains": {
+      "files": 235,
+      "imports": 435,
+      "modules": {
+        "relationalSequence": 217,
+        "semanticRewriteEngine": 16,
+        "semanticRelations": 140,
+        "relationMembership": 58,
+        "presenceRelations": 1,
+        "semanticRelationalExecutionPlan": 1,
+        "semanticRelationalAlgebra": 1,
+        "semanticRelationalCollections": 1
+      }
+    },
+    "graph/manifest": {
+      "files": 4,
+      "imports": 9,
+      "modules": {
+        "relationMembership": 5,
+        "relationalSequence": 4
+      }
+    },
+    "core/types/upstream": {
+      "files": 50,
+      "imports": 96,
+      "modules": {
+        "semanticRewriteEngine": 16,
+        "semanticRelations": 21,
+        "relationalSequence": 45,
+        "relationMembership": 8,
+        "semanticRelationalCollections": 6
+      }
+    },
+    "IR": {
+      "files": 2,
+      "imports": 3,
+      "modules": {
+        "semanticRewriteEngine": 2,
+        "relationalSequence": 1
+      }
+    }
+  },
+  "note": "Inventory counts imports from the still-missing semantic/relations path. These are unresolved consumers, not completed migrations."
+}

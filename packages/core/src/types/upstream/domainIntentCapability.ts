@@ -78,9 +78,23 @@ export type DomainIntentCapabilityReference =
       readonly aggregateCollection: undefined;
     });
 
-export function domainIntentCapabilityReferenceFromCapability(
+/** Interface-first runtime operations for converting upstream domain intent evidence. */
+export interface DomainIntentCapabilityRuntimeOperationsInterface {
+  readonly referenceFromCapability: (
+    capability: DomainIntentCapabilityContract,
+  ) => DomainIntentCapabilityReference;
+  readonly fromRuntimeConfig: (
+    domainName: string,
+    input: unknown,
+  ) => DomainIntentCapabilityContract | undefined;
+  readonly fromFrontend: (
+    frontend: unknown,
+  ) => Readonly<Record<string, DomainIntentCapabilityReference>>;
+}
+
+const domainIntentCapabilityReferenceFromCapabilityImpl = (
   capability: DomainIntentCapabilityContract,
-): DomainIntentCapabilityReference {
+): DomainIntentCapabilityReference => {
   const base = {
     kind: capability.kind,
     authority: capability.authority,
@@ -102,7 +116,7 @@ export function domainIntentCapabilityReferenceFromCapability(
     throw new Error(`Generic capability contains aggregate-collection payload: ${capability.identity}`);
   }
   return Object.freeze({ ...base, intentKind: 'generic' as const, aggregateCollection: undefined });
-}
+};
 
 interface RecordLike {
   readonly [key: string]: unknown;
@@ -119,9 +133,9 @@ const stringValue = (value: unknown): string | undefined =>
 
 const readOperationReference = (value: unknown): DomainIntentOperationReference | undefined => {
   const operationId = typeof value === 'string'
-    ? stringValue(value)
+    ? stringValue.create(value)
     : isRecord(value)
-      ? stringValue(value.operationId)
+      ? stringValue.create(value.operationId)
       : undefined;
   if (!operationId) return undefined;
 
@@ -148,7 +162,7 @@ const operation = (source: RecordLike, ...keys: readonly string[]): DomainIntent
 
 const field = (source: RecordLike, ...keys: readonly string[]): string | undefined => {
   for (const key of keys) {
-    const value = stringValue(source[key]);
+    const value = stringValue.create(source[key]);
     if (value) return value;
   }
   return undefined;
@@ -159,13 +173,13 @@ const field = (source: RecordLike, ...keys: readonly string[]): string | undefin
  * Missing required AggregateCollection evidence fails closed instead of
  * reconstructing a partial intent downstream.
  */
-export function domainIntentCapabilityFromRuntimeConfig(
+const domainIntentCapabilityFromRuntimeConfigImpl = (
   domainName: string,
   input: unknown,
-): DomainIntentCapabilityContract | undefined {
+): DomainIntentCapabilityContract | undefined => {
   if (!isRecord(input)) return undefined;
 
-  const type = stringValue(input.type);
+  const type = stringValue.create(input.type);
   const isAggregateCollection = type === 'AggregateCollection' || type === 'cart';
   if (!isAggregateCollection) {
     return Object.freeze({
@@ -254,24 +268,24 @@ export function domainIntentCapabilityFromRuntimeConfig(
     strategy: 'evidence_resolution' as const,
     reasoning: semanticReasoningContract('evidence_resolution'),
   });
-}
+};
 
 
 /**
  * Resolve all configured domain intents once at the upstream boundary.
  * The returned map is a projection-friendly closed capability surface.
  */
-export function domainIntentCapabilitiesFromFrontend(
+const domainIntentCapabilitiesFromFrontendImpl = (
   frontend: unknown,
-): Readonly<Record<string, DomainIntentCapabilityReference>> {
+): Readonly<Record<string, DomainIntentCapabilityReference>> => {
   const capabilities: Record<string, DomainIntentCapabilityReference> = {};
   if (!isRecord(frontend) || !hasOwn(frontend, 'domains')) return Object.freeze(capabilities);
 
   const domains = frontend.domains;
   if (isRecord(domains)) {
     for (const [domainName, intent] of Object.entries(domains)) {
-      const capability = domainIntentCapabilityFromRuntimeConfig(domainName, intent);
-      if (capability) capabilities[domainName] = domainIntentCapabilityReferenceFromCapability(capability);
+      const capability = domainIntentCapabilityFromRuntimeConfigImpl(domainName, intent);
+      if (capability) capabilities[domainName] = domainIntentCapabilityReferenceFromCapabilityImpl(capability);
     }
     return Object.freeze(capabilities);
   }
@@ -279,12 +293,19 @@ export function domainIntentCapabilitiesFromFrontend(
   if (Array.isArray(domains)) {
     for (const domain of domains) {
       if (!isRecord(domain) || !isRecord(domain.name) || !isRecord(domain.name.value)) continue;
-      const domainName = stringValue(domain.name.value.value);
+      const domainName = stringValue.create(domain.name.value.value);
       if (!domainName) continue;
-      const capability = domainIntentCapabilityFromRuntimeConfig(domainName, domain.intent);
-      if (capability) capabilities[domainName] = domainIntentCapabilityReferenceFromCapability(capability);
+      const capability = domainIntentCapabilityFromRuntimeConfigImpl(domainName, domain.intent);
+      if (capability) capabilities[domainName] = domainIntentCapabilityReferenceFromCapabilityImpl(capability);
     }
   }
 
   return Object.freeze(capabilities);
-}
+};
+
+/** One frozen operation object owns the public runtime conversion surface. */
+export const domainIntentCapabilityRuntimeOperations: DomainIntentCapabilityRuntimeOperationsInterface = Object.freeze({
+  referenceFromCapability: domainIntentCapabilityReferenceFromCapabilityImpl,
+  fromRuntimeConfig: domainIntentCapabilityFromRuntimeConfigImpl,
+  fromFrontend: domainIntentCapabilitiesFromFrontendImpl,
+});

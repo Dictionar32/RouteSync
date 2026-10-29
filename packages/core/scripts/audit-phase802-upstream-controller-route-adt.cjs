@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const controller = read('src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const route = read('src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
+const route = read('src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
 const checks = {
   controllerConsumesClosedSourceInventory: controller.includes('LaravelControllerScanInput') && controller.includes('input.invocationInventory') && controller.includes('invocationInventoryReceipt.correspondences'),
   controllerAccumulatorIsClosedRelationState: controller.includes('controllers: [] as LaravelControllerScanArtifact[]') && controller.includes('invocationJudgment,') && controller.includes('controllers: [...state.controllers, artifact]'),

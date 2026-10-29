@@ -7,7 +7,7 @@
   "algebra": "packages/core/src/types/upstream/scannerAstExpressionCandidateAlgebra.ts",
   "semanticDecisionContract": "packages/core/src/types/upstream/semanticDecisionInterface.ts",
   "semanticDecisionAlgebra": "packages/core/src/types/upstream/semanticDecisionAlgebra.ts",
-  "wiring": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+  "wiring": "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
   "tests": [
     "packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1457.test.ts",
     "packages/core/src/types/upstream/__test__/scannerAstExpressionCandidateAlgebra.phase1457.test.ts"

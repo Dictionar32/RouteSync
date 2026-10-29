@@ -1,11 +1,11 @@
 # Phase 538 — Scanner/Resolver Relational Cutover
 
-This phase continues the active scanner/lexer/resolver frontier after Phase 537.
+This phase continues the active frontend/php/resolver frontier after Phase 537.
 
 ## Targets
 
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts`
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts`
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`
 
 ## Architecture
 

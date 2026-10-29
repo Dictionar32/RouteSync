@@ -4,7 +4,7 @@ const ts = require('typescript');
 const root = path.resolve('packages/core/src');
 const selected = [
   'compiler/scanner/LaravelSourceLexer.ts',
-  'compiler/scanner/lexer/tokenizer.ts',
+  'compiler/frontend/php/tokenizer.ts',
   'compiler/scanner/upstream/route/routeGroupSemanticResolver.ts',
   'compiler/analysis/dominator/dominatorTree.ts',
   'compiler/analysis/dominator/dominatorRpo.ts',

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const canonical = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
-const legacy = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxModel.ts');
+const canonical = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
+const legacy = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/routeSyntaxModel.ts');
 const strip = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const source = strip(fs.readFileSync(canonical, 'utf8'));
 const patterns = [/\bif\b/, /\bfor\b/, /\bwhile\b/, /\bswitch\b/, /\.map\s*\(/, /\.filter\s*\(/, /\.reduce\s*\(/, /\.flatMap\s*\(/, /\bundefined\b/, /\bnull\b/, /\b===\b/, /\?\?/, /\bas\b/];

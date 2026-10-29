@@ -1,22 +1,109 @@
 import type { ActionName, MiddlewareName } from '../../../../types/upstream/names';
-import type { RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
+import type { RouteMiddlewareIdentity, RouteMiddlewareIdentityAuthorityInterface, RouteMiddlewareIdentityComparisonHandlers, RouteMiddlewareIdentityComparisonJudgment, RouteMiddlewareReference, RouteMiddlewareScope, RouteMiddlewareScopeApplicabilityAuthorityInterface, RouteMiddlewareScopeApplicabilityHandlers, RouteMiddlewareScopeApplicabilityJudgment, RouteMiddlewareScopeNotApplicableJudgment } from '../../../../types/upstream/routeMiddleware';
 import type { LaravelRouteAuthorizationSemanticJudgmentAuthorityInterface, LaravelRouteAuthorizationSemanticJudgment } from '../../../../types/upstream/routeAuthorizationSemanticJudgmentInterface';
 import type { Presence } from '../../../../types/upstream/presence';
 
-export const middlewareScopeApplicability = (
-  scope: RouteMiddlewareScope,
-  action: Presence<ActionName>,
-): boolean => {
-  switch (scope.kind) {
-    case 'blocked': return false;
-    case 'all': return true;
-    case 'only': return action.kind === 'present' && scope.actions.some(item => item.value.value === action.value.value.value);
-    case 'except': return action.kind === 'present' && !scope.actions.some(item => item.value.value === action.value.value.value);
-    case 'only_except': return action.kind === 'present'
-      && scope.only.some(item => item.value.value === action.value.value.value)
-      && !scope.except.some(item => item.value.value === action.value.value.value);
+const sameMiddlewareIdentityJudgment = (
+  identity: RouteMiddlewareIdentity,
+): RouteMiddlewareIdentityComparisonJudgment => Object.freeze({
+  continueWith: <Result>(handlers: RouteMiddlewareIdentityComparisonHandlers<Result>): Result =>
+    handlers.onSameIdentity(identity),
+});
+
+const differentMiddlewareIdentityJudgment = (
+  left: RouteMiddlewareIdentity,
+  right: RouteMiddlewareIdentity,
+): RouteMiddlewareIdentityComparisonJudgment => Object.freeze({
+  continueWith: <Result>(handlers: RouteMiddlewareIdentityComparisonHandlers<Result>): Result =>
+    handlers.onDifferentIdentity(left, right),
+});
+
+const identifyMiddlewareImplementation = (
+  reference: RouteMiddlewareReference,
+): RouteMiddlewareIdentity => Object.freeze({ kind: 'named', name: reference.name });
+
+const compareMiddlewareIdentityImplementation = (
+  left: RouteMiddlewareIdentity,
+  right: RouteMiddlewareIdentity,
+): RouteMiddlewareIdentityComparisonJudgment => {
+  switch (Object.is(left.kind, right.kind)) {
+    case false:
+      return differentMiddlewareIdentityJudgment(left, right);
+    case true:
+      switch (Object.is(left.name.value.value, right.name.value.value)) {
+        case true: return sameMiddlewareIdentityJudgment(left);
+        case false: return differentMiddlewareIdentityJudgment(left, right);
+      }
   }
 };
+
+/** Identity comparison is a domain judgment, not a boolean consumed by the resolver. */
+export const routeMiddlewareIdentityAuthority: RouteMiddlewareIdentityAuthorityInterface = Object.freeze({
+  kind: 'route_middleware_identity_authority',
+  identify: identifyMiddlewareImplementation,
+  compare: compareMiddlewareIdentityImplementation,
+});
+
+const applicableScopeJudgment = (
+  scope: RouteMiddlewareScope,
+  action: Presence<ActionName>,
+): RouteMiddlewareScopeApplicabilityJudgment => Object.freeze({
+  continueWith: <Result>(handlers: RouteMiddlewareScopeApplicabilityHandlers<Result>): Result =>
+    handlers.onApplicable(scope, action),
+});
+
+const notApplicableScopeJudgment = (
+  judgment: RouteMiddlewareScopeNotApplicableJudgment,
+): RouteMiddlewareScopeApplicabilityJudgment => Object.freeze({
+  continueWith: <Result>(handlers: RouteMiddlewareScopeApplicabilityHandlers<Result>): Result =>
+    handlers.onNotApplicable(judgment),
+});
+
+const classifyMiddlewareScopeApplicabilityImplementation = (
+  scope: RouteMiddlewareScope,
+  action: Presence<ActionName>,
+): RouteMiddlewareScopeApplicabilityJudgment => {
+  switch (scope.kind) {
+    case 'blocked':
+      return notApplicableScopeJudgment({ kind: 'middleware_scope_blocked' });
+    case 'all':
+      return applicableScopeJudgment(scope, action);
+    case 'only':
+    case 'except':
+    case 'only_except':
+      switch (action.kind) {
+        case 'absent':
+          return notApplicableScopeJudgment({ kind: 'middleware_scope_action_required' });
+        case 'present': {
+          const actionName = action.value;
+          switch (scope.kind) {
+            case 'only':
+              return scope.actions.some(item => item.value.value === actionName.value.value)
+                ? applicableScopeJudgment(scope, action)
+                : notApplicableScopeJudgment({ kind: 'middleware_scope_action_not_included', action: actionName });
+            case 'except':
+              return scope.actions.some(item => item.value.value === actionName.value.value)
+                ? notApplicableScopeJudgment({ kind: 'middleware_scope_action_excluded', action: actionName })
+                : applicableScopeJudgment(scope, action);
+            case 'only_except':
+              return scope.only.some(item => item.value.value === actionName.value.value)
+                ? scope.except.some(item => item.value.value === actionName.value.value)
+                  ? notApplicableScopeJudgment({ kind: 'middleware_scope_action_excluded', action: actionName })
+                  : applicableScopeJudgment(scope, action)
+                : notApplicableScopeJudgment({ kind: 'middleware_scope_action_not_included', action: actionName });
+            default:
+              return notApplicableScopeJudgment({ kind: 'middleware_scope_blocked' });
+          }
+        }
+      }
+  }
+};
+
+/** Interface-first domain authority; callers must handle applicability as a judgment, not a boolean. */
+export const routeMiddlewareScopeApplicabilityAuthority: RouteMiddlewareScopeApplicabilityAuthorityInterface = Object.freeze({
+  kind: 'route_middleware_scope_applicability_authority',
+  classify: classifyMiddlewareScopeApplicabilityImplementation,
+});
 
 /** Laravel's built-in authentication aliases/classes, kept exact to avoid prefix collisions. */
 const authenticationMiddlewareNames: readonly string[] = Object.freeze([

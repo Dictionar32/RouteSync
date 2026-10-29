@@ -9,7 +9,7 @@
     "packages/core/src/types/upstream/semanticDecisionAlgebra.ts",
     "packages/core/src/types/upstream/scannerAssignmentPartsInterface.ts",
     "packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts",
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts"
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts"
   ],
   "changes": {
     "candidateIdentity": "unique-symbol vocabulary",

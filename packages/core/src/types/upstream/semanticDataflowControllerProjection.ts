@@ -8,9 +8,8 @@
  */
 import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { ControllerParameter, ControllerResourceBinding } from './controller';
-import { semanticDataflowFactWithLineage, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
+import { semanticDataflowFactLineageOperations, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
 import { stringValue } from './valueObjects';
-import { relationVariantFold, relationExpand, type Sequence } from '../../semantic/relations/relationalSequence';
 
 const controllerName = (controller: ControllerActionFlowContract): string => controller.controller.value.value;
 const actionName = (controller: ControllerActionFlowContract): string => controller.action.value.value;
@@ -23,7 +22,57 @@ const identity = (
   kind: 'semantic_dataflow_identity',
   source,
   role,
-  slot: stringValue(slot),
+  slot: stringValue.create(slot),
+});
+
+interface ControllerResourceModelHandlers<T> {
+  readonly modelClass: (name: string) => T;
+  readonly table: () => T;
+}
+
+type ControllerResourceModelJudgment =
+  | { readonly kind: 'model_class'; readonly name: string; readonly continueWith: <T>(handlers: ControllerResourceModelHandlers<T>) => T }
+  | { readonly kind: 'table_origin'; readonly continueWith: <T>(handlers: ControllerResourceModelHandlers<T>) => T };
+
+const controllerResourceModelJudgmentOperations = Object.freeze({
+  fromOrigin: (origin: ControllerResourceBinding['model']): ControllerResourceModelJudgment => {
+    switch (origin.kind) {
+      case 'model_class': {
+        const name = origin.name.value.value;
+        return Object.freeze({
+          kind: 'model_class' as const,
+          name,
+          continueWith: <T>(handlers: ControllerResourceModelHandlers<T>): T => handlers.modelClass(name),
+        });
+      }
+      case 'table':
+        return Object.freeze({
+          kind: 'table_origin' as const,
+          continueWith: <T>(handlers: ControllerResourceModelHandlers<T>): T => handlers.table(),
+        });
+    }
+  },
+});
+
+interface ControllerModelParameterHandlers<T> {
+  readonly matched: (parameter: ControllerParameter) => T;
+  readonly unmatched: () => T;
+}
+
+type ControllerModelParameterJudgment =
+  | { readonly kind: 'matched'; readonly parameter: ControllerParameter; readonly continueWith: <T>(handlers: ControllerModelParameterHandlers<T>) => T }
+  | { readonly kind: 'unmatched'; readonly continueWith: <T>(handlers: ControllerModelParameterHandlers<T>) => T };
+
+const controllerModelParameterJudgmentOperations = Object.freeze({
+  matched: (parameter: ControllerParameter): ControllerModelParameterJudgment => Object.freeze({
+    kind: 'matched' as const,
+    parameter,
+    continueWith: <T>(handlers: ControllerModelParameterHandlers<T>): T => handlers.matched(parameter),
+  }),
+  unmatched: (): ControllerModelParameterJudgment => Object.freeze({
+    kind: 'unmatched' as const,
+    continueWith: <T>(handlers: ControllerModelParameterHandlers<T>): T => handlers.unmatched(),
+  }),
 });
 
 const parameters = (controller: ControllerActionFlowContract): readonly ControllerParameter[] => {
@@ -36,24 +85,29 @@ const parameters = (controller: ControllerActionFlowContract): readonly Controll
   return Object.freeze(values);
 };
 
-const modelName = (parameter: ControllerParameter): string | undefined =>
-  parameter.kind.kind === 'model' ? parameter.kind.model.value.value : undefined;
-
-const bindingModelName = (binding: ControllerResourceBinding): string | undefined =>
-  relationVariantFold(
-    binding.model,
-    'model_class',
-    () => undefined,
-    model => model.name.value.value,
-  );
-
-const modelParameter = (
+const controllerModelParameterMatch = (
   controller: ControllerActionFlowContract,
   binding: ControllerResourceBinding,
-): ControllerParameter | undefined => {
-  const expected = bindingModelName(binding);
-  if (!expected) return undefined;
-  return parameters(controller).find(parameter => modelName(parameter) === expected);
+): ControllerModelParameterJudgment => controllerResourceModelJudgmentOperations.fromOrigin(binding.model).continueWith({
+  modelClass: expected => {
+    const parameter = parameters(controller).find(candidate =>
+      candidate.kind.kind === 'model' && candidate.kind.model.value.value === expected,
+    );
+    return parameter === undefined
+      ? controllerModelParameterJudgmentOperations.unmatched()
+      : controllerModelParameterJudgmentOperations.matched(parameter);
+  },
+  table: () => controllerModelParameterJudgmentOperations.unmatched(),
+});
+
+const resourceBindings = (controller: ControllerActionFlowContract): readonly ControllerResourceBinding[] => {
+  const values: ControllerResourceBinding[] = [];
+  let current = controller.semantic.resources;
+  while (current.kind !== 'empty') {
+    values.push(current.head);
+    current = current.tail;
+  }
+  return Object.freeze(values);
 };
 
 const modelIdentity = (
@@ -74,16 +128,6 @@ const resourceIdentity = (
   `controller:${controllerName(controller)}.${actionName(controller)}:resource:${binding.resource.name.value.value}:model`,
 );
 
-const parametersSequence = (bindings: Sequence<ControllerResourceBinding>): readonly ControllerResourceBinding[] => {
-  const values: ControllerResourceBinding[] = [];
-  let current = bindings;
-  while (current.kind !== 'empty') {
-    values.push(current.head);
-    current = current.tail;
-  }
-  return Object.freeze(values);
-};
-
 const responseIdentity = (
   controller: ControllerActionFlowContract,
   binding: ControllerResourceBinding,
@@ -101,28 +145,29 @@ const responseIdentity = (
  * actual expression-level use is already supplied by scanner dataflow facts;
  * route-to-controller binding is supplied by semanticDataflowRouteProjection.
  */
-export const semanticDataflowControllerFacts = (
+const semanticDataflowControllerFactsValue = (
   controller: ControllerActionFlowContract,
 ): readonly SemanticDataflowInputFact[] => Object.freeze(
-  relationExpand(parametersSequence(controller.semantic.resources), binding => {
-    const parameter = modelParameter(controller, binding);
-    if (!parameter) return [];
-    const model = modelIdentity(controller, parameter);
-    const resource = resourceIdentity(controller, binding);
-    const response = responseIdentity(controller, binding);
-    return Object.freeze([
-      semanticDataflowFactWithLineage(
-        Object.freeze({ kind: 'value_flow' as const, source: model, target: resource, role: 'binding' as const }),
-        'resource',
-        resource,
-      ),
-      semanticDataflowFactWithLineage(
-        Object.freeze({ kind: 'value_flow' as const, source: resource, target: response, role: 'emitted_value' as const }),
-        'resource',
-        resource,
-      ),
-    ]);
-  }),
+  resourceBindings(controller).flatMap(binding => controllerModelParameterMatch(controller, binding).continueWith({
+    matched: parameter => {
+      const model = modelIdentity(controller, parameter);
+      const resource = resourceIdentity(controller, binding);
+      const response = responseIdentity(controller, binding);
+      return Object.freeze([
+        semanticDataflowFactLineageOperations.withLineage(
+          Object.freeze({ kind: 'value_flow' as const, source: model, target: resource, role: 'binding' as const }),
+          'resource',
+          resource,
+        ),
+        semanticDataflowFactLineageOperations.withLineage(
+          Object.freeze({ kind: 'value_flow' as const, source: resource, target: response, role: 'emitted_value' as const }),
+          'resource',
+          resource,
+        ),
+      ]);
+    },
+    unmatched: () => Object.freeze([] as SemanticDataflowInputFact[]),
+  })),
 );
 
 export interface SemanticDataflowControllerProjectionAuthorityInterface {
@@ -132,5 +177,5 @@ export interface SemanticDataflowControllerProjectionAuthorityInterface {
 
 export const semanticDataflowControllerProjectionAuthority: SemanticDataflowControllerProjectionAuthorityInterface = Object.freeze({
   kind: 'semantic_dataflow_controller_projection_authority',
-  project: semanticDataflowControllerFacts,
+  project: semanticDataflowControllerFactsValue,
 });

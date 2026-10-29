@@ -1,17 +1,17 @@
-import { createControllerName, createSourceFile } from '../../../types/upstream/names';
+import { createControllerName, sourceFileIdentityFactory, stringValue } from '../../../types/upstream/names';
 import type { ClassName } from '../../../types/upstream/names';
 import { legacyLaravelControllerExecutionDependencies } from './laravelControllerExecutionDependencies';
 import path from 'path';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
 import type { ControllerDeclarationEvidence, ControllerMethodEvidence } from '../../../types/upstream/controllerEvidence';
 import type { QueryAst } from '../../../types/upstream/query';
-import { createAstIdentifier } from '../lexer/phpAstTypes';
+import { createAstIdentifier } from '../../frontend/php/phpAstTypes';
 import type { LaravelControllerInvocationSemanticJudgmentInterface } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
 import { controllerActionProjectionMigration } from '../../../types/upstream/laravelControllerActionSemanticJudgmentInterface';
-import type { ControllerResourceBindingEvidence, LaravelControllerScannerInterface, LaravelControllerScanInput, LaravelControllerScanJudgment, LaravelControllerScanArtifact } from '../../../types/upstream/laravelControllerScannerInterface';
+import { laravelControllerScanJudgmentOperations, type ControllerResourceBindingEvidence, type LaravelControllerScannerInterface, type LaravelControllerScanInput, type LaravelControllerScanJudgment, type LaravelControllerScanArtifact, type LaravelControllerSemanticBodyBlocker } from '../../../types/upstream/laravelControllerScannerInterface';
 import type { LaravelControllerResponseSemanticPipelineInterface } from '../../../types/upstream/laravelControllerResponseSemanticJudgmentInterface';
 import { laravelControllerResponseSemanticPipeline } from '../../../types/upstream/laravelControllerResponseSemanticPipeline';
-import { controllerPolicyInventoryFromDeclaration } from '../subscanners/controller/controllerAstCanonical';
+import { controllerAstCanonicalOperations } from '../operations/controller/controllerAstCanonical';
 
 import { controllerDeclarationSemanticJudgmentAuthority } from '../../../types/upstream/controllerDeclarationSemanticJudgmentAuthority';
 import { controllerDeclarationSelectionInventoryClosureAuthority } from '../../../types/upstream/controllerDeclarationSelectionInventoryClosureAuthority';
@@ -31,7 +31,7 @@ const contextualAttributeNames = (items: import('../../../types/upstream/laravel
 class LaravelControllerScannerExecutor implements LaravelControllerScannerInterface {
     readonly kind = 'laravel_controller_scanner' as const;
     readonly closed = true as const;
-    readonly contractVersion = 44 as const;
+    readonly contractVersion = 46 as const;
     readonly actionSemanticProjectionMigration = controllerActionProjectionMigration;
 
     constructor(
@@ -96,16 +96,16 @@ class LaravelControllerScannerExecutor implements LaravelControllerScannerInterf
         // a complete inventory of executable selections or a non-empty blocker ledger.
         const selectionInventory = this.selectionInventoryClosureAuthority.close(declarationCorrespondences);
         if (selectionInventory.kind === 'controller_declaration_selection_inventory_blocked') {
-            return Object.freeze({
+            return laravelControllerScanJudgmentOperations.blocked(Object.freeze({
                 kind: 'laravel_controller_scan_blocked' as const,
-                contractVersion: 44 as const,
+                contractVersion: 46 as const,
                 sourceProject,
                 declarationSelection: Object.freeze({
                     kind: 'controller_declaration_selection_inventory_blocked' as const,
                     blockers: selectionInventory.blockers,
                 }),
-                controllers: Object.freeze([]),
-            });
+                controllers: Object.freeze([]) as readonly [],
+            }));
         }
         const declarationsWithSelections = Object.freeze(selectionInventory.correspondences.map(correspondence => {
             const item = correspondence.source;
@@ -162,19 +162,51 @@ class LaravelControllerScannerExecutor implements LaravelControllerScannerInterf
                     : [],
         ));
         if (constructorBlockers.length > 0) {
-            return Object.freeze({
+            return laravelControllerScanJudgmentOperations.blocked(Object.freeze({
                 kind: 'laravel_controller_scan_blocked' as const,
-                contractVersion: 44 as const,
+                contractVersion: 46 as const,
                 sourceProject,
                 declarationSelection: Object.freeze({
                     kind: 'controller_declaration_selection_inventory_blocked' as const,
-                    blockers: constructorBlockers,
+                    blockers: constructorBlockers as readonly import('../../../types/upstream/laravelControllerScannerInterface').ControllerDeclarationSelectionBlocker[],
                 }),
-                controllers: Object.freeze([]),
-            });
+                controllers: Object.freeze([]) as readonly [],
+            }));
         }
 
-        // No action/response/AST work starts until declaration and constructor inventories are closed.
+        // A producer-blocked selected action is a controller-scan terminal, not an AST with missing semantics.
+        const semanticBodyBlockers: LaravelControllerSemanticBodyBlocker[] = declarationsWithSelections.flatMap(item =>
+            item.semanticSelection.actionSelections.flatMap(selection => {
+                if (selection.kind !== 'controller_action_selected') return [];
+                const method = selection.method;
+                const body = method.body;
+                if (body.kind !== 'controller_body_semantic_blocked' && body.kind !== 'controller_body_semantic_blocked_integrated') return [];
+                return [Object.freeze({
+                    kind: 'laravel_controller_semantic_body_blocker' as const,
+                    controller: createControllerName(item.controllerName),
+                    action: createActionName(method.name),
+                    sourceFile: item.invocationJudgment.sourceFile,
+                    source: Object.freeze({
+                        kind: 'source_span' as const,
+                        file: item.invocationJudgment.sourceFile,
+                        start: numberValue(method.source.startOffset),
+                        end: numberValue(method.source.endOffset),
+                    }),
+                    outcome: body.outcome,
+                })];
+            }),
+        );
+        if (semanticBodyBlockers.length > 0) {
+            return laravelControllerScanJudgmentOperations.blocked(Object.freeze({
+                kind: 'laravel_controller_scan_semantic_body_blocked' as const,
+                contractVersion: 46 as const,
+                sourceProject,
+                blockers: Object.freeze(semanticBodyBlockers) as readonly [LaravelControllerSemanticBodyBlocker, ...LaravelControllerSemanticBodyBlocker[]],
+                controllers: Object.freeze([]) as readonly [],
+            }));
+        }
+
+        // No action/response/AST work starts until declaration, constructor and semantic-body inventories are closed.
         const result: { controllers: LaravelControllerScanArtifact[] } = { controllers: [] };
         for (const item of declarationsWithSelections) {
             const { fullPath, controllerName, declaration, invocationJudgment, semanticSelection, constructorSelection } = item;
@@ -199,7 +231,7 @@ class LaravelControllerScannerExecutor implements LaravelControllerScannerInterf
                 const semanticJudgment = actionPublication.judgment;
                 return Object.freeze({ method, responseReferenceJudgment: semanticJudgment.semantic.responseReferenceJudgment, dependencies: semanticJudgment.semantic.dependencies, semantic: semanticJudgment.semantic, contract: actionPublication.projection, semanticJudgment });
             });
-            const sourceSpan = { kind: 'source_span' as const, file: createSourceFile(fullPath), start: { kind: 'number_value' as const, value: declaration.source.startOffset }, end: { kind: 'number_value' as const, value: declaration.source.endOffset } };
+            const sourceSpan = { kind: 'source_span' as const, file: sourceFileIdentityFactory.create(stringValue.create(fullPath)), start: { kind: 'number_value' as const, value: declaration.source.startOffset }, end: { kind: 'number_value' as const, value: declaration.source.endOffset } };
             const inheritedAttributeAst = semanticSelection.inheritedMiddlewareAttributes;
             const declarationAttributeEvidence = this.executionDependencies.controllerAstProjection.methodAttributesFromAttributes(declaration.attributes, [], fullPath);
             const inheritedAttributeEvidence = this.executionDependencies.controllerAstProjection.methodAttributesFromAttributes(inheritedAttributeAst, [], fullPath);
@@ -210,7 +242,7 @@ class LaravelControllerScannerExecutor implements LaravelControllerScannerInterf
                 const action = this.executionDependencies.controllerAstProjection.actionFromMethod(method, controllerName, fullPath, responseReferenceJudgment, dependencies, contract.policy, inheritedControllerNames, queries, semanticProjection);
                 return this.executionDependencies.controllerProducer.projectMethodEvidence({
                     controller: createControllerName(controllerName),
-                    sourceFile: createSourceFile(fullPath),
+                    sourceFile: sourceFileIdentityFactory.create(stringValue.create(fullPath)),
                     method: Object.freeze({
                         source: method.source,
                         responseAttribute: (() => {
@@ -254,7 +286,7 @@ class LaravelControllerScannerExecutor implements LaravelControllerScannerInterf
                     kind: 'controller_inheritance_relation' as const,
                     child: createControllerName(controllerName),
                     parent: { kind: 'controller_name' as const, value: { kind: 'string_value' as const, value: declaration.inheritance.name } },
-                    source: { kind: 'source_span' as const, file: createSourceFile(fullPath), start: { kind: 'number_value' as const, value: declaration.inheritance.source.startOffset }, end: { kind: 'number_value' as const, value: declaration.inheritance.source.endOffset }, },
+                    source: { kind: 'source_span' as const, file: sourceFileIdentityFactory.create(stringValue.create(fullPath)), start: { kind: 'number_value' as const, value: declaration.inheritance.source.startOffset }, end: { kind: 'number_value' as const, value: declaration.inheritance.source.endOffset }, },
                 } : null,
                 interfaces: declaration.interfaces.map(name => ({ kind: 'class_name' as const, value: { kind: 'string_value' as const, value: name } })),
                 methods: methodEvidence,
@@ -285,7 +317,7 @@ class LaravelControllerScannerExecutor implements LaravelControllerScannerInterf
                 identity: createControllerName(controllerName),
                 ast: produced.ast,
                 actions: produced.actions,
-                policyInventory: controllerPolicyInventoryFromDeclaration(
+                policyInventory: controllerAstCanonicalOperations.controllerPolicyInventoryFromDeclaration(
                     declarationEvidence.attributes,
                     declaration.methods,
                     declaration.interfaces,
@@ -314,13 +346,13 @@ class LaravelControllerScannerExecutor implements LaravelControllerScannerInterf
             });
             result.controllers.push(artifact);
         }
-        return Object.freeze({
+        return laravelControllerScanJudgmentOperations.complete(Object.freeze({
             kind: 'laravel_controller_scan_complete' as const,
-            contractVersion: 44 as const,
+            contractVersion: 46 as const,
             sourceProject,
             declarationSelection: Object.freeze({ kind: 'controller_declaration_selection_inventory_complete' as const }),
             controllers: Object.freeze([...result.controllers]),
-        });
+        }));
     }
 }
 

@@ -4,11 +4,13 @@ import type { LaravelProjectDtoDeclarationInventoryInterface } from './laravelCo
 import type { SourceProjectIdentity } from './highLevelSourceModel';
 import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { ControllerModelOrigin } from './controller';
-import type { ActionName, ClassName, ControllerName } from './names';
+import type { ActionName, ClassName, ControllerName, SourceFile } from './names';
 import type { ResourceReference, ResponseReference } from './semanticReferences';
 import type { SourceSpan } from './provenance';
 import type { QueryAst } from './query';
 import type { FormRequestSource } from '../domain/request';
+import type { RouteSchemaPayload } from '../domain/validationRules';
+import type { ControllerActionSchemaRouteRequestEvidence, RouteRequestSchemaEvidence } from './controllerActionSchemaSemanticJudgmentInterface';
 import type { LaravelControllerAstProjectionResponseJudgment, LaravelControllerAstProjectionSemanticJudgment, LaravelControllerInvocationBlockedJudgment, LaravelControllerInvocationCompleteJudgment, LaravelControllerInvocationNotConnectedJudgment, LaravelControllerInvocationSemanticJudgmentInterface, LaravelControllerInvocationSourceBindingRejectedJudgment } from './laravelControllerInvocationSemanticJudgmentInterface';
 import type { LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt } from './laravelControllerInvocationSemanticJudgmentInventoryInterface';
 import type { ControllerDeclarationSemanticJudgmentAuthorityInterface } from './controllerDeclarationSemanticJudgmentInterface';
@@ -18,12 +20,15 @@ import type { ControllerDeclarationSelectionInventoryClosureAuthorityInterface }
 import type { LaravelControllerResponseSemanticPipelineInterface } from './laravelControllerResponseSemanticJudgmentInterface';
 import type { LaravelControllerActionSemanticJudgmentInterface, LaravelControllerActionProjectionMigration } from './laravelControllerActionSemanticJudgmentInterface';
 import type { LaravelContextualAttributeInventory } from './laravelAttributeScannerInterface';
+import type { ControllerDataflowAnalysisBlocked } from './controllerDataflowAnalysisOutcomeInterface';
+import type { ControllerDataflowDefinitionPayloadMetadata } from './controllerDataflowBindingPayloadCorrespondenceInterface';
+import type { EffectiveControllerActionPolicyCatalogJudgment } from './effectiveControllerActionPolicy';
 
 /** Closed upstream contract for Laravel controller evidence and canonical ASTs. */
 export interface LaravelControllerScannerInterface {
   readonly kind: 'laravel_controller_scanner';
   readonly closed: true;
-  readonly contractVersion: 44;
+  readonly contractVersion: 46;
   /** Existing response contracts are supplied as one explicit dependency bundle; the scanner does not own response semantics. */
   readonly responseSemanticPipeline: LaravelControllerResponseSemanticPipelineInterface;
   /** Existing upstream migration ADT exposes unresolved action-semantic ownership; scanner does not relabel it as completed. */
@@ -85,10 +90,10 @@ export interface ControllerActionJudgmentPublication {
 
 /** Route-side correlation is closed: a consumer cannot confuse no match with ambiguity. */
 export type ControllerActionJudgmentRouteSelection =
-  | Readonly<{ readonly kind: 'matched_action_judgment'; readonly publication: ControllerActionJudgmentPublication }>
-  | Readonly<{ readonly kind: 'unmatched_action_judgment' }>
-  | Readonly<{ readonly kind: 'ambiguous_action_judgments'; readonly first: ControllerActionJudgmentPublication; readonly second: ControllerActionJudgmentPublication; readonly remaining: readonly ControllerActionJudgmentPublication[] }>
-  | Readonly<{ readonly kind: 'invalid_action_judgment_publication'; readonly publication: ControllerActionJudgmentPublication; readonly reason: 'publication_identity_mismatch' | 'source_span_mismatch' }>;
+  | Readonly<{ readonly kind: 'matched_action_judgment'; readonly publication: ControllerActionJudgmentPublication; readonly continueToRouteSchema: () => RouteSchemaPayload; readonly continueToRouteSchemaEvidence: () => RouteRequestSchemaEvidence<SourceFile> }>
+  | Readonly<{ readonly kind: 'unmatched_action_judgment'; readonly continueToRouteSchema: () => RouteSchemaPayload; readonly continueToRouteSchemaEvidence: () => RouteRequestSchemaEvidence<SourceFile> }>
+  | Readonly<{ readonly kind: 'ambiguous_action_judgments'; readonly first: ControllerActionJudgmentPublication; readonly second: ControllerActionJudgmentPublication; readonly remaining: readonly ControllerActionJudgmentPublication[]; readonly continueToRouteSchema: () => RouteSchemaPayload; readonly continueToRouteSchemaEvidence: () => RouteRequestSchemaEvidence<SourceFile> }>
+  | Readonly<{ readonly kind: 'invalid_action_judgment_publication'; readonly publication: ControllerActionJudgmentPublication; readonly reason: 'publication_identity_mismatch' | 'source_span_mismatch'; readonly continueToRouteSchema: () => RouteSchemaPayload; readonly continueToRouteSchemaEvidence: () => RouteRequestSchemaEvidence<SourceFile> }>;
 
 /** Shared AST/action/evidence products carried by one source-correlated judgment pair. */
 
@@ -186,48 +191,117 @@ export type ControllerDeclarationSelectionInventoryOutcome =
  * This prevents downstream manifest construction from mistaking a partial
  * controller set for a complete source-project scan.
  */
-export type LaravelControllerScanJudgment =
-  | Readonly<{
-      readonly kind: 'laravel_controller_scan_complete';
-      readonly contractVersion: 44;
-      readonly declarationSelection: Extract<
-        ControllerDeclarationSelectionInventoryOutcome,
-        { readonly kind: 'controller_declaration_selection_inventory_complete' }
-      >;
-      /** Canonical project identity is carried from the authority-closed source inventory. */
-      readonly sourceProject: SourceProjectIdentity;
-      readonly controllers: readonly LaravelControllerScanArtifact[];
-    }>
+/** A semantic body blocker keeps the original upstream outcome attached to its source method. */
+export interface LaravelControllerSemanticBodyBlocker {
+  readonly kind: 'laravel_controller_semantic_body_blocker';
+  readonly controller: ControllerName;
+  readonly action: ActionName;
+  readonly sourceFile: SourceFile;
+  readonly source: SourceSpan;
+  readonly outcome: ControllerDataflowAnalysisBlocked<ControllerDataflowDefinitionPayloadMetadata>;
+}
+
+export type LaravelControllerScanCompleteJudgmentData = Readonly<{
+  readonly kind: 'laravel_controller_scan_complete';
+  readonly contractVersion: 46;
+  readonly declarationSelection: Extract<ControllerDeclarationSelectionInventoryOutcome, { readonly kind: 'controller_declaration_selection_inventory_complete' }>;
+  readonly sourceProject: SourceProjectIdentity;
+  readonly controllers: readonly LaravelControllerScanArtifact[];
+}>;
+
+export type LaravelControllerScanBlockedJudgmentData =
   | Readonly<{
       readonly kind: 'laravel_controller_scan_blocked';
-      readonly contractVersion: 44;
-      readonly declarationSelection: Extract<
-        ControllerDeclarationSelectionInventoryOutcome,
-        { readonly kind: 'controller_declaration_selection_inventory_blocked' }
-      >;
+      readonly contractVersion: 46;
+      readonly declarationSelection: Extract<ControllerDeclarationSelectionInventoryOutcome, { readonly kind: 'controller_declaration_selection_inventory_blocked' }>;
       readonly sourceProject: SourceProjectIdentity;
-      /** No controller AST artifact may cross a blocked declaration-closure boundary. */
+      readonly controllers: readonly [];
+    }>
+  | Readonly<{
+      readonly kind: 'laravel_controller_scan_semantic_body_blocked';
+      readonly contractVersion: 46;
+      readonly sourceProject: SourceProjectIdentity;
+      readonly blockers: readonly [LaravelControllerSemanticBodyBlocker, ...LaravelControllerSemanticBodyBlocker[]];
       readonly controllers: readonly [];
     }>;
 
+export interface LaravelControllerScanContinuationHandlers<Result> {
+  readonly onComplete: (judgment: LaravelControllerScanCompleteJudgment) => Result;
+  readonly onBlocked: (judgment: LaravelControllerScanBlockedJudgment) => Result;
+}
+
+/** Route-policy continuation is a named domain operation, not a caller-owned kind test. */
+export interface LaravelControllerScanRoutePolicyCatalogHandlers {
+  readonly onComplete: (judgment: LaravelControllerScanCompleteJudgment) => EffectiveControllerActionPolicyCatalogJudgment;
+  readonly onBlocked: (judgment: LaravelControllerScanBlockedJudgment) => EffectiveControllerActionPolicyCatalogJudgment;
+}
+
+/** Response projection is a scanner-owned continuation because only this ADT knows whether controller response artifacts are complete. */
+export interface LaravelControllerScanResponseProjectionHandlers<Result> {
+  readonly onComplete: (judgment: LaravelControllerScanCompleteJudgment) => Result;
+  readonly onBlocked: (judgment: LaravelControllerScanBlockedJudgment) => Result;
+}
+
+export type LaravelControllerScanCompleteJudgment = LaravelControllerScanCompleteJudgmentData & Readonly<{
+  readonly continueToSourceAstProjection: <Result>(handlers: LaravelControllerScanContinuationHandlers<Result>) => Result;
+  readonly continueToRoutePolicyCatalog: (handlers: LaravelControllerScanRoutePolicyCatalogHandlers) => EffectiveControllerActionPolicyCatalogJudgment;
+  readonly continueToResponseProjection: <Result>(handlers: LaravelControllerScanResponseProjectionHandlers<Result>) => Result;
+}>;
+
+export type LaravelControllerScanBlockedJudgment = LaravelControllerScanBlockedJudgmentData & Readonly<{
+  readonly continueToSourceAstProjection: <Result>(handlers: LaravelControllerScanContinuationHandlers<Result>) => Result;
+  readonly continueToRoutePolicyCatalog: (handlers: LaravelControllerScanRoutePolicyCatalogHandlers) => EffectiveControllerActionPolicyCatalogJudgment;
+  readonly continueToResponseProjection: <Result>(handlers: LaravelControllerScanResponseProjectionHandlers<Result>) => Result;
+}>;
+
+export type LaravelControllerScanJudgment = LaravelControllerScanCompleteJudgment | LaravelControllerScanBlockedJudgment;
+
+export interface LaravelControllerScanJudgmentOperationsInterface {
+  readonly complete: (judgment: LaravelControllerScanCompleteJudgmentData) => LaravelControllerScanCompleteJudgment;
+  readonly blocked: (judgment: LaravelControllerScanBlockedJudgmentData) => LaravelControllerScanBlockedJudgment;
+}
+
+/** Producer-side ADT constructors attach the follow-up operation to each exact judgment. */
+export const laravelControllerScanJudgmentOperations: LaravelControllerScanJudgmentOperationsInterface = Object.freeze({
+  complete: (judgment: LaravelControllerScanCompleteJudgmentData) => {
+    let result: LaravelControllerScanCompleteJudgment;
+    result = Object.freeze({
+      ...judgment,
+      continueToSourceAstProjection: <Result>(handlers: LaravelControllerScanContinuationHandlers<Result>): Result => handlers.onComplete(result),
+      continueToRoutePolicyCatalog: (handlers: LaravelControllerScanRoutePolicyCatalogHandlers): EffectiveControllerActionPolicyCatalogJudgment => handlers.onComplete(result),
+      continueToResponseProjection: <Result>(handlers: LaravelControllerScanResponseProjectionHandlers<Result>): Result => handlers.onComplete(result),
+    });
+    return result;
+  },
+  blocked: (judgment: LaravelControllerScanBlockedJudgmentData) => {
+    let result: LaravelControllerScanBlockedJudgment;
+    result = Object.freeze({
+      ...judgment,
+      continueToSourceAstProjection: <Result>(handlers: LaravelControllerScanContinuationHandlers<Result>): Result => handlers.onBlocked(result),
+      continueToRoutePolicyCatalog: (handlers: LaravelControllerScanRoutePolicyCatalogHandlers): EffectiveControllerActionPolicyCatalogJudgment => handlers.onBlocked(result),
+      continueToResponseProjection: <Result>(handlers: LaravelControllerScanResponseProjectionHandlers<Result>): Result => handlers.onBlocked(result),
+    }) as LaravelControllerScanBlockedJudgment;
+    return result;
+  },
+});
 
 /** A traced structural parser caller and the projection contract it must satisfy. */
 export type LaravelControllerStructuralParserCallSiteDisposition =
   | {
       readonly kind: 'structural_ast_consumer';
-      readonly path: 'packages/core/src/compiler/scanner/laravelAttributeScanner.ts' | 'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts';
+      readonly path: 'packages/core/src/compiler/scanner/laravelAttributeScanner.ts' | 'packages/core/src/compiler/scanner/operations/providerAstCanonical.ts';
       readonly semanticAuthority: 'not_an_invocation_semantic_authority';
       readonly migrationRequirement: 'use-the-explicit-syntax-only-projection-context-without-invocation-dataflow-analysis';
     }
   | {
       readonly kind: 'semantic_ast_consumer';
-      readonly path: 'packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts' | 'packages/core/src/compiler/scanner/subscanners/responseScanner.ts';
+      readonly path: 'packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts' | 'packages/core/src/compiler/scanner/operations/responseScanner.ts';
       readonly semanticAuthority: 'canonical_invocation_judgment_required';
       readonly migrationRequirement: 'must-use-a-source-bound-judgment-context-and-must-not-claim-whole-file-invocation-coverage-while-the-source-pipeline-is-not-connected';
     }
   | {
       readonly kind: 'test_fixture';
-      readonly path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts' | 'packages/core/src/compiler/scanner/subscanners/controller/controllerInheritance.phase905.test.ts' | 'packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts';
+      readonly path: 'packages/core/src/compiler/scanner/operations/controller/controllerMethodContract.phase894.test.ts' | 'packages/core/src/compiler/scanner/operations/controller/controllerInheritance.phase905.test.ts' | 'packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts';
       readonly semanticAuthority: 'not_an_invocation_semantic_authority';
       readonly migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage';
     }
@@ -441,12 +515,12 @@ export const LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_BOUNDARY_CONTRACT: LaravelCo
   structuralParserCallSiteDisposition: 'attribute-and-provider-consumers-use-syntax-only-projection; middleware-and-response consumers need an explicit source-bound semantic judgment',
   structuralParserCallSiteInventory: Object.freeze([
     Object.freeze({ kind: 'structural_ast_consumer', path: 'packages/core/src/compiler/scanner/laravelAttributeScanner.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'use-the-explicit-syntax-only-projection-context-without-invocation-dataflow-analysis' }),
-    Object.freeze({ kind: 'structural_ast_consumer', path: 'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'use-the-explicit-syntax-only-projection-context-without-invocation-dataflow-analysis' }),
-    Object.freeze({ kind: 'semantic_ast_consumer', path: 'packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts', semanticAuthority: 'canonical_invocation_judgment_required', migrationRequirement: 'must-use-a-source-bound-judgment-context-and-must-not-claim-whole-file-invocation-coverage-while-the-source-pipeline-is-not-connected' }),
-    Object.freeze({ kind: 'semantic_ast_consumer', path: 'packages/core/src/compiler/scanner/subscanners/responseScanner.ts', semanticAuthority: 'canonical_invocation_judgment_required', migrationRequirement: 'must-use-a-source-bound-judgment-context-and-must-not-claim-whole-file-invocation-coverage-while-the-source-pipeline-is-not-connected' }),
-        Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),
-    Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerInheritance.phase905.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),
-    Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),
+    Object.freeze({ kind: 'structural_ast_consumer', path: 'packages/core/src/compiler/scanner/operations/providerAstCanonical.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'use-the-explicit-syntax-only-projection-context-without-invocation-dataflow-analysis' }),
+    Object.freeze({ kind: 'semantic_ast_consumer', path: 'packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts', semanticAuthority: 'canonical_invocation_judgment_required', migrationRequirement: 'must-use-a-source-bound-judgment-context-and-must-not-claim-whole-file-invocation-coverage-while-the-source-pipeline-is-not-connected' }),
+    Object.freeze({ kind: 'semantic_ast_consumer', path: 'packages/core/src/compiler/scanner/operations/responseScanner.ts', semanticAuthority: 'canonical_invocation_judgment_required', migrationRequirement: 'must-use-a-source-bound-judgment-context-and-must-not-claim-whole-file-invocation-coverage-while-the-source-pipeline-is-not-connected' }),
+        Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/operations/controller/controllerMethodContract.phase894.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),
+    Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/operations/controller/controllerInheritance.phase905.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),
+    Object.freeze({ kind: 'test_fixture', path: 'packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'test-only-syntax-fixtures-must-not-be-counted-as-production-semantic-pipeline-coverage' }),
     Object.freeze({ kind: 'public_parser_facade', path: 'packages/core/src/compiler/scanner/LaravelSourceLexer.ts', semanticAuthority: 'not_an_invocation_semantic_authority', migrationRequirement: 'expose-the-discriminated-projection-context-and-never-accept-independent-filePath-and-integratedResponse' }),
   ] satisfies readonly LaravelControllerStructuralParserCallSiteDisposition[]),
   judgmentToAstProjectionBoundary: 'semantic-parser-context-carries-one-canonical-judgment-and-derives-sourceFile-and-exact-integrated-response-from-it; independent-semantic-input-arguments-are-not-accepted',

@@ -1,0 +1,69 @@
+{
+  "phase": 2878,
+  "title": "Fully Typed Runtime Scanner Operations — Identity Binding Batch Domain Continuation",
+  "auditKind": "structural-source-checks",
+  "checks": [
+    {
+      "name": "batch outcomes are identity-binding domain-specific",
+      "passed": true
+    },
+    {
+      "name": "batch outcomes expose domain continuation",
+      "passed": true
+    },
+    {
+      "name": "rejected batch requires at least one identity rejection",
+      "passed": true
+    },
+    {
+      "name": "factory has an explicit interface-first export",
+      "passed": true
+    },
+    {
+      "name": "batch factory consumes individual judgments through their continuation",
+      "passed": true
+    },
+    {
+      "name": "batch factory binds read evidence through the existing binding contract",
+      "passed": true
+    },
+    {
+      "name": "composition delegates identity binding and aggregation to upstream",
+      "passed": true
+    },
+    {
+      "name": "composition no longer splits identity results with flatMap",
+      "passed": true
+    },
+    {
+      "name": "rejected identity evidence is terminally preserved",
+      "passed": true
+    },
+    {
+      "name": "bound identity batch feeds the existing source-read batch ADT",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports the existing identity contract module",
+      "passed": true
+    },
+    {
+      "name": "upstream barrel exports batch factory",
+      "passed": true
+    },
+    {
+      "name": "core public barrel exports batch factory",
+      "passed": true
+    },
+    {
+      "name": "collections.ts remains empty",
+      "passed": true
+    }
+  ],
+  "passed": 14,
+  "total": 14,
+  "collectionsBytes": 0,
+  "typecheck": "not verified",
+  "build": "not verified",
+  "endToEnd": "not verified"
+}

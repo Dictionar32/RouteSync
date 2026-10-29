@@ -1,33 +1,21 @@
 import type { RouteManifestRequestResolutionPreflight } from './routeManifestProjectionInterface';
-import type { RequestTypeDerivationSemanticPipelineInterface, RequestTypeEvidenceReference, RequestTypeRouteRequestResolutionReceipt } from '../../../types/upstream/requestTypeDerivationInterface';
-import type { RequestType } from '../../artifacts/RequestTypesArtifact';
-import type { ObjectType } from '../../../types/domain/semanticType';
-import type { RequestTypeDerivationRuntimeExecutionResult } from '../../../types/upstream/requestTypeDerivationInterface';
-import { createAuthorityBackedRouteManifestProjection } from './routeManifestProjectionAuthority';
-import { lowerRouteSyncManifestToRouteManifest } from './routeManifestLowerer';
+import type { RequestTypeDerivationSemanticPipelineInterface } from '../../../types/upstream/requestTypeDerivationInterface';
+import { authorityBackedRouteManifestProjectionFactory } from './routeManifestProjectionAuthority';
+import { routeSyncManifestLoweringOperations } from './routeManifestLowerer';
 import type { RouteManifest } from './routeManifestInterface';
 
-/**
- * Closed result of the authority-backed manifest composition operation.
- * A manifest is only materialized after the injected semantic pipeline has
- * produced a projectable, verified judgment. Failure is data, never fallback.
- */
-export type RouteManifestProjectionCompositionResult =
-  | Readonly<{
-      kind: 'manifest_projected';
-      manifest: RouteManifest;
-      requestTypes: readonly RequestType[];
-      semanticTypes: readonly ObjectType[];
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
-      derivation: Extract<RequestTypeDerivationRuntimeExecutionResult, { kind: 'projected' }>;
-    }>
-  | Readonly<{
-      kind: 'manifest_projection_blocked';
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
-      derivation: Exclude<RequestTypeDerivationRuntimeExecutionResult, { kind: 'projected' }>;
-    }>;
+import type {
+  ManifestProjectedOutcome,
+  ManifestProjectionBlockedOutcome,
+  RouteManifestProjectionCompositionOutcomeHandlers,
+  RouteManifestProjectionCompositionResult,
+} from './routeManifestProjectionOutcome';
+export type {
+  ManifestProjectedOutcome,
+  ManifestProjectionBlockedOutcome,
+  RouteManifestProjectionCompositionOutcomeHandlers,
+  RouteManifestProjectionCompositionResult,
+} from './routeManifestProjectionOutcome';
 
 export interface RouteManifestProjectionCompositionInterface {
   readonly project: (
@@ -50,40 +38,48 @@ export interface RouteManifestProjectionCompositionFactoryInterface {
  */
 export const routeManifestProjectionCompositionFactory: RouteManifestProjectionCompositionFactoryInterface = Object.freeze({
   create: (pipeline: RequestTypeDerivationSemanticPipelineInterface): RouteManifestProjectionCompositionInterface => {
-    const projection = createAuthorityBackedRouteManifestProjection(pipeline);
+    const projection = authorityBackedRouteManifestProjectionFactory.create(pipeline);
 
     return Object.freeze({
       project: (preflight: RouteManifestRequestResolutionPreflight, baseURL: string, version: string): RouteManifestProjectionCompositionResult => {
         const result = projection.project(preflight);
-        switch (result.kind) {
-          case 'projected':
-            return Object.freeze({
+        return result.continue({
+          lowered: (lowered) => {
+            const outcome: ManifestProjectedOutcome = Object.freeze({
               kind: 'manifest_projected',
-              manifest: lowerRouteSyncManifestToRouteManifest(preflight.manifest, baseURL, version, {
+              manifest: routeSyncManifestLoweringOperations.lower(preflight.manifest, baseURL, version, {
                 kind: 'route_manifest_projection',
-                requestTypes: result.requestTypes,
-                semanticTypes: result.semanticTypes,
-                sourceEvidence: result.sourceEvidence,
-                requestResolutionLedger: result.requestResolutionLedger,
+                requestTypes: lowered.requestTypes,
+                semanticTypes: lowered.semanticTypes,
+                sourceEvidence: lowered.sourceEvidence,
+                requestResolutionLedger: lowered.requestResolutionLedger,
               }),
-              requestTypes: result.requestTypes,
-              semanticTypes: result.semanticTypes,
-              sourceEvidence: result.sourceEvidence,
-              requestResolutionLedger: result.requestResolutionLedger,
-              derivation: result.derivation,
+              requestTypes: lowered.requestTypes,
+              semanticTypes: lowered.semanticTypes,
+              sourceEvidence: lowered.sourceEvidence,
+              requestResolutionLedger: lowered.requestResolutionLedger,
+              derivation: lowered.derivation,
             });
-          case 'not_projectable':
             return Object.freeze({
-              kind: 'manifest_projection_blocked',
-              sourceEvidence: result.sourceEvidence,
-              requestResolutionLedger: result.requestResolutionLedger,
-              derivation: result.derivation,
+              ...outcome,
+              continue: (handlers: RouteManifestProjectionCompositionOutcomeHandlers): RouteManifest =>
+                handlers.manifest_projected(outcome),
             });
-          default: {
-            const exhaustive: never = result;
-            return exhaustive;
-          }
-        }
+          },
+          derivation_not_projectable: (blocked) => {
+            const outcome: ManifestProjectionBlockedOutcome = Object.freeze({
+              kind: 'manifest_projection_blocked',
+              sourceEvidence: blocked.sourceEvidence,
+              requestResolutionLedger: blocked.requestResolutionLedger,
+              derivation: blocked.derivation,
+            });
+            return Object.freeze({
+              ...outcome,
+              continue: (handlers: RouteManifestProjectionCompositionOutcomeHandlers): RouteManifest =>
+                handlers.manifest_projection_blocked(outcome),
+            });
+          },
+        });
       },
     });
   },

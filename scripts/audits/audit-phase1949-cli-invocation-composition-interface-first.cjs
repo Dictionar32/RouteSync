@@ -8,7 +8,7 @@ const contract = fs.readFileSync(interfacePath, 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const checks = [
   ['composition interface exists', fs.existsSync(interfacePath)],
-  ['closed declarative workflow is part of the interface', contract.includes('ControllerInvocationManifestCompositionReasoningContract') && contract.includes('readonly workflow: readonly [')],
+  ['manifest terminal behavior is represented by domain operations, not a reasoning primitive', contract.includes('ControllerInvocationManifestTerminalOperationsFactoryInterface') && !contract.includes('ControllerInvocationManifestCompositionReasoningContract')],
   ['contract states upstream semantic ownership', contract.includes('core-authorities-own-semantic-judgment-and-inventory-closure-cli-only-discovers-wires-and-projects')],
   ['contract prohibits CLI semantic reclassification', contract.includes('cli-must-not-classify-invocations-or-reconstruct-integrated-response-outcomes')],
   ['authority interface exposes typed composition boundary', contract.includes('ControllerInvocationManifestCompositionAuthorityInterface') && contract.includes('readonly compose:')],

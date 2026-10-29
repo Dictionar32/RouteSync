@@ -4,9 +4,12 @@ import type {
   PhpSourceDocumentReadResult,
   PhpSourceDocument,
   SourceProjectIdentity,
+  SourceFile,
+  SourceFileInventory,
   ManifestBuilderJudgment,
   LaravelControllerSourceDiscoveryInterface,
   PhpSourceDocumentReaderInterface,
+  PhpSourceDocumentReadOperationRejectedEvidence,
   PhpSourceDocumentIdentityBindingInterface,
   PhpSourceDocumentIdentityBindingJudgment,
   PhpSourceInvocationSemanticPipelineInterface,
@@ -14,36 +17,13 @@ import type {
   LaravelControllerInvocationSemanticJudgmentInventoryAuthorityInterface,
   ManifestBuilderOperationPreparationInterface,
   PhpSourceInvocationSemanticPipelineDeliveryInterface,
+  ControllerSourceProjectIdentityCanonicalizationResult,
+  ControllerSourceProjectIdentityCanonicalizationBlockedEvidence,
+  ControllerSourceProjectIdentityCanonicalizationInterface,
 } from '@routesync/core';
-import type { LaravelRouteSourceSelectionIntent } from '@routesync/core';
 
 
-/** Canonical project-root identity is established before discovery or inventory construction. */
-export type ControllerSourceProjectIdentityCanonicalizationResult =
-  | Readonly<{
-      readonly kind: 'controller_source_project_identity_canonicalized';
-      readonly requested: SourceProjectIdentity;
-      readonly canonical: SourceProjectIdentity;
-    }>
-  | Readonly<{
-      readonly kind: 'controller_source_project_identity_canonicalization_blocked';
-      readonly requested: SourceProjectIdentity;
-    }>;
-
-export interface ControllerSourceProjectIdentityCanonicalizationInput {
-  readonly kind: 'controller_source_project_identity_canonicalization_input';
-  readonly sourceProject: SourceProjectIdentity;
-}
-
-export interface ControllerSourceProjectIdentityCanonicalizationInterface {
-  readonly kind: 'controller_source_project_identity_canonicalization';
-  readonly contractVersion: 1;
-  readonly canonicalize: (
-    input: ControllerSourceProjectIdentityCanonicalizationInput,
-  ) => Promise<ControllerSourceProjectIdentityCanonicalizationResult>;
-}
-
-/** Composition-level terminal ADT. Inventory rejection remains data and is never converted to an exception. */
+/** Composition-level terminal ADT. Rejection remains typed data until the CLI requests a complete manifest. */
 export interface ControllerInvocationManifestInventoryRejectedJudgment {
   readonly kind: 'controller_invocation_manifest_inventory_rejected';
   readonly inventory: Extract<
@@ -57,6 +37,13 @@ export interface ControllerInvocationManifestSourceDocumentIdentityRejectedJudgm
   readonly rejections: readonly Extract<PhpSourceDocumentIdentityBindingJudgment, { readonly kind: 'php_source_document_identity_rejected' }>[];
 }
 
+/** A reader dependency rejected its operation instead of returning a source-read judgment. */
+export interface ControllerInvocationManifestSourceDocumentReadOperationRejectedJudgment {
+  readonly kind: 'controller_invocation_manifest_source_document_read_operation_rejected';
+  readonly sourceFiles: SourceFileInventory;
+  readonly rejections: readonly PhpSourceDocumentReadOperationRejectedEvidence[];
+}
+
 export interface ControllerInvocationManifestSourceDocumentsBlockedJudgment {
   readonly kind: 'controller_invocation_manifest_source_documents_blocked';
   readonly partialDocuments: readonly PhpSourceDocument[];
@@ -65,7 +52,7 @@ export interface ControllerInvocationManifestSourceDocumentsBlockedJudgment {
 
 export interface ControllerInvocationManifestSourceProjectIdentityBlockedJudgment {
   readonly kind: 'controller_invocation_manifest_source_project_identity_blocked';
-  readonly identity: Extract<ControllerSourceProjectIdentityCanonicalizationResult, { readonly kind: 'controller_source_project_identity_canonicalization_blocked' }> ;
+  readonly identity: ControllerSourceProjectIdentityCanonicalizationBlockedEvidence;
 }
 
 export interface ControllerInvocationManifestSourceDiscoveryBlockedJudgment {
@@ -73,56 +60,118 @@ export interface ControllerInvocationManifestSourceDiscoveryBlockedJudgment {
   readonly discovery: Extract<LaravelControllerSourceDiscoveryResult, { readonly kind: 'laravel_controller_source_discovery_blocked' }>;
 }
 
-export type ControllerInvocationManifest =
-  | ManifestBuilderJudgment
+/** Terminal failures preserve the complete domain judgment at the CLI boundary. */
+export type ControllerInvocationManifestTerminalFailureEvidence =
+  | Extract<ManifestBuilderJudgment, { readonly kind: 'manifest_builder_blocked' }>
   | ControllerInvocationManifestInventoryRejectedJudgment
   | ControllerInvocationManifestSourceDiscoveryBlockedJudgment
   | ControllerInvocationManifestSourceProjectIdentityBlockedJudgment
   | ControllerInvocationManifestSourceDocumentsBlockedJudgment
-  | ControllerInvocationManifestSourceDocumentIdentityRejectedJudgment;
+  | ControllerInvocationManifestSourceDocumentIdentityRejectedJudgment
+  | ControllerInvocationManifestSourceDocumentReadOperationRejectedJudgment;
 
-/** Closed workflow rules for the CLI adapter; semantic classification stays upstream. */
-export interface ControllerInvocationManifestCompositionReasoningContract {
-  readonly kind: 'controller_invocation_manifest_composition_reasoning_contract';
-  readonly version: 11;
-  readonly workflow: readonly [
-    'canonicalize-source-project-root-identity-before-discovery-and-inventory-binding',
-    'close-controller-root-discovery-before-asserting-source-inventory-completeness',
-    'discover-all-controller-php-files-under-the-source-project-controller-root',
-    'block-complete-inventory-when-an-unresolved-symbolic-link-is-encountered',
-    'read-each-discovered-source-file-through-the-upstream-document-reader-contract',
-    'bind-each-read-result-and-blocker-to-the-exact-requested-source-file-identity-before-inventory-construction',
-    'create-one-source-document-for-each-successfully-read-file',
-    'analyze-each-whole-file-exactly-once',
-    'deliver-source-bound-pipeline-results-through-the-injected-upstream-delivery-operation',
-    'publish-one-source-correlated-judgment-per-pipeline-result',
-    'preserve-the-discovery-project-identity-as-inventory-subject-evidence',
-    'bind-the-complete-discovered-source-inventory-to-the-requested-project-identity-through-upstream-identity-judgment',
-    'close-the-total-source-to-judgment-correspondence-through-the-upstream-inventory-authority',
-    'build-manifest-only-from-the-authority-produced-validated-receipt',
-  ];
-  readonly inventoryOutcomes: Readonly<{
-    readonly validated: 'manifest-builder-receives-the-exact-authority-produced-receipt';
-    readonly rejected: 'manifest-is-not-built-and-the-exact-upstream-rejection-adt-is-preserved-as-a-composition-terminal-judgment';
-  }>;
-  readonly semanticOwnership: 'core-authorities-own-semantic-judgment-and-inventory-closure-cli-only-discovers-wires-and-projects';
-  readonly emptySourceSet: 'an-explicit-empty-source-inventory-is-closed-by-the-same-authority-and-is-not-inferred-as-a-missing-pipeline';
-  readonly noReclassification: 'cli-must-not-classify-invocations-or-reconstruct-integrated-response-outcomes';
-  readonly rejectionPreservation: 'rejected-terminal-outcome-retains-the-exact-upstream-rejection-adt-with-all-source-identities-and-rejection-details';
-  readonly discoveryFailure: 'missing-unreadable-or-invalid-controller-root-is-a-blocked-discovery-judgment-not-an-empty-complete-inventory';
-  readonly sourceReadFailure: 'missing-unreadable-or-invalid-source-file-is-a-blocked-document-acquisition-judgment-not-an-exception-or-omitted-source';
-  readonly sourceIdentityMismatch: 'read-result-or-blocker-source-identity-mismatch-is-rejected-before-invocation-analysis-and-inventory-construction';
+export interface ControllerInvocationManifestTerminalFailure extends Error {
+  readonly kind: 'controller_invocation_manifest_terminal_failure';
+  readonly judgment: ControllerInvocationManifestTerminalFailureEvidence;
 }
 
-export interface ControllerInvocationManifestCompositionInput {
+/** A terminal judgment owns the only operation that can produce a successful manifest. */
+export interface ControllerInvocationManifestTerminalOperationInterface {
+  readonly requireCompleteManifest: () => Extract<ManifestBuilderJudgment, { readonly kind: 'manifest_builder_complete' }>['manifest'];
+}
+
+export type ControllerInvocationManifestCompleteJudgment = Extract<ManifestBuilderJudgment, { readonly kind: 'manifest_builder_complete' }> & ControllerInvocationManifestTerminalOperationInterface;
+export type ControllerInvocationManifestBlockedJudgment = Extract<ManifestBuilderJudgment, { readonly kind: 'manifest_builder_blocked' }> & ControllerInvocationManifestTerminalOperationInterface;
+export type ControllerInvocationManifestInventoryRejectedTerminal = ControllerInvocationManifestInventoryRejectedJudgment & ControllerInvocationManifestTerminalOperationInterface;
+export type ControllerInvocationManifestSourceDiscoveryBlockedTerminal = ControllerInvocationManifestSourceDiscoveryBlockedJudgment & ControllerInvocationManifestTerminalOperationInterface;
+export type ControllerInvocationManifestSourceProjectIdentityBlockedTerminal = ControllerInvocationManifestSourceProjectIdentityBlockedJudgment & ControllerInvocationManifestTerminalOperationInterface;
+export type ControllerInvocationManifestSourceDocumentsBlockedTerminal = ControllerInvocationManifestSourceDocumentsBlockedJudgment & ControllerInvocationManifestTerminalOperationInterface;
+export type ControllerInvocationManifestSourceDocumentIdentityRejectedTerminal = ControllerInvocationManifestSourceDocumentIdentityRejectedJudgment & ControllerInvocationManifestTerminalOperationInterface;
+export type ControllerInvocationManifestSourceDocumentReadOperationRejectedTerminal = ControllerInvocationManifestSourceDocumentReadOperationRejectedJudgment & ControllerInvocationManifestTerminalOperationInterface;
+
+/** Every runtime terminal is executable domain evidence, not a data-only union arm. */
+export type ControllerInvocationManifest =
+  | ControllerInvocationManifestCompleteJudgment
+  | ControllerInvocationManifestBlockedJudgment
+  | ControllerInvocationManifestInventoryRejectedTerminal
+  | ControllerInvocationManifestSourceDiscoveryBlockedTerminal
+  | ControllerInvocationManifestSourceProjectIdentityBlockedTerminal
+  | ControllerInvocationManifestSourceDocumentsBlockedTerminal
+  | ControllerInvocationManifestSourceDocumentIdentityRejectedTerminal
+  | ControllerInvocationManifestSourceDocumentReadOperationRejectedTerminal;
+
+/** Producer-side adapter binds upstream manifest judgments to their CLI domain operation. */
+export interface ControllerInvocationManifestTerminalOperationsFactoryInterface {
+  readonly complete: (judgment: Extract<ManifestBuilderJudgment, { readonly kind: 'manifest_builder_complete' }>) => ControllerInvocationManifestCompleteJudgment;
+  readonly manifestBlocked: (judgment: Extract<ManifestBuilderJudgment, { readonly kind: 'manifest_builder_blocked' }>) => ControllerInvocationManifestBlockedJudgment;
+  readonly inventoryRejected: (judgment: ControllerInvocationManifestInventoryRejectedJudgment) => ControllerInvocationManifestInventoryRejectedTerminal;
+  readonly sourceDiscoveryBlocked: (judgment: ControllerInvocationManifestSourceDiscoveryBlockedJudgment) => ControllerInvocationManifestSourceDiscoveryBlockedTerminal;
+  readonly sourceProjectIdentityBlocked: (judgment: ControllerInvocationManifestSourceProjectIdentityBlockedJudgment) => ControllerInvocationManifestSourceProjectIdentityBlockedTerminal;
+  readonly sourceDocumentsBlocked: (judgment: ControllerInvocationManifestSourceDocumentsBlockedJudgment) => ControllerInvocationManifestSourceDocumentsBlockedTerminal;
+  readonly sourceDocumentIdentityRejected: (judgment: ControllerInvocationManifestSourceDocumentIdentityRejectedJudgment) => ControllerInvocationManifestSourceDocumentIdentityRejectedTerminal;
+  readonly sourceDocumentReadOperationRejected: (judgment: ControllerInvocationManifestSourceDocumentReadOperationRejectedJudgment) => ControllerInvocationManifestSourceDocumentReadOperationRejectedTerminal;
+  /** Binds the upstream outcome-owned operation to the CLI terminal contract without redispatching on the judgment kind. */
+  readonly fromManifestBuilderJudgment: (judgment: ManifestBuilderJudgment) => ControllerInvocationManifestCompleteJudgment | ControllerInvocationManifestBlockedJudgment;
+}
+
+/** Domain continuation for the composition request's first legal effect. */
+export interface ControllerInvocationManifestCompositionInputContinuationInterface {
+  readonly onBlocked: (
+    identity: ControllerSourceProjectIdentityCanonicalizationBlockedEvidence,
+  ) => Promise<ControllerInvocationManifest>;
+  readonly onCanonicalized: (
+    identity: Extract<ControllerSourceProjectIdentityCanonicalizationResult, { readonly kind: 'controller_source_project_identity_canonicalized' }>,
+    routeSelection: LaravelRouteSourceSelectionIntent,
+  ) => Promise<ControllerInvocationManifest>;
+}
+
+/** Request ADT owns the first domain continuation; consumers don't unpack and redispatch its fields. */
+export interface ControllerInvocationManifestCompositionInputOperations {
+  readonly continueToCanonicalization: (
+    canonicalization: ControllerSourceProjectIdentityCanonicalizationInterface,
+    continuation: ControllerInvocationManifestCompositionInputContinuationInterface,
+  ) => Promise<ControllerInvocationManifest>;
+}
+
+export interface ControllerInvocationManifestCompositionInput extends ControllerInvocationManifestCompositionInputOperations {
   readonly kind: 'controller_invocation_manifest_composition_input';
   readonly sourceProject: SourceProjectIdentity;
   readonly routeSelection: LaravelRouteSourceSelectionIntent;
 }
 
+export interface ControllerInvocationManifestCompositionInputFactoryInterface {
+  readonly create: (
+    sourceProject: SourceProjectIdentity,
+    routeSelection: LaravelRouteSourceSelectionIntent,
+  ) => ControllerInvocationManifestCompositionInput;
+}
+
+/** Canonical interface-first constructor; operation wiring is owned by the input ADT. */
+export const controllerInvocationManifestCompositionInputFactory: ControllerInvocationManifestCompositionInputFactoryInterface = Object.freeze({
+  create: (sourceProject: SourceProjectIdentity, routeSelection: LaravelRouteSourceSelectionIntent): ControllerInvocationManifestCompositionInput => Object.freeze({
+    kind: 'controller_invocation_manifest_composition_input',
+    sourceProject,
+    routeSelection,
+    continueToCanonicalization: (canonicalization: ControllerSourceProjectIdentityCanonicalizationInterface, continuation: ControllerInvocationManifestCompositionInputContinuationInterface): Promise<ControllerInvocationManifest> =>
+      canonicalization.canonicalize(Object.freeze({
+        kind: 'controller_source_project_identity_canonicalization_input',
+        sourceProject,
+      })).then(identity => {
+        switch (identity.kind) {
+          case 'controller_source_project_identity_canonicalization_blocked':
+            return continuation.onBlocked(identity.preserveFailureEvidence());
+          case 'controller_source_project_identity_canonicalized':
+            return continuation.onCanonicalized(Object.freeze({
+              ...identity,
+              canonical: identity.continueToSourceDiscoveryIdentity(),
+            }), routeSelection);
+        }
+      }),
+  }),
+});
+
 export interface ControllerInvocationManifestCompositionAuthorityInterface {
   readonly kind: 'controller_invocation_manifest_composition_authority';
-  readonly contract: ControllerInvocationManifestCompositionReasoningContract;
   readonly dependencies: ControllerInvocationManifestCompositionDependencies;
   readonly compose: (input: ControllerInvocationManifestCompositionInput) => Promise<ControllerInvocationManifest>;
 }
@@ -151,8 +200,9 @@ export interface ControllerInvocationManifestCompositionAuthorityFactoryInterfac
 
 /** Public operation used by audit/drift callers to build the canonical manifest. */
 export interface ControllerInvocationManifestBuilderInterface {
-  readonly build: (
-    sourceProject: SourceProjectIdentity,
-    routeSelection: LaravelRouteSourceSelectionIntent,
-  ) => Promise<ControllerInvocationManifest>;
+  readonly kind: 'controller_invocation_manifest_builder';
+  readonly contractVersion: 1;
+  /** One explicit domain request replaces positional arguments at the runtime boundary. */
+  readonly build: (input: ControllerInvocationManifestCompositionInput) => Promise<ControllerInvocationManifest>;
 }
+

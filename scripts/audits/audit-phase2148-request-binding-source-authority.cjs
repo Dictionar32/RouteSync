@@ -7,7 +7,7 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelControllerRequestSemanticBindingInterface.ts');
 const authority = read('packages/core/src/types/upstream/laravelControllerRequestSemanticBindingAuthority.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const actionJudgment = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const index = read('packages/core/src/index.ts');
 
@@ -28,7 +28,7 @@ const syntaxFiles = [
   'packages/core/src/types/upstream/laravelControllerRequestSemanticBindingInterface.ts',
   'packages/core/src/types/upstream/laravelControllerRequestSemanticBindingAuthority.ts',
   'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts',
   'packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts',
   'packages/core/src/index.ts',
 ];

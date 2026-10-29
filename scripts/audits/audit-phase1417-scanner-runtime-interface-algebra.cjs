@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const boundary = read('packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts');
 const sequence = read('packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts');
 const pkg = JSON.parse(read('package.json'));

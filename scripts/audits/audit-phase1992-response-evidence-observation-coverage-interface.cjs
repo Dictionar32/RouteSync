@@ -27,7 +27,7 @@ const checks = [
   ['existing ControllerResponse remains a discriminated union', /kind: 'response_present'[\s\S]*?kind: 'response_absent'/.test(controller)],
   ['observation type is publicly exported', /LaravelControllerResponseEvidenceProductionObservation/.test(publicExports)],
   ['no producer runtime was smuggled into scanner wiring', /controllerProducer\.produce\(\{ declaration: declarationEvidence, invocationJudgment \}\)/.test(scanner) && !/responseEvidenceProductionInterface/.test(scanner)],
-  ['no relation/foundation subscanner introduced by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/response/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/response/relations'))],
+  ['no relation/foundation subscanner introduced by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/response/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/response/relations'))],
 ];
 const failures = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) process.stdout.write(`${ok ? 'PASS' : 'FAIL'} ${name}\n`);

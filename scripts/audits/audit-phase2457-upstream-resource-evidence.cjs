@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const resourceScanner = read('packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts');
 const resourceContract = read('packages/core/src/types/upstream/laravelResourceScannerInterface.ts');
-const evidenceProducer = read('packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts');
+const evidenceProducer = read('packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts');
 const dependencies = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipelineDependencies.ts');
 const checks = [
   ['pipeline acquires canonical Resource evidence once through the upstream-bound dependency', (pipeline.match(/dependencies\.resourceEvidenceScanner\.scan\(sourceProject\)/g) || []).length === 1],

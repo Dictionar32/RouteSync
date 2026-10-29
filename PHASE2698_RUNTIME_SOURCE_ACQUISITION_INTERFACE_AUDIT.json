@@ -77,7 +77,7 @@
       "detail": ""
     },
     {
-      "name": "TypeScript syntax: packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts",
+      "name": "TypeScript syntax: packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts",
       "ok": true,
       "detail": ""
     },

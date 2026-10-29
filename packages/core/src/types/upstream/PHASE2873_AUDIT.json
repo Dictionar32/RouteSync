@@ -1,0 +1,31 @@
+{
+  "phase": 2873,
+  "name": "canonicalization-domain-continuation",
+  "scope": "CLI manifest project-root canonicalization judgment and its consumer",
+  "structuralAudit": {
+    "passedChecks": 10,
+    "totalChecks": 10,
+    "command": "npm run audit:phase2873-canonicalization-domain-continuation"
+  },
+  "implemented": [
+    "Named canonicalized and blocked domain judgment interfaces",
+    "continueWith operation on canonicalization judgment union arms",
+    "Producer attaches the operation to both canonicalization outcomes",
+    "Composition consumes continueWith instead of dispatching on identity.kind",
+    "Successful canonicalization delegates to composeCanonicalProject"
+  ],
+  "preserved": [
+    "Existing source-project-identity blocked terminal",
+    "Existing canonical source project contract",
+    "packages/core/src/types/upstream/collections.ts remains empty"
+  ],
+  "not_verified": [
+    "Full TypeScript typecheck: unavailable because project dependencies are absent and global TypeScript is older than the configured target/lib",
+    "Build",
+    "End-to-end CLI manifest tests"
+  ],
+  "limitations": [
+    "Structural regex audit is not a semantic compiler check",
+    "Discovery, identity binding, and document-read branches remain for subsequent bounded migrations"
+  ]
+}

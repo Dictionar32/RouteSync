@@ -54,22 +54,22 @@ export const INVALIDATION_TARGET_REGISTRY = Object.freeze({
   [InvalidationTargetKind.SelfList]: {
     kind: InvalidationTargetKind.SelfList,
     queryKeySuffix: 'all',
-    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.all`),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue.create(`QueryKey.${groupName.value.value}.all`),
   },
   [InvalidationTargetKind.ParentList]: {
     kind: InvalidationTargetKind.ParentList,
     queryKeySuffix: 'lists',
-    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.lists`),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue.create(`QueryKey.${groupName.value.value}.lists`),
   },
   [InvalidationTargetKind.ParentDetail]: {
     kind: InvalidationTargetKind.ParentDetail,
     queryKeySuffix: 'detail',
-    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.detail`),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue.create(`QueryKey.${groupName.value.value}.detail`),
   },
   [InvalidationTargetKind.AuthResource]: {
     kind: InvalidationTargetKind.AuthResource,
     queryKeySuffix: 'all',
-    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue(`QueryKey.${groupName.value.value}.all`),
+    computeQueryKey: (groupName: ResourceName) => SemanticValueFactory.stringValue.create(`QueryKey.${groupName.value.value}.all`),
   },
 } satisfies InvalidationTargetRegistry);
 

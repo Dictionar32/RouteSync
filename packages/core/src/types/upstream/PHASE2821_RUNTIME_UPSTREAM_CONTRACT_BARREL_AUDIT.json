@@ -1,0 +1,36 @@
+{
+  "phase": 2821,
+  "title": "Runtime Upstream Contract Barrel Audit",
+  "decision": "reuse_existing_contracts_and_export_explicitly",
+  "newGenericReasoningPrimitive": false,
+  "newParallelManifestOrRouteMethodContract": false,
+  "newlyExplicitContractModules": [
+    "controllerProducerInterface.ts",
+    "controllerRuntimeReturnProjectionInterface.ts",
+    "laravelControllerInvocationResponseWiringInterface.ts",
+    "laravelControllerRequestSemanticBindingInterface.ts",
+    "requestProducerInterface.ts",
+    "semanticKnowledgeEvidenceAdapterInterface.ts",
+    "typeInternerInterface.ts",
+    "controllerActionResponseReferenceJudgmentInterface.ts"
+  ],
+  "phase2820TargetedContractModules": 3,
+  "phase2821AdditionalContractModules": 8,
+  "residualSourceModulesWithoutDirectBarrelEntry": 41,
+  "residualInventoryIsExportMandate": false,
+  "routePathADTDomainOperation": "RoutePathTokenFact.continueForAcceptance",
+  "manifestJudgment": ["manifest_builder_complete", "manifest_builder_blocked"],
+  "astFailurePromotedToEmptyManifest": false,
+  "traceAndRecommendationsSeparated": true,
+  "collectionsFileBytes": 0,
+  "verification": {
+    "phase2820BarrelInventory": "11/11 targeted checks passed; 41 residual inventory entries",
+    "phase2821RuntimeUpstreamContractBarrel": "11/11 passed",
+    "phase2818RoutePathPolicyDirectADT": "12/12 passed",
+    "phase2804CliManifestInterfaceRuntime": "11/11 passed",
+    "typecheck": "not_run",
+    "productionBuild": "not_run",
+    "fullTestSuite": "not_run",
+    "cliScanSyncEndToEnd": "not_run"
+  }
+}

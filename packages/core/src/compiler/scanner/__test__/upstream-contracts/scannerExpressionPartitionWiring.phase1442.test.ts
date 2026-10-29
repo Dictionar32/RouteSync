@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
-import { classifyPhpBlock } from '../../lexer/astClassifier';
-import { phpSourceTokenizer } from '../../lexer/tokenizer';
+import { classifyPhpBlock } from '../../../frontend/php/astClassifier';
+import { phpSourceTokenizer } from '../../../frontend/php/tokenizer';
 
 describe('scanner expression partition wiring phase 1442', () => {
   test('projects keyed array entries from before/after evidence partitions', () => {

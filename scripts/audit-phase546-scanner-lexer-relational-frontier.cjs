@@ -4,9 +4,9 @@ const ts = require('typescript');
 
 const root = process.cwd();
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts',
+  'packages/core/src/compiler/scanner/operations/route-scanner/routePathParser.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts',
 ];
 
 const patterns = {

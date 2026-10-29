@@ -6,7 +6,7 @@
 - Authority boundary: `packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts`
 - Domain algebra: `packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts`
 - Integrated response composition/projection: `packages/core/src/types/upstream/invocationSemanticPipeline.ts` and `invocationSemanticPipelineInterface.ts`
-- Laravel scanner consumer: `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`
+- Laravel scanner consumer: `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`
 
 ## Finding
 

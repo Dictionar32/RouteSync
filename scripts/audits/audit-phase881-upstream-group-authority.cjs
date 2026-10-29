@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '../..');
-const flow = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts'), 'utf8');
-const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts'), 'utf8');
-const context = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts'), 'utf8');
+const flow = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts'), 'utf8');
+const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts'), 'utf8');
+const context = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupContextResolver.ts'), 'utf8');
 const checks = {
   flowUsesTypedRouteGroupFact: flow.includes("RouteGroupFact as RouteGroupValueFact") && flow.includes('export type RouteGroupData = RouteGroupValueFact'),
   flowProducesGroupMiddleware: flow.includes('middleware: Object.freeze(projectRelation([...route.middleware], createMiddlewareName))'),
@@ -12,7 +12,7 @@ const checks = {
   producerResolvesGroupFromFact: producer.includes('resolveRouteGroupContextFromFact(declarationFlow.group.value)'),
   producerNoAstGroupContextCall: !producer.includes('resolveRouteGroupContext(declaration)'),
   contextExposesFactBoundary: context.includes('resolveRouteGroupContextFromFact(facts: RouteGroupFact)'),
-  legacyAstAdapterRetained: fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts')),
+  legacyAstAdapterRetained: fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupAstAdapter.ts')),
 };
 const zeroByteLegacyFiles = [];
 for (const base of ['packages']) {

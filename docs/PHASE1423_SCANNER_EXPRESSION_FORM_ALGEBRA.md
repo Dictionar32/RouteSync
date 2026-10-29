@@ -2,7 +2,7 @@
 
 ## Scope
 
-This phase moves two expression-shape decisions out of `core/src/compiler/scanner/lexer/astClassifierRuntime.ts`:
+This phase moves two expression-shape decisions out of `core/src/compiler/frontend/php/astClassifierRuntime.ts`:
 
 - matching the top-level conditional `?` with its corresponding `:` while accounting for nested ternaries;
 - selecting a prefix unary operator and rejecting a prefix token that has no operand.

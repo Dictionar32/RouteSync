@@ -11,7 +11,7 @@ The architecture treats Tree-sitter-style parsing as syntax transport, while the
 - Added `semantic/authority/declarativeDispatch.ts` as a shared candidate/dispatch relation primitive.
 - Removed the `switch` authority from `resourceModelMethodResolverMeaning.ts`; method meaning is now a declarative semantic table.
 - Began moving projection resolution behind relation-gated semantic witnesses rather than host branching.
-- Added `audit-phase385-scanner-resolver.cjs` covering scanner/lexer, scanner semantic relations, core semantic plugins, CLI resolvers, and semantic generators.
+- Added `audit-phase385-scanner-resolver.cjs` covering frontend/php, scanner semantic relations, core semantic plugins, CLI resolvers, and semantic generators.
 - Kept source lexer/parser implementations as evidence transport only; their legacy imperative code is not treated as semantic authority.
 
 ## Target model

@@ -1,0 +1,43 @@
+{
+  "phase": 3012,
+  "tool": "TypeScript transpileModule syntax-only",
+  "files": [
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentPreparationInterface.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentPreparationAuthority.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineAuthority.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/index.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/index.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/parsers/php/sourceInvocationPipeline.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    }
+  ],
+  "filesChecked": 7,
+  "totalSyntaxDiagnostics": 0
+}

@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/requestTypeDerivationInterface.ts'), 'utf8');
 const authority = fs.readFileSync(path.join(root, 'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationAuthority.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts'), 'utf8');
 const executor = fs.readFileSync(path.join(root, 'packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts'), 'utf8');
 const lawRegistry = contract.match(/export const REQUEST_TYPE_DERIVATION_LAW_IDS\s*=\s*\[([\s\S]*?)\] as const;/);
 const lawIds = lawRegistry ? [...lawRegistry[1].matchAll(/'([^']+)'/g)].map((match) => match[1]) : [];

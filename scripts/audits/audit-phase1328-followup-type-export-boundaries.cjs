@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
-const validation = read('packages/core/src/compiler/scanner/descriptors/validationDescriptors.ts');
+const validation = read('packages/core/src/compiler/scanner/operations/domain-model/validationDescriptors.ts');
 const compiler = read('packages/core/src/compiler/index.ts');
 const checks = [
   ['ScannedRouteValidationRuleParams is imported type-only', /type ScannedRouteValidationRuleParams/.test(validation)],

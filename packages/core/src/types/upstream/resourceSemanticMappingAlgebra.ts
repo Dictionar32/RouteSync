@@ -9,7 +9,7 @@ import { astMappingInterface, type AstMappingFact, type AstMappingInterface } fr
 import type { AstSemanticTerm } from './astSemanticInterface';
 import type { AstRuleName, AstWitnessName } from './ast';
 import { astSemanticStageContract } from './astSemanticStageAuthority';
-import { stageProof, type AstSemanticProofResult } from './astSemanticStageProof';
+import { astSemanticStageProofOperations, type AstSemanticProofResult } from './astSemanticStageProof';
 import type { SemanticRelationRewrite } from '../../semantic/relations/semanticRewriteEngine';
 import { relationLookup, relationOptionFold, relationProject, relationRefine } from '../../semantic/relations/relationalSequence';
 import { relationEqual, relationGate } from '../../semantic/relations/semanticRelations';
@@ -201,7 +201,7 @@ export const resolveResourceAstMappingInterface = (sourceKind: ResourceSemanticM
     target,
   });
   const contract = astSemanticStageContract('upstream_mapping');
-  const proofResult = stageProof('upstream_mapping', contract);
+  const proofResult = astSemanticStageProofOperations.resolve('upstream_mapping', contract);
   const proof = relationOptionFold(
     relationRefine(proofResult, (value): value is AstSemanticProofResult & { readonly kind: 'proof' } => relationEqual(value.kind, 'proof')),
     () => ({

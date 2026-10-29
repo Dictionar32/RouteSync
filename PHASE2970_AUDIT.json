@@ -1,0 +1,35 @@
+{
+  "phase": 2970,
+  "name": "ready-source-read-ownership",
+  "status": "bounded_upstream_adt_migration",
+  "relation_foundation_restored": false,
+  "relation_foundation_used_by_traced_runtime_path": false,
+  "structural_audit": {
+    "phase2967": { "passed": 12, "total": 12 },
+    "phase2970": { "passed": 13, "total": 13 }
+  },
+  "runtime_change": {
+    "owner": "packages/core/src/types/upstream/laravelRouteSourceSelection.ts",
+    "operation": "LaravelRouteSourceObservationJudgment.continueToRouteScan(reader, continuation)",
+    "ready_variant": "reads its scannable source inventory and produces a typed PhpSourceDocumentReadBatchJudgment before handing it to scanner continuation",
+    "blocked_variant": "preserves explicit missing-source evidence and produces sourceSelectionBlocked outcome without invoking ready continuation"
+  },
+  "invariants": {
+    "explicit_missing_source_remains_blocked": true,
+    "optional_default_absence_remains_distinct": true,
+    "upstream_collections_file_remains_empty": true,
+    "source_read_batch_blockers_remain_blockers": true
+  },
+  "verification": {
+    "structural_audit": "passed",
+    "full_typecheck": "not_run_node_modules_absent",
+    "unit_tests": "not_run_node_modules_absent",
+    "build": "not_run_node_modules_absent; provided build.log still contains 230 unresolved-import errors from deleted relation-foundation paths",
+    "cli_end_to_end": "not_run"
+  },
+  "remaining_work": [
+    "Migrate consumers still importing deleted relation-foundation paths to existing domain-specific ADT operations without restoring or renaming the generic foundation.",
+    "Model source-read Promise rejection as an explicit outcome if the reader contract permits rejected promises; the current batch migration preserves returned read judgments, while the full rejection path remains a separate gap.",
+    "Continue inventory and migration of runtime exports beyond the traced CLI-to-manifest path."
+  ]
+}

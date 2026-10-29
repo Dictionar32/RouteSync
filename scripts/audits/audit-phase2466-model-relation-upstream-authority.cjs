@@ -12,8 +12,8 @@ const checks = [
   ['scanner producer exports a typed interface constant', /export const modelRelationFactsProducer:\s*ModelRelationFactsProducerInterface/.test(read('packages/core/src/compiler/scanner/modelRelationFactsProducer.ts'))],
   ['scanner producer has no relation/foundation imports', !/semantic\/(relations|foundation)/.test(read('packages/core/src/compiler/scanner/modelRelationFactsProducer.ts'))],
   ['model pipeline is wired to producer', /modelRelationFactsProducer\.scan/.test(read('packages/core/src/compiler/scanner/laravelModelScanner.ts'))],
-  ['old relation parser retired', !exists('packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts')],
-  ['old relation producer retired', !exists('packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts')],
+  ['old relation parser retired', !exists('packages/core/src/compiler/scanner/operations/model/memberRelationsParser.ts')],
+  ['old relation producer retired', !exists('packages/core/src/compiler/scanner/operations/model/eloquentProducer.ts')],
   ['authority is exported through upstream barrel', /eloquentRelationFactsAuthorityInterface/.test(read('packages/core/src/types/upstream/index.ts'))],
 ];
 for (const [label, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${label}\n`);

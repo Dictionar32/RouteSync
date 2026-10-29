@@ -5,9 +5,9 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const judgment = read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const pipelineInterface = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
-const sourceEvidence = read('packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts');
+const sourceEvidence = read('packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts');
 const knowledge = read('packages/core/src/types/upstream/semanticDataflowKnowledge.ts');
-const dataflowAnalyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const dataflowAnalyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 

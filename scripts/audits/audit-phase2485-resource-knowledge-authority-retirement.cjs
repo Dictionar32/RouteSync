@@ -8,7 +8,7 @@ const contractPath = 'packages/core/src/types/upstream/resourceModelKnowledgeDat
 const authorityPath = 'packages/core/src/compiler/semantic/resourceModelKnowledgeDataFlowAuthority.ts';
 const resolverPath = 'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts';
 const testPath = 'packages/core/src/compiler/semantic/resourceModelKnowledgeDataFlowAuthority.phase209.test.ts';
-const oldImplementationPath = 'packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts';
+const oldImplementationPath = 'packages/core/src/compiler/scanner/operations/resource/resourceModelKnowledgeDataFlow.ts';
 const contract = read(contractPath);
 const authority = read(authorityPath);
 const resolver = read(resolverPath);
@@ -19,8 +19,8 @@ assert('semantic authority does not import semantic relations or foundation', !/
 assert('resolution index is derived from canonical facts', /deriveResolutionIndex:[\s\S]*?dataFlow\.resolutions\.map/u.test(authority));
 assert('resolution lookup returns the explicit Presence ADT', /resolutionFor:[\s\S]*?presenceFold\([\s\S]*?presenceOf\(/u.test(authority));
 assert('resolver imports knowledge from semantic authority', /semantic\/resourceModelKnowledgeDataFlowAuthority/u.test(resolver));
-assert('resolver no longer imports knowledge from subscanners', !/subscanners\/resource\/resourceModelKnowledgeDataFlow/u.test(resolver));
-assert('orphaned two-pass relation subscanner is retired after confirming no production callers', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts')));
+assert('resolver no longer imports knowledge from operations', !/operations\/resource\/resourceModelKnowledgeDataFlow/u.test(resolver));
+assert('orphaned two-pass relation subscanner is retired after confirming no production callers', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts')));
 assert('subscanner-owned knowledge implementation is retired', !fs.existsSync(path.join(root, oldImplementationPath)));
 assert('knowledge tests are colocated with semantic authority', /describe\('Phase 209 resource model knowledge\/data-flow'/u.test(test));
 assert('semantic authority has no host null/undefined sentinels or assertions', !/\bnull\b|\bundefined\b|\sas\s|!\)/u.test(authority));

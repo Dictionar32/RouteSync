@@ -12,9 +12,9 @@ const callInterface = read('packages/core/src/types/upstream/phpFunctionCallSema
 const closureAuthority = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticJudgmentBatchClosureAuthority.ts');
 const pipelineInterface = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const scannerBinding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
-const mapper = read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts');
+const mapper = read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 
 check('resolution contract has explicit PHP namespace and fallback rules', resolutionInterface.includes('defer-unqualified-namespaced-name-to-php-runtime-fallback') && resolutionInterface.includes('never-infer-function-target-from-short-name-alone'));

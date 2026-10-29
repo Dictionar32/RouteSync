@@ -18,10 +18,11 @@ import {
 import { toTypeName } from '../names'
 import type { ClassifiedRoute, ResolvedTypeInfo, ResourceCrudMap } from './classifierTypes'
 
-export function resolveItemPrimaryKeyType(
-  targetRoute: ClassifiedRoute,
-  capabilities: readonly ResourceModelKeyCapabilityContract[] = [],
-): string {
+export interface ResolveItemPrimaryKeyTypeOperation {
+  (targetRoute: ClassifiedRoute, capabilities: readonly ResourceModelKeyCapabilityContract[] = []): string;
+}
+
+export const resolveItemPrimaryKeyType: ResolveItemPrimaryKeyTypeOperation = Object.freeze((targetRoute: ClassifiedRoute, capabilities: readonly ResourceModelKeyCapabilityContract[] = []): string => {
   const primaryParam = targetRoute.contract.request.pathParameters[0];
   const paramTsType = primaryParam?.type ? ROUTE_PARAMETER_TYPE_REGISTRY[primaryParam.type]?.tsType : undefined;
   const resourceCapability = capabilities.find(capability =>
@@ -32,14 +33,18 @@ export function resolveItemPrimaryKeyType(
     : undefined;
 
   return paramTsType ?? modelKeyType ?? RESOURCE_GROUP_REGISTRY[ResourceGroupKind.Crud].defaultPrimaryKeyType;
-}
+});
 
 function extractContractResponseType(route: ClassifiedRoute | undefined): string {
   if (!route) return 'never';
   return route.contract.response.success.descriptor.responseTypeName().value;
 }
 
-export function resolveRouteResponseType(route?: ClassifiedRoute): { readonly typeName: string; readonly importedType: string | null } {
+export interface ResolveRouteResponseTypeOperation {
+  (route?: ClassifiedRoute): { readonly typeName: string; readonly importedType: string | null };
+}
+
+export const resolveRouteResponseType: ResolveRouteResponseTypeOperation = Object.freeze((route?: ClassifiedRoute): { readonly typeName: string; readonly importedType: string | null } => {
   const contractType = extractContractResponseType(route);
 
   const candidateType = contractType;
@@ -49,11 +54,15 @@ export function resolveRouteResponseType(route?: ClassifiedRoute): { readonly ty
     typeName: candidateType || 'never',
     importedType: isImportable ? candidateType : null
   };
-}
+});
 
 const STANDARD_FORM_ACTIONS: ReadonlySet<string> = new Set(['Create', 'Update', 'Get']);
 
-export function resolveRouteFormType(route?: ClassifiedRoute): ResolvedTypeInfo {
+export interface ResolveRouteFormTypeOperation {
+  (route?: ClassifiedRoute): ResolvedTypeInfo;
+}
+
+export const resolveRouteFormType: ResolveRouteFormTypeOperation = Object.freeze((route?: ClassifiedRoute): ResolvedTypeInfo => {
   const hasSchema = Boolean(route?.contract.request.body.kind === 'body' && hasCanonicalRequestFields(route.contract.request.body.schema));
   const actionKey = route
     ? matchCrudRole(route.crudRole, {
@@ -81,13 +90,21 @@ export function resolveRouteFormType(route?: ClassifiedRoute): ResolvedTypeInfo 
     : isStandard
     ? { typeName: `${formName}['${actionKey}']`, importedType: formName, contractImportedType: null }
     : { typeName: contractType, importedType: null, contractImportedType: contractType };
-}
+});
 
-export function resolveGroupErrorType(allRoutes: readonly ClassifiedRoute[]): {
+export interface ResolveGroupErrorTypeOperation {
+  (allRoutes: readonly ClassifiedRoute[]): {
   readonly errorUnionType: string
   readonly errorTypes: readonly string[]
   readonly hasCustomError: boolean
-} {
+};
+}
+
+export const resolveGroupErrorType: ResolveGroupErrorTypeOperation = Object.freeze((allRoutes: readonly ClassifiedRoute[]): {
+  readonly errorUnionType: string
+  readonly errorTypes: readonly string[]
+  readonly hasCustomError: boolean
+} => {
   const errorTypes = new Set<string>();
   for (const route of allRoutes) {
     for (const err of route.contract.response.errors) {
@@ -103,15 +120,19 @@ export function resolveGroupErrorType(allRoutes: readonly ClassifiedRoute[]): {
     errorTypes: Object.freeze(Array.from(errorTypes).sort()),
     hasCustomError
   };
+});
+
+export interface CollectImportedTypesOperation {
+  (types: readonly (string | null | undefined)[]): readonly string[];
 }
 
-export function collectImportedTypes(types: readonly (string | null | undefined)[]): readonly string[] {
+export const collectImportedTypes: CollectImportedTypesOperation = Object.freeze((types: readonly (string | null | undefined)[]): readonly string[] => {
   const set = new Set<string>();
   for (const t of types) {
     Boolean(t) && set.add(t as string);
   }
   return Object.freeze(Array.from(set).sort());
-}
+});
 
 const MUTATION_SLOTS: readonly (readonly [keyof ResourceCrudMap, string])[] = Object.freeze([
   ['create', 'create'],
@@ -119,8 +140,12 @@ const MUTATION_SLOTS: readonly (readonly [keyof ResourceCrudMap, string])[] = Ob
   ['delete', 'remove'],
 ]);
 
-export function getStandardMutationKeys(res: ResourceCrudMap): readonly string[] {
+export interface GetStandardMutationKeysOperation {
+  (res: ResourceCrudMap): readonly string[];
+}
+
+export const getStandardMutationKeys: GetStandardMutationKeysOperation = Object.freeze((res: ResourceCrudMap): readonly string[] => {
   return MUTATION_SLOTS
     .filter(([slot]) => Boolean(res[slot]))
     .map(([, name]) => name);
-}
+});

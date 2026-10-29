@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const composition = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const lexer = read('packages/core/src/compiler/scanner/LaravelSourceLexer.ts');
 const packageJson = JSON.parse(read('package.json'));

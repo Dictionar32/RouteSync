@@ -1,0 +1,67 @@
+{
+  "phase": 2938,
+  "title": "Source AST to Manifest Domain Continuation",
+  "scope": [
+    "LaravelSourceAstProjectionJudgment",
+    "laravelSourceAstProjectionOperations",
+    "upstreamManifestBuilder",
+    "LaravelSourceAstPipelineInterface contract version",
+    "upstream barrel export",
+    "collections.ts empty invariant"
+  ],
+  "checks": [
+    {
+      "name": "AST judgment exposes domain-specific manifest continuation",
+      "passed": true
+    },
+    {
+      "name": "AST judgment has no generic Result continuation",
+      "passed": true
+    },
+    {
+      "name": "AST continuation returns existing ManifestBuilderJudgment",
+      "passed": true
+    },
+    {
+      "name": "Complete and blocked producers attach domain continuation",
+      "passed": true
+    },
+    {
+      "name": "Manifest builder delegates to AST judgment operation",
+      "passed": true
+    },
+    {
+      "name": "AST pipeline implementation version matches contract",
+      "passed": true
+    },
+    {
+      "name": "AST pipeline interface is explicitly exported from upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "collections.ts remains empty",
+      "passed": true,
+      "detail": "0 bytes"
+    },
+    {
+      "name": "laravelSourceAstPipelineInterface.ts has no export function declarations",
+      "passed": true
+    },
+    {
+      "name": "laravelSourceAstPipeline.ts has no export function declarations",
+      "passed": true
+    },
+    {
+      "name": "upstreamManifestBuilder.ts has no export function declarations",
+      "passed": true
+    }
+  ],
+  "passed": 11,
+  "total": 11,
+  "structuralAuditPassed": true,
+  "syntaxTranspile": "passed_for_3_scoped_typescript_files",
+  "typecheck": "blocked_environment_missing_node_vitest_types_and_es2025_support",
+  "unitTests": "not_run",
+  "build": "not_run",
+  "endToEnd": "not_run"
+}

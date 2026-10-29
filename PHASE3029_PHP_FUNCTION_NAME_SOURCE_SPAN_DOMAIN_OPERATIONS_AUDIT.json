@@ -1,0 +1,31 @@
+{
+  "phase": 3029,
+  "title": "PHP Function Name Resolution — SourceSpan Domain Operation Migration",
+  "scope": "Static audit of a selected upstream runtime consumer. It confirms PHP function-name resolution delegates source-span equality, validity, and containment to the canonical upstream ADT; it does not claim repository-wide primitive elimination or full runtime correctness.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "PHP source evidence and function-name resolution environment",
+    "phpFunctionNameResolutionAuthority delegates source-span semantics to sourceSpanOperations",
+    "Invocation semantic judgments and manifest preparation retain their existing evidence/blocker flow"
+  ],
+  "checks": {
+    "phpFunctionResolutionConsumesCanonicalSpanOperations": true,
+    "phpFunctionResolutionNoLongerReimplementsSpanCoordinateComparisons": true,
+    "spanDomainDefinesClosedJudgmentsAndInterfaceBackedOperations": true,
+    "sourceSpanDomainBehaviorHasFocusedTests": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionAuthorityRemainsInRuntimePath": true,
+    "removedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 8,
+  "total": 8,
+  "remainingDebt": [
+    "SourceSpan coordinates still use NumberValue as parser-boundary representation; a richer source-position model must carry domain operations rather than merely wrapping a primitive.",
+    "Some upstream consumers still compare source coordinates directly and need scoped migrations based on their actual types and runtime ownership.",
+    "PHP parser input still necessarily decodes source offsets and lexical names at a boundary; those values must be converted into typed domain evidence immediately rather than pretending primitive values can disappear from all boundaries.",
+    "Repository-wide conversion of reduce, empty arrays, nullish coalescing, ternaries, primitive result types, and all exported functions has not been completed. No global elimination claim is made.",
+    "Full TypeScript typecheck, Vitest suite, and CLI-to-manifest end-to-end tests were not run in this environment."
+  ]
+}

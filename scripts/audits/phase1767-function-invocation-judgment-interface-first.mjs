@@ -6,7 +6,7 @@ const paths = {
   barrel: 'packages/core/src/types/upstream/index.ts',
   functionAuthority: 'packages/core/src/types/upstream/phpFunctionCallSemanticAuthorityInterface.ts',
   functionImplementation: 'packages/core/src/types/upstream/phpFunctionCallSemanticAuthority.ts',
-  mapper: 'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts',
+  mapper: 'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts',
   pipelineContract: 'packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts',
   invocationContract: 'packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts',
 };

@@ -1,0 +1,41 @@
+{
+  "phase": 3010,
+  "compiler": "global TypeScript transpileModule",
+  "target": "ES2022",
+  "files": 8,
+  "diagnostics": 0,
+  "results": [
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/commands/scan.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/commands/sync.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/commands/audit/driftAuditor.ts",
+      "diagnostics": []
+    }
+  ]
+}

@@ -21,7 +21,7 @@ Status: trace-only path map. No interface repair is implied by this file.
 11. packages/core/src/compiler/scanner/subscanners/resource/resourceBindingModelFactory.ts
 12. packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts
 13. packages/core/src/compiler/scanner/binders/resource/propertyPathResolution.ts
-14. packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts
+14. packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts
 15. packages/core/src/compiler/scanner/subscanners/InvalidationResolver.ts
 
 ## Intended trace direction

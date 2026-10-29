@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
-const sourcePath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts');
+const sourcePath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts');
 const source = fs.readFileSync(sourcePath, 'utf8');
 const imports = source.match(/^import\s+\{[^\n]*\}\s+from\s+'\.\.\/\.\.\/\.\.\/relational\/sequence';$/gm) ?? [];
 const duplicateStandaloneImport = /^import\s+\{\s*relationResolve\s*\}\s+from\s+'\.\.\/\.\.\/\.\.\/relational\/sequence';$/m.test(source);

@@ -19,7 +19,7 @@ const checks = [
   ['response authority contract version advanced', /kind: 'laravel_controller_response_semantic_judgment_contract'[\s\S]*?contractVersion: 4/.test(contract)],
   ['AST projection still forwards the exact response judgment', /responseJudgment: context\.responseJudgment/.test(astAuthority)],
   ['runtime scanner remains untouched in this contract-first phase', !/responseJudgment\s*:/.test(scanner)],
-  ['no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/semantic/relations')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/semantic/foundation'))],
+  ['no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller/semantic/relations')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller/semantic/foundation'))],
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) process.stdout.write(`${ok ? 'PASS' : 'FAIL'} ${name}\n`);

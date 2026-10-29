@@ -7,8 +7,8 @@ const inventory = read('packages/core/src/types/upstream/laravelControllerInvoca
 const retirement = read('packages/core/src/types/upstream/laravelSubscannerRetirementInterface.ts');
 const coreExports = read('packages/core/src/index.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
-const routeScanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
-const legacyScanner = read('packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts');
+const routeScanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
+const legacyScanner = read('packages/core/src/compiler/scanner/operations/ControllerScanner.ts');
 const checks = [
   ['controller interface version is elevated to v7', /contractVersion: 7/.test(controller)],
   ['scanner boundary accepts validated judgment inventory instead of raw delivery ADTs', /invocationInventory: LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt/.test(controller) && !/source_correlated_delivery_inventory_provided|controller_source_pipeline_result_provided/.test(controller)],

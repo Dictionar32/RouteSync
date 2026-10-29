@@ -3,7 +3,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const astPath = path.join(root, 'packages/core/src/types/upstream/ast.ts');
-const canonicalPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/expressionAstCanonical.ts');
+const canonicalPath = path.join(root, 'packages/core/src/compiler/scanner/operations/expressionAstCanonical.ts');
 const ast = fs.readFileSync(astPath, 'utf8');
 const canonical = fs.readFileSync(canonicalPath, 'utf8');
 

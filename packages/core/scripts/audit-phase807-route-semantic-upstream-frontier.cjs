@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const file = path.join(root, 'src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
+const file = path.join(root, 'src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
 const source = fs.readFileSync(file, 'utf8');
 const checks = {
   upstreamConstraintArgument: source.includes("import type { RouteConstraintArgument } from '../../../../types/upstream/routeConstraints';"),

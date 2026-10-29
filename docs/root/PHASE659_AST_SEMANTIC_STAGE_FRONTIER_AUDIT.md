@@ -54,7 +54,7 @@ This is intentionally a closed ADT rather than a generic payload bag. The six co
 
 `semanticRelationSolver.ts` was a misleading authority name for the semantic substrate. The implementation is now named:
 
-`packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts`
+`packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts`
 
 All source imports were migrated to the rewrite-engine name. The old solver file is intentionally zero-byte and has no imports remaining.
 
@@ -105,7 +105,7 @@ These are architectural reference points, not claims that RouteSync should repro
 
 The next work should not be another syntax cleanup pass. It should make each remaining stage emit `AstSemanticStagePort` directly:
 
-1. scanner/lexer evidence adapter;
+1. frontend/php evidence adapter;
 2. Laravel upstream mapping adapter;
 3. resolver-graph relation adapter;
 4. analysis/dataflow adapter;

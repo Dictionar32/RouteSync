@@ -14,7 +14,7 @@ This phase corrects the unintended `Sequence` ownership move introduced in Phase
 - Integrated response and AST projection interfaces already exist; the scan artifact correlates their outcome-specific types.
 - `packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts` still imports `RelationMembership`, `Sequence`, and `relation*` from `semantic/relations`.
 - The scanner still invokes `scanControllerAction` from `subscanners/controller` and performs orchestration/semantic selection.
-- `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts` still performs action-level semantic derivation and imports relation operations and controller subscanner helpers.
+- `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts` still performs action-level semantic derivation and imports relation operations and controller subscanner helpers.
 - `controllerDeclarationSemanticJudgmentAuthority.ts` still includes imperative semantic helpers such as action selection and ancestry traversal.
 - The response pipeline and AST projection should remain their existing owners; duplicating their authorities would make the architecture worse.
 

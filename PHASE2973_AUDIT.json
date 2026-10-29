@@ -1,0 +1,28 @@
+{
+  "phase": 2973,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations",
+  "passed": 14,
+  "total": 15,
+  "checks": {
+    "ready source observation has one explicit factory interface": true,
+    "ready ADT owns source reading and read-batch construction": true,
+    "default intent delegates ready construction to the canonical factory": true,
+    "explicit intent delegates ready construction to the same factory": true,
+    "ready-operation implementation is not duplicated in selection branches": true,
+    "source-presence judgments remain explicit present/absent ADTs": true,
+    "explicit missing source remains blocked and preserves evidence": true,
+    "CLI upstream composition runtime export is explicitly typed": true,
+    "CLI manifest scan operation runtime export is explicitly typed": true,
+    "manifest scanner runtime facade is explicitly typed": true,
+    "manifest preparation and Laravel AST/scanner factories are explicitly typed": true,
+    "runtime trace contains no exported function declarations or inferred exported arrow factories": true,
+    "ready factory is exported through the core public entry": true,
+    "deleted relation foundation remains absent and kernel stubs do not re-export it": true,
+    "upstream collections remains empty": false
+  },
+  "knownUnresolvedMigration": {
+    "staleImportLines": 478,
+    "affectedFiles": 251,
+    "deletedRelationFoundationRestored": false
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "phase": 2876,
+  "title": "Source Document Read Domain Continuation",
+  "auditKind": "structural-source-checks",
+  "checks": [
+    {
+      "name": "complete and blocked source-read evidence remain distinct",
+      "passed": true
+    },
+    {
+      "name": "source-read handlers explicitly distinguish complete and blocked",
+      "passed": true
+    },
+    {
+      "name": "source-read ADT exposes continueWith",
+      "passed": true
+    },
+    {
+      "name": "both result variants require the continuation operation",
+      "passed": true
+    },
+    {
+      "name": "result factory uses interface-first runtime export",
+      "passed": true
+    },
+    {
+      "name": "complete producer invokes onComplete directly",
+      "passed": true
+    },
+    {
+      "name": "blocked producer invokes onBlocked directly",
+      "passed": true
+    },
+    {
+      "name": "identity-binding authority consumes source-read ADT through continueWith",
+      "passed": true
+    },
+    {
+      "name": "filesystem reader constructs complete result through domain factory",
+      "passed": true
+    },
+    {
+      "name": "filesystem reader constructs blocked result through domain factory",
+      "passed": true
+    },
+    {
+      "name": "composition aggregates documents through read-result continuation",
+      "passed": true
+    },
+    {
+      "name": "composition no longer dispatches on source-read kind while aggregating",
+      "passed": true
+    },
+    {
+      "name": "source frontend contract remains exported from upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "collections.ts remains empty",
+      "passed": true
+    },
+    {
+      "name": "phase report exists",
+      "passed": true
+    }
+  ],
+  "passed": 15,
+  "total": 15,
+  "collectionsBytes": 0,
+  "typecheck": "not-verified; project dependencies and configured ES2025 libraries are unavailable in this workspace"
+}

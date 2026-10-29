@@ -1,0 +1,33 @@
+{
+  "phase": 2886,
+  "metrics": [
+    {
+      "scope": "packages/cli/src/parsers/php",
+      "files": 21,
+      "exportFunctions": 0,
+      "mapLines": 10,
+      "reduceLines": 0,
+      "optionalOrUndefinedLines": 17,
+      "unannotatedExportedCallableConstCandidates": 0
+    },
+    {
+      "scope": "packages/core/src/types/upstream",
+      "files": 530,
+      "exportFunctions": 0,
+      "mapLines": 254,
+      "reduceLines": 2,
+      "optionalOrUndefinedLines": 177,
+      "unannotatedExportedCallableConstCandidates": 141
+    },
+    {
+      "scope": "packages/core/src/compiler/scanner/wiring",
+      "files": 41,
+      "exportFunctions": 0,
+      "mapLines": 66,
+      "reduceLines": 0,
+      "optionalOrUndefinedLines": 1,
+      "unannotatedExportedCallableConstCandidates": 0
+    }
+  ],
+  "collectionsEmpty": true
+}

@@ -6,7 +6,7 @@ const judgment = fs.readFileSync(path.join(root, 'src/types/upstream/invocationS
 const pipeline = fs.readFileSync(path.join(root, 'src/types/upstream/invocationSemanticPipelineInterface.ts'), 'utf8');
 const publicIndex = fs.readFileSync(path.join(root, 'src/index.ts'), 'utf8');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const scanner = fs.readFileSync(path.join(root, 'src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'src/compiler/frontend/php/controllerDataflowAnalyzer.ts'), 'utf8');
 const executor = fs.readFileSync(path.join(root, 'src/types/upstream/invocationSemanticRuntimeExecutor.ts'), 'utf8');
 
 const rules = [

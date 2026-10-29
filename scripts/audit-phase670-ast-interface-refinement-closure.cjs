@@ -4,10 +4,10 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const files = [
   'packages/core/src/semantic/kernel/relationalSequence.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts',
   'packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts',
 ];
 const read = f => fs.readFileSync(path.join(root, f), 'utf8');
 const forbidden = /\bas unknown\b|\bundefined\b|\bnew Set\b|\bnew Map\b|\.map\s*\(|\.filter\s*\(|\.reduce\s*\(|\.flatMap\s*\(|\bif\s*\(|\bwhile\s*\(|\bfor\s*\(|\bswitch\s*\(|\?\?|===/g;
@@ -18,8 +18,8 @@ const boundary = Object.fromEntries(files.map(f => [f, {
 }]));
 const relationSource = read('packages/core/src/semantic/foundation/relationalSequence.ts');
 const solver = read('packages/core/src/semantic/kernel/semanticDecisionRewriteEngine.ts');
-const legacySolver = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts');
-const syntaxCore = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts');
+const legacySolver = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts');
+const syntaxCore = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts');
 const success =
   relationSource.includes('export const relationVariantFold') &&
   solver.includes('SemanticVariantRewriteCandidate') &&

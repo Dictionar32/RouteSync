@@ -18,7 +18,7 @@ The scanner does not import `compiler/analysis`. The analysis pipeline consumes 
 
 - `compiler/scanner/descriptors/route/routeMethods.ts` now imports relation primitives from `semantic/foundation`, not `semantic/kernel`.
 - `semantic/kernel/semanticEvidenceRelations.ts` was moved to `compiler/scanner/semantic/semanticEvidenceRelations.ts` because it directly consumes scanner evidence.
-- `semantic/kernel/syntax/relationalSyntaxCursor.ts` was moved to `compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts` because it directly consumes scanner lexer/route-AST types.
+- `semantic/kernel/syntax/relationalSyntaxCursor.ts` was moved to `compiler/frontend/php/routeAst/relationalSyntaxCursor.ts` because it directly consumes scanner lexer/route-AST types.
 - No production `types/upstream` module imports compiler/scanner/graph/IR/kernel modules.
 - The historical typo path `examples/ecomerce-shop-source` remains absent; the maintained `examples/ecommerce-shop-source` tree remains because it is an active physical source workload.
 

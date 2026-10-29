@@ -1,6 +1,6 @@
 # RouteSync Phase 500 — Migration Relational Cutover
 
-Phase 500 continues the scanner/lexer resolver migration from syntax-driven authority toward declarative semantic relations and solver/rewrite-oriented execution.
+Phase 500 continues the frontend/php resolver migration from syntax-driven authority toward declarative semantic relations and solver/rewrite-oriented execution.
 
 ## Closed surface
 

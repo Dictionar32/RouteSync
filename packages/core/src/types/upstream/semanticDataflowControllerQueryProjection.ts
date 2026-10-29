@@ -4,17 +4,16 @@
  */
 import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { ControllerQueryEvidence, ControllerQueryInput } from './controller';
-import { semanticDataflowFactWithLineage, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
+import { semanticDataflowFactLineageOperations, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
 import type { Expression } from './expression';
 import { stringValue } from './valueObjects';
+import { sourceSpanOperations } from './provenance';
 
 const controllerName = (controller: ControllerActionFlowContract): string => controller.controller.value.value;
 const actionName = (controller: ControllerActionFlowContract): string => controller.action.value.value;
 
 const sameSpan = (left: SemanticDataflowIdentity['source'], right: Expression['source']): boolean =>
-  left.file.value.value === right.file.value.value
-  && left.start.value === right.start.value
-  && left.end.value === right.end.value;
+  sourceSpanOperations.same(left, right).kind === 'same_source_span';
 
 const expressionIdentity = (
   controller: ControllerActionFlowContract,
@@ -38,7 +37,7 @@ const queryIdentity = (
   kind: 'semantic_dataflow_identity',
   source: query.source,
   role: 'invocation',
-  slot: stringValue(`controller:${controllerName(controller)}.${actionName(controller)}:query:${query.source.start.value}:${query.source.end.value}`),
+  slot: stringValue.create(`controller:${controllerName(controller)}.${actionName(controller)}:query:${query.source.start.value}:${query.source.end.value}`),
 });
 
 const inputFact = (
@@ -48,7 +47,7 @@ const inputFact = (
 ): SemanticDataflowInputFact | undefined => {
   const source = expressionIdentity(controller, input);
   if (!source) return undefined;
-  return semanticDataflowFactWithLineage(Object.freeze({
+  return semanticDataflowFactLineageOperations.withLineage(Object.freeze({
     kind: 'value_flow' as const,
     source,
     target: queryIdentity(controller, query),

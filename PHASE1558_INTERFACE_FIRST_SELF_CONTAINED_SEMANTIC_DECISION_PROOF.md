@@ -6,7 +6,7 @@ Strengthen the semantic decision interface itself. This phase does not relocate 
 ## Trace
 - `packages/core/src/types/upstream/semanticDecisionInterface.ts`: `SemanticDecisionProof` previously carried only the evaluated prefix, total rule count, termination, and a `complete` flag. A consumer could not independently compare the proof's rule order and precedence snapshot with the contract.
 - `packages/core/src/types/upstream/semanticDecisionAlgebra.ts`: the algebra chooses rules according to explicit precedence, then emits the judgment. It now includes canonical `orderedRuleIds` and the declared `precedence` snapshot in the proof and exports `verifyProof` through `SemanticDecisionInterface`.
-- `packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts`: verifies a non-violation judgment against the same contract before projecting the result into AST.
+- `packages/core/src/compiler/frontend/php/astClassifierRuntime.ts`: verifies a non-violation judgment against the same contract before projecting the result into AST.
 - `packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts`: verifies the decision proof before projecting it to the domain authority judgment.
 - Regression suites: assert the proof carries policy context and that tampering with the canonical order is rejected without invoking rule callbacks again.
 

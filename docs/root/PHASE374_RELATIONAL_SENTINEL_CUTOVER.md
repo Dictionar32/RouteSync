@@ -15,7 +15,7 @@ Mempersempit lagi boundary semantic/syntax agar absence tidak menjadi sentinel y
 2. `packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts`
    - dipertahankan sebagai evidence-relation boundary; tidak ada control-flow authority baru.
 
-3. `packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts`
+3. `packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts`
    - dipertahankan sebagai relation + solver/rewrite authority; tidak ada parser dispatch imperatif baru.
 
 4. `packages/core/src/semantic/kernel/requirementSolver.ts`

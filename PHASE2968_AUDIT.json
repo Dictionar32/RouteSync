@@ -1,0 +1,24 @@
+{
+  "phase": 2968,
+  "title": "Source Observation Domain Continuation",
+  "status": "bounded_interface_migration",
+  "changes": [
+    "Renamed LaravelRouteSourceObservationJudgment continuation from continueWith to continueToRouteScan.",
+    "Updated ready and explicit-blocked variants and the Laravel route scanner consumer.",
+    "Updated structural audit to enforce the domain-named operation."
+  ],
+  "verification": {
+    "structural_audit": "10/10 passed",
+    "typecheck": "not_run",
+    "unit_tests": "not_run",
+    "build": "not_run",
+    "cli_e2e": "not_run"
+  },
+  "remaining_gap": "Continuation still accepts onReady/onBlocked callbacks; variant-owned source-read capability and transition are not fully implemented.",
+  "invariants_preserved": [
+    "Explicitly selected missing source remains blocked with exact missingFiles evidence.",
+    "Default optional source absence remains distinct.",
+    "Source-read failure remains distinct from successful empty manifest.",
+    "packages/core/src/types/upstream/collections.ts remains empty."
+  ]
+}

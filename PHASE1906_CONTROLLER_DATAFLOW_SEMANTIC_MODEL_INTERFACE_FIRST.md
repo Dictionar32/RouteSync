@@ -7,8 +7,8 @@ Base: `RouteSync-phase1905-laravel-controller-response-composition-interface-fir
 
 - `types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts` owns the closed, source-correlated invocation judgment and discriminated invocation-pipeline response.
 - `types/upstream/invocationSemanticPipelineInterface.ts` owns `InvocationSemanticIntegratedResponseCompositionInterface` and its aggregate result, which keeps the exact knowledge input paired with the publication-bound integrated response.
-- `compiler/scanner/lexer/controllerBodyAstTypes.ts` previously redeclared the four semantic fields of `ControllerDataflowAst` locally.
-- `compiler/scanner/lexer/controllerDataflowAnalyzer.ts` still performs semantic work: statement payload collection, binding correlation, origin normalization, expression projection, semantic resolution orchestration, and variable grouping.
+- `compiler/frontend/php/controllerBodyAstTypes.ts` previously redeclared the four semantic fields of `ControllerDataflowAst` locally.
+- `compiler/frontend/php/controllerDataflowAnalyzer.ts` still performs semantic work: statement payload collection, binding correlation, origin normalization, expression projection, semantic resolution orchestration, and variable grouping.
 
 ## Change
 

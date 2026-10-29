@@ -4,8 +4,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [
   ['unsubstantiated generic closure interface removed', !/ControllerDataflowSemanticClosureInterface/.test(model)],
   ['unsubstantiated closure contract removed', !/ControllerDataflowSemanticClosureContract|CONTROLLER_DATAFLOW_SEMANTIC_CLOSURE_CONTRACT/.test(model)],

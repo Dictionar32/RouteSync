@@ -1,4 +1,4 @@
-import { createPhpQualifiedClassName } from './phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from './phpClassNameResolutionInterface';
 import type { PhpClassNameResolutionRuleInterface } from './phpClassNameResolutionInterface';
 
 /** One canonical lexical resolver is consumed by both inheritance and static-call analysis. */
@@ -25,7 +25,7 @@ export const phpClassNameResolutionAuthority: PhpClassNameResolutionRuleInterfac
     const resolved = (qualifiedName: string, rule: 'fully_qualified' | 'namespace_relative' | 'class_import' | 'current_namespace') => Object.freeze({
       kind: 'php_class_name_resolved' as const,
       sourceName,
-      qualifiedName: createPhpQualifiedClassName(qualifiedName),
+      qualifiedName: phpQualifiedClassNameFactory.create(qualifiedName),
       rule,
     });
     switch (spelling.startsWith('\\')) {

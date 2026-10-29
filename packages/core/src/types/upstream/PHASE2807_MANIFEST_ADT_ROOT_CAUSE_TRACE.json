@@ -1,0 +1,41 @@
+{
+  "phase": 2807,
+  "title": "Manifest ADT root-cause trace",
+  "status": "root_cause_identified_contract_redesign_pending",
+  "activePath": [
+    "CLI scan.ts / sync.ts",
+    "manifestScanOperation.scan",
+    "routeManifestRequestResolutionPreflight.evaluate",
+    "routeManifestProjectionCompositionFactory.project",
+    "authorityBackedRouteManifestProjectionFactory.project",
+    "authorityBackedRouteManifestTypeLoweringFactory.project",
+    "createRequestTypeDerivationOperationPreparation.prepare",
+    "RequestTypeDerivationSemanticPipelineInterface.derive / validateAssessment"
+  ],
+  "branchSites": [
+    {
+      "file": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationOperationPreparation.ts",
+      "input": "semantic authority assessment ADT",
+      "output": "RequestTypeDerivationRuntimeExecutionResult"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/wiring/routeManifestTypeLoweringAuthority.ts",
+      "input": "RequestTypeDerivationRuntimeExecutionResult",
+      "output": "lowered | derivation_not_projectable"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/wiring/routeManifestProjectionAuthority.ts",
+      "input": "lowered | derivation_not_projectable",
+      "output": "projected | not_projectable"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/wiring/routeManifestProjectionComposition.ts",
+      "input": "projected | not_projectable",
+      "output": "manifest_projected | manifest_projection_blocked"
+    }
+  ],
+  "rootCause": "Repeated adjacent ADT translations cause repeated branch elimination; removing only the CLI-facing switch relocates elimination rather than removing the root cause.",
+  "genericReasoningPrimitiveAdded": false,
+  "collectionsFileMustRemainEmpty": true,
+  "fullTypecheckBuildTestsE2EVerified": false
+}

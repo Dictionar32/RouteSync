@@ -1,0 +1,29 @@
+{
+  "phase": 2999,
+  "title": "Fully Explicit Typed Manifest Generation Runtime Audit",
+  "structuralChecks": { "passed": 14, "total": 14, "status": "passed" },
+  "typescriptSyntax": {
+    "packages/cli/src/generators/ManifestGenerator.ts": 0,
+    "packages/cli/src/generators/index.ts": 0,
+    "packages/cli/src/generators/ManifestSerializer.ts": 0
+  },
+  "runtimeTrace": {
+    "generationJudgment": "Complete and rejected ADTs expose continueWith.",
+    "persistence": "Validation and serialization continue through their ADT operations.",
+    "routeSchemaEvidence": "Preserved through RouteSemanticFlow.binding and route serialization.",
+    "cliInvocationManifestBridge": "Not claimed; distinct domain projection remains separate."
+  },
+  "constraints": {
+    "upstreamCollectionsFileRemainsEmpty": true,
+    "deletedRelationFoundationRestored": false,
+    "exportFunctionScanScope": [
+      "packages/core/src/compiler/scanner/upstream/routeDeclarationComposition.ts",
+      "packages/core/src/compiler/scanner/wiring/routeManifestLowerer.ts",
+      "packages/cli/src/generators/ManifestGenerator.ts",
+      "packages/cli/src/generators/ManifestSerializer.ts"
+    ],
+    "fullTypecheckRun": false,
+    "fullTestsRun": false,
+    "cliEndToEndRun": false
+  }
+}

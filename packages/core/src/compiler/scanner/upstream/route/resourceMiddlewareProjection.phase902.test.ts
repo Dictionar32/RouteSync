@@ -1,12 +1,12 @@
-import { projectRouteResourceMiddleware } from './resourceMiddlewareProjection';
-import { createRouteResourceControllerAst, createRouteResourceNameAst } from '../../lexer/routeAst/routeResourceDeclarationAst';
+import { routeResourceMiddlewareOperations } from './resourceMiddlewareProjection';
+import { routeResourceControllerAstFactory, routeResourceNameAstFactory } from '../../../frontend/php/routeAst/routeResourceDeclarationAst';
 
 describe('phase 902 resource middleware projection', () => {
   it('projects middleware, middlewareFor, and withoutMiddlewareFor with scope and parameters', () => {
-    const result = projectRouteResourceMiddleware({
+    const result = routeResourceMiddlewareOperations.project({
       method: 'resource',
-      resource: createRouteResourceNameAst('users'),
-      controller: createRouteResourceControllerAst('UserController'),
+      resource: routeResourceNameAstFactory.create('users'),
+      controller: routeResourceControllerAstFactory.create('UserController'),
       shallow: false,
       creatable: true,
       destroyable: true,

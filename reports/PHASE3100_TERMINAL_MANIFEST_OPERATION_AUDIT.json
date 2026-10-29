@@ -1,0 +1,15 @@
+{
+  "phase": 3100,
+  "scope": "replace CLI manifest terminal handler visitor with a fixed typed domain operation",
+  "handlerVisitorInterfaceRemovedFromActiveCliSources": true,
+  "continueForDriftAuditRemovedFromActiveCliSources": true,
+  "fixedRequireCompleteManifestOperationDeclared": true,
+  "typedTerminalFailureRetainsJudgment": true,
+  "successTerminalReturnsExactManifest": true,
+  "blockedAndRejectedTerminalsRetainTypedEvidenceOnFailure": true,
+  "allRuntimeConsumersUseFixedDomainOperation": true,
+  "noCoreToCliDependencyIntroduced": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

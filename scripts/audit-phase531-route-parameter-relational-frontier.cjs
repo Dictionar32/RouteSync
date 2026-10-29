@@ -3,8 +3,8 @@ const path = require('path');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/params/types.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/params/types.ts',
 ].map(file => path.join(process.cwd(), file));
 const checks = {
   if: /\bif\b/g,

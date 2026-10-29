@@ -1,0 +1,40 @@
+{
+  "phase": 3044,
+  "title": "Source-Emitted Mod/Ref Domain Facts — Consumer Dispatch Retired",
+  "runtimeTrace": [
+    "PHP AST expression/statement syntax evidence producers explicitly emit typed effect-domain facts alongside canonical SemanticFact values",
+    "phpAstSemanticKnowledgeDataFlowProductionOperation publishes facts and modRefFacts together in SemanticKnowledgeDataFlow",
+    "invocation semantic pipeline passes canonical knowledge to semanticObjectIdentityAuthority.analyze",
+    "semanticObjectIdentityOperations.modRefEvidence consumes only model.modRefFacts",
+    "CLI manifest scan operation delegates through ControllerInvocationManifestCompositionAuthorityInterface and retains upstream semantic result"
+  ],
+  "checks": {
+    "canonicalKnowledgeCarriesExplicitModRefFacts": true,
+    "modRefFactsAreClosedSourceBackedDomainAdt": false,
+    "modRefFactoryIsInterfaceBacked": false,
+    "modRefOperationsContainNoGenericDispatchOrLookup": true,
+    "producerOwnsEffectEvidenceCollection": true,
+    "assignmentAndUnsetEmitAtConstruction": false,
+    "invocationAndAccessEmitAtConstruction": false,
+    "canonicalModelPublishesEffectEvidence": true,
+    "identityConsumerUsesProducedEvidenceOnly": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "cliCompositionContractRemainsTyped": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 9,
+  "total": 13,
+  "remainingDebt": [
+    "This phase removes fact-kind classification switch/lookup/visitor from modRef operations by emitting effect facts at explicit construction sites; it does not eliminate every switch or primitive from the entire repository.",
+    "The current mod/ref variants remain unresolved blockers until effect semantics and callable summaries are modeled; no false inference completeness is claimed.",
+    "Full repository typecheck and end-to-end CLI-to-manifest test are blocked/unverified in this workspace because several legacy imports target relation foundation files that are intentionally absent; none were restored.",
+    "Full Vitest suite was not run."
+  ],
+  "failedChecks": [
+    "modRefFactsAreClosedSourceBackedDomainAdt",
+    "modRefFactoryIsInterfaceBacked",
+    "assignmentAndUnsetEmitAtConstruction",
+    "invocationAndAccessEmitAtConstruction"
+  ]
+}

@@ -2,7 +2,7 @@
 
 ## Source trace
 
-`packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts` contained three local structural algorithms: `splitTopLevel`, `matchingClose`, and `matchingBrace`. They reasoned about delimiter depth in the runtime even though `ScannerTokenStructureInterface` and its algebra already define the canonical delimiter/top-level evidence boundary.
+`packages/core/src/compiler/frontend/php/astClassifierRuntime.ts` contained three local structural algorithms: `splitTopLevel`, `matchingClose`, and `matchingBrace`. They reasoned about delimiter depth in the runtime even though `ScannerTokenStructureInterface` and its algebra already define the canonical delimiter/top-level evidence boundary.
 
 ## Change
 

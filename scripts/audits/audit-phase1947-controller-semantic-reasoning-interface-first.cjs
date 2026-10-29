@@ -10,7 +10,7 @@ const authority = read('packages/core/src/types/upstream/controllerVariableSeman
 const executor = read('packages/core/src/types/upstream/controllerVariableSemanticRuntimeExecutor.ts');
 const semanticModel = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 const scannerBoundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const projection = read('packages/core/src/compiler/scanner/lexer/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
+const projection = read('packages/core/src/compiler/frontend/php/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
 const test = read('packages/core/src/types/upstream/__test__/controllerVariableSemanticAuthority.phase1547.test.ts');
 const packageJson = JSON.parse(read('package.json'));
 

@@ -6,7 +6,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts');
 const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const test = read('packages/core/src/types/upstream/__tests__/controller-static-call-origin-argument-rules.phase2058.test.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2058_STATIC_CALL_ORIGIN_ARGUMENT_RULE_INTERFACE_FIRST.md');
 const pkg = read('package.json');

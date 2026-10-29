@@ -1,0 +1,49 @@
+{
+  "phase": 3056,
+  "title": "Typed semantic validation continuation",
+  "passed": 10,
+  "total": 10,
+  "status": "PASS",
+  "results": [
+    {
+      "name": "continuation is a closed ADT with continue and blocked cases",
+      "pass": true
+    },
+    {
+      "name": "blocked outcome preserves the canonical data-flow model and typed violations",
+      "pass": true
+    },
+    {
+      "name": "upstream owns an interface-typed continuation operation",
+      "pass": true
+    },
+    {
+      "name": "upstream continuation does not throw or return void",
+      "pass": true
+    },
+    {
+      "name": "continuation discriminates on the validation ADT and preserves both outcomes",
+      "pass": true
+    },
+    {
+      "name": "compatibility facade exposes the typed continuation outcome",
+      "pass": true
+    },
+    {
+      "name": "upstream barrel exports continuation operations",
+      "pass": true
+    },
+    {
+      "name": "validation source remains the closed typed ADT",
+      "pass": true
+    },
+    {
+      "name": "deleted relation foundations remain absent",
+      "pass": true
+    },
+    {
+      "name": "collections invariant remains exactly one newline byte",
+      "pass": true
+    }
+  ]
+}

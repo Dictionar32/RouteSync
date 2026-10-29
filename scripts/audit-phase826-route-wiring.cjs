@@ -47,7 +47,7 @@ const sdkRouteFactoryConsumers = sdkFiles
   .filter(file => /RouteSemanticFlowFactory/.test(read(file)))
   .map(relative);
 
-const producerPath = path.join(core, 'compiler/scanner/subscanners/routeProducerRelations.ts');
+const producerPath = path.join(core, 'compiler/scanner/operations/routeProducerRelations.ts');
 const producerText = read(producerPath);
 const canonicalWiring = [
   'RouteBoundaryContractFactory.create',
@@ -57,18 +57,18 @@ const canonicalWiring = [
 
 const producerConstructsRouteAst = producerText.includes('routeProducer.produce(producerInput)');
 const directRouteAstConstructors = coreFiles
-  .filter(file => file !== path.join(core, 'compiler/scanner/subscanners/routeProducer.ts'))
+  .filter(file => file !== path.join(core, 'compiler/scanner/operations/routeProducer.ts'))
   .filter(file => /createDomainAstJudgment\(\{[\s\S]*?kind:\s*[\"']route_ast[\"']/.test(read(file)))
   .map(relative);
 
-const routeMutationsPath = path.join(core, 'compiler/scanner/descriptors/route/routeMutations.ts');
+const routeMutationsPath = path.join(core, 'compiler/scanner/operations/domain-model/route/routeMutations.ts');
 const routeMutationsEmpty = fs.existsSync(routeMutationsPath) && fs.statSync(routeMutationsPath).size === 0;
 
 const report = {
   phase: 826,
   preservedLegacyFiles: {
     directoryExists: fs.existsSync(legacyFactoryDir),
-    expectedFiles: preservedLegacyFiles.map(file => `packages/core/src/compiler/scanner/descriptors/route/factories/${file}`),
+    expectedFiles: preservedLegacyFiles.map(file => `packages/core/src/compiler/scanner/operations/domain-model/route/factories/${file}`),
     missing: missingLegacyFiles,
     nonEmpty: nonEmptyLegacyFiles,
     allPreservedAndEmpty: missingLegacyFiles.length === 0 && nonEmptyLegacyFiles.length === 0,

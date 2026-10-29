@@ -1,0 +1,24 @@
+{
+  "phase": 2874,
+  "title": "Fully Typed Runtime Scanner Operations — Discovery Domain Continuation",
+  "scope": [
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts"
+  ],
+  "structuralAudit": {
+    "checksPassed": 10,
+    "checksTotal": 10,
+    "command": "npm run audit:phase2874-discovery-domain-continuation"
+  },
+  "regressionAudit": {
+    "phase2873ChecksPassed": 10,
+    "phase2873ChecksTotal": 10
+  },
+  "collectionsBytes": 0,
+  "typecheck": {
+    "passed": false,
+    "reason": "Global TypeScript is older than the repository's ES2025 target and project dependencies/types (including node and vitest/globals) are unavailable in this workspace."
+  },
+  "buildAndEndToEnd": "not verified",
+  "scopeNote": "Structural audit success does not claim full repository typecheck, build, or end-to-end correctness."
+}

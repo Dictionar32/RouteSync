@@ -111,12 +111,12 @@ const exactResourceName = (value: string): readonly string[] =>
 const suffixResourceName = (value: string): readonly string[] =>
   RESOURCE_NAME_SUFFIX_KNOWLEDGE.filter(rule => rule.pattern.test(value)).map(rule => rule.transform(value));
 
-export function singularizeLaravelResourceName(value: string): string {
+const singularizeLaravelResourceNameImpl = (value: string): string => {
   const lower = value.toLowerCase();
   const exact = exactResourceName(lower);
   const suffix = suffixResourceName(lower);
   return exact[0] ?? suffix[0] ?? lower;
-}
+};
 
 export interface ResourceActionKnowledge {
   readonly action: RouteResourceAction;
@@ -205,14 +205,14 @@ const parameterPath = (segments: readonly string[], parameters: readonly RoutePa
  */
 export const resolveApiResourceFlowJudgment = (input: ResolveApiResourceFlowInput): RouteResourceFlowJudgment => {
   const segments = resourceSegments(input.declarationPath.value.value);
-  const parameterNames = Object.freeze(segments.map(segment => createRouteParameterName(singularizeLaravelResourceName(segment))));
+  const parameterNames = Object.freeze(segments.map(segment => createRouteParameterName(routeResourceFlowOperations.singularizeLaravelResourceName(segment))));
   const prefixSegments = input.prefix.map(item => item.value.value).filter((segment, index, segments) => !(index === 1 && segments[0] === 'api' && segment === 'api'));
   const prefix = prefixSegments.join('/');
   const parentSegments = parameterPath(segments.slice(0, Math.max(segments.length - 1, 0)), parameterNames);
   const leafSegment = lastValue(segments, input.resource.value.value);
   const baseSegments = Object.freeze([...parentSegments, leafSegment]);
   const basePath = `/${[prefix, ...baseSegments].filter(segment => segment.length > 0).join('/')}`;
-  const leafParameter = lastValue(parameterNames, createRouteParameterName(singularizeLaravelResourceName(input.resource.value.value)));
+  const leafParameter = lastValue(parameterNames, createRouteParameterName(routeResourceFlowOperations.singularizeLaravelResourceName(input.resource.value.value)));
   const shallowPath = `/${[prefix, leafSegment].filter(segment => segment.length > 0).join('/')}/{${leafParameter.value.value}}`;
   const nestedPath = `${basePath}/{${leafParameter.value.value}}`;
   const itemPath = input.registration.shallow.value ? shallowPath : nestedPath;
@@ -257,33 +257,54 @@ export const resolveApiResourceFlowJudgment = (input: ResolveApiResourceFlowInpu
   });
 }
 
-export function resolveRouteResourceFlowJudgment(input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode }): RouteResourceFlowJudgment {
-  return resolveApiResourceFlowJudgment(input);
+const resolveRouteResourceFlowJudgmentImpl = (
+  input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode },
+): RouteResourceFlowJudgment => resolveApiResourceFlowJudgment(input);
+
+const resolveRouteResourceFlowImpl = (
+  input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode },
+): RouteResourceFlowPlan => routeResourceFlowOperations.resolveRouteResourceFlowJudgment(input).plan;
+
+const resolveApiResourceFlowImpl = (input: ResolveApiResourceFlowInput): RouteResourceFlowPlan =>
+  routeResourceFlowOperations.resolveRouteResourceFlowJudgment({ ...input, mode: input.mode ?? 'apiResource' }).plan;
+
+const defaultApiResourceRegistrationImpl = (
+  resource: ResourceName,
+  controller: RouteResourceRegistration['controller'],
+): RouteResourceRegistration => Object.freeze({
+  kind: 'route_resource_registration',
+  name: resource,
+  controller,
+  only: emptySequence<ActionName>(),
+  except: emptySequence<ActionName>(),
+  shallow: { kind: 'truth_value' as const, value: false },
+  scoped: { kind: 'truth_value' as const, value: false },
+  parameters: emptySequence<PropertyName>(),
+  creatable: { kind: 'truth_value' as const, value: false },
+  destroyable: { kind: 'truth_value' as const, value: false },
+  middleware: emptySequence<import('./route').RouteResourceMiddlewareRule>(),
+});
+
+/** Public runtime operations are a single explicit interface object, not exported function declarations. */
+export interface RouteResourceFlowOperationsInterface {
+  readonly kind: 'route_resource_flow_operations';
+  readonly contractVersion: 1;
+  readonly singularizeLaravelResourceName: (value: string) => string;
+  readonly resolveRouteResourceFlowJudgment: (input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode }) => RouteResourceFlowJudgment;
+  readonly resolveRouteResourceFlow: (input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode }) => RouteResourceFlowPlan;
+  readonly resolveApiResourceFlow: (input: ResolveApiResourceFlowInput) => RouteResourceFlowPlan;
+  readonly defaultApiResourceRegistration: (resource: ResourceName, controller: RouteResourceRegistration['controller']) => RouteResourceRegistration;
 }
 
-export function resolveRouteResourceFlow(input: ResolveApiResourceFlowInput & { readonly mode: RouteResourceMode }): RouteResourceFlowPlan {
-  return resolveRouteResourceFlowJudgment(input).plan;
-}
-
-export function resolveApiResourceFlow(input: ResolveApiResourceFlowInput): RouteResourceFlowPlan {
-  return resolveApiResourceFlowJudgment({ ...input, mode: input.mode ?? 'apiResource' }).plan;
-}
-
-export function defaultApiResourceRegistration(resource: ResourceName, controller: RouteResourceRegistration['controller']): RouteResourceRegistration {
-  return Object.freeze({
-    kind: 'route_resource_registration',
-    name: resource,
-    controller,
-    only: emptySequence<ActionName>(),
-    except: emptySequence<ActionName>(),
-    shallow: { kind: 'truth_value' as const, value: false },
-    scoped: { kind: 'truth_value' as const, value: false },
-    parameters: emptySequence<PropertyName>(),
-    creatable: { kind: 'truth_value' as const, value: false },
-    destroyable: { kind: 'truth_value' as const, value: false },
-    middleware: emptySequence<import('./route').RouteResourceMiddlewareRule>(),
-  });
-}
+export const routeResourceFlowOperations: RouteResourceFlowOperationsInterface = Object.freeze({
+  kind: 'route_resource_flow_operations',
+  contractVersion: 1,
+  singularizeLaravelResourceName: singularizeLaravelResourceNameImpl,
+  resolveRouteResourceFlowJudgment: resolveRouteResourceFlowJudgmentImpl,
+  resolveRouteResourceFlow: resolveRouteResourceFlowImpl,
+  resolveApiResourceFlow: resolveApiResourceFlowImpl,
+  defaultApiResourceRegistration: defaultApiResourceRegistrationImpl,
+});
 const consSequence = <T>(head: T, tail: Sequence<T>): Sequence<T> =>
   Object.freeze({ kind: 'cons', head, tail });
 
@@ -294,7 +315,7 @@ const resourceRegistrationFromEvidence = (
   resource: ResourceName,
   evidence: RouteDeclarationEvidence['resource'],
 ): RouteResourceRegistration => {
-  const defaults = defaultApiResourceRegistration(resource, { kind: 'framework_convention' });
+  const defaults = routeResourceFlowOperations.defaultApiResourceRegistration(resource, { kind: 'framework_convention' });
   const only = evidence.actionFilter.kind === 'only'
     ? sequenceFromValues(evidence.actionFilter.actions.map(createActionName))
     : emptySequence<ActionName>();
@@ -323,7 +344,7 @@ export const resolveRouteResourceDeclarationJudgment = (
     createRoutePath('api'),
     ...input.declaration.prefix.map(createRoutePath),
   ]);
-  return resolveRouteResourceFlowJudgment({
+  return routeResourceFlowOperations.resolveRouteResourceFlowJudgment({
     mode: input.mode,
     declarationPath: createRoutePath(input.declaration.path),
     prefix,

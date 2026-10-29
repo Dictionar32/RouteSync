@@ -2,8 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/requestProducerInterface.ts'), 'utf8');
-const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/requestProducer.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts'), 'utf8');
+const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/requestProducer.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/FormRequestScanner.ts'), 'utf8');
 const assertions = [
   ['request producer contract imports upstream SourceFile value object', /import type \{ RequestName, FormTypeName, SourceFile \} from '\.\/names'/.test(contract)],
   ['request producer input carries SourceFile rather than primitive path', /readonly sourceFile: SourceFile;/.test(contract) && !/readonly sourceFile: string;/.test(contract)],

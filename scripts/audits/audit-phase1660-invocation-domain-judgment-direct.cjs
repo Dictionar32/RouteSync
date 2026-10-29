@@ -10,7 +10,7 @@ const compiler = read('packages/core/src/types/upstream/invocationSemanticModelC
 const contract = read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 
 check('invocation algebra has no relation-engine execution dependency', !/SemanticRelationExecution|semanticRewriteRuntimeExecutor|SemanticRelationRewrite/.test(algebra), 'Domain judgments derive from typed invocation, callable, data-flow, and emission evidence.');
 check('invocation algebra has no lowering compiler dependency', !/compileInvocationSemanticModel|lowerOperation|premises|conclusions/.test(algebra), 'No rule lowering or premise/conclusion DSL is used.');

@@ -1,0 +1,23 @@
+{
+  "phase": 3096,
+  "scope": "replace generic identity-binding batch continuation with explicit bound/rejected domain operations on the PHP scanner runtime path",
+  "checks": {
+    "genericBatchHandlersRemoved": true,
+    "boundBatchHasNamedSourceReadOperation": true,
+    "rejectedBatchHasEvidencePreservationOperation": true,
+    "authorityImplementsBoundOperation": true,
+    "authorityImplementsRejectedOperation": true,
+    "cliUsesNamedBoundOperation": true,
+    "cliUsesNamedRejectedOperation": true,
+    "regressionTestsCoverBothOutcomes": true,
+    "fullTypecheckVerified": false,
+    "fullTestSuiteVerified": false,
+    "phpToCliManifestGeneratorE2eVerified": false
+  },
+  "remainingKnownBoundaries": [
+    "CLI still discriminates the rejected identity-batch outcome before entering the source-read batch path.",
+    "The following source-document read batch still uses continueWith handlers.",
+    "Other generic continuations and repository-wide export conversions remain outside this phase.",
+    "Full typecheck, full test suite, and PHP-to-manifest/generator E2E are not verified."
+  ]
+}

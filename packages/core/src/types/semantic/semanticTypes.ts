@@ -61,6 +61,10 @@ export class SemanticFieldSet implements Iterable<SemanticFieldEntry> {
     return this.has(name);
   }
 
+  public names(): readonly string[] {
+    return Object.freeze(this.entries.map(entry => entry.name.value));
+  }
+
   public get size(): number {
     return this.entries.length;
   }

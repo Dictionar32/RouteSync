@@ -1,0 +1,43 @@
+{
+  "phase": 2713,
+  "title": "Fully Typed Runtime Scanner Operations / CLI Manifest Audit",
+  "workspace": "/mnt/data/phase2712",
+  "runtime_trace": [
+    "packages/cli/src/commands/scan.ts and sync.ts",
+    "packages/cli/src/manifestScanOperationInterface.ts: routeSyncCliManifestScanOperationFactory.create(...).scan(...) ",
+    "packages/cli/src/upstreamCompositionFactory.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "source-project identity canonicalization",
+    "controller source discovery and source document read",
+    "source-document identity binding",
+    "PHP source invocation pipeline / sourceFrontendAstAdapter.ts",
+    "invocation semantic judgment authority",
+    "closed source-to-judgment inventory receipt",
+    "manifestBuilderOperationPreparation.prepare(...).build()",
+    "manifest judgment/projection"
+  ],
+  "implemented_changes": [
+    "Moved route middleware semantic resolver implementation from compiler/scanner/upstream/route/routeMiddlewareFlowResolver.ts to compiler/semantic/routeMiddlewareFlowResolver.ts",
+    "Added RouteMiddlewareFlowResolverInterface and typed object export routeMiddlewareFlowResolver",
+    "Updated core consumers and tests to call routeMiddlewareFlowResolver.resolve(input)",
+    "Removed the old scanner-owned resolver implementation",
+    "Kept scanner/wiring/route/routeMiddlewareFlowResolver.ts as compatibility re-export only"
+  ],
+  "architecture_status": {
+    "scanner_is_wiring_only": false,
+    "remaining_implementation_folders": ["audit", "binders", "descriptors", "lexer", "operations", "orchestrator", "resolvers", "semantic", "subscanners", "symbols", "upstream"],
+    "wiring_folder_retained": true,
+    "next_priority": "Move the legacy frontend/php implementation to the existing PHP frontend/syntax owner, update all imports/tests, and only then delete the scanner-owned implementation."
+  },
+  "validation": {
+    "static_search_old_resolver_identifier": "passed: no resolveRouteMiddlewareFlow identifier remains in packages/core/src",
+    "implementation_owner": "passed: resolver implementation is under compiler/semantic, not compiler/scanner",
+    "typecheck": "not verified: npx tsc --noEmit failed before project diagnostics due missing global libs/node/vitest types and unsupported target/lib settings",
+    "tests": "not run",
+    "cli_e2e": "not run"
+  },
+  "external_references": [
+    "https://www.typescriptlang.org/docs/handbook/2/objects.html",
+    "https://github.com/glayzzle/php-parser"
+  ]
+}

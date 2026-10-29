@@ -2,7 +2,7 @@
 
 ## Trace and architectural decision
 
-`packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts` previously owned two generic mechanisms:
+`packages/core/src/compiler/frontend/php/astClassifierRuntime.ts` previously owned two generic mechanisms:
 
 - `findStatementEnd`: delimiter-depth transitions and semicolon boundary selection.
 - `parseStatements`: cursor advancement, ignorable-token skipping, structured/simple candidate selection, and accumulation.

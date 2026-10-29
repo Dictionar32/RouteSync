@@ -1,6 +1,6 @@
 # Phase 528 — Scanner Relational Cutover + Inactive Path Vacuum
 
-Phase 528 continues the scanner/lexer/resolver frontier after the inactive-path cleanup.
+Phase 528 continues the frontend/php/resolver frontier after the inactive-path cleanup.
 
 ## Architecture
 

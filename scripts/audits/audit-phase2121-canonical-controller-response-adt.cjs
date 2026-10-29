@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
-const contractPath = 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts';
+const contractPath = 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts';
 const wiringPath = 'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts';
 const scannerPath = 'packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts';
 const executionPath = 'packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts';

@@ -1,10 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const roots = [
-  'packages/core/src/compiler/scanner/lexer/astClassifier.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/tokenCursor.ts',
-  'packages/core/src/compiler/scanner/subscanners/queryProducer.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxGrammar.ts',
+  'packages/core/src/compiler/frontend/php/astClassifier.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/tokenCursor.ts',
+  'packages/core/src/compiler/scanner/operations/queryProducer.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxGrammar.ts',
   'packages/core/src/semantic/kernel/requirementSolver.ts',
   'packages/core/src/semantic/kernel/semanticDecisionEngine.ts',
   'packages/core/src/semantic/kernel/semanticDecisionCalculus.ts',

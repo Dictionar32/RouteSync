@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/modelKeyFactsAuthorityInterface.ts');
 const authority = read('packages/core/src/types/upstream/modelKeyFactsAuthority.ts');
-const parser = read('packages/core/src/compiler/scanner/subscanners/model/modelParser.ts');
+const parser = read('packages/core/src/compiler/scanner/operations/model/modelParser.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });

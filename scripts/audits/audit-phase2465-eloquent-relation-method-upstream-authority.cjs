@@ -8,7 +8,7 @@ const checks = [
   ['method authority uses export const name: Interface', /export const eloquentRelationMethodAuthority:\s*EloquentRelationMethodAuthorityInterface/.test(read('packages/core/src/types/upstream/eloquentRelationMethodAuthority.ts'))],
   ['complete relation authority exists upstream', /eloquentRelationFactsAuthority/.test(read('packages/core/src/types/upstream/eloquentRelationFactsAuthority.ts'))],
   ['scanner-boundary operation has an explicit interface', /interface ModelRelationFactsProducerInterface/.test(read('packages/core/src/compiler/scanner/modelRelationFactsProducer.ts'))],
-  ['old subscanner producer is removed', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts'))],
+  ['old subscanner producer is removed', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/model/eloquentProducer.ts'))],
 ];
 for (const [label, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${label}\n`);
 const failed = checks.filter(([, passed]) => !passed);

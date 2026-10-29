@@ -8,8 +8,8 @@ const files = [
  'packages/core/src/types/upstream/astSemanticStageInterface.ts',
  'packages/core/src/types/upstream/astSemanticStageProof.ts',
  'packages/core/src/types/upstream/astSemanticStagePreservation.ts',
- 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts',
- 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts',
+ 'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts',
+ 'packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts',
  'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
  'packages/core/src/compiler/lexer/routeAst/semanticDataFlowAnalyzer.ts',
  'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
@@ -27,8 +27,8 @@ const result = {
  fiveTransitionProofs: ['scanner_to_mapping_proof','mapping_to_resolver_proof','resolver_to_analysis_proof','analysis_to_lowering_proof','lowering_to_target_proof'].every(k => proof.includes(k)),
  judgmentCarriesProofObligations: stage.includes('proofObligations: readonly AstSemanticStageProof[]') && stageAuthority.includes('proofObligations: stageProofObligations(stage, contract)'),
  inactiveVacuum: true,
- legacySolverEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts') === 0,
- syntaxCoreEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts') === 0,
+ legacySolverEmpty: size('packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts') === 0,
+ syntaxCoreEmpty: size('packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts') === 0,
  canonicalForbidden: counts,
 };
 result.cleanBoundary = Object.values(counts).every(value => value === 0);

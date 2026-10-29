@@ -6,8 +6,8 @@ const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControlle
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const execution = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
 const judgment = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
-const actionScanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionScanner = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const trace = read('docs/traces/PHASE2109_CONTROLLER_ACTION_JUDGMENT_EXECUTOR_SEPARATION_TRACE.md');
 const checks = [
   ['upstream semantic judgment interface exists', judgment.includes('interface LaravelControllerActionSemanticJudgmentInterface') && judgment.includes("kind: 'laravel_controller_action_semantic_judgment_authority'")],
@@ -21,11 +21,11 @@ const checks = [
   ['executor only forwards semantic result', wiring.includes('actionExecution: Object.freeze({') && wiring.includes('contract: input.semanticJudgment.contract') && !wiring.slice(wiring.indexOf('actionExecution: Object.freeze({'), wiring.indexOf('controllerProducer,')).includes('scanControllerAction(')],
   ['legacy resolver call is confined to judgment authority wiring', wiring.includes('actionJudgment: Object.freeze({') && wiring.includes('const result = scanControllerAction(')],
   ['action scanner still delegates legacy resolver explicitly', actionScanner.includes('resolveControllerActionContract(')],
-  ['legacy response helper still exposes transitive relation debt', read('packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts').includes("semantic/relations/relationMembership") && read('packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts').includes("semantic/relations/relationalSequence")],
+  ['legacy response helper still exposes transitive relation debt', read('packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts').includes("semantic/relations/relationMembership") && read('packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts').includes("semantic/relations/relationalSequence")],
   ['compiler-owned contract dependency debt is documented', trace.includes('LaravelControllerActionSemanticJudgmentInterface` currently imports `ControllerActionContract`')],
   ['runtime executor contract documents forwarding-only role', execution.includes('only correlates and forwards')],
   ['integrated response projection remains after execution', scanner.includes('judgeIntegratedResponse') && scanner.includes('invocationJudgment,')],
-  ['no direct relation/foundation/subscanner import added to main scanner', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('subscanners/')],
+  ['no direct relation/foundation/subscanner import added to main scanner', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('operations/')],
   ['upstream barrel exports semantic judgment interface', read('packages/core/src/types/upstream/index.ts').includes("export * from './laravelControllerActionSemanticJudgmentInterface';")],
   ['package entry exports semantic judgment interface', read('packages/core/src/index.ts').includes("from './types/upstream/laravelControllerActionSemanticJudgmentInterface'")],
   ['trace states no build/typecheck/vitest claim', trace.includes('Build, typecheck, and Vitest are not run')],

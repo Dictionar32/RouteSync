@@ -5,7 +5,7 @@ const root = process.cwd();
 const touched = [
   'packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceFieldProducer.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceFieldProducer.ts',
 ];
 const semanticBoundary = [
   ...touched,

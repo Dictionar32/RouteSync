@@ -14,7 +14,7 @@ check('scanner checks blocked selection before action derivation', /if \(semanti
 check('blocked declarations are not published as controller AST artifacts', /if \(semanticSelection\.kind === 'controller_declaration_selection_blocked'\)[\s\S]*?return \{[\s\S]*?controllers: state\.controllers/.test(scanner));
 check('scanner propagates blocked declaration judgment in its result', /declarationSelection: result\.declarationBlockers\.length === 0[\s\S]*?controller_declaration_selection_inventory_blocked/.test(scanner));
 check('source AST completeness gate marks controller category unscanned for blocked declaration inventory', /items: controllerScan\.declarationSelection\.kind === 'controller_declaration_selection_inventory_complete'[\s\S]*?: \{ kind: 'not_scanned' \}/.test(sourcePipeline));
-check('no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 const passed = checks.filter(item => item.passed).length;
 const result = { phase: 2016, audit: 'controller-declaration-blocked-propagation-interface-first', passed, total: checks.length, checks };
 fs.writeFileSync(path.join(root, 'PHASE2016_AUDIT.json'), `${JSON.stringify(result, null, 2)}\n`);

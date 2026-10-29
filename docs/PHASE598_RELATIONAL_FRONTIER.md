@@ -2,7 +2,7 @@
 
 ## Objective
 
-Push RouteSync past the remaining scanner/lexer, resolver-graph, AST/upstream mapping, analysis, and semantic-collection leakage by moving semantic state into immutable relations and recursive fixed-point evaluation.
+Push RouteSync past the remaining frontend/php, resolver-graph, AST/upstream mapping, analysis, and semantic-collection leakage by moving semantic state into immutable relations and recursive fixed-point evaluation.
 
 The design is informed by declarative relation and rewrite systems: Soufflé models typed tuple relations; MLIR PDLL/DRR represents matching and rewriting declaratively; WebAssembly specifies validity through declarative typing judgements; Statix models name binding with scope/edge/declaration constraints; and egglog combines Datalog with equality saturation.
 

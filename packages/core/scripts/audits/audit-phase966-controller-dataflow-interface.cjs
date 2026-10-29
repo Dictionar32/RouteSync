@@ -8,7 +8,7 @@ const routeSync = read('packages/core/src/compiler/analysis/routeSyncDataflowAna
 const projection = read('packages/core/src/types/upstream/semanticDataflowControllerProjection.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const authority = read('packages/core/src/types/upstream/semanticDataflowAuthority.ts');
-const legacy = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const legacy = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const fixture = path.join(repo, 'examples/ecommerce-shop-source/app/Http/Controllers');
 const files = fs.readdirSync(fixture, { recursive: true }).filter(f => String(f).endsWith('.php'));
 const content = files.map(f => read(path.join('examples/ecommerce-shop-source/app/Http/Controllers', f))).join('\n');

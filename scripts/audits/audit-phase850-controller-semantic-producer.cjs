@@ -4,8 +4,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
-const producer = read('packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/ControllerScanner.ts');
 const sourceAst = read('packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts');
 const collections = read('packages/core/src/types/upstream/collections.ts');
 const sourceModel = read('packages/core/src/types/upstream/highLevelSourceModel.ts');
@@ -18,7 +18,7 @@ const checks = {
   scannerPublishesProducerActions: /const controllerActions = controllerBundle\.actions/.test(sourceAst) && /controllerActions,/.test(sourceAst),
   highLevelModelConsumesProducerActions: /const controllers = source\.controllerActions/.test(sourceModel),
   highLevelModelDoesNotReconstructFromControllerAst: !/controllerNodesFromAst|sequenceExpand\(controllers, controllerNodesFromAst\)/.test(sourceModel),
-  noLegacyControllerFileDeleted: fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts')),
+  noLegacyControllerFileDeleted: fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts')),
 };
 
 const allChecksPassed = Object.values(checks).every(Boolean);

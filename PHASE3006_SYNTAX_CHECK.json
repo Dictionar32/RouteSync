@@ -1,0 +1,41 @@
+{
+  "files": [
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineInterface.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineAuthority.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingAuthority.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    }
+  ],
+  "totalFiles": 7,
+  "totalDiagnostics": 0
+}

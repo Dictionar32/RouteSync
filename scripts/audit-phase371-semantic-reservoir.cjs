@@ -4,8 +4,8 @@ const ts = require('typescript');
 const root = path.resolve(__dirname, '..');
 const roots = [
   'packages/core/src/semantic',
-  'packages/core/src/compiler/scanner/lexer/routeAst',
-  'packages/core/src/compiler/scanner/subscanners',
+  'packages/core/src/compiler/frontend/php/routeAst',
+  'packages/core/src/compiler/scanner/operations',
 ];
 const excluded = /(__tests__|__test__|\.spec\.ts$|\.test\.ts$)/;
 const files = roots.flatMap(rel => {

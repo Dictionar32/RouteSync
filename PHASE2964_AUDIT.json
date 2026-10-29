@@ -1,0 +1,18 @@
+{
+  "phase": 2964,
+  "title": "Domain Rejection Accumulation",
+  "checks": {
+    "phase2964_structural_audit": "10/10 passed",
+    "phase2963_structural_audit": "10/10 passed",
+    "phase2962_structural_audit": "10/10 passed",
+    "typescript_transpile_module_syntax_diagnostics": 0,
+    "upstream_collections_file_bytes": 0,
+    "zip_integrity": "passed after archive creation"
+  },
+  "not_verified": [
+    "full typecheck",
+    "Vitest",
+    "full build",
+    "CLI end-to-end"
+  ]
+}

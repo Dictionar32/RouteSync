@@ -4,8 +4,8 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/routeDeclarationEvidence.ts');
-const projection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts');
+const projection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
+const ast = read('packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts');
 const checks = [
   ['upstream source evidence models resource action-filter presence as a closed ADT', /RouteDeclarationResourceActionFilterEvidence[\s\S]*kind: 'unfiltered'[\s\S]*kind: 'only'[\s\S]*kind: 'except'/.test(contract)],
   ['resource evidence carries action filter and all four modifiers', /RouteDeclarationResourceEvidence[\s\S]*actionFilter:[\s\S]*shallow: boolean;[\s\S]*scoped: boolean;[\s\S]*creatable: boolean;[\s\S]*destroyable: boolean;/.test(contract)],

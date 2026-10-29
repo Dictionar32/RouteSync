@@ -23,9 +23,9 @@ const runtimeFiles = [
   'packages/core/src/compiler/semantic/request-type-derivation/responseContribution.ts',
   'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts',
   'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProofVerifier.ts',
-  'packages/core/src/compiler/scanner/subscanners/request-deriver/actionDeriver.ts',
-  'packages/core/src/compiler/scanner/subscanners/request-deriver/responseDeriver.ts',
-  'packages/core/src/compiler/scanner/subscanners/request-deriver/index.ts',
+  'packages/core/src/compiler/scanner/operations/request-deriver/actionDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/request-deriver/responseDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/request-deriver/index.ts',
 ];
 const source = Object.fromEntries(runtimeFiles.map(file => [file, read(file)]));
 check('critical PHP AST/runtime semantic files contain no exported function declarations', runtimeFiles.every(file => !/^export\s+function\s/m.test(source[file])));

@@ -10,7 +10,7 @@ const executor = read('packages/core/src/types/upstream/laravelControllerActionE
 const cli = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
-check('production wiring no longer imports or calls the actionScanner subscanner', !/from ['"]\.\.\/subscanners\/controller['"]/.test(wiring) && !/scanControllerAction\(/.test(wiring));
+check('production wiring no longer imports or calls the actionScanner subscanner', !/from ['"]\.\.\/operations\/controller['"]/.test(wiring) && !/scanControllerAction\(/.test(wiring));
 check('production action authority calls the existing contract resolver directly', /resolveControllerActionContract\(/.test(wiring) && /requestBindingJudgment,[\s\S]*bodyJudgment,[\s\S]*modelClasses: input\.modelClasses/.test(wiring));
 check('existing request semantic judgment is passed into contract projection', /laravelControllerRequestSemanticBindingAuthority\.judge\(requestBindingEvidence\)/.test(wiring) && /requestBindingJudgment,/.test(wiring));
 check('action authority contract version 45 matches production composition', /readonly version: 45;/.test(actionAuthority) && /version: 45 as const/.test(wiring));

@@ -22,7 +22,7 @@ Strengthen the semantic interface model itself. This phase does not move runtime
 
 - `compiler/scanner/subscanners/RequestTypeDeriver.ts` still orchestrates `createDerivationContext` and `aggregateRequestTypeGroups`.
 - `compiler/scanner/subscanners/request-deriver/groupAggregator.ts` remains an aggregation/reasoning frontier requiring ownership review.
-- `compiler/scanner/lexer/astClassifierRuntime.ts` still contains classifier runtime behavior; syntax classification must be distinguished from domain-semantic inference rule by rule.
+- `compiler/frontend/php/astClassifierRuntime.ts` still contains classifier runtime behavior; syntax classification must be distinguished from domain-semantic inference rule by rule.
 - `compiler/scanner/wiring/routeManifestTypeLowering.ts` still directly invokes `RequestTypeDeriver.derive`.
 
 These are explicitly recorded as remaining migration work. This phase does not claim that all scanner semantic reasoning has moved upstream.

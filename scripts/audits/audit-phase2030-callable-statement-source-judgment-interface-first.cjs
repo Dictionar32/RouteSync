@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const failure = read('packages/core/src/types/upstream/scannerAstSourceFailureInterface.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
@@ -20,7 +20,7 @@ const checks = [
   ['statement sequence parser preserves original resolution', runtime.includes("kind: 'malformed_statement_sequence', judgment: resolution") && runtime.includes("kind: 'statement_sequence_contract_violation', judgment: resolution")],
   ['source failure interface remains the shared typed boundary', runtime.includes('implements ScannerAstSourceFailureInterface<Token>') && index.includes("from './scannerAstSourceFailureInterface'")],
   ['canonical Laravel invocation and integrated response forwarding remain intact', invocation.includes('php_source_invocation_integration_not_connected') && wiring.includes('invocationJudgment') && wiring.includes('responseJudgment') && wiring.includes('astProjection.judge')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);
 console.log(`\n${checks.filter(([, passed]) => passed).length}/${checks.length} checks passed`);

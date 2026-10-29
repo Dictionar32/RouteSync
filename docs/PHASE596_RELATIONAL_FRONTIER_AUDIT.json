@@ -315,7 +315,7 @@
       }
     },
     {
-      "file": "compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "file": "compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts",
       "total": 56,
       "counts": {
         "if": 14,

@@ -5,7 +5,7 @@ const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const controller = read('packages/core/src/types/upstream/controller.ts');
 const policy = read('packages/core/src/types/upstream/controllerActionPolicyRelations.ts');
 const sourceModel = read('packages/core/src/types/upstream/highLevelSourceModel.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/ControllerScanner.ts');
 const dataflow = read('packages/core/src/types/upstream/semanticDataflowInterface.ts');
 const result = {
   controllerCarriesPolicyEvidence: /readonly policy: Sequence<ControllerPolicyRelation>/.test(controller),

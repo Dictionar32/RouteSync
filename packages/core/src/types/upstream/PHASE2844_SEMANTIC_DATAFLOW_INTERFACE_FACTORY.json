@@ -1,0 +1,17 @@
+{
+  "phase": 2844,
+  "title": "Semantic Dataflow Interface Factory",
+  "status": "structural-audit",
+  "runtimeTrace": [
+    "SemanticDataflowJudgment",
+    "semanticDataflowInterfaceFactory.fromJudgment",
+    "SemanticDataflowInterface"
+  ],
+  "invariants": {
+    "interfaceFirst": true,
+    "legacyFreeFunctionRemoved": true,
+    "authoritativeJudgmentPreserved": true,
+    "collectionsTsBytes": 0
+  },
+  "audit": "scripts/audits/audit-phase2844-semantic-dataflow-interface-factory.cjs"
+}

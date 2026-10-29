@@ -2,7 +2,7 @@
 
 ## Objective
 
-Push the remaining scanner/lexer and controller/resource resolver boundary away from host-language containers and constructor-based semantic state toward relation-indexed facts, explicit absence witnesses, and relation-driven lookup.
+Push the remaining frontend/php and controller/resource resolver boundary away from host-language containers and constructor-based semantic state toward relation-indexed facts, explicit absence witnesses, and relation-driven lookup.
 
 The design is informed by declarative relation systems and rewrite/constraint systems: Soufflé models analysis facts as typed ordered tuples; Statix models name binding as scope-graph constraints; MLIR PDLL models rewrites declaratively; and WebAssembly 3.0 specifies validation as declarative typing constraints from which an implementation algorithm is derived.
 
@@ -51,7 +51,7 @@ The repository-wide Phase 584 frontier audit remains useful as the global detect
 
 The next implementation surfaces are:
 
-1. remaining scanner/lexer constructor/error paths;
+1. remaining frontend/php constructor/error paths;
 2. AST/upstream mapping and source-model normalization;
 3. analysis/verification passes and their host collections;
 4. semantic type resolution/lowering, including replacing class-constructor value objects with algebraic semantic values and relation-driven projections;

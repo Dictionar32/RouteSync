@@ -16,7 +16,7 @@ const checks = [
   ['rejected source binding cannot be silently treated as complete by contract', response.includes('response_evidence_source_binding_rejected') && response.includes('sourceBindingOutcomeRule')],
   ['new contracts exported type-only from public barrel', barrel.includes('LaravelControllerResponseEvidenceSourceBindingContract') && barrel.includes('LaravelControllerResponseEvidenceSourceBindingJudgment')],
   ['retirement interface version advanced', retirement.includes('readonly version: 12;')],
-  ['no relation/foundation subscanner introduced', !response.includes('subscanners/relation') && !response.includes('subscanners/foundation') && !retirement.includes('subscanners/relation') && !retirement.includes('subscanners/foundation')],
+  ['no relation/foundation subscanner introduced', !response.includes('operations/relation') && !response.includes('operations/foundation') && !retirement.includes('operations/relation') && !retirement.includes('operations/foundation')],
   ['response interface remains declaration-only', !/^\s*(?:export\s+)?const\s/m.test(response) && !/^\s*(?:export\s+)?function\s/m.test(response)],
 ];
 const report = { phase: 1985, title: 'Response evidence source-binding interface first', scope: 'type/interface declarations only', checks: checks.map(([name, passed]) => ({ name, passed })), passed: checks.filter(([, passed]) => passed).length, total: checks.length };

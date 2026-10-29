@@ -1,0 +1,96 @@
+{
+  "phase": 2742,
+  "title": "Erase subscanners layer; fully typed AST/ADT runtime operations",
+  "checksPassed": 16,
+  "checksTotal": 16,
+  "passed": true,
+  "scannerOperationFiles": 78,
+  "scannerOperationTotalFiles": 83,
+  "migratedOperationObjects": 16,
+  "oldDirectoryExists": false,
+  "relationFiles": 0,
+  "foundationFiles": 0,
+  "relationFoundationReferenceFiles": 0,
+  "checks": [
+    {
+      "name": "legacy subscanners directory removed",
+      "passed": true,
+      "detail": "packages/core/src/compiler/scanner/subscanners"
+    },
+    {
+      "name": "scanner operations directory exists",
+      "passed": true,
+      "detail": "packages/core/src/compiler/scanner/operations"
+    },
+    {
+      "name": "all legacy scanner files retained under operations",
+      "passed": true,
+      "detail": "found 83 total files (78 TypeScript files)"
+    },
+    {
+      "name": "no production/test/script imports use the retired path",
+      "passed": true,
+      "detail": "0 stale imports"
+    },
+    {
+      "name": "no exported free-function declarations remain in scanner operations",
+      "passed": true,
+      "detail": "0 remaining"
+    },
+    {
+      "name": "no exported const function expressions remain in scanner operations",
+      "passed": true,
+      "detail": "0 remaining"
+    },
+    {
+      "name": "16 migrated public APIs are interface-typed frozen operation objects",
+      "passed": true,
+      "detail": "16/16 operation objects verified"
+    },
+    {
+      "name": "semantic/relations remains empty",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "semantic/foundation remains empty",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "no relationFoundation reference remains in core source",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "CLI scan uses the shared manifest scan operation",
+      "passed": true,
+      "detail": "scan -> composition.manifestScanOperation.scan"
+    },
+    {
+      "name": "CLI sync uses the shared manifest scan operation",
+      "passed": true,
+      "detail": "sync -> composition.manifestScanOperation.scan"
+    },
+    {
+      "name": "upstream composition constructs the shared manifest operation",
+      "passed": true,
+      "detail": "composition factory -> manifest scan operation factory"
+    },
+    {
+      "name": "manifest builder still preserves complete/blocked ADT",
+      "passed": true,
+      "detail": "manifest_builder_complete | manifest_builder_blocked"
+    },
+    {
+      "name": "production pipeline wires interface-first scanner operations",
+      "passed": true,
+      "detail": "migration, DTO, service, middleware, provider, response scanner operation objects"
+    },
+    {
+      "name": "controller execution wiring uses the controller AST operation object",
+      "passed": true,
+      "detail": "controller operation object is consumed by production wiring"
+    }
+  ]
+}

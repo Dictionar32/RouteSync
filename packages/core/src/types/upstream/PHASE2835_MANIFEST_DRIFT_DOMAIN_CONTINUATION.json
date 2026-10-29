@@ -1,0 +1,32 @@
+{
+  "phase": 2835,
+  "title": "Manifest drift domain continuation",
+  "runtimeTrace": [
+    "driftAuditor.auditManifestDrift",
+    "controllerInvocationManifestBuilder.build",
+    "routeSyncCliManifestScanOperationFactory.create.scan",
+    "ControllerInvocationManifestCompositionAuthorityInterface.compose",
+    "canonical project identity",
+    "controller-source discovery",
+    "source read and identity binding",
+    "source invocation semantic pipeline and delivery",
+    "upstream invocation judgment authority",
+    "inventory closure authority",
+    "manifest builder",
+    "ControllerInvocationManifestDriftAuditContinuationInterface.continueForDriftAudit",
+    "drift-specific terminal action"
+  ],
+  "terminalVariants": [
+    "manifest_builder_complete",
+    "manifest_builder_blocked",
+    "controller_invocation_manifest_inventory_rejected",
+    "controller_invocation_manifest_source_discovery_blocked",
+    "controller_invocation_manifest_source_project_identity_blocked",
+    "controller_invocation_manifest_source_documents_blocked",
+    "controller_invocation_manifest_source_document_identity_rejected"
+  ],
+  "domainOperation": "continueForDriftAudit",
+  "genericReasoningPrimitiveIntroduced": false,
+  "collectionsFileMustRemainEmpty": true,
+  "verification": "source-structure audit only; no claim of full typecheck/build/e2e"
+}

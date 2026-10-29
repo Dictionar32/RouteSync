@@ -3,12 +3,12 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const contract = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const bodyTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const bodyTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
 const upstream = read('packages/core/src/types/upstream/controller.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 
 const productionRoot = path.join(root, 'packages/core/src');
 const files = [];

@@ -4,9 +4,9 @@ const path = require('path');
 const root = process.cwd();
 const files = [
   'packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts',
+  'packages/core/src/compiler/scanner/operations/ControllerScanner.ts',
+  'packages/core/src/compiler/scanner/operations/controller/actionScanner.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts',
 ];
 const text = files.map(f => fs.readFileSync(path.join(root, f), 'utf8')).join('\n');
 const remaining = [...text.matchAll(/\bmodelNames\b/g)].length;

@@ -4,8 +4,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelAttributeScannerInterface.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/attributeProducer.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/attributeProducer.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const checks = [
   ['upstream owns a closed contextuality judgment union', /type LaravelAttributeContextualityJudgment\s*=\s*\| LaravelContextualAttributeDeclarationEvidence\s*\| LaravelAttributeNonContextualDeclarationJudgment/.test(contract)],

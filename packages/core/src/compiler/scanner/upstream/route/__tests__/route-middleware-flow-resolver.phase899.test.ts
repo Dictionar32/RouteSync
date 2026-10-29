@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveRouteMiddlewareFlow } from '../routeMiddlewareFlowResolver';
+import { routeMiddlewareFlowResolver } from '../../../../semantic/routeMiddlewareFlowResolver';
 import type { RouteMiddlewareSemanticInput } from '../../../../../types/upstream/routeMiddleware';
 import { present } from '../../../../../types/upstream/presence';
 import { createActionName, createMiddlewareName, stringValue } from '../../../../../types/upstream/names';
@@ -28,7 +28,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: present(createActionName('show')),
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.middleware).toHaveLength(3);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['auth', 'subscribed', 'audit']);
   });
@@ -40,7 +40,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: present(createActionName('show')),
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['auth']);
   });
 
@@ -56,7 +56,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: present(createActionName('show')),
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['verified']);
   });
 
@@ -64,16 +64,16 @@ describe('Phase 899 route middleware semantic resolver', () => {
   it('preserves blocked scope judgment instead of reporting a complete empty result', () => {
     const source = Object.freeze({
       kind: 'source_span' as const,
-      file: Object.freeze({ kind: 'source_file' as const, value: stringValue('Controller.php') }),
+      file: Object.freeze({ kind: 'source_file' as const, value: stringValue.create('Controller.php') }),
       start: Object.freeze({ kind: 'number_value' as const, value: 0 }),
       end: Object.freeze({ kind: 'number_value' as const, value: 1 }),
     });
     const argument = Object.freeze({
       kind: 'named' as const,
-      name: Object.freeze({ kind: 'expression_argument_name' as const, value: stringValue('only') }),
+      name: Object.freeze({ kind: 'expression_argument_name' as const, value: stringValue.create('only') }),
       value: Object.freeze({
         kind: 'variable' as const,
-        name: Object.freeze({ kind: 'variable_name' as const, value: stringValue('methods') }),
+        name: Object.freeze({ kind: 'variable_name' as const, value: stringValue.create('methods') }),
         source,
       }),
     });
@@ -82,7 +82,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       exclusions: [],
       action: present(createActionName('show')),
     };
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.judgment.kind).toBe('blocked');
     expect(flow.middleware).toHaveLength(1);
     expect(flow.effectiveMiddleware).toHaveLength(0);
@@ -95,7 +95,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: { kind: 'absent' },
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['auth']);
   });
 });

@@ -2,9 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
-const scanner = path.join(root, 'packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
-const relations = path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
-const producer = path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducer.ts');
+const scanner = path.join(root, 'packages/core/src/compiler/scanner/operations/RouteScanner.ts');
+const relations = path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
+const producer = path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducer.ts');
 
 const read = file => fs.readFileSync(file, 'utf8');
 const scannerText = read(scanner);

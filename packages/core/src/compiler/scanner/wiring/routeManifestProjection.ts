@@ -1,7 +1,7 @@
 import type { RouteManifestRequestResolutionPreflight } from './routeManifestProjectionInterface';
 import type { RequestTypeDerivationSemanticPipelineInterface } from '../../../types/upstream/requestTypeDerivationInterface';
 import {
-  createAuthorityBackedRouteManifestProjection,
+  authorityBackedRouteManifestProjectionFactory,
   type AuthorityBackedRouteManifestProjectionResult,
 } from './routeManifestProjectionAuthority';
 
@@ -11,19 +11,26 @@ import {
  * until a production producer/verifier composition is supplied, callers must
  * surface that missing composition rather than silently derive unverified types.
  */
-export const projectRouteSyncManifestForRouteManifest = (
-  preflight: RouteManifestRequestResolutionPreflight,
-  pipeline: RequestTypeDerivationSemanticPipelineInterface,
-): AuthorityBackedRouteManifestProjectionResult => {
-  const projection = createAuthorityBackedRouteManifestProjection(pipeline);
-  return projection.project(preflight);
-};
+export interface RouteManifestProjectionOperationsInterface {
+  readonly project: (
+    preflight: RouteManifestRequestResolutionPreflight,
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ) => AuthorityBackedRouteManifestProjectionResult;
+  readonly create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ) => import('./routeManifestProjectionAuthority').AuthorityBackedRouteManifestProjectionInterface;
+}
 
-/**
- * Factory form for composition roots which own the concrete semantic pipeline.
- * This keeps the semantic dependency explicit and makes legacy fallback
- * structurally unavailable on the active projection path.
- */
-export const createRouteManifestProjection = (
-  pipeline: RequestTypeDerivationSemanticPipelineInterface,
-) => createAuthorityBackedRouteManifestProjection(pipeline);
+export const routeManifestProjectionOperations: RouteManifestProjectionOperationsInterface = Object.freeze({
+  project: (
+    preflight: RouteManifestRequestResolutionPreflight,
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ): AuthorityBackedRouteManifestProjectionResult => {
+    const projection = authorityBackedRouteManifestProjectionFactory.create(pipeline);
+    return projection.project(preflight);
+  },
+  create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ): import('./routeManifestProjectionAuthority').AuthorityBackedRouteManifestProjectionInterface =>
+    authorityBackedRouteManifestProjectionFactory.create(pipeline),
+});

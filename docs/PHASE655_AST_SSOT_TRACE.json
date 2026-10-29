@@ -7,11 +7,11 @@
       "change": "Introduced AstJudgment as the closed discriminated union over AstSemanticSchemaKind; SemanticAstNode and CanonicalAstNode are narrowing projections over that SSOT union."
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpMethodParser.ts",
       "change": "Removed exception-based parsePhpMethodOrThrow semantic boundary; parser failure remains RelationOption."
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "path": "packages/core/src/compiler/frontend/php/astClassifierEvidence.ts",
       "change": "Anonymous-class method discovery now consumes parsePhpMethod relationally instead of throwing."
     }
   ],

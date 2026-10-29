@@ -1,0 +1,38 @@
+{
+  "phase": 2810,
+  "title": "Domain-Operated Lowering ADT",
+  "goal": "Have the lowering ADT carry concrete continuation behavior so manifest composition does not switch on the lowerer result.",
+  "runtime_trace": [
+    "CLI scan/sync",
+    "manifest scan operation",
+    "request-resolution preflight",
+    "RequestTypeDerivationSemanticPipelineInterface",
+    "requestTypeDerivationOperationPreparationFactory.prepare",
+    "AuthorityBackedRouteManifestTypeLoweringResult with variant-owned continue",
+    "AuthorityBackedRouteManifestProjectionAuthority forwards the ADT",
+    "RouteManifestProjectionComposition consumes result.continue without switch",
+    "RouteManifestProjectionCompositionResult with variant-owned continue",
+    "IntegratedRouteManifestAuthority forwards the ADT",
+    "CLI consumer continuation"
+  ],
+  "changes": [
+    "Moved composition outcome contracts into routeManifestProjectionOutcome.ts and re-exported them from the prior module.",
+    "Added concrete continue operations to both lowering ADT variants.",
+    "Removed the composition-layer switch on lowering outcome.",
+    "Kept exhaustive semantic classification at the lowering authority.",
+    "Preserved failure derivation, source evidence, and request-resolution ledger.",
+    "Reused existing upstream RequestTypeDerivationRuntimeExecutionResult contract; no duplicate upstream ADT added.",
+    "Kept packages/core/src/types/upstream/collections.ts at 0 bytes."
+  ],
+  "verification": {
+    "structural_audit": "15/15 passed",
+    "regression_audit_phase2809": "13/13 passed",
+    "syntax_transpilation": "5 files, 0 diagnostics",
+    "full_typecheck": "attempted but blocked by environment/toolchain: installed TypeScript rejected target ES2025 and reported missing global types plus node/vitest type definitions",
+    "production_build": "not run",
+    "full_test_suite": "not run",
+    "cli_e2e": "not run",
+    "collections_ts_bytes": 0
+  },
+  "official_reference": "https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html"
+}

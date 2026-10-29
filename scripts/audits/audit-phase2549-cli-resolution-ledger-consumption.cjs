@@ -12,7 +12,7 @@ const loweringContract = read('packages/core/src/compiler/scanner/wiring/routeMa
 const pipelineContract = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProjectionInterface.ts');
 const solver = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
 const pipelineImplementation = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
-const subscanner = read('packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts');
+const subscanner = read('packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts');
 
 const checks = [
   ['scan passes the preflight request-resolution ledger into projection', /projectRouteSyncManifestForRouteManifest\(completeManifest, requestResolutionPreflight\)/.test(scan)],

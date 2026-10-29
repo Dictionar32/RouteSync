@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createSourceFile } from '../names';
+import { sourceFileIdentityFactory, stringValue } from '../names';
 import { createLaravelSourceProjectIdentity } from '../sourceProjectIdentity';
-import { laravelControllerInvocationSemanticJudgmentAuthority } from '../laravelControllerInvocationSemanticJudgmentAuthority';
+import { laravelControllerInvocationSemanticJudgmentAuthority, laravelControllerInvocationSemanticInputFactory } from '../laravelControllerInvocationSemanticJudgmentAuthority';
 import { laravelControllerInvocationSemanticJudgmentInventoryAuthority } from '../laravelControllerInvocationSemanticJudgmentInventoryAuthority';
 import { LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_INVENTORY_CONTRACT, type LaravelControllerSourceInventoryCompletenessWitness, type LaravelControllerSourceInventoryInterface } from '../laravelControllerInvocationSemanticJudgmentInventoryInterface';
 
@@ -22,13 +22,10 @@ describe('Laravel invocation inventory closure interface-first', () => {
   });
 
   it('keeps project-binding rejection separate from completeness-witness rejection', () => {
-    const sourceProject = createLaravelSourceProjectIdentity('/workspace/app');
-    const witnessProject = createLaravelSourceProjectIdentity('/workspace/other-app');
-    const sourceFile = createSourceFile('/workspace/app/app/Http/Controllers/ExampleController.php');
-    const judgment = laravelControllerInvocationSemanticJudgmentAuthority.judge({
-      kind: 'controller_invocation_pipeline_not_provided',
-      sourceFile,
-    });
+    const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create('/workspace/app')));
+    const witnessProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create('/workspace/other-app')));
+    const sourceFile = sourceFileIdentityFactory.create(stringValue.create('/workspace/app/app/Http/Controllers/ExampleController.php'));
+    const judgment = laravelControllerInvocationSemanticJudgmentAuthority.judge(laravelControllerInvocationSemanticInputFactory.withoutPipeline(sourceFile));
     const result = laravelControllerInvocationSemanticJudgmentInventoryAuthority.close({
       kind: 'laravel_controller_invocation_semantic_judgment_inventory_input',
       sourceInventory: {
@@ -51,12 +48,14 @@ describe('Laravel invocation inventory closure interface-first', () => {
       expect(result.rejections.map(rejection => rejection.kind)).toEqual([
         'controller_source_inventory_project_binding_mismatch',
       ]);
+      expect(result.preserveRejectedInventory()).toBe(result);
+      expect(result.preserveRejectedInventory().rejections).toHaveLength(1);
     }
   });
 
   it('publishes closed semantic judgments before inventory closure composes the result', () => {
-    const sourceProject = createLaravelSourceProjectIdentity('/workspace/app');
-    const sourceFile = createSourceFile('/workspace/app/app/Http/Controllers/ExampleController.php');
+    const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create('/workspace/app')));
+    const sourceFile = sourceFileIdentityFactory.create(stringValue.create('/workspace/app/app/Http/Controllers/ExampleController.php'));
     const witness: LaravelControllerSourceInventoryCompletenessWitness = {
       kind: 'laravel_controller_source_inventory_completeness_witness',
       sourceProject,
@@ -65,10 +64,7 @@ describe('Laravel invocation inventory closure interface-first', () => {
     const projectBinding = laravelControllerInvocationSemanticJudgmentInventoryAuthority.reasoning.judgeProjectBinding(sourceProject, sourceProject);
     const completeness = laravelControllerInvocationSemanticJudgmentInventoryAuthority.reasoning.judgeCompletenessWitness(witness);
     const sourceIdentity = laravelControllerInvocationSemanticJudgmentInventoryAuthority.reasoning.judgeSourceIdentityUniqueness([sourceFile]);
-    const judgment = laravelControllerInvocationSemanticJudgmentAuthority.judge({
-      kind: 'controller_invocation_pipeline_not_provided',
-      sourceFile,
-    });
+    const judgment = laravelControllerInvocationSemanticJudgmentAuthority.judge(laravelControllerInvocationSemanticInputFactory.withoutPipeline(sourceFile));
     const inventory: LaravelControllerSourceInventoryInterface = {
       kind: 'laravel_controller_source_inventory',
       contractVersion: 1,
@@ -85,12 +81,9 @@ describe('Laravel invocation inventory closure interface-first', () => {
   });
 
   it('publishes the exact v11 contract on the authority-produced receipt', () => {
-    const sourceProject = createLaravelSourceProjectIdentity('/workspace/app');
-    const sourceFile = createSourceFile('/workspace/app/app/Http/Controllers/ExampleController.php');
-    const judgment = laravelControllerInvocationSemanticJudgmentAuthority.judge({
-      kind: 'controller_invocation_pipeline_not_provided',
-      sourceFile,
-    });
+    const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create('/workspace/app')));
+    const sourceFile = sourceFileIdentityFactory.create(stringValue.create('/workspace/app/app/Http/Controllers/ExampleController.php'));
+    const judgment = laravelControllerInvocationSemanticJudgmentAuthority.judge(laravelControllerInvocationSemanticInputFactory.withoutPipeline(sourceFile));
     const result = laravelControllerInvocationSemanticJudgmentInventoryAuthority.close({
       kind: 'laravel_controller_invocation_semantic_judgment_inventory_input',
       sourceInventory: {
@@ -113,6 +106,8 @@ describe('Laravel invocation inventory closure interface-first', () => {
       expect(result.receipt.contract).toBe(LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_INVENTORY_CONTRACT);
       expect(result.receipt.correspondences[0]).toBe(judgment);
       expect(result.receipt.outcomePreservation).toBe(LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_INVENTORY_CONTRACT.reasoning.rules.outcomePreservation);
+      expect(typeof result.buildManifest).toBe('function');
+      expect(result.buildManifest).toBeDefined();
     }
   });
 });

@@ -1,0 +1,44 @@
+{
+  "phase": 3024,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations — Upstream → CLI → Manifest Trace",
+  "scope": "Static source audit; does not claim full TypeScript build or runtime integration.",
+  "checks": {
+    "cliManifestOperationIsInterfaceBackedObject": true,
+    "cliDelegatesToCompositionAuthority": true,
+    "compositionConsumesRequestDomainContinuation": true,
+    "manifestTerminalOwnsContinuation": true,
+    "routeScannerConsumesSourceObservationOperation": true,
+    "readyAndBlockedSourceObservationsOwnContinuation": true,
+    "statementIndexIsStillPrimitiveAlias": true,
+    "numberAndTruthFactoriesAreStillFunctionValues": true,
+    "sourceSpanStillUsesGenericNumberValue": true,
+    "runtimeStatementCounterStillUsesPrimitiveArithmetic": true,
+    "sourceNameFactoriesStillAcceptRawStrings": true,
+    "noExportFunctionOnCheckedRuntimePath": true,
+    "deletedRelationFoundationModulesRemainAbsent": true,
+    "collectionsSentinelPreservedAsOneNewlineByte": true
+  },
+  "exportedFunctions": [],
+  "interpretation": {
+    "currentPositive": [
+      "CLI manifest entry is interface-backed",
+      "composition continues through the request ADT",
+      "source observation variants own a route-scan continuation",
+      "no exported function declarations on the checked runtime path",
+      "deleted relation foundation modules remain absent",
+      "collections sentinel is preserved"
+    ],
+    "remainingModelDebt": [
+      "StatementIndex is an alias of NumberValue",
+      "numberValue/truthValue are exported function-valued constants",
+      "SourceSpan start/end are generic NumberValue",
+      "PHP dataflow adapter stores statement order in a mutable numeric counter",
+      "domain-name factories still accept raw string inputs"
+    ],
+    "nonGoals": [
+      "Do not mechanically delete parser-boundary primitives",
+      "Do not mechanically delete AST-kind dispatch required to interpret syntax",
+      "Do not restore generic semantic relation foundation modules"
+    ]
+  }
+}

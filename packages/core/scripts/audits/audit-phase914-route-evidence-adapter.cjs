@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../../..');
-const file = path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const file = path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const text = fs.readFileSync(file, 'utf8');
 const forbiddenDirectAssignment = /const producerInput:\s*RouteProducerInput\s*=\s*\{\s*declaration\s*,/;
 const hasAdapter = text.includes('routeDeclarationEvidenceFromAst(declaration)');

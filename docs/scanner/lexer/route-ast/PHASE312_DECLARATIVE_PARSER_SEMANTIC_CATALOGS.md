@@ -5,7 +5,7 @@ and expression semantic producers.
 
 ## Migrated surfaces
 
-- `scanner/lexer/astClassifier.ts`
+- `frontend/php/astClassifier.ts`
   - expression entry dispatch is now an ordered declarative rule catalog;
   - tokenization excludes EOF through relation selection;
   - `new` construction is resolved through relation choices rather than a
@@ -31,9 +31,9 @@ The following remain construct-free semantic authority surfaces from earlier pha
 
 - `compiler/constraints/*`
 - `semantic/plugins/expression/ternaryHandler.ts`
-- `scanner/lexer/routeAst/syntaxErrorRelationCore.ts`
-- `scanner/lexer/routeAst/semanticRelationSolver.ts`
-- `scanner/lexer/routeAst/semanticRewriteEngine.ts`
+- `frontend/php/routeAst/syntaxErrorRelationCore.ts`
+- `frontend/php/routeAst/semanticRelationSolver.ts`
+- `frontend/php/routeAst/semanticRewriteEngine.ts`
 - `semantic/kernel/relationalSequence.ts`
 
 ## Boundary rule

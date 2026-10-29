@@ -8,7 +8,7 @@ const responseInterface = read('packages/core/src/types/upstream/laravelControll
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2003_RESPONSE_BINDING_OBSERVATION_OWNERSHIP_INTERFACE.md');
-const subscannerRoot = path.join(root, 'packages/core/src/compiler/scanner/subscanners');
+const subscannerRoot = path.join(root, 'packages/core/src/compiler/scanner/operations');
 const subscannerFiles = [];
 const walk = directory => fs.readdirSync(directory, { withFileTypes: true }).forEach(entry => {
   const target = path.join(directory, entry.name);

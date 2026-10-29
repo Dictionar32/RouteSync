@@ -9,8 +9,8 @@ const invocationExecutor = read('packages/core/src/types/upstream/invocationSema
 const responseInterface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const responseAttributeScanner = read('packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const responseAttributeScanner = read('packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts');
 const evidence = read('packages/core/src/types/upstream/controllerEvidence.ts');
 const sourceModel = read('packages/core/src/types/upstream/highLevelSourceModel.ts');
 check('invocation authority owns analyze contract', /interface InvocationSemanticAuthorityInterface[\s\S]*readonly analyze:/.test(invocation));

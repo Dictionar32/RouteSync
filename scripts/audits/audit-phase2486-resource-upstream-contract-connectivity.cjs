@@ -9,7 +9,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts');
 const producerContract = read('packages/core/src/types/upstream/resourceProducerInterface.ts');
 const knowledgeAuthority = read('packages/core/src/compiler/semantic/resourceModelKnowledgeDataFlowAuthority.ts');
-const relationResolverPath = 'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts';
+const relationResolverPath = 'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts';
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const legacyBindingContract = read('packages/core/src/types/upstream/resourceDefinitionBindingInterface.ts');
 const legacyBinder = read('packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts');
@@ -43,10 +43,10 @@ for (const result of checks) process.stdout.write(`${result.passed ? 'PASS' : 'F
 process.stdout.write(`\n${passed}/${checks.length} assertions passed.\n`);
 
 const outstanding = [
-  'ResourceProducerInterface is now connected at the canonical scanner boundary, but its concrete implementation is still imported from scanner/subscanners/resourceProducer.ts.',
+  'ResourceProducerInterface is now connected at the canonical scanner boundary, but its concrete implementation is still imported from scanner/operations/resourceProducer.ts.',
   'resourceProducer.ts, resourceFieldProducer.ts, and resourceAstExpressionMapper.ts still use semantic/relations; the uncalled twoPassRelationResolver.ts subscanner has been retired.',
   'resourceBinder.ts remains a separate legacy binder path and still uses semantic/relations; ResourceDefinitionBindingOperationInterface is not the canonical scanner production contract.',
-  'resourceSourceEvidence.ts remains under scanner/lexer and still uses semantic/relations.',
+  'resourceSourceEvidence.ts remains under frontend/php and still uses semantic/relations.',
   'No direct semantic/foundation import was found in the two changed authority/scanner files; repository-wide absence is not asserted.',
   'Full typecheck, build, Vitest, and CLI end-to-end are not verified by this structural audit.',
 ];

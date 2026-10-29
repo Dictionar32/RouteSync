@@ -2,8 +2,8 @@
   "phase": 1440,
   "title": "Semantic Token Structure Interface",
   "scope": [
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
-    "packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts",
     "packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts",
     "packages/core/src/types/upstream/index.ts"
   ],

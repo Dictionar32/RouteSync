@@ -1,8 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const testPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts');
+const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const testPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.phase10.test.ts');
 const resolver = fs.readFileSync(resolverPath, 'utf8');
 const tests = fs.readFileSync(testPath, 'utf8');
 const checks = [

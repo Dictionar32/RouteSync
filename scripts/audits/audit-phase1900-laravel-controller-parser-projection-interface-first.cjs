@@ -7,16 +7,16 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 const judgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const scannerInterface = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const declaration = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
-const method = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
-const body = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
-const astTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
+const declaration = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
+const method = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
+const body = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
+const astTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const attribute = read('packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts');
-const provider = read('packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts');
-const middleware = read('packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts');
-const response = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
-const test = read('packages/core/src/compiler/scanner/subscanners/controller/controllerParserProjectionContext.phase1900.test.ts');
+const attribute = read('packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts');
+const provider = read('packages/core/src/compiler/scanner/operations/providerAstCanonical.ts');
+const middleware = read('packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts');
+const response = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
+const test = read('packages/core/src/compiler/scanner/operations/controller/controllerParserProjectionContext.phase1900.test.ts');
 
 check('existing canonical judgment model remains the only judgment model', /export type LaravelControllerInvocationSemanticJudgment\s*=\s*LaravelControllerInvocationSemanticJudgmentInterface/.test(judgment) && !/InvocationSemanticJudgmentV2/.test(judgment));
 check('projection context is a closed syntax-only-or-canonical-judgment union', /kind: 'syntax_only'/.test(judgment) && /kind: 'invocation_semantic_judgment'; readonly judgment: LaravelControllerInvocationSemanticJudgmentInterface/.test(judgment));

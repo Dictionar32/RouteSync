@@ -1,0 +1,19 @@
+{
+  "phase": 3122,
+  "subject": "AST factory interface migration",
+  "checksPassed": 11,
+  "checksFailed": 0,
+  "checks": [
+    "AST sequence factory has an explicit interface",
+    "sequence empty construction is a named domain operation",
+    "sequence cons requires an explicit tail",
+    "empty-tail construction is explicit rather than a default parameter",
+    "derivation construction has an explicit interface",
+    "derivation step receives a complete typed input datum",
+    "AST construction uses the interface-owned sequence factory",
+    "AST construction uses the interface-owned derivation factory",
+    "semantic sequence bridge is also interface-owned",
+    "legacy direct factory exports and call sites are retired",
+    "semantic barrel exports the factory object, not old direct wrappers"
+  ]
+}

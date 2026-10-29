@@ -3,8 +3,8 @@ const path = require('path');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts',
-  'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts',
+  'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts',
 ];
 const forbidden = {
   if: /\bif\b/g, for: /\bfor\b/g, while: /\bwhile\b/g, switch: /\bswitch\b/g,

@@ -18,7 +18,7 @@ const checks = [
   ['only_except regression coverage exists', test.includes('filters only_except authorization through the existing upstream algebra')],
   ['blocked authorization regression coverage preserves blocked judgment', test.includes('keeps blocked authorization evidence in the overall judgment') && test.includes("expect(policy.judgment.kind).toBe('blocked')")],
   ['existing invocation semantic judgment wiring remains present', controller.includes('controllerProducer.produce({ declaration: declarationEvidence, invocationJudgment })')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['audit is registered in package scripts', fs.readFileSync(path.join(root, 'package.json'), 'utf8').includes('audit:phase2046-effective-policy-canonical-scope-delegation-interface-first')],
 ];
 let passed = 0;

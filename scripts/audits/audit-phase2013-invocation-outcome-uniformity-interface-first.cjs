@@ -38,7 +38,7 @@ const checks = [
   ['no parallel invocation authority or new relation/foundation subscanner', () => {
     assert.doesNotMatch(docs, /new (?:parallel )?(?:invocation )?authority/i);
     assert.match(docs, /No `relation` or `foundation` subscanner was added/);
-    assert.doesNotMatch(scanner, /subscanners\/(?:relation|foundation)/);
+    assert.doesNotMatch(scanner, /operations\/(?:relation|foundation)/);
   }],
   ['audit command is registered and limits are documented', () => {
     assert.equal(pkg.scripts['audit:phase2013-invocation-outcome-uniformity-interface-first'], 'node scripts/audits/audit-phase2013-invocation-outcome-uniformity-interface-first.cjs');

@@ -5,7 +5,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const algebra = read('packages/core/src/types/upstream/astClassifierRuleAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
@@ -21,8 +21,8 @@ const checks = [
   ['canonical invocation ADT retains four outcomes', ['php_source_invocation_integration_not_connected','php_source_invocation_integration_source_binding_rejected','php_source_invocation_integration_complete','php_source_invocation_integration_blocked'].every(value => invocation.includes(value))],
   ['Laravel AST projection forwards invocation and response judgments', scanner.includes('invocationJudgment') && scanner.includes('responseJudgment') && scanner.includes('astProjection.judge')],
   ['invocation executor delegates to upstream authority', executor.includes('authority.analyze(input)')],
-  ['no relation subscanner directory added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation'))],
-  ['no foundation subscanner directory added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation subscanner directory added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation'))],
+  ['no foundation subscanner directory added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);
 const failed = checks.filter(([, passed]) => !passed);

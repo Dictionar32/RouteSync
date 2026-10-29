@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
-const responseScanner = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
+const responseScanner = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
 const sourcePipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2010_PAGINATION_METADATA_PROFILE_INTERFACE_FIRST.md');
 const checks = [
@@ -74,7 +74,7 @@ const checks = [
     assert.ok(sourcePipeline.indexOf('const resourceScan = await laravelResourceScanner.scan') < sourcePipeline.indexOf('const responseBundle = await scanResponseBundle'));
   }],
   ['no relation/foundation subscanner was added', () => {
-    assert.doesNotMatch(responseScanner, /subscanners\/(relation|foundation)/);
+    assert.doesNotMatch(responseScanner, /operations\/(relation|foundation)/);
     assert.match(docs, /No `relation` or `foundation` subscanner was added/);
   }],
   ['documentation does not claim full typecheck or build success', () => {

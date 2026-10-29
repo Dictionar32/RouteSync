@@ -98,10 +98,18 @@ const classifyAuthorityResult = (
   });
 };
 
-export const createRequestTypeDerivationAuthority = (
-  contract: RequestTypeDerivationContract,
-  kernel: RequestTypeDerivationSemanticKernel,
-): RequestTypeDerivationAuthorityInterface => {
+export interface RequestTypeDerivationAuthorityFactoryInterface {
+  readonly create: (
+    contract: RequestTypeDerivationContract,
+    kernel: RequestTypeDerivationSemanticKernel,
+  ) => RequestTypeDerivationAuthorityInterface;
+}
+
+export const requestTypeDerivationAuthorityFactory: RequestTypeDerivationAuthorityFactoryInterface = Object.freeze({
+  create: (
+    contract: RequestTypeDerivationContract,
+    kernel: RequestTypeDerivationSemanticKernel,
+  ): RequestTypeDerivationAuthorityInterface => {
   const coverage = createRequestTypeDerivationAuthorityCoverage(contract);
   const verify = (
     input: RequestTypeDerivationInput,
@@ -139,4 +147,5 @@ export const createRequestTypeDerivationAuthority = (
     derive,
     verify,
   });
-};
+  },
+});

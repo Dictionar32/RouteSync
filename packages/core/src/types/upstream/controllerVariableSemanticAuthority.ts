@@ -190,7 +190,7 @@ const resolve = (request: ControllerVariableSemanticResolutionRequest): Controll
         default:
           return resolvedJudgment('database-table-call', {
             kind: 'model_origin',
-            origin: { kind: 'table', name: { kind: 'table_name', value: stringValue(table) } },
+            origin: { kind: 'table', name: { kind: 'table_name', value: stringValue.create(table) } },
           }, request.evidence, request.sourceExpression);
       }
     }

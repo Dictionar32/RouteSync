@@ -12,20 +12,20 @@ const diagnostic = read('packages/core/src/compiler/diagnostics/Diagnostic.ts');
 const diagnosticBag = read('packages/core/src/compiler/diagnostics/DiagnosticBag.ts');
 const eloquent = read('packages/core/src/types/domain/eloquentTypes.ts');
 const model = read('packages/core/src/types/upstream/model.ts');
-const modelParser = read('packages/core/src/compiler/scanner/subscanners/model/modelParser.ts');
-const modelBuilder = read('packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts');
+const modelParser = read('packages/core/src/compiler/scanner/operations/model/modelParser.ts');
+const modelBuilder = read('packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts');
 const modelNodes = read('packages/core/src/semantic/modelNodes.ts');
 const domainModels = read('packages/core/src/types/domain/models.ts');
 
 const legacyDescriptorFiles = [
-  'packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelColumnDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelRelationDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/index.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/types.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelAccessorDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelColumnDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelRelationDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/index.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/types.ts',
 ];
 
 const sourceFiles = [];

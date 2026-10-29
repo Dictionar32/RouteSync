@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 const root = resolve(__dirname, '../../../../../..');
 const responseInterface = readFileSync(resolve(root, 'packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts'), 'utf8');
 const responsePipeline = readFileSync(resolve(root, 'packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts'), 'utf8');
-const responseScanner = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/subscanners/responseScanner.ts'), 'utf8');
+const responseScanner = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/operations/responseScanner.ts'), 'utf8');
 
 describe('Phase 2222 canonical action/response source correlation', () => {
   it('requires canonical action publications at the existing method response projection boundary', () => {

@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const contract = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
 const test = read('packages/core/src/types/upstream/__tests__/controller-resource-static-call-applicability.phase2054.test.ts');

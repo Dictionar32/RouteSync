@@ -1,11 +1,7 @@
 import { controllerDataflowBindingPayloadCorrespondenceAuthority } from './controllerDataflowBindingPayloadCorrespondenceAuthority';
-import type { ControllerDataflowBindingPayloadCorrespondenceAuthorityInterface } from './controllerDataflowBindingPayloadCorrespondenceInterface';
 import { controllerDataflowVariableIdentityAuthority } from './controllerDataflowVariableIdentityAuthority';
-import type { ControllerDataflowVariableIdentityAuthorityInterface } from './controllerDataflowVariableIdentityInterface';
 import { controllerSemanticVariableFlowCompositionAuthority } from './controllerSemanticVariableFlowCompositionAuthority';
-import type { ControllerSemanticVariableFlowCompositionAuthorityInterface } from './controllerSemanticVariableFlowCompositionInterface';
 import { invocationSemanticIntegratedResponseComposition } from './invocationSemanticPipeline';
-import type { InvocationSemanticIntegratedResponseCompositionInterface } from './invocationSemanticPipelineInterface';
 import { laravelSourceIdentitySemantics } from './sourceProjectIdentity';
 import type { LaravelSourceIdentitySemanticsInterface } from './sourceProjectIdentity';
 import type {
@@ -20,6 +16,8 @@ import type {
   ControllerDataflowSemanticJudgment,
   ControllerDataflowSemanticJudgmentAuthorityInput,
   ControllerDataflowSemanticJudgmentAuthorityInterface,
+  ControllerDataflowSemanticJudgmentAuthorityDependencies,
+  ControllerDataflowSemanticJudgmentAuthorityFactoryInterface,
 } from './controllerDataflowSemanticJudgmentAuthorityInterface';
 import type { SemanticBinding, SemanticKnowledgeDataFlow } from './semanticDataflowKnowledge';
 import type { ControllerDataflowVariableIdentityJudgment } from './controllerDataflowVariableIdentityInterface';
@@ -185,32 +183,25 @@ const derive = <Payload extends ControllerDataflowDefinitionPayloadMetadata>(
   });
 };
 
-export interface ControllerDataflowSemanticJudgmentAuthorityDependencies {
-  readonly bindingPayloadCorrespondenceAuthority: ControllerDataflowBindingPayloadCorrespondenceAuthorityInterface;
-  readonly variableIdentityAuthority: ControllerDataflowVariableIdentityAuthorityInterface;
-  readonly variableFlowCompositionAuthority: ControllerSemanticVariableFlowCompositionAuthorityInterface;
-  readonly sourceIdentitySemantics: LaravelSourceIdentitySemanticsInterface;
-  readonly integratedResponseComposition: InvocationSemanticIntegratedResponseCompositionInterface;
-}
-
-export const createControllerDataflowSemanticJudgmentAuthority = (
-  dependencies: ControllerDataflowSemanticJudgmentAuthorityDependencies,
-): ControllerDataflowSemanticJudgmentAuthorityInterface => Object.freeze({
-  kind: 'controller_dataflow_semantic_judgment_authority',
-  contractVersion: 17,
-  bindingPayloadCorrespondenceAuthority: dependencies.bindingPayloadCorrespondenceAuthority,
-  variableIdentityAuthority: dependencies.variableIdentityAuthority,
-  variableFlowCompositionAuthority: dependencies.variableFlowCompositionAuthority,
-  sourceIdentitySemantics: dependencies.sourceIdentitySemantics,
-  integratedResponseComposition: dependencies.integratedResponseComposition,
-  derive: input => derive(input, dependencies),
+export const controllerDataflowSemanticJudgmentAuthorityFactory: ControllerDataflowSemanticJudgmentAuthorityFactoryInterface = Object.freeze({
+  kind: 'controller_dataflow_semantic_judgment_authority_factory',
+  create: (dependencies: ControllerDataflowSemanticJudgmentAuthorityDependencies): ControllerDataflowSemanticJudgmentAuthorityInterface => Object.freeze({
+    kind: 'controller_dataflow_semantic_judgment_authority',
+    contractVersion: 17,
+    bindingPayloadCorrespondenceAuthority: dependencies.bindingPayloadCorrespondenceAuthority,
+    variableIdentityAuthority: dependencies.variableIdentityAuthority,
+    variableFlowCompositionAuthority: dependencies.variableFlowCompositionAuthority,
+    sourceIdentitySemantics: dependencies.sourceIdentitySemantics,
+    integratedResponseComposition: dependencies.integratedResponseComposition,
+    derive: <Payload extends ControllerDataflowDefinitionPayloadMetadata>(input: ControllerDataflowSemanticJudgmentAuthorityInput<Payload>) => derive(input, dependencies),
+  }),
 });
 
 export const controllerDataflowSemanticJudgmentAuthority: ControllerDataflowSemanticJudgmentAuthorityInterface =
-  createControllerDataflowSemanticJudgmentAuthority({
+  controllerDataflowSemanticJudgmentAuthorityFactory.create(Object.freeze({
     bindingPayloadCorrespondenceAuthority: controllerDataflowBindingPayloadCorrespondenceAuthority,
     variableIdentityAuthority: controllerDataflowVariableIdentityAuthority,
     variableFlowCompositionAuthority: controllerSemanticVariableFlowCompositionAuthority,
     sourceIdentitySemantics: laravelSourceIdentitySemantics,
     integratedResponseComposition: invocationSemanticIntegratedResponseComposition,
-  });
+  }));

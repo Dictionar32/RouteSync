@@ -5,7 +5,7 @@
  */
 import type { DataFlowAuthorityInterface } from '../../types/dataflow/dataFlowInterface';
 import type { SemanticDataflowIdentity, SemanticDataflowJudgment } from '../../types/upstream/semanticDataflow';
-import { semanticDataflowIdentityEqual } from '../../types/upstream/semanticDataflow';
+import { semanticDataflowIdentityOperations } from '../../types/upstream/semanticDataflow';
 
 export type SemanticDataflowDataFlowInterface = DataFlowAuthorityInterface<
   SemanticDataflowJudgment,
@@ -28,7 +28,7 @@ export const createSemanticDataflowDataFlowInterface = (
     target: SemanticDataflowIdentity,
   ) => current.closure.some(fact =>
     fact.kind === 'reaches' &&
-    semanticDataflowIdentityEqual(fact.source, source) &&
-    semanticDataflowIdentityEqual(fact.target, target),
+    semanticDataflowIdentityOperations.equal(fact.source, source) &&
+    semanticDataflowIdentityOperations.equal(fact.target, target),
   ),
 });

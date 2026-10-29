@@ -22,7 +22,7 @@ Advance the post-Phase-496 frontier by removing remaining host-language decision
 5. Middleware resolver selection uses relation gates/all and relational text slicing rather than host `&&`, `!`, ternary dispatch, or array `slice`.
 6. Ternary/resource binding selection uses relation predicates and candidate resolution; source-language `null`, `??`, `===`, `&&`, and `||` remain lexical/semantic vocabulary data, not host dispatch operators.
 
-## Remaining scanner/lexer frontier
+## Remaining frontend/php frontier
 
 `astClassifierEvidence.ts` is still the largest unresolved parser-adapter surface. Its statement grammar (`if`, `foreach`, `for`, `while`, `switch`, try/catch), optional parser returns, and several host ternary/absence expressions still need conversion to native `RelationOption` candidates and recursive grammar closure.
 

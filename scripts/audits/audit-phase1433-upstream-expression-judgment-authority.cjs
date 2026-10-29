@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const upstream = read('packages/core/src/types/upstream/scannerExpressionStructure.ts');
 const contract = read('packages/core/src/types/upstream/scannerExpressionJudgmentInterface.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
-const provider = read('packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
+const provider = read('packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const checks = [
   ['upstream exposes judgment authority over candidate resolution', /judgeExpressionStructureResolution/.test(upstream)],

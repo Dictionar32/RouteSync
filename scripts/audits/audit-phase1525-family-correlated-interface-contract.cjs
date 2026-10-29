@@ -11,7 +11,7 @@ const checks = [
   ['resolved conclusion family is correlated with the rule', /readonly conclusion: Readonly<\{ readonly kind: 'query_operation_ast'; readonly family: Rule \}>/.test(source)],
   ['derivation is indexed by rule family', /export type QueryOperationSemanticDerivationFor<Rule extends QueryOperationSemanticRuleFamily>/.test(source) && /\[Rule in QueryOperationSemanticRuleFamily\]: QueryOperationSemanticDerivationFor<Rule>/.test(source)],
   ['public package exports correlated interface types', /QueryOperationSemanticDerivationFor, QueryOperationSemanticDerivation, QueryOperationSemanticDecisionFor, QueryOperationSemanticDecision/.test(index)],
-  ['scanner and executor implementations are outside this interface-only phase', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts')) && fs.existsSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticReasoning.ts'))],
+  ['scanner and executor implementations are outside this interface-only phase', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts')) && fs.existsSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticReasoning.ts'))],
 ];
 let failures = 0;
 for (const [label, ok] of checks) {

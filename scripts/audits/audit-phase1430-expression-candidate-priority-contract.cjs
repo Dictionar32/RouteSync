@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const algebra = read('packages/core/src/types/upstream/scannerExpressionCandidateAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const test = read('packages/core/src/types/upstream/__test__/scannerExpressionCandidateAlgebra.phase1424.test.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const pkg = JSON.parse(read('package.json'));

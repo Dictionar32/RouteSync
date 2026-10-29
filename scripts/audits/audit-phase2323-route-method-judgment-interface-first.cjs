@@ -4,9 +4,9 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const authority = read('packages/core/src/types/upstream/laravelRouteDeclarationMethodSemanticAuthority.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts');
+const ast = read('packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
 const publicIndex = read('packages/core/src/index.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const checks = [

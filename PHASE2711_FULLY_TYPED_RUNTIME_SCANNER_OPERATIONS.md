@@ -46,10 +46,10 @@ Tidak dibuat helper equivalence baru pada level compiler. Operasi tetap dimiliki
 
 Berkas:
 
-- `packages/core/src/compiler/scanner/lexer/tokenizer.ts`
-- `packages/core/src/compiler/scanner/lexer/arrayParser.ts`
+- `packages/core/src/compiler/frontend/php/tokenizer.ts`
+- `packages/core/src/compiler/frontend/php/arrayParser.ts`
 - `packages/core/src/compiler/scanner/LaravelSourceLexer.ts`
-- `packages/core/src/compiler/scanner/lexer/index.ts`
+- `packages/core/src/compiler/frontend/php/index.ts`
 - `packages/core/src/index.ts`
 
 Operasi baru:

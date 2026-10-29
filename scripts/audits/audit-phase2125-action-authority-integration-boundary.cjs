@@ -5,8 +5,8 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const judgment = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const execution = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
 const dependencies = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const actionScanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionScanner = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const response = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const checks = [
@@ -24,7 +24,7 @@ const checks = [
   ['integrated response retains the exact invocation judgment generic', /LaravelControllerIntegratedResponseJudgment<InvocationJudgment>/.test(response) && /invocationJudgment: InvocationJudgment/.test(response)],
   ['AST projection receives the exact invocation and integrated response judgment pair', /kind: 'integrated_invocation_response_judgment',[\s\S]*judgment: invocationJudgment,[\s\S]*responseJudgment/.test(scanner)],
   ['controller artifact retains invocation, response, and projection judgments together', /invocationJudgment,[\s\S]*responseJudgment,[\s\S]*projectionJudgment/.test(scanner)],
-  ['response pipeline contract forbids adding a parallel relation/foundation semantic authority', /noReplacementLayerRule: 'compose-existing-contracts-without-adding-relation-or-foundation-subscanners-or-a-parallel-semantic-authority'/.test(response)],
+  ['response pipeline contract forbids adding a parallel relation/foundation semantic authority', /noReplacementLayerRule: 'compose-existing-contracts-without-adding-relation-or-foundation-operations-or-a-parallel-semantic-authority'/.test(response)],
   ['interface modules contain no executable semantic branching', !/\b(if|switch|case)\s*\(/.test(judgment + execution)],
   ['public index exports the evolved action semantic contract', /LaravelControllerActionSemanticJudgmentContract/.test(read('packages/core/src/index.ts'))],
 ];

@@ -1,6 +1,6 @@
 import { describe, expectTypeOf, it } from 'vitest';
 import type { ControllerContextualAttribute, ControllerCustomContextualAttribute, ControllerDependencyResolution } from '../controller';
-import type { ControllerParameterAst, ControllerParameterAttributeAst } from '../../../compiler/scanner/lexer/controllerAstTypes';
+import type { ControllerParameterAst, ControllerParameterAttributeAst } from '../../../compiler/frontend/php/controllerAstTypes';
 
 describe('phase 36 contextual attribute semantic boundary', () => {
   it('keeps parameter attributes at AST boundary', () => {

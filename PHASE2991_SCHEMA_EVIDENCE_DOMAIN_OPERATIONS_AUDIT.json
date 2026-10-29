@@ -1,0 +1,84 @@
+{
+  "phase": 2991,
+  "scope": "schema evidence domain operation and source-to-CLI manifest boundary trace",
+  "passed": 15,
+  "total": 15,
+  "status": "structural checks passed; not a full build or end-to-end provenance proof",
+  "checks": [
+    {
+      "name": "inline-schema ADT uses domain-specific operation instead of generic callback",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "empty inline schema derives FormRequest-only schema",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "present inline schema derives combined FormRequest and inline schema",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "schema merge policy remains upstream-owned",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "source identity and inline validation provenance remain published",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "runtime authority is explicitly interface-typed and frozen",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "authority adds no exported function declaration",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "scanner runtime invokes the injected schema authority",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "action contract projects the completed upstream schema judgment",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "canonical controller publication carries the derived schema",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI scan uses its typed manifest scan operation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI composition wires the invocation semantic pipeline and inventory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "manifest serializer reads the final request-body schema",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "relation foundations remain absent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Phase 2991 audit command is registered",
+      "passed": true,
+      "detail": ""
+    }
+  ]
+}

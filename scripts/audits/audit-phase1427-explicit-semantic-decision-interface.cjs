@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/semanticDecisionInterface.ts');
 const algebra = read('packages/core/src/types/upstream/semanticDecisionAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const test = read('packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1427.test.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [

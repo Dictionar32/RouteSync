@@ -3,10 +3,10 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const lowerer = read('packages/core/src/compiler/scanner/upstream/routeManifestLowerer.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
 const sourceScanner = read('packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts');
 const collections = read('packages/core/src/types/upstream/collections.ts');
-const relations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const relations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const result = {
   phase: 839,
   canonicalRouteBundle: 'RouteScanner::scanCanonicalBundle',

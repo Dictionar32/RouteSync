@@ -1,0 +1,66 @@
+{
+  "phase": 3072,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — statement-boundary domain operations",
+  "status": "PASS",
+  "passed": 17,
+  "total": 17,
+  "checks": {
+    "genericContinuationRemovedFromBoundaryDomain": true,
+    "genericHandlerBundleRemoved": true,
+    "delimiterRecognitionIsClosedTypedJudgment": true,
+    "statementPositionIsClosedTypedJudgment": true,
+    "cursorValidityUsesDomainOperation": true,
+    "canonicalRuntimeExportIsInterfaceFirst": true,
+    "compatibilityRuntimeExportIsInterfaceFirst": true,
+    "noExportedFunctionDeclarations": true,
+    "terminatorRuntimeFixture": true,
+    "endOfInputRuntimeFixture": true,
+    "unexpectedCloserRuntimeFixture": true,
+    "mismatchedCloserRuntimeFixture": true,
+    "unclosedDelimiterRuntimeFixture": true,
+    "invalidCursorRuntimeFixture": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedFileTranspilesWithoutSyntaxDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": [
+    {
+      "phase": "phase3071",
+      "status": "PASS",
+      "output": "PASS genericContinueWithRemovedFromScannerControl\nPASS genericResultHandlerContractsRemoved\nPASS tokenPresenceHasExplicitDomainOperation\nPASS keywordRecognitionHasNamedDomainCatalog\nPASS semanticOutcomeIsClosedAndTyped\nPASS noMapSideChannel\nPASS publicRuntimeContractRemainsInterfaceFirst\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedFileTranspilesWithoutSyntaxDiagnostics\n10/10 checks passed\nphase3070 regression: PASS\nphase3069 regression: PASS\nphase3068 regression: PASS\n"
+    },
+    {
+      "phase": "phase3070",
+      "status": "PASS",
+      "output": "PASS genericInputHandlersRemoved\nPASS explicitInputDomainOperationsDeclared\nPASS notProvidedInputOwnsDomainOperation\nPASS providedInputOwnsDomainOperation\nPASS authorityConsumesInputOperationDirectly\nPASS noGenericHandlerDispatchRemainsInJudge\nPASS notProvidedOutcomePreserved\nPASS providedOutcomePreservesBindingAndIntegration\nPASS inputContractVersionUpdated\nPASS exportedFactoryRemainsInterfaceFirst\nPASS exportedRuntimeAuthorityIsInterfaceFirstObject\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n14/14 checks passed\nphase3069 regression: PASS\nphase3068 regression: PASS\nphase3067 regression: PASS\n"
+    },
+    {
+      "phase": "phase3069",
+      "status": "PASS",
+      "output": "PASS genericIntegrationHandlerContractRemoved\nPASS integrationOutcomesOwnExplicitControllerJudgmentOperation\nPASS operationHasDomainSpecificReturnType\nPASS integrationContractVersionBumped\nPASS contractNamesDomainOperation\nPASS notConnectedOutcomeInstallsOperation\nPASS sourceBindingRejectedOutcomeInstallsOperation\nPASS completeOutcomeInstallsOperation\nPASS blockedOutcomeInstallsOperation\nPASS operationPreservesExactResponseAndSourceIdentity\nPASS operationIsInterfaceFirstExport\nPASS consumerUsesDomainOperationInsteadOfGenericDispatch\nPASS oldGenericHandlerIsNotRetainedInIntegrationModule\nPASS canonicalIdentityAuthorityStillOwnsIdentityRelation\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n17/17 checks passed\nPhase 3068 regression: PASS\nPhase 3067 regression: PASS\n"
+    }
+  ],
+  "runtimeTrace": [
+    "The PHP AST runtime consumes scannerStatementBoundaryContractAlgebra.resolve with source tokens and a token-to-source-spelling operation.",
+    "The canonical upstream algebra classifies each token position into a typed statement-position judgment and a typed delimiter judgment.",
+    "The traversal resolves terminator, end-of-input, unexpected closer, mismatched closer, and unclosed delimiter outcomes while preserving token evidence.",
+    "The compatibility facade translates the canonical judgment into the existing index/state result contract for legacy consumers.",
+    "The CLI manifest scan continues through the existing AST/runtime and manifest composition path; this phase does not claim a full PHP-to-manifest end-to-end execution."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "runtimeFixtures": "PASS",
+    "changedFileSyntaxTranspile": "PASS",
+    "regressions": "PASS",
+    "strictTypeScript": "NOT_CLAIMED — transpilation and direct runtime fixtures do not establish whole-program type correctness.",
+    "vitest": "NOT_RUN — workspace Vitest installation is incomplete; equivalent focused boundary fixtures were executed against transpiled output.",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "globalPrimitiveElimination": "NOT_CLAIMED — the compatibility facade intentionally retains its legacy cursor/index contract; parser traversal mechanics remain explicit and typed."
+  },
+  "remainingRisks": [
+    "Legacy compatibility API still represents cursor and delimiter-state information using primitive values; removing these would require a consumer migration rather than a local rewrite.",
+    "The runtime scan still uses ordinary branching to execute traversal. Semantic categories are modeled as closed judgments, but this is not a claim that every control-flow operator has been eliminated.",
+    "The source-project identity boundary and complete PHP → CLI → manifest/IR path remain outside this phase."
+  ]
+}

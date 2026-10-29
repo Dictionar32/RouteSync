@@ -14,7 +14,7 @@ Runtime is an executor/query surface, not the owner of semantic reasoning. The u
 7. The adapter's `reaches` query checks membership in the already-closed `judgment.closure`. It does not invoke the reasoning authority, recompute closure, or construct a new judgment.
 
 ## Legacy analyzer
-`packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` still contains a deprecated compatibility facade that calls the canonical authority. In the traced production TypeScript tree it has no production importers; references are confined to tests. It is not part of the runtime path. Do not confuse “legacy file contains reasoning” with “runtime invokes reasoning”; keep its test-only status guarded by the audit.
+`packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` still contains a deprecated compatibility facade that calls the canonical authority. In the traced production TypeScript tree it has no production importers; references are confined to tests. It is not part of the runtime path. Do not confuse “legacy file contains reasoning” with “runtime invokes reasoning”; keep its test-only status guarded by the audit.
 
 ## Type/interface evolution
 

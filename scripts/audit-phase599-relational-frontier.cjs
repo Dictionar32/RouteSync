@@ -24,8 +24,8 @@ walk(root);
 const countFile = f => { const sf=ts.createSourceFile(f,fs.readFileSync(f,'utf8'),ts.ScriptTarget.Latest,true); const c=Object.fromEntries(Object.keys(banned).map(k=>[k,0])); const v=n=>{ for(const [k,p] of Object.entries(banned)) if(p(n)) c[k]++; ts.forEachChild(n,v); }; v(sf); return c; };
 const global=Object.fromEntries(Object.keys(banned).map(k=>[k,0]));
 const selectedRel = [
-  'compiler/scanner/LaravelSourceLexer.ts','compiler/scanner/lexer/tokenizer.ts','compiler/scanner/lexer/astClassifierEvidence.ts',
-  'compiler/scanner/upstream/route/routeGroupSemanticResolver.ts','compiler/scanner/subscanners/InvalidationResolver.ts',
+  'compiler/scanner/LaravelSourceLexer.ts','compiler/frontend/php/tokenizer.ts','compiler/frontend/php/astClassifierEvidence.ts',
+  'compiler/scanner/upstream/route/routeGroupSemanticResolver.ts','compiler/scanner/operations/InvalidationResolver.ts',
   'compiler/analysis/ssa/ssaBuilder.ts','compiler/analysis/ssa/ssaRenamer.ts','compiler/analysis/ssa/ssaRepresentation.ts',
   'compiler/analysis/ssa/renamer/blockInstructionRenamer.ts','compiler/analysis/ssa/renamer/variableVersionScope.ts',
   'compiler/analysis/loop/loopDetector.ts','compiler/analysis/loop/loopNormalizer.ts','compiler/analysis/loop/loopTypes.ts',

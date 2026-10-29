@@ -19,7 +19,7 @@ const checks = [
   ['model relation composition operation is explicitly interface-typed', /export const modelRelationInterfaceFrom: ModelRelationInterfaceFactoryInterface/.test(relation)],
   ['primary-key reconciliation operation is explicitly interface-typed', /export const reconcileModelPrimaryKey: ModelPrimaryKeyReconciliationOperationInterface/.test(primaryKey)],
   ['canonical Laravel scanner remains wired through LaravelModelScannerInterface', /export const laravelModelScanner: LaravelModelScannerInterface/.test(scanner)],
-  ['model producer operation is integrated into the canonical scanner through the upstream interface', !/subscanners\/modelProducer/.test(scanner) && /export const modelProducer: ModelProducerInterface/.test(scanner)],
+  ['model producer operation is integrated into the canonical scanner through the upstream interface', !/operations\/modelProducer/.test(scanner) && /export const modelProducer: ModelProducerInterface/.test(scanner)],
   ['model producer operation contract is upstream-owned', /export interface ModelProducerInterface/.test(producerContract) && /export interface ModelProducerInput/.test(producerContract)],
   ['audit is registered in package scripts', Boolean(packageJson.scripts['audit:phase2477-model-upstream-relation-independence'])],
 ];

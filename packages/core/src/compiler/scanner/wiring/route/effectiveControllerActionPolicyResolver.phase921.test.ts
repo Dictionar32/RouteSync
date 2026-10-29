@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { resolveEffectiveControllerActionPolicy } from './effectiveControllerActionPolicyResolver';
-import { routeMiddlewareReference } from './resourceMiddlewareProjection';
+import { effectiveControllerActionPolicyOperations } from './effectiveControllerActionPolicyResolver';
+import { routeResourceMiddlewareOperations } from './resourceMiddlewareProjection';
 import type { ControllerAuthorizationRelation, ControllerInheritanceRelation, ControllerPolicyRelation } from '../../../../types/upstream/controller';
 
 const middleware = (name: string, scope: 'all' | 'only' | 'except' = 'all'): RouteMiddlewareContract => ({
-  middleware: routeMiddlewareReference(name),
+  middleware: routeResourceMiddlewareOperations.reference(name),
   source: { kind: 'controller_class' as const },
   scope: scope === 'all' ? { kind: 'all' as const } : { kind: scope, actions: [createActionName('store')] },
 });
 
 describe('Phase 921 effective controller action policy', () => {
   it('normalizes scoped controller middleware without making it a dataflow fact', () => {
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: {
@@ -28,13 +28,13 @@ describe('Phase 921 effective controller action policy', () => {
   });
 
   it('applies middleware exclusions before producing the effective policy', () => {
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: {
         declarations: [middleware('auth'), middleware('audit', 'only')],
         exclusions: [{
-          middleware: routeMiddlewareReference('auth'),
+          middleware: routeResourceMiddlewareOperations.reference('auth'),
           source: { kind: 'controller_method' },
           scope: { kind: 'only', actions: [createActionName('store')] },
         }],
@@ -48,7 +48,7 @@ describe('Phase 921 effective controller action policy', () => {
 
 describe('Phase 921 evidence aggregation', () => {
   it('aggregates route, resource, and controller policy before action resolution', () => {
-    const policy = resolveEffectiveControllerActionPolicyFromEvidence({
+    const policy = effectiveControllerActionPolicyOperations.resolveFromEvidence({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       evidence: {
@@ -79,7 +79,7 @@ const inheritance = (child: string, parent: string): ControllerInheritanceRelati
 describe('Phase 922 closed policy resolution', () => {
   it('resolves inherited middleware and filters authorization to the concrete action', () => {
     const inheritedMiddleware: ControllerPolicyRelation = middleware('audit');
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },

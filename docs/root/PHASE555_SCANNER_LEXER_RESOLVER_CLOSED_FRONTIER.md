@@ -1,10 +1,10 @@
 # Phase 555 — Scanner/Lexer/Resolver Closed Frontier
 
-Phase 555 closes the remaining AST-detected host-language leak found while auditing the broader scanner/lexer/resolver surface after Phase 554.
+Phase 555 closes the remaining AST-detected host-language leak found while auditing the broader frontend/php/resolver surface after Phase 554.
 
 ## Change
 
-`packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts`
+`packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts`
 
 The relation-program child projection no longer uses an `as unknown`-style assertion. The child collection is represented through the existing erased relation-program storage boundary.
 

@@ -10,12 +10,14 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import chalk from 'chalk';
-import { createLaravelSourceProjectIdentity } from '@routesync/core';
+import { createLaravelSourceProjectIdentity, stringValue, laravelRouteSourceSelectionAuthority, sourceFileIdentityFactory } from '@routesync/core';
 import { controllerInvocationManifestBuilder } from '../../parsers/php/controllerInvocationManifestComposition';
 
 import type { RouteManifest, RouteSemanticFlow } from '@routesync/core';
+import type { ControllerInvocationManifest } from '../../parsers/php/controllerInvocationManifestCompositionInterface';
+import { controllerInvocationManifestCompositionInputFactory } from '../../parsers/php/controllerInvocationManifestCompositionInterface'
 
-export async function auditManifestDrift(manifestOption: string, cwd: string = process.cwd()): Promise<void> {
+const auditManifestDrift = async (manifestOption: string, cwd: string = process.cwd()): Promise<void> => {
   const manifestPath = path.resolve(cwd, manifestOption);
   if (!fs.existsSync(manifestPath)) {
     console.error(chalk.red(`Manifest file not found: ${manifestPath}`));
@@ -23,26 +25,11 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
   }
 
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as RouteManifest;
-  const freshManifest = await controllerInvocationManifestBuilder.build(createLaravelSourceProjectIdentity(cwd), Object.freeze({ kind: 'laravel_route_source_selection_default' }));
-  if (freshManifest.kind === 'controller_invocation_manifest_source_documents_blocked') {
-    const blockedSources = freshManifest.blockedReads.map(read => read.blocker.kind + ': ' + read.sourceFile.value.value);
-    console.error('Controller source document acquisition blocked:', blockedSources.join(', '));
-    process.exitCode = 1;
-    return;
-  }
-  if (freshManifest.kind === 'controller_invocation_manifest_source_discovery_blocked') {
-    console.error(chalk.red(`Manifest drift audit blocked by controller-source discovery: ${JSON.stringify(freshManifest.discovery.blocker)}`));
-    process.exit(1);
-  }
-  if (freshManifest.kind === 'controller_invocation_manifest_inventory_rejected') {
-    console.error(chalk.red(`Manifest drift audit blocked by controller-inventory judgment: ${JSON.stringify(freshManifest.inventory.rejections)}`));
-    process.exit(1);
-  }
-  if (freshManifest.kind === 'manifest_builder_blocked') {
-    console.error(chalk.red(`Manifest drift audit blocked by upstream manifest judgment: ${JSON.stringify(freshManifest)}`));
-    process.exit(1);
-  }
-  const completeFreshManifest = freshManifest.manifest;
+  const freshManifest = await controllerInvocationManifestBuilder.build(controllerInvocationManifestCompositionInputFactory.create(
+    createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create(cwd))),
+    laravelRouteSourceSelectionAuthority.defaultIntent(),
+  ));
+  const completeFreshManifest = freshManifest.requireCompleteManifest();
   const routes = completeFreshManifest.ast.ast.routeFlows;
 
   const hashRoute = (r: RouteSemanticFlow): string => {
@@ -100,4 +87,12 @@ export async function auditManifestDrift(manifestOption: string, cwd: string = p
 
   console.log(chalk.green('\n✔ Manifest matches current Laravel routes. No drift detected.\n'));
   process.exit(0);
+};
+
+export interface ManifestDriftAuditOperationsInterface {
+  readonly audit: (manifestOption: string, cwd?: string) => Promise<void>;
 }
+
+export const manifestDriftAuditOperations: ManifestDriftAuditOperationsInterface = Object.freeze({
+  audit: auditManifestDrift,
+});

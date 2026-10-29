@@ -4,11 +4,11 @@ const ts = require('typescript');
 
 const root = path.resolve(__dirname, '..');
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/memberCastsParser.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts',
-  'packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts',
+  'packages/core/src/compiler/frontend/php/controllerReturnParser.ts',
+  'packages/core/src/compiler/scanner/operations/model/memberCastsParser.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/routeSecurity.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/ChannelScanner.ts',
 ];
 const forbidden = [
   ['if', /\bif\b/g], ['for', /\bfor\b/g], ['while', /\bwhile\b/g], ['switch', /\bswitch\b/g],

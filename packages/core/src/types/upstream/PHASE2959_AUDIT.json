@@ -1,0 +1,31 @@
+{
+  "phase": 2959,
+  "title": "Explicit Domain Rejection Tuple",
+  "checks": {
+    "namedDomainRejectionTuple": true,
+    "genericNonEmptyHelperRetired": true,
+    "projectBindingRejectionUsesDomainTuple": true,
+    "completenessRejectionUsesDomainTuple": true,
+    "duplicateSourceRejectionUsesDomainTuple": true,
+    "correspondenceRejectionUsesDomainTuple": true,
+    "existingAuthorityContractsReused": true,
+    "cliManifestTraceReferenced": true,
+    "upstreamCollectionsEmpty": true
+  },
+  "verification": {
+    "phase2959Audit": "11/11 passed",
+    "phase2958Audit": "10/10 passed",
+    "phase2935Audit": "passed",
+    "typescriptSyntaxTranspile": "passed",
+    "vitest": "attempted for two focused files; command timed out before results",
+    "fullTypecheck": "not run",
+    "fullBuild": "not run",
+    "cliE2E": "not run"
+  },
+  "knownGaps": [
+    "judgeJudgmentCorrespondence still materializes source files with toSourceFiles()",
+    "orphan judgments still use flatMap()",
+    "correspondence still branches on rejections.length",
+    "repository-wide export function migration remains incomplete"
+  ]
+}

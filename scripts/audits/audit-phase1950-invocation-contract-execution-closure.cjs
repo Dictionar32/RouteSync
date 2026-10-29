@@ -7,8 +7,8 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 const contract = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const authority = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
-const bodyParser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
+const bodyParser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const dataflowAuthority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const integration = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts');
 const packageJson = JSON.parse(read('package.json'));

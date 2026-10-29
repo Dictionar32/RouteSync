@@ -1,18 +1,18 @@
 import { laravelModelScanner } from "../laravelModelScanner";
-import { laravelResponseScanner } from "../subscanners/responseScanner";
+import { laravelResponseScanner } from "../operations/responseScanner";
 import { createModelSymbolTable } from "../symbols/ModelSymbolTable";
 import type { LaravelSourceAstPipelineDependenciesInterface } from "../../../types/upstream/laravelSourceAstPipelineInterface";
-import { resourceSourceEvidenceScanner, type ResourceScanEvidence } from '../lexer/resourceSourceEvidence';
+import { resourceSourceEvidenceScanner, type ResourceScanEvidence } from '../../frontend/php/resourceSourceEvidence';
 import { sourceAstSemanticProducer } from "../../semantic/sourceAstSemanticProducer";
 import { laravelControllerScanner } from './laravelControllerScanner';
 import { laravelRouteScanner } from './laravelRouteScanner';
 import { laravelResourceScanner } from './laravelResourceScanner';
 import { laravelFormRequestScanner } from "../laravelFormRequestScanner";
-import { schemaProducer as canonicalSchemaProducer } from '../subscanners/schemaProducer';
-import { scanMigrationAsts } from '../subscanners/migrationAstCanonical';
+import { schemaProducer as canonicalSchemaProducer } from '../operations/schemaProducer';
+import { migrationAstScanningOperation } from '../operations/migrationAstCanonical';
 import { laravelAttributeScanner } from '../laravelAttributeScanner';
-import { scanDtoDeclarationInventory } from '../subscanners/dtoAstCanonical';
-import { queryProducer as canonicalQueryProducer } from '../subscanners/queryProducer';
+import { dtoDeclarationInventoryScanningOperation } from '../operations/dtoAstCanonical';
+import { queryProducer as canonicalQueryProducer } from '../operations/queryProducer';
 import type { LaravelMigrationScannerInterface } from '../../../types/upstream/laravelMigrationScannerInterface';
 import type { LaravelAttributeScannerInterface } from '../../../types/upstream/laravelAttributeScannerInterface';
 import type { LaravelDtoDeclarationInventoryScannerInterface } from '../../../types/upstream/laravelDtoDeclarationInventoryScannerInterface';
@@ -20,9 +20,9 @@ import type { LaravelQueryProducerInterface } from '../../../types/upstream/lara
 import type { LaravelServiceScannerInterface } from '../../../types/upstream/laravelServiceScannerInterface';
 import type { LaravelMiddlewareScannerInterface } from '../../../types/upstream/laravelMiddlewareScannerInterface';
 import type { LaravelProviderScannerInterface } from '../../../types/upstream/laravelProviderScannerInterface';
-import { scanServiceBundle } from '../subscanners/serviceAstCanonical';
-import { scanMiddlewareAsts } from '../subscanners/middlewareAstCanonical';
-import { scanProviderBundle } from '../subscanners/providerAstCanonical';
+import { serviceAstScanningOperation } from '../operations/serviceAstCanonical';
+import { middlewareAstScanningOperation } from '../operations/middlewareAstCanonical';
+import { providerAstScanningOperation } from '../operations/providerAstCanonical';
 
 /** Canonical composition root selects the existing scanner contracts and binding authority once. */
 export const laravelSourceAstPipelineDependencies: LaravelSourceAstPipelineDependenciesInterface<ResourceScanEvidence> = Object.freeze({
@@ -31,14 +31,14 @@ export const laravelSourceAstPipelineDependencies: LaravelSourceAstPipelineDepen
         kind: 'laravel_migration_scanner',
         closed: true,
         contractVersion: 1,
-        scan: scanMigrationAsts,
+        scan: migrationAstScanningOperation.scan,
     }) satisfies LaravelMigrationScannerInterface,
     attributeScanner: laravelAttributeScanner satisfies LaravelAttributeScannerInterface,
     dtoDeclarationInventoryScanner: Object.freeze({
         kind: 'laravel_dto_declaration_inventory_scanner',
         closed: true,
         contractVersion: 1,
-        scan: scanDtoDeclarationInventory,
+        scan: dtoDeclarationInventoryScanningOperation.scanInventory,
     }) satisfies LaravelDtoDeclarationInventoryScannerInterface,
     queryProducer: Object.freeze({
         kind: 'laravel_query_producer',
@@ -51,7 +51,7 @@ export const laravelSourceAstPipelineDependencies: LaravelSourceAstPipelineDepen
         closed: true,
         contractVersion: 1,
         scan: async input => {
-            const bundle = await scanServiceBundle(input.sourceProject, createModelSymbolTable(input.models));
+            const bundle = await serviceAstScanningOperation.scanBundle(input.sourceProject, createModelSymbolTable(input.models));
             return Object.freeze({
                 kind: 'laravel_service_scan_judgment',
                 closed: true,
@@ -72,7 +72,7 @@ export const laravelSourceAstPipelineDependencies: LaravelSourceAstPipelineDepen
             kind: 'laravel_middleware_scan_judgment',
             closed: true,
             contractVersion: 1,
-            asts: await scanMiddlewareAsts(sourceProject),
+            asts: await middlewareAstScanningOperation.scan(sourceProject),
         }),
     }) satisfies LaravelMiddlewareScannerInterface,
     providerScanner: Object.freeze({
@@ -80,7 +80,7 @@ export const laravelSourceAstPipelineDependencies: LaravelSourceAstPipelineDepen
         closed: true,
         contractVersion: 1,
         scan: async sourceProject => {
-            const bundle = await scanProviderBundle(sourceProject);
+            const bundle = await providerAstScanningOperation.scanBundle(sourceProject);
             return Object.freeze({
                 kind: 'laravel_provider_scan_judgment',
                 closed: true,

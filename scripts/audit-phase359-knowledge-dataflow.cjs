@@ -1,8 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
-const canonical = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts');
-const legacy = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowModel.ts');
+const canonical = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts');
+const legacy = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowModel.ts');
 const source = fs.readFileSync(canonical, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 const rules = {
   if: /\bif\s*\(/, for: /\bfor\s*\(/, while: /\bwhile\s*\(/, switch: /\bswitch\s*\(/,

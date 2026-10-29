@@ -194,23 +194,35 @@ export const routeCapabilityAuthorityAlgebra: RouteCapabilityAuthorityAlgebraInt
  * The authority wrapper delegates every operation; it does not reclassify
  * actions, routes, or evidence.
  */
-export function createRouteCapabilityAuthority(
-  algebra: RouteCapabilityAuthorityAlgebraInterface,
-): RouteCapabilityAuthorityInterface {
-  return Object.freeze({
-    authority: 'upstream' as const,
-    closed: true as const,
-    resolve: (input: RouteCapabilityCrudInput): RouteCrudRoleResolution => algebra.resolve(input),
-    crudRoleFromAction: (action: ActionName): CrudRole => algebra.crudRoleFromAction(action),
-    crudRoleFromRoute: (method: HttpMethod, path: RoutePath): CrudRole => algebra.crudRoleFromRoute(method, path),
-    crudRoleResolution: (method: HttpMethod, path: RoutePath, action?: ActionName, explicit?: CrudRole): RouteCrudRoleResolution =>
-      algebra.crudRoleResolution(method, path, action, explicit),
-    capabilityEvidence: (role: CrudRole, explicit?: CrudRole, action?: ActionName, method?: HttpMethod, path?: RoutePath): RouteCapabilityCrudEvidence =>
-      algebra.capabilityEvidence(role, explicit, action, method, path),
-  });
+/** Factory contract keeps authority composition available as a typed runtime operation. */
+export interface RouteCapabilityAuthorityFactoryInterface {
+  readonly kind: 'route_capability_authority_factory';
+  readonly contractVersion: 1;
+  readonly create: (algebra: RouteCapabilityAuthorityAlgebraInterface) => RouteCapabilityAuthorityInterface;
 }
 
+const createRouteCapabilityAuthorityImpl = (
+  algebra: RouteCapabilityAuthorityAlgebraInterface,
+): RouteCapabilityAuthorityInterface => Object.freeze({
+  authority: 'upstream' as const,
+  closed: true as const,
+  resolve: (input: RouteCapabilityCrudInput): RouteCrudRoleResolution => algebra.resolve(input),
+  crudRoleFromAction: (action: ActionName): CrudRole => algebra.crudRoleFromAction(action),
+  crudRoleFromRoute: (method: HttpMethod, path: RoutePath): CrudRole => algebra.crudRoleFromRoute(method, path),
+  crudRoleResolution: (method: HttpMethod, path: RoutePath, action?: ActionName, explicit?: CrudRole): RouteCrudRoleResolution =>
+    algebra.crudRoleResolution(method, path, action, explicit),
+  capabilityEvidence: (role: CrudRole, explicit?: CrudRole, action?: ActionName, method?: HttpMethod, path?: RoutePath): RouteCapabilityCrudEvidence =>
+    algebra.capabilityEvidence(role, explicit, action, method, path),
+});
+
+/** Public factory operation; the algebra remains the sole classifier. */
+export const routeCapabilityAuthorityFactory: RouteCapabilityAuthorityFactoryInterface = Object.freeze({
+  kind: 'route_capability_authority_factory',
+  contractVersion: 1,
+  create: createRouteCapabilityAuthorityImpl,
+});
+
 /** Canonical production authority; the algebra remains the sole classifier. */
-export const routeCapabilityAuthority: RouteCapabilityAuthorityInterface = createRouteCapabilityAuthority(
+export const routeCapabilityAuthority: RouteCapabilityAuthorityInterface = routeCapabilityAuthorityFactory.create(
   routeCapabilityAuthorityAlgebra,
 );

@@ -1537,10 +1537,10 @@ var init_astSemanticStageInterfaceAlgebra = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts
+// packages/core/src/compiler/frontend/php/phpAstCoreTypes.ts
 var createSourceOffset, createSourceLineNumber, createAstIdentifier;
 var init_phpAstCoreTypes = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts"() {
+  "packages/core/src/compiler/frontend/php/phpAstCoreTypes.ts"() {
     "use strict";
     init_semanticRelations();
     createSourceOffset = (value) => Math.max(0, value);
@@ -1555,23 +1555,23 @@ var init_phpAstCoreTypes = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts
+// packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts
 var init_phpAstExpressionTypes = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts"() {
+  "packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts"() {
     "use strict";
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpAstStatementTypes.ts
+// packages/core/src/compiler/frontend/php/phpAstStatementTypes.ts
 var init_phpAstStatementTypes = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpAstStatementTypes.ts"() {
+  "packages/core/src/compiler/frontend/php/phpAstStatementTypes.ts"() {
     "use strict";
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpAstTypes.ts
+// packages/core/src/compiler/frontend/php/phpAstTypes.ts
 var init_phpAstTypes = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpAstTypes.ts"() {
+  "packages/core/src/compiler/frontend/php/phpAstTypes.ts"() {
     "use strict";
     init_phpAstCoreTypes();
     init_phpAstExpressionTypes();
@@ -1579,10 +1579,10 @@ var init_phpAstTypes = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpAstFactory.ts
+// packages/core/src/compiler/frontend/php/phpAstFactory.ts
 var PhpAstFactory;
 var init_phpAstFactory = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts"() {
+  "packages/core/src/compiler/frontend/php/phpAstFactory.ts"() {
     "use strict";
     init_semanticRelations();
     PhpAstFactory = Object.freeze({
@@ -1733,7 +1733,7 @@ var init_phpAstFactory = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts
+// packages/core/src/compiler/frontend/php/phpAstAlgebra.ts
 function matchPhpAstValue(value, visitor2) {
   return dispatchPhpAstValueKind(value, "literal", visitor2.literal, () => dispatchPhpAstValueKind(value, "interpolated_string", visitor2.interpolatedString, () => dispatchPhpAstValueKind(value, "resource_single", visitor2.resourceSingle, () => dispatchPhpAstValueKind(value, "resource_collection", visitor2.resourceCollection, () => dispatchPhpAstValueKind(value, "method_chain", visitor2.methodChain, () => dispatchPhpAstValueKind(value, "property_access", visitor2.propertyAccess, () => dispatchPhpAstValueKind(value, "array_access", visitor2.arrayAccess, () => dispatchPhpAstValueKind(value, "function_call", visitor2.functionCall, () => dispatchPhpAstValueKind(value, "callable_call", visitor2.callableCall, () => dispatchPhpAstValueKind(value, "variable_reference", visitor2.variableReference, () => dispatchPhpAstValueKind(value, "magic_constant", visitor2.magicConstant, () => dispatchPhpAstValueKind(value, "constant_reference", visitor2.constantReference, () => dispatchPhpAstValueKind(value, "short_ternary", visitor2.shortTernary, () => dispatchPhpAstValueKind(value, "null_coalesce", visitor2.nullCoalesce, () => dispatchPhpAstValueKind(value, "binary_expression", visitor2.binaryExpression, () => dispatchPhpAstValueKind(value, "unary_expression", visitor2.unaryExpression, () => dispatchPhpAstValueKind(value, "cast_expression", visitor2.castExpression, () => dispatchPhpAstValueKind(value, "ternary_expression", visitor2.ternaryExpression, () => dispatchPhpAstValueKind(value, "nested_array", visitor2.nestedArray, () => dispatchPhpAstValueKind(value, "static_call", visitor2.staticCall, () => dispatchPhpAstValueKind(value, "class_reference", visitor2.classReference, () => dispatchPhpAstValueKind(value, "class_constant", visitor2.classConstant, () => dispatchPhpAstValueKind(value, "construct", visitor2.construct, () => dispatchPhpAstValueKind(value, "assignment_expression", visitor2.assignmentExpression, () => dispatchPhpAstValueKind(value, "dynamic_construct", visitor2.dynamicConstruct, () => dispatchPhpAstValueKind(value, "anonymous_class_construct", visitor2.anonymousClassConstruct, () => dispatchPhpAstValueKind(value, "instance_of", visitor2.instanceOf, () => dispatchPhpAstValueKind(value, "closure", visitor2.closure, () => dispatchPhpAstValueKind(value, "arrow_function", visitor2.arrowFunction, () => dispatchPhpAstValueKind(value, "match_expression", visitor2.matchExpression, () => dispatchPhpAstValueKind(value, "unsupported", visitor2.unsupported, () => {
     throw Error("Unreachable PhpAstValue kind");
@@ -1761,7 +1761,7 @@ function matchPhpStatement(value, visitor2) {
 }
 var dispatchPhpAstValueKind, dispatchPhpPropertyPathKind, dispatchPhpAccessModeKind, dispatchPhpMatchArmKind, dispatchPhpStatementKind;
 var init_phpAstAlgebra = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts"() {
+  "packages/core/src/compiler/frontend/php/phpAstAlgebra.ts"() {
     "use strict";
     init_relationalSequence();
     init_semanticRelations();
@@ -1793,9 +1793,9 @@ var init_phpAstAlgebra = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/PhpAst.ts
+// packages/core/src/compiler/frontend/php/PhpAst.ts
 var init_PhpAst = __esm({
-  "packages/core/src/compiler/scanner/lexer/PhpAst.ts"() {
+  "packages/core/src/compiler/frontend/php/PhpAst.ts"() {
     "use strict";
     init_phpAstTypes();
     init_phpAstFactory();
@@ -1803,10 +1803,10 @@ var init_PhpAst = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/SourceStream.ts
+// packages/core/src/compiler/frontend/php/SourceStream.ts
 var createSourceStream;
 var init_SourceStream = __esm({
-  "packages/core/src/compiler/scanner/lexer/SourceStream.ts"() {
+  "packages/core/src/compiler/frontend/php/SourceStream.ts"() {
     "use strict";
     init_PhpAst();
     init_semanticRelations();
@@ -1894,7 +1894,7 @@ var init_SourceStream = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts
+// packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts
 function isDigit(c) {
   return relationTextCharIn(c, DIGIT_CHARS.split(""));
 }
@@ -1914,7 +1914,7 @@ function resolveIdentifierType(val) {
 }
 var KEYWORDS, lowerKeywordCatalog, DIGIT_CHARS, IDENT_START_CHARS;
 var init_characterPredicates = __esm({
-  "packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts"() {
+  "packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts"() {
     "use strict";
     init_semanticRelations();
     init_relationalSequence();
@@ -1933,7 +1933,7 @@ var init_characterPredicates = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts
+// packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts
 function scanSlash(stream, tokenMark, nextChar, tokens) {
   dispatch(slashTransitions, nextChar, stream.peek(2), action(1, "DIVIDE"))(stream, tokenMark, tokens);
 }
@@ -1992,7 +1992,7 @@ function scanWordOrUnknown(stream, tokenMark, char, tokens) {
 }
 var emit2, action, slashTransitions, dispatch, questionTransitions, colonTransitions, equalsTransitions, dotTransitions, minusTransitions, simpleOperators;
 var init_compoundScanners = __esm({
-  "packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts"() {
+  "packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts"() {
     "use strict";
     init_characterPredicates();
     init_relationalSequence();
@@ -2049,22 +2049,22 @@ var init_compoundScanners = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/tokenize/index.ts
+// packages/core/src/compiler/frontend/php/tokenize/index.ts
 var init_tokenize = __esm({
-  "packages/core/src/compiler/scanner/lexer/tokenize/index.ts"() {
+  "packages/core/src/compiler/frontend/php/tokenize/index.ts"() {
     "use strict";
     init_characterPredicates();
     init_compoundScanners();
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/tokenizer.ts
+// packages/core/src/compiler/frontend/php/tokenizer.ts
 function tokenizePhpSource(source10) {
   return scanClosure(createSourceStream(source10), []);
 }
 var emitEOF, advance, advanceLine, whitespaceAction, newlineAction, hashAction, slashAction, quoteAction, questionAction, colonAction, equalsAction, minusAction, dotAction, simpleOperatorAction, variableAction, numberAction, wordAction, punctuation, rules3, selectAction, scanClosure;
 var init_tokenizer = __esm({
-  "packages/core/src/compiler/scanner/lexer/tokenizer.ts"() {
+  "packages/core/src/compiler/frontend/php/tokenizer.ts"() {
     "use strict";
     init_PhpAst();
     init_SourceStream();
@@ -2468,7 +2468,7 @@ var init_semanticDataflowKnowledge = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticTypedRelation.ts
 function typedSelect(source10, predicate) {
   const visit4 = (index, output2) => relationOptionFold2(
     relationAt(source10.tuples, index),
@@ -2483,7 +2483,7 @@ function typedSelect(source10, predicate) {
 }
 var typedRelation, typedProject, typedDistinct;
 var init_semanticTypedRelation = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticTypedRelation.ts"() {
     "use strict";
     init_relationMembership();
     init_relationalSequence();
@@ -2511,10 +2511,10 @@ var init_semanticTypedRelation = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts
 var validate, semanticKnowledgeDataFlowWiring, validateSemanticKnowledgeDataFlow;
 var init_semanticKnowledgeDataFlowRelations = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts"() {
     "use strict";
     init_semanticDataflowKnowledge();
     init_relationMembership();
@@ -2553,10 +2553,10 @@ var init_semanticKnowledgeDataFlowRelations = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts
+// packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts
 var relationCase, createPhpAstExpressionProjector, PHP_SYNTAX_OPERATOR_SPELLINGS;
 var init_phpAstExpressionSyntaxEvidenceRegistry = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts"() {
     "use strict";
     init_semanticRelations();
     init_sequence();
@@ -2941,10 +2941,10 @@ var init_phpAstExpressionSyntaxEvidenceRegistry = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts
+// packages/core/src/compiler/frontend/php/phpAstStatementKinds.ts
 var PHP_STATEMENT_KINDS;
 var init_phpAstStatementKinds = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts"() {
+  "packages/core/src/compiler/frontend/php/phpAstStatementKinds.ts"() {
     "use strict";
     PHP_STATEMENT_KINDS = Object.freeze({
       conditional: "if_statement",
@@ -2956,10 +2956,10 @@ var init_phpAstStatementKinds = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/tokenEvidence.ts
+// packages/core/src/compiler/frontend/php/tokenEvidence.ts
 var tokenAt, tokenValueAt, tokenKindAt, tokenValueEquals, tokenKindEquals, tokenValueOr, tokenKindOr;
 var init_tokenEvidence = __esm({
-  "packages/core/src/compiler/scanner/lexer/tokenEvidence.ts"() {
+  "packages/core/src/compiler/frontend/php/tokenEvidence.ts"() {
     "use strict";
     init_relationalSequence();
     init_semanticRelations();
@@ -2977,7 +2977,7 @@ var init_tokenEvidence = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpMethodParser.ts
+// packages/core/src/compiler/frontend/php/phpMethodParser.ts
 function parsePhpMethod(source10, tokens, functionIndex) {
   return relationOptionFold2(
     tokenAt(tokens, functionIndex + 1),
@@ -3137,7 +3137,7 @@ function findMatching(tokens, index, open, close2, depth = 0) {
   });
 }
 var init_phpMethodParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts"() {
+  "packages/core/src/compiler/frontend/php/phpMethodParser.ts"() {
     "use strict";
     init_phpAstTypes();
     init_astClassifier();
@@ -3147,10 +3147,10 @@ var init_phpMethodParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts
+// packages/core/src/compiler/frontend/php/phpControlEvidence.ts
 var CONTROL_KEYWORDS, phpControlEvidence;
 var init_phpControlEvidence = __esm({
-  "packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts"() {
+  "packages/core/src/compiler/frontend/php/phpControlEvidence.ts"() {
     "use strict";
     init_semanticRelations();
     init_relationalSequence();
@@ -3171,7 +3171,7 @@ var init_phpControlEvidence = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts
+// packages/core/src/compiler/frontend/php/astClassifierEvidence.ts
 function classifyPhpBlock2(tokens) {
   return parseBlock(tokens);
 }
@@ -4191,7 +4191,7 @@ function lastIndexOf(tokens, value, index = relationCount(tokens) - 1) {
 }
 var nodeClassification, astClassificationRules, locateAstOption, isPhpIdentifierStart, isPhpIdentifierPart, phpIdentifierEnd, isPhpConstantIdentifier, findInterpolationStart, interpolationEnd, interpolationMatches, singleTokenCatalog;
 var init_astClassifierEvidence = __esm({
-  "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts"() {
+  "packages/core/src/compiler/frontend/php/astClassifierEvidence.ts"() {
     "use strict";
     init_phpAstExpressionSyntaxEvidenceRegistry();
     init_astSemanticStageInterfaceAlgebra();
@@ -4279,10 +4279,10 @@ var init_astClassifierEvidence = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts
+// packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts
 var modelFromReceiver, positionalArgumentsFromItems, positionalArguments, propertyArgument, relationArgument2, relationSegments, propertySegments, relationPathArgument, relationPathsFromArray, relationPathsFromExpressions, relationPathsArgument, sequenceFromExpressions, groupingTarget, queryGroupingFromExpressions, queryGrouping, relationAggregateCatalog, relationAggregateFunction, relationAggregate, orderingTarget, orderingDirection, queryJoinConstraint, joinDescriptor, queryJoinCatalog, argumentAt2, queryJoinTarget, queryJoin, queryOperationFromNamedMethod, queryColumnReferencesFromSequence, queryValidatedColumnReferencesFromSequence, queryColumnComparisonsFromSequence, relationRuleEntries, queryNamedMethodOperationCatalog, comparisonOperatorCatalog, comparisonOperator, modelStaticOperationCatalog, modelStaticOperationFromExpression, expressionArgumentRule, expressionArgumentCatalog, operationRule, operationCatalog, operationFromExpression, argumentExpressions, sequenceArgumentExpressions, sequenceObjectExpressions, sequenceMatchExpressions, sequenceExpressionValues, closureExpressionCatalog, closureExpressions, closureStatementCatalog, closureStatementExpressions, sequenceCatches, sequenceExpressions, forClauseCatalog, forClauseExpressions, arrayArgumentExpressions, arrayExpressionItems, queryDateRelativeCatalog, queryDateRelative, queryDatePartCatalog, queryDatePart, sequenceFromArray, queryChainOperations, subqueryRoleCatalog, subqueryRole, subqueryAlias, closureCaptureSequence, closureCaptureExpressions, subqueryCorrelation, nestedQueriesFromExpression, queryEvidenceProducer;
 var init_queryEvidenceProducer = __esm({
-  "packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts"() {
+  "packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts"() {
     "use strict";
     init_names();
     init_relationalSequence();
@@ -6141,10 +6141,10 @@ var init_semanticEvidenceRelations = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/astClassifier.ts
+// packages/core/src/compiler/frontend/php/astClassifier.ts
 var astClassificationRelation, classifyAstValue2, classifyAstTokens, classifyPhpBlock;
 var init_astClassifier = __esm({
-  "packages/core/src/compiler/scanner/lexer/astClassifier.ts"() {
+  "packages/core/src/compiler/frontend/php/astClassifier.ts"() {
     "use strict";
     init_semanticEvidenceRelations();
     init_astClassifierEvidence();
@@ -6159,14 +6159,14 @@ var init_astClassifier = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/arrayParser.ts
+// packages/core/src/compiler/frontend/php/arrayParser.ts
 function parsePhpArray(source10, tokens, startIndex = 0) {
   const opening = locateArrayOpening(tokens, startIndex);
   return relationOptionFold2(opening, () => ({ entries: [], endIndex: startIndex }), (index) => parseArrayBody(source10, tokens, index));
 }
 var some, none, locateArrayOpening, isArrayLiteralOpening, openingEnd, isSubscriptOpening, locateAfterSubscript, parseArrayBody, parseArrayEntry, parseArrayKey, parseArrayValue, isNestedArrayStart, parseScalarValue, locateValueEnd;
 var init_arrayParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/arrayParser.ts"() {
+  "packages/core/src/compiler/frontend/php/arrayParser.ts"() {
     "use strict";
     init_PhpAst();
     init_astClassifier();
@@ -6338,13 +6338,13 @@ var init_arrayParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts
+// packages/core/src/compiler/frontend/php/controllerReturnParser.ts
 function parseControllerReturns(source10, tokens) {
   return returnExpressions(source10, tokens);
 }
 var returnToken, collectExpression, classifyReturnExpression, returnExpressions;
 var init_controllerReturnParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts"() {
+  "packages/core/src/compiler/frontend/php/controllerReturnParser.ts"() {
     "use strict";
     init_astClassifier();
     init_semanticRelations();
@@ -6387,7 +6387,7 @@ var init_controllerReturnParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts
+// packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts
 function createValidationRuleLiteral(value) {
   return value;
 }
@@ -6401,32 +6401,32 @@ function createHttpErrorStatus(value) {
   );
 }
 var init_controllerBodyAstTypes = __esm({
-  "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts"() {
+  "packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts"() {
     "use strict";
     init_semanticRelations();
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRelationalCollections.ts
 var init_semanticRelationalCollections2 = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalCollections.ts"() {
     "use strict";
     init_semanticRelationalCollections();
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts
 var init_semanticRewriteEngine2 = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts"() {
     "use strict";
     init_semanticRewriteEngine();
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.ts
 var SEMANTIC_THEORY_SIGNATURES, signatureOf, validateTerm, validateSemanticTheoryFact, semanticTheoryFact;
 var init_semanticRelationTheory = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.ts"() {
     "use strict";
     init_semanticRelationalCollections2();
     init_semanticRewriteEngine2();
@@ -6493,10 +6493,10 @@ var init_semanticRelationTheory = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts
 var factProjectionTable, flowProjectionTable, projectFlow, compileSemanticEvidenceRelations;
 var init_semanticEvidenceRelationCompiler = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts"() {
     "use strict";
     init_relationMembership();
     init_sequence();
@@ -6579,10 +6579,10 @@ var init_semanticEvidenceRelationCompiler = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts
 var isVariable2, isAtom, resolve5, constraintHold, constraintsHold, constraintItems, relationKey3, solveSemanticConstraintProgram;
 var init_semanticConstraintCalculus = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts"() {
     "use strict";
     init_semanticRelationalCollections2();
     init_semanticRewriteEngine2();
@@ -6646,10 +6646,10 @@ var init_semanticConstraintCalculus = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts
 var isVariable3, validateSemanticRelationProgram, assertSemanticRelationProgram;
 var init_semanticRelationProgram = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts"() {
     "use strict";
     init_sequence();
     init_relationalSequence();
@@ -6738,10 +6738,10 @@ var init_semanticRelationProgram = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts
 var SEMANTIC_BEHAVIOR_SCHEMAS, variable, pattern, SEMANTIC_BEHAVIOR_RULES, SEMANTIC_BEHAVIOR_CONSTRAINT_RULES, SEMANTIC_BEHAVIOR_PROGRAM;
 var init_semanticRelationalBehaviorCatalog = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts"() {
     "use strict";
     init_semanticRelationProgram();
     SEMANTIC_BEHAVIOR_SCHEMAS = Object.freeze([
@@ -6862,10 +6862,10 @@ var init_semanticRelationalBehaviorCatalog = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts
 var solveSemanticBehavior;
 var init_semanticRelationalBehaviorKernel = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts"() {
     "use strict";
     init_sequence();
     init_relationalSequence();
@@ -6888,10 +6888,10 @@ var init_semanticRelationalBehaviorKernel = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticClosureEngine.ts
 var isCanonicalSemanticRelationName, relationKey4, canonicalize, closeCanonicalSemanticRelations;
 var init_semanticClosureEngine = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticClosureEngine.ts"() {
     "use strict";
     init_relationalSequence();
     init_semanticRelations();
@@ -6940,10 +6940,10 @@ var init_semanticClosureEngine = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.ts
 var buildSemanticCompilationArtifact;
 var init_semanticCompilationArtifact = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.ts"() {
     "use strict";
     init_semanticClosureEngine();
     buildSemanticCompilationArtifact = (relations, maxRounds = 64) => Object.freeze({
@@ -6952,7 +6952,7 @@ var init_semanticCompilationArtifact = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts
+// packages/core/src/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts
 function projectPhpStatementSyntaxEvidence(statement2, context) {
   const {
     base,
@@ -7167,7 +7167,7 @@ function projectPhpStatementSyntaxEvidence(statement2, context) {
 }
 var relationCase2;
 var init_phpAstStatementSyntaxEvidenceRegistry = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts"() {
     "use strict";
     init_semanticKnowledgeDataFlowRelations();
     init_phpAstAlgebra();
@@ -7179,7 +7179,7 @@ var init_phpAstStatementSyntaxEvidenceRegistry = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts
+// packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts
 function producePhpAstSemanticKnowledgeDataFlow(block, filePath = "<php-source>", evidenceProviderCode = "parser") {
   const evidenceSourceOf = (value) => sourceOf(value, filePath, evidenceProviderCode);
   const facts2 = [];
@@ -7354,7 +7354,7 @@ function producePhpAstSemanticKnowledgeDataFlow(block, filePath = "<php-source>"
 }
 var sourceOf, semanticOperator, semanticValueKind, semanticOutcomeRole, semanticAccessMode, semanticAssignmentOperator, semanticAssignmentReference, semanticBindingOrigin, semanticPredicateMeaning, semanticMatchMode, literalValue2;
 var init_phpAstSemanticKnowledgeDataFlowAdapter = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts"() {
     "use strict";
     init_sequence();
     init_semanticRelationalCollections2();
@@ -7399,22 +7399,22 @@ var init_phpAstSemanticKnowledgeDataFlowAdapter = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts
 var semanticKnowledgeEvidenceAdapter;
 var init_semanticKnowledgeEvidenceAdapter = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts"() {
     "use strict";
     semanticKnowledgeEvidenceAdapter = (produce) => Object.freeze({ produce });
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts
 function produceSemanticKnowledgeDataFlow(block, filePath = "<php-source>") {
   return phpAstSemanticKnowledgeEvidenceAdapter.produce(block, filePath);
 }
 var phpAstSemanticKnowledgeEvidenceAdapter;
 var init_semanticKnowledgeDataFlowProducer = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts"() {
     "use strict";
     init_phpAstSemanticKnowledgeDataFlowAdapter();
     init_semanticKnowledgeEvidenceAdapter();
@@ -7429,10 +7429,10 @@ var init_astMappingInterface = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts
+// packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts
 var source, rule, RESOURCE_SEMANTIC_MAPPING_RULES, semanticKind, resolveResourceSemanticKind, RESOURCE_STRUCTURAL_MAPPING_RULES, RESOURCE_ALL_MAPPING_RULES;
 var init_resourceSemanticMappingRelations = __esm({
-  "packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts"() {
+  "packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts"() {
     "use strict";
     init_astSemanticStageInterfaceAlgebra();
     init_astMappingInterface();
@@ -7573,7 +7573,7 @@ var init_resourceSemanticMappingRelations = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts
+// packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts
 function resolveStaticReceiver(classNameValue) {
   const frameworkReceiver = relationAny2([relationEqual2(classNameValue, "DB"), relationEqual2(classNameValue, "Attribute")]);
   const semantic3 = relationGate2(frameworkReceiver, () => resolveResourceSemanticKind(`static_receiver_${classNameValue}`), () => resolveResourceSemanticKind("static_receiver_class"));
@@ -7750,7 +7750,7 @@ function resolveParameterType(type, _resolveExpression, _file) {
 }
 var str, resolveStructuralKind, sourceSpanFromRange, variable2, property, method, functionName, className, resource2, sequence, cardinality, expressions, expressionArguments, binaryOperatorConstructors, unaryOperatorConstructors, castTypeConstructors, construct, assignmentOperatorConstructors, assignmentReferenceConstructors, constantName;
 var init_resourceUpstreamExpressionMappings = __esm({
-  "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts"() {
+  "packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts"() {
     "use strict";
     init_names();
     init_resourceSemanticMappingRelations();
@@ -7840,7 +7840,7 @@ var init_resourceUpstreamExpressionMappings = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts
+// packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionClosure.ts
 function resolveClosureBody(statements2, file, resolveExpression2) {
   return { kind: "statement_body", statements: sequence(relationProject2(statements2, (statement2) => resolveClosureStatement(statement2, file, resolveExpression2))) };
 }
@@ -7916,7 +7916,7 @@ function sourceSpanFromToken(file, token2) {
   return { kind: "source_span", file: createSourceFile(file), start: { kind: "number_value", value: token2.startOffset }, end: { kind: "number_value", value: token2.endOffset } };
 }
 var init_resourceUpstreamExpressionClosure = __esm({
-  "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts"() {
+  "packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionClosure.ts"() {
     "use strict";
     init_phpAstStatementKinds();
     init_names();
@@ -7927,7 +7927,7 @@ var init_resourceUpstreamExpressionClosure = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts
+// packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts
 function mapFunctionCall(name2, arguments_, source10, resolveChild, file) {
   const resolvedArguments = expressionArguments(resolveArguments(arguments_, resolveChild, file));
   const builtin = relationLookup2(builtinFunctionEntries, name2);
@@ -8159,7 +8159,7 @@ function mapAttributeFactoryAction(arguments_, resolveExpression2, file) {
 }
 var builtinFunctionEntries, sequence2;
 var init_resourceUpstreamExpressionCanonical = __esm({
-  "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts"() {
+  "packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts"() {
     "use strict";
     init_phpAstStatementKinds();
     init_semanticDecisionRewriteEngine();
@@ -8269,7 +8269,7 @@ var init_resourceUpstreamExpressionCanonical = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts
+// packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts
 function analyzeControllerDataflow(block, parameters2, parameterSemantics = [], filePath = "<php-source>") {
   const semanticKnowledgeDataFlow = produceSemanticKnowledgeDataFlow(block, filePath);
   const statementPayloads = collectStatementPayloads(block);
@@ -8347,7 +8347,7 @@ function identifierFromKnowledge(model4, id) {
 }
 var canonicalDefinition, sameSpan;
 var init_controllerDataflowAnalyzer = __esm({
-  "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts"() {
+  "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts"() {
     "use strict";
     init_phpAstTypes();
     init_phpAstCoreTypes();
@@ -8386,7 +8386,7 @@ var init_controllerDataflowAnalyzer = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts
+// packages/core/src/compiler/frontend/php/controllerBodyParser.ts
 function parseControllerBody(source10, tokens, parameters2, parameterSemantics = [], filePath = "<php-source>") {
   const state = relationFold(
     tokens,
@@ -8548,7 +8548,7 @@ function requireStringArrayKey(key2) {
 }
 var emptyControllerParseState;
 var init_controllerBodyParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts"() {
+  "packages/core/src/compiler/frontend/php/controllerBodyParser.ts"() {
     "use strict";
     init_phpAstTypes();
     init_arrayParser();
@@ -8563,7 +8563,7 @@ var init_controllerBodyParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts
+// packages/core/src/compiler/frontend/php/controllerMethodParser.ts
 function parseControllerMethod(source10, tokens, functionIndex, filePath = "<php-source>") {
   const nameToken = tokens[relationAdvanceIndex(functionIndex, 1)];
   const bodyStart = findBodyStart2(tokens, relationAdvanceIndex(functionIndex, 2));
@@ -8770,7 +8770,7 @@ function findAttributeEnd(tokens, start, limit) {
 }
 var tokenValueOr2, parameterSemanticEntry, controllerMethodVisibility, findControllerMethodAttributeStart, parseControllerMethodAttributes, controllerMethodStorage, parseControllerMethodVisibility, parameterTypeCatalog;
 var init_controllerMethodParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts"() {
+  "packages/core/src/compiler/frontend/php/controllerMethodParser.ts"() {
     "use strict";
     init_astClassifier();
     init_phpAstTypes();
@@ -8831,7 +8831,7 @@ var init_controllerMethodParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts
+// packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts
 function parseControllerDeclaration(source10, tokens, className9, filePath = "<php-source>") {
   const classIndex = relationIndexOf(tokens, (token2) => relationEqual2(token2.value, "class"));
   const attributeStart = relationGate2(classIndex >= 0, () => relationIndexOf(relationSlice(tokens, 0, classIndex), (token2) => relationEqual2(token2.value, "#")), () => -1);
@@ -8864,7 +8864,7 @@ function collectFunctionIndexes(tokens, index, output2) {
 }
 var parseDeclaredInterfaces;
 var init_controllerDeclarationParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts"() {
+  "packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts"() {
     "use strict";
     init_phpAstTypes();
     init_relationalSequence();
@@ -8888,7 +8888,7 @@ var init_controllerDeclarationParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts
+// packages/core/src/compiler/frontend/php/responseDtoDeclarationParser.ts
 function parseResponseDtoDeclaration(tokens, className9) {
   const state = relationFold(
     tokens,
@@ -8928,7 +8928,7 @@ function parsePropertyType(value) {
 }
 var primitivePropertyTypes, tokenAt3, publicProperty;
 var init_responseDtoDeclarationParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts"() {
+  "packages/core/src/compiler/frontend/php/responseDtoDeclarationParser.ts"() {
     "use strict";
     init_phpAstTypes();
     init_names();
@@ -8960,7 +8960,7 @@ var init_responseDtoDeclarationParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts
+// packages/core/src/compiler/frontend/php/modelDeclarationParser.ts
 function parseModelDeclaration(tokens) {
   const classIndex = relationIndexOf(tokens, (item) => relationEqual2(item.value, "class"));
   const classToken = token(tokens, classIndex);
@@ -8997,7 +8997,7 @@ function parseModelDeclaration(tokens) {
 }
 var token, matching, offset, line, visibilityKind, visibility, inheritanceOf, returnExpressions2, scanClassMembers;
 var init_modelDeclarationParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts"() {
+  "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts"() {
     "use strict";
     init_phpMethodParser();
     init_phpAstTypes();
@@ -9161,9 +9161,9 @@ var init_modelDeclarationParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/index.ts
+// packages/core/src/compiler/frontend/php/index.ts
 var init_lexer = __esm({
-  "packages/core/src/compiler/scanner/lexer/index.ts"() {
+  "packages/core/src/compiler/frontend/php/index.ts"() {
     "use strict";
     init_PhpAst();
     init_tokenizer();
@@ -9177,10 +9177,10 @@ var init_lexer = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts
+// packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts
 var createRoutePathLiteral, createMiddlewareNameAst, createRoutePrefixAst, createRouteNamePrefixAst, createRouteControllerAst, createRouteDomainAst, createRouteConstraintParameterAst, createRouteConstraintValueAst;
 var init_routeDeclarationAst = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts"() {
     "use strict";
     createRoutePathLiteral = (value) => value;
     createMiddlewareNameAst = (value) => value;
@@ -9193,10 +9193,10 @@ var init_routeDeclarationAst = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts
+// packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts
 var routeMethodValues, routeConstraintMethodValues, resourceMethodValues, operationValues, tokenKindValues, VALUE_FACTS, SYNTAX_KIND_GROUPS, SYNTAX_OPERATION_GROUPS, lookupValue, lexicalFact, factFromRouteMethod, factFromConstraintMethod, factFromResourceMethod, factCandidates, tokenSyntaxFact, tokenMappedValue, tokenOperation, tokenRouteMethod, tokenRouteConstraintMethod, tokenHasKind, tokenHasOperation, TOKEN_VALUE_FACTS;
 var init_syntaxValue = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts"() {
     "use strict";
     init_semanticRelations();
     init_relationMembership();
@@ -9341,10 +9341,10 @@ var init_syntaxValue = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts
+// packages/core/src/compiler/frontend/php/routeAst/delimiterNavigation.ts
 var DELIMITER_RELATIONS, relationOf2, isOpeningRelation, isClosingRelation, emptyDelimiterState, boundaryOf, stackAfterClose, transitionOpening, transitionClosing, transitionOther, delimiterTransition, isTopLevelDelimiter, closesCurrentDelimiter;
 var init_delimiterNavigation = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/delimiterNavigation.ts"() {
     "use strict";
     init_semanticRelations();
     init_relationalSequence();
@@ -9391,10 +9391,10 @@ var init_delimiterNavigation = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts
+// packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts
 var absent3, present3, fromCursorValue, presenceValue, tokenAt4, delimiterInput, tokenHasKindAt, tokenSyntaxFactAt, predicateAt, tokenPresence, createTokenCursor, TokenCursor, cursorValue;
 var init_relationalSyntaxCursor = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts"() {
     "use strict";
     init_syntaxValue();
     init_delimiterNavigation();
@@ -9664,10 +9664,10 @@ var init_relationalSyntaxCursor = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts
+// packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts
 var STRING_ARROW_STRING_PATTERN, matchesStringArrowString, presenceFromValue, rangeTraversal, mapPresent, syntaxRange;
 var init_syntaxRange = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts"() {
     "use strict";
     init_relationalSyntaxCursor();
     init_presence();
@@ -9751,14 +9751,14 @@ var init_syntaxRange = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts
+// packages/core/src/compiler/frontend/php/routeAst/routeBindingDeclarationAst.ts
 function parseRouteBindingDeclarations(path20) {
   const parameterPattern = /\{(?<parameter>[A-Za-z_][A-Za-z0-9_]*)(?::(?<key>[A-Za-z_][A-Za-z0-9_]*))?(?<optional>\?)?\}/g;
   return Object.freeze(expandRelation([...path20.matchAll(parameterPattern)], (match) => presenceFold(presenceOf(match.groups?.parameter), () => [], (parameter2) => [createRouteBindingDeclarationAst(parameter2, match.groups?.key)])));
 }
 var createRouteBindingDeclarationAst;
 var init_routeBindingDeclarationAst = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/routeBindingDeclarationAst.ts"() {
     "use strict";
     init_sequence();
     init_presence();
@@ -9769,10 +9769,10 @@ var init_routeBindingDeclarationAst = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts
 var ROUTE_METHODS, ROUTE_CONSTRAINT_METHODS, RESOURCE_METHODS, catalogLookup, catalogValue2, catalogRequired, ROUTE_PATH_TOKEN_POLICIES, ROUTE_PATH_EXPECTATION_READERS, routePathTokenFact, isRoutePathToken, allArgumentSpans, noActionSpans, firstArgumentSpans, trailingArgumentSpans, RESOURCE_MIDDLEWARE_ARGUMENT_POLICIES, spanStrings, collectSpanStrings, resourceMiddlewareSyntax, routeTargetDefault, routeTargetMatch, resolveRouteTargetMethodResolver, ROUTE_TARGET_METHOD_RESOLVERS, routeTargetMethodSet, RESOURCE_MIDDLEWARE_SCOPE, resourceMiddlewareScope, tokenStringValue, arrayArgumentValues, plainConstraint, stringConstraint, arrayConstraint, ROUTE_CONSTRAINT_STRATEGIES, routeConstraintFact, routeConstraintArgumentAst, emptyRouteGroupState, GROUP_BINDING_SCOPE, GROUP_PROPERTIES, routeGroupBindingScope, routeGroupProperty, groupConstraintArgument, groupConstraintFact, routeGroupConstraint, ROUTE_GROUP_OPERATIONS, pushRouteGroup, popRouteGroup, retainRouteGroup, ROUTE_GROUP_TRANSITIONS, advanceRouteGroupState, groupStringValues, firstGroupString, emptyGroupDelta, GROUP_PENDING_FACTS, groupPendingFact, routeGroupPendingState, targetCandidate, noTargetCandidates, targetDescriptionCandidates, targetIdentifier, targetDescriptionFallback, routeTargetDescription, routeTargetAst, DEFAULT_BINDING_SCOPES, lastOr, lastPresence, mergeRouteGroupStates, routeInvocationRequirements, routeInvocationFact, routeInvocationMethod;
 var init_semanticRouteSyntaxRelations = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts"() {
     "use strict";
     init_semanticRelations();
     init_relationMembership();
@@ -10115,10 +10115,10 @@ var init_semanticRouteSyntaxRelations = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts
+// packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts
 var continueScan, stepState, syntaxScan;
 var init_syntaxScan = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts"() {
     "use strict";
     init_semanticRelations();
     init_sequence();
@@ -10144,10 +10144,10 @@ var init_syntaxScan = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts
+// packages/core/src/compiler/frontend/php/routeAst/routeResourceDeclarationAst.ts
 var buildRouteResourceMiddlewareAst, RESOURCE_MIDDLEWARE_AST_BUILDERS, createRouteResourceMiddlewareAst;
 var init_routeResourceDeclarationAst = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/routeResourceDeclarationAst.ts"() {
     "use strict";
     init_sequence();
     init_semanticRelations();
@@ -10175,7 +10175,7 @@ var init_routeResourceDeclarationAst = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts
+// packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts
 function parseRouteDeclarations(tokens) {
   let groups = Object.freeze([]);
   let pending = emptyRouteGroupState();
@@ -10329,7 +10329,7 @@ function hasMissingHandler(start, end) {
 }
 var presenceValues, presentDeclaration, presenceBoolean;
 var init_routeDeclarationParser = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts"() {
     "use strict";
     init_sequence();
     init_routeDeclarationAst();
@@ -10350,9 +10350,9 @@ var init_routeDeclarationParser = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts
 var init_semanticStateDataFlow = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts"() {
     "use strict";
     init_semanticRelations();
     init_semanticKnowledgeDataFlowRelations();
@@ -10361,9 +10361,9 @@ var init_semanticStateDataFlow = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts
 var init_semanticVersionedStateDataFlowRelations = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts"() {
     "use strict";
     init_sequence();
     init_relationalSequence();
@@ -10374,10 +10374,10 @@ var init_semanticVersionedStateDataFlowRelations = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts
 var interproceduralRewrite, CALLABLE_BOUNDARY_REWRITES;
 var init_semanticInterproceduralDataFlowRelations = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts"() {
     "use strict";
     init_sequence();
     init_relationalSequence();
@@ -10395,10 +10395,10 @@ var init_semanticInterproceduralDataFlowRelations = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts
 var identityRewrite, IDENTITY_REWRITES;
 var init_semanticObjectIdentityRelations = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts"() {
     "use strict";
     init_sequence();
     init_semanticKnowledgeDataFlowRelations();
@@ -10435,10 +10435,10 @@ var init_semanticObjectIdentityRelations = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts
 var semanticTextTerm;
 var init_semanticRewriteInterface = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts"() {
     "use strict";
     init_semanticRewriteEngine2();
     init_semanticRelations();
@@ -10447,25 +10447,25 @@ var init_semanticRewriteInterface = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.ts
 var init_semanticCanonicalRelationProjection = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.ts"() {
     "use strict";
     init_semanticEvidenceRelationCompiler();
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts
 var init_semanticRelationalExecutionPlan2 = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts"() {
     "use strict";
     init_semanticRelationalExecutionPlan();
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts
+// packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts
 var init_syntaxJudgmentRewriteEngine = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts"() {
     "use strict";
     init_relationalSequence();
     init_relationMembership();
@@ -10473,9 +10473,9 @@ var init_syntaxJudgmentRewriteEngine = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts
+// packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts
 var init_semanticConstraintHandlingRules = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts"() {
     "use strict";
     init_relationMembership();
     init_semanticRelationalCollections2();
@@ -10485,10 +10485,10 @@ var init_semanticConstraintHandlingRules = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts
+// packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts
 var ROUTE_SYNTAX_RELATIONS, CONTRACT, ROUTE_SYNTAX_PROOF_RELATIONS;
 var init_routeSyntaxSemanticInterface = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts"() {
     "use strict";
     init_semanticRouteSyntaxRelations();
     init_semanticRelations();
@@ -10518,9 +10518,9 @@ var init_routeSyntaxSemanticInterface = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/lexer/routeAst/index.ts
+// packages/core/src/compiler/frontend/php/routeAst/index.ts
 var init_routeAst = __esm({
-  "packages/core/src/compiler/scanner/lexer/routeAst/index.ts"() {
+  "packages/core/src/compiler/frontend/php/routeAst/index.ts"() {
     "use strict";
     init_routeDeclarationAst();
     init_routeDeclarationParser();
@@ -10575,7 +10575,7 @@ var init_LaravelSourceLexer = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/scannerUtils.ts
+// packages/core/src/compiler/scanner/operations/scannerUtils.ts
 async function collectPhpFiles(dir) {
   return relationGate2(
     fs.existsSync(dir),
@@ -10624,7 +10624,7 @@ function readSourceTextSync(file) {
 }
 var import_path, fs, sourceTextCache, cachedSourceText, phpEntry;
 var init_scannerUtils = __esm({
-  "packages/core/src/compiler/scanner/subscanners/scannerUtils.ts"() {
+  "packages/core/src/compiler/scanner/operations/scannerUtils.ts"() {
     "use strict";
     import_path = __toESM(require("path"));
     fs = __toESM(require("node:fs"));
@@ -10640,7 +10640,7 @@ var init_scannerUtils = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts
+// packages/core/src/compiler/scanner/operations/serviceSourceStatements.ts
 function lookupMethodResult(index, name2) {
   const entries4 = relationFold(index.items, [], (output2, item) => [...output2, { name: item.method, result: item.result }]);
   return relationOptionFold2(relationLookup2(relationProject2(entries4, (item) => [item.name.value.value, item.result]), name2.value.value), () => ({ kind: "none" }), (value) => ({ kind: "some", value }));
@@ -10811,7 +10811,7 @@ function serviceSourceStatements(values, file, parameterTypes, models, methodRes
 }
 var stringValue13, variableName2, exceptionName3, sequence16, sourceSpanFromToken3, isReference, isResolvedProperty, isCallableValue, statementResolverCatalog;
 var init_serviceSourceStatements = __esm({
-  "packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts"() {
+  "packages/core/src/compiler/scanner/operations/serviceSourceStatements.ts"() {
     "use strict";
     init_phpAstStatementKinds();
     init_resourceUpstreamExpressionCanonical();
@@ -10841,14 +10841,14 @@ var init_serviceSourceStatements = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/serviceProducer.ts
+// packages/core/src/compiler/scanner/operations/serviceProducer.ts
 var serviceProducer_exports = {};
 __export(serviceProducer_exports, {
   serviceProducer: () => serviceProducer
 });
 var serviceProducer;
 var init_serviceProducer = __esm({
-  "packages/core/src/compiler/scanner/subscanners/serviceProducer.ts"() {
+  "packages/core/src/compiler/scanner/operations/serviceProducer.ts"() {
     "use strict";
     init_serviceAstCanonical();
     serviceProducer = {
@@ -10858,7 +10858,7 @@ var init_serviceProducer = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts
 function typeExpression2(type) {
   const candidates = [
     { id: "bool", value: { kind: "primitive", value: { kind: "boolean" } }, requirements: [requirement("primitive-bool", relationAll3([Object.is(type.kind, "primitive"), Object.is(type.name, "bool")]))] },
@@ -11091,7 +11091,7 @@ async function scanServiceBundle(sourceProject, models) {
 }
 var path13, import_node_util, stringValue14, sequence17, source5, expressionChildCatalog, statementExpressionCatalog, returnFlowCatalog;
 var init_serviceAstCanonical = __esm({
-  "packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts"() {
+  "packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts"() {
     "use strict";
     init_relationMembership();
     init_phpAstStatementKinds();
@@ -11171,14 +11171,14 @@ var init_serviceAstCanonical = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/providerProducer.ts
+// packages/core/src/compiler/scanner/operations/providerProducer.ts
 var providerProducer_exports = {};
 __export(providerProducer_exports, {
   providerProducer: () => providerProducer
 });
 var providerProducer;
 var init_providerProducer = __esm({
-  "packages/core/src/compiler/scanner/subscanners/providerProducer.ts"() {
+  "packages/core/src/compiler/scanner/operations/providerProducer.ts"() {
     "use strict";
     init_providerAstCanonical();
     providerProducer = {
@@ -11188,7 +11188,7 @@ var init_providerProducer = __esm({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/providerAstCanonical.ts
 function className7(tokens) {
   const seek = (index) => relationGate2(
     relationAdvanceIndex(index, 1) >= tokens.length,
@@ -11546,7 +11546,7 @@ async function scanProviderBundle(sourceProject) {
 }
 var path16, stringValue17, source8, providerContainerOperationNames, collectClosureList, CLOSURE_STATEMENT_HANDLERS;
 var init_providerAstCanonical = __esm({
-  "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts"() {
+  "packages/core/src/compiler/scanner/operations/providerAstCanonical.ts"() {
     "use strict";
     path16 = __toESM(require("node:path"));
     init_scannerUtils();
@@ -22352,7 +22352,7 @@ var MapperGeneratorPass = class _MapperGeneratorPass {
 // packages/core/src/types/upstream/semanticMapping.ts
 init_relationalSequence();
 
-// packages/core/src/compiler/scanner/subscanners/request-deriver/semanticMappingDeriver.ts
+// packages/core/src/compiler/scanner/operations/request-deriver/semanticMappingDeriver.ts
 init_relationalSequence();
 
 // packages/core/src/compiler/diagnostics/Diagnostic.ts
@@ -22875,7 +22875,7 @@ init_relationMembership();
 // packages/core/src/compiler/index.ts
 init_LaravelSourceLexer();
 
-// packages/core/src/compiler/scanner/descriptors/types.ts
+// packages/core/src/compiler/scanner/operations/domain-model/types.ts
 var LaravelValidationType = Object.freeze({
   String: "string",
   Number: "number",
@@ -22885,7 +22885,7 @@ var LaravelValidationType = Object.freeze({
   Date: "date"
 });
 
-// packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts
+// packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts
 init_names();
 init_semanticValues();
 
@@ -23025,7 +23025,7 @@ var RequestFieldMeaningFactory = Object.freeze({
   fromSemanticType: resolve6
 });
 
-// packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts
+// packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts
 init_relationalSequence();
 init_semanticRelations();
 init_relationMembership();
@@ -23424,7 +23424,7 @@ var RequestFieldPresenceFactory = Object.freeze({
   unspecified: () => unspecified
 });
 
-// packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts
+// packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts
 init_semanticValues();
 init_relationalSequence();
 init_semanticDecisionRewriteEngine();
@@ -23623,7 +23623,7 @@ function resolvePresence(validation) {
   );
 }
 
-// packages/core/src/compiler/scanner/descriptors/validation/validationTreeBuilder.ts
+// packages/core/src/compiler/scanner/operations/domain-model/validation/validationTreeBuilder.ts
 var ValidationTreeBuilder = Object.freeze({
   buildTree: (ruleSet) => ruleSet.tree
 });
@@ -23735,7 +23735,7 @@ function inferType(name2, bindingField) {
   );
 }
 
-// packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts
+// packages/core/src/compiler/scanner/operations/domain-model/channel/patternCompiler.ts
 init_relationalSequence();
 init_semanticRelations();
 function compileBroadcastRuntimePattern(pattern2, parameters2) {
@@ -23747,7 +23747,7 @@ function compileBroadcastRuntimePattern(pattern2, parameters2) {
   });
 }
 
-// packages/core/src/compiler/scanner/descriptors/channel/channelFactories.ts
+// packages/core/src/compiler/scanner/operations/domain-model/channel/channelFactories.ts
 init_relationalSequence();
 var createDescriptor = (params) => Object.freeze({ ...params });
 function createBroadcastChannel({
@@ -23771,10 +23771,10 @@ function createBroadcastChannel({
   });
 }
 
-// packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts
+// packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts
 init_relationalSequence();
 
-// packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionTypes.ts
 init_semanticValues();
 init_relationalSequence();
 init_semanticRelations();
@@ -23791,7 +23791,7 @@ function buildRouteHandler(controllerName5, actionName3) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts
+// packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts
 init_semanticValues();
 init_relationalSequence();
 init_relationMembership();
@@ -23881,7 +23881,7 @@ function resolveStaticCallOrigin(value) {
   return tableCandidate;
 }
 
-// packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionDescriptor.ts
 init_semanticValues();
 var createControllerActionDescriptor = (params) => Object.freeze({
   controllerName: params.controllerName,
@@ -23935,7 +23935,7 @@ var ScannedControllerActionDescriptor = Object.freeze({
   }
 });
 
-// packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/formFieldDescriptor.ts
 init_semanticValues();
 init_semanticRelations();
 init_relationalSequence();
@@ -23972,7 +23972,7 @@ var ScannedFormFieldDescriptor = Object.freeze({
   }
 });
 
-// packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/formActionDescriptor.ts
 var createFormActionDescriptor = ({ name: name2, fields }) => Object.freeze({
   name: name2,
   fields: Object.freeze([...fields])
@@ -23986,7 +23986,7 @@ var ScannedFormActionDescriptor = Object.freeze({
   }
 });
 
-// packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/requestTypeDescriptor.ts
 var createRequestTypeDescriptor = ({ identity: identity3, source: source10, actions, response }) => Object.freeze({
   identity: Object.freeze(identity3),
   source: Object.freeze(source10),
@@ -24012,7 +24012,7 @@ var ScannedRequestTypeDescriptor = Object.freeze({
   }
 });
 
-// packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts
 init_relationalSequence();
 
 // packages/core/src/compiler/ir/response/responseTransportVocabulary.ts
@@ -24060,16 +24060,16 @@ init_relationalSequence();
 init_relationMembership();
 init_phpAstStatementKinds();
 
-// packages/core/src/compiler/scanner/subscanners/index.ts
+// packages/core/src/compiler/scanner/operations/index.ts
 init_scannerUtils();
 
-// packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts
+// packages/core/src/compiler/scanner/operations/ChannelScanner.ts
 init_scannerUtils();
 var import_path2 = __toESM(require("path"));
 var fs2 = __toESM(require("node:fs"));
 init_LaravelSourceLexer();
 
-// packages/core/src/compiler/scanner/subscanners/channelProducer.ts
+// packages/core/src/compiler/scanner/operations/channelProducer.ts
 init_ast();
 init_names();
 init_relationalSequence();
@@ -24092,7 +24092,7 @@ var channelProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts
+// packages/core/src/compiler/scanner/operations/ChannelScanner.ts
 init_semanticRelations();
 init_relationalSequence();
 var source2 = (file, token2) => ({
@@ -24173,7 +24173,7 @@ var ChannelScanner = class _ChannelScanner {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts
+// packages/core/src/compiler/scanner/operations/ControllerScanner.ts
 init_relationMembership();
 init_relationalSequence();
 init_names();
@@ -24181,7 +24181,7 @@ init_scannerUtils();
 var import_path5 = __toESM(require("path"));
 init_LaravelSourceLexer();
 
-// packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts
 init_phpAstStatementKinds();
 init_resourceUpstreamExpressionCanonical();
 init_resourceUpstreamExpressionMappings();
@@ -24773,7 +24773,7 @@ var createSemanticDataflowInput = (node, source10, knowledge, producer) => {
   return semanticDataflowInputProducer.create(evidence2);
 };
 
-// packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts
 var relationCase3 = (value, key2, cases, fallback) => relationOptionFold2(relationFirstOption(Object.entries(cases), ([candidate2]) => relationEqual2(candidate2, key2(value))), () => fallback(value), ([, branch]) => branch(value));
 var stringValue9 = (value) => ({ kind: "string_value", value });
 var variableName = (value) => ({ kind: "variable_name", value: stringValue9(value) });
@@ -25520,14 +25520,14 @@ function controllerActionFromMethod(method4, controllerName5, file, response, de
   return action2;
 }
 
-// packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts
+// packages/core/src/compiler/scanner/operations/ControllerScanner.ts
 init_phpAstTypes();
 init_scannerUtils();
 
-// packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts
+// packages/core/src/compiler/scanner/operations/controller/responseDetector.ts
 init_LaravelSourceLexer();
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts
+// packages/core/src/compiler/scanner/operations/resource/resourceModelKnowledgeDataFlow.ts
 init_presence();
 init_semanticRelations();
 init_relationalSequence();
@@ -25558,7 +25558,7 @@ var resourceModelResolutionFor = (dataFlow, resource4) => relationOptionFold2(
   (fact) => present(fact)
 );
 
-// packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts
+// packages/core/src/compiler/scanner/operations/ResourceScanner.ts
 init_scannerUtils();
 init_relationalSequence();
 init_semanticRelations();
@@ -25864,7 +25864,7 @@ init_phpAstAlgebra();
 init_semanticRelations();
 init_relationalSequence();
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceExpressionOperator.ts
+// packages/core/src/compiler/scanner/operations/resource/resourceExpressionOperator.ts
 init_relationalSequence();
 function mapResourceBinaryOperator(kind) {
   const table2 = [
@@ -27002,7 +27002,7 @@ function bindField({
 // packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts
 init_ast();
 
-// packages/core/src/compiler/scanner/subscanners/expressionAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/expressionAstCanonical.ts
 init_ast();
 init_names();
 init_names();
@@ -27074,7 +27074,7 @@ function expressionAstFromPhpAst(value, expression3, origin2, file) {
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/semanticTypeCanonical.ts
+// packages/core/src/compiler/scanner/operations/model/semanticTypeCanonical.ts
 init_relationalSequence();
 var str2 = (value) => ({ kind: "string_value", value });
 var sequence7 = (items5) => relationFoldRight2(items5, { kind: "empty" }, (head, tail) => ({ kind: "cons", head, tail }));
@@ -27108,7 +27108,7 @@ var semanticType = (value) => semanticHandlers[value.kind](value);
 var typeExpressions = (values) => ({ kind: "type_expressions", items: sequence7(relationProject2(values, semanticType)) });
 var genericParameters = (values) => ({ kind: "type_parameters", items: sequence7(relationProject2(values, (value) => ({ kind: "type_parameter", name: { kind: "variable_name", value: str2(value.name) }, type: semanticType(value.type), source: sourceSpan("", 0) }))) });
 
-// packages/core/src/compiler/scanner/subscanners/resource/resourceFieldProducer.ts
+// packages/core/src/compiler/scanner/operations/resource/resourceFieldProducer.ts
 init_semanticRelations();
 init_relationalSequence();
 var stringValue10 = (value) => ({ kind: "string_value", value });
@@ -27334,7 +27334,7 @@ function matchStructuralFields(fieldNames, modelSymbolTable) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts
+// packages/core/src/compiler/scanner/operations/controller/resourceDataflowAggregator.ts
 init_semanticRelations();
 init_relationalSequence();
 function findControllerResourceBinding(dataflow, resourceName2) {
@@ -27694,15 +27694,15 @@ var SemanticResourceBinder = class {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/resourceProducer.ts
+// packages/core/src/compiler/scanner/operations/resourceProducer.ts
 init_ast();
 
-// packages/core/src/compiler/scanner/subscanners/model/propertyProducer.ts
+// packages/core/src/compiler/scanner/operations/model/propertyProducer.ts
 init_semanticRelations();
 init_relationalSequence();
 init_names();
 
-// packages/core/src/compiler/scanner/subscanners/expressionProducer.ts
+// packages/core/src/compiler/scanner/operations/expressionProducer.ts
 init_resourceUpstreamExpressionCanonical();
 var expressionFromPhpAst = (syntax, file) => mapResourcePhpAstToUpstream(syntax, file);
 var expressionProducer = {
@@ -27720,7 +27720,7 @@ var expressionProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/model/propertyProducer.ts
+// packages/core/src/compiler/scanner/operations/model/propertyProducer.ts
 var ABSENCE_TYPE = ["n", "u", "l", "l"].join("");
 var BOTTOM_TYPE = ["n", "e", "v", "e", "r"].join("");
 var splitTopLevel3 = (value, delimiter, index = 0, depth = 0, start = 0, output2 = []) => relationGate2(
@@ -27840,7 +27840,7 @@ var propertyProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/resourceProducer.ts
+// packages/core/src/compiler/scanner/operations/resourceProducer.ts
 init_resourceUpstreamExpressionCanonical();
 init_resourceUpstreamExpressionMappings();
 init_names();
@@ -28116,7 +28116,7 @@ function seq(items5, index = 0) {
   return relationGate2(index >= items5.length, () => ({ kind: "empty" }), () => ({ kind: "cons", head: items5[index], tail: seq(items5, index + 1) }));
 }
 
-// packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts
+// packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts
 init_presence();
 init_semanticRelations();
 init_relationalSequence();
@@ -28214,10 +28214,10 @@ function propagateRelationEdges(relationEdges, initialResolutions, modelSymbolTa
   return Object.freeze({ kind: "resource_model_knowledge_data_flow", relations, resolutions: Object.freeze(closure.value.resolutions) });
 }
 
-// packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts
+// packages/core/src/compiler/scanner/operations/ResourceScanner.ts
 init_resourceUpstreamExpressionCanonical();
 
-// packages/core/src/compiler/scanner/subscanners/model/modelPropertyAstParser.ts
+// packages/core/src/compiler/scanner/operations/model/modelPropertyAstParser.ts
 init_lexer();
 init_semanticRelations();
 init_relationalSequence();
@@ -28303,7 +28303,7 @@ function parseModelPropertyAsts(tokens) {
   return Object.freeze(state.properties);
 }
 
-// packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts
+// packages/core/src/compiler/scanner/operations/ResourceScanner.ts
 var ResourceScanner = class _ResourceScanner {
   static async scanResourceFiles(sourceProject, modelSymbolTable, controllerDataflowMap) {
     const sourceRoot = sourceProject.root.value.value;
@@ -28643,10 +28643,10 @@ function requireStringArrayKey2(entry2) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts
+// packages/core/src/compiler/scanner/operations/controller/responseDetector.ts
 init_semanticValues();
 
-// packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts
+// packages/core/src/compiler/scanner/operations/controller/resourceInvocationDetector.ts
 init_astClassifier();
 init_semanticValues();
 init_relationalSequence();
@@ -28654,7 +28654,7 @@ init_tokenEvidence();
 init_semanticRelations();
 init_semanticDecisionRewriteEngine();
 
-// packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts
+// packages/core/src/compiler/scanner/operations/controller/responseDetector.ts
 init_relationalSequence();
 init_semanticRelations();
 init_tokenEvidence();
@@ -28662,24 +28662,24 @@ init_semanticDecisionRewriteEngine();
 var modelCollectionMethods = Object.freeze([["all", true], ["paginate", true], ["get", true], ["cursor", true]]);
 var modelSingleMethods = Object.freeze([["find", true], ["findOrFail", true], ["first", true], ["firstOrFail", true], ["create", true]]);
 
-// packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts
+// packages/core/src/compiler/scanner/operations/controller/actionScanner.ts
 init_relationMembership();
 init_relationalSequence();
 init_semanticRelations();
 
-// packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts
 init_relationMembership();
 init_semanticValues();
 init_names();
 init_resourceUpstreamExpressionCanonical();
 
-// packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts
+// packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts
 var fs3 = __toESM(require("node:fs"));
 var import_path4 = __toESM(require("path"));
 init_relationMembership();
 init_semanticValues();
 
-// packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts
+// packages/core/src/compiler/scanner/operations/controller/responseDtoReader.ts
 init_scannerUtils();
 init_LaravelSourceLexer();
 init_phpAstTypes();
@@ -28806,7 +28806,7 @@ function primitiveKind(kind) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts
+// packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts
 init_relationalSequence();
 function resolveResponseAttributeAst(attribute, sourceProject, returned) {
   const className9 = attribute.className;
@@ -28911,7 +28911,7 @@ function relationAnyEqual(values, value) {
   return relationSelect(values, (member) => relationEqual2(JSON.stringify(member), encoded)).length > 0;
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts
+// packages/core/src/compiler/scanner/operations/controller/controllerBodyResolver.ts
 init_relationalSequence();
 init_semanticRelations();
 init_relationalSequence();
@@ -28942,7 +28942,7 @@ function resolveControllerBody(body) {
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts
+// packages/core/src/compiler/scanner/operations/controller/actionValidationExtractor.ts
 init_semanticRelations();
 init_semanticRelations();
 init_relationalSequence();
@@ -28970,7 +28970,7 @@ function resolveActionSchema(request, inlineSchema) {
   );
 }
 
-// packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts
+// packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts
 init_resourceUpstreamExpressionMappings();
 init_semanticRelations();
 init_relationMembership();
@@ -29213,7 +29213,7 @@ function resolveSchema(request, body) {
   return resolveActionSchema(request, body.schema);
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts
+// packages/core/src/compiler/scanner/operations/controller/actionScanner.ts
 function scanControllerAction(method4, controllerName5, fullPath, formRequestIndex, sourceProject, constructorParameters = [], customContextualAttributeNames = Object.freeze([])) {
   const contract = resolveControllerActionContract(method4, controllerName5, fullPath, {
     formRequestIndex,
@@ -29247,7 +29247,7 @@ function scanControllerAction(method4, controllerName5, fullPath, formRequestInd
   return { actionName: contract.identity.actionName, descriptor, dependencies: [...contract.dependencies] };
 }
 
-// packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts
+// packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts
 init_ast();
 init_relationalSequence();
 init_semanticRelations();
@@ -29267,7 +29267,7 @@ var implementation = {
 };
 var controllerProducer = implementation;
 
-// packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts
+// packages/core/src/compiler/scanner/operations/ControllerScanner.ts
 var ControllerScanner = class _ControllerScanner {
   static async scanOnce(sourceProject, formRequestIndex, customContextualAttributeNames = Object.freeze([]), queries = []) {
     const sourceRoot = sourceProject.root.value.value;
@@ -29378,19 +29378,19 @@ var ControllerScanner = class _ControllerScanner {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts
+// packages/core/src/compiler/scanner/operations/FormRequestScanner.ts
 init_scannerUtils();
 var import_path6 = __toESM(require("path"));
 init_names();
 
-// packages/core/src/compiler/scanner/subscanners/requestProducer.ts
+// packages/core/src/compiler/scanner/operations/requestProducer.ts
 init_ast();
 
-// packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts
+// packages/core/src/compiler/scanner/operations/form-request/ruleCollector.ts
 init_relationalSequence();
 init_semanticRelations();
 
-// packages/core/src/compiler/scanner/subscanners/form-request/canonicalValidationRuleEntry.ts
+// packages/core/src/compiler/scanner/operations/form-request/canonicalValidationRuleEntry.ts
 init_semanticValues();
 init_relationalSequence();
 var createCanonicalRouteValidationRuleEntry = (params) => Object.freeze({
@@ -29600,7 +29600,7 @@ function resolvePresence2(validation) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts
+// packages/core/src/compiler/scanner/operations/form-request/ruleCollector.ts
 init_resourceUpstreamExpressionCanonical();
 init_semanticValues();
 function parseCanonicalValidationRuleEntries(entries4, sourceFile = "<validation>") {
@@ -29783,7 +29783,7 @@ function sourceSpanFromPhpRange(range, sourceFile) {
   };
 }
 
-// packages/core/src/compiler/scanner/subscanners/requestAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/requestAstCanonical.ts
 init_ast();
 init_relationalSequence();
 init_semanticRelations();
@@ -29987,7 +29987,7 @@ function buildRequestField(fieldSource) {
   };
 }
 
-// packages/core/src/compiler/scanner/subscanners/requestProducer.ts
+// packages/core/src/compiler/scanner/operations/requestProducer.ts
 init_resourceUpstreamExpressionCanonical();
 init_semanticRelations();
 init_relationalSequence();
@@ -30180,7 +30180,7 @@ var requestProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts
+// packages/core/src/compiler/scanner/operations/FormRequestScanner.ts
 init_LaravelSourceLexer();
 init_phpMethodParser();
 init_semanticValues();
@@ -30426,14 +30426,14 @@ function sequenceFromRequests(requests, index = requests.length - 1, tail = { ki
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/ModelScanner.ts
+// packages/core/src/compiler/scanner/operations/ModelScanner.ts
 init_scannerUtils();
 var import_path7 = __toESM(require("path"));
 init_names();
 init_LaravelSourceLexer();
 init_lexer();
 
-// packages/core/src/compiler/scanner/subscanners/model/memberCastsParser.ts
+// packages/core/src/compiler/scanner/operations/model/memberCastsParser.ts
 init_semanticValues();
 init_semanticRelations();
 init_relationalSequence();
@@ -30501,13 +30501,13 @@ function parseModelCasts(propertyAsts, declaration2, casts, source10) {
   relationFold(discovered, casts, (target2, value) => [...target2, value]);
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts
+// packages/core/src/compiler/scanner/operations/model/modelAccessorExpressionMapper.ts
 init_resourceUpstreamExpressionCanonical();
 function resolveModelAccessorReturnExpression(ast, sourceFile = "<model-accessor>") {
   return mapResourcePhpAstToUpstream(ast, sourceFile);
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/memberAccessorsParser.ts
+// packages/core/src/compiler/scanner/operations/model/memberAccessorsParser.ts
 init_relationalSequence();
 init_semanticRelations();
 function accessorSemanticType(type) {
@@ -30592,11 +30592,11 @@ function parseModelAccessors(declaration2, accessors, source10) {
   append2(derived);
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts
+// packages/core/src/compiler/scanner/operations/model/memberRelationsParser.ts
 init_relationalSequence();
 init_semanticRelations();
 
-// packages/core/src/compiler/scanner/subscanners/model/eloquentRelationVocabulary.ts
+// packages/core/src/compiler/scanner/operations/model/eloquentRelationVocabulary.ts
 init_relationalSequence();
 init_semanticRelations();
 var descriptorTable = [
@@ -30628,7 +30628,7 @@ var eloquentRelationClassifier = Object.freeze({
   }
 });
 
-// packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts
+// packages/core/src/compiler/scanner/operations/model/eloquentProducer.ts
 init_names();
 
 // packages/core/src/types/upstream/eloquent.ts
@@ -30638,7 +30638,7 @@ var eloquentRelationAstFromDescriptor = (input) => Object.freeze({
   eloquentType: input.descriptor.type
 });
 
-// packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts
+// packages/core/src/compiler/scanner/operations/model/eloquentProducer.ts
 init_relationalSequence();
 var relationMethodName = (value) => ({ kind: "eloquent_relation_method_name", value: { kind: "string_value", value } });
 var modelReference5 = (model4) => ({ kind: "reference", value: { kind: "class", name: model4 } });
@@ -30738,7 +30738,7 @@ var eloquentRelationProducer = {
   produce: produceRelation
 };
 
-// packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts
+// packages/core/src/compiler/scanner/operations/model/memberRelationsParser.ts
 function parseModelRelations(declaration2, sourceModel, source10) {
   return relationFold(declaration2.methods, [], (relations, method4) => relationFold(method4.returns, relations, (next, returned) => {
     const result = eloquentRelationProducer.produce({ method: method4, returned, sourceModel, source: source10 });
@@ -31052,11 +31052,11 @@ function buildModelSemanticDefinition(params) {
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/modelParser.ts
+// packages/core/src/compiler/scanner/operations/model/modelParser.ts
 init_names();
 init_resourceUpstreamExpressionCanonical();
 
-// packages/core/src/compiler/scanner/subscanners/model/memberPropertiesParser.ts
+// packages/core/src/compiler/scanner/operations/model/memberPropertiesParser.ts
 init_names();
 init_semanticRelations();
 init_relationalSequence();
@@ -31152,7 +31152,7 @@ function applyModelPropertyAst(property8, state) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/columnInferrer.ts
+// packages/core/src/compiler/scanner/operations/model/columnInferrer.ts
 init_semanticRelations();
 init_relationalSequence();
 var schemaTableWitness2 = (table2, tables) => relationGate2(
@@ -31175,12 +31175,12 @@ function resolveModelColumns(table2, schema) {
   return requireSchemaTable(table2, schema).columns;
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/modelColumnFactsCanonical.ts
+// packages/core/src/compiler/scanner/operations/model/modelColumnFactsCanonical.ts
 function buildModelColumnFacts(facts2) {
   return facts2;
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/modelColumnOrigin.ts
+// packages/core/src/compiler/scanner/operations/model/modelColumnOrigin.ts
 var str4 = (value) => ({ kind: "string_value", value });
 var property4 = (value) => ({ kind: "property_name", value: str4(value) });
 var primitive2 = (value) => ({ kind: "primitive", value });
@@ -31209,7 +31209,7 @@ function correlateModelColumnFacts(columns, casts, source10) {
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/modelParser.ts
+// packages/core/src/compiler/scanner/operations/model/modelParser.ts
 init_semanticRelations();
 init_relationalSequence();
 var text = (value) => ({ kind: "string_value", value });
@@ -31357,10 +31357,10 @@ function buildModelSemanticDefinitionFromAst(sourceSpan4, schema, propertyAsts, 
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts
+// packages/core/src/compiler/scanner/operations/model/modelCanonical.ts
 init_ast();
 
-// packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts
+// packages/core/src/compiler/scanner/operations/model/modelAccessorCanonical.ts
 init_semanticRelations();
 init_relationalSequence();
 function accessorExpression(computation, source10) {
@@ -31375,7 +31375,7 @@ function semanticValue2(value) {
   return { kind: "typed", type: value };
 }
 
-// packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts
+// packages/core/src/compiler/scanner/operations/model/modelCanonical.ts
 init_semanticRelations();
 init_relationalSequence();
 var str5 = (value) => ({ kind: "string_value", value });
@@ -31504,7 +31504,7 @@ function modelAstFromSemantic(model4, casts, accessors, sourceSpan4) {
   return createDomainAstJudgment({ kind: "model_ast", semantic: definition2, source: span3 });
 }
 
-// packages/core/src/compiler/scanner/subscanners/modelProducer.ts
+// packages/core/src/compiler/scanner/operations/modelProducer.ts
 var modelProducer = {
   produce(input) {
     return modelProducer.produceResult(input).ast;
@@ -31530,7 +31530,7 @@ var modelProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/ModelScanner.ts
+// packages/core/src/compiler/scanner/operations/ModelScanner.ts
 init_scannerUtils();
 init_relationalSequence();
 async function scanModelBundle(sourceProject, schema) {
@@ -31575,7 +31575,7 @@ var ModelScanner = class _ModelScanner {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/RouteScanner.ts
+// packages/core/src/compiler/scanner/operations/RouteScanner.ts
 init_relationMembership();
 var import_path9 = __toESM(require("path"));
 init_relationalSequence();
@@ -31596,12 +31596,12 @@ function routeAuthorizationKnowledge(middlewares) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/RouteScanner.ts
+// packages/core/src/compiler/scanner/operations/RouteScanner.ts
 init_relationMembership();
 init_relationalSequence();
 init_semanticValues();
 
-// packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts
+// packages/core/src/compiler/scanner/operations/routeProducerRelations.ts
 var import_path8 = __toESM(require("path"));
 init_relationalSequence();
 init_relationalSequence();
@@ -32703,11 +32703,11 @@ var resolverGraphRules = Object.freeze([
   )
 ]);
 
-// packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts
+// packages/core/src/compiler/scanner/operations/routeProducerRelations.ts
 init_semanticValues();
 init_names();
 
-// packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts
+// packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts
 init_semanticRelations();
 init_sequence();
 init_presence();
@@ -32822,7 +32822,7 @@ var routeDeclarationFlow = (route) => Object.freeze({
   middleware: middlewareFact(Object.freeze([...route.middleware, ...route.routeMiddleware]), "routeDeclarationParser", "MiddlewareNameAst[]", "middleware semantic resolver", cardinalityOf([...route.middleware, ...route.routeMiddleware]))
 });
 
-// packages/core/src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts
+// packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupAstAdapter.ts
 init_names();
 init_presence();
 init_sequence();
@@ -32930,12 +32930,12 @@ function resolveDomain(value) {
   );
 }
 
-// packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts
+// packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupContextResolver.ts
 function resolveRouteGroupContextFromFact(facts2) {
   return resolveRouteGroupFacts(facts2);
 }
 
-// packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts
+// packages/core/src/compiler/scanner/operations/routeProducerRelations.ts
 var ROUTE_HTTP_METHODS = Object.freeze([
   [HttpMethod.GET, HttpMethod.GET],
   [HttpMethod.POST, HttpMethod.POST],
@@ -33378,7 +33378,7 @@ function controllerModelReference(semantic3) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/routeProducer.ts
+// packages/core/src/compiler/scanner/operations/routeProducer.ts
 init_ast();
 var implementation2 = {
   produce(input) {
@@ -33405,12 +33405,12 @@ var implementation2 = {
 };
 var routeProducer = implementation2;
 
-// packages/core/src/compiler/scanner/subscanners/RouteScanner.ts
+// packages/core/src/compiler/scanner/operations/RouteScanner.ts
 init_names();
 init_LaravelSourceLexer();
 init_scannerUtils();
 
-// packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts
+// packages/core/src/compiler/scanner/operations/route-scanner/routePathParser.ts
 init_names();
 init_semanticValues();
 init_sequence();
@@ -33450,12 +33450,12 @@ function extractPathParams(routePath) {
   return Object.freeze(relationProject2(matches, (match) => RouteParameterSemanticFactory.fromPathSegment(match[1])));
 }
 
-// packages/core/src/compiler/scanner/subscanners/route-scanner/routeContextTracker.ts
+// packages/core/src/compiler/scanner/operations/route-scanner/routeContextTracker.ts
 init_names();
 init_semanticRelations();
 init_relationalSequence();
 
-// packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts
+// packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts
 init_names();
 init_relationMembership();
 init_relationalSequence();
@@ -33552,7 +33552,7 @@ function emitStandardRoutes(targetMethods, resolvedPath, resourceName2, target2,
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/RouteScanner.ts
+// packages/core/src/compiler/scanner/operations/RouteScanner.ts
 var ROUTE_HTTP_METHODS2 = Object.freeze([
   [HttpMethod.GET, HttpMethod.GET],
   [HttpMethod.POST, HttpMethod.POST],
@@ -33711,7 +33711,7 @@ var RouteScanner = class _RouteScanner {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/InvalidationResolver.ts
+// packages/core/src/compiler/scanner/operations/InvalidationResolver.ts
 init_names();
 init_relationalSequence();
 init_semanticRelations();
@@ -33860,11 +33860,11 @@ var resolveRouteInvalidations = (routes, models, routeGroups) => Object.freeze(r
 ));
 var InvalidationResolver = Object.freeze({ resolveRouteInvalidations });
 
-// packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts
+// packages/core/src/compiler/scanner/operations/typeDeriverUtils.ts
 init_semanticRelations();
 init_relationalSequence();
 
-// packages/core/src/compiler/scanner/subscanners/request-deriver/actionDeriver.ts
+// packages/core/src/compiler/scanner/operations/request-deriver/actionDeriver.ts
 function deriveRouteAction(route) {
   const actionKind = route.capability.actionKind;
   const fields = Object.freeze([...route.binding.schema.fields]);
@@ -33887,7 +33887,7 @@ function deriveRouteAction(route) {
   };
 }
 
-// packages/core/src/compiler/scanner/subscanners/semantic/resourceTypeDeriver.ts
+// packages/core/src/compiler/scanner/operations/semantic/resourceTypeDeriver.ts
 init_relationalSequence();
 init_relationMembership();
 function deriveResourceTypes(context, seenNames) {
@@ -33961,7 +33961,7 @@ function qualifiedName(prefix, fieldName) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/request-deriver/responseDeriver.ts
+// packages/core/src/compiler/scanner/operations/request-deriver/responseDeriver.ts
 init_relationalSequence();
 var isCollectionShape = (shape) => relationAny2([relationEqual2(shape, "collection"), relationEqual2(shape, "paginated")]);
 var toPrimitiveResponseValue2 = (type) => relationGate2(
@@ -34096,7 +34096,7 @@ function sequenceToArray8(sequence23, index = 0, output2 = []) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts
+// packages/core/src/compiler/scanner/operations/request-deriver/groupAggregator.ts
 init_names();
 init_relationalSequence();
 function createDerivationContext(resources, requests, interner) {
@@ -34239,7 +34239,7 @@ function aggregateRequestTypeGroups(routes, resources, ctx) {
   return relationProject2(groups, (entry2) => entry2[1]);
 }
 
-// packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts
+// packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts
 var RequestTypeDeriver = class {
   /**
    * Derives Canonical RequestType[] AST streams from parsed routes and resources.
@@ -34251,10 +34251,10 @@ var RequestTypeDeriver = class {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts
+// packages/core/src/compiler/scanner/operations/SemanticTypeDeriver.ts
 init_relationMembership();
 
-// packages/core/src/compiler/scanner/subscanners/semantic/SemanticDerivationContext.ts
+// packages/core/src/compiler/scanner/operations/semantic/SemanticDerivationContext.ts
 init_relationalSequence();
 init_relationMembership();
 var normalizeSequence = (value) => Object.freeze([...value]);
@@ -34277,7 +34277,7 @@ var SemanticDerivationContext = Object.freeze({
   empty: () => SemanticDerivationContext.create([], [], TypeInterner.create(), [])
 });
 
-// packages/core/src/compiler/scanner/subscanners/semantic/route-response/shapeExtractor.ts
+// packages/core/src/compiler/scanner/operations/semantic/route-response/shapeExtractor.ts
 init_semanticValues();
 init_relationalSequence();
 function extractRouteResponseShape(route) {
@@ -34334,7 +34334,7 @@ function createWrappedDataField(response, transformedName) {
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/semantic/route-response/propertyProcessor.ts
+// packages/core/src/compiler/scanner/operations/semantic/route-response/propertyProcessor.ts
 init_semanticRelations();
 init_relationalSequence();
 function processResponseProperties(fields, context, prefix = "") {
@@ -34415,7 +34415,7 @@ function property6(name2, type) {
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/semantic/routeResponseDeriver.ts
+// packages/core/src/compiler/scanner/operations/semantic/routeResponseDeriver.ts
 init_relationalSequence();
 init_relationMembership();
 function deriveRouteResponseTypes(context, seenNames) {
@@ -34450,7 +34450,7 @@ function deriveRouteResponseTypes(context, seenNames) {
   );
 }
 
-// packages/core/src/compiler/scanner/subscanners/semantic/modelTypeDeriver.ts
+// packages/core/src/compiler/scanner/operations/semantic/modelTypeDeriver.ts
 init_relationalSequence();
 init_relationMembership();
 var semanticPropertyType = (property8) => typeExpressionToSemanticType(property8.traversal.semanticType);
@@ -34506,7 +34506,7 @@ function deriveModelTypes(context, seenNames) {
   return state.types;
 }
 
-// packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts
+// packages/core/src/compiler/scanner/operations/SemanticTypeDeriver.ts
 var fromContext = (context) => {
   const run2 = () => {
     const seenNames = relationUnique([]);
@@ -34523,10 +34523,10 @@ var SemanticTypeDeriver = Object.freeze({
   derive: (resources = [], models = [], interner = TypeInterner.create(), routes = []) => fromContext(SemanticDerivationContext.create(resources, models, interner, routes)).run()
 });
 
-// packages/core/src/compiler/scanner/subscanners/responseScanner.ts
+// packages/core/src/compiler/scanner/operations/responseScanner.ts
 var import_path10 = __toESM(require("path"));
 
-// packages/core/src/compiler/scanner/subscanners/responseProducer.ts
+// packages/core/src/compiler/scanner/operations/responseProducer.ts
 init_ast();
 init_names();
 init_names();
@@ -34662,7 +34662,7 @@ var producerResolution = (input) => relationOptionFold2(
 );
 var responseProducer = { produce: producerResolution };
 
-// packages/core/src/compiler/scanner/subscanners/responseScanner.ts
+// packages/core/src/compiler/scanner/operations/responseScanner.ts
 init_LaravelSourceLexer();
 init_phpAstTypes();
 init_scannerUtils();
@@ -34723,11 +34723,11 @@ async function scanResponseBundle(sourceProject) {
   });
 }
 
-// packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/migrationAstCanonical.ts
 init_LaravelSourceLexer();
 init_scannerUtils();
 
-// packages/core/src/compiler/scanner/subscanners/migrationProducer.ts
+// packages/core/src/compiler/scanner/operations/migrationProducer.ts
 init_ast();
 init_semanticRelations();
 init_relationalSequence();
@@ -34995,7 +34995,7 @@ var migrationProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/migrationAstCanonical.ts
 init_phpMethodParser();
 var path12 = __toESM(require("node:path"));
 init_relationalSequence();
@@ -35041,14 +35041,14 @@ var migrationInterfaceFromAst = (ast) => Object.freeze({
 // packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts
 init_serviceAstCanonical();
 
-// packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts
 var path14 = __toESM(require("node:path"));
 init_scannerUtils();
 init_LaravelSourceLexer();
 init_phpAstTypes();
 init_scannerUtils();
 
-// packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts
+// packages/core/src/compiler/scanner/operations/middlewareProducer.ts
 init_relationalSequence();
 init_semanticRelations();
 init_ast();
@@ -35075,7 +35075,7 @@ var middlewareProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts
 init_relationalSequence();
 init_semanticRelations();
 var stringValue15 = (value) => ({ kind: "string_value", value });
@@ -35106,7 +35106,7 @@ async function scanMiddlewareAsts(sourceProject) {
   return Object.freeze(asts);
 }
 
-// packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/dtoAstCanonical.ts
 var path15 = __toESM(require("node:path"));
 init_scannerUtils();
 init_LaravelSourceLexer();
@@ -35114,7 +35114,7 @@ init_phpAstTypes();
 init_responseDtoDeclarationParser();
 init_scannerUtils();
 
-// packages/core/src/compiler/scanner/subscanners/dtoProducer.ts
+// packages/core/src/compiler/scanner/operations/dtoProducer.ts
 init_ast();
 init_names();
 var sequence18 = (items5) => relationFoldRight(items5, { kind: "empty" }, (head, tail) => ({ kind: "cons", head, tail }));
@@ -35170,7 +35170,7 @@ var dtoProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/dtoAstCanonical.ts
 init_relationalSequence();
 init_semanticRelations();
 var stringValue16 = (value) => ({ kind: "string_value", value });
@@ -35199,14 +35199,14 @@ async function scanDtoAsts(sourceProject) {
 // packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts
 init_providerAstCanonical();
 
-// packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts
 var path17 = __toESM(require("node:path"));
 init_scannerUtils();
 init_LaravelSourceLexer();
 init_phpAstTypes();
 init_scannerUtils();
 
-// packages/core/src/compiler/scanner/subscanners/attributeProducer.ts
+// packages/core/src/compiler/scanner/operations/attributeProducer.ts
 init_ast();
 init_names();
 init_resourceUpstreamExpressionClosure();
@@ -35306,7 +35306,7 @@ var attributeProducer = {
   }
 };
 
-// packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts
+// packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts
 init_relationalSequence();
 init_semanticRelations();
 var stringValue18 = (value) => ({ kind: "string_value", value });
@@ -35333,7 +35333,7 @@ async function scanAttributeAsts(sourceProject) {
   return Object.freeze(asts);
 }
 
-// packages/core/src/compiler/scanner/subscanners/assignmentProducer.ts
+// packages/core/src/compiler/scanner/operations/assignmentProducer.ts
 init_resourceUpstreamExpressionMappings();
 var assignmentProducer = {
   produce(input) {
@@ -35364,7 +35364,7 @@ init_scannerUtils();
 init_LaravelSourceLexer();
 init_phpMethodParser();
 
-// packages/core/src/compiler/scanner/subscanners/schemaProducer.ts
+// packages/core/src/compiler/scanner/operations/schemaProducer.ts
 init_relationalSequence();
 var sequence21 = (items5) => {
   const build = (index) => relationGate2(
@@ -35465,7 +35465,7 @@ var produceSchema = (input) => {
 };
 var schemaProducer = Object.freeze({ produce: produceSchema });
 
-// packages/core/src/compiler/scanner/subscanners/queryProducer.ts
+// packages/core/src/compiler/scanner/operations/queryProducer.ts
 init_semanticEvidenceRelations();
 var queryProducerRelation = Object.freeze({
   produce: (input) => semanticEvidenceFold(queryRelation(input), () => [], (value) => value)

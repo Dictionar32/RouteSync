@@ -31,7 +31,11 @@ function projectValidationEnums(schema: RouteSchemaPayload, group: string, addEn
   }
 }
 
-export function buildEnumsLines(manifest: RouteManifest): string[] {
+export interface BuildEnumsLinesOperation {
+  (manifest: RouteManifest): string[];
+}
+
+export const buildEnumsLines: BuildEnumsLinesOperation = Object.freeze((manifest: RouteManifest): string[] => {
   const enumGroups: Record<string, Record<string, string[]>> = {};
 
   const addEnum: AddEnum = (group, field, values) => {
@@ -65,4 +69,4 @@ export function buildEnumsLines(manifest: RouteManifest): string[] {
   }
 
   return formatEnumLines(enumGroups);
-}
+});

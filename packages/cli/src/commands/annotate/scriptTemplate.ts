@@ -7,4 +7,4 @@
  * @module cli/commands/annotate/scriptTemplate
  */
 
-export { buildPhpDiscoveryScript } from './template/index';
+export { phpDiscoveryTemplateOperations } from './template/index';

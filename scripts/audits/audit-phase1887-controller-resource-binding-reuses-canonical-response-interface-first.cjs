@@ -5,13 +5,13 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/controller.ts');
 const resourceContract = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
-const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const packageJson = JSON.parse(read('package.json'));
-const controllerDir = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDir = 'packages/core/src/compiler/scanner/operations/controller';
 const checks = [
   ['canonical ControllerResponse already owns present and absent response outcomes', /export type ControllerResponse = \{ readonly kind: 'response_present'; readonly response: ResponseReference \} \| \{ readonly kind: 'response_absent' \}/.test(contract)],
   ['resource-binding candidate reuses ControllerResponse directly', /ControllerModelOrigin, ControllerResponse/.test(resourceContract) && /readonly response: ControllerResponse/.test(resourceContract)],

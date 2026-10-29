@@ -1,0 +1,35 @@
+{
+  "phase": 2998,
+  "title": "Fully Explicit Typed Runtime Manifest Operations",
+  "scope": [
+    "packages/cli/src/generators/ManifestSerializer.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts",
+    "packages/core/src/types/upstream/collections.ts"
+  ],
+  "structuralChecks": {
+    "passed": 12,
+    "total": 12,
+    "status": "passed",
+    "command": "node scripts/audits/audit-phase2998-explicit-runtime-manifest-operations.cjs"
+  },
+  "typescriptSyntax": {
+    "file": "packages/cli/src/generators/ManifestSerializer.ts",
+    "diagnostics": 0,
+    "method": "global TypeScript transpileModule syntax check"
+  },
+  "runtimeTrace": {
+    "routeManifestSchemaEvidence": "Preserved through RouteSemanticFlow.binding by the typed route serialization operation.",
+    "cliInvocationManifest": "Separately traced through ControllerInvocationManifestBuilder and its terminal ADT continuation.",
+    "schemaEvidenceBridgeBetweenManifests": "Not proven; deliberately not invented because the projections have distinct domain ownership."
+  },
+  "constraints": {
+    "upstreamCollectionsFileRemainsEmpty": true,
+    "deletedRelationFoundationRestored": false,
+    "exportFunctionScanScope": "Three traced runtime modules only",
+    "fullTypecheckRun": false,
+    "fullTestsRun": false,
+    "cliEndToEndRun": false,
+    "reasonFullVerificationUnavailable": "Workspace has no installed node_modules and contains known pre-existing imports to removed relation-foundation modules outside this phase."
+  }
+}

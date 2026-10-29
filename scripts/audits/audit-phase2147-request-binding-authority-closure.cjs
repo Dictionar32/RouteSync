@@ -23,7 +23,7 @@ const checks = [
   ['runtime executor forwards the same judgment without semantic reclassification', /readonly semanticJudgment: LaravelControllerActionSemanticJudgmentInterface/.test(executor) && /semanticJudgment: input\.semanticJudgment/.test(wiring)],
   ['new request-binding authority and evidence are publicly exported', /LaravelControllerRequestBindingEvidence/.test(index) && /LaravelControllerRequestSemanticBindingAuthorityInterface/.test(index) && /laravelControllerRequestSemanticBindingAuthority/.test(index)],
   ['legacy action derivation remains explicitly open', /scanControllerAction-and-resolveControllerActionContract/.test(wiring)],
-  ['no relation/foundation or new subscanner layer was added', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|subscanners\/(relation|foundation)/.test(interfaceFile + authority + wiring)],
+  ['no relation/foundation or new subscanner layer was added', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|operations\/(relation|foundation)/.test(interfaceFile + authority + wiring)],
 ];
 let failed = 0;
 for (const [label, passed] of checks) {

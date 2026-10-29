@@ -1,0 +1,7 @@
+{
+  "phase": 2987,
+  "passed": 14,
+  "total": 14,
+  "failed": 0,
+  "source": "audit-phase2987-fully-explicit-scanner-upstream-cli-manifest.cjs"
+}

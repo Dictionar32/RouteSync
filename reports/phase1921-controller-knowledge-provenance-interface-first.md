@@ -11,10 +11,10 @@ The scanner-local `semanticKnowledgeEvidenceAdapter.ts` was only a factory wrapp
 ## Changed files
 
 - `packages/core/src/types/upstream/semanticKnowledgeEvidenceAdapterInterface.ts`
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/index.ts`
-- Reduced `packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts` to a type-only compatibility barrel; its runtime factory was removed
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/index.ts`
+- Reduced `packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts` to a type-only compatibility barrel; its runtime factory was removed
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts` (boundary version 87 and ownership statements)
 - `scripts/audits/audit-phase1921-controller-knowledge-provenance-interface-first.cjs`
 

@@ -17,7 +17,7 @@ const checks = [
   ['canonical resource publication remains owned by the same authority', /publishResolved: \(input: ControllerResourceBindingPublicationInput\) => Object\.freeze/.test(authority)],
   ['integrated response pipeline remains the existing response owner', /LaravelControllerResponseSemanticPipelineInterface/.test(read('src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts')) && /judgeIntegratedResponse/.test(read('src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts'))],
   ['CLI execution path remains visible for next migration', /scanControllerAction/.test(wiring) && /controllerBodySemanticJudgmentAuthority/.test(wiring)],
-  ['remaining subscanner dependency is not misreported as retired', /subscanners\/controller/.test(wiring)],
+  ['remaining subscanner dependency is not misreported as retired', /operations\/controller/.test(wiring)],
   ['regression test for upstream equality authority exists', fs.existsSync(path.join(root, 'src/types/upstream/__tests__/controller-resource-binding-no-relation-authority.phase2235.test.ts'))],
 ];
 for (const [name, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);

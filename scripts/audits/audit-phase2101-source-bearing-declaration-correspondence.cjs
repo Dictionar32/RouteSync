@@ -24,7 +24,7 @@ check('scanner does not zip selection and declaration arrays by index', !scanner
 check('public core barrel exports both new contract types', coreExports.includes('ControllerDeclarationSemanticSubject, ControllerDeclarationSemanticCorrespondence'));
 check('test fixture checks source reference and corresponding judgment together', tests.includes('returns each source subject beside its own judgment without a positional join'));
 check('scanner contract version advanced to 31 for identity-mismatch ADT', scannerContract.includes('readonly contractVersion: 31;') && scanner.includes('contractVersion: 31 as const'));
-check('controller scanner delegates legacy bindings to explicit execution composition', !scanner.includes('semantic/relations') && !scanner.includes('subscanners/') && read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts').includes('legacyLaravelControllerExecutionDependencies'));
+check('controller scanner delegates legacy bindings to explicit execution composition', !scanner.includes('semantic/relations') && !scanner.includes('operations/') && read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts').includes('legacyLaravelControllerExecutionDependencies'));
 
 for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
 process.stdout.write(`RESULT ${checks.filter(item => item.passed).length}/${checks.length}\n`);

@@ -1,0 +1,64 @@
+{
+  "phase": 2994,
+  "audit": "typed-schema-route-request-domain-operation",
+  "total": 11,
+  "passed": 11,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "typed route-request evidence ADT exists",
+      "passed": true,
+      "evidence": "upstream interface"
+    },
+    {
+      "name": "schema judgment exposes domain operation",
+      "passed": true,
+      "evidence": "schema judgment operation"
+    },
+    {
+      "name": "route evidence binds identity, origin, schema and validation entries",
+      "passed": true,
+      "evidence": "evidence field conservation"
+    },
+    {
+      "name": "runtime authority uses interface-typed frozen export",
+      "passed": true,
+      "evidence": "runtime export shape"
+    },
+    {
+      "name": "authority materializes route-request evidence",
+      "passed": true,
+      "evidence": "domain operation implementation"
+    },
+    {
+      "name": "action contract consumes operation",
+      "passed": true,
+      "evidence": "projection consumer"
+    },
+    {
+      "name": "semantic publication consumes operation",
+      "passed": true,
+      "evidence": "upstream publication consumer"
+    },
+    {
+      "name": "route boundary still receives action schema",
+      "passed": true,
+      "evidence": "route boundary bridge"
+    },
+    {
+      "name": "new evidence type exported from upstream barrel",
+      "passed": true,
+      "evidence": "upstream public API"
+    },
+    {
+      "name": "new evidence type exported from core barrel",
+      "passed": true,
+      "evidence": "core public API"
+    },
+    {
+      "name": "report explicitly records remaining provenance gap",
+      "passed": true,
+      "evidence": "honest boundary declaration"
+    }
+  ]
+}

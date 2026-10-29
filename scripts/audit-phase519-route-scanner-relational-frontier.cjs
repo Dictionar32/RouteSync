@@ -1,8 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/RouteScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts',
+  'packages/core/src/compiler/scanner/operations/RouteScanner.ts',
+  'packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts',
 ];
 const patterns = {
   if: /\bif\b/g,

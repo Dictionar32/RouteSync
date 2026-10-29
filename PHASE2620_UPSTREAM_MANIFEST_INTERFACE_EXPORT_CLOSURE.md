@@ -7,7 +7,7 @@ Trace the Laravel route scan path through the CLI composition boundary and upstr
 ## Root-cause findings
 
 1. `ManifestBuilderInput`, `ManifestBuilderJudgment`, `ManifestBuilderInterface`, and `ManifestBuilderOperationPreparationInterface` were defined in `core/src/types/upstream/manifestBuilderInterface.ts` and individually exposed by `core/src/index.ts`, but the canonical `core/src/types/upstream/index.ts` barrel did not re-export that contract module. Consumers of the upstream barrel therefore saw an incomplete upstream public surface.
-2. `SyntaxRange` and the `syntaxRange` operation were implemented in `compiler/scanner/lexer/routeAst/syntaxRange.ts`, but the `routeAst/index.ts` barrel did not expose either symbol. This was a genuine module-barrel gap, not evidence that the implementation itself was missing.
+2. `SyntaxRange` and the `syntaxRange` operation were implemented in `compiler/frontend/php/routeAst/syntaxRange.ts`, but the `routeAst/index.ts` barrel did not expose either symbol. This was a genuine module-barrel gap, not evidence that the implementation itself was missing.
 3. The active CLI path already injects `manifestComposition`, calls `compose(...)`, and receives the existing closed `ManifestBuilderJudgment` through the composition. The Core entry point already exports `prepareManifestBuilderOperation` and `manifestBuilderOperationPreparation`. Do not duplicate these contracts or add CLI-side semantic inference to compensate for export gaps.
 
 ## Changes

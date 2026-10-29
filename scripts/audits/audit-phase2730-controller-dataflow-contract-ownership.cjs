@@ -1,0 +1,38 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const checks = [];
+const check = (name, condition, detail) => checks.push({ name, passed: Boolean(condition), detail });
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const semanticPath = 'packages/core/src/compiler/semantic/controllerDataflowContract.ts';
+const oldScannerPath = 'packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts';
+const semantic = read(semanticPath);
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const test = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowSemanticJudgmentSelection.phase2069.test.ts');
+const facadeIndex = read('packages/core/src/compiler/scanner/operations/controller/index.ts');
+const aggregator = read('packages/core/src/compiler/scanner/operations/controller/resourceDataflowAggregator.ts');
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+const builderTypes = read('packages/core/src/types/upstream/manifestBuilderInterface.ts');
+
+check('controller dataflow contract is owned by compiler semantic layer', fs.existsSync(path.join(root, semanticPath)) && !fs.existsSync(path.join(root, oldScannerPath)), 'Implementation moved out of scanner operations.');
+check('runtime API uses a named explicit interface', /export interface ControllerDataflowContractOperationsInterface/.test(semantic) && /export const controllerDataflowContractOperations:\s*ControllerDataflowContractOperationsInterface\s*=\s*Object\.freeze\(/.test(semantic), 'Public runtime entrypoint is one typed immutable operations object.');
+check('semantic implementation does not export free-function entrypoints', !/export\s+function\s+(createControllerReturnSet|emptyControllerDataflowContract|createControllerDataflowContract)\b/.test(semantic) && !/export\s+const\s+(createControllerSemanticVariableIndex|lookupControllerSemanticVariable|lookupControllerSemanticJudgment|controllerSemanticVariableIndexSize)\b/.test(semantic), 'Construction and lookup implementations remain internal.');
+check('public operations are simple and explicit without generic methods', /readonly createReturnSet: \(returns: readonly PhpAstValue\[\]\) => ControllerReturnSet/.test(semantic) && /readonly create: \(input: ControllerDataflowContractInput\) => ControllerDataflowContract/.test(semantic) && !/readonly\s+\w+\s*:\s*<T\b/.test(semantic), 'The operation contract exposes concrete input and output types.');
+check('production AST projection calls the semantic operations object', /controllerDataflowContractOperations\.create\(/.test(canonical) && /controllerDataflowContractOperations\.createReturnSet\(/.test(canonical), 'Production caller no longer imports individual constructor functions.');
+check('semantic judgment selection test uses the operations object', /controllerDataflowContractOperations\.createSemanticVariableIndex\(/.test(test) && /controllerDataflowContractOperations\.lookupSemanticJudgment\(/.test(test), 'Regression test exercises the same runtime API as production.');
+check('scanner facade only re-exports semantic-owned types', /export type \{ ControllerDataflowContract, ControllerResourceBinding \} from "\.\.\/\.\.\/\.\.\/semantic\/controllerDataflowContract"/.test(facadeIndex), 'Scanner facade does not own the semantic implementation.');
+check('resource aggregation imports binding type from semantic owner', /from '\.\.\/\.\.\/\.\.\/semantic\/controllerDataflowContract'/.test(aggregator), 'Downstream consumer uses the new owner path.');
+check('specialized AST sequence conversion avoids generic sequence helper', /function sequenceToControllerBindings\(value: Sequence<ControllerVariableBinding>/.test(semantic) && /function sequenceToControllerDefinitions\(value: Sequence<ControllerVariableDefinition>/.test(semantic) && !/function sequenceToArray<T>/.test(semantic), 'Internal sequence conversion is explicit for the two concrete AST types.');
+check('CLI scan and sync retain the manifest scan operation', /manifestScanOperation\.scan\(/.test(scan) && /manifestScanOperation\.scan\(/.test(sync), 'Semantic ownership migration does not bypass the upstream CLI path.');
+check('manifest builder preserves complete and blocked ADT variants', /manifest_builder_complete/.test(builderTypes) && /manifest_builder_blocked/.test(builderTypes), 'Manifest completion and blocking remain distinguishable.');
+check('no relationFoundation replacement was introduced', !fs.existsSync(path.join(root, 'packages/core/src/semantic/foundation/relationFoundation.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/semantic/kernel/relationFoundation.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/semantic/relations/relationFoundation.ts')) && !/relationFoundation\s*=\s*Object\.freeze/.test(semantic), 'No original or replacement foundation was added.');
+
+const passed = checks.filter(item => item.passed).length;
+const report = { phase: 2730, audit: 'controller-dataflow-contract-ownership', passed, total: checks.length, checks };
+const reportPath = path.join(root, 'reports/PHASE2730_CONTROLLER_DATAFLOW_CONTRACT_OWNERSHIP_AUDIT.json');
+fs.mkdirSync(path.dirname(reportPath), { recursive: true });
+fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+for (const item of checks) console.log(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}: ${item.detail}`);
+console.log(`RESULT ${passed}/${checks.length}`);
+if (passed !== checks.length) process.exitCode = 1;

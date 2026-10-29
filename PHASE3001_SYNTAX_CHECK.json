@@ -1,0 +1,52 @@
+{
+  "checkedFiles": 9,
+  "totalDiagnostics": 0,
+  "method": "TypeScript transpileModule syntax diagnostics; not semantic typecheck",
+  "results": [
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/channel.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/index.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/operations/channelProducer.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/wiring/routeManifestLowerer.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/__tests__/authority-interface-first-model.phase2209.test.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/__tests__/invocation-runtime-executor-authority-identity.phase2217.test.ts",
+      "diagnostics": 0,
+      "messages": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/__tests__/invocation-runtime-executor-factory-interface-phase3001.test.ts",
+      "diagnostics": 0,
+      "messages": []
+    }
+  ]
+}

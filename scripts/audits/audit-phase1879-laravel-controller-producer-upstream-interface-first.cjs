@@ -4,15 +4,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
-const producer = read('packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts');
 const upstream = read('packages/core/src/types/upstream/controllerProducerInterface.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const judgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
 const packageJson = JSON.parse(read('package.json'));
 const zeroByteFiles = [
-  'packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/controllerErrorDetector.ts',
+  'packages/core/src/compiler/scanner/operations/controller/actionVariableTracker.ts',
+  'packages/core/src/compiler/scanner/operations/controller/controllerErrorDetector.ts',
 ];
 const activeFiles = [
   'actionScanner.ts', 'actionValidationExtractor.ts', 'controllerAstCanonical.ts',
@@ -29,7 +29,7 @@ const checks = [
   ['invocation judgment keeps source identity and integrated response as one closed value', /readonly sourceFile: SourceFile/.test(judgment) && /readonly response: Extract<PhpSourceInvocationSemanticPipelineIntegrationResult/.test(judgment) && /shapeRule:/.test(judgment)],
   ['parser still accepts the full judgment instead of independent source and response arguments', /parseControllerDeclarationFromInvocationJudgment/.test(parser) && /invocationJudgment\.sourceFile\.value\.value/.test(parser) && /invocationJudgment\.response/.test(parser)],
   ['previously emptied files remain zero bytes', zeroByteFiles.every((file) => fs.statSync(path.join(root, file)).size === 0)],
-  ['controller subscanner directory is not falsely represented as entirely empty', activeFiles.every((file) => fs.statSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller', file)).size > 0)],
+  ['controller subscanner directory is not falsely represented as entirely empty', activeFiles.every((file) => fs.statSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller', file)).size > 0)],
   ['no semantic foundation dependency is introduced', !/semantic\/foundation/.test(producer + upstream + scannerContract)],
   ['audit command is registered', packageJson.scripts?.['audit:phase1879-laravel-controller-producer-upstream-interface-first'] === 'node scripts/audits/audit-phase1879-laravel-controller-producer-upstream-interface-first.cjs'],
 ];

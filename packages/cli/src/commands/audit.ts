@@ -9,7 +9,7 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { auditManifestDrift, auditSemanticCoverage } from './audit/index';
+import { manifestDriftAuditOperations, semanticCoverageAuditOperations } from './audit/index';
 
 export const auditCommand = new Command('audit')
   .description('Audit the manifest for unresolved fields and missing resolvers')
@@ -21,11 +21,11 @@ export const auditCommand = new Command('audit')
   .action(async (options) => {
     try {
       if (options.checkDrift) {
-        await auditManifestDrift(options.manifest);
+        await manifestDriftAuditOperations.audit(options.manifest);
         return;
       }
 
-      auditSemanticCoverage({
+      semanticCoverageAuditOperations.audit({
         graph: options.graph,
         verbose: options.verbose
       });

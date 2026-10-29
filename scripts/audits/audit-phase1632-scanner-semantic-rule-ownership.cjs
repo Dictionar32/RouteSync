@@ -11,21 +11,21 @@ const scannerProductionSource = scannerProductionFiles.map(read).join('\n');
 const directSolverCallFiles = scannerProductionFiles.filter((file) => /solveSemanticRelations(?:Detailed)?\s*</.test(read(file)) || /solveSemanticRelations(?:Detailed)?\s*\(/.test(read(file)));
 const runtimeFactoryCallFiles = scannerProductionFiles.filter((file) => /create[A-Za-z]+RuntimeExecutor\s*\(/.test(read(file)));
 
-const scannerIdentity = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts');
-const scannerTypedRelation = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts');
+const scannerIdentity = read('packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts');
+const scannerTypedRelation = read('packages/core/src/compiler/frontend/php/routeAst/semanticTypedRelation.ts');
 const identityInterface = read('packages/core/src/types/upstream/semanticObjectIdentityInterface.ts');
 const identityAuthority = read('packages/core/src/types/upstream/semanticObjectIdentityAuthority.ts');
 const typedRelationAuthority = read('packages/core/src/types/upstream/semanticTypedRelation.ts');
-const test = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.phase225.test.ts');
-const scannerConstraint = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts');
+const test = read('packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentity.phase225.test.ts');
+const scannerConstraint = read('packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts');
 const constraintInterface = read('packages/core/src/types/upstream/semanticConstraintHandlingInterface.ts');
 const constraintAuthority = read('packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts');
-const constraintTest = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts');
-const scannerInterprocedural = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const constraintTest = read('packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.phase303.test.ts');
+const scannerInterprocedural = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const interproceduralInterface = read('packages/core/src/types/upstream/semanticInterproceduralDataFlowInterface.ts');
 const interproceduralAuthority = read('packages/core/src/types/upstream/semanticInterproceduralDataFlowAuthority.ts');
-const scannerRewriteFacade = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts');
-const scannerIndex = read('packages/core/src/compiler/scanner/lexer/routeAst/index.ts');
+const scannerRewriteFacade = read('packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts');
+const scannerIndex = read('packages/core/src/compiler/frontend/php/routeAst/index.ts');
 const checks = [
   { name: 'scanner-identity-module-is-upstream-facade', passed: /export \* from ['"]\.\.\/\.\.\/\.\.\/\.\.\/types\/upstream\/semanticObjectIdentityInterface['"]/.test(scannerIdentity) && !/IDENTITY_REWRITES|assignment-reference:by-reference|solveSemanticRelations/.test(scannerIdentity) },
   { name: 'alias-inference-rules-are-upstream-contract-data', passed: /SEMANTIC_OBJECT_IDENTITY_RULES/.test(identityInterface) && /assignment-reference:by-reference/.test(identityInterface) && /same-identity:must-alias/.test(identityInterface) },

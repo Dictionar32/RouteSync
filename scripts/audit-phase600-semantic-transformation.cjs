@@ -26,8 +26,8 @@ const global=Object.fromEntries(Object.keys(banned).map(k=>[k,0]));
 const selectedRel = [
   'compiler/ir/ContractIRTypeBuilder.ts','compiler/ir/semanticIRLoweringRelations.ts',
   'ir/domain/field-type/fieldTransform.ts','ir/domain/ResourceMapperBuilder.ts','ir/ContractIRBuilder.ts',
-  'scanner/LaravelSourceLexer.ts','scanner/lexer/tokenizer.ts','scanner/lexer/astClassifierEvidence.ts',
-  'scanner/upstream/route/routeGroupSemanticResolver.ts','scanner/subscanners/InvalidationResolver.ts',
+  'scanner/LaravelSourceLexer.ts','frontend/php/tokenizer.ts','frontend/php/astClassifierEvidence.ts',
+  'scanner/upstream/route/routeGroupSemanticResolver.ts','scanner/operations/InvalidationResolver.ts',
   'analysis/ssa/ssaBuilder.ts','analysis/ssa/ssaRenamer.ts','analysis/loop/loopDetector.ts','analysis/loop/loopNormalizer.ts',
   'analysis/dominator/dominatorTree.ts','analysis/dataflow/forwardSolver.ts','analysis/dataflow/backwardSolver.ts',
   'types/TypeHasher.ts','types/resolved-php/matcher.ts','types/system/assignabilityChecker.ts','types/system/subtypingChecker.ts','types/system/typeLattice.ts',

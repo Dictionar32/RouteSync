@@ -3,7 +3,7 @@ const ts = require('typescript');
 
 const targets = [
   'packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts',
-  'packages/core/src/compiler/scanner/subscanners/responseScanner.ts',
+  'packages/core/src/compiler/scanner/operations/responseScanner.ts',
 ];
 
 const forbidden = {

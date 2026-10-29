@@ -6,8 +6,8 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const methodParser = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
-const bodyParser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const methodParser = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
+const bodyParser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const cli = read('packages/cli/src/parsers/php/sourceInvocationPipeline.ts');
 const checks = [

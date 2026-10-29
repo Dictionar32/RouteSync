@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const runtime = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const upstream = read('packages/core/src/types/upstream/index.ts');
 const publicIndex = read('packages/core/src/index.ts');
 const checks = [

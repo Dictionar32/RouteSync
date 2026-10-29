@@ -33,7 +33,7 @@ check('effective policy carries complete vs blocked judgment as a closed product
 check('blocked controller and route policy are preserved as semantic relations', policyRelations.includes("kind: 'controller_action_policy_blocked'") && routeRelations.includes("kind: 'route_action_policy_blocked'") && semanticReferences.includes("relation.kind === 'controller_action_policy_blocked'") && semanticReferences.includes("relation.kind === 'route_action_policy_blocked'"));
 check('regression tests cover dynamic, duplicate, empty, unpacked and downstream blocked outcomes', authorityTests.includes('dynamic only expressions') && authorityTests.includes('duplicate only arguments') && authorityTests.includes('resolved empty array') && authorityTests.includes('unpacked argument') && routeTests.includes('blocked scope judgment') && relationTests.includes('blocked semantic relation'));
 check('judgment types are publicly exported', publicIndex.includes('ControllerPolicyActionScopeJudgment, ControllerPolicyActionScopeBlockReason'));
-const scannerSubscanners = path.join(root, 'packages/core/src/compiler/scanner/subscanners');
+const scannerSubscanners = path.join(root, 'packages/core/src/compiler/scanner/operations');
 const dirs = fs.readdirSync(scannerSubscanners, { withFileTypes: true }).filter(entry => entry.isDirectory()).map(entry => entry.name);
 check('no relation/foundation subscanner added', !dirs.includes('relation') && !dirs.includes('relations') && !dirs.includes('foundation'));
 

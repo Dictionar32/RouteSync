@@ -1,0 +1,40 @@
+{
+  "phase": 2825,
+  "title": "Fully Typed Runtime Scanner Operations and CLI Manifest Trace",
+  "status": "structural-audit-passed-typecheck-blocked-by-environment",
+  "migratedOperations": [
+    "routeConstraintFactOperation",
+    "routeConstraintArgumentAstOperation",
+    "isGroupWhereOperation",
+    "emptyRouteGroupStateFactory",
+    "routeGroupBindingScopeLookupOperation",
+    "routeGroupPropertyLookupOperation",
+    "routeGroupConstraintFactOperation",
+    "advanceRouteGroupStateOperation",
+    "routeGroupPendingStateOperation",
+    "routeTargetDescriptionOperation",
+    "routeTargetAstOperation",
+    "mergeRouteGroupStatesOperation",
+    "routeInvocationFactOperation",
+    "routeInvocationMethodOperation"
+  ],
+  "checks": {
+    "phase2825StructuralAudit": "25/25 passed",
+    "phase2815RouteSyntaxDomainJudgmentAudit": "10/10 passed",
+    "phase2824RuntimeDomainOperationAudit": "11/11 passed",
+    "upstreamCollectionsBytes": 0
+  },
+  "existingContractsReused": [
+    "RouteSyncCliManifestScanOperationInterface",
+    "RouteSyncCliUpstreamCompositionInterface",
+    "ControllerInvocationManifestCompositionAuthorityInterface",
+    "LaravelSourceAstPipelineInterface",
+    "SemanticDataflowManifestSurfaceInterface",
+    "ManifestBuilderJudgment"
+  ],
+  "typecheck": {
+    "status": "blocked",
+    "reason": "Installed TypeScript 5.8.3 rejects the repository tsconfig ES2025 target; node and vitest type packages are absent without node_modules; semantic/relations source modules imported by the changed route scanner files are missing from this workspace snapshot."
+  },
+  "notClaimed": ["full typecheck", "full build", "runtime tests", "end-to-end scan"]
+}

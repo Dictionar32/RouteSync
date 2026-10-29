@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const algebra = read('src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
-const regression = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
-const scanner = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const regression = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
+const scanner = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const checks = [
   ['Runtime contract constant matches declared version 6', /readonly version: 6/.test(contract) && /INVOCATION_SEMANTIC_CONTRACT:[\s\S]*version: 6/.test(contract)],
   ['Proof contract binds invocation identity, rule evidence, and rule obligations', /proofBinds: readonly \[.*'invocation-identity'.*'rule-specific-evidence'.*'rule-specific-obligations'/s.test(contract) && /'invocation-identity',[\s\S]*'rule-specific-evidence',[\s\S]*'rule-specific-obligations'/.test(contract)],

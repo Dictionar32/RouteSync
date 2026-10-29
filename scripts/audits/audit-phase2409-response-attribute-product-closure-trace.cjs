@@ -7,7 +7,7 @@ const responseInterface = read('packages/core/src/types/upstream/laravelControll
 const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const controllerScanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const routeScanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const routeRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const report = read('packages/core/src/types/upstream/docs/PHASE2409_RESPONSE_ATTRIBUTE_PRODUCT_CLOSURE_TRACE.md');
 
 const checks = [

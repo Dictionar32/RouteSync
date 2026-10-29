@@ -13,7 +13,11 @@ import {
 } from '@routesync/core';
 import { resolveRouteKey } from './routeKeyResolver';
 
-export function buildApiEndpointsLines(manifest: RouteManifest): string[] {
+export interface BuildApiEndpointsLinesOperation {
+  (manifest: RouteManifest): string[];
+}
+
+export const buildApiEndpointsLines: BuildApiEndpointsLinesOperation = Object.freeze((manifest: RouteManifest): string[] => {
   const lines: string[] = [];
 
   const uniqueRoutesMap = new Map<string, any>();
@@ -65,4 +69,4 @@ export function buildApiEndpointsLines(manifest: RouteManifest): string[] {
   lines.push(``);
 
   return lines;
-}
+});

@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const evidence = read('packages/core/src/types/upstream/routeDeclarationEvidence.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const producerRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
+const producerRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
 const checks = [
   ['source evidence target is a closed ADT', /export type RouteDeclarationTargetEvidence\s*=/.test(evidence) && /kind: 'controller_action'/.test(evidence) && /kind: 'controller_invokable'/.test(evidence) && /kind: 'closure'/.test(evidence) && /kind: 'unsupported'/.test(evidence)],
   ['closure evidence carries ControllerReturnSemantic', /kind: 'closure'; readonly action: string; readonly returnSemantic: ControllerReturnSemantic/.test(evidence)],

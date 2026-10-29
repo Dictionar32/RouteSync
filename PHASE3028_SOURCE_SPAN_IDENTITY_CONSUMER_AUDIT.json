@@ -1,0 +1,28 @@
+{
+  "phase": 3028,
+  "title": "SourceSpan Identity Consumer Migration — Upstream Runtime Trace",
+  "scope": "Static contract audit for source-span identity comparisons in Laravel route/action publication correlation and semantic dataflow identity/query projection consumers. This is not a global primitive-elimination claim.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "Upstream PHP/Laravel source evidence and invocation semantic judgments",
+    "Canonical source-span identity and semantic dataflow projections",
+    "Manifest preparation and terminal judgment"
+  ],
+  "checks": {
+    "routeActionPublicationCorrelationUsesCanonicalSpanJudgment": true,
+    "controllerQueryProjectionUsesCanonicalSpanJudgment": true,
+    "semanticDataflowIdentityEqualityDelegatesSpanSemantics": true,
+    "domainEqualityAndOverlapAreCoveredByTests": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 6,
+  "total": 6,
+  "remainingDebt": [
+    "Parser and serialized source offsets still use numeric representations; this migration centralizes source-span equality semantics but does not remove the boundary representation.",
+    "Additional consumers still compare coordinates or construct SourceSpan values directly and must be migrated in scoped, type-verified batches.",
+    "Repository-wide string/number/undefined/null/boolean, reduce/empty-array, nullish-coalescing, ternary, and exported-function conversions are not completed by this phase.",
+    "Static audit success does not establish TypeScript compilation, full Vitest success, or CLI-to-manifest end-to-end behavior."
+  ]
+}

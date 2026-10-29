@@ -11,7 +11,7 @@ const checks = [
   ['forwarding status says target runtime was not executed', /target-runtime-operation-not-executed-by-this-boundary/.test(contract) && /target-runtime-operation-not-executed-by-this-boundary/.test(wiring)],
   ['executor preserves the exact judgment object', /semanticJudgment: input\.semanticJudgment/.test(wiring)],
   ['executor contract forbids coverage upgrades', /without upgrading its coverage status/.test(contract) || /never upgrades partial coverage/.test(contract)],
-  ['no relation/foundation/subscanner layer added by this phase', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/laravelControllerActionExecutionFoundation.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/actionExecutionAuthority.ts'))],
+  ['no relation/foundation/subscanner layer added by this phase', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/laravelControllerActionExecutionFoundation.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/actionExecutionAuthority.ts'))],
 ];
 let failed = 0;
 for (const [label, passed] of checks) {

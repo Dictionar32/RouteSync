@@ -88,8 +88,8 @@ requireText('scripts/audits/reports/phase1357-public-contract-symbol-usage.json'
 requireText('package.json', 'audit:phase1357-public-contract-symbol-usage', 'TypeChecker-based public contract usage audit is available as a package script');
 
 requireText('packages/core/src/types/domain/routes.ts', 'operationIdentityCapability: OperationIdentityCapabilityContract', 'canonical route flow carries closed operation identity capability');
-requireText('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts', 'operationIdentityCapabilityFromRoute(boundary.capability)', 'canonical route producer routes identity materialization through upstream authority');
-forbidText('packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts', /export\s+(?:const|function)\s/, 'retired route declaration adapter stays empty in place');
+requireText('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts', 'operationIdentityCapabilityFromRoute(boundary.capability)', 'canonical route producer routes identity materialization through upstream authority');
+forbidText('packages/core/src/compiler/scanner/operations/domain-model/route/routeDeclarations.ts', /export\s+(?:const|function)\s/, 'retired route declaration adapter stays empty in place');
 requireText('packages/cli/src/generators/sdk/apiObjectEmitter.ts', 'operationIdentityReferenceFromCapability(route.raw.operationIdentityCapability)', 'CLI projects the closed upstream identity capability');
 forbidText('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /operationIdentityReferenceFromCapability\(route\.raw\.capability\)/, 'CLI does not pass route capability in place of operation identity capability');
 forbidText('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /operationIdentityCapabilityFromRoute\s*\(/, 'CLI does not construct semantic operation identity');

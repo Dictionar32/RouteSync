@@ -11,14 +11,14 @@ const forbidden = [
 ];
 const closed = new Set([
   'lexer/astClassifierEvidence.ts',
-  'subscanners/providerAstCanonical.ts', 'subscanners/migrationProducer.ts', 'subscanners/serviceAstCanonical.ts',
-  'subscanners/controller/controllerDataflowContract.ts', 'subscanners/serviceSourceStatements.ts',
-  'subscanners/form-request/canonicalValidationRuleEntry.ts', 'subscanners/form-request/validationFieldAssembler.ts',
-  'descriptors/request/controllerExpressionContract.ts', 'subscanners/resource/resourceFieldProducer.ts',
+  'operations/providerAstCanonical.ts', 'operations/migrationProducer.ts', 'operations/serviceAstCanonical.ts',
+  'operations/controller/controllerDataflowContract.ts', 'operations/serviceSourceStatements.ts',
+  'operations/form-request/canonicalValidationRuleEntry.ts', 'operations/form-request/validationFieldAssembler.ts',
+  'descriptors/request/controllerExpressionContract.ts', 'operations/resource/resourceFieldProducer.ts',
   'descriptors/validation/validationRuleEntry.ts', 'descriptors/manifest/resourceRouteGroupDescriptor.ts',
-  'subscanners/controller/responseAttributeScanner.ts', 'subscanners/orchestrator/sourceAstScanner.ts',
-  'subscanners/resource/resourceUpstreamExpressionCanonical.ts',
-  'subscanners/form-request/ruleCollector.ts',
+  'operations/controller/responseAttributeScanner.ts', 'operations/orchestrator/sourceAstScanner.ts',
+  'operations/resource/resourceUpstreamExpressionCanonical.ts',
+  'operations/form-request/ruleCollector.ts',
 ]);
 function files(dir) {
   const out = [];

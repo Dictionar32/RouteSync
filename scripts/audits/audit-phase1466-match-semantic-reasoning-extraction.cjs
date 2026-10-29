@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const algebraPath = 'packages/core/src/types/upstream/scannerMatchExpressionAlgebra.ts';
 const interfacePath = 'packages/core/src/types/upstream/scannerMatchExpressionInterface.ts';
-const runtimePath = 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts';
+const runtimePath = 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts';
 const algebra = read(algebraPath);
 const contract = read(interfacePath);
 const runtime = read(runtimePath);

@@ -22,7 +22,7 @@ const phase770 = read('packages/core/src/semantic/kernel/PHASE770_HIGHEST_ROUTE_
 const adapter = read('packages/core/src/compiler/scanner/upstream/semanticDataflowInputAdapter.ts');
 const authority = read('packages/core/src/compiler/analysis/astDataflowAuthority.ts');
 const graph = read('packages/core/src/graph/service/manifestGraphCompiler.ts');
-const controller = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const controller = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const result = {
   canonicalUpstreamExists: exists('packages/core/src/types/upstream/semanticDataflowInterface.ts'),
   literalCoreSrcUpstreamAbsent: !exists('packages/core/src/upstream'),

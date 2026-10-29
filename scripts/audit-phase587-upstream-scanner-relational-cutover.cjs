@@ -4,8 +4,8 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const roots = [
   'packages/core/src/types/upstream',
-  'packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts',
-  'packages/core/src/compiler/scanner/subscanners/scannerUtils.ts',
+  'packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts',
+  'packages/core/src/compiler/scanner/operations/scannerUtils.ts',
 ];
 const excluded = new Set(['__tests__']);
 const patterns = {

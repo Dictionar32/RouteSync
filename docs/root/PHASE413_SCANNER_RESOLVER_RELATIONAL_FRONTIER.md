@@ -2,7 +2,7 @@
 
 ## Goal
 
-Move the remaining scanner/lexer and resolver semantic authority away from host-language
+Move the remaining frontend/php and resolver semantic authority away from host-language
 control flow and sentinel optionality into declarative semantic relations, candidate
 witnesses, solver/rewrite dispatch, explicit presence/option ADTs, and fixed-point closure.
 
@@ -19,7 +19,7 @@ witnesses, solver/rewrite dispatch, explicit presence/option ADTs, and fixed-poi
 
 ## RouteSync consequence
 
-The remaining scanner/lexer leaks are not to be solved by mechanically replacing `if` with
+The remaining frontend/php leaks are not to be solved by mechanically replacing `if` with
 ternary expressions or `for` with recursion. The authority must move to:
 
 1. typed semantic relations;

@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..', '..');
-const actionContract = fs.readFileSync(path.join(root, 'src/compiler/scanner/descriptors/request/controllerActionContract.ts'), 'utf8');
+const actionContract = fs.readFileSync(path.join(root, 'src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts'), 'utf8');
 const semanticInterface = fs.readFileSync(path.join(root, 'src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts'), 'utf8');
 const wiring = fs.readFileSync(path.join(root, 'src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts'), 'utf8');
 const checks = [

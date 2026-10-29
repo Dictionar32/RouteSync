@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { LaravelSourceLexer } from '../LaravelSourceLexer';
-import { parseModelDeclaration } from '../lexer';
+import { parseModelDeclaration } from '../../frontend/php';
 import { modelRelationFactsProducer } from '../modelRelationFactsProducer';
 import { createModelName } from '../../../../types/upstream/names';
 

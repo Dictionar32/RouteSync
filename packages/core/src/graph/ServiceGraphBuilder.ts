@@ -12,15 +12,11 @@ import type { ControllerNodeName, ServiceNodeName } from '../types/semantic/nomi
 import type { Lookup } from '../types/upstream/collections';
 import { GraphNodeIndex } from './service/graphNodeIndex';
 import type { GraphNodeReference } from './service/graphNodeIndex';
-import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../semantic/relations/relationMembership';
-import { relationOptionFold } from '../semantic/relations/relationalSequence';
+import { controllerRegistryOperations, type ControllerRegistry, type ControllerLookup } from './service/controllerRegistry';
 import {
-  detectExecutionLayer,
-  buildServiceNode,
-  buildControllerNode,
-  buildModelNode,
-  assembleServiceGraph,
-  compileGraphFromSurface,
+  graphNodeFactoryOperations,
+  serviceGraphAssemblyOperations,
+  manifestGraphCompilationOperations,
 } from './service';
 import type { ResourceReference } from '../types/upstream/semanticReferences';
 import type { ServiceGraphBuilderInterface } from './ServiceGraphBuilderInterface';
@@ -42,11 +38,11 @@ const serviceReference = (name: string): GraphNodeReference => ({
 export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, ServiceGraphAssemblyInterface {
   private readonly modelsMap = GraphNodeIndex.empty<ServiceModelNode>();
   private readonly servicesMap = GraphNodeIndex.empty<ServiceNode>();
-  private controllersIndex: RelationIndex<string, ControllerNode> = Object.freeze([]);
+  private controllersIndex: ControllerRegistry = controllerRegistryOperations.empty();
   private readonly edgeSink = new GraphEdgeRelationSink();
 
   public detectLayer(filePath: string, code: string): ExecutionLayer {
-    return detectExecutionLayer(filePath, code);
+    return graphNodeFactoryOperations.detectExecutionLayer(filePath, code);
   }
 
 
@@ -54,15 +50,15 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
     name: ServiceNodeName,
     methods: ActionName[],
   ): ServiceNode {
-    return buildServiceNode(name, methods);
+    return graphNodeFactoryOperations.buildServiceNode(name, methods);
   }
 
   public buildControllerNode(name: ControllerNodeName, actions: ActionName[]): ControllerNode {
-    return buildControllerNode(name, actions);
+    return graphNodeFactoryOperations.buildControllerNode(name, actions);
   }
 
   public buildModelNode(model: GraphModelNodeSurface): ServiceModelNode {
-    return buildModelNode(model);
+    return graphNodeFactoryOperations.buildModelNode(model);
   }
 
   public registerModel(name: string, model: ServiceModelNode): void {
@@ -74,7 +70,7 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
   }
 
   public registerController(name: string, controller: ControllerNode): void {
-    this.controllersIndex = relationIndexAdd(this.controllersIndex, name, controller);
+    this.controllersIndex = this.controllersIndex.register(name, controller);
   }
 
   public getModel(name: string): Lookup<ServiceModelNode> {
@@ -85,12 +81,8 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
     return this.servicesMap.lookup(serviceReference(name));
   }
 
-  public getController(name: string): Lookup<ControllerNode> {
-    return relationOptionFold(
-      relationIndexLookup(this.controllersIndex, name),
-      () => ({ kind: 'missing' } as const),
-      value => ({ kind: 'found', value } as const),
-    );
+  public getController(name: string): ControllerLookup {
+    return this.controllersIndex.lookup(name);
   }
 
   public addGraphEdgeRelation(relation: GraphEdgeRelation): void {
@@ -98,7 +90,7 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
   }
 
   public getGraph(): ServiceGraph {
-    return assembleServiceGraph(
+    return serviceGraphAssemblyOperations.assemble(
       this.modelsMap,
       this.servicesMap,
       this.controllersIndex,
@@ -112,7 +104,7 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
     return {
       modelsMap: owner.modelsMap,
       servicesMap: owner.servicesMap,
-      get controllersIndex(): RelationIndex<string, ControllerNode> { return owner.controllersIndex; },
+      get controllersIndex(): ControllerRegistry { return owner.controllersIndex; },
       setController: (name: string, controller: ControllerNode): void => owner.registerController(name, controller),
       buildGraph: (): ServiceGraph => owner.getGraph(),
       addGraphEdgeRelation: (relation: GraphEdgeRelation): void => owner.addGraphEdgeRelation(relation),
@@ -120,7 +112,7 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
   }
 
   public buildFromGraphSurface(surface: RouteSyncManifestGraphSurface): ServiceGraph {
-    return compileGraphFromSurface(surface, this.graphContext());
+    return manifestGraphCompilationOperations.compile(surface, this.graphContext());
   }
 
   public project(surface: RouteSyncManifestGraphSurface): ServiceGraph {
@@ -128,8 +120,14 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
   }
 }
 
-/** Composition factory: downstream receives the graph contract, not the concrete builder class. */
-export const createServiceGraphBuilder = (): ServiceGraphBuilderInterface => new ServiceGraphBuilder();
+/** Runtime factory contract for graph composition. */
+export interface ServiceGraphBuilderFactoryInterface {
+  readonly createBuilder: () => ServiceGraphBuilderInterface;
+  readonly createAssembly: () => ServiceGraphAssemblyInterface;
+}
 
-/** Downstream factory for incremental structural graph assembly. */
-export const createServiceGraphAssembly = (): ServiceGraphAssemblyInterface => new ServiceGraphBuilder();
+/** Composition factory: downstream receives contracts, not the concrete builder class. */
+export const serviceGraphBuilderFactory: ServiceGraphBuilderFactoryInterface = Object.freeze({
+  createBuilder: () => new ServiceGraphBuilder(),
+  createAssembly: () => new ServiceGraphBuilder(),
+});

@@ -6,6 +6,7 @@ import type { FormRequestSource } from '../domain/request';
 import type { LaravelControllerInvocationSemanticJudgmentInterface } from './laravelControllerInvocationSemanticJudgmentInterface';
 import type { LaravelControllerRequestSemanticBinding } from './laravelControllerRequestSemanticBinding';
 import type { RouteSchemaPayload } from '../domain/validationRules';
+import type { ControllerActionSchemaRouteRequestEvidence } from './controllerActionSchemaSemanticJudgmentInterface';
 import type { SourceStatements } from './sourceStatements';
 import type { ControllerBodySemanticJudgment } from './controllerBodySemanticJudgmentInterface';
 import type { HttpErrorResponseDescriptor } from '../domain/httpErrors';
@@ -100,6 +101,8 @@ export interface LaravelControllerActionSemanticKnowledge {
   readonly dataflow: ControllerSemanticVariableFlow;
   /** Canonical validation schema payload, published independently of the compiler projection. */
   readonly schema: RouteSchemaPayload;
+  /** Full source-correlated schema origin and inline-validation evidence; schema is its compatibility projection. */
+  readonly schemaEvidence: ControllerActionSchemaRouteRequestEvidence<SourceFile>;
   /** Exact closed body judgment, retaining its source identity, schema, and validation-entry provenance. */
   readonly bodyJudgment: ControllerBodySemanticJudgment<SourceFile>;
   /** Compatibility projection of body facts for existing consumers. */

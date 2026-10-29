@@ -28,4 +28,4 @@ A migration is considered valid only when:
 
 ## Phase 398 target
 
-`packages/core/src/compiler/scanner/lexer/arrayParser.ts` was selected because it contained imperative token scans for array opening, nested depth, key/value segmentation, and scalar-expression extent. Those operations now use relation closure while preserving the existing `ParsedPhpArrayResult` contract.
+`packages/core/src/compiler/frontend/php/arrayParser.ts` was selected because it contained imperative token scans for array opening, nested depth, key/value segmentation, and scalar-expression extent. Those operations now use relation closure while preserving the existing `ParsedPhpArrayResult` contract.

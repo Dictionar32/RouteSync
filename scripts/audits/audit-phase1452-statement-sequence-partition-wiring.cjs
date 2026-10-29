@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerStatementBoundaryInterface.ts');
 const boundary = read('packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts');
 const sequence = read('packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const tests = read('packages/core/src/types/upstream/__test__/scannerStatementSequenceAlgebra.phase1419.test.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE1452_STATEMENT_SEQUENCE_PARTITION_WIRING.md');
 const checks = [

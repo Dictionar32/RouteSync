@@ -10,7 +10,7 @@ const read = f => fs.readFileSync(f,'utf8');
 const factoryFiles = coreFiles.filter(f => f.includes('/descriptors/route/factories/'));
 const productionFactoryRefs = coreFiles.filter(f => /RouteSemanticFlowFactory|descriptors\/route\/factories/.test(read(f)));
 const sdkFactoryDirImports = sdkFiles.filter(f => /descriptors\/route\/factories/.test(read(f)));
-const producerPath = path.join(core, 'compiler/scanner/subscanners/routeProducerRelations.ts');
+const producerPath = path.join(core, 'compiler/scanner/operations/routeProducerRelations.ts');
 const producerText = read(producerPath);
 const report = {
   phase: 824,

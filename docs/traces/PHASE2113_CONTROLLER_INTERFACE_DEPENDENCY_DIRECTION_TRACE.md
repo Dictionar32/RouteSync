@@ -8,7 +8,7 @@ This phase removes concrete compiler contract and AST imports from the upstream 
 
 ```text
 upstream/LaravelControllerActionSemanticJudgmentInterface
-  ├── imports compiler/scanner/lexer/controllerAstTypes
+  ├── imports compiler/frontend/php/controllerAstTypes
   └── imports compiler/scanner/descriptors/request/ControllerActionContract
 
 upstream/LaravelControllerActionExecutionInterface

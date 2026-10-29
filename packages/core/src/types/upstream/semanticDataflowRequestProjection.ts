@@ -10,11 +10,11 @@
  */
 import type { CompleteLaravelSourceModel } from './highLevelSourceModel';
 import type { RouteHighLevelContract } from './highLevelContracts';
-import { routeBindingInterfaceFrom } from './routeBinding';
+import { routeBindingInterfaceFactory } from './routeBinding';
 import type { ControllerActionFlowContract, RequestHighLevelContract } from './highLevelContracts';
 import type { RequestField, RequestValidationCapability } from './request';
 import type { SemanticDataflowIdentity, SemanticDataflowInputFact } from './semanticDataflow';
-import { semanticDataflowFactWithLineage } from './semanticDataflow';
+import { semanticDataflowFactLineageOperations } from './semanticDataflow';
 import { stringValue } from './valueObjects';
 import type { Sequence } from './collections';
 import type { Expression, RequestArgument, RequestOperation } from './expression';
@@ -34,7 +34,7 @@ const requestIdentity = (request: RequestHighLevelContract, field: RequestField)
   kind: 'semantic_dataflow_identity',
   source: field.source,
   role: 'access',
-  slot: stringValue(`request:${requestNameValue(request)}:raw:${propertyPathValue(field.name)}`),
+  slot: stringValue.create(`request:${requestNameValue(request)}:raw:${propertyPathValue(field.name)}`),
 });
 
 const dynamicRequestIdentity = (
@@ -45,14 +45,14 @@ const dynamicRequestIdentity = (
   kind: 'semantic_dataflow_identity',
   source: access.source,
   role: 'access',
-  slot: stringValue(`request:${requestName}:raw:${access.field ?? '*'}`),
+  slot: stringValue.create(`request:${requestName}:raw:${access.field ?? '*'}`),
 });
 
 const validatedIdentity = (request: RequestHighLevelContract, field: RequestField): SemanticDataflowIdentity => Object.freeze({
   kind: 'semantic_dataflow_identity',
   source: field.source,
   role: 'access',
-  slot: stringValue(`request:${requestNameValue(request)}:validated:${propertyPathValue(field.name)}`),
+  slot: stringValue.create(`request:${requestNameValue(request)}:validated:${propertyPathValue(field.name)}`),
 });
 
 const controllerRequestIdentity = (
@@ -63,7 +63,7 @@ const controllerRequestIdentity = (
   kind: 'semantic_dataflow_identity',
   source: controller.source,
   role: 'binding',
-  slot: stringValue(`controller:${controller.controller.value.value}.${controller.action.value.value}:request:${requestNameValue}:field:${propertyPathValue(field.name)}`),
+  slot: stringValue.create(`controller:${controller.controller.value.value}.${controller.action.value.value}:request:${requestNameValue}:field:${propertyPathValue(field.name)}`),
 });
 
 
@@ -175,7 +175,7 @@ const fieldsFromValidation = (validation: RequestValidationCapability): readonly
     : [];
 
 const routeParameterNames = (route: RouteHighLevelContract): readonly string[] => {
-  const parameters = routeBindingInterfaceFrom(route.bindings.parameters).parameters.items;
+  const parameters = routeBindingInterfaceFactory.fromParameters(route.bindings.parameters).parameters.items;
   const output: string[] = [];
   let current = parameters;
   while (current.kind !== 'empty') {
@@ -197,7 +197,7 @@ const routeIdentity = (route: RouteHighLevelContract, field: string, source: imp
   kind: 'semantic_dataflow_identity',
   source,
   role: 'binding',
-  slot: stringValue(`route:${route.identity.key.value.value}:parameter:${field}`),
+  slot: stringValue.create(`route:${route.identity.key.value.value}:parameter:${field}`),
 });
 
 /**
@@ -232,12 +232,12 @@ export const semanticDataflowRequestFacts = (
     const validated = validatedIdentity(request!, field);
     const bound = controllerRequestIdentity(controller, boundName, field);
     facts.push(
-      semanticDataflowFactWithLineage(
+      semanticDataflowFactLineageOperations.withLineage(
         Object.freeze({ kind: 'value_flow' as const, source: raw, target: validated, role: 'value' as const }),
         'request',
         raw,
       ),
-      semanticDataflowFactWithLineage(
+      semanticDataflowFactLineageOperations.withLineage(
         Object.freeze({ kind: 'value_flow' as const, source: validated, target: bound, role: 'binding' as const }),
         'request',
         validated,
@@ -278,9 +278,9 @@ export const semanticDataflowRequestFacts = (
           kind: 'semantic_dataflow_identity',
           source: access.source,
           role: 'access',
-          slot: stringValue(`controller:${controller.controller.value.value}.${controller.action.value.value}:request-access:${access.validated ? 'validated' : 'raw'}:${accessFieldValue(field, access)}`),
+          slot: stringValue.create(`controller:${controller.controller.value.value}.${controller.action.value.value}:request-access:${access.validated ? 'validated' : 'raw'}:${accessFieldValue(field, access)}`),
         });
-        facts.push(semanticDataflowFactWithLineage(
+        facts.push(semanticDataflowFactLineageOperations.withLineage(
           Object.freeze({ kind: 'value_flow' as const, source: effectiveSourceIdentity, target: accessIdentity, role: 'value' as const }),
           'request',
           effectiveSourceIdentity,
@@ -292,7 +292,7 @@ export const semanticDataflowRequestFacts = (
           for (const route of controllerRoutes(sourceModel, controller)) {
             if (routeParameterNames(route).includes(access.field)) {
               const routeSource = routeIdentity(route, access.field, access.source);
-              facts.push(semanticDataflowFactWithLineage(
+              facts.push(semanticDataflowFactLineageOperations.withLineage(
                 Object.freeze({ kind: 'value_flow' as const, source: routeSource, target: accessIdentity, role: 'value' as const }),
                 'route',
                 routeSource,
@@ -309,9 +309,9 @@ export const semanticDataflowRequestFacts = (
           kind: 'semantic_dataflow_identity',
           source: definition.source,
           role: 'variable',
-          slot: stringValue(`root:${definition.variable.value.value}`),
+          slot: stringValue.create(`root:${definition.variable.value.value}`),
         });
-        facts.push(semanticDataflowFactWithLineage(
+        facts.push(semanticDataflowFactLineageOperations.withLineage(
           Object.freeze({ kind: 'value_flow' as const, source: accessIdentity, target: variableIdentity, role: 'binding' as const }),
           'request',
           effectiveSourceIdentity,
@@ -330,7 +330,7 @@ export const semanticDataflowRequestFacts = (
       kind: 'semantic_dataflow_identity',
       source: query.source,
       role: 'invocation',
-      slot: stringValue(`controller:${controller.controller.value.value}.${controller.action.value.value}:query:${query.source.start.value}:${query.source.end.value}`),
+      slot: stringValue.create(`controller:${controller.controller.value.value}.${controller.action.value.value}:query:${query.source.start.value}:${query.source.end.value}`),
     });
     for (const input of sequenceItems(query.inputs)) {
       for (const access of requestAccessFields(input.expression, boundName)) {
@@ -348,9 +348,9 @@ export const semanticDataflowRequestFacts = (
             kind: 'semantic_dataflow_identity',
             source: access.source,
             role: 'access',
-            slot: stringValue(`controller:${controller.controller.value.value}.${controller.action.value.value}:request-query-access:${access.validated ? 'validated' : 'raw'}:${accessFieldValue(field, access)}`),
+            slot: stringValue.create(`controller:${controller.controller.value.value}.${controller.action.value.value}:request-query-access:${access.validated ? 'validated' : 'raw'}:${accessFieldValue(field, access)}`),
           });
-          facts.push(semanticDataflowFactWithLineage(
+          facts.push(semanticDataflowFactLineageOperations.withLineage(
             Object.freeze({ kind: 'value_flow' as const, source: effectiveSourceIdentity, target: accessIdentity, role: 'value' as const }),
             'request',
             effectiveSourceIdentity,
@@ -359,7 +359,7 @@ export const semanticDataflowRequestFacts = (
             for (const route of controllerRoutes(sourceModel, controller)) {
               if (routeParameterNames(route).includes(access.field)) {
                 const routeSource = routeIdentity(route, access.field, access.source);
-                facts.push(semanticDataflowFactWithLineage(
+                facts.push(semanticDataflowFactLineageOperations.withLineage(
                   Object.freeze({ kind: 'value_flow' as const, source: routeSource, target: accessIdentity, role: 'value' as const }),
                   'route',
                   routeSource,
@@ -367,7 +367,7 @@ export const semanticDataflowRequestFacts = (
               }
             }
           }
-          facts.push(semanticDataflowFactWithLineage(
+          facts.push(semanticDataflowFactLineageOperations.withLineage(
             Object.freeze({ kind: 'value_flow' as const, source: accessIdentity, target: queryIdentity, role: input.role === 'key' ? 'argument' as const : input.role === 'mutation' ? 'value' as const : 'predicate' as const }),
             'request',
             effectiveSourceIdentity,

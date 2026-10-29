@@ -5,7 +5,7 @@
 This phase traces the existing upstream semantic knowledge model and its scanner compatibility consumer:
 
 - `types/upstream/semanticDataflowKnowledge.ts` defines `SemanticKnowledgeDataFlow` as three separate collections: semantic `facts`, `dataFlow` edges, and derived `relations`.
-- `compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` previously chose its execution anchor only from `model.dataFlow[0]?.source`.
+- `compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` previously chose its execution anchor only from `model.dataFlow[0]?.source`.
 - Consequently, an input with semantic facts but no data-flow edges was treated as if it had no evidence at all and bypassed canonical semantic execution.
 - The upstream input producer can represent an empty edge set when an existing source anchor is available; it does not require an invented edge.
 

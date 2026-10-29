@@ -1,0 +1,17 @@
+{
+  "phase": 2996,
+  "title": "Action Selection Route-Schema Continuation",
+  "scope": [
+    "ControllerActionJudgmentRouteSelection domain operation",
+    "controller_reference route-boundary schema projection",
+    "upstream-to-route-manifest schema-payload trace"
+  ],
+  "staticAudit": { "passed": 8, "total": 8 },
+  "typescriptSyntaxTranspilation": { "passedFiles": 4, "diagnostics": 0 },
+  "fullRepositoryTypecheck": "not_run_node_modules_unavailable",
+  "testSuite": "not_run",
+  "schemaPayloadDropAtControllerReferenceBoundary": "closed_for_matched_action_selection",
+  "schemaProvenanceThroughManifestAndIR": "open",
+  "cliInvocationManifestVersusRouteManifest": "distinct_projections_require_separate_trace",
+  "zipIntegrity": "checked"
+}

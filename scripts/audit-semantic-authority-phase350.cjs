@@ -12,7 +12,7 @@ const targets = [
   'packages/core/src/semantic/kernel/semanticDecisionCalculus.ts',
   'packages/core/src/compiler/constraints/solver/declarativeConstraintRelations.ts',
   'packages/core/src/semantic/kernel/syntax/syntaxEvidenceRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
 ];
 const forbidden = /\b(if|while|for|switch|undefined|null)\b|\.map\(|\.filter\(|\.reduce\(|\.flatMap\(|\?\?|===|!==|\bas\b/;

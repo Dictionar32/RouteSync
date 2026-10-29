@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const executor = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
@@ -20,7 +20,7 @@ const checks = [
   ['scanner preserves the exact invocation judgment through action and integrated response paths', /actionJudgment\.judge\(\{[\s\S]*invocationJudgment,[\s\S]*judgeIntegratedResponse\(Object\.freeze\(\{[\s\S]*invocationJudgment,/.test(scanner)],
   ['executor remains a judgment forwarder and does not upgrade coverage', /controller_action_judgment_forwarded/.test(executor) && /semanticJudgment: input\.semanticJudgment/.test(wiring) && /never upgrades partial coverage/.test(executor)],
   ['no duplicate publication-remainder contract is exported', !/LaravelControllerActionSemanticPublicationRemainder/.test(index)],
-  ['no relation/foundation or subscanner layer was added', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|subscanners\/(relation|foundation)/.test(contract + wiring)],
+  ['no relation/foundation or subscanner layer was added', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|operations\/(relation|foundation)/.test(contract + wiring)],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

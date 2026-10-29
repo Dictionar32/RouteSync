@@ -2,23 +2,26 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { LaravelSourceLexer } from '../../core/src/compiler/scanner/LaravelSourceLexer';
-import { createAstIdentifier } from '../../core/src/compiler/scanner/lexer/phpAstTypes';
-import { scanMiddlewareAsts } from '../../core/src/compiler/scanner/subscanners/middlewareAstCanonical';
-import { middlewareProducer } from '../../core/src/compiler/scanner/subscanners/middlewareProducer';
-import { controllerActionFromMethod } from '../../core/src/compiler/scanner/subscanners/controller/controllerAstCanonical';
+import { createAstIdentifier } from '../../core/src/compiler/frontend/php/phpAstTypes';
+import { middlewareAstScanningOperation } from '../../core/src/compiler/scanner/operations/middlewareAstCanonical';
+import { middlewareProducer } from '../../core/src/compiler/scanner/operations/middlewareProducer';
+import { controllerAstCanonicalOperations } from '../../core/src/compiler/scanner/operations/controller/controllerAstCanonical';
 import type { SourceProjectIdentity } from '../../core/src/types/upstream/highLevelSourceModel';
+import { semanticDataflowQueryPolicySelectionFactory } from '../../core/src/types/upstream/semanticDataflowQueryPolicy';
 import type { SourceSpan } from '../../core/src/types/upstream/provenance';
 
 // Middleware production is verified independently from controller dataflow.
 // The ecommerce handler calls `$next($request)`, whose callable-call lowering
 // remains a separate controller-flow concern.
-vi.mock('../../core/src/compiler/scanner/subscanners/controller/controllerAstCanonical', () => ({
+vi.mock('../../core/src/compiler/scanner/operations/controller/controllerAstCanonical', () => ({
+  controllerAstCanonicalOperations: {
   controllerActionFromMethod: vi.fn((method, controller, _file, response) => ({
     kind: 'controller_action',
     controller: { kind: 'controller_name', value: { kind: 'string_value', value: controller } },
     action: { kind: 'action_name', value: { kind: 'string_value', value: method.name } },
     response,
   })),
+  },
 }));
 
 const fixtureRoot = path.resolve(__dirname, 'fixtures/ecommerce-shop-source');
@@ -35,6 +38,7 @@ const project = (root: string): SourceProjectIdentity => ({
   kind: 'laravel_project',
   root: source(root, 1).file,
   source: source(root, 1),
+  queryPolicySelection: semanticDataflowQueryPolicySelectionFactory.defaultSelection,
 });
 
 describe('MiddlewareAst producer', () => {
@@ -67,7 +71,7 @@ describe('MiddlewareAst producer', () => {
       },
       source: source(fixtureFile, 1),
     });
-    expect(controllerActionFromMethod).toHaveBeenCalledWith(
+    expect(controllerAstCanonicalOperations.controllerActionFromMethod).toHaveBeenCalledWith(
       declaration.methods.find(method => method.name === 'handle'),
       'AdminMiddleware',
       fixtureFile,
@@ -76,7 +80,7 @@ describe('MiddlewareAst producer', () => {
   });
 
   it('routes discovered middleware syntax through middlewareProducer into SourceAsts-compatible MiddlewareAst values', async () => {
-    const middlewares = await scanMiddlewareAsts(project(fixtureRoot));
+    const middlewares = await middlewareAstScanningOperation.scan(project(fixtureRoot));
 
     expect(middlewares).toHaveLength(1);
     expect(middlewares[0]).toMatchObject({

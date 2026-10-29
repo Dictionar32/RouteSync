@@ -16,7 +16,7 @@ const checks = [
   ['wiring module contains no runtime values or implementations', !/^\s*(?:export\s+)?(?:const|function|class)\s/m.test(wiring)],
   ['retirement contract references the wiring interface', retirement.includes('readonly invocationResponseWiring: LaravelControllerInvocationResponseWiringInterface;')],
   ['public barrel exports wiring types only', barrel.includes("export type { LaravelControllerInvocationResponseWiringArtifact, LaravelControllerInvocationResponseWiringInterface } from './types/upstream/laravelControllerInvocationResponseWiringInterface';")],
-  ['no relation/foundation or replacement subscanner introduced', !wiring.includes('semantic/relations') && !wiring.includes('semantic/foundation') && !wiring.includes('subscanners/')],
+  ['no relation/foundation or replacement subscanner introduced', !wiring.includes('semantic/relations') && !wiring.includes('semantic/foundation') && !wiring.includes('operations/')],
   ['no callable semantic authority is introduced', !wiring.includes('readonly wire:') && !wiring.includes('readonly connect:') && !wiring.includes('readonly analyze:')],
 ];
 const report = {

@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const checks = [
   ['interface-declares-single-judgment-operation', /analyze:\s*\(input:\s*InvocationSemanticInput\)\s*=>\s*InvocationSemanticJudgment/.test(contract)],
   ['algebra-owns-single-judgment-operation', /export const analyzeInvocationJudgmentAlgebra/.test(algebra)],

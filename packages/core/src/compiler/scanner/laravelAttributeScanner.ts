@@ -1,10 +1,10 @@
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 import { LaravelSourceLexer } from './LaravelSourceLexer';
-import { createAstIdentifier, type TokenDescriptor } from './lexer/phpAstTypes';
-import { phpClassNameResolutionContextAt } from './lexer/phpClassNameContextParser';
+import { createAstIdentifier, type TokenDescriptor } from '../frontend/php/phpAstTypes';
+import { phpClassNameResolutionContextAt } from '../frontend/php/phpClassNameContextParser';
 import { phpClassNameResolutionAuthority } from '../../types/upstream/phpClassNameResolutionAuthority';
-import { createClassName, createSourceFile, type SourceFile } from '../../types/upstream/names';
+import { createClassName, type SourceFile, sourceFileIdentityFactory, stringValue } from '../../types/upstream/names';
 import type { PhpClassNameResolution } from '../../types/upstream/phpClassNameResolutionInterface';
 import type { SourceProjectIdentity } from '../../types/upstream/highLevelSourceModel';
 import type { AttributeAst } from '../../types/upstream/ast';
@@ -29,12 +29,12 @@ import type {
   LaravelContextualAttributeResolvedInterfaceEvidence,
 } from '../../types/upstream/laravelAttributeScannerInterface';
 import { attributeProducer } from './attributeProducer';
-import { phpAstExpressionSemanticAuthority } from './lexer/routeAst/phpAstExpressionSemanticAuthority';
+import { phpAstExpressionSemanticAuthority } from '../frontend/php/routeAst/phpAstExpressionSemanticAuthority';
 import { phpClassConstructorSelectionAuthority } from '../../types/upstream/phpClassConstructorSelectionAuthority';
 
 const source = (file: string, line: number): SourceSpan => Object.freeze({
   kind: 'source_span',
-  file: createSourceFile(file),
+  file: sourceFileIdentityFactory.create(stringValue.create(file)),
   start: Object.freeze({ kind: 'number_value', value: line }),
   end: Object.freeze({ kind: 'number_value', value: line }),
 });
@@ -181,8 +181,8 @@ const scanAttribute = (file: string, text: string): AttributeFileScanJudgment =>
   if (classIndex < 0) {
     return Object.freeze({
       kind: 'laravel_attribute_file_scan_blocked',
-      sourceFile: createSourceFile(file),
-      blockers: Object.freeze([{ kind: 'laravel_attribute_declaration_parse_failed', sourceFile: createSourceFile(file) }]),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)),
+      blockers: Object.freeze([{ kind: 'laravel_attribute_declaration_parse_failed', sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)) }]),
     });
   }
   const name = classNameAt(tokens, classIndex);
@@ -208,9 +208,9 @@ const scanAttribute = (file: string, text: string): AttributeFileScanJudgment =>
   if (classIdentityResolution.kind === 'php_class_name_resolution_blocked') {
     failures.push(Object.freeze({ kind: 'laravel_attribute_scan_blocker', source: classSpan, resolution: classIdentityResolution }));
   }
-  if (failures.length > 0) return Object.freeze({ kind: 'laravel_attribute_file_scan_blocked', sourceFile: createSourceFile(file), blockers: Object.freeze(failures) });
+  if (failures.length > 0) return Object.freeze({ kind: 'laravel_attribute_file_scan_blocked', sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)), blockers: Object.freeze(failures) });
   if (classIdentityResolution.kind !== 'php_class_name_resolved') {
-    return Object.freeze({ kind: 'laravel_attribute_file_scan_blocked', sourceFile: createSourceFile(file), blockers: Object.freeze([{ kind: 'laravel_attribute_declaration_parse_failed', sourceFile: createSourceFile(file) }]) });
+    return Object.freeze({ kind: 'laravel_attribute_file_scan_blocked', sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)), blockers: Object.freeze([{ kind: 'laravel_attribute_declaration_parse_failed', sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)) }]) });
   }
 
   type ResolvedInterfaceCandidate = Readonly<{
@@ -289,7 +289,7 @@ const scanAttribute = (file: string, text: string): AttributeFileScanJudgment =>
   if (produced.kind === 'attribute_producer_blocked') {
     return Object.freeze({
       kind: 'laravel_attribute_file_scan_blocked',
-      sourceFile: createSourceFile(file),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)),
       blockers: Object.freeze([produced.blocker.kind === 'attribute_producer_constructor_missing'
         ? { kind: 'laravel_attribute_constructor_missing' as const, declarationSource: produced.blocker.declarationSource }
         : produced.blocker.kind === 'attribute_producer_constructor_ambiguous'
@@ -297,7 +297,7 @@ const scanAttribute = (file: string, text: string): AttributeFileScanJudgment =>
           : { kind: 'laravel_attribute_constructor_inventory_blocked' as const, declarationSource: produced.blocker.declarationSource, blockers: produced.blocker.blockers }]),
     });
   }
-  return Object.freeze({ kind: 'laravel_attribute_file_scan_complete', sourceFile: createSourceFile(file), ast: produced.attribute, contextuality });
+  return Object.freeze({ kind: 'laravel_attribute_file_scan_complete', sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)), ast: produced.attribute, contextuality });
 };
 
 type AttributeFileDiscovery = Readonly<{
@@ -312,7 +312,7 @@ const discoverFiles = async (directory: string): Promise<AttributeFileDiscovery>
   } catch {
     const failure: LaravelAttributeScanFailure = Object.freeze({
       kind: 'laravel_attribute_discovery_directory_unreadable',
-      directory: createSourceFile(directory),
+      directory: sourceFileIdentityFactory.create(stringValue.create(directory)),
     });
     return Object.freeze({ files: Object.freeze([]), failures: Object.freeze([failure]) });
   }
@@ -350,9 +350,9 @@ export const laravelAttributeScanner: LaravelAttributeScannerInterface = Object.
   contractVersion: 20,
   scan: async (sourceProject: SourceProjectIdentity): Promise<LaravelAttributeScanJudgment> => {
   const rootPath = sourceProject.root.value.value;
-  const root = createSourceFile(rootPath);
+  const root = sourceFileIdentityFactory.create(stringValue.create(rootPath));
   const directory = path.join(rootPath, 'app', 'Attributes');
-  const directorySource = createSourceFile(directory);
+  const directorySource = sourceFileIdentityFactory.create(stringValue.create(directory));
   const scope: LaravelAttributeScanScope = Object.freeze({
     kind: 'laravel_attribute_scan_scope',
     sourceProject,
@@ -380,7 +380,7 @@ export const laravelAttributeScanner: LaravelAttributeScannerInterface = Object.
   }
   const discovery = await discoverFiles(directory);
   const filePaths = discovery.files;
-  const sourceFiles = filePaths.map(createSourceFile);
+  const sourceFiles = filePaths.map(sourcePath => sourceFileIdentityFactory.create(stringValue.create(sourcePath)));
   if (discovery.failures.length > 0) {
     return failureResult(sourceProject, scope, sourceFiles, discovery.failures);
   }
@@ -391,8 +391,8 @@ export const laravelAttributeScanner: LaravelAttributeScannerInterface = Object.
     } catch {
       return Object.freeze({
         kind: 'laravel_attribute_file_scan_blocked',
-        sourceFile: createSourceFile(file),
-        blockers: Object.freeze([{ kind: 'laravel_attribute_source_file_unreadable', sourceFile: createSourceFile(file) }]),
+        sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)),
+        blockers: Object.freeze([{ kind: 'laravel_attribute_source_file_unreadable', sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)) }]),
       });
     }
     try {
@@ -400,8 +400,8 @@ export const laravelAttributeScanner: LaravelAttributeScannerInterface = Object.
     } catch {
       return Object.freeze({
         kind: 'laravel_attribute_file_scan_blocked',
-        sourceFile: createSourceFile(file),
-        blockers: Object.freeze([{ kind: 'laravel_attribute_declaration_parse_failed', sourceFile: createSourceFile(file) }]),
+        sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)),
+        blockers: Object.freeze([{ kind: 'laravel_attribute_declaration_parse_failed', sourceFile: sourceFileIdentityFactory.create(stringValue.create(file)) }]),
       });
     }
   }));

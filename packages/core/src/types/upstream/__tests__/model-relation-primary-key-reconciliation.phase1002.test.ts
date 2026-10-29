@@ -9,7 +9,7 @@ const span = { kind: 'source_span' as const, file: { kind: 'source_file' as cons
 const stringValue = (value: string) => ({ kind: 'string_value' as const, value });
 const column = (name: string, primary = false) => ({
   kind: 'column' as const,
-  name: { kind: 'column_name' as const, value: stringValue(name) },
+  name: { kind: 'column_name' as const, value: stringValue.create(name) },
   databaseType: { kind: 'string' as const, length: { kind: 'number_value' as const, value: 36 } },
   semanticType: { kind: 'string' as const },
   presence: { kind: 'required' as const },
@@ -23,7 +23,7 @@ const emptySequence = <T,>() => ({ kind: 'empty' as const });
 const relation = (key: EloquentRelationAst['key']): EloquentRelationAst => ({
   kind: 'eloquent_relation_ast', name: createRelationName('account'), sourceModel: createModelName('Invoice'), relation: { kind: 'belongs_to' },
   eloquentType: { kind: 'belongs_to' }, descriptor: { type: { kind: 'belongs_to' }, relation: { kind: 'belongs_to' }, cardinality: { kind: 'one' }, polymorphism: { kind: 'non_polymorphic' } },
-  targetModel: createModelName('Account'), targetClass: createClassName('Account'), invocation: { kind: 'literal', value: stringValue('Account') } as never,
+  targetModel: createModelName('Account'), targetClass: createClassName('Account'), invocation: { kind: 'literal', value: stringValue.create('Account') } as never,
   source: span, semanticType: { kind: 'primitive', type: 'string' } as never, targetShape: { kind: 'model' } as never,
   traversalTarget: { kind: 'model', model: createModelName('Account') } as never, key,
 });
@@ -33,21 +33,21 @@ const semantic = (key: EloquentRelationAst['key']) => ({
   property: createRelationName('account') as never, relation: createRelationName('account'), sourceModel: createModelName('Invoice'), eloquentType: { kind: 'belongs_to' as const }, targetModel: createModelName('Account'), cardinality: { kind: 'one' as const }, multiplicity: { kind: 'single' as const }, targetShape: { kind: 'model' } as never, traversalTarget: { kind: 'model', model: createModelName('Account') } as never, boundCardinality: { kind: 'single' as const }, resourceCardinality: { kind: 'single' as const }, foreignKey: key, semanticType: { kind: 'primitive', type: 'string' } as never, source: span, traversal: { kind: 'relation' as const, targetModel: createModelName('Account'), eloquentType: { kind: 'belongs_to' as const }, cardinality: { kind: 'one' as const }, multiplicity: { kind: 'single' as const }, targetShape: { kind: 'model' } as never, traversalTarget: { kind: 'model', model: createModelName('Account') } as never, semanticType: { kind: 'primitive', type: 'string' } as never },
 });
 const schema = (): SchemaInterface => ({ kind: 'schema_interface', definition: { kind: 'schema_definition', tables: { kind: 'schema_tables', items: {
-  kind: 'cons', head: { kind: 'schema_table', table: createTableName('invoices'), columns: { kind: 'columns', items: { kind: 'cons', head: column('id', true), tail: emptySequence() } }, indexes: { kind: 'indexes', items: emptySequence() }, foreignKeys: { kind: 'foreign_keys', items: { kind: 'cons', head: { kind: 'foreign_key', column: { kind: 'column_name', value: stringValue('account_uuid') }, referencesModel: { kind: 'domain_type_name', value: stringValue('accounts') }, referencesColumn: { kind: 'column_name', value: stringValue('uuid') }, onDelete: { kind: 'no_action' }, onUpdate: { kind: 'no_action' }, source: span }, tail: emptySequence() } }, migrationProvenance: emptySequence(), source: span }, tail: {
+  kind: 'cons', head: { kind: 'schema_table', table: createTableName('invoices'), columns: { kind: 'columns', items: { kind: 'cons', head: column('id', true), tail: emptySequence() } }, indexes: { kind: 'indexes', items: emptySequence() }, foreignKeys: { kind: 'foreign_keys', items: { kind: 'cons', head: { kind: 'foreign_key', column: { kind: 'column_name', value: stringValue.create('account_uuid') }, referencesModel: { kind: 'domain_type_name', value: stringValue.create('accounts') }, referencesColumn: { kind: 'column_name', value: stringValue.create('uuid') }, onDelete: { kind: 'no_action' }, onUpdate: { kind: 'no_action' }, source: span }, tail: emptySequence() } }, migrationProvenance: emptySequence(), source: span }, tail: {
     kind: 'cons', head: { kind: 'schema_table', table: createTableName('accounts'), columns: { kind: 'columns', items: { kind: 'cons', head: column('uuid', true), tail: emptySequence() } }, indexes: { kind: 'indexes', items: emptySequence() }, foreignKeys: { kind: 'foreign_keys', items: emptySequence() }, migrationProvenance: emptySequence(), source: span }, tail: emptySequence() }
 } }, source: span }, source: span, closed: true });
 
 describe('phase1002 model relation primary-key reconciliation', () => {
   it('uses schema primary-key evidence instead of assuming id for a partial belongsTo key', () => {
-    const rel = relation({ kind: 'explicit_foreign', foreign: { kind: 'column_name', value: stringValue('account_uuid') } });
+    const rel = relation({ kind: 'explicit_foreign', foreign: { kind: 'column_name', value: stringValue.create('account_uuid') } });
     const result = reconcileSemanticRelation(rel, schemaRelationIndexFrom(schema()), semantic(rel.key));
     expect(result.status).toBe('matched');
-    expect(result.semantic.foreignKey).toEqual({ kind: 'explicit', foreign: { kind: 'column_name', value: stringValue('account_uuid') }, local: { kind: 'column_name', value: stringValue('uuid') } });
+    expect(result.semantic.foreignKey).toEqual({ kind: 'explicit', foreign: { kind: 'column_name', value: stringValue.create('account_uuid') }, local: { kind: 'column_name', value: stringValue.create('uuid') } });
   });
 
   it('does not match a convention relation to a non-primary referenced column', () => {
     const base = schema();
-    const altered = { ...base, definition: { ...base.definition, tables: { ...base.definition.tables, items: { ...base.definition.tables.items, head: { ...base.definition.tables.items.head, foreignKeys: { kind: 'foreign_keys' as const, items: { kind: 'cons' as const, head: { kind: 'foreign_key' as const, column: { kind: 'column_name' as const, value: stringValue('account_id') }, referencesModel: { kind: 'domain_type_name' as const, value: stringValue('accounts') }, referencesColumn: { kind: 'column_name' as const, value: stringValue('code') }, onDelete: { kind: 'no_action' as const }, onUpdate: { kind: 'no_action' as const }, source: span }, tail: emptySequence() } } } } } } };
+    const altered = { ...base, definition: { ...base.definition, tables: { ...base.definition.tables, items: { ...base.definition.tables.items, head: { ...base.definition.tables.items.head, foreignKeys: { kind: 'foreign_keys' as const, items: { kind: 'cons' as const, head: { kind: 'foreign_key' as const, column: { kind: 'column_name' as const, value: stringValue.create('account_id') }, referencesModel: { kind: 'domain_type_name' as const, value: stringValue.create('accounts') }, referencesColumn: { kind: 'column_name' as const, value: stringValue.create('code') }, onDelete: { kind: 'no_action' as const }, onUpdate: { kind: 'no_action' as const }, source: span }, tail: emptySequence() } } } } } } };
     const rel = relation({ kind: 'convention' });
     const result = reconcileSemanticRelation(rel, schemaRelationIndexFrom(altered), semantic(rel.key));
     expect(result.status).toBe('eloquent_only');

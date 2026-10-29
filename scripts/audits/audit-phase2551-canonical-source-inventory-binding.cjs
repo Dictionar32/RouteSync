@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProjectionInterface.ts');
 const lowering = read('packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts');
 const solver = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
-const facade = read('packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts');
+const facade = read('packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts');
 const projection = read('packages/core/src/compiler/scanner/wiring/routeManifestProjectionInterface.ts');
 const checks = [];
 const assert = (label, condition) => checks.push({ label, passed: Boolean(condition) });

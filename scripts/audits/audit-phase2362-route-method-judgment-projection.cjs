@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const methodContract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
-const projection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const projection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const cli = read('packages/cli/src/commands/scan.ts');
 const invocation = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');

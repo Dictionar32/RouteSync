@@ -1,9 +1,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const wiringPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const testPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts');
+const testPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.phase10.test.ts');
 const resolver = fs.readFileSync(resolverPath, 'utf8');
 const wiring = fs.readFileSync(wiringPath, 'utf8');
 const test = fs.readFileSync(testPath, 'utf8');

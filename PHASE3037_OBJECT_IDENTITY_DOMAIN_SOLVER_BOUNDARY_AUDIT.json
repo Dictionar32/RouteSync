@@ -1,0 +1,43 @@
+{
+  "phase": 3037,
+  "title": "Object Identity — Domain-Owned Solver Boundary Retirement",
+  "scope": "Static audit that retires the object-identity consumer from string-atom relation solving and moves finite alias closure into typed upstream domain evidence while preserving assignment provenance.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "Upstream SemanticKnowledgeDataFlow assignment evidence",
+    "Invocation integrated-response composition reuses the exact canonical knowledge reference",
+    "Interface-backed semanticObjectIdentityAuthority executes on that runtime knowledge value",
+    "Typed KnowledgeId equality and pair identity operations",
+    "Domain-owned alias evidence and proof derivations are retained as objectIdentity in the integrated response without duplicating the knowledge graph"
+  ],
+  "checks": {
+    "authorityNoLongerImportsGenericRelationSolver": true,
+    "authorityNoLongerSerializesKnowledgeIdentity": true,
+    "authorityUsesTypedKnowledgeIdentityOperations": true,
+    "pairComparisonRemainsDomainOwned": true,
+    "exportedAnalysisUsesInterfaceBackedObject": true,
+    "exportedAliasUsesInterfaceBackedObject": true,
+    "authorityExportsExplicitInterface": true,
+    "finiteEvidenceClosureIsTyped": true,
+    "duplicateAliasEvidenceIsPreserved": true,
+    "byReferenceOnlyCreatesAliasFacts": true,
+    "noArrayMapOrFlatMapInAuthority": true,
+    "runtimeConsumerUsesAuthorityObject": true,
+    "integratedRuntimeActuallyExecutesObjectIdentity": true,
+    "integratedResponsePublishesDerivedIdentityWithoutDuplicatingKnowledge": true,
+    "regressionTestPreservesEvidenceAndAliasSemantics": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionRemainsInRuntimeTrace": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 19,
+  "total": 19,
+  "remainingDebt": [
+    "This phase retires only the object-identity consumer from the legacy relation-solver boundary; other upstream solver consumers require separate domain migrations.",
+    "TypeScript compilation, Vitest execution, and end-to-end CLI-to-manifest tests remain unverified because workspace dependencies are unavailable.",
+    "Primitive representations at PHP parser boundaries and in other semantic domains have not been globally eliminated."
+  ],
+  "failedChecks": []
+}

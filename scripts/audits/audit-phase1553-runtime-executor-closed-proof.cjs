@@ -11,7 +11,7 @@ const contractPath = 'packages/core/src/types/upstream/semanticTypeDerivationInt
 const authorityPath = 'packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationAuthority.ts';
 const executorPath = 'packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts';
 const runtimePath = 'packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntime.ts';
-const scannerFacadePath = 'packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts';
+const scannerFacadePath = 'packages/core/src/compiler/scanner/operations/SemanticTypeDeriver.ts';
 const testPath = 'packages/core/src/compiler/semantic/type-derivation/__test__/semanticTypeDerivationRuntimeExecutor.phase1552.test.ts';
 const contract = read(contractPath);
 const authority = read(authorityPath);
@@ -73,9 +73,9 @@ const directSolverCalls = scannerFiles.flatMap(file => {
 });
 const reasoningSignals = scannerFiles.filter(file => /\b(classify|infer|resolve|derive|candidate|precedence|semantic|authority|judgment|relationFold|relationGate)\b/i.test(fs.readFileSync(file, 'utf8')));
 const frontiers = [
-  { path: 'packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts', owner: 'request-type semantic authority', status: 'open', note: 'Orchestrator still calls derivation aggregation implemented under scanner/subscanners/request-deriver.' },
-  { path: 'packages/core/src/compiler/scanner/subscanners/request-deriver/', owner: 'request-type semantic authority', status: 'open', note: 'Action/response/group assembly still mixes domain derivation and descriptor construction.' },
-  { path: 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts', owner: 'AST syntax/semantic boundary', status: 'mixed', note: 'Syntax-to-AST construction is expected; domain inference/classification ownership still needs rule-by-rule trace.' },
+  { path: 'packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts', owner: 'request-type semantic authority', status: 'open', note: 'Orchestrator still calls derivation aggregation implemented under scanner/operations/request-deriver.' },
+  { path: 'packages/core/src/compiler/scanner/operations/request-deriver/', owner: 'request-type semantic authority', status: 'open', note: 'Action/response/group assembly still mixes domain derivation and descriptor construction.' },
+  { path: 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts', owner: 'AST syntax/semantic boundary', status: 'mixed', note: 'Syntax-to-AST construction is expected; domain inference/classification ownership still needs rule-by-rule trace.' },
   { path: 'packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts', owner: 'upstream request-type interface', status: 'open', note: 'Wiring still calls RequestTypeDeriver directly.' },
   { path: 'packages/core/src/compiler/scanner/', owner: 'route security/CRUD and controller dataflow authorities', status: 'consumer-audit-open', note: 'Existing authorities are present; this inventory does not prove every consumer has cut over.' },
 ];

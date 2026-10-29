@@ -1,7 +1,6 @@
 import type { LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface';
 import type { LaravelRouteSourceSelectionIntent } from '../../../types/upstream/laravelRouteSourceSelection';
-import type { RouteSyncManifestFlow } from '../../../types/upstream/manifest';
-import type { ManifestBuilderBlockedJudgment, ManifestBuilderJudgment, ManifestBuilderOperationPreparationInterface } from '../../../types/upstream/manifestBuilderInterface';
+import type { ManifestBuilderJudgment, ManifestBuilderOperationPreparationInterface, ManifestBuilderFlowScanJudgment } from '../../../types/upstream/manifestBuilderInterface';
 
 /** Every runtime scan carries its route-selection intent explicitly; omission is not a semantic default. */
 export interface RouteSyncManifestScanOperationInput {
@@ -10,16 +9,8 @@ export interface RouteSyncManifestScanOperationInput {
   readonly routeSelection: LaravelRouteSourceSelectionIntent;
 }
 
-/** Concrete successful result of the scanner's flow-projection operation. */
-export interface RouteSyncManifestFlowCompleteJudgment {
-  readonly kind: 'route_sync_manifest_flow_complete';
-  readonly flow: RouteSyncManifestFlow;
-}
-
-/** Explicit discriminated result; blocked builder judgments are never normalized into success. */
-export type RouteSyncManifestFlowScanJudgment =
-  | ManifestBuilderBlockedJudgment
-  | RouteSyncManifestFlowCompleteJudgment;
+/** Reuse the upstream judgment's explicit flow-projection result contract. */
+export type RouteSyncManifestFlowScanJudgment = ManifestBuilderFlowScanJudgment;
 
 /** Runtime contract for scanner operations over an explicit, closed inventory receipt and route intent. */
 export interface RouteSyncManifestScanOperationInterface {

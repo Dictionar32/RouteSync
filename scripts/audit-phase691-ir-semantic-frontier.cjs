@@ -11,8 +11,8 @@ const files = [
   'packages/core/src/types/upstream/highLevelContracts.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
   'packages/core/src/compiler/scanner/binders/SemanticResourceBinder.ts',
-  'packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/manifest/routeManifestDescriptor.ts',
 ];
 const diagnostics = [];
 const legacy = [];

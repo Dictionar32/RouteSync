@@ -5,8 +5,8 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const algebra = read('src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const executor = read('src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
-const regression = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
+const scanner = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const regression = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
 const checks = [
   ['Contract version 6 retains explicit target ambiguity policy', /readonly version: 6/.test(contract) && /id: 'invocation-target-ambiguity'[\s\S]*when: 'more-than-one-distinct-callable-target'[\s\S]*obligation: 'callable_target_ambiguous'[\s\S]*resolutionPolicy: 'explicit-resolution-required'/.test(contract)],
   ['Ambiguity is a typed obligation retaining candidate callable identities', /kind: 'callable_target_ambiguous'[\s\S]*candidateCallables: readonly SemanticCallable\[\]/.test(contract)],

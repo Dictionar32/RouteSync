@@ -48,11 +48,11 @@
       "change": "route/FormRequest mismatch consumes the explicit distinct judgment"
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "path": "packages/core/src/compiler/frontend/php/tokenizer.ts",
       "change": "exported tokenizePhpSource function replaced by interface-typed phpSourceTokenizer operation object"
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/arrayParser.ts",
       "change": "exported parsePhpArray function replaced by interface-typed phpArrayParser operation object"
     },
     {
@@ -66,8 +66,8 @@
     "packages/cli/src/manifestScanOperationInterface.ts",
     "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
     "packages/core/src/compiler/scanner/LaravelSourceLexer.ts",
-    "packages/core/src/compiler/scanner/lexer/tokenizer.ts -> phpSourceTokenizer.tokenize",
-    "packages/core/src/compiler/scanner/lexer/arrayParser.ts -> phpArrayParser.parse",
+    "packages/core/src/compiler/frontend/php/tokenizer.ts -> phpSourceTokenizer.tokenize",
+    "packages/core/src/compiler/frontend/php/arrayParser.ts -> phpArrayParser.parse",
     "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceEvidenceInventory.ts",
     "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSourceOccurrenceVerification.ts",
     "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationProofVerifier.ts",

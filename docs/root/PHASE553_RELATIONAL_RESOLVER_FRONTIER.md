@@ -2,7 +2,7 @@
 
 ## Objective
 
-Close the remaining host-language control leakage in the scanner/lexer + generic constraint solver + semantic type resolver frontier, while preserving PHP `null` as source-language evidence.
+Close the remaining host-language control leakage in the frontend/php + generic constraint solver + semantic type resolver frontier, while preserving PHP `null` as source-language evidence.
 
 ## Architecture direction
 
@@ -38,4 +38,4 @@ Result:
 - closed surface: **true**
 - model/source null evidence: **6 occurrences across 5 files**
 
-The full repository is not claimed to be globally zero-leak; this phase closes the named scanner/lexer/parser-adapter/syntax-error/ternary/generic-solver/resolver frontier.
+The full repository is not claimed to be globally zero-leak; this phase closes the named frontend/php/parser-adapter/syntax-error/ternary/generic-solver/resolver frontier.

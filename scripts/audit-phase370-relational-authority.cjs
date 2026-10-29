@@ -9,11 +9,11 @@ const files = [
   'packages/core/src/semantic/kernel/semanticRelations.ts',
   'packages/core/src/semantic/kernel/semanticUnknownRelations.ts',
   'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
-  'packages/core/src/compiler/scanner/lexer/astClassifier.ts',
-  'packages/core/src/compiler/scanner/subscanners/queryProducer.ts',
+  'packages/core/src/compiler/frontend/php/astClassifier.ts',
+  'packages/core/src/compiler/scanner/operations/queryProducer.ts',
 ];
 
 const forbidden = {

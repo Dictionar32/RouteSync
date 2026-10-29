@@ -1,0 +1,17 @@
+{
+  "phase": 3095,
+  "scope": "PHP source-read settlement batch → identity-binding batch runtime transition",
+  "genericBatchHandlersRemoved": true,
+  "genericBatchContinueWithRemoved": true,
+  "fulfilledBatchHasNamedIdentityOperation": true,
+  "rejectedBatchPreservesTypedEvidence": true,
+  "cliRuntimeUsesNamedIdentityOperation": true,
+  "cliPreservesRejectedBatchEvidence": true,
+  "regressionTestAdded": true,
+  "residualControlFlowInCliComposition": true,
+  "downstreamIdentityBatchContinuationStillGeneric": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false,
+  "passed": true
+}

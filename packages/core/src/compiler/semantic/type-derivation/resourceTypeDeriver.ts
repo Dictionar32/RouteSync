@@ -91,7 +91,7 @@ function createProperty(
     reason: 'semantic_resolution' | 'nested_object',
 ): ObjectProperty {
     return ScannedObjectProperty.create({
-        name: { kind: 'property_name', value: stringValue(name) },
+        name: { kind: 'property_name', value: stringValue.create(name) },
         type: typeExpressionToSemanticType(type),
         description: '',
         origin: { kind: 'derived', reason }

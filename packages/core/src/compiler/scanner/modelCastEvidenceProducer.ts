@@ -1,6 +1,6 @@
-import type { ModelDeclarationAst } from './lexer';
-import type { PhpClassPropertyAst } from './lexer';
-import type { PhpAstValue } from './lexer';
+import type { ModelDeclarationAst } from '../frontend/php';
+import type { PhpClassPropertyAst } from '../frontend/php';
+import type { PhpAstValue } from '../frontend/php';
 import type { SourceSpan } from '../../types/upstream/provenance';
 import type { ModelCastSourceEvidence, ModelCastTargetSourceEvidence } from '../../types/upstream/modelCastFactsAuthorityInterface';
 import { createClassName, createPropertyName } from '../../types/upstream/names';
@@ -34,7 +34,7 @@ const targetEvidence = (value: PhpAstValue): ModelCastTargetSourceEvidence => {
   const classes = [value].filter(isClassReference).map(item => item.className);
   const literal = literals[0];
   const className = classes[0];
-  if (literal !== undefined) return Object.freeze({ kind: 'literal_cast_target', value: stringValue(literal) });
+  if (literal !== undefined) return Object.freeze({ kind: 'literal_cast_target', value: stringValue.create(literal) });
   if (className !== undefined) return Object.freeze({ kind: 'class_cast_target', className: createClassName(className) });
   throw Error('Model cast evidence requires a string literal or class reference');
 };

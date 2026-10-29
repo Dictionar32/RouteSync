@@ -1,0 +1,24 @@
+{
+  "phase": 2814,
+  "title": "Interface-First PHP Scanner Runtime Audit",
+  "runtimeOperations": [
+    "phpAstClassificationRuntime",
+    "phpExpressionStructureEvidenceProvider",
+    "phpExpressionRootOperatorResolver"
+  ],
+  "upstreamAdtOperationPreserved": "continueForAstClassification",
+  "runtimeTrace": [
+    "CLI scan/sync",
+    "manifest scan operation",
+    "controller invocation manifest composition",
+    "manifest request-resolution preflight",
+    "PHP scanner wiring",
+    "AST evidence adapter",
+    "typed PHP AST runtime operation",
+    "upstream expression-candidate judgment continuation",
+    "AST and semantic evidence",
+    "manifest projection/validation/serialization/persistence"
+  ],
+  "collectionsTsBytes": 0,
+  "fullTypecheckBuildTestE2EVerified": false
+}

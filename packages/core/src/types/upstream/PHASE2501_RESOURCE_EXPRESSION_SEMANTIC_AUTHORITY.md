@@ -3,7 +3,7 @@
 ## Changes
 
 - Evolved the existing `resourceAstExpressionMappingInterface.ts` contract with `ResourceAstExpressionMappingAuthorityInterface`; the previous operation interface remains the runtime-facing boundary.
-- Moved Resource-specific expression interpretation from `operations/resourceAstExpressionMapper.ts` into `compiler/scanner/lexer/routeAst/resourceExpressionSemanticAuthority.ts`, the PHP route-AST semantic owner.
+- Moved Resource-specific expression interpretation from `operations/resourceAstExpressionMapper.ts` into `compiler/frontend/php/routeAst/resourceExpressionSemanticAuthority.ts`, the PHP route-AST semantic owner.
 - Reduced `operations/resourceAstExpressionMapper.ts` to a typed `export const` adapter that delegates the named input to the authority.
 - Removed the authority's implicit `'<scanner>'` source-file defaults and propagated the supplied source identity through recursive expression mapping helpers.
 - Exported the new authority contract through the public core entry.

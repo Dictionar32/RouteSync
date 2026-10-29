@@ -7,7 +7,7 @@ const contract = read('packages/core/src/types/upstream/phpClassNameResolutionIn
 const authority = read('packages/core/src/types/upstream/phpClassNameResolutionAuthority.ts');
 const staticContract = read('packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts');
 const staticAuthority = read('packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
 const tests = read('packages/core/src/types/upstream/__tests__/php-class-name-resolution-authority.phase2063.test.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [
@@ -18,7 +18,7 @@ const checks = [
   ['inheritance scanner projects lexical evidence into the same upstream authority', () => { assert.match(parser, /phpClassNameResolutionAuthority\.judge/); assert.match(parser, /kind: 'php_class_name_resolution_input'/); assert.doesNotMatch(parser, /const normalized = sourceName\.replace/); }],
   ['existing static-call authority contract advances with single-judgment propagation', () => { assert.match(staticContract, /readonly contractVersion: 11/); assert.match(staticAuthority, /contractVersion: 11/); assert.doesNotMatch(staticAuthority, /export const .*ResolutionAuthority/); }],
   ['focused regressions cover FQCN, aliases, qualified aliases, namespace-relative and blocked outcomes', () => { assert.match(tests, /fully qualified names/); assert.match(tests, /qualified class references/); assert.match(tests, /namespace-relative/); assert.match(tests, /incomplete/); }],
-  ['no relation/foundation subscanner or duplicate invocation/response/AST authority was introduced', () => { assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')), false); assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')), false); assert.doesNotMatch(parser, /new .*Authority/i); }],
+  ['no relation/foundation subscanner or duplicate invocation/response/AST authority was introduced', () => { assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')), false); assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')), false); assert.doesNotMatch(parser, /new .*Authority/i); }],
   ['audit command is registered', () => { assert.equal(packageJson.scripts['audit:phase2063-shared-php-class-name-resolution-interface-first'], 'node scripts/audits/audit-phase2063-shared-php-class-name-resolution-interface-first.cjs'); }],
 ];
 const results = checks.map(([name, check]) => { try { check(); console.log(`PASS ${name}`); return true; } catch (error) { console.log(`FAIL ${name} — ${error.message}`); return false; } });

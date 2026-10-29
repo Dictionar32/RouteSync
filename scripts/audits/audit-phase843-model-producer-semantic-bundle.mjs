@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const files = {
   producer: 'packages/core/src/compiler/scanner/modelProducer.ts',
   producerContract: 'packages/core/src/types/upstream/modelProducerInterface.ts',
-  scanner: 'packages/core/src/compiler/scanner/subscanners/ModelScanner.ts',
+  scanner: 'packages/core/src/compiler/scanner/operations/ModelScanner.ts',
   orchestrator: 'packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts',
   collections: 'packages/core/src/types/upstream/collections.ts',
   sourceModel: 'packages/core/src/types/upstream/highLevelSourceModel.ts',

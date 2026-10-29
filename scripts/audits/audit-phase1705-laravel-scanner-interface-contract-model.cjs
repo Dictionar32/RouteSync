@@ -14,7 +14,7 @@ const files = {
   judgment: read('packages/core/src/types/upstream/laravelScannerSemanticJudgment.ts'),
   invocation: read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts'),
   pipeline: read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts'),
-  controllerDataflow: read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts'),
+  controllerDataflow: read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts'),
   sourcePipeline: read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts'),
   public: read('packages/core/src/index.ts'),
   upstream: read('packages/core/src/types/upstream/index.ts'),

@@ -2,45 +2,68 @@ import type { RequestType } from '../../artifacts/RequestTypesArtifact';
 import type { ObjectType } from '../../../types/domain/semanticType';
 import type {
   RequestTypeDerivationJudgmentConsumerInterface,
+  RequestTypeDerivationProjectableJudgment,
   RequestTypeDerivationSemanticPipelineInterface,
-  RequestTypeDerivationRuntimeExecutionResult,
+  RequestTypeDerivationProjectableRuntimeExecutionData,
+  RequestTypeDerivationBlockedRuntimeExecutionData,
   RequestTypeEvidenceReference,
   RequestTypeRouteRequestResolutionReceipt,
 } from '../../../types/upstream/requestTypeDerivationInterface';
-import { createRequestTypeDerivationOperationPreparation } from '../../semantic/request-type-derivation/requestTypeDerivationOperationPreparation';
+import { requestTypeDerivationOperationPreparationFactory } from '../../semantic/request-type-derivation/requestTypeDerivationOperationPreparation';
 import type { RouteManifestRequestResolutionPreflight } from './routeManifestProjectionInterface';
 import { semanticTypeDerivationAuthority } from '../../semantic/type-derivation/semanticTypeDerivationAuthority';
 import { TypeInterner } from '../../types/TypeInterner';
 import { routeManifestProjectionInputs } from './routeManifestProjectionInputs';
+import type { RouteManifestProjectionCompositionResult } from './routeManifestProjectionOutcome';
+
+/** Payload for a verified derivation that can be lowered into a manifest. */
+export interface AuthorityBackedRouteManifestTypeLoweredOutcome {
+  readonly kind: 'lowered';
+  readonly requestTypes: readonly RequestType[];
+  readonly semanticTypes: readonly ObjectType[];
+  readonly derivation: RequestTypeDerivationProjectableRuntimeExecutionData;
+  readonly sourceEvidence: readonly RequestTypeEvidenceReference[];
+  readonly requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
+}
+
+/** Payload for a derivation that cannot produce a manifest. */
+export interface AuthorityBackedRouteManifestTypeLoweringBlockedOutcome {
+  readonly kind: 'derivation_not_projectable';
+  readonly semanticTypes: readonly ObjectType[];
+  readonly derivation: RequestTypeDerivationBlockedRuntimeExecutionData;
+  readonly sourceEvidence: readonly RequestTypeEvidenceReference[];
+  readonly requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
+}
 
 /**
- * Result of the authority-backed lowering path. A failed or incomplete semantic
- * judgment is deliberately not converted to an empty RequestType list: callers
- * must preserve and handle the authority outcome.
+ * Domain-specific continuation owned by the lowering result. It lets manifest
+ * composition handle each concrete lowering outcome without inspecting `kind`.
+ * This is deliberately concrete and non-generic; it is not a reasoning primitive.
+ */
+export interface AuthorityBackedRouteManifestTypeLoweringOutcomeHandlers {
+  readonly lowered: (outcome: AuthorityBackedRouteManifestTypeLoweredOutcome) => RouteManifestProjectionCompositionResult;
+  readonly derivation_not_projectable: (outcome: AuthorityBackedRouteManifestTypeLoweringBlockedOutcome) => RouteManifestProjectionCompositionResult;
+}
+
+/**
+ * The ADT carries its domain continuation as well as its evidence. Its producer
+ * installs the continuation for the concrete variant, so composition does not
+ * need a second semantic `switch` to decide how to consume the result.
  */
 export type AuthorityBackedRouteManifestTypeLoweringResult =
-  | Readonly<{
-      kind: 'lowered';
-      requestTypes: readonly RequestType[];
-      semanticTypes: readonly ObjectType[];
-      derivation: Extract<RequestTypeDerivationRuntimeExecutionResult, { kind: 'projected' }>;
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
-    }>
-  | Readonly<{
-      kind: 'derivation_not_projectable';
-      semanticTypes: readonly ObjectType[];
-      derivation: Exclude<RequestTypeDerivationRuntimeExecutionResult, { kind: 'projected' }>;
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
-    }>;
+  | (Readonly<AuthorityBackedRouteManifestTypeLoweredOutcome> & Readonly<{
+      readonly continue: (handlers: AuthorityBackedRouteManifestTypeLoweringOutcomeHandlers) => RouteManifestProjectionCompositionResult;
+    }>)
+  | (Readonly<AuthorityBackedRouteManifestTypeLoweringBlockedOutcome> & Readonly<{
+      readonly continue: (handlers: AuthorityBackedRouteManifestTypeLoweringOutcomeHandlers) => RouteManifestProjectionCompositionResult;
+    }>);
 
 export interface AuthorityBackedRouteManifestTypeLoweringInterface {
   readonly project: (preflight: RouteManifestRequestResolutionPreflight) => AuthorityBackedRouteManifestTypeLoweringResult;
 }
 
 const judgmentGroupsConsumer: RequestTypeDerivationJudgmentConsumerInterface = Object.freeze({
-  project: judgment => judgment.groups,
+  project: (judgment: RequestTypeDerivationProjectableJudgment) => judgment.groups,
 });
 
 /**
@@ -52,10 +75,17 @@ const judgmentGroupsConsumer: RequestTypeDerivationJudgmentConsumerInterface = O
  * The legacy default path remains separate until a real proof-producing pipeline
  * is wired by the composition root.
  */
-export const createAuthorityBackedRouteManifestTypeLowering = (
-  pipeline: RequestTypeDerivationSemanticPipelineInterface,
-): AuthorityBackedRouteManifestTypeLoweringInterface => {
-  const operationPreparation = createRequestTypeDerivationOperationPreparation(pipeline, judgmentGroupsConsumer);
+export interface AuthorityBackedRouteManifestTypeLoweringFactoryInterface {
+  readonly create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ) => AuthorityBackedRouteManifestTypeLoweringInterface;
+}
+
+export const authorityBackedRouteManifestTypeLoweringFactory: AuthorityBackedRouteManifestTypeLoweringFactoryInterface = Object.freeze({
+  create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ): AuthorityBackedRouteManifestTypeLoweringInterface => {
+  const operationPreparation = requestTypeDerivationOperationPreparationFactory.create(pipeline, judgmentGroupsConsumer);
 
   return Object.freeze({
     project: (preflight: RouteManifestRequestResolutionPreflight): AuthorityBackedRouteManifestTypeLoweringResult => {
@@ -67,30 +97,47 @@ export const createAuthorityBackedRouteManifestTypeLowering = (
       const derivation = operationPreparation.prepare(preflight.semanticInput);
       const semanticTypes = semanticTypeDerivationAuthority.resolve({ resources, models, interner, routes }).result;
 
-      switch (derivation.kind) {
-        case 'projected':
-          return Object.freeze({
+      // The upstream ADT owns this domain decision. The lowering consumer does
+      // not provide a visitor or reclassify the derivation's primitive kind.
+      const disposition = derivation.toManifestProjectionDisposition();
+
+      switch (disposition.kind) {
+        case 'request_type_derivation_projectable': {
+          const projectable = disposition.derivation;
+          const outcome: AuthorityBackedRouteManifestTypeLoweredOutcome = Object.freeze({
             kind: 'lowered',
-            requestTypes: derivation.projection,
+            requestTypes: projectable.projection,
             semanticTypes,
-            derivation,
+            derivation: projectable,
             sourceEvidence,
             requestResolutionLedger,
           });
-        case 'incomplete':
-        case 'conflict':
-        case 'input_rejected':
-        case 'verification_failed':
-        case 'rejection_verification_failed':
-        case 'authority_inconsistent':
-        case 'assessment_integrity_failed':
-        case 'authority_integrity_failed':
-          return Object.freeze({ kind: 'derivation_not_projectable', semanticTypes, derivation, sourceEvidence, requestResolutionLedger });
+          return Object.freeze({
+            ...outcome,
+            continue: (handlers: AuthorityBackedRouteManifestTypeLoweringOutcomeHandlers): RouteManifestProjectionCompositionResult =>
+              handlers.lowered(outcome),
+          });
+        }
+        case 'request_type_derivation_not_projectable': {
+          const outcome: AuthorityBackedRouteManifestTypeLoweringBlockedOutcome = Object.freeze({
+            kind: 'derivation_not_projectable',
+            semanticTypes,
+            derivation: disposition.derivation,
+            sourceEvidence,
+            requestResolutionLedger,
+          });
+          return Object.freeze({
+            ...outcome,
+            continue: (handlers: AuthorityBackedRouteManifestTypeLoweringOutcomeHandlers): RouteManifestProjectionCompositionResult =>
+              handlers.derivation_not_projectable(outcome),
+          });
+        }
         default: {
-          const exhaustive: never = derivation;
+          const exhaustive: never = disposition;
           return exhaustive;
         }
       }
     },
   });
-};
+  },
+});

@@ -1,0 +1,65 @@
+{
+  "phase": 2737,
+  "title": "DTO AST Runtime Operation and Upstream CLI Manifest Trace",
+  "checks": [
+    {
+      "name": "relations directory exists and remains empty",
+      "passed": true
+    },
+    {
+      "name": "foundation directory exists and remains empty",
+      "passed": true
+    },
+    {
+      "name": "DTO AST and inventory entrypoints are not exported as free functions",
+      "passed": true
+    },
+    {
+      "name": "DTO AST projection implementation is internal and preserves incomplete-inventory failure",
+      "passed": true
+    },
+    {
+      "name": "DTO inventory implementation is internal",
+      "passed": true
+    },
+    {
+      "name": "DTO runtime operation interface explicitly types AST and inventory scans",
+      "passed": true
+    },
+    {
+      "name": "DTO runtime operation is interface-first and frozen",
+      "passed": true
+    },
+    {
+      "name": "production source pipeline consumes the DTO inventory operation",
+      "passed": true
+    },
+    {
+      "name": "DTO authority tests call the operation rather than the removed free function",
+      "passed": true
+    },
+    {
+      "name": "CLI scan and sync retain the shared manifest runtime operation",
+      "passed": true
+    },
+    {
+      "name": "upstream composition still constructs the manifest scan operation",
+      "passed": true
+    },
+    {
+      "name": "manifest builder preserves complete and blocked ADT outcomes",
+      "passed": true
+    },
+    {
+      "name": "no relationFoundation references remain in core source",
+      "passed": true
+    }
+  ],
+  "passed": 13,
+  "total": 13,
+  "relationFoundationReferencesInCoreSource": 0,
+  "relationDirectoryFileCount": 0,
+  "foundationDirectoryFileCount": 0,
+  "scannerSubscannerTypeScriptFileCount": 78,
+  "verificationScope": "Static source audit only. This script does not claim full project typecheck, unit tests, build, or CLI end-to-end execution. The semantic/relations and semantic/foundation directories are intentionally empty and are not recreated or repaired."
+}

@@ -24,10 +24,10 @@ const forbidden = /\b(if|while|for|switch|map|filter|reduce|flatMap|undefined|nu
 const targeted = [
   'packages/core/src/types/domain/resourceFieldSemanticBinding.ts',
   'packages/core/src/types/domain/executionSignatures.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/subscanners/semantic/route-response/shapeExtractor.ts',
-  'packages/core/src/compiler/scanner/subscanners/semantic/route-response/propertyProcessor.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/scanner/operations/semantic/route-response/shapeExtractor.ts',
+  'packages/core/src/compiler/scanner/operations/semantic/route-response/propertyProcessor.ts',
   'packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts',
   'packages/core/src/semantic/kernel/requirementSolver.ts',
 ];

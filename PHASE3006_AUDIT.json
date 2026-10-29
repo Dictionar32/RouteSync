@@ -1,0 +1,140 @@
+{
+  "phase": 3006,
+  "audit": "operational-pipeline-adt",
+  "passed": 19,
+  "total": 19,
+  "checks": [
+    {
+      "name": "pipeline result handlers define complete and blocked continuations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "pipeline result ADT exposes continueWith",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "composition evidence exposes domain continuation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "pipeline contract type/runtime version both 3",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "blocked result factory binds onBlocked",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "complete result factory binds onComplete",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "pipeline completion constructor uses operational factory",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "connected pipeline integration consumes continueWith",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "integration dispatch consumes composition ADT continuation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "source identity binding consumes identity judgment continuation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "connected composition evidence owns continuation operation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "rejected composition evidence owns continuation operation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "not-connected composition evidence owns continuation operation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "not-connected runtime path uses operational evidence",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "test fixture updated to use operational evidence",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "no exported function declaration in touched runtime modules",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "collections.ts remains intentionally empty",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "removed relation foundation files remain absent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "syntax transpilation has zero diagnostics",
+      "passed": true,
+      "detail": "7 files checked"
+    }
+  ],
+  "syntax": [
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineInterface.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineAuthority.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingAuthority.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    }
+  ]
+}

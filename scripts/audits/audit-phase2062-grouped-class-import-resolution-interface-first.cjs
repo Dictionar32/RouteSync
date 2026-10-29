@@ -3,9 +3,9 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
-const previousRegression = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationClassIdentity.phase2019.test.ts');
-const tests = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationGroupedImports.phase2062.test.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
+const previousRegression = read('packages/core/src/compiler/frontend/php/controllerDeclarationClassIdentity.phase2019.test.ts');
+const tests = read('packages/core/src/compiler/frontend/php/controllerDeclarationGroupedImports.phase2062.test.ts');
 const contract = read('packages/core/src/types/upstream/phpClassNameResolutionInterface.ts');
 const originContract = read('packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts');
 const originAuthority = read('packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts');
@@ -24,7 +24,7 @@ const checks = [
   ['facade alias, FQCN, and unimported-short-name regressions are represented', () => { assert.match(facadeTests, /DB facade alias/); assert.match(facadeTests, /fully qualified DB facade/); assert.match(facadeTests, /unimported short DB name/); }],
   ['origin authority exposes the evolved class-reference rule contract', () => { assert.match(originContract, /contractVersion: 11/); assert.match(originAuthority, /contractVersion: 11/); assert.match(originAuthority, /classReferenceResolutionRule/); }],
   ['audit command is registered in package.json', () => { assert.equal(packageJson.scripts['audit:phase2062-grouped-class-import-resolution-interface-first'], 'node scripts/audits/audit-phase2062-grouped-class-import-resolution-interface-first.cjs'); }],
-  ['no relation/foundation subscanner or duplicate authority was introduced', () => { assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')), false); assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')), false); assert.doesNotMatch(parser, /new .*Authority/i); }],
+  ['no relation/foundation subscanner or duplicate authority was introduced', () => { assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')), false); assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')), false); assert.doesNotMatch(parser, /new .*Authority/i); }],
 ];
 const results = checks.map(([name, check]) => { try { check(); console.log(`PASS ${name}`); return true; } catch (error) { console.log(`FAIL ${name} — ${error.message}`); return false; } });
 const passed = results.filter(Boolean).length;

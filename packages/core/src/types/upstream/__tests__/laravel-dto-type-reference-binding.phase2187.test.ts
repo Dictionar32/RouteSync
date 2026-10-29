@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { scanDtoDeclarationInventory } from '../../../compiler/scanner/subscanners/dtoAstCanonical';
-import { createSourceFile, createClassName } from '../names';
+import { dtoDeclarationInventoryScanningOperation } from '../../../compiler/scanner/operations/dtoAstCanonical';
+import { createClassName, sourceFileIdentityFactory, stringValue } from '../names';
 import { createLaravelSourceProjectIdentity } from '../sourceProjectIdentity';
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import { laravelDtoTypeReferenceBindingAuthority, laravelDtoTypeReferenceBindingRuntimeExecutor } from '../laravelDtoTypeReferenceBindingAuthority';
 
 const temporaryRoots: string[] = [];
@@ -16,7 +16,7 @@ afterEach(async () => {
 
 const sourceSpan = (file: string) => Object.freeze({
   kind: 'source_span' as const,
-  file: createSourceFile(file),
+  file: sourceFileIdentityFactory.create(stringValue.create(file)),
   start: Object.freeze({ kind: 'number_value' as const, value: 4 }),
   end: Object.freeze({ kind: 'number_value' as const, value: 4 }),
 });
@@ -27,8 +27,8 @@ const fixture = async () => {
   const directory = path.join(root, 'app', 'Http', 'DTOs');
   await fs.mkdir(directory, { recursive: true });
   await fs.writeFile(path.join(directory, 'UserDto.php'), '<?php\nnamespace App\\Http\\DTOs;\nclass UserDto { public string $name; }\n');
-  const sourceProject = createLaravelSourceProjectIdentity(root);
-  const inventory = await scanDtoDeclarationInventory(sourceProject);
+  const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create(root)));
+  const inventory = await dtoDeclarationInventoryScanningOperation.scanInventory(sourceProject);
   return { root, sourceProject, inventory };
 };
 
@@ -41,11 +41,11 @@ describe('Laravel DTO type reference binding phase 2187', () => {
       sourceName: createClassName('UserDto'),
       lexicalContext: Object.freeze({
         kind: 'php_class_name_resolution_context',
-        namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'),
+        namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'),
         classImports: Object.freeze([Object.freeze({
           kind: 'php_class_import_binding' as const,
           alias: createClassName('UserDto'),
-          target: createPhpQualifiedClassName('App\\Http\\DTOs\\UserDto'),
+          target: phpQualifiedClassNameFactory.create('App\\Http\\DTOs\\UserDto'),
         })]),
         importInventory: 'complete' as const,
       }),
@@ -87,8 +87,8 @@ describe('Laravel DTO type reference binding phase 2187', () => {
     await fs.mkdir(directory, { recursive: true });
     await fs.writeFile(path.join(directory, 'UserDto.php'), '<?php\nnamespace App\\Http\\DTOs;\nclass UserDto { public string $name; }\n');
     await fs.writeFile(path.join(directory, 'OrderDto.php'), '<?php\nnamespace App\\Http\\DTOs;\nuse App\\Http\\DTOs\\UserDto as AccountDto;\nclass OrderDto { public AccountDto $user; }\n');
-    const sourceProject = createLaravelSourceProjectIdentity(root);
-    const inventory = await scanDtoDeclarationInventory(sourceProject);
+    const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create(root)));
+    const inventory = await dtoDeclarationInventoryScanningOperation.scanInventory(sourceProject);
     expect(inventory.kind).toBe('laravel_project_dto_declaration_inventory_complete');
     if (inventory.kind !== 'laravel_project_dto_declaration_inventory_complete') {
       throw new Error('Fixture DTO inventory must be complete');

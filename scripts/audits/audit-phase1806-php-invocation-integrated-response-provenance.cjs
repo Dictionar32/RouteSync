@@ -6,7 +6,7 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipelineInterface = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineInterface.ts');
 const responseInterface = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const composition = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const integration = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts');
 const integrationInterface = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts');

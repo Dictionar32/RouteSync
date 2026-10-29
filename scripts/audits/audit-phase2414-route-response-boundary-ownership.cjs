@@ -6,7 +6,7 @@ const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScan
 const boundaryTypes = read('packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasicsTypes.ts');
 const bindingBuilder = read('packages/core/src/compiler/scanner/resolvers/boundary/bindingBuilder.ts');
 const boundaryInput = read('packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts');
-const routeRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const routeBinding = read('packages/core/src/types/domain/routes.ts');
 const routeContract = read('packages/core/src/types/upstream/route.ts');
 const responseProjectionFunction = scanner.split('const responseProjectionForTarget = (')[1]?.split('const sequenceToArray')[0] ?? '';

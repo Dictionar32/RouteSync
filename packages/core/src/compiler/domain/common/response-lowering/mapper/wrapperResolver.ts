@@ -6,7 +6,7 @@ import type { ResponseFieldProjection } from '../../../../generators/contract-ge
 import type { SemanticTypeResolverLike } from '../../semantic-resolver';
 import type { NullableWrapperResult, StageResult } from '../loweringContracts';
 import { convertResolvedTypeToResponseField } from './fieldConverter';
-import { NULLABLE_WRAPPER_RULES, resolveLoweringOperation } from '../../../../ir/semanticIRLoweringRelations';
+import { NULLABLE_WRAPPER_RULES, irLoweringOperations } from '../../../../ir/semanticIRLoweringRelations';
 import { relationFirst, relationOptionFold, relationResolve } from '../../../../../semantic/relations/relationalSequence';
 import { relationEqual } from '../../../../../semantic/relations/semanticRelations';
 import type { ResolvedSemanticType } from '../../ResolvedSemanticType';
@@ -17,7 +17,7 @@ export function resolveNullableWrapper(
     resolver: SemanticTypeResolverLike,
 ): NullableWrapperResult {
     const resolved = resolver.resolve(objectType);
-    const operation = resolveLoweringOperation(resolved.kind, NULLABLE_WRAPPER_RULES);
+    const operation = irLoweringOperations.resolve(resolved.kind, NULLABLE_WRAPPER_RULES);
     const handlers: Record<string, () => NullableWrapperResult> = {
         nullable_wrapper: () => {
             const nullable = resolved as Extract<ResolvedSemanticType, { kind: 'nullable' }>;

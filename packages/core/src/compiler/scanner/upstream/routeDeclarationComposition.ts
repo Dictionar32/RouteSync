@@ -1,16 +1,17 @@
+import { routeRequestSchemaEvidenceFactory } from '../../../types/upstream/controllerActionSchemaSemanticJudgmentAuthority';
 /**
  * Upstream route declaration composition and producer-input authority.
  * It consumes closed source evidence and injected semantic authorities, then emits canonical
  * route boundaries and producer inputs. Runtime scanner wiring only invokes this contract.
  */
 
-import path from "path";
 import { HttpMethod, RouteHandlerKind, VoidResponseDescriptor } from '../../../types/route';
 import { numberValue } from '../../../types/upstream/valueObjects';
-import type { ResourceName, PropertyName, SourceFile } from '../../../types/upstream/names';
+import type { ResourceName, PropertyName, SourceFile, SourceFileInventory } from '../../../types/upstream/names';
 import type { Presence } from '../../../types/upstream/presence';
 import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
-import type { LaravelRouteSourceSelectionIntent } from '../../../types/upstream/laravelRouteSourceSelection';
+import { laravelRouteSourceSelectionAuthority, type LaravelRouteSourceSelectionIntent } from '../../../types/upstream/laravelRouteSourceSelection';
+import { laravelDefaultRouteSourceResolution } from './laravelDefaultRouteSourceResolution';
 import { createDomainTypeName, createRouteParameterName, stringValue } from '../../../types/upstream/names';
 import type { RouteGroupFact } from '../../../types/upstream/routeGroupFacts';
 import type { LaravelRouteAuthorizationSemanticJudgment } from '../../../types/upstream/routeAuthorizationSemanticJudgmentInterface';
@@ -20,31 +21,30 @@ import type { StandardRouteTarget } from './routeBoundaryEmitter';
 import type { ResolvedLaravelRoutePath } from '../../../types/upstream/routePathResolution';
 import type { RouteMethods, RouteParameters, Sequence } from '../../../types/upstream/collections';
 import type { RouteDeclarationEvidence } from '../../../types/upstream/routeDeclarationEvidence';
-import type { RouteDeclarationAst } from '../lexer/routeAst';
+import type { RouteDeclarationAst } from '../../frontend/php/routeAst';
 import type { EndpointRequestBinding, EndpointResponseBinding } from '../../../types/upstream/endpointBindings';
 import type { LaravelControllerMethodResponseProduct } from '../../../types/upstream/laravelControllerResponseSemanticJudgmentInterface';
 import type { RouteRequestBinding } from '../../../types/domain/request';
 import type { ControllerActionJudgmentPublication, ControllerActionJudgmentRouteSelection, LaravelControllerScanJudgment } from '../../../types/upstream/laravelControllerScannerInterface';
 import type { ControllerPolicyRelation } from '../../../types/upstream/controller';
 import type { BlockedEffectiveControllerActionPolicy, EffectiveControllerActionPolicyCatalogEntry, EffectiveControllerActionPolicyCatalogJudgment, EffectiveControllerActionPolicy } from '../../../types/upstream/effectiveControllerActionPolicy';
-import type { LaravelRouteDeclarationCompositionAuthorityInterface, LaravelRouteDeclarationMethodJudgment, LaravelRoutePolicyProjectionInput, LaravelRouteScannerInterface, LaravelRouteScanJudgment, LaravelRouteScanOutcome, LaravelRouteSourceObservationInput, LaravelRouteSourceObservationJudgment } from '../../../types/upstream/laravelRouteScannerInterface';
+import { laravelRouteScanOutcomeOperations, type LaravelRouteDeclarationCompositionAuthorityInterface, type LaravelRouteDeclarationMethodJudgment, type LaravelRoutePolicyProjectionInput, type LaravelRouteScannerInterface, type LaravelRouteScanJudgment, type LaravelRouteScanOutcome, type LaravelRouteSourceObservationInput, type LaravelRouteSourceObservationJudgment } from '../../../types/upstream/laravelRouteScannerInterface';
 import { matchRouteHandler } from '../../../types/domain/routeHandlers';
 import { SemanticValueFactory } from '../../../types/domain/semanticValues';
-import { operationIdentityCapabilityAuthority } from '../../../types/upstream/operationIdentityCapabilityAuthority';
-import { createRequestName, createMiddlewareName, createActionName, createSourceFile, createControllerName, createPropertyName } from '../../../types/upstream/names';
-import { routeSourceFileContextKnowledge } from '../lexer/routeAst/routeDataFlow';
-import { type ControllerActionInfo } from '../descriptors/requestDescriptors';
+import { operationIdentityCapabilityAuthorityOperations } from '../../../types/upstream/operationIdentityCapabilityAuthority';
+import { createRequestName, createMiddlewareName, createActionName, createControllerName, createPropertyName, sourceFileIdentityFactory } from '../../../types/upstream/names';
+import { routeDataFlowOperations, routeSourceFileContextKnowledgeOperation } from '../../frontend/php/routeAst/routeDataFlow';
+import { type ControllerActionInfo } from '../operations/domain-model/requestDescriptors';
 import { routeBoundaryEmitter } from './routeBoundaryEmitter';
-import { buildRouteMiddlewareSemanticInput, middlewareNames } from './route/routeMiddlewareSemanticInputBuilder';
-import { projectRouteResourceMiddleware } from './route/resourceMiddlewareProjection';
-import { buildRouteHandler } from '../descriptors/request/controllerActionTypes';
+import { routeMiddlewareSemanticInputOperations } from './route/routeMiddlewareSemanticInputBuilder';
+import { routeResourceMiddlewareOperations } from './route/resourceMiddlewareProjection';
+import { effectiveControllerActionPolicyOperations } from './route/effectiveControllerActionPolicyResolver';
+import { controllerActionTypeOperations } from '../operations/domain-model/request/controllerActionTypes';
 import { emptyRouteSchemaPayload } from '../../../types/domain/validationRules';
-import { routeGroupContextResolver } from '../descriptors/route/routeGroupContextResolver';
+import { routeGroupContextResolver } from '../operations/domain-model/route/routeGroupContextResolver';
 import type { ControllerReturnSemanticProductionInterface } from '../../../types/upstream/controllerReturnSemanticProductionInterface';
-import type { PhpAstValue } from '../lexer/phpAstExpressionTypes';
+import type { PhpAstValue } from '../../frontend/php/phpAstExpressionTypes';
 import { operationIdentityProjection } from '../wiring/operationIdentityProjection';
-
-const ROUTE_SOURCE_FILE_NAMES: readonly string[] = Object.freeze(['api.php', 'web.php']);
 
 export interface RouteDeclarationEvidenceProjectionInterface {
     readonly fromAst: (
@@ -59,7 +59,9 @@ export const routeDeclarationEvidenceProjection: RouteDeclarationEvidenceProject
         declaration: RouteDeclarationAst,
         sourceFile: string,
         returnSemanticProduction: ControllerReturnSemanticProductionInterface<readonly PhpAstValue[]>,
-    ): RouteDeclarationEvidence => Object.freeze({
+    ): RouteDeclarationEvidence => {
+    const routeFlow = routeDataFlowOperations.declarationFlow(declaration);
+    return Object.freeze({
     method: declaration.method,
     targetMethods: declaration.targetMethods,
     path: declaration.path,
@@ -75,18 +77,18 @@ export const routeDeclarationEvidenceProjection: RouteDeclarationEvidenceProject
         destroyable: declaration.resourceDestroyable,
     },
     target: (() => {
-        switch (declaration.target.kind) {
+        switch (routeFlow.target.value.kind) {
             case 'controller_action':
-                return { kind: 'controller_action' as const, controller: declaration.target.controller, action: declaration.target.action };
+                return { kind: 'controller_action' as const, controller: routeFlow.target.value.controller, action: routeFlow.target.value.action };
             case 'controller_invokable':
-                return { kind: 'controller_invokable' as const, controller: declaration.target.controller };
+                return { kind: 'controller_invokable' as const, controller: routeFlow.target.value.controller };
             case 'closure':
-                return { kind: 'closure' as const, action: declaration.target.action, returnSemantic: returnSemanticProduction.produce(Object.freeze({ method: declaration.target.returns, sourceFile: createSourceFile(sourceFile), responseReferenceJudgment: Object.freeze({ kind: 'response_reference_not_declared' as const }) })) };
+                return { kind: 'closure' as const, action: routeFlow.target.value.action, returnSemantic: returnSemanticProduction.produce(Object.freeze({ method: routeFlow.target.value.returns, sourceFile: sourceFileIdentityFactory.create(stringValue.create(sourceFile)), responseReferenceJudgment: Object.freeze({ kind: 'response_reference_not_declared' as const }) })) };
             case 'unsupported':
-                return { kind: 'unsupported' as const, reason: declaration.target.reason };
+                return { kind: 'unsupported' as const, reason: routeFlow.target.value.reason };
         }
     })(),
-    bindings: declaration.bindings.map(value => ({ parameter: value.parameter, customKey: value.customKey === undefined ? { kind: 'absent' as const } : value.customKey })),
+    bindings: routeFlow.bindings.value.map(value => ({ parameter: value.parameter, customKey: value.customKey === undefined ? { kind: 'absent' as const } : value.customKey })),
     prefix: declaration.prefix,
     middleware: declaration.middleware,
     routeMiddleware: declaration.routeMiddleware,
@@ -108,7 +110,8 @@ export const routeDeclarationEvidenceProjection: RouteDeclarationEvidenceProject
         start: Object.freeze({ kind: 'number_value' as const, value: declaration.source.startOffset }),
         end: Object.freeze({ kind: 'number_value' as const, value: declaration.end.endOffset }),
     }),
-    }),
+    });
+  },
 });
 
 const toRouteMethod = (httpMethod: HttpMethod): Exclude<RouteMethod, { readonly kind: 'match' }> => {
@@ -206,14 +209,16 @@ const routeBoundaryContractFromRouteFacts = (
 ): import('../../../types/upstream/route').RouteBoundaryContract => {
     const boundaryOptions: RouteBoundaryOptions = (() => {
         switch (target.kind) {
-            case 'controller_action':
+            case 'controller_action': {
+                const schemaProjection = target.action.schemaEvidence.continueToRouteBoundarySchema();
                 return {
                 origin: 'controller_action', method, path: path.path, resourceName,
                 controllerName: target.action.controllerName, actionName: target.action.actionName,
                 action: target.action.actionName, sourceFile: target.action.sourceFile, sourceLine: numberValue(sourceLine), sourceSpan,
                 response: target.action.response, responseProjection,
                 runtimeReturn: target.action.runtimeReturn, semanticReturn: target.action.semanticReturn,
-                schema: target.action.schema,
+                schema: schemaProjection.schema,
+                schemaEvidence: schemaProjection.schemaEvidence,
                 binding: {
                     operation: { controllerName: target.action.controllerName, name: target.action.actionName, handler: target.action.handler },
                     request: routeRequestBindingFromSemanticBinding(target.action.request, resourceName),
@@ -222,26 +227,32 @@ const routeBoundaryContractFromRouteFacts = (
                 constantKey: SemanticValueFactory.propertyName(path.constantKey),
                 errorResponses: target.action.errorResponses,
                 };
-            case 'controller_reference':
+            }
+            case 'controller_reference': {
+                const schemaEvidence = actionJudgmentSelection.continueToRouteSchemaEvidence();
+                const schemaProjection = schemaEvidence.continueToRouteBoundarySchema();
                 return {
                 origin: 'controller_reference', method, path: path.path, controllerName: target.controllerName,
                 actionName: target.actionName, action: target.actionName, sourceFile, sourceLine: numberValue(sourceLine), sourceSpan,
                 response: target.response, responseProjection, runtimeReturn: { kind: 'none' },
-                semanticReturn: { kind: 'absent' }, schema: emptyRouteSchemaPayload(),
+                semanticReturn: { kind: 'absent' }, schema: schemaProjection.schema, schemaEvidence: schemaProjection.schemaEvidence,
                 binding: {
-                    operation: { controllerName: target.controllerName, name: target.actionName, handler: buildRouteHandler(target.controllerName, target.actionName) },
+                    operation: { controllerName: target.controllerName, name: target.actionName, handler: controllerActionTypeOperations.buildRouteHandler(target.controllerName, target.actionName) },
                     request: routeRequestBindingFromSelection(actionJudgmentSelection, resourceName),
                 },
                 resourceName, authorization, middleware, parameters: path.parameters, runtimePath: path.runtimePath,
                 constantKey: SemanticValueFactory.propertyName(path.constantKey),
                 };
-            case 'closure':
+            }
+            case 'closure': {
+                const schemaEvidence = routeRequestSchemaEvidenceFactory.unavailable<SourceFile>('non_controller_route_target');
+                const schemaProjection = schemaEvidence.continueToRouteBoundarySchema();
                 return {
                 origin: 'closure', method, path: path.path, actionName: target.actionName,
                 action: SemanticValueFactory.actionName(`closure@${target.actionName.value.value}`),
                 controllerName: SemanticValueFactory.controllerName(''), sourceFile, sourceLine: numberValue(sourceLine), sourceSpan,
                 response: target.response, responseProjection, runtimeReturn: { kind: 'none' },
-                semanticReturn: target.semanticReturn, schema: emptyRouteSchemaPayload(),
+                semanticReturn: target.semanticReturn, schema: schemaProjection.schema, schemaEvidence: schemaProjection.schemaEvidence,
                 binding: {
                     operation: { controllerName: SemanticValueFactory.controllerName(''), name: SemanticValueFactory.actionName(`closure@${target.actionName.value.value}`), handler: Object.freeze({
                         kind: RouteHandlerKind.Closure, actionName: target.actionName,
@@ -252,6 +263,7 @@ const routeBoundaryContractFromRouteFacts = (
                 resourceName, authorization, middleware, parameters: path.parameters, runtimePath: path.runtimePath,
                 constantKey: SemanticValueFactory.propertyName(path.constantKey),
                 };
+            }
         }
     })();
     return RouteBoundaryContractFactory.create(boundaryOptions);
@@ -298,7 +310,7 @@ const routeSemanticFlowFromRouteBoundary = (
     identity: boundary.identity,
     binding: boundary.binding,
     capability: boundary.capability,
-    operationIdentityCapability: operationIdentityProjection.project(operationIdentityCapabilityAuthority.fromRoute(boundary.capability)),
+    operationIdentityCapability: operationIdentityProjection.project(operationIdentityCapabilityAuthorityOperations.materialize(boundary.capability)),
     provenance: boundary.provenance,
     contract: boundary.contract,
 });
@@ -325,7 +337,7 @@ const routeGroupFactFromEvidence = (evidence: RouteDeclarationEvidence): RouteGr
         parameter: createRouteParameterName(constraint.parameter),
         method: constraint.method,
         argument: constraint.argument.kind === 'pattern'
-            ? Object.freeze({ kind: 'pattern' as const, value: stringValue(constraint.argument.value) })
+            ? Object.freeze({ kind: 'pattern' as const, value: stringValue.create(constraint.argument.value) })
             : constraint.argument.kind === 'values'
                 ? Object.freeze({ kind: 'values' as const, values: Object.freeze(constraint.argument.values.map(stringValue)) })
                 : Object.freeze({ kind: 'none' as const }),
@@ -437,7 +449,7 @@ const actionJudgmentForTarget = (
         publications,
       });
     case 'closure':
-      return Object.freeze({ kind: 'unmatched_action_judgment' as const });
+      return Object.freeze({ kind: 'unmatched_action_judgment' as const, continueToRouteSchema: emptyRouteSchemaPayload, continueToRouteSchemaEvidence: () => routeRequestSchemaEvidenceFactory.unavailable<SourceFile>('non_controller_route_target') });
     case 'controller_reference':
       return correlationAuthority.judge({
         kind: 'controller_action_route_correlation_input',
@@ -508,20 +520,22 @@ const responseProjectionForTarget = (
     case 'invalid_action_judgment_publication':
       return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'action_judgment_provenance_invalid' });
     case 'matched_action_judgment':
-      if (controllerScan.kind !== 'laravel_controller_scan_complete') {
-        return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' });
-      }
-      const controllers = controllerScan.controllers.filter(controller => controller.identity.value.value === selection.publication.controller.value.value);
-      switch (controllers.length) {
-        case 0:
-          return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' });
-        case 1:
-          return controllers[0] === undefined
-            ? Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' })
-            : responseProductForPublication(controllers[0], selection.publication);
-        default:
-          return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' });
-      }
+      return controllerScan.continueToResponseProjection({
+        onBlocked: () => Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' }),
+        onComplete: completeScan => {
+          const controllers = completeScan.controllers.filter(controller => controller.identity.value.value === selection.publication.controller.value.value);
+          switch (controllers.length) {
+            case 0:
+              return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' });
+            case 1:
+              return controllers[0] === undefined
+                ? Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' })
+                : responseProductForPublication(controllers[0], selection.publication);
+            default:
+              return Object.freeze({ kind: 'controller_response_projection_blocked', reason: 'response_judgment_unavailable' });
+          }
+        },
+      });
   }
 };
 
@@ -541,17 +555,23 @@ export const routeDeclarationCompositionAuthority: LaravelRouteDeclarationCompos
     kind: 'laravel_route_declaration_composition_authority' as const,
     closed: true as const,
     catalogFromControllerScan(controllerScan: LaravelControllerScanJudgment): EffectiveControllerActionPolicyCatalogJudgment {
-        if (controllerScan.kind !== 'laravel_controller_scan_complete') {
-            return Object.freeze({ kind: 'blocked' as const, entries: Object.freeze([]), reason: Object.freeze({ kind: 'controller_policy_inventory_unavailable' as const, controllers: Object.freeze([]) }) });
-        }
-        const entries: readonly EffectiveControllerActionPolicyCatalogEntry[] = Object.freeze(controllerScan.controllers.map(controller => Object.freeze({
-            controller: controller.identity,
-            relations: Object.freeze([
-                ...controller.policyInventory,
-                ...controller.actions.flatMap(action => sequenceToArray(action.policy)),
-            ]),
-        })));
-        return Object.freeze({ kind: 'complete' as const, entries });
+        return controllerScan.continueToRoutePolicyCatalog({
+            onComplete: completeScan => {
+                const entries: readonly EffectiveControllerActionPolicyCatalogEntry[] = Object.freeze(completeScan.controllers.map(controller => Object.freeze({
+                    controller: controller.identity,
+                    relations: Object.freeze([
+                        ...controller.policyInventory,
+                        ...controller.actions.flatMap(action => sequenceToArray(action.policy)),
+                    ]),
+                })));
+                return Object.freeze({ kind: 'complete' as const, entries });
+            },
+            onBlocked: () => Object.freeze({
+                kind: 'blocked' as const,
+                entries: Object.freeze([]),
+                reason: Object.freeze({ kind: 'controller_policy_inventory_unavailable' as const, controllers: Object.freeze([]) }),
+            }),
+        });
     },
     policyForBinding(input: LaravelRoutePolicyProjectionInput): import('../../../types/upstream/presence').Presence<EffectiveControllerActionPolicy> {
         switch (input.binding.outcome.kind) {
@@ -560,12 +580,12 @@ export const routeDeclarationCompositionAuthority: LaravelRouteDeclarationCompos
                 return Object.freeze({ kind: 'absent' as const });
             case 'resolved': {
                 const action = input.binding.outcome.candidate.action;
-                const resource = projectRouteResourceMiddleware({
+                const resource = routeResourceMiddlewareOperations.project({
                     middleware: input.declarationEvidence.resourceMiddleware,
                     middlewareExclusions: input.declarationEvidence.resourceMiddlewareExclusions,
                 });
-                const middleware = buildRouteMiddlewareSemanticInput({
-                    route: middlewareNames(input.routeMiddleware.map(value => value.value.value)),
+                const middleware = routeMiddlewareSemanticInputOperations.build({
+                    route: routeMiddlewareSemanticInputOperations.names(input.routeMiddleware.map(value => value.value.value)),
                     resource,
                 }, { kind: 'present', value: action.action });
                 const policy: readonly ControllerPolicyRelation[] = sequenceToArray(action.policy);
@@ -581,24 +601,11 @@ export const routeDeclarationCompositionAuthority: LaravelRouteDeclarationCompos
             }
         }
     },
-    resolveSourceFiles(sourceProject: SourceProjectIdentity, intent: LaravelRouteSourceSelectionIntent): readonly SourceFile[] {
-        switch (intent.kind) {
-            case 'laravel_route_source_selection_default':
-                return Object.freeze(ROUTE_SOURCE_FILE_NAMES.map(name => createSourceFile(path.join(sourceProject.root.value.value, 'routes', name))));
-            case 'laravel_route_source_selection_explicit':
-                return Object.freeze([...intent.selection.files]);
-        }
+    resolveSourceFiles(sourceProject: SourceProjectIdentity, intent: LaravelRouteSourceSelectionIntent): SourceFileInventory {
+        return intent.resolveFilesFor(sourceProject, laravelDefaultRouteSourceResolution);
     },
     observeSourceFiles(input: LaravelRouteSourceObservationInput): LaravelRouteSourceObservationJudgment {
-        if (input.intent.kind === 'laravel_route_source_selection_explicit' && input.missingFiles.length > 0) {
-            return Object.freeze({ kind: 'laravel_route_scan_blocked', contractVersion: 27, reason: 'explicitly_selected_route_source_file_absent', missingFiles: input.missingFiles });
-        }
-        return Object.freeze({
-            kind: 'laravel_route_source_observation_ready',
-            sourceFiles: Object.freeze(input.selectedFiles.map(file => input.missingFiles.some(missing => missing.value.value === file.value.value)
-                ? Object.freeze({ kind: 'laravel_route_source_file_absent_optional_default' as const, file })
-                : Object.freeze({ kind: 'laravel_route_source_file_scanned' as const, file }))),
-        });
+        return input.intent.observeFiles(input.selectedFiles, input.presence);
     },
     outcomeFromScan(scan: LaravelRouteScanJudgment): LaravelRouteScanOutcome {
         const policies: import('../../../types/upstream/laravelRouteScannerInterface').LaravelRouteScanPolicyBlockedJudgment['policies'] = Object.freeze(scan.artifacts.flatMap(artifact => {
@@ -616,11 +623,11 @@ export const routeDeclarationCompositionAuthority: LaravelRouteDeclarationCompos
             return [Object.freeze({ route: artifact.ast, response })];
         }));
         if (responses.length > 0) {
-            return Object.freeze({ kind: 'laravel_route_scan_response_blocked', contractVersion: 27, scan, responses, policies });
+            return laravelRouteScanOutcomeOperations.responseBlocked(Object.freeze({ kind: 'laravel_route_scan_response_blocked', contractVersion: 27, scan, responses, policies }));
         }
         return policies.length === 0
-            ? scan
-            : Object.freeze({ kind: 'laravel_route_scan_policy_blocked', contractVersion: 27, scan, policies });
+            ? laravelRouteScanOutcomeOperations.complete(scan)
+            : laravelRouteScanOutcomeOperations.policyBlocked(Object.freeze({ kind: 'laravel_route_scan_policy_blocked', contractVersion: 27, scan, policies }));
     },
     compose(input: import('../../../types/upstream/laravelRouteScannerInterface').LaravelRouteDeclarationCompositionInput): readonly import('../../../types/upstream/route').RouteBoundaryContract[] {
         return emitDeclaration(
@@ -776,7 +783,7 @@ const routeProducerInputFromRouteBoundary = (
         };
         const sourceFile = SemanticValueFactory.sourceFilePath(route.provenance.sourceFile.value.value);
         const sourceFilePath = route.provenance.sourceFile.value.value.split(path.sep).join('/');
-        const fileContext: RouteFileContext = routeSourceFileContextKnowledge(sourceFilePath);
+        const fileContext: RouteFileContext = routeSourceFileContextKnowledgeOperation.resolve(sourceFilePath);
         const producerInput: RouteProducerInput = {
             declaration: declarationEvidence,
             source,

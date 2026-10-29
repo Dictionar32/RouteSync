@@ -667,15 +667,15 @@ export type {
   TSFunction,
   TSConst
 } from './types/emit'
-export { createServiceGraphBuilder } from './graph/ServiceGraphBuilder'
-export { createServiceGraphAssembly } from './graph/ServiceGraphBuilder'
+export { serviceGraphBuilderFactory } from './graph/ServiceGraphBuilder'
+export type { ServiceGraphBuilderFactoryInterface } from './graph/ServiceGraphBuilder'
 export type { ServiceGraphAssemblyInterface } from './graph/ServiceGraphAssemblyInterface'
-export { GraphEdgeRelationSink, createGraphEdgeRelation } from './graph/service'
+export { GraphEdgeRelationSink, graphEdgeRelationOperations } from './graph/service'
 export type { GraphEdgeRelation, GraphEdgeRelationOrigin } from './graph/service'
 
 // IR v3 (CompilerRoadmap.md Stage 2)
 export { buildSemanticIRNode, computeStableHash, IRNodeRegistry } from './ir/buildIRNode'
-export { projectSemanticDataflowToIR, semanticDataflowIRProjection } from './compiler/ir/SemanticDataflowIRProjection'
+export { semanticDataflowIRProjection } from './compiler/ir/SemanticDataflowIRProjection'
 export type { SemanticDataflowIRNode, SemanticDataflowIRRelation, SemanticDataflowIRProjection } from './compiler/ir/SemanticDataflowIRProjectionTypes'
 export type { SemanticDataflowIRProjectionInterface } from './compiler/ir/SemanticDataflowIRProjectionInterface'
 export type { BuildIRNodeInput } from './ir/buildIRNode'
@@ -770,14 +770,15 @@ export {
 export type { PhpSourceTokenizerInterface, PhpArrayParserInterface } from './compiler/scanner/LaravelSourceLexer'
 
 export { createLaravelSourceProjectIdentity, LARAVEL_SOURCE_IDENTITY_SEMANTICS_CONTRACT, laravelSourceIdentitySemantics } from './types/upstream/sourceProjectIdentity';
-export type { SourceProjectIdentityRelationJudgment, SourceFileIdentityRelationJudgment, LaravelSourceIdentitySemanticsContract, LaravelSourceIdentitySemanticsInterface } from './types/upstream/sourceProjectIdentity';
+export type { SourceProjectIdentityRelationJudgment, SourceFileIdentityRelationJudgment, SourceFileIdentityRelationHandlers, SourceFileIdentityRelationOperations, LaravelSourceIdentitySemanticsContract, LaravelSourceIdentitySemanticsInterface, LaravelSourceProjectIdentityWithPolicyInput, LaravelSourceProjectIdentityFactoryInterface, ControllerSourceProjectIdentityCanonicalizedJudgment, ControllerSourceProjectIdentityCanonicalizationBlockedJudgment, ControllerSourceProjectIdentityCanonicalizationBlockedEvidence, ControllerSourceProjectIdentityCanonicalizationResult, ControllerSourceProjectIdentityCanonicalizationInput, ControllerSourceProjectIdentityCanonicalizationInterface } from './types/upstream/sourceProjectIdentity';
 export { routeSyncManifestScanOperationFactory, routeSyncManifestScanOperation, routeSyncManifestScanner, routeSyncManifestFlowProjection } from './compiler/scanner/orchestrator/upstreamManifestScanner'
 export type { RouteSyncManifestScannerInterface } from './compiler/scanner/orchestrator/upstreamManifestScanner'
 export type { RouteSyncManifestFlowCompleteJudgment, RouteSyncManifestFlowScanJudgment, RouteSyncManifestScanOperationInput, RouteSyncManifestScanOperationFactoryInterface, RouteSyncManifestScanOperationInterface } from './compiler/scanner/orchestrator/RouteSyncManifestScanOperationInterface'
 export type { RouteSyncManifestFlowProjectionInterface } from './compiler/scanner/orchestrator/RouteSyncManifestFlowProjectionInterface'
+export type { SemanticPresence, SemanticAbsenceReasonCode, SemanticAbsenceReasonDefinition } from './types/upstream/semanticDataflowKnowledge'
 export { analyzeSemanticDataflowInput } from './compiler/analysis/semanticDataflowPipeline'
-export { analyzeRouteSyncManifestDataflow, analyzeRouteSyncManifestDataflowWithPolicy } from './compiler/analysis/routeSyncDataflowAnalysis'
-export { routeSyncManifestDataflowSurfaceFromFlow } from './compiler/analysis/routeSyncManifestDataflowProjection'
+export { routeSyncManifestDataflowAnalysisOperations } from './compiler/analysis/routeSyncDataflowAnalysis'
+export { routeSyncManifestDataflowProjection } from './compiler/analysis/routeSyncManifestDataflowProjection'
 export type { RouteSyncManifestDataflowSurface, RouteSyncManifestDataflowProjectionInterface, RouteSyncManifestDataflowControllerSurface } from './compiler/analysis/routeSyncManifestDataflowProjectionInterface'
 export type { SemanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeBoundary'
 export { semanticDataflowRuntimeBoundary } from './compiler/analysis/semanticDataflowRuntimeComposition'
@@ -787,24 +788,27 @@ export { DataFlowFixedPointIncompleteError } from './compiler/analysis/dataflow/
 export type { DataFlowInterface, DataFlowSourceInterface, DataFlowStepInterface, DataFlowFixpointInterface, DataFlowExecutionInterface, DataFlowInputInterface, DataFlowStateInterface, DataFlowQueryInterface, DataFlowClosureInterface, DataFlowAuthorityInterface, DataFlowAuthorityContractInterface, DataFlowProducerContractInterface, DataFlowProducerInterface, DataFlowCapabilityAuthorityInterface, DataFlowConsumerInterface, DataFlowProjectionAlgebraInterface, DataFlowProjectionContract, DataFlowProjectionInterface, DataFlowCapabilityProjectionAlgebraInterface, DataFlowCapabilityProjectionContract, DataFlowCapabilityProjectionInterface } from './types/dataflow'
 export type { SemanticCapabilityAuthority, SemanticCapabilityKind, SemanticCapabilityEvidence, SemanticCapabilityIdentityInterface, SemanticCapabilityEvidenceInterface, SemanticCapabilityAlgebraInterface, SemanticCapabilityContractInterface, SemanticCapabilityDerivationInterface, SemanticCapabilityProvenanceInterface, SemanticCapabilityClosureInterface, SemanticCapabilityDerivation, SemanticCapabilityProvenance, SemanticCapabilityContract, SemanticCapabilityConsumerInterface, SemanticCapabilityInterface, SemanticCapabilityAuthorityInterface, SemanticCapabilityConsumerAlgebraInterface, SemanticCapabilityConsumerContractInterface } from './types/upstream/semanticCapability'
 export type { SemanticReasoningAuthority, SemanticReasoningStrategy, SemanticReasoningEvidenceKind, SemanticReasoningExecutionInterface, SemanticReasoningRelationInterface, SemanticReasoningRewriteInterface, SemanticReasoningFixedPointInterface, SemanticReasoningJudgmentInterface, SemanticReasoningExecutionAlgebraInterface, SemanticReasoningAlgebraInterface, SemanticReasoningProducerContractInterface, SemanticReasoningProducerInterface, SemanticReasoningInterface, SemanticReasoningEvidenceInterface, SemanticReasoningDerivationInterface, SemanticReasoningProvenanceInterface, SemanticReasoningClosureInterface, SemanticReasoningProofInterface, SemanticReasoningAuthorityInterface, SemanticReasoningConsumerAlgebraInterface, SemanticReasoningConsumerContractInterface, SemanticReasoningConsumerInterface, SemanticReasoningWiringInterface, SemanticReasoningContractInterface, SemanticReasoningContract } from './types/upstream/semanticReasoning'
-export { routeCapabilityAuthority, routeCapabilityAuthorityAlgebra, createRouteCapabilityAuthority } from './types/upstream/routeCapabilityAuthority'
-export { routeSecurityAuthority, routeSecurityAuthorityAlgebra, createRouteSecurityAuthority } from './types/upstream/routeSecurityAuthority'
-export type { RouteSecurityAuthorityAlgebraInterface, RouteSecurityAuthorityContractInterface, RouteSecurityAuthorityInterface, RouteSecurityAuthorityInput, RouteSecurityResolution, RouteSecurityJudgment } from './types/upstream/routeSecurityAuthority'
-export { routeCapabilitySemanticAuthority, routeCapabilitySemanticAuthorityAlgebra, createRouteCapabilitySemanticAuthority, hasCanonicalRequestFields } from './types/upstream/routeCapabilitySemanticAuthority'
+export { routeCapabilityAuthority, routeCapabilityAuthorityAlgebra, routeCapabilityAuthorityFactory } from './types/upstream/routeCapabilityAuthority'
+export { routeSecurityAuthority, routeSecurityAuthorityAlgebra, routeSecurityAuthorityFactory } from './types/upstream/routeSecurityAuthority'
+export type { RouteSecurityAuthorityAlgebraInterface, RouteSecurityAuthorityContractInterface, RouteSecurityAuthorityInterface, RouteSecurityAuthorityInput, RouteSecurityResolution, RouteSecurityJudgment, RouteSecurityAuthorityFactoryInterface } from './types/upstream/routeSecurityAuthority'
+export { routeCapabilitySemanticAuthority, routeCapabilitySemanticAuthorityAlgebra, routeCapabilitySemanticAuthorityFactory, hasCanonicalRequestFields } from './types/upstream/routeCapabilitySemanticAuthority'
+export type { RouteCapabilitySemanticAuthorityFactoryInterface } from './types/upstream/routeCapabilitySemanticAuthority'
 export type { RouteCapabilitySemanticAuthorityAlgebraInterface, RouteCapabilitySemanticAuthorityContractInterface, RouteCapabilitySemanticAuthorityInterface, RouteCapabilitySemanticEvidence, RouteCapabilitySemanticOverrides, RouteCapabilitySemanticInput, RouteCapabilitySemanticResolution } from './types/upstream/routeCapabilitySemanticAuthority'
-export type { RouteCapabilityAuthorityAlgebraInterface, RouteCapabilityAuthorityContractInterface, RouteCapabilityAuthorityInterface, RouteCapabilityCrudInput, RouteCrudRoleResolution } from './types/upstream/routeCapabilityAuthority'
-export type { AstDataflowFact, AstDataflowIdentity, AstDataflowInput, AstDataflowInterface, AstDataflowJudgment } from './types/upstream/semanticDataflowInterface'
-export type { SemanticDataflowIdentity, SemanticDataflowInput, SemanticDataflowAlgebraInterface, SemanticDataflowContractInterface, SemanticDataflowInterface, SemanticDataflowJudgment, SemanticDataflowJudgmentInterface, SemanticDataflowJudgmentIdentityInterface, SemanticDataflowJudgmentEvidenceInterface, SemanticDataflowJudgmentFixpointInterface, SemanticDataflowJudgmentAuthorityInterface, SemanticDataflowJudgmentClosureInterface, SemanticDataflowClosureCertificate, SemanticDataflowReasoningAuthorityInterface, SemanticDataflowFact } from './types/upstream/semanticDataflow'
-export { semanticDataflowIdentityEqual } from './types/upstream/semanticDataflow'
-export { createSemanticDataflowJudgment, semanticDataflowReasoningAuthority } from './types/upstream/semanticDataflowAuthority'
+export type { RouteCapabilityAuthorityAlgebraInterface, RouteCapabilityAuthorityContractInterface, RouteCapabilityAuthorityFactoryInterface, RouteCapabilityAuthorityInterface, RouteCapabilityCrudInput, RouteCrudRoleResolution } from './types/upstream/routeCapabilityAuthority'
+export type { AstDataflowFact, AstDataflowIdentity, AstDataflowInput, AstDataflowInterface, AstDataflowJudgment, SemanticDataflowRuntimeExecutorFactoryInterface } from './types/upstream/semanticDataflowInterface'
+export type { SemanticDataflowIdentity, SemanticDataflowIdentityOperationsInterface, SemanticDataflowFactLineageOperationsInterface, SemanticDataflowInput, SemanticDataflowAlgebraInterface, SemanticDataflowContractInterface, SemanticDataflowInterface, SemanticDataflowJudgment, SemanticDataflowJudgmentInterface, SemanticDataflowJudgmentIdentityInterface, SemanticDataflowJudgmentEvidenceInterface, SemanticDataflowJudgmentFixpointInterface, SemanticDataflowJudgmentAuthorityInterface, SemanticDataflowJudgmentClosureInterface, SemanticDataflowJudgmentOperationsInterface,
+  SemanticDataflowInterfaceFactoryInterface, SemanticDataflowClosureCertificate, SemanticDataflowReasoningAuthorityInterface, SemanticDataflowFact } from './types/upstream/semanticDataflow'
+export { semanticDataflowIdentityOperations, semanticDataflowFactLineageOperations, semanticDataflowInterfaceFactory } from './types/upstream/semanticDataflow'
+export { semanticDataflowReasoningAuthority } from './types/upstream/semanticDataflowAuthority'
 export type { InterfaceDependencyAlgebraInterface, InterfaceDependencyContractInterface, InterfaceDependencyBoundary, UpstreamWiringInterface, InterfaceCompositionAlgebra, InterfaceCompositionContract, InterfaceComposition, SemanticCapabilityProjectionAlgebraInterface, SemanticCapabilityProjectionContract, SemanticCapabilityProjectionInterface } from './types/interfaces';
 export { composeUpstreamWiring } from './types/interfaces/interfaceComposition';
 export { createDataFlowConfig } from './compiler/analysis/dataflow/dataFlowConfigInterface'
 export { composeDataFlowConfigContributors } from './compiler/analysis/dataflow/dataFlowConfigContributorInterface'
 export { selectDataFlowFacts } from './compiler/analysis/dataflow/dataFlowFactPolicyInterface';
 export { createSemanticDataflowAnalysisPolicy, semanticDataflowFlowsUnderPolicy } from './compiler/analysis/dataflow/semanticDataflowFactAnalysisPolicy';
-export { materializeSemanticDataflowQueryPolicy, semanticDataflowQueryPolicyMatches, semanticDataflowFactContractKey, validateSemanticDataflowQueryPolicyContract, decodeSemanticDataflowQueryPolicyContract } from './types/upstream/semanticDataflowQueryPolicy';
-export type { SemanticDataflowQueryPolicyIntent, SemanticDataflowQueryPolicyContract } from './types/upstream/semanticDataflowQueryPolicy';
+export { materializeSemanticDataflowQueryPolicy, semanticDataflowQueryPolicySelectionFactory, semanticDataflowQueryPolicyMatches, semanticDataflowFactContractKey, validateSemanticDataflowQueryPolicyContract, decodeSemanticDataflowQueryPolicyContract } from './types/upstream/semanticDataflowQueryPolicy';
+export type { SemanticDataflowQueryPolicyMaterializerInterface, SemanticDataflowQueryPolicyContractMatcherInterface, SemanticDataflowFactContractKeyInterface, SemanticDataflowQueryPolicyContractValidatorInterface, SemanticDataflowQueryPolicyContractDecoderInterface } from './types/upstream/semanticDataflowQueryPolicy';
+export type { SemanticDataflowQueryPolicyIntent, SemanticDataflowQueryPolicyContract, SemanticDataflowQueryPolicySelection, SemanticDataflowQueryPolicySelectionOperations, SemanticDataflowQueryPolicySelectionFactoryInterface } from './types/upstream/semanticDataflowQueryPolicy';
 export type { DataFlowFactPolicyInterface } from './compiler/analysis/dataflow/dataFlowFactPolicyInterface';
 export type { DataFlowConfigInterface, DataFlowSourcePredicateInterface, DataFlowSinkPredicateInterface, DataFlowAdditionalStepInterface, DataFlowBarrierInterface } from './compiler/analysis/dataflow/dataFlowConfigInterface'
 export { liftDataFlowConfigToState } from './compiler/analysis/dataflow/dataFlowStateConfigInterface'
@@ -813,8 +817,10 @@ export type { SemanticDataflowRequestState, SemanticDataflowStatePolicy } from '
 export type { DataFlowStateConfigInterface } from './compiler/analysis/dataflow/dataFlowStateConfigInterface'
 export type { DataFlowConfigContribution, DataFlowConfigContributorInterface } from './compiler/analysis/dataflow/dataFlowConfigContributorInterface'
 
-export { lowerRouteSyncManifestToRouteManifest } from './compiler/scanner/wiring/routeManifestLowerer'
-export { projectRouteSyncManifestForRouteManifest, createRouteManifestProjection } from './compiler/scanner/wiring/routeManifestProjection'
+export { routeSyncManifestLoweringOperations } from './compiler/scanner/wiring/routeManifestLowerer'
+export type { RouteSyncManifestLoweringOperationsInterface } from './compiler/scanner/wiring/routeManifestLowerer'
+export { routeManifestProjectionOperations } from './compiler/scanner/wiring/routeManifestProjection'
+export type { RouteManifestProjectionOperationsInterface } from './compiler/scanner/wiring/routeManifestProjection'
 export { routeManifestRequestResolutionPreflight } from './compiler/scanner/wiring/routeManifestRequestResolutionPreflight'
 export type { RouteManifestProjection, RouteManifestProjectionInput, RouteManifestProjectionInterface, RouteManifestRequestResolutionPreflight, RouteManifestRequestResolutionPreflightInterface } from './compiler/scanner/wiring/routeManifestProjectionInterface'
 export type { RouteManifest } from './compiler/scanner/wiring/routeManifestInterface'
@@ -928,7 +934,7 @@ export {
   type RouteSemanticFlowParams,
   type ScannedRouteParameterParams,
   type ScannedRouteQueryParameterParams,
-  compileBroadcastRuntimePattern,
+  broadcastRuntimePatternCompiler,
   ScannedFormFieldDescriptor,
   type ScannedFormFieldParams,
   ScannedFormActionDescriptor,
@@ -940,7 +946,7 @@ export {
   type ControllerActionInfo,
   type RequestActionDefinition,
   buildRequestTypeWithActions,
-} from './compiler/scanner/descriptors'
+} from './compiler/scanner/operations/domain-model'
 
 
 export {
@@ -962,9 +968,9 @@ export {
   type MonoModelBinding,
   type PolyModelBinding,
   type UnbackedDtoBinding,
-  ResourceModelBindingFactory,
-  matchResourceModelBinding
-} from './compiler/scanner/symbols/resource'
+  resourceModelBindingFactory,
+  resourceModelBindingMatcher
+} from './compiler/semantic/resource-model/resourceModelBinding'
 
 // Contract IR & Semantic Types
 export {
@@ -1109,13 +1115,18 @@ export { typeExpressionToSemanticType } from './types/domain/typeExpressionSeman
 export * from './types/upstream/semanticDataflowRouteProjection';
 export * from './types/upstream/semanticDataflowRequestProjection';
 
-export type { ManifestBuilderInterface, ManifestBuilderInput, ManifestBuilderJudgment, ManifestBuilderCompleteJudgment, ManifestBuilderBlockedJudgment, ManifestBuilderOperationPreparationInterface } from './types/upstream/manifestBuilderInterface'
+export { ManifestBuilderBlockedError } from './types/upstream/manifestBuilderInterface'
+export type { ManifestBuilderInterface, ManifestBuilderInput, ManifestBuilderJudgment, ManifestBuilderCompleteJudgment, ManifestBuilderBlockedJudgment, ManifestBuilderBlocker, ManifestBuilderSourceAstBlocker, ManifestBuilderSourceModelBlocker, ManifestBuilderSourceAstBlockedJudgment, ManifestBuilderSourceModelBlockedJudgment, ManifestBuilderOperationPreparationInterface, ManifestBuilderFlowProjectionInterface, ManifestBuilderFlowCompleteJudgment, ManifestBuilderFlowScanJudgment } from './types/upstream/manifestBuilderInterface'
 export { laravelRouteSourceSelectionAuthority } from './types/upstream/laravelRouteSourceSelection'
+export { laravelDefaultRouteSourceResolution } from './compiler/scanner/upstream/laravelDefaultRouteSourceResolution'
+export type { ExplicitRouteSourceSelectionOperations, LaravelRouteSourceSelectionIntentOperations, LaravelDefaultRouteSourceResolutionInterface, LaravelRouteSourceObservationReadyOperations, LaravelRouteSourceObservationBlockedOperations, LaravelRouteSourcePresenceInterface, LaravelRouteSourcePresenceJudgment, LaravelRouteSourcePresenceJudgmentOperations, LaravelRouteSourcePresenceHandlers, LaravelRouteSourcePresenceJudgmentFactoryInterface } from './types/upstream/laravelRouteSourceSelection'
+export { laravelRouteSourcePresenceJudgmentFactory, laravelRouteSourceObservationReadyFactory } from './types/upstream/laravelRouteSourceSelection'
+export type { LaravelRouteSourceObservationReadyFactoryInterface } from './types/upstream/laravelRouteSourceSelection'
 export type { LaravelRouteSourceSelectionIntent } from './types/upstream/laravelRouteSourceSelection'
 export type { LaravelRouteSourceSelection, LaravelRouteSourceSelectionInterface } from './types/upstream/laravelRouteSourceSelection'
 export { manifestBuilderOperationPreparation } from './compiler/scanner/wiring/upstreamManifestBuilder'
 export type { ServiceGraphBuilderInterface } from './graph/ServiceGraphBuilderInterface'
-export { routeSyncManifestGraphSurfaceFromFlow } from './graph/RouteSyncManifestGraphProjection'
+export { routeSyncManifestGraphProjection } from './graph/RouteSyncManifestGraphProjection'
 export type { RouteSyncManifestGraphSurface, RouteSyncManifestGraphProjectionInterface } from './graph/RouteSyncManifestGraphProjectionInterface'
 
 export type { InterfaceComposition } from './types/interfaces/interfaceComposition';
@@ -1130,18 +1141,23 @@ export { RESOURCE_MODEL_BINDING_SEMANTIC_JUDGMENT_MODEL, RESOURCE_MODEL_BINDING_
 export type { ResourceModelKeyCapabilityEvidence, ResourceModelKeyCapabilityIdentity, ResourceModelKeyCapabilityContract } from './types/upstream/resourceModelKeyCapability';
 export { resourceModelKeyCapabilitiesFromAsts, resourceModelKeyCapabilityFor } from './types/upstream/resourceModelKeyCapability';
 export type { OperationIdentityCapabilityEvidence, OperationIdentity, OperationIdentityCapabilityAlgebraInterface, OperationIdentityCapabilityContract, OperationIdentityCapabilityInterface, OperationIdentityCapabilityConsumerInterface, OperationIdentityCapabilityInput, OperationIdentityCapabilityRuntimeAlgebraInterface, OperationIdentityCapabilityContractMaterializerInterface, OperationIdentityCapabilityAuthorityInterface, OperationIdentityReference } from './types/upstream/operationIdentityCapability';
-export type { DomainIntentCapabilityKind, DomainIntentCapabilityEvidence, DomainIntentOperationReference, AggregateCollectionIntentCapability, GenericDomainIntentCapability, DomainIntentCapabilityAlgebraInterface, DomainIntentCapabilityContract, DomainIntentCapabilityInterface, DomainIntentCapabilityConsumerInterface, DomainIntentCapabilityReference } from './types/upstream/domainIntentCapability';
-export { domainIntentCapabilityFromRuntimeConfig, domainIntentCapabilitiesFromFrontend, domainIntentCapabilityReferenceFromCapability } from './types/upstream/domainIntentCapability';
+export type { DomainIntentCapabilityKind, DomainIntentCapabilityEvidence, DomainIntentOperationReference, AggregateCollectionIntentCapability, GenericDomainIntentCapability, DomainIntentCapabilityAlgebraInterface, DomainIntentCapabilityContract, DomainIntentCapabilityInterface, DomainIntentCapabilityConsumerInterface, DomainIntentCapabilityReference, DomainIntentCapabilityRuntimeOperationsInterface } from './types/upstream/domainIntentCapability';
+export { domainIntentCapabilityRuntimeOperations } from './types/upstream/domainIntentCapability';
 export type { RouteParameterCapabilityEvidence, RouteParameterCapabilityAlgebraInterface, RouteParameterCapabilityContract, RouteParameterCapabilityInterface, RouteParameterCapabilityConsumerInterface, RouteParameterCapabilityReference } from './types/upstream/routeParameterCapability';
-export { routeParameterCapabilityFromRoute, routeParameterCapabilityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeParameterCapabilityReferencesFromRoute, routeTargetScopeFromRoute } from './types/upstream/routeParameterCapability';
+export { routeParameterCapabilityOperations } from './types/upstream/routeParameterCapability';
+export type { RouteParameterCapabilityOperationsInterface } from './types/upstream/routeParameterCapability';
 export { operationIdentityCapabilityAlgebra } from './types/upstream/operationIdentityCapabilityAlgebra';
-export { createOperationIdentityCapabilityAuthority, operationIdentityCapabilityAuthority, operationIdentityCapabilityFromRoute, materializeOperationIdentityCapability } from './types/upstream/operationIdentityCapabilityAuthority';
+export { operationIdentityCapabilityAuthority, operationIdentityCapabilityAuthorityOperations } from './types/upstream/operationIdentityCapabilityAuthority';
+export type { OperationIdentityCapabilityAuthorityOperationsInterface } from './types/upstream/operationIdentityCapabilityAuthority';
 export { operationIdentityProjection } from './compiler/scanner/wiring/operationIdentityProjection';
 export type { ResourceModelKeyCapabilityProjectionInterface } from './types/upstream/resourceModelKeyCapability';
 export type { ResourceGroupCapabilityAlgebraInterface, ResourceGroupCapabilityContract, ResourceGroupCapabilityEvidence, ResourceGroupExecutionSlots, ResourceGroupRouteReference, ResourceGroupShape, ResourceGroupSlotDecision } from './types/upstream/resourceGroupCapability';
+export { resourceGroupCapabilityAuthority, resourceGroupCapabilityAuthorityOperations } from './types/upstream/resourceGroupCapabilityAuthority';
+export type { ResourceGroupCapabilityAuthorityOperationsInterface } from './types/upstream/resourceGroupCapabilityAuthority';
 
 export type { OperationIdentityProjectionAlgebraInterface, OperationIdentityProjectionContract, OperationIdentityProjectionInterface } from './types/interfaces/operationIdentityProjectionInterface';
 
+export { semanticMappingRuntimeOperations, type SemanticMappingRuntimeOperationsInterface } from './types/upstream/semanticMapping'
 export type { SemanticMappingDirection, SemanticMappingKind, SemanticMappingField, SemanticReadMapperContract, SemanticWriteMapperField, SemanticWriteMapperContract, SemanticMappingEvidence, SemanticMappingContractInterface, SemanticMappingContract, MapperContract, MapperInterface, MapperConsumerInterface, MapperWiringInterface, SemanticMappingConsumerInterface, SemanticMappingWiringInterface } from './types/upstream/semanticMapping'
 
 export type { MapperProjectionTarget, MapperProjectionAlgebraInterface, MapperProjectionContract, MapperProjectionInterface } from './types/interfaces/mapperProjectionInterface'
@@ -1163,8 +1179,9 @@ export type { QueryOperationSemanticPremise, QueryOperationSemanticConstraint, Q
 
 // Phase 2421: explicit assembly of the existing RequestType semantic capabilities.
 export { createRequestTypeDerivationSemanticPipelineAssembler } from './compiler/semantic/request-type-derivation/requestTypeDerivationSemanticPipelineAssembler';
-export { createRequestTypeDerivationOperationPreparation } from './compiler/semantic/request-type-derivation/requestTypeDerivationOperationPreparation';
-export type { RequestTypeDerivationOperationPreparationInterface, RequestTypeDerivationRuntimeExecutionResult, RequestTypeDerivationJudgmentConsumerInterface } from './types/upstream/requestTypeDerivationInterface';
+export { requestTypeDerivationOperationPreparationFactory } from './compiler/semantic/request-type-derivation/requestTypeDerivationOperationPreparation';
+export type { RequestTypeDerivationOperationPreparationFactoryInterface } from './compiler/semantic/request-type-derivation/requestTypeDerivationOperationPreparation';
+export type { RequestTypeDerivationOperationPreparationInterface, RequestTypeDerivationRuntimeExecutionResult, RequestTypeDerivationRuntimeExecutionResultData, RequestTypeDerivationProjectableRuntimeExecutionData, RequestTypeDerivationBlockedRuntimeExecutionData, RequestTypeDerivationManifestProjectionDisposition, RequestTypeDerivationJudgmentConsumerInterface } from './types/upstream/requestTypeDerivationInterface';
 export type { RequestTypeDerivationSourceEvidenceInventoryInterface, RequestTypeCanonicalIdentity, RequestTypeCanonicalRouteIdentity, RequestTypeCanonicalResourceIdentity, RequestTypeCanonicalRequestIdentity } from './types/upstream/requestTypeDerivationInterface';
 export type { RequestTypeDerivationSemanticInputPreparation, RequestTypeDerivationSemanticInputPreparationInterface, RequestTypeDerivationIdentityCollisionInventory } from './types/upstream/requestTypeDerivationInterface';
 export {
@@ -1209,12 +1226,14 @@ export { createSourceOccurrenceGuardedRequestTypeDerivationProofVerifier, REQUES
 
 // Phase 1588: opt-in authority-backed RouteManifest projection. This path
 // requires a proof-producing semantic pipeline and never falls back to legacy inference.
-export { createAuthorityBackedRouteManifestProjection } from './compiler/scanner/wiring/routeManifestProjectionAuthority';
-export type { AuthorityBackedRouteManifestProjectionInterface, AuthorityBackedRouteManifestProjectionResult } from './compiler/scanner/wiring/routeManifestProjectionAuthority';
+export { authorityBackedRouteManifestProjectionFactory } from './compiler/scanner/wiring/routeManifestProjectionAuthority';
+export type { AuthorityBackedRouteManifestProjectionFactoryInterface, AuthorityBackedRouteManifestProjectionInterface, AuthorityBackedRouteManifestProjectionResult } from './compiler/scanner/wiring/routeManifestProjectionAuthority';
+export { authorityBackedRouteManifestTypeLoweringFactory } from './compiler/scanner/wiring/routeManifestTypeLoweringAuthority';
+export type { AuthorityBackedRouteManifestTypeLoweringFactoryInterface, AuthorityBackedRouteManifestTypeLoweringInterface, AuthorityBackedRouteManifestTypeLoweringResult } from './compiler/scanner/wiring/routeManifestTypeLoweringAuthority';
 
 // Canonical invocation semantic pipeline, inventory/publication authorities, and integrated-response scanner boundary.
 export { INVOCATION_STATIC_SEMANTIC_ALGEBRA_CONTRACT, INVOCATION_SEMANTIC_PIPELINE_CONTRACT, INVOCATION_SEMANTIC_SCANNER_BOUNDARY_CONTRACT, INVOCATION_SEMANTIC_JUDGMENT_TRACE_CONTRACT, INVOCATION_SEMANTIC_COVERAGE_CONTRACT, INVOCATION_STATIC_JUDGMENT_MODEL_CONTRACT, INVOCATION_STATIC_TARGET_RESOLUTION_CONTRACT, INVOCATION_STATIC_ARGUMENT_AND_EFFECT_CONTRACT, INVOCATION_STATIC_SEMANTIC_JUDGMENT_CONTRACT, INVOCATION_STATIC_JUDGMENT_COMPATIBILITY_CONTRACT, INVOCATION_STATIC_SEMANTIC_AUTHORITY_VALIDATION_CONTRACT } from './types/upstream/invocationSemanticPipelineInterface';
-export { invocationSemanticPipeline, createInvocationSemanticIntegratedResponseComposition, invocationSemanticIntegratedResponseComposition } from './types/upstream/invocationSemanticPipeline';
+export { invocationSemanticPipelineFactory, invocationSemanticPipeline, invocationSemanticIntegratedResponseCompositionFactory, invocationSemanticIntegratedResponseComposition } from './types/upstream/invocationSemanticPipeline';
 export { invocationSemanticSubjectCoverageInventory } from './types/upstream/invocationSemanticCoverageInventory';
 export { invocationSemanticCoveragePublicationAuthority } from './types/upstream/invocationSemanticCoveragePublicationAuthority';
 export { INVOCATION_SEMANTIC_RULE_MEANING_SIGNATURES, INVOCATION_SEMANTIC_RULE_JUDGMENT_RELATIONS } from './types/upstream/invocationSemanticJudgmentInterface';
@@ -1312,6 +1331,8 @@ export type {
   InvocationSemanticIntegratedResponseCompositionDependencies,
   InvocationSemanticIntegratedResponseCompositionResult,
   InvocationSemanticIntegratedResponseCompositionInterface,
+  InvocationSemanticPipelineFactoryInterface,
+  InvocationSemanticIntegratedResponseCompositionFactoryInterface,
 } from './types/upstream/invocationSemanticPipelineInterface';
 export type {
   InvocationSemanticRuleTraceEntry,
@@ -1327,20 +1348,24 @@ export type {
 } from './types/upstream/invocationSemanticJudgmentInterface';
 
 export type { LaravelSourceAstPipelineInterface } from './types/upstream/laravelSourceAstPipelineInterface'
-export type { LaravelSourceAstProjectionJudgment, LaravelSourceAstPipelineExecutionInput } from './types/upstream/laravelSourceAstPipelineInterface'
-export type { LaravelRouteScannerInterface, LaravelRouteScannerAuthorityInterface, LaravelRouteScanOperationInterface, LaravelRouteScanInput, LaravelRouteScanJudgment, LaravelRouteScanArtifact, LaravelRouteScanOutcome, LaravelRouteScanBlockedJudgment, LaravelRouteScanPolicyBlockedJudgment, LaravelRouteScanResponseBlockedJudgment, LaravelRouteSourceFileObservation, LaravelRouteMethod, LaravelResourceRouteMethod, LaravelStandardRouteMethod, LaravelRouteDeclarationMethodJudgment, LaravelRouteDeclarationMethodJudgmentInput, LaravelRouteDeclarationMethodJudgmentAuthority } from './types/upstream/laravelRouteScannerInterface';
+export type { LaravelSourceAstProjectionJudgment, LaravelSourceAstProjectionJudgmentData, LaravelSourceAstProjectionCompleteJudgment, LaravelSourceAstProjectionBlockedJudgment, LaravelSourceAstProjectionJudgmentHandlers, LaravelSourceAstProjectionOperationsInterface, LaravelSourceAstPipelineExecutionInput } from './types/upstream/laravelSourceAstPipelineInterface'
+export { laravelSourceAstProjectionOperations } from './types/upstream/laravelSourceAstPipelineInterface'
+export { laravelRouteScanOutcomeOperations } from './types/upstream/laravelRouteScannerInterface';
+export type { LaravelRouteScannerInterface, LaravelRouteScannerAuthorityInterface, LaravelRouteScanOperationInterface, LaravelRouteScanInput, LaravelRouteScanJudgment, LaravelRouteScanArtifact, LaravelRouteScanOutcome, LaravelRouteScanBlockedJudgment, LaravelRouteSourceObservationJudgment, LaravelRouteScanPolicyBlockedJudgment, LaravelRouteScanResponseBlockedJudgment, LaravelRouteScanSourceReadBlockedJudgment, LaravelRouteScanSourceReadBlockedEvidence, LaravelRouteScanProjectionContinuationInterface, LaravelRouteScanOutcomeContinuationInterface, LaravelRouteScanOutcomeOperationsInterface, LaravelRouteSourceFileObservation, LaravelRouteMethod, LaravelResourceRouteMethod, LaravelStandardRouteMethod, LaravelRouteDeclarationMethodJudgment, LaravelRouteDeclarationMethodJudgmentInput, LaravelRouteDeclarationMethodJudgmentAuthority } from './types/upstream/laravelRouteScannerInterface';
 export type { RouteResourceFlowAuthority, RouteResourceFlowJudgment, RouteResourceFlowPlan, RouteResourceActionPlan, RouteResourceMode, RouteResourceDeclarationInput } from './types/upstream/routeResourceFlow';
+export { routeResourceFlowOperations, routeResourceFlowAuthority } from './types/upstream/routeResourceFlow';
+export type { RouteResourceFlowOperationsInterface } from './types/upstream/routeResourceFlow';
 export type { LaravelRouteAuthorizationSemanticJudgment, LaravelRouteAuthorizationSemanticJudgmentAuthorityInterface } from './types/upstream/routeAuthorizationSemanticJudgmentInterface';
 export { laravelRouteDeclarationMethodSemanticAuthority } from './types/upstream/laravelRouteDeclarationMethodSemanticAuthority';
 export { LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_BOUNDARY_CONTRACT } from './types/upstream/laravelControllerScannerInterface';
-export type { LaravelControllerScannerInterface, LaravelControllerScanInput, LaravelControllerScanJudgment, LaravelControllerScanArtifact, ControllerResourceBindingEvidence, ControllerDeclarationSelectionBlocker, ControllerDeclarationSelectionInventoryOutcome, LaravelControllerInvocationSemanticBoundaryContract } from './types/upstream/laravelControllerScannerInterface';
+export type { LaravelControllerScannerInterface, LaravelControllerScanInput, LaravelControllerScanJudgment, LaravelControllerScanArtifact, LaravelControllerSemanticBodyBlocker, ControllerResourceBindingEvidence, ControllerDeclarationSelectionBlocker, ControllerDeclarationSelectionInventoryOutcome, LaravelControllerInvocationSemanticBoundaryContract } from './types/upstream/laravelControllerScannerInterface';
 export type { LaravelControllerFormRequestBindingEvidence, LaravelControllerRequestParameterEvidence, LaravelControllerRequestBindingEvidence, LaravelControllerRequestBindingEvidenceProjectionInterface, LaravelControllerRequestSemanticBindingAuthorityInterface } from './types/upstream/laravelControllerRequestSemanticBindingInterface';
 export { laravelControllerRequestSemanticBindingAuthority } from './types/upstream/laravelControllerRequestSemanticBindingAuthority';
 export { controllerActionProjectionMigration } from './types/upstream/laravelControllerActionSemanticJudgmentInterface';
 export type { LaravelControllerActionSemanticJudgmentInput, LaravelControllerActionSemanticKnowledge, LaravelControllerActionBodySemanticKnowledge, LaravelControllerActionProjectionRemainder, LaravelControllerActionDerivationOwnershipObligation, LaravelControllerActionProjectionMigration, LaravelControllerActionContractResolverInput, LaravelControllerActionContractResolverInterface, LaravelControllerActionSemanticJudgment, LaravelControllerActionSemanticJudgmentContract, LaravelControllerActionSemanticJudgmentInterface, LaravelControllerActionSemanticJudgmentPublication, LaravelControllerActionSemanticJudgmentAuthorityInterface, LaravelControllerRequestSemanticBinding, UnresolvedPhpParameterTypeJudgment } from './types/upstream/laravelControllerActionSemanticJudgmentInterface';
 export type { ControllerDeclarationParentEvidence, ControllerDeclarationMethodVisibility, ControllerDeclarationMethodCandidate, ControllerDeclarationAttributeCandidate, ControllerDeclarationSemanticCandidate, ControllerDeclarationSemanticSubject, ControllerDeclarationSemanticCorrespondence, ControllerDeclarationAncestryTermination, ControllerDeclarationSemanticSelection, ControllerDeclarationSemanticJudgment, ControllerDeclarationSemanticJudgmentAuthorityInterface } from './types/upstream/controllerDeclarationSemanticJudgmentInterface';
 export type { PhpQualifiedClassName, PhpClassImportBinding, PhpClassNameResolution, PhpClassNameResolutionContext, PhpClassNameResolutionInput, PhpClassNameResolutionRuleInterface } from './types/upstream/phpClassNameResolutionInterface';
-export { createPhpQualifiedClassName } from './types/upstream/phpClassNameResolutionInterface';
+export { phpQualifiedClassNameFactory } from './types/upstream/phpClassNameResolutionInterface';
 export { phpClassNameResolutionAuthority } from './types/upstream/phpClassNameResolutionAuthority';
 export { controllerDeclarationSemanticJudgmentAuthority } from './types/upstream/controllerDeclarationSemanticJudgmentAuthority';
 export { controllerDeclarationSelectionInventoryClosureAuthority } from './types/upstream/controllerDeclarationSelectionInventoryClosureAuthority';
@@ -1348,11 +1373,11 @@ export type { ControllerDeclarationSelectionInventoryBlocker, ControllerDeclarat
 export type { ControllerPolicyActionScopeJudgmentInterface } from './types/upstream/controllerPolicyActionScopeJudgmentInterface';
 export type { ControllerPolicyActionScopeJudgment, ControllerPolicyActionScopeBlockReason, ControllerPolicyNamedScopeArgument } from './types/upstream/controller';
 export { controllerPolicyActionScopeJudgmentAuthority } from './types/upstream/controllerPolicyActionScopeJudgmentAuthority';
-export type { LaravelControllerInvocationSemanticInput, LaravelControllerInvocationSemanticJudgment, LaravelControllerInvocationSemanticJudgmentContract, LaravelControllerInvocationSemanticJudgmentInterface, LaravelControllerInvocationSemanticJudgmentAuthorityDependencies, LaravelControllerInvocationSemanticJudgmentAuthorityInterface } from './types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
+export type { LaravelControllerInvocationSemanticInput, LaravelControllerInvocationSemanticInputDomainOperationsInterface, LaravelControllerInvocationSemanticJudgment, LaravelControllerInvocationSemanticJudgmentContract, LaravelControllerInvocationSemanticJudgmentInterface, LaravelControllerInvocationSemanticJudgmentAuthorityDependencies, LaravelControllerInvocationSemanticJudgmentAuthorityInterface } from './types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
 export type { LaravelControllerAstProjectionContext, LaravelControllerAstProjectionResponseJudgment, LaravelControllerAstProjectionSemanticJudgment, LaravelControllerAstProjectionSemanticAuthorityInterface } from './types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
 export { laravelControllerAstProjectionSemanticAuthority } from './types/upstream/laravelControllerAstProjectionSemanticAuthority';
-export type { LaravelControllerSourceInventoryCompletenessWitness, LaravelControllerSourceInventoryInterface, LaravelControllerSourceDiscoveryBlocker, LaravelControllerSourceDiscoveryResult, LaravelControllerSourceDiscoveryInput, LaravelControllerSourceDiscoveryInterface, LaravelControllerInvocationSemanticJudgmentInventoryRejection, LaravelControllerInvocationSemanticJudgmentInventoryInput, LaravelControllerInvocationSemanticJudgmentInventoryCompletenessWitness, LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt, LaravelControllerInvocationSemanticJudgmentInventoryResult, LaravelControllerInvocationSemanticJudgmentInventoryProjectBindingRule, LaravelControllerInvocationSemanticJudgmentInventoryCompletenessRule, LaravelControllerInvocationSemanticJudgmentInventorySourceIdentityRule, LaravelControllerInvocationSemanticJudgmentInventoryCorrespondenceRule, LaravelControllerInvocationSemanticJudgmentInventoryOutcomePreservationRule, LaravelControllerInvocationSemanticJudgmentInventoryRejectionAggregationRule, LaravelControllerInvocationInventoryProjectBindingJudgment, LaravelControllerInvocationInventoryCompletenessJudgment, LaravelControllerInvocationInventorySourceIdentityJudgment, LaravelControllerInvocationInventoryCorrespondenceJudgment, LaravelControllerInvocationSemanticJudgmentInventoryContract, LaravelControllerInvocationSemanticJudgmentInventoryReasoningContract, LaravelControllerInvocationSemanticJudgmentInventoryReasoningInterface, LaravelControllerInvocationSemanticJudgmentInventoryAuthorityInterface } from './types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface';
-export { LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_INVENTORY_CONTRACT, LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_INVENTORY_REASONING_CONTRACT } from './types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface';
+export type { LaravelControllerSourceInventoryCompletenessWitness, LaravelControllerSourceInventoryInterface, LaravelControllerSourceDiscoveryBlockerHandlers, LaravelControllerSourceDiscoveryBlockerOperations, LaravelControllerSourceDiscoveryBlockerEvidence, LaravelControllerSourceDiscoveryBlocker, LaravelControllerSourceDiscoveryBlockerFactoryInterface, LaravelControllerSourceDiscoveryEvidence, LaravelControllerSourceDiscoveryJudgmentOperations, LaravelControllerSourceDiscoveryResult, LaravelControllerSourceDiscoveryDirectoryContinuationInterface, LaravelControllerSourceDiscoverySymbolicLinkContinuationInterface, LaravelControllerSourceDiscoveryPhpSourceContinuationInterface, LaravelControllerSourceDiscoveryIgnoredContinuationInterface, LaravelControllerSourceDiscoveryEntryOperations, LaravelControllerSourceDiscoveryEntry, LaravelControllerSourceDiscoveryEntryFactoryInterface, LaravelControllerSourceDiscoveryInput, LaravelControllerSourceDiscoveryInterface, LaravelControllerSourceDiscoveryJudgmentFactoryInterface, LaravelControllerInvocationSemanticJudgmentInventoryRejectionAccumulation, LaravelControllerInvocationSemanticJudgmentInventoryRejection, LaravelControllerInvocationSemanticJudgmentInventoryInput, LaravelControllerInvocationSemanticJudgmentInventoryCompletenessWitness, LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt, LaravelControllerInvocationSemanticJudgmentInventoryValidated, LaravelControllerInvocationSemanticJudgmentInventoryRejected, LaravelControllerInvocationSemanticJudgmentInventoryManifestBuildInput, LaravelControllerInvocationSemanticJudgmentInventoryResult, LaravelControllerInvocationSemanticJudgmentInventoryProjectBindingRule, LaravelControllerInvocationSemanticJudgmentInventoryCompletenessRule, LaravelControllerInvocationSemanticJudgmentInventorySourceIdentityRule, LaravelControllerInvocationSemanticJudgmentInventoryCorrespondenceRule, LaravelControllerInvocationSemanticJudgmentInventoryOutcomePreservationRule, LaravelControllerInvocationSemanticJudgmentInventoryRejectionAggregationRule, LaravelControllerInvocationInventoryProjectBindingJudgment, LaravelControllerInvocationInventoryCompletenessJudgment, LaravelControllerInvocationInventorySourceIdentityJudgment, LaravelControllerInvocationInventoryCorrespondenceJudgment, LaravelControllerInvocationJudgmentMatchCardinalityHandlers, LaravelControllerInvocationJudgmentMatchCardinalityOperations, LaravelControllerInvocationJudgmentMatchCardinality, LaravelControllerInvocationSemanticJudgmentInventoryContract, LaravelControllerInvocationSemanticJudgmentInventoryReasoningContract, LaravelControllerInvocationSemanticJudgmentInventoryReasoningInterface, LaravelControllerInvocationSemanticJudgmentInventoryAuthorityInterface } from './types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface';
+export { LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_INVENTORY_CONTRACT, LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_INVENTORY_REASONING_CONTRACT, laravelControllerSourceDiscoveryBlockerFactory, laravelControllerSourceDiscoveryJudgmentFactory, laravelControllerSourceDiscoveryEntryFactory } from './types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface';
 export { laravelControllerInvocationSemanticJudgmentInventoryAuthority } from './types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority';
 export { LaravelControllerInvocationSemanticJudgmentAuthority, laravelControllerInvocationSemanticJudgmentAuthority, LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_CONTRACT } from './types/upstream/laravelControllerInvocationSemanticJudgmentAuthority';
 export type { LaravelModelScannerInterface, LaravelModelScanInput, LaravelModelScanJudgment, LaravelModelScanArtifact } from './types/upstream/laravelModelScannerInterface';
@@ -1375,41 +1400,48 @@ export type { ControllerReturnExpressionEvidence } from './types/upstream/contro
 export type { LaravelDtoDeclarationDiscoveryScope, LaravelDtoDeclarationDiscoveryBlocker, LaravelDtoDeclarationClassIdentity, LaravelDtoDeclarationSourceEvidence, LaravelDtoDeclarationResolvedSourceEvidence, LaravelDtoDeclarationDiscoveryReceipt, LaravelProjectDtoDeclarationInventoryInterface, LaravelControllerResponseDtoDeclarationResolutionInput, LaravelControllerResponseDtoDeclarationResolvedInput, LaravelControllerResponseDtoDeclarationIdentity, LaravelControllerResponseDtoDeclarationResolutionJudgment, LaravelControllerResponseDtoDeclarationResolutionContract, LaravelControllerResponseDtoDeclarationResolutionAuthorityInterface, LaravelControllerResponseDtoDeclarationResolutionRuntimeExecutorInterface } from './types/upstream/laravelControllerResponseDtoDeclarationInterface';
 export type { LaravelDtoResponseContractProjectionInput, LaravelDtoResponseContractFieldProjection, LaravelDtoResponseContractProjectionJudgment, LaravelDtoResponseContractProjectionContract, LaravelDtoResponseContractProjectionInterface, LaravelDtoResponseContractProjectionAuthorityInterface, LaravelDtoResponseContractProjectionRuntimeExecutorInterface, LaravelDtoResponseShapeEvidence } from './types/upstream/laravelDtoResponseContractProjectionInterface';
 export { LARAVEL_DTO_RESPONSE_CONTRACT_PROJECTION_CONTRACT, createLaravelDtoResponseContractProjectionAuthority, laravelDtoResponseContractProjectionAuthority, laravelDtoResponseContractProjectionRuntimeExecutor } from './types/upstream/laravelDtoResponseContractProjectionAuthority';
-export { LARAVEL_CONTROLLER_RESPONSE_DTO_DECLARATION_RESOLUTION_CONTRACT, laravelControllerResponseDtoDeclarationResolutionAuthority, laravelControllerResponseDtoDeclarationResolutionRuntimeExecutor } from './types/upstream/laravelControllerResponseDtoDeclarationResolutionAuthority';
+export { LARAVEL_CONTROLLER_RESPONSE_DTO_DECLARATION_RESOLUTION_CONTRACT, laravelControllerResponseDtoDeclarationResolutionAuthority, laravelControllerResponseDtoDeclarationResolutionAuthorityFactory, laravelControllerResponseDtoDeclarationResolutionRuntimeExecutor } from './types/upstream/laravelControllerResponseDtoDeclarationResolutionAuthority';
+export type { LaravelControllerResponseDtoDeclarationResolutionAuthorityFactoryInterface } from './types/upstream/laravelControllerResponseDtoDeclarationResolutionAuthority';
 export type { LaravelControllerResponseEvidenceProductionContract, LaravelControllerResponseEvidenceProductionInput, LaravelControllerResponseEvidenceProductionInterface, LaravelControllerResponseEvidenceProductionInventory, LaravelControllerResponseEvidenceProductionObservation, LaravelControllerResponseEvidenceProductionEvidence, LaravelControllerResponseEvidenceProductionSourceCorrelation, LaravelControllerResponseEvidenceProductionSourceCorrelationJudgment, LaravelControllerResponseEvidenceProductionSourceCorrelationRejectedJudgment, LaravelControllerResponseDeclarationSourceCorrelationInput, LaravelControllerResponseReferenceCandidateEvidence, LaravelControllerResponseEvidenceSourceBindingAuthorityInterface, LaravelControllerResponseEvidenceSourceBindingContract, LaravelControllerResponseEvidenceSourceBindingEntry, LaravelControllerResponseEvidenceSourceBindingInput, LaravelControllerResponseEvidenceSourceBindingJudgment, LaravelControllerResponseEvidenceSourceBindingJudgmentFromInput, LaravelControllerResponseEvidenceSourceBindingRejectedJudgment, LaravelControllerResponseSemanticBlocker, LaravelControllerResponseSemanticEvidence, LaravelControllerResponseSemanticEvidenceForSource, LaravelControllerResponseSemanticJudgment, LaravelControllerResponseSemanticJudgmentAuthorityInterface, LaravelControllerResponseSemanticJudgmentContract, LaravelControllerResponseSemanticJudgmentFor, LaravelControllerResponseSemanticJudgmentFromInput, LaravelControllerResponseSemanticJudgmentInput, LaravelControllerResponseSemanticProduct, LaravelControllerResponseSemanticRuntimeExecutorInterface, LaravelControllerResponseSemanticPipelineInterface, LaravelControllerResponseSemanticPipelineContract } from './types/upstream/laravelControllerResponseSemanticJudgmentInterface';
 export type { LaravelControllerInvocationResponseWiringArtifact, LaravelControllerInvocationResponseWiringInterface, LaravelControllerInvocationResponseWiringResult } from './types/upstream/laravelControllerInvocationResponseWiringInterface';
 
 // PHP whole-file frontend contracts and the typed vocabulary consumed by parser adapters.
 export type { Expression, ExpressionArgument, ExpressionArguments } from './types/upstream/expression';
-export type { Sequence } from './semantic/relations/relationalSequence';
-export { stringValue, numberValue, type StringValue, type NumberValue } from './types/upstream/valueObjects';
-export { createSourceFile } from './types/upstream/names';
-export type { FunctionName, SourceFile } from './types/upstream/names';
-export type { SourceSpan } from './types/upstream/provenance';
+export { stringValue, numberValue, type StringValue, type StringValueFactoryInterface, type NumberValue } from './types/upstream/valueObjects';
+export { sourceFileIdentityFactory, sourceFileInventoryFactory, sourceFileIdentityInventoryCardinalityFactory } from './types/upstream/names';
+export type { SourceFileIdentityFactoryInterface } from './types/upstream/names';
+export type { FunctionName, SourceFile, SourceFileInventoryOperations, SourceFileInventoryHandlers, SourceFileInventory, SourceFileInventoryFactoryInterface, SourceFileIdentityInventoryCardinality, SourceFileIdentityInventoryCardinalityHandlers, SourceFileIdentityInventoryCardinalityOperations, SourceFileIdentityInventoryCardinalityFactoryInterface } from './types/upstream/names';
+export { sourceSpanFactory, sourceSpanOperations, type SourceSpanFactoryInterface, type SourceSpanOperationsInterface } from './types/upstream/provenance';
+export type { SourceSpan, SourceSpanEquality, SourceSpanValidity, SourceSpanContainment, SourceSpanDocumentCoverage, SourceSpanOverlap } from './types/upstream/provenance';
 export * from './types/upstream/phpFunctionNameResolutionInterface';
 export * from './types/upstream/phpSourceFrontendInterface';
 export * from './types/upstream/phpSourceDocumentIdentityBindingInterface';
 export { PHP_SOURCE_DOCUMENT_IDENTITY_BINDING_CONTRACT, phpSourceDocumentIdentityBinding } from './types/upstream/phpSourceDocumentIdentityBindingAuthority';
+export { phpSourceDocumentIdentityBindingBatchFactory } from './types/upstream/phpSourceDocumentIdentityBindingBatchAuthority';
 
 export { phpSourceFrontendExtractionValidationAuthority } from './types/upstream/phpSourceFrontendExtractionValidationAuthority';
 export { phpFunctionResolutionSourceInventoryAuthority } from './types/upstream/phpFunctionResolutionSourceInventoryAuthority';
 export { phpFunctionResolutionEnvironmentProjectionAuthority } from './types/upstream/phpFunctionResolutionEnvironmentProjectionAuthority';
 export { phpFunctionNameResolutionAuthority } from './types/upstream/phpFunctionNameResolutionAuthority';
 export { phpFunctionInvocationSemanticJudgmentBatchClosureAuthority } from './types/upstream/phpFunctionInvocationSemanticJudgmentBatchClosureAuthority';
-export { createPhpSourceInvocationSemanticPipelineAuthority } from './types/upstream/phpSourceInvocationSemanticPipelineAuthority';
+export { phpSourceInvocationSemanticPipelineAuthorityFactory } from './types/upstream/phpSourceInvocationSemanticPipelineAuthority';
+export type { PhpSourceInvocationSemanticPipelineAuthorityFactoryInterface } from './types/upstream/phpSourceInvocationSemanticPipelineAuthority';
 export * from './types/upstream/phpSourceInvocationSemanticPipelineInterface';
 export type { PhpSourceInvocationSemanticSourceBindingInput, PhpSourceInvocationSemanticSourceBindingJudgment, PhpSourceInvocationSemanticSourceBindingContract, PhpSourceInvocationSemanticSourceBindingAuthorityInterface } from './types/upstream/phpSourceInvocationSemanticSourceBindingInterface';
 export { phpSourceInvocationSemanticSourceBindingAuthority, PHP_SOURCE_INVOCATION_SEMANTIC_SOURCE_BINDING_CONTRACT, phpSourceInvocationPipelineEvidenceFromSourceBinding } from './types/upstream/phpSourceInvocationSemanticSourceBindingAuthority';
 
 export * from './types/upstream/phpSourceInvocationSemanticPipelineDeliveryInterface';
 
-export { createLaravelControllerResponseSemanticPipeline, laravelControllerResponseSemanticPipeline } from './types/upstream/laravelControllerResponseSemanticPipeline';
+export { laravelControllerResponseSemanticRuntimeOperations, laravelControllerResponseSemanticPipeline } from './types/upstream/laravelControllerResponseSemanticPipeline';
+export type { LaravelControllerResponseSemanticRuntimeOperationsInterface } from './types/upstream/laravelControllerResponseSemanticPipeline';
 
 export type { ControllerParameterClassNameRule, ControllerParameterClassNameReasoningContract, ControllerParameterClassNameJudgment, ControllerParameterClassNameJudgmentInterface } from './types/upstream/controllerParameterClassNameJudgmentInterface';
 
 export type { ControllerBodySemanticJudgment, ControllerBodySemanticJudgmentAuthorityInterface } from './types/upstream/controllerBodySemanticJudgmentInterface';
-export type { ControllerActionSchemaRequestEvidence, ControllerActionSchemaDerivation, ControllerActionSchemaSemanticJudgment, ControllerActionSchemaSemanticJudgmentAuthorityInterface } from './types/upstream/controllerActionSchemaSemanticJudgmentInterface';
-export { controllerActionSchemaSemanticJudgmentAuthority } from './types/upstream/controllerActionSchemaSemanticJudgmentAuthority';
+export type { ControllerActionSchemaRequestEvidence, ControllerActionSchemaDerivation, ControllerActionSchemaRouteRequestEvidence, RouteRequestSchemaEvidenceUnavailable, RouteRequestSchemaEvidenceHandlers, RouteRequestSchemaEvidence, ControllerActionSchemaSemanticJudgment, ControllerActionSchemaSemanticJudgmentAuthorityInterface } from './types/upstream/controllerActionSchemaSemanticJudgmentInterface';
+export type { ControllerInlineSchemaEvidence } from './types/upstream/controllerBodySemanticJudgmentInterface';
+export type { RouteRequestSchemaEvidenceFactoryInterface } from './types/upstream/controllerActionSchemaSemanticJudgmentAuthority';
+export { controllerActionSchemaSemanticJudgmentAuthority, routeRequestSchemaEvidenceFactory } from './types/upstream/controllerActionSchemaSemanticJudgmentAuthority';
 export type { LaravelDtoResponseValueProjectionInput, LaravelDtoResponseValueProjectionJudgment, LaravelDtoResponseValueProjectionContract, LaravelDtoResponseValueProjectionInterface, LaravelDtoResponseValueProjectionAuthorityInterface, LaravelDtoResponseValueProjectionRuntimeExecutorInterface, LaravelDtoResponseValueReferenceBindingEvidence } from './types/upstream/laravelDtoResponseValueProjectionInterface';
 export { LARAVEL_DTO_RESPONSE_VALUE_PROJECTION_CONTRACT, laravelDtoResponseValueProjectionAuthority, laravelDtoResponseValueProjectionRuntimeExecutor } from './types/upstream/laravelDtoResponseValueProjectionAuthority';
 export type { LaravelDtoTypeReferenceLexicalContext, LaravelDtoTypeReferenceBindingInput, LaravelDtoTypeReferenceBindingJudgment, LaravelDtoTypeReferenceBindingContract, LaravelDtoTypeReferenceBindingAuthorityInterface, LaravelDtoTypeReferenceBindingRuntimeExecutorInterface, LaravelDtoPropertyTypeReferenceBindingEvidence, LaravelDtoPropertyTypeReferenceBindingEvidenceContract } from './types/upstream/laravelDtoTypeReferenceBindingInterface';
@@ -1434,11 +1466,11 @@ export type { ControllerDependencyAttributeEvidence, ControllerDependencySemanti
 export { controllerDependencySemanticJudgmentAuthority } from './types/upstream/controllerDependencySemanticJudgmentAuthority';
 
 export type { HttpRequestExecution } from './client/HttpRequestExecution'
-export { createIntegratedRouteManifestAuthority } from './compiler/scanner/wiring/integratedRouteManifestAuthority';
-export type { IntegratedRouteManifestAuthorityInterface, IntegratedRouteManifestAuthorityResult } from './compiler/scanner/wiring/integratedRouteManifestAuthority';
+export { integratedRouteManifestAuthorityFactory } from './compiler/scanner/wiring/integratedRouteManifestAuthority';
+export type { IntegratedRouteManifestAuthorityFactoryInterface, IntegratedRouteManifestAuthorityInterface, IntegratedRouteManifestAuthorityResult } from './compiler/scanner/wiring/integratedRouteManifestAuthority';
 export { routeManifestProjectionCompositionFactory } from './compiler/scanner/wiring/routeManifestProjectionComposition';
 export type { RouteManifestProjectionCompositionFactoryInterface } from './compiler/scanner/wiring/routeManifestProjectionComposition';
-export type { RouteManifestProjectionCompositionInterface, RouteManifestProjectionCompositionResult } from './compiler/scanner/wiring/routeManifestProjectionComposition';
+export type { RouteManifestProjectionCompositionInterface, RouteManifestProjectionCompositionResult, RouteManifestProjectionCompositionOutcomeHandlers, ManifestProjectedOutcome, ManifestProjectionBlockedOutcome } from './compiler/scanner/wiring/routeManifestProjectionComposition';
 
 export type { ResourceModelResolutionOrigin, ResourceModelResolutionFact, ResourceRelationKnowledgeFact, ResourceModelKnowledgeDataFlow } from './types/upstream/resourceModelKnowledgeDataFlowInterface';
 
@@ -1493,3 +1525,28 @@ export { requestTypeDerivationGroupContributionAlgebra } from './compiler/semant
 export type { RequestTypeGroupFoldInput, RequestTypeGroupContributionAlgebraInterface, RequestTypeGroupContributionReceipt, RequestTypeGroupReceipt } from './types/upstream/requestTypeDerivationInterface';
 export { RequestTypeDerivationSemanticProducerGapError } from './compiler/semantic/request-type-derivation/requestTypeDerivationSemanticProducerGap';
 export { requestTypeDerivationSemanticComposition, requestTypeDerivationSemanticDecision, requestTypeDerivationSemanticAuthority, requestTypeDerivationSemanticAuthorityIntegrity } from './compiler/semantic/request-type-derivation/requestTypeDerivationSemanticComposition';
+
+export type { RequestAstCanonicalizationInterface } from './types/upstream/requestAstCanonicalizationInterface';
+
+export type { SemanticTypeConstructionInterface } from './types/upstream/semanticTypeConstructionInterface';
+
+
+// Fully typed scanner runtime operations (public core barrel).
+export { semanticDataflowInputAdapterOperations, semanticDataflowInputAdapter } from './compiler/scanner/wiring/semanticDataflowInputAdapter';
+export type { SemanticDataflowInputAdapterOperationsInterface, SemanticDataflowInputAdapterInterface } from './compiler/scanner/wiring/semanticDataflowInputAdapter';
+export { routePayloadLocationOperations } from './types/upstream/routeExecutionVocabulary';
+export type { RoutePayloadLocationOperationsInterface } from './types/upstream/routeExecutionVocabulary';
+
+export { routeBindingInterfaceFactory } from './types/upstream/routeBinding';
+export type { RouteBindingInterface, RouteBindingDomainOperationsInterface, RouteBindingInterfaceFactoryInterface } from './types/upstream/routeBinding';
+export * from './types/upstream/filesystemFailureInterface';
+
+export { phpSourceDocumentReader, nodeFilesystemFailureObservation } from './compiler/scanner/wiring/phpSourceDocumentReader';
+export type { NodeFilesystemFailureObservation, NodeFilesystemFailureObservationInterface } from './compiler/scanner/wiring/phpSourceDocumentReader';
+
+export { graphNodeFactoryOperations } from './graph/service/nodeFactories';
+export type { GraphNodeFactoryOperationsInterface } from './graph/service/nodeFactories';
+
+export type { GraphEdgeRelationOperationsInterface } from './graph/service/graphEdgeRelation';
+export { structuralSemanticRelationProjectionOperations } from './graph/service/structuralSemanticRelationProjection';
+export type { StructuralSemanticRelationProjectionOperationsInterface } from './graph/service/structuralSemanticRelationProjection';

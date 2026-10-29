@@ -14,7 +14,7 @@ const checks = [
   ['compatibility facade delegates canonical algebra', /scannerAssignmentTargetContractAlgebra\.resolve\(query\)/.test(algebra)],
   ['no duplicate legacy target resolver remains', !/const resolveTarget = <Token, Expression, Identifier, Target, Entry, Pattern>\(\s*contract: AssignmentTargetContract/.test(algebra)],
   ['upstream exports interface and algebra', /export \* from '\.\/scannerAssignmentTargetInterface'/.test(index) && /scannerAssignmentTargetContractAlgebra/.test(index)],
-  ['runtime wiring remains out of scope', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts'))],
+  ['runtime wiring remains out of scope', fs.existsSync(path.join(root, 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts'))],
 ];
 let failed = 0;
 for (const [label, passed] of checks) {

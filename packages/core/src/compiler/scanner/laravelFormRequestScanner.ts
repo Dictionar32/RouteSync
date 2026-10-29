@@ -13,15 +13,15 @@ import type { RequestAst } from "../../types/upstream/ast";
 import { createRequestName } from "../../types/upstream/names";
 import type { SourceProjectIdentity } from "../../types/upstream/highLevelSourceModel";
 import type { LaravelFormRequestScanArtifact, LaravelFormRequestScanInput, LaravelFormRequestScannerInterface } from "../../types/upstream/laravelFormRequestScannerInterface";
-import type { RequestAsts, Sequence } from "../../types/upstream/collections";
+import type { RequestAsts } from "../../types/upstream/collections";
 import type { SourceSpan } from "../../types/upstream/provenance";
 import type { NumberValue } from "../../types/upstream/valueObjects";
-import { requestProducer } from "./operations/requestProducer";
+import { requestProducer } from "../semantic/requestProducer";
 import type { RequestProducerResult } from "../../types/upstream/requestProducerInterface";
 import { TypeInterner } from "../types/TypeInterner";
 import { LaravelSourceLexer } from "./LaravelSourceLexer";
-import { parsePhpMethodOrThrow } from "./lexer/phpMethodParser";
-import { sourceAstSyntaxParser } from "../semantic/sourceAstSyntaxParser";
+import { phpMethodParser } from "../frontend/php/phpMethodParser";
+import { sourceAstSyntaxParser } from "../frontend/php/sourceAstSyntaxParser";
 import { SemanticValueFactory } from "../../types/domain/semanticValues";
 import { readFileSync } from "node:fs";
 
@@ -84,7 +84,7 @@ export class LaravelFormRequestScanner {
                 rules: rulesEntries,
                 authorize: authorizeMethod,
                 methods,
-                properties: sourceAstSyntaxParser.parseProperties(tokens),
+                properties: sourceAstSyntaxParser.parseProperties(sourceText),
                 sourceFile: source.sourceFile,
                 interner,
             });
@@ -131,15 +131,13 @@ export class LaravelFormRequestScanner {
         interner: TypeInterner = TypeInterner.create()
     ): Promise<RequestAsts> {
         const requests = (await LaravelFormRequestScanner.scanOnce(sourceProject, interner)).asts;
-        const items = sequenceFromRequests(requests);
-        const result = discoveryFromSequence(items);
-        return { kind: 'request_asts', items: { kind: 'scanned', result } };
+        return { kind: 'request_asts', items: { kind: 'scanned', items: Object.freeze([...requests]) } };
     }
 }
 
 type LexerToken = import('./LaravelSourceLexer').TokenDescriptor;
-type PhpToken = import('./lexer/PhpAst').TokenDescriptor;
-type PhpMethod = import('./lexer/phpMethodAstTypes').PhpMethodAst;
+type PhpToken = import('../frontend/php/PhpAst').TokenDescriptor;
+type PhpMethod = import('../frontend/php/phpMethodAstTypes').PhpMethodAst;
 
 function parseAuthorization(tokens: readonly LexerToken[]): FormRequestSource['authorization'] {
     const authorizeIndex = tokens.findIndex((token, index) =>
@@ -163,14 +161,6 @@ function parseAuthorization(tokens: readonly LexerToken[]): FormRequestSource['a
     return judgment.authorization;
 }
 
-function discoveryFromSequence<T>(items: Sequence<T> | { readonly kind: 'empty' }):
-    | { readonly kind: 'discovered_empty' }
-    | { readonly kind: 'discovered_many'; readonly items: Sequence<T> } {
-    return items.kind === 'cons'
-        ? { kind: 'discovered_many', items }
-        : { kind: 'discovered_empty' };
-}
-
 function requestSourceSpan(file: string, length: number): SourceSpan {
     const numberValue = (value: number): NumberValue => ({ kind: 'number_value', value });
     return {
@@ -191,7 +181,7 @@ function parseRequestMethods(tokens: readonly PhpToken[]): readonly PhpMethod[] 
     for (let index = 0; index < tokens.length; index += 1) {
         const token = tokens[index];
         if (token.value === 'function' && depth === 1) {
-            methods.push(parsePhpMethodOrThrow('', tokens, index));
+            methods.push(phpMethodParser.parseOrReject('', tokens, index));
         }
         if (token.value === '{') {
             depth += 1;
@@ -210,14 +200,6 @@ function resolveRulesReturnIndex(tokens: readonly LexerToken[], methodName: stri
     const returnIndex = tokens.findIndex((token, index) => index > anchor && token.value === 'return');
     return returnIndex < 0 ? anchor : returnIndex;
 }
-
-function sequenceFromRequests<T>(requests: readonly T[]): Sequence<T> {
-    return requests.reduce<Sequence<T>>(
-        (tail, head) => ({ kind: 'cons', head, tail }),
-        { kind: 'empty' },
-    );
-}
-
 
 /** Interface-first owner for the active Laravel FormRequest scan boundary. */
 export const laravelFormRequestScanner: LaravelFormRequestScannerInterface = Object.freeze({

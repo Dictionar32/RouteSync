@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const test = read('packages/core/src/types/upstream/__test__/scannerAssignmentTargetContractAlgebra.phase1447.test.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [
@@ -19,7 +19,7 @@ const checks = [
   ['legacy relation-option compatibility is isolated in the compatibility facade', algebra.includes('legacyOptionJudgment') && algebra.includes('classifyArrayAccess: tokens => legacyOptionJudgment')],
   ['scanner runtime adapts old classifiers into the canonical judgment ADT', runtime.includes("kind: 'resolved' as const, evidence:") && runtime.includes("kind: 'unresolved' as const")],
   ['canonical algebra test uses judgment ADTs rather than RelationOption', !test.includes('RelationOption') && test.includes("kind: 'unresolved' as const") && test.includes("kind: 'resolved' as const, evidence")],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['phase audit script is registered', typeof packageJson.scripts['audit:phase2033-assignment-target-evidence-adt-interface-first'] === 'string'],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);

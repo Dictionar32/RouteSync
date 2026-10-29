@@ -3,8 +3,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts');
-const provider = read('packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const provider = read('packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const tests = read('packages/core/src/types/upstream/__test__/scannerTokenStructureInterface.phase1440.test.ts');
 const checks = [
   ['consumer-facing token structure interface is declared', /interface ScannerTokenStructureInterface/.test(contract)],

@@ -1,12 +1,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
-const file = path.join(root, 'packages/core/src/compiler/scanner/symbols/resource/resourceBindingTypes.ts');
+const file = path.join(root, 'packages/core/src/compiler/semantic/resource-model/resourceModelBinding.ts');
 const source = fs.readFileSync(file, 'utf8');
 const checks = {
   closedBindingUnion: /export type ResourceModelBinding\s*=\s*MonoModelBinding \| PolyModelBinding \| UnbackedDtoBinding/.test(source),
   variantOwnsFold: (source.match(/readonly fold: <R>\(visitor: ResourceModelBindingVisitor<R>\) => R;/g) || []).length === 3,
-  catamorphicMatch: /return binding\.fold\(visitor\);/.test(source),
+  catamorphicMatch: /(?:return\s+binding\.fold\(visitor\);|=>\s*binding\.fold\(visitor\))/.test(source),
   monoFoldTyped: /visitor\.mono\(binding\)/.test(source),
   polyFoldTyped: /visitor\.poly\(binding\)/.test(source),
   dtoFoldTyped: /visitor\.unbacked_dto\(binding\)/.test(source),

@@ -15,7 +15,7 @@ const checks = [
   ['blocked scan contract forbids publishing controller artifacts', /readonly controllers: readonly \[\];/.test(interfaceSource)],
   ['runtime blocked branch publishes an empty artifact list', /kind: 'laravel_controller_scan_blocked'[\s\S]*?controllers: Object\.freeze\(\[\]\)/.test(runtimeSource)],
   ['runtime gates action/response/AST work before iteration when declarations are blocked', /if \(declarationBlockers\.length > 0\)[\s\S]*?kind: 'laravel_controller_scan_blocked'[\s\S]*?for \(const item of declarationsWithSelections\)/.test(runtimeSource)],
-  ['upstream scanner interface introduces no relation/foundation/subscanner imports', !/from ['"][^'"]*(?:semantic\/relations|semantic\/foundation|scanner\/subscanners)[^'"]*['"]/.test(interfaceSource)],
+  ['upstream scanner interface introduces no relation/foundation/subscanner imports', !/from ['"][^'"]*(?:semantic\/relations|semantic\/foundation|scanner\/operations)[^'"]*['"]/.test(interfaceSource)],
 ];
 let failures = 0;
 for (const [label, pass] of checks) {

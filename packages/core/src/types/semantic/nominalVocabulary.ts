@@ -35,15 +35,15 @@ export function createSourceColumnNumber(col: number): SourceColumnNumber {
 }
 
 export function createModelNodeName(name: string): ModelNodeName {
-  return Object.freeze({ kind: 'model_name' as const, value: stringValue(name.trim()) });
+  return Object.freeze({ kind: 'model_name' as const, value: stringValue.create(name.trim()) });
 }
 
 export function createServiceNodeName(name: string): ServiceNodeName {
-  return Object.freeze({ kind: 'service_node_name' as const, value: stringValue(name.trim()) });
+  return Object.freeze({ kind: 'service_node_name' as const, value: stringValue.create(name.trim()) });
 }
 
 export function createControllerNodeName(name: string): ControllerNodeName {
-  return Object.freeze({ kind: 'controller_name' as const, value: stringValue(name.trim()) });
+  return Object.freeze({ kind: 'controller_name' as const, value: stringValue.create(name.trim()) });
 }
 
 export function createConfidenceScore(score: number): ConfidenceScore {

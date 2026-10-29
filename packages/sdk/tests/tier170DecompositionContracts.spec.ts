@@ -1,4 +1,4 @@
-import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory'
 import { describe, it, expect } from 'vitest';
 import {
     IdentifierCase,
@@ -199,7 +199,7 @@ describe('Tier 170-200 Active Consumer & Sub-Domain Decomposition Contracts', ()
 
     describe('ScannedHttpErrorResponseDescriptor Sub-domain', () => {
         it('constructs frozen error descriptors via static factories', async () => {
-            const { ScannedHttpErrorResponseDescriptor } = await import('@routesync/core/src/compiler/scanner/descriptors/route/routeResponses');
+            const { ScannedHttpErrorResponseDescriptor } = await import('@routesync/core/src/compiler/scanner/operations/domain-model/route/routeResponses');
             const valError = ScannedHttpErrorResponseDescriptor.validation();
             expect(valError.statusCode).toBe(422);
             expect(valError.typeName).toBe('LaravelValidationError');
@@ -212,7 +212,7 @@ describe('Tier 170-200 Active Consumer & Sub-Domain Decomposition Contracts', ()
 
     describe('ScannedModelRelationDescriptor Sub-domain', () => {
         it('constructs frozen relation descriptors via factory helpers', async () => {
-            const { ScannedModelRelationDescriptor } = await import('@routesync/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass');
+            const { ScannedModelRelationDescriptor } = await import('@routesync/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass');
             const rel = ScannedModelRelationDescriptor.belongsTo({
                 name: 'author',
                 modelName: 'User'
@@ -260,7 +260,7 @@ describe('Tier 170-200 Active Consumer & Sub-Domain Decomposition Contracts', ()
 
     describe('RouteSemanticFlowFactory and RouteSemanticFactories Sub-domain', () => {
         it('creates synthetic and closure routes via semantic factories', async () => {
-            const { RouteSemanticFlowFactory } = await import('@routesync/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory');
+            const { RouteSemanticFlowFactory } = await import('@routesync/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory');
             const synth = RouteSemanticFlowFactory.synthetic({
                 path: '/test-synthetic',
                 resourceName: 'Item'
@@ -301,7 +301,7 @@ describe('Tier 170-200 Active Consumer & Sub-Domain Decomposition Contracts', ()
 
     describe('Model Entity Descriptor Sub-domain', () => {
         it('constructs frozen model descriptor with defaults and table inference', async () => {
-            const { ScannedModelDescriptor } = await import('@routesync/core/src/compiler/scanner/descriptors/model/modelEntityDescriptor');
+            const { ScannedModelDescriptor } = await import('@routesync/core/src/compiler/scanner/operations/domain-model/model/modelEntityDescriptor');
             const model = ScannedModelDescriptor.fromTable('users');
             expect(model.name).toBe('User');
             expect(model.table).toBe('users');

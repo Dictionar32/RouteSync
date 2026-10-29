@@ -11,16 +11,14 @@ import type {
 import { PHP_FUNCTION_INVOCATION_SEMANTIC_JUDGMENT_BATCH_CONTRACT } from './phpFunctionInvocationSemanticAuthorityInterface';
 import { phpFunctionInvocationSemanticAuthority } from './phpFunctionInvocationSemanticAuthority';
 import type { SourceFile } from './names';
-import type { SourceSpan } from './provenance';
+import { sourceSpanOperations, type SourceSpan } from './provenance';
+import { phpFunctionInvocationEvidenceIdentityOperations } from './phpFunctionInvocationEvidenceIdentity';
 
 const sameFile = (left: SourceFile, right: SourceFile): boolean => left.value.value === right.value.value;
-const sameSpan = (left: SourceSpan, right: SourceSpan): boolean => sameFile(left.file, right.file) && left.start.value === right.start.value && left.end.value === right.end.value;
+const sameSpan = (left: SourceSpan, right: SourceSpan): boolean => sourceSpanOperations.same(left, right).kind === 'same_source_span';
 const sameSpanFile = (span: SourceSpan, file: SourceFile): boolean => sameFile(span.file, file);
 const spanWithin = (span: SourceSpan, outer: SourceSpan): boolean =>
-  sameFile(span.file, outer.file)
-  && span.start.value >= outer.start.value
-  && span.end.value >= span.start.value
-  && span.end.value <= outer.end.value;
+  sourceSpanOperations.contains(outer, span).kind === 'source_span_contained';
 const evidenceSource = (evidence: PhpFunctionInvocationSourceEvidence): SourceSpan => evidence.resolutionInput.source;
 const syntaxSources = (evidence: PhpFunctionInvocationSourceEvidence): readonly SourceSpan[] => {
   const syntax = evidence.resolutionInput.syntaxEvidence;
@@ -32,12 +30,10 @@ const syntaxSources = (evidence: PhpFunctionInvocationSourceEvidence): readonly 
   }
 };
 const environmentFile = (evidence: PhpFunctionInvocationSourceEvidence): SourceFile => evidence.resolutionInput.environment.environment.sourceFile;
-const evidenceIdentity = (evidence: PhpFunctionInvocationSourceEvidence): string => {
-  const span = evidenceSource(evidence);
-  const syntax = evidence.resolutionInput.syntaxEvidence;
-  const name = syntax.kind === 'malformed_function_name_evidence' ? syntax.reason : syntax.kind === 'unqualified_function_name_evidence' ? syntax.segment.name.value.value : syntax.segments.map(segment => segment.name.value.value).join('\\');
-  return `${span.file.value.value}\u0000${span.start.value}\u0000${span.end.value}\u0000${name}`;
-};
+const evidenceIdentity = (evidence: PhpFunctionInvocationSourceEvidence) => phpFunctionInvocationEvidenceIdentityOperations.create(
+  evidenceSource(evidence),
+  evidence.resolutionInput.syntaxEvidence,
+);
 const sameResolutionSource = (entry: PhpFunctionInvocationSemanticJudgmentBatchEntry): boolean => entry.judgment.resolution.source === entry.evidence.resolutionInput;
 
 const close = (input: Readonly<{
@@ -72,14 +68,12 @@ const close = (input: Readonly<{
     if (entry.judgment.arguments !== entry.evidence.arguments) violations.push(Object.freeze({ kind: 'judgment-arguments-mismatch', entry }));
   }
 
-  const evidenceIdentities = inventory.entries.map(evidenceIdentity);
-  const uniqueEvidenceCount = evidenceIdentities.filter((identity, index, identities) => identities.indexOf(identity) === index).length;
-  if (uniqueEvidenceCount !== inventory.entries.length) {
-    for (const evidence of inventory.entries) {
-      if (inventory.entries.filter(candidate => evidenceIdentity(candidate) === evidenceIdentity(evidence)).length > 1) {
-        violations.push(Object.freeze({ kind: 'duplicate-invocation-evidence', evidence }));
-      }
-    }
+  for (const evidence of inventory.entries) {
+    const identity = evidenceIdentity(evidence);
+    const duplicateIdentity = inventory.entries.filter(candidate =>
+      phpFunctionInvocationEvidenceIdentityOperations.same(identity, evidenceIdentity(candidate)).kind === 'same_php_function_invocation_evidence_identity',
+    ).length > 1;
+    if (duplicateIdentity) violations.push(Object.freeze({ kind: 'duplicate-invocation-evidence', evidence }));
   }
 
   const firstViolation = violations[0];

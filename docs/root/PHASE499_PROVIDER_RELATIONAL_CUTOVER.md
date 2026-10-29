@@ -1,6 +1,6 @@
 # RouteSync Phase 499 — Provider Scanner Relational Cutover
 
-Phase 499 advances the scanner/lexer frontier from the Phase 498 `astClassifierEvidence.ts` closure into the provider resolver/scanner surface.
+Phase 499 advances the frontend/php frontier from the Phase 498 `astClassifierEvidence.ts` closure into the provider resolver/scanner surface.
 
 ## Research synthesis
 

@@ -4,8 +4,8 @@
   "scope": [
     "packages/core/src/types/upstream/scannerStatementControlInterface.ts",
     "packages/core/src/types/upstream/scannerStatementControlAlgebra.ts",
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
-    "packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/phpControlEvidence.ts",
     "packages/core/src/types/upstream/index.ts",
     "packages/core/src/types/upstream/docs/PHASE1454_STATEMENT_CONTROL_KIND_CONTRACT.md",
     "scripts/audits/audit-phase1454-statement-control-kind-contract.cjs"

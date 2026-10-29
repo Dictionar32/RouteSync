@@ -1,0 +1,52 @@
+{
+  "phase": 2822,
+  "title": "Fully Typed Runtime Scanner Operation Interface Inventory",
+  "decision": "reuse_existing_manifest_contracts_and_migrate_route_syntax_projection_by_domain",
+  "manifestRuntimeTrace": [
+    "CLI scan/sync",
+    "RouteSyncCliUpstreamCompositionInterface",
+    "RouteSyncCliManifestScanOperationInterface.scan(input)",
+    "ControllerInvocationManifestCompositionAuthorityInterface.compose(input)",
+    "ManifestBuilderOperationPreparationInterface.prepare(input)",
+    "ManifestBuilderInterface.build()",
+    "LaravelSourceAstPipelineInterface.execute()",
+    "source AST complete|blocked",
+    "source model complete|blocked",
+    "SemanticDataflowManifestSurfaceInterface",
+    "ManifestBuilderJudgment complete|blocked",
+    "routeManifestProjection.continue(handlers)",
+    "validation -> serialization -> persistence"
+  ],
+  "runtimeChange": {
+    "file": "packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts",
+    "removedExports": ["routeSyntaxSemanticInterface", "routeSyntaxSemanticInterfaceAt", "routeSyntaxSemanticContract"],
+    "addedExport": "routeSyntaxSemanticInterfaceFactory",
+    "interface": "RouteSyntaxSemanticInterfaceFactoryInterface",
+    "operations": ["create", "createAt", "contract"],
+    "implementation": "export const routeSyntaxSemanticInterfaceFactory: RouteSyntaxSemanticInterfaceFactoryInterface = Object.freeze({...})",
+    "callSiteAudit": "no runtime call sites outside the owning module found"
+  },
+  "inventory": {
+    "filesInspected": 9,
+    "exportedFunctionOrArrowCandidates": 41,
+    "note": "Candidates include constructors and pure projections; each requires owner/call-site classification before migration."
+  },
+  "constraints": {
+    "newGenericReasoningPrimitive": false,
+    "astFailureBecomesEmptyManifest": false,
+    "collectionsBytes": 0,
+    "completeBlockedJudgmentsRemainDistinct": true
+  },
+  "verification": {
+    "phase2818": "12/12 passed",
+    "phase2804": "11/11 passed",
+    "phase2819": "13/13 passed",
+    "phase2820": "11/11 targeted checks passed; 41 residual barrel inventory entries",
+    "phase2821": "11/11 passed",
+    "phase2822": "interface-first route syntax projection check passed; 41 candidate inventory",
+    "typescriptBuild": "not_run",
+    "fullTestSuite": "not_run",
+    "cliEndToEnd": "not_run",
+    "reason": "workspace dependencies are not installed"
+  }
+}

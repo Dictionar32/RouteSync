@@ -1,0 +1,23 @@
+{
+  "phase": 2888,
+  "title": "Fully Typed Runtime Scanner Operations — Manifest ADT Continuation",
+  "scope": [
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts",
+    "packages/cli/src/parsers/php/docs/PHASE2888_MANIFEST_ADT_CONTINUATION.md",
+    "scripts/audits/audit-phase2888-manifest-adt-continuation.cjs",
+    "package.json"
+  ],
+  "change": "CLI terminal factory delegates ManifestBuilderJudgment to its existing continueWith domain operation instead of dispatching on kind.",
+  "focusedAudit": {
+    "passed": 8,
+    "total": 8
+  },
+  "collectionsTsBytes": 0,
+  "packageJsonValid": true,
+  "fullTypecheck": "not run: dependencies/node_modules unavailable in extracted workspace",
+  "build": "not run",
+  "testSuite": "not run",
+  "cliE2E": "not run",
+  "claimBoundary": "Focused source audit only; does not assert whole-workspace migration completion or compilation success."
+}

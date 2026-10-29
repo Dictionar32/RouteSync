@@ -16,7 +16,7 @@ const checks = [
   ['rejection rule is explicit', response.includes('declarationSourceCorrelationRejectionRule') && response.includes('rejected-before-evidence-production')],
   ['producer contract version is 4', response.includes("readonly contractVersion: 4;\n  readonly contract: LaravelControllerResponseEvidenceProductionContract;")],
   ['new ADT is publicly exported', index.includes('LaravelControllerResponseEvidenceProductionSourceCorrelationJudgment')],
-  ['no new relation/foundation subscanner path in controller subscanner', !fs.readdirSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller'), { withFileTypes: true }).some(entry => entry.isDirectory() && ['relation', 'foundation'].includes(entry.name))],
+  ['no new relation/foundation subscanner path in controller subscanner', !fs.readdirSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller'), { withFileTypes: true }).some(entry => entry.isDirectory() && ['relation', 'foundation'].includes(entry.name))],
 ];
 const failed = checks.filter(([, ok]) => !ok);
 const report = { phase: 1995, audit: 'response-declaration-correlation-adt-interface-first', passed: checks.length - failed.length, total: checks.length, checks: checks.map(([name, ok]) => ({ name, status: ok ? 'pass' : 'fail' })) };

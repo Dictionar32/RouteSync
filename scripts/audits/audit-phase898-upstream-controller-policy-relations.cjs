@@ -2,8 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../packages/core');
 const types = fs.readFileSync(path.join(root, 'src/types/upstream/controller.ts'), 'utf8');
-const canonical = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts'), 'utf8');
-const test = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts'), 'utf8');
+const canonical = fs.readFileSync(path.join(root, 'src/compiler/scanner/operations/controller/controllerAstCanonical.ts'), 'utf8');
+const test = fs.readFileSync(path.join(root, 'src/compiler/scanner/operations/controller/controllerMethodContract.phase894.test.ts'), 'utf8');
 const docs = fs.readFileSync(path.join(root, 'src/types/upstream/PHASE898_UPSTREAM_CONTROLLER_POLICY_RELATIONS.md'), 'utf8');
 const checks = {
   middlewareRelationClosed: types.includes("ControllerMiddlewareRelation") && types.includes("exclusion: boolean"),

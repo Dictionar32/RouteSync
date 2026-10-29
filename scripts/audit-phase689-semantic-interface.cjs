@@ -11,8 +11,8 @@ const files = [
   'packages/core/src/compiler/domain/common/response-lowering/mapper/fieldConverter.ts',
   'packages/core/src/compiler/domain/common/response-lowering/mapper/wrapperResolver.ts',
   'packages/core/src/compiler/domain/common/SemanticTypeResolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts',
   'packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts',
 ];
 const strip = source => source

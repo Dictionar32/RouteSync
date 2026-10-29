@@ -1,0 +1,42 @@
+{
+  "phase": 2802,
+  "title": "Typed Controller Body Parser Runtime Audit",
+  "scope": "Migrate the TypeScript controller body parser public runtime API to a frozen interface-first operation while preserving overload and ADT correlation.",
+  "changedFiles": [
+    "packages/core/src/compiler/frontend/php/controllerBodyParser.ts",
+    "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
+    "packages/core/src/compiler/frontend/php/index.ts",
+    "packages/core/src/compiler/scanner/__test__/ecommerceShopDataflowPhase104.spec.ts",
+    "scripts/audits/audit-phase2802-typed-controller-body-parser-runtime.cjs",
+    "package.json",
+    "packages/core/src/types/upstream/PHASE2802_TYPED_CONTROLLER_BODY_PARSER_RUNTIME_AUDIT.md",
+    "packages/core/src/types/upstream/PHASE2802_TYPED_CONTROLLER_BODY_PARSER_RUNTIME_AUDIT.json"
+  ],
+  "runtimeOperation": "controllerBodyParser",
+  "interface": "ControllerBodyParserInterface",
+  "operationInterface": "ControllerBodyParserOperationInterface",
+  "legacyPublicApiRemoved": "parseControllerBody",
+  "preservedProjectionJudgments": [
+    "syntax_only_projection",
+    "invocation_only_projection",
+    "semantic_projection"
+  ],
+  "upstreamContractsInspected": [
+    "LaravelControllerAstProjectionSemanticAuthorityInterface",
+    "LaravelControllerAstProjectionContext",
+    "LaravelControllerInvocationSemanticJudgmentInterface",
+    "ControllerBodySemanticJudgmentAuthorityInterface"
+  ],
+  "newUpstreamContractAdded": false,
+  "collectionsFileBytes": 0,
+  "verification": {
+    "phase2802Audit": "12/12 passed",
+    "phase2801Audit": "12/12 passed",
+    "syntaxOnlyTranspilation": "4 TypeScript files, 0 syntax errors",
+    "fullTypecheck": "not run",
+    "build": "not run",
+    "completeTestSuite": "not run",
+    "cliScanSyncE2E": "not run"
+  },
+  "remainingBoundary": "scripts/scan-toko-online.cjs contains a standalone bundled JavaScript parser implementation and was not regenerated."
+}

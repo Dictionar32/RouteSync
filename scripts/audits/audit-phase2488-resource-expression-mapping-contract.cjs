@@ -10,7 +10,7 @@ const upstreamBarrelPath = 'packages/core/src/types/upstream/index.ts';
 const publicEntryPath = 'packages/core/src/index.ts';
 const contract = read(contractPath);
 const mapper = read(mapperPath);
-const resourceAuthority = read('packages/core/src/compiler/scanner/lexer/routeAst/resourceExpressionSemanticAuthority.ts');
+const resourceAuthority = read('packages/core/src/compiler/frontend/php/routeAst/resourceExpressionSemanticAuthority.ts');
 const upstreamBarrel = read(upstreamBarrelPath);
 const publicEntry = read(publicEntryPath);
 assert('upstream contract exists', fs.existsSync(path.join(root, contractPath)));

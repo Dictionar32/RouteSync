@@ -9,7 +9,7 @@ const check = (name, passed, detail) => checks.push({ name, passed: Boolean(pass
 const contract = read('packages/core/src/types/upstream/operationIdentityCapability.ts');
 const authority = read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts');
 const algebra = read('packages/core/src/types/upstream/operationIdentityCapabilityAlgebra.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const projection = read('packages/core/src/types/interfaces/operationIdentityProjectionInterface.ts');
 const cli = read('packages/cli/src/generators/sdk/apiObjectEmitter.ts');
 const sdk = read('packages/sdk/src/defineApi.ts');

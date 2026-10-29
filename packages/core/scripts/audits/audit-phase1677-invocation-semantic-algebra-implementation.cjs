@@ -9,7 +9,7 @@ const authority = read('packages/core/src/types/upstream/invocationSemanticJudgm
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const packageIndex = read('packages/core/src/index.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const checks = [
   ['concrete algebra is typed by the dedicated interface', /export const invocationSemanticAlgebra:\s*InvocationSemanticAlgebraInterface/.test(algebra)],
   ['legacy staged algebra interface stays internal rather than expanding the canonical upstream surface', !/export \* from '\.\/invocationSemanticAlgebraInterface'/.test(upstreamIndex)],

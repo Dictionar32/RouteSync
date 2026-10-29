@@ -21,7 +21,7 @@ export interface SourceAstSyntaxParseContract<MethodSyntax, PropertySyntax, Toke
 export interface SourceAstSyntaxParserInterface<MethodSyntax, PropertySyntax, TokenSyntax> {
   readonly kind: 'source_ast_syntax_parser_interface';
   readonly closed: true;
-  parse(files: readonly SourceAstFileEvidence[]): SourceAstSyntaxParseContract<MethodSyntax, PropertySyntax, TokenSyntax>;
-  /** Parses already-tokenized property syntax through the same owned syntax boundary. */
-  parseProperties(tokens: readonly TokenSyntax[]): readonly PropertySyntax[];
+  readonly parse: (files: readonly SourceAstFileEvidence[]) => SourceAstSyntaxParseContract<MethodSyntax, PropertySyntax, TokenSyntax>;
+  /** Parses class-property syntax from source text; tokenization remains private to the syntax owner. */
+  readonly parseProperties: (source: string) => readonly PropertySyntax[];
 }

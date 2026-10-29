@@ -67,7 +67,7 @@ closed ADT
 
 ## Remaining frontier
 
-The next elevation remains in scanner/lexer and resolver graph surfaces, especially:
+The next elevation remains in frontend/php and resolver graph surfaces, especially:
 
 - `astClassifierEvidence.ts`
 - `resourceUpstreamExpressionCanonical.ts`

@@ -5,10 +5,10 @@ const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const controller = read('packages/core/src/types/upstream/controller.ts');
 const highLevel = read('packages/core/src/types/upstream/highLevelContracts.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts');
-const contract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
 
 const emptyLegacyFiles = (() => {
   let count = 0;

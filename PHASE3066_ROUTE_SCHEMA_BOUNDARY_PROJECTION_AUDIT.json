@@ -1,0 +1,48 @@
+{
+  "phase": 3066,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — route schema boundary projection",
+  "status": "PASS",
+  "passed": 17,
+  "total": 17,
+  "checks": {
+    "upstreamDefinesBoundaryProjectionWithSchemaAndEvidence": true,
+    "availableEvidenceExposesBoundaryProjectionOperation": true,
+    "unavailableEvidenceExposesBoundaryProjectionOperation": true,
+    "availableEvidenceProjectionKeepsCanonicalSchemaAndExactEvidence": true,
+    "unavailableEvidenceProjectionKeepsEmptySchemaAndExactReasonBearingEvidence": true,
+    "controllerActionBranchConsumesDomainProjection": true,
+    "controllerReferenceBranchConsumesDomainProjection": true,
+    "closureBranchConsumesDomainProjection": true,
+    "boundaryCompositionNoLongerSeparatelyProjectsSchemaPayload": true,
+    "boundaryProjectionDoesNotReclassifyEvidenceWithKindChecks": true,
+    "schemaEvidenceStillCarriesAvailableOriginAndSourceIdentity": true,
+    "unavailableEvidenceStillCarriesTypedReason": true,
+    "manifestBuilderRetainsBlockedProjection": true,
+    "cliScanBlockedGatePrecedesOutputWrites": true,
+    "cliSyncBlockedGatePrecedesOutputWrites": true,
+    "noDeletedRelationFoundationRestoration": true,
+    "protectedCollectionsInvariantStillOneNewlineByte": true
+  },
+  "runtimeTrace": [
+    "PHP route/controller evidence → controller action schema judgment",
+    "RouteRequestSchemaEvidence available | unavailable owns continueToRouteBoundarySchema()",
+    "Domain operation emits one projection containing schema + the exact evidence object",
+    "controller_action | controller_reference | closure route branches consume that projection",
+    "RouteBoundaryContract retains schema and provenance-bearing schemaEvidence together",
+    "ManifestBuilderInterface.build() → complete | blocked judgment",
+    "CLI scan/sync blocked handlers gate output writes"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "changedFilesSyntaxTranspile": "PASS for the three changed TypeScript files",
+    "executablePhpCliManifestFixture": "NOT_RUN",
+    "strictTypeScript": "BLOCKED by missing ambient type definitions: chai, deep-eql, estree, fs-extra, jsonfile, node, react; no diagnostics were emitted for the three changed files before type resolution stopped",
+    "globalPrimitiveElimination": "NOT_CLAIMED"
+  },
+  "remainingRisks": [
+    "This phase consolidates schema and schema evidence into one typed domain projection; it does not prove the entire PHP → CLI → manifest/IR runtime by execution.",
+    "Strict TypeScript validation is blocked by missing ambient type definition packages in the workspace; syntax transpilation passed for the changed files.",
+    "The repository-wide primitive inventory remains open; parser and serialization boundaries still require explicit, evidence-based review.",
+    "Deleted relation foundation modules and the protected one-byte collections.ts invariant are intentionally unchanged."
+  ]
+}

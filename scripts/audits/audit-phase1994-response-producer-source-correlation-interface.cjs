@@ -20,8 +20,8 @@ const checks = [
   ['candidate remains descriptor-derived rather than direct PHP return evidence', /kind: 'controller_action_response_reference_candidate'[\s\S]*?origin: 'controller-action-descriptor-response-type'/.test(response) && /not-direct-proof-of-a-PHP-return-expression/.test(response)],
   ['new correlation type is publicly exported', /LaravelControllerResponseEvidenceProductionSourceCorrelation/.test(publicExports)],
   ['scanner implementation remains untouched and producer is not wired yet', !/responseEvidenceProduction\.produce/.test(scanner) && /controllerProducer\.produce\(\{ declaration: declarationEvidence, invocationJudgment \}\)/.test(scanner)],
-  ['no relation/foundation subscanner was added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/response/relations')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/response/foundation'))],
-  ['existing relation/foundation references are not silently deleted', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners'))],
+  ['no relation/foundation subscanner was added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/response/relations')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/response/foundation'))],
+  ['existing relation/foundation references are not silently deleted', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations'))],
 ];
 const failures = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) process.stdout.write(`${ok ? 'PASS' : 'FAIL'} ${name}\n`);

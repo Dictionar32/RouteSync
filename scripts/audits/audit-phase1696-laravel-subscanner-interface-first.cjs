@@ -26,7 +26,7 @@ for (const [file, kind, name] of contracts) {
   if (!coreIndex.includes(`./types/upstream/${file.replace(/\.ts$/, '')}`)) failures.push(`${file}: not exported by core entrypoint`);
   if (/\bany\b/.test(source)) failures.push(`${file}: contains any`);
 }
-const scannerRoot = path.join(root, 'packages/core/src/compiler/scanner/subscanners');
+const scannerRoot = path.join(root, 'packages/core/src/compiler/scanner/operations');
 for (const name of ['RouteScanner.ts','ControllerScanner.ts','ModelScanner.ts','FormRequestScanner.ts','ResourceScanner.ts','ChannelScanner.ts']) {
   if (!fs.existsSync(path.join(scannerRoot, name))) failures.push(`${name}: legacy implementation unexpectedly missing before wiring cutover`);
 }

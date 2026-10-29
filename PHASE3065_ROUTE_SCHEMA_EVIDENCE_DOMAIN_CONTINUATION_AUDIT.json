@@ -1,0 +1,42 @@
+{
+  "phase": 3065,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — route schema evidence domain continuation",
+  "status": "PASS",
+  "passed": 14,
+  "total": 14,
+  "checks": {
+    "controllerReferenceUsesSchemaEvidenceDomainOperation": true,
+    "controllerReferenceDoesNotUseGenericSameBranchVisitor": true,
+    "controllerReferenceRetainsOriginalSchemaEvidence": true,
+    "schemaEvidenceAvailableArmOwnsCanonicalSchema": true,
+    "schemaEvidenceUnavailableArmOwnsExplicitEmptySchemaProjection": true,
+    "availableEvidenceRetainsSourceIdentityAndOrigin": true,
+    "unavailableEvidenceRetainsTypedReason": true,
+    "correlationMatchedOutcomeRetainsPublicationAndSchemaEvidence": true,
+    "ambiguousAndInvalidCorrelationRemainExplicit": true,
+    "manifestBuilderStillCarriesBlockedProjection": true,
+    "cliScanBlockedGatePrecedesOutputWrites": true,
+    "cliSyncBlockedGatePrecedesOutputWrites": true,
+    "noDeletedRelationFoundationRestoration": true,
+    "protectedCollectionsInvariantStillOneNewlineByte": true
+  },
+  "runtimeTrace": [
+    "PHP route/controller reference → controller/action identity correlation",
+    "ControllerActionJudgmentRouteSelection → available or unavailable RouteRequestSchemaEvidence",
+    "RouteRequestSchemaEvidence.continueToRouteBoundarySchema() → schema + exact evidence projection",
+    "RouteBoundaryContract retains the schema and the same schemaEvidence provenance through the domain projection",
+    "ManifestBuilderInterface.build() → complete | blocked manifest judgment",
+    "CLI scan/sync blocked judgment gates precede output writes"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "strictTypeScript": "NOT_RUN_IN_THIS_PHASE; repository has known pre-existing type errors",
+    "globalPrimitiveElimination": "NOT_CLAIMED"
+  },
+  "remainingRisks": [
+    "This migration removes a redundant generic continuation call in one runtime consumer; it does not eliminate generic continueWith operations from the upstream schema evidence model globally.",
+    "Unavailable schema evidence intentionally projects an empty schema payload while retaining an explicit reason in schemaEvidence; downstream manifest consumers must continue preserving that evidence.",
+    "Structural source checks do not prove an executed PHP → CLI → manifest/IR runtime."
+  ]
+}

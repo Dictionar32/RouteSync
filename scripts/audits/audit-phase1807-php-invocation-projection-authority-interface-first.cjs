@@ -8,7 +8,7 @@ const integration = read('packages/core/src/types/upstream/phpSourceInvocationSe
 const integrationInterface = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts');
 const responseInterface = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const composition = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [
   ['projection interface consumes the complete discriminated composition evidence', /project: \(\s*evidence: PhpSourceInvocationSemanticPipelineCompositionEvidence/.test(integrationInterface)],
   ['projection contract remains at its current v10 evidence-preserving version', /readonly version: 10/.test(integrationInterface) && /version: 10/.test(integrationInterface)],

@@ -5,13 +5,13 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = (file) => fs.existsSync(path.join(root, file));
 const contract = read('packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts');
-const consumer = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const consumer = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');
 const scannerBoundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const scannerImplementation = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const packageJson = JSON.parse(read('package.json'));
-const controllerDir = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDir = 'packages/core/src/compiler/scanner/operations/controller';
 const checks = [
   ['static-call origin has a dedicated upstream authority interface', /ControllerStaticCallOriginAuthorityInterface/.test(contract) && /judge: \(input: ControllerStaticCallOriginInput\) => ControllerStaticCallOriginJudgment/.test(contract)],
   ['input is a typed source-evidence contract rather than a scanner AST dependency', /ControllerStaticCallOriginInput/.test(contract) && /ClassName/.test(contract) && /MethodName/.test(contract) && !/PhpAstValue/.test(contract)],

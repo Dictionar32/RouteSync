@@ -1,0 +1,17 @@
+[
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticPipeline.ts",
+    "diagnosticCount": 0,
+    "diagnostics": []
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts",
+    "diagnosticCount": 0,
+    "diagnostics": []
+  },
+  {
+    "file": "packages/core/src/index.ts",
+    "diagnosticCount": 0,
+    "diagnostics": []
+  }
+]

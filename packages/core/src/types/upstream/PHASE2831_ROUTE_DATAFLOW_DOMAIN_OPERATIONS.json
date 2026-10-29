@@ -1,0 +1,22 @@
+{
+  "phase": 2831,
+  "title": "Route Dataflow Domain Operations and Manifest Trace",
+  "owner": "packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts",
+  "runtimeOperation": "routeDataFlowOperations",
+  "interface": "RouteDataFlowOperationsInterface",
+  "migratedOperations": [
+    "declarationFlow",
+    "declarationFlows",
+    "resourceFlow",
+    "resourceFlows",
+    "declarationGraph",
+    "declarationGraphs",
+    "resourceGraph"
+  ],
+  "runtimeConsumer": "packages/core/src/compiler/scanner/upstream/routeDeclarationComposition.ts",
+  "consumerOperation": "routeDeclarationEvidenceProjection.fromAst",
+  "manifestJudgment": ["manifest_builder_complete", "manifest_builder_blocked"],
+  "genericReasoningPrimitiveAdded": false,
+  "collectionsFileBytes": 0,
+  "validation": "structural audit only; full typecheck/build/E2E not claimed"
+}

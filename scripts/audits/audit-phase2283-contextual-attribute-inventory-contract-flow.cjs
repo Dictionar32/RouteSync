@@ -6,7 +6,7 @@ const attributeContract = read('packages/core/src/types/upstream/laravelAttribut
 const controllerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const controllerScanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts');
 const pipelineContract = read('packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts');
 const checks = [
   ['attribute scanner owns the closed project-scoped inventory', /LaravelContextualAttributeInventory/.test(attributeContract) && /sourceProject: SourceProjectIdentity/.test(attributeContract) && /closed: true/.test(attributeContract)],

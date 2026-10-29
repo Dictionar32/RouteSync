@@ -6,7 +6,7 @@ const contract = read('src/types/upstream/invocationSemanticJudgmentInterface.ts
 const algebra = read('src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const scanner = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const single = algebra.slice(algebra.indexOf('export const analyzeInvocationJudgmentAlgebra ='), algebra.indexOf('export const callTargetForInvocation'));
 const checks = [
   ['Semantic contract version 6 retains dependency slicing', /readonly version: 6/.test(contract) && /dependencySlice:[\s\S]*targetEvidence: 'requested-invocation-callable-data-flow'[\s\S]*callableKnowledge: 'resolved-targets-only'[\s\S]*emissionKnowledge: 'declared-emissions-of-resolved-targets-only'[\s\S]*unrelatedEvidence: 'excluded-before-derivation'/.test(contract)],

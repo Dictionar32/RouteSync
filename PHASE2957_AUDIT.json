@@ -1,0 +1,37 @@
+{
+  "phase": 2957,
+  "title": "Source Inventory Continuation and Identity Uniqueness",
+  "scope": [
+    "packages/core/src/types/upstream/names.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "packages/core/src/types/upstream/__tests__/source-file-inventory-domain-visitor.phase2921.test.ts",
+    "packages/core/src/index.ts",
+    "scripts/audits/audit-phase2957-inventory-continuation-uniqueness.cjs",
+    "package.json"
+  ],
+  "structuralAudit": {
+    "phase2957": {
+      "passed": 11,
+      "total": 11
+    },
+    "priorRelevantAudits": {
+      "phase2952": "11/11 passed",
+      "phase2953": "11/11 passed",
+      "phase2954": "9/9 passed",
+      "phase2955": "10/10 passed",
+      "phase2956": "13/13 passed"
+    }
+  },
+  "syntaxTranspile": {
+    "files": 3,
+    "diagnostics": 0,
+    "method": "TypeScript transpileModule; syntax only, not full typecheck"
+  },
+  "packageJsonParse": "passed",
+  "collectionsBytes": 0,
+  "focusedVitest": "not run; local Vitest executable unavailable in this workspace",
+  "fullTypecheck": "not run; no full typecheck pass is claimed",
+  "fullBuild": "not run",
+  "cliEndToEnd": "not run",
+  "zipIntegrity": "verified with unzip -t; no archive errors"
+}

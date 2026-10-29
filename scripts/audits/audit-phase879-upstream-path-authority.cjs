@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '../..');
-const parser = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts'), 'utf8');
-const relations = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts'), 'utf8');
+const parser = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/route-scanner/routePathParser.ts'), 'utf8');
+const relations = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts'), 'utf8');
 const basics = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts'), 'utf8');
 const checks = {
   resolvedRoutePathCarriesRuntimePath: /readonly runtimePath: RoutePath/.test(parser),

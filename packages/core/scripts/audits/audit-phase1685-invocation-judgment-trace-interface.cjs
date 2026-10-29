@@ -7,7 +7,7 @@ const judgment = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const publicIndex = read('packages/core/src/index.ts');
 const upstream = read('packages/core/src/types/upstream/index.ts');
 const runtime = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [
   ['proof trace is a first-class domain contract rather than scanner-generated diagnostics', /export interface InvocationSemanticJudgmentTraceContract/.test(pipeline) && /INVOCATION_SEMANTIC_JUDGMENT_TRACE_CONTRACT/.test(pipeline) && /traceOwner: 'semantic-algebra-produces-authority-validates-scanner-forwards'/.test(pipeline)],
   ['trace contract binds subject identity, rule coverage, evidence, witnesses, obligations, and closure', /subjectIdentity:/.test(pipeline) && /ruleCoverage:/.test(pipeline) && /evidenceLineage:/.test(pipeline) && /witnessLineage:/.test(pipeline) && /obligationLineage:/.test(pipeline) && /closureCorrelation:/.test(pipeline)],

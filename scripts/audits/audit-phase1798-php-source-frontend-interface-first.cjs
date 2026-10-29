@@ -5,7 +5,7 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const frontend = read('packages/core/src/types/upstream/phpSourceFrontendInterface.ts');
 const batchContract = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
 const batchAuthority = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticJudgmentBatchClosureAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const checks = [
   ['source frontend is an explicit upstream interface', /interface PhpSourceFrontendInterface/.test(frontend)],

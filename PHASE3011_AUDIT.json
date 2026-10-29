@@ -1,0 +1,48 @@
+{
+  "phase": 3011,
+  "audit": "manifest-runtime-provenance-named-input-context",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "inventory closure takes one named input object",
+      "pass": true
+    },
+    {
+      "name": "canonical project operation takes named input object",
+      "pass": true
+    },
+    {
+      "name": "discovered source continuation preserves named provenance fields",
+      "pass": true
+    },
+    {
+      "name": "complete document continuation preserves named provenance fields",
+      "pass": true
+    },
+    {
+      "name": "route selection reaches manifest builder input",
+      "pass": true
+    },
+    {
+      "name": "inventory receipt only enters builder after validated continuation",
+      "pass": true
+    },
+    {
+      "name": "terminal result continues through ADT operation",
+      "pass": true
+    },
+    {
+      "name": "no exported function declarations in composition runtime file",
+      "pass": true
+    },
+    {
+      "name": "collections.ts remains whitespace-only",
+      "pass": true
+    },
+    {
+      "name": "deleted relation foundations remain absent",
+      "pass": true
+    }
+  ]
+}

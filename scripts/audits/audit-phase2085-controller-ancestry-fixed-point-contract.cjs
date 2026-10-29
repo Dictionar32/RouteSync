@@ -15,7 +15,7 @@ const assertions = [
   ['cycle detection stops before duplicating repeated ancestor', authority.includes("kind: 'inheritance_cycle', repeated: parentName")],
   ['tests assert complete and partial fixed-point certificates', tests.includes('controller_ancestry_closure_complete') && tests.includes('controller_ancestry_closure_partial')],
   ['scanner retains invocation-to-response and AST artifact wiring', scanner.includes('responseSemanticPipeline.judgeIntegratedResponse') && scanner.includes('responseSemanticPipeline.astProjection.judge')],
-  ['scanner still has relation dependency and is not falsely marked clean', scanner.includes("semantic/relations/") && scanner.includes("../subscanners/controller")],
+  ['scanner still has relation dependency and is not falsely marked clean', scanner.includes("semantic/relations/") && scanner.includes("../operations/controller")],
 ];
 for (const [name, passed] of assertions) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);
 const passed = assertions.filter(([, result]) => result).length;

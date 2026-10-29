@@ -3,8 +3,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const upstream = read('packages/core/src/types/upstream/modelProducerInterface.ts');
-const parser = read('packages/core/src/compiler/scanner/subscanners/model/modelParser.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts');
+const parser = read('packages/core/src/compiler/scanner/operations/model/modelParser.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/model/modelCanonical.ts');
 const scanner = read('packages/core/src/compiler/scanner/laravelModelScanner.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [
@@ -19,7 +19,7 @@ const checks = [
 ];
 const failed = checks.filter(([, passed]) => !passed);
 const openBlockers = [
-  'The model semantic formation and AST projection operations are now explicitly contracted upstream, but their implementations remain in the existing subscanners/model files; no files were moved.',
+  'The model semantic formation and AST projection operations are now explicitly contracted upstream, but their implementations remain in the existing operations/model files; no files were moved.',
   'The model formation implementation still consumes lexer-owned AST evidence at the scanner boundary. The upstream contract is generic and does not import lexer types, but migration of parser evidence ownership remains open.',
   'Repository-wide subscanner and lexer retirement is not established; other active consumers must be traced before deleting either layer.',
   'Repository-wide semantic/relations and semantic/foundation dependency closure remains open.',

@@ -19,7 +19,7 @@ The scanner and compiler analysis layers no longer own a second dataflow solver.
 ## Compatibility boundaries
 
 `compiler/analysis/astDataflowAuthority.ts` is now a compatibility re-export only.
-`compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` is now a compatibility adapter only.
+`compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` is now a compatibility adapter only.
 
 `ControlFlowGraph` remains compiler infrastructure for SSA/dominator/optimization and is deliberately not migrated into the semantic dataflow interface.
 

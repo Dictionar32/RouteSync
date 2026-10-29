@@ -4,7 +4,7 @@ import type { DominatorTree } from '../DominatorAnalysis';
 import type { LoopInfo, LoopRelations } from './loopTypes';
 import { relationContains, relationInsert, type RelationMembership, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
 import { relationFold, relationOptionFold, relationResolve } from '../../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../../semantic/relations/relationFoundation';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 import { basicBlockLookup } from '../../utils/ControlFlowGraph';
 
 export function getNaturalLoopBlocks(header: number, backEdges: readonly number[], cfg: ControlFlowGraph): RelationMembership<number> {

@@ -2,20 +2,20 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const state = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const contract = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const state = read('packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const sourceFiles = [state, analyzer, contract, canonical];
 const forbidden = /\b(?:if|while|for|switch|undefined|unknown|any|new)\b|\?\?|\bnull\b|===|\.map\s*\(|\.filter\s*\(|\.reduce\s*\(|\.flatMap\s*\(/;
 const legacy = /\.dataflow\.(?:definitions|references)|LegacyController|ControllerDataflowReference|ControllerVariableDefinitionOrigin|LegacyControllerDefinitionAvailability/;
 const emptyUnused = [
   'packages/core/src/compiler/analysis/legacyFlow.ts',
   'packages/core/src/compiler/contracts.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts',
   'packages/core/src/compiler/scanner/scannerLegacyDelegates.ts',
   'packages/core/src/types/domain/resourceAggregateResolver.ts',
   'packages/core/src/types/domain/resourceCollectionGroupModel.ts',

@@ -1,6 +1,6 @@
 import { manifestBuilderOperationPreparation } from '../wiring/upstreamManifestBuilder';
 import type { RouteSyncManifest, RouteSyncManifestFlow } from '../../../types/upstream/manifest';
-import type { ManifestBuilderInput, ManifestBuilderJudgment, ManifestBuilderOperationPreparationInterface } from '../../../types/upstream/manifestBuilderInterface';
+import type { ManifestBuilderInput, ManifestBuilderJudgment, ManifestBuilderOperationPreparationInterface, ManifestBuilderFlowScanJudgment } from '../../../types/upstream/manifestBuilderInterface';
 import type {
   RouteSyncManifestFlowScanJudgment,
   RouteSyncManifestScanOperationFactoryInterface,
@@ -48,11 +48,7 @@ export const routeSyncManifestScanOperationFactory: RouteSyncManifestScanOperati
       contractVersion: 2,
       scanFlow: async (input: RouteSyncManifestScanOperationInput): Promise<RouteSyncManifestFlowScanJudgment> => {
         const judgment = await preparation.prepare(toBuilderInput(input)).build();
-        if (judgment.kind === 'manifest_builder_blocked') return judgment;
-        return Object.freeze({
-          kind: 'route_sync_manifest_flow_complete',
-          flow: routeSyncManifestFlowProjection.project(judgment.manifest),
-        });
+        return judgment.continueToFlow(routeSyncManifestFlowProjection);
       },
       scanManifest: async (input: RouteSyncManifestScanOperationInput): Promise<ManifestBuilderJudgment> =>
         preparation.prepare(toBuilderInput(input)).build(),

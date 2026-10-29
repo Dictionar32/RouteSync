@@ -6,12 +6,12 @@ const roots = [
   'packages/core/src/semantic/kernel/syntax/relationalCursorAuthority.ts',
   'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts',
   'packages/core/src/semantic/kernel/syntax/constraintRuleRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxGrammar.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxNavigation.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxCursorWitness.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxGrammar.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxNavigation.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxCursorWitness.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
   'packages/core/src/compiler/constraints/solver/constraintStep.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 ];
 const forbidden = /\b(if|while|for|switch|undefined|null)\b|\.map\(|\.filter\(|\.reduce\(|\.flatMap\(|\?\?|===|!==|\bas\b/g;
 const stripComments = source => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');

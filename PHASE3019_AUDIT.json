@@ -1,0 +1,93 @@
+{
+  "phase": 3019,
+  "passed": 17,
+  "failed": 0,
+  "total": 17,
+  "checks": [
+    {
+      "name": "closed derivation variants preserved",
+      "passed": true,
+      "detail": "semantic outcomes remain distinct; no failures collapsed"
+    },
+    {
+      "name": "upstream ADT owns explicit manifest-domain operation",
+      "passed": true,
+      "detail": "result exposes a zero-argument, RequestType-specific operation"
+    },
+    {
+      "name": "projected outcome constructs projectable disposition",
+      "passed": true,
+      "detail": "projectable result owns the positive disposition"
+    },
+    {
+      "name": "blocked outcome constructs non-projectable disposition",
+      "passed": true,
+      "detail": "blocked result retains original blocked outcome evidence"
+    },
+    {
+      "name": "consumer-supplied handler API removed from active contract",
+      "passed": true,
+      "detail": "no callback visitor required to ask the ADT its domain disposition"
+    },
+    {
+      "name": "lowering calls ADT operation directly",
+      "passed": true,
+      "detail": "lowering does not reinterpret the raw derivation kind"
+    },
+    {
+      "name": "lowering remains exhaustive over explicit domain dispositions",
+      "passed": true,
+      "detail": "only the two domain dispositions are eliminated downstream"
+    },
+    {
+      "name": "projected evidence is forwarded into manifest lowering",
+      "passed": true,
+      "detail": "verified request projection and its evidence remain attached"
+    },
+    {
+      "name": "blocked evidence and request ledger are retained",
+      "passed": true,
+      "detail": "blocked result does not synthesize a manifest"
+    },
+    {
+      "name": "manifest composition consumes lowering ADT",
+      "passed": true,
+      "detail": "canonical manifest lowering remains on the same path"
+    },
+    {
+      "name": "CLI uses injected manifest scan operation",
+      "passed": true,
+      "detail": "scan and sync share the injected upstream manifest authority"
+    },
+    {
+      "name": "CLI validates before persistence",
+      "passed": true,
+      "detail": "both commands apply the manifest contract gate before save"
+    },
+    {
+      "name": "old relation foundation stays absent",
+      "passed": true,
+      "detail": "deleted relation foundation modules were not restored"
+    },
+    {
+      "name": "collections newline sentinel unchanged",
+      "passed": true,
+      "detail": "collections.ts remains exactly one newline byte"
+    },
+    {
+      "name": "no kernel re-export points to deleted relation foundation",
+      "passed": true,
+      "detail": "core public entrypoint does not restore deleted foundations"
+    },
+    {
+      "name": "upstream runtime projection avoids deleted sequence foundation",
+      "passed": true,
+      "detail": "uses the concrete source-domain collection shapes without importing the deleted relation module"
+    },
+    {
+      "name": "audit command is registered",
+      "passed": true,
+      "detail": "repeatable audit is available from the package scripts"
+    }
+  ]
+}

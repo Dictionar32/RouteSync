@@ -1,0 +1,17 @@
+{
+  "phase": 2995,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — Upstream CLI Manifest Schema Provenance Trace",
+  "source": "Phase 2994 workspace",
+  "checks": [
+    {"id":"controller-schema-domain-operation","status":"pass","evidence":"controllerActionContract.ts calls schemaSemanticJudgment.forRouteRequest()"},
+    {"id":"controller-action-publication-source","status":"pass","evidence":"laravelControllerScanner.ts publishes canonical judgment and source span"},
+    {"id":"route-correlation-authority","status":"pass","evidence":"routeDeclarationComposition.ts actionJudgmentForTarget delegates to correlation authority"},
+    {"id":"controller-reference-schema-projection","status":"open","evidence":"controller_reference branch passes emptyRouteSchemaPayload()"},
+    {"id":"route-boundary-provenance-carrier","status":"open","evidence":"RouteBoundaryContract has no dedicated controller schema provenance field"},
+    {"id":"serializer-schema-preservation","status":"pass-with-boundary","evidence":"ManifestSerializer preserves endpoint request body schema that reached it; upstream lineage is not proven"},
+    {"id":"schema-provenance-end-to-end","status":"blocked","evidence":"Controller schema is not visibly projected through matched action selection into RouteBoundaryOptions"},
+    {"id":"full-repository-typecheck","status":"not-run"},
+    {"id":"full-test-suite","status":"not-run"}
+  ],
+  "result": "trace-found-upstream-schema-loss; do-not-claim-end-to-end-provenance"
+}

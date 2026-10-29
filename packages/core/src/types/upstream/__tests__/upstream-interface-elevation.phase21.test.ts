@@ -6,7 +6,7 @@ import type { LaravelSemanticContractCatalog } from '../highLevelContracts';
 describe('upstream interface elevation phase 21', () => {
   it('exposes only the canonical semantic contract boundary from the complete source model', () => {
     expectTypeOf<CompleteLaravelSourceModel['contracts']>().toEqualTypeOf<LaravelSemanticContractCatalog>();
-    expectTypeOf(semanticContractCatalogFromSourceCatalog)
+    expectTypeOf(semanticContractCatalogFromSourceCatalog.project)
       .parameter(0)
       .toEqualTypeOf<SourceModelCatalog>();
   });

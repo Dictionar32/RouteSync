@@ -14,11 +14,11 @@ export interface ErrorResolutionResult {
   readonly hasCustomError: boolean;
 }
 
-export function partitionGroupSubRoutes(
-  allRoutes: readonly ClassifiedRoute[],
-  standardActionKeys: readonly string[],
-  isCrud: boolean
-): { readonly extraMutations: readonly ClassifiedRoute[]; readonly customQueries: readonly ClassifiedRoute[] } {
+export interface PartitionGroupSubRoutesOperation {
+  (allRoutes: readonly ClassifiedRoute[], standardActionKeys: readonly string[], isCrud: boolean): { readonly extraMutations: readonly ClassifiedRoute[]; readonly customQueries: readonly ClassifiedRoute[] };
+}
+
+export const partitionGroupSubRoutes: PartitionGroupSubRoutesOperation = Object.freeze((allRoutes: readonly ClassifiedRoute[], standardActionKeys: readonly string[], isCrud: boolean): { readonly extraMutations: readonly ClassifiedRoute[]; readonly customQueries: readonly ClassifiedRoute[] } => {
   const extraMutations: ClassifiedRoute[] = [];
   const customQueries: ClassifiedRoute[] = [];
 
@@ -38,4 +38,4 @@ export function partitionGroupSubRoutes(
     extraMutations: Object.freeze(extraMutations),
     customQueries: Object.freeze(customQueries)
   };
-}
+});

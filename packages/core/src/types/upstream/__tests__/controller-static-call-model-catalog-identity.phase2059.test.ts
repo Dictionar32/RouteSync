@@ -1,4 +1,4 @@
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import { describe, expect, it } from 'vitest';
 import { controllerStaticCallOriginAuthority } from '../controllerStaticCallOriginAuthority';
 import { createClassName, createMethodName, createModelName } from '../names';
@@ -8,7 +8,7 @@ const modelClass = (className: string, modelName: string): ControllerStaticCallM
   kind: 'controller_static_call_model_class_identity',
   className: createClassName(className),
   modelName: createModelName(modelName),
-  qualifiedName: createPhpQualifiedClassName(`App\\Models\\${className}`),
+  qualifiedName: phpQualifiedClassNameFactory.create(`App\\Models\\${className}`),
 });
 
 const input = (className: string, modelClasses: readonly ControllerStaticCallModelClassIdentity[]): ControllerStaticCallOriginInput => Object.freeze({
@@ -22,8 +22,8 @@ const input = (className: string, modelClasses: readonly ControllerStaticCallMod
     kind: 'available',
     context: {
     kind: 'php_class_name_resolution_context',
-    namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'),
-    classImports: [{ kind: 'php_class_import_binding', alias: createClassName('User'), target: createPhpQualifiedClassName('App\\Models\\User') }],
+    namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'),
+    classImports: [{ kind: 'php_class_import_binding', alias: createClassName('User'), target: phpQualifiedClassNameFactory.create('App\\Models\\User') }],
     importInventory: 'complete',
     },
   },
@@ -67,7 +67,7 @@ describe('controller static-call model catalog identity phase 2059', () => {
     expect(controllerStaticCallOriginAuthority.judge({
       kind: 'controller_static_call_origin_input',
       classReference: { kind: 'simple_name', name: createClassName('DB') },
-      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
+      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
       methodName: createMethodName('table'),
       tableArgument: { kind: 'positional_string_literal', value: { kind: 'string_value', value: 'posts' } },
       modelClasses: [],

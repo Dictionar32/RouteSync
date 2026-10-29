@@ -16,7 +16,7 @@ const checks = [
   ['invocation judgment models connected, rejected, blocked, and complete outcomes as a closed union', /LaravelControllerInvocationNotConnectedJudgment/.test(invocation) && /LaravelControllerInvocationSourceBindingRejectedJudgment/.test(invocation) && /LaravelControllerInvocationBlockedJudgment/.test(invocation) && /LaravelControllerInvocationCompleteJudgment/.test(invocation)],
   ['integrated response wiring forwards artifact-owned judgments rather than reclassifying them', /forward: <Candidate extends Artifact>/.test(responseWiring) && /without-reconstruction-or-independent-source-file-selection/.test(responseWiring)],
   ['scanner executes the completed action judgment through the runtime executor', /this\.executionDependencies\.actionJudgment\.judge\(/.test(scanner) && /this\.executionDependencies\.actionExecution\.execute\(/.test(scanner)],
-  ['no relation/foundation/subscanner layer was added to model this ownership distinction', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|subscanners\/(relation|foundation)/.test(contract + wiring)],
+  ['no relation/foundation/subscanner layer was added to model this ownership distinction', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|operations\/(relation|foundation)/.test(contract + wiring)],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

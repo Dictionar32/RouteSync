@@ -8,7 +8,6 @@
 import type { Expression } from './constants';
 import type { Instruction } from './instructions';
 import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
-import { relationResolve } from '../../../semantic/relations/relationFoundation';
 
 export interface BasicBlock {
     readonly id: number;
@@ -23,11 +22,9 @@ export const createBasicBlockRelation = (
     entries: readonly (readonly [number, BasicBlock])[],
     index = 0,
     output: BasicBlockRelation = [],
-): BasicBlockRelation => relationResolve(
-    index >= entries.length,
-    () => Object.freeze(output),
-    () => createBasicBlockRelation(entries, index + 1, [...output, Object.freeze(entries[index])]),
-);
+): BasicBlockRelation => index >= entries.length
+    ? Object.freeze(output)
+    : createBasicBlockRelation(entries, index + 1, [...output, Object.freeze(entries[index])]);
 
 export const basicBlockLookup = (
     blocks: BasicBlockRelation,
@@ -42,11 +39,9 @@ export const basicBlockReplace = (
 
 export const basicBlockEntries = (blocks: BasicBlockRelation): BasicBlockRelation => blocks;
 
-export const basicBlockIds = (blocks: BasicBlockRelation, index = 0, output: readonly number[] = []): readonly number[] => relationResolve(
-    index >= blocks.length,
-    () => Object.freeze(output),
-    () => basicBlockIds(blocks, index + 1, [...output, blocks[index][0]]),
-);
+export const basicBlockIds = (blocks: BasicBlockRelation, index = 0, output: readonly number[] = []): readonly number[] => index >= blocks.length
+    ? Object.freeze(output)
+    : basicBlockIds(blocks, index + 1, [...output, blocks[index][0]]);
 
 export interface ControlFlowGraph {
     readonly entryBlock: number;

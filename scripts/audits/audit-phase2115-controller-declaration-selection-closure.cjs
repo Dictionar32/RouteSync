@@ -19,7 +19,7 @@ const checks = [
   ['scanner no longer throws for impossible selection states', !scanner.includes('Declaration authority violated its one-output-per-input') && !scanner.includes('Closed declaration inventory invariant violated')],
   ['public blocker type delegates to upstream-owned blocker ADT', scannerContract.includes('ControllerDeclarationSelectionBlocker = ControllerDeclarationSelectionInventoryBlocker')],
   ['closure interface and authority are exported', publicIndex.includes('controllerDeclarationSelectionInventoryClosureAuthority') && upstreamIndex.includes('controllerDeclarationSelectionInventoryClosureInterface')],
-  ['new closure interface and authority have no relation/foundation/subscanner dependencies', !/semantic\/relations|foundation|subscanners/.test(contract) && !/semantic\/relations|foundation|subscanners/.test(authority)],
+  ['new closure interface and authority have no relation/foundation/subscanner dependencies', !/semantic\/relations|foundation|operations/.test(contract) && !/semantic\/relations|foundation|operations/.test(authority)],
 ];
 
 for (const [label, passed] of checks) {

@@ -2,11 +2,11 @@ import { afterEach, describe, expect, it } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { scanDtoDeclarationInventory } from '../../../compiler/scanner/subscanners/dtoAstCanonical';
-import { createSourceFile, createClassName } from '../names';
+import { dtoDeclarationInventoryScanningOperation } from '../../../compiler/scanner/operations/dtoAstCanonical';
+import { createClassName, sourceFileIdentityFactory, stringValue } from '../names';
 import { createLaravelSourceProjectIdentity } from '../sourceProjectIdentity';
 import { phpClassNameResolutionAuthority } from '../phpClassNameResolutionAuthority';
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import { laravelControllerResponseDtoDeclarationResolutionAuthority } from '../laravelControllerResponseDtoDeclarationResolutionAuthority';
 
 const temporaryRoots: string[] = [];
@@ -17,7 +17,7 @@ afterEach(async () => {
 
 const sourceSpan = (file: string) => Object.freeze({
   kind: 'source_span' as const,
-  file: createSourceFile(file),
+  file: sourceFileIdentityFactory.create(stringValue.create(file)),
   start: Object.freeze({ kind: 'number_value' as const, value: 1 }),
   end: Object.freeze({ kind: 'number_value' as const, value: 1 }),
 });
@@ -28,8 +28,8 @@ const projectWithDto = async () => {
   const dtoDirectory = path.join(root, 'app', 'Http', 'DTOs');
   await fs.mkdir(dtoDirectory, { recursive: true });
   await fs.writeFile(path.join(dtoDirectory, 'UserDto.php'), '<?php\nnamespace App\\Http\\DTOs;\nclass UserDto { public string $name; }\n');
-  const sourceProject = createLaravelSourceProjectIdentity(root);
-  const inventory = await scanDtoDeclarationInventory(sourceProject);
+  const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create(root)));
+  const inventory = await dtoDeclarationInventoryScanningOperation.scanInventory(sourceProject);
   return { root, sourceProject, inventory };
 };
 
@@ -59,11 +59,11 @@ describe('DTO declaration resolution authority phase 2180', () => {
       sourceName: createClassName('UserDto'),
       context: Object.freeze({
         kind: 'php_class_name_resolution_context',
-        namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'),
+        namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'),
         classImports: Object.freeze([Object.freeze({
           kind: 'php_class_import_binding' as const,
           alias: createClassName('UserDto'),
-          target: createPhpQualifiedClassName('App\\Http\\DTOs\\UserDto'),
+          target: phpQualifiedClassNameFactory.create('App\\Http\\DTOs\\UserDto'),
         })]),
         importInventory: 'complete' as const,
       }),
@@ -100,7 +100,7 @@ describe('DTO declaration resolution authority phase 2180', () => {
         relativeDirectory: 'app/Http/DTOs' as const,
       }),
       partialEvidence: Object.freeze({ discoveredSourceFiles: Object.freeze([]), declarations: Object.freeze([]) }),
-      blockers: Object.freeze([Object.freeze({ kind: 'dto_discovery_root_missing' as const, root: createSourceFile(path.join(root, 'missing')) })]),
+      blockers: Object.freeze([Object.freeze({ kind: 'dto_discovery_root_missing' as const, root: sourceFileIdentityFactory.create(stringValue.create(path.join(root, 'missing'))) })]),
     });
     const judgment = laravelControllerResponseDtoDeclarationResolutionAuthority.resolve(Object.freeze({
       kind: 'laravel_controller_response_dto_declaration_resolution_input',

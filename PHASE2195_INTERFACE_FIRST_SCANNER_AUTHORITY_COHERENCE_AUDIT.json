@@ -2,7 +2,7 @@
   "phase": 2195,
   "title": "Interface-first scanner authority coherence",
   "scope": [
-    "packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts",
+    "packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts",
     "packages/core/src/compiler/scanner/LaravelSourceLexer.ts",
     "packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts",
     "packages/core/src/types/upstream/laravelControllerScannerInterface.ts"

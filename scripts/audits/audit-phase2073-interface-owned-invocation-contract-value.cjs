@@ -14,7 +14,7 @@ const checks = [
   ['scanner forwards the correlated integrated judgment', /kind: 'integrated_invocation_response_judgment'/.test(scanner) && /responseJudgment[,}]/.test(scanner)],
   ['runtime executor delegates to the upstream authority', /execute: \(input: InvocationSemanticInput\): InvocationSemanticJudgment => authority\.analyze\(input\)/.test(executor)],
   ['runtime executor has no invocation outcome classifier', !/switch\s*\([^)]*\.kind|if\s*\([^)]*\.kind/.test(executor)],
-  ['relation/foundation subscanner remains absent', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation/foundation'))],
+  ['relation/foundation subscanner remains absent', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation/foundation'))],
 ];
 let failed = 0;
 for (const [name, pass] of checks) {

@@ -1,0 +1,37 @@
+{
+  "phase": 2971,
+  "title": "Source Presence Domain Ownership",
+  "status": "bounded_domain_migration_structural_audit_passed",
+  "changes": [
+    "Added typed LaravelRouteSourcePresenceInterface filesystem-boundary capability.",
+    "Moved default-versus-explicit missing-source meaning into LaravelRouteSourceSelectionIntent ADT operations.",
+    "Removed missingFiles precomputation from the route scanner and passed the typed presence capability through composition.",
+    "Updated source-selection tests to the current domain continuation API."
+  ],
+  "structural_audit": {
+    "passed": 12,
+    "total": 12
+  },
+  "related_audits": {
+    "phase2970_ready_source_read_ownership": "13/13 passed",
+    "phase2967_typed_runtime_upstream_cli_manifest": "12/12 passed"
+  },
+  "verification": {
+    "audit_script_syntax": "passed",
+    "unit_tests": "not_run_dependency_missing_turbo_not_found",
+    "full_build": "not_verified_dependency_tree_absent"
+  },
+  "preserved_invariants": [
+    "Missing conventional/default route files remain optional source observations.",
+    "Missing explicitly selected route files remain blocked with exact missing-file evidence.",
+    "Source read failures remain distinct from source selection absence.",
+    "packages/core/src/types/upstream/collections.ts remains empty.",
+    "No deleted relation foundation was restored or re-exported.",
+    "No renamed generic relation foundation was introduced."
+  ],
+  "known_repository_wide_blocker": {
+    "deleted_relation_foundation_references": 517,
+    "affected_typescript_files": 274,
+    "status": "unresolved_consumer_migration_required"
+  }
+}

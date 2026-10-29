@@ -35,13 +35,13 @@ check('Request producer contract no longer imports concrete TypeInterner impleme
 check('Active wiring uses the typed FormRequest scanner directly',
   /import \{ laravelFormRequestScanner \} from "\.\.\/laravelFormRequestScanner"/.test(wiring) && /formRequestScanner:\s*laravelFormRequestScanner/.test(wiring), wiringPath);
 check('Active wiring no longer imports legacy FormRequestScanner',
-  !/subscanners\/FormRequestScanner|\{\s*FormRequestScanner\s*\}\s*from\s*["']\.\.\/subscanners/.test(wiring), wiringPath);
+  !/operations\/FormRequestScanner|\{\s*FormRequestScanner\s*\}\s*from\s*["']\.\.\/operations/.test(wiring), wiringPath);
 
 const unresolved = [
   'Request producer input is still parser-evidence-shaped; concrete evidence types are supplied at the scanner composition boundary.',
   'requestAstCanonical.ts and operations/form-request/* still directly import semantic/relations.',
   'TypeHasher.ts still imports semantic/relations; therefore the transitive TypeInterner dependency closure is not relation-free.',
-  'The active Laravel pipeline still imports legacy subscanners for response, schema, migration, DTO, query, service, middleware, and provider.',
+  'The active Laravel pipeline still imports legacy operations for response, schema, migration, DTO, query, service, middleware, and provider.',
 ];
 
 for (const result of checks) {

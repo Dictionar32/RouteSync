@@ -4,8 +4,8 @@ const root = process.cwd();
 const checks = [];
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = (file) => fs.existsSync(path.join(root, file));
-const routeEmitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
-const producerRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeEmitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
+const producerRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const allSource = [];
 const walk = (directory) => {
   for (const entry of fs.readdirSync(path.join(root, directory), { withFileTypes: true })) {
@@ -17,9 +17,9 @@ const walk = (directory) => {
 walk('packages/core/src');
 const noLegacyReference = !allSource.some(({ source }) => /routePathParser|ResolvedRoutePath|routeContextTracker|routeEmitter\.phase48/.test(source));
 checks.push(['legacy path parser and context tracker have no source references', noLegacyReference]);
-checks.push(['legacy path parser implementation retired', !exists('packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts')]);
-checks.push(['unused route context tracker retired', !exists('packages/core/src/compiler/scanner/subscanners/route-scanner/routeContextTracker.ts')]);
-checks.push(['obsolete phase-48 test targeting removed API retired', !exists('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.phase48.test.ts')]);
+checks.push(['legacy path parser implementation retired', !exists('packages/core/src/compiler/scanner/operations/route-scanner/routePathParser.ts')]);
+checks.push(['unused route context tracker retired', !exists('packages/core/src/compiler/scanner/operations/route-scanner/routeContextTracker.ts')]);
+checks.push(['obsolete phase-48 test targeting removed API retired', !exists('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.phase48.test.ts')]);
 checks.push(['route emitter consumes canonical upstream resolved-path ADT', routeEmitter.includes('ResolvedLaravelRoutePath') && routeEmitter.includes('types/upstream/routePathResolution')]);
 checks.push(['route producer boundary projection consumes canonical upstream resolved-path ADT', producerRelations.includes('ResolvedLaravelRoutePath') && producerRelations.includes('types/upstream/routePathResolution')]);
 checks.push(['route emitter still returns canonical RouteBoundaryContract', routeEmitter.includes('RouteBoundaryContract')]);

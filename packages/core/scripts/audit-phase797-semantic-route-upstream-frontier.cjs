@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const semantic = path.join(root, 'src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
-const scanner = path.join(root, 'src/compiler/scanner/subscanners/scannerUtils.ts');
+const semantic = path.join(root, 'src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
+const scanner = path.join(root, 'src/compiler/scanner/operations/scannerUtils.ts');
 const read = file => fs.readFileSync(file, 'utf8');
 const s = read(semantic);
 const u = read(scanner);

@@ -8,7 +8,7 @@ const evidence = read('packages/core/src/types/upstream/routeDeclarationEvidence
 const resource = read('packages/core/src/types/upstream/routeResourceFlow.ts');
 const pathAuthority = read('packages/core/src/types/upstream/routePathResolution.ts');
 const routeContract = read('packages/core/src/types/upstream/route.ts');
-const producerRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const producerRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const checks = [
   ['canonical declaration evidence includes method, target, path and group context', /readonly method: LaravelRouteMethodEvidence/.test(evidence) && /readonly target: RouteDeclarationTargetEvidence/.test(evidence) && /readonly path: string/.test(evidence) && /readonly prefix: readonly string\[\]/.test(evidence)],
   ['method authority remains a narrow method-family judgment', /interface LaravelRouteDeclarationMethodJudgmentAuthority/.test(scannerContract) && /judge: \(input: LaravelRouteDeclarationMethodJudgmentInput\) => LaravelRouteDeclarationMethodJudgment/.test(scannerContract)],

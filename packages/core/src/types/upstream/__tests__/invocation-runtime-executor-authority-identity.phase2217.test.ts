@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { invocationSemanticAuthority, semanticInterproceduralDataFlowAuthority } from '../invocationSemanticJudgmentAuthority';
-import { createInvocationSemanticRuntimeExecutor } from '../invocationSemanticRuntimeExecutor';
+import { invocationSemanticRuntimeExecutorFactory } from '../invocationSemanticRuntimeExecutor';
 
 describe('invocation runtime executor authority identity phase 2217', () => {
   it('exposes the exact individual and batch authority instances that own execution', () => {
-    const executor = createInvocationSemanticRuntimeExecutor(
+    const executor = invocationSemanticRuntimeExecutorFactory.create(
       invocationSemanticAuthority,
       semanticInterproceduralDataFlowAuthority,
     );
@@ -16,7 +16,7 @@ describe('invocation runtime executor authority identity phase 2217', () => {
   });
 
   it('keeps execution as direct delegation to each declared authority', () => {
-    const executor = createInvocationSemanticRuntimeExecutor(
+    const executor = invocationSemanticRuntimeExecutorFactory.create(
       invocationSemanticAuthority,
       semanticInterproceduralDataFlowAuthority,
     );

@@ -5,8 +5,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const bodyTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const bodyTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
 const semanticModel = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const composition = read('packages/core/src/types/upstream/controllerSemanticVariableFlowCompositionInterface.ts');

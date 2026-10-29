@@ -63,7 +63,7 @@ const sequenceFromArray = <T>(items: readonly T[]): Sequence<T> =>
   relationFoldRight(items, emptySequence<T>(), (item, tail) => ({ kind: 'cons', head: item, tail }));
 const sequenceMapText = <U>(items: readonly string[], project: (item: string) => U): Sequence<U> =>
   relationFoldRight(items, emptySequence<U>(), (item, tail) => ({ kind: 'cons', head: project(item), tail }));
-const guardName = (value: string): GuardName => Object.freeze({ kind: 'guard_name', value: stringValue(value) });
+const guardName = (value: string): GuardName => Object.freeze({ kind: 'guard_name', value: stringValue.create(value) });
 const abilityName = (value: string): AbilityName => createAbilityName(value);
 
 interface SecurityClassificationState {
@@ -186,23 +186,35 @@ const resolveRouteSecurity = (input: RouteSecurityAuthorityInput): RouteSecurity
  * Compose authority metadata around the canonical security reasoning algebra.
  * Runtime consumers execute this contract; the wrapper does not classify middleware.
  */
-export function createRouteSecurityAuthority(
-  algebra: RouteSecurityAuthorityAlgebraInterface,
-): RouteSecurityAuthorityInterface {
-  return Object.freeze({
-    authority: 'upstream' as const,
-    contractVersion: 'route_security.v2' as const,
-    closed: true as const,
-    resolve: (input: RouteSecurityAuthorityInput): RouteSecurityResolution => algebra.resolve(input),
-  });
+export interface RouteSecurityAuthorityFactoryInterface {
+  readonly kind: 'route_security_authority_factory';
+  readonly contractVersion: 'route_security.v2';
+  readonly create: (
+    algebra: RouteSecurityAuthorityAlgebraInterface,
+  ) => RouteSecurityAuthorityInterface;
 }
+
+const createRouteSecurityAuthorityImpl = (
+  algebra: RouteSecurityAuthorityAlgebraInterface,
+): RouteSecurityAuthorityInterface => Object.freeze({
+  authority: 'upstream' as const,
+  contractVersion: 'route_security.v2' as const,
+  closed: true as const,
+  resolve: (input: RouteSecurityAuthorityInput): RouteSecurityResolution => algebra.resolve(input),
+});
 
 /** Canonical production algebra; security and policy reasoning lives here. */
 export const routeSecurityAuthorityAlgebra: RouteSecurityAuthorityAlgebraInterface = Object.freeze({
   resolve: resolveRouteSecurity,
 });
 
+/** Factory is an explicit runtime operation contract, not a standalone exported function. */
+export const routeSecurityAuthorityFactory: RouteSecurityAuthorityFactoryInterface = Object.freeze({
+  kind: 'route_security_authority_factory',
+  contractVersion: 'route_security.v2',
+  create: createRouteSecurityAuthorityImpl,
+});
+
 /** Runtime-facing closed authority, bound once to the canonical algebra. */
-export const routeSecurityAuthority: RouteSecurityAuthorityInterface = createRouteSecurityAuthority(
-  routeSecurityAuthorityAlgebra,
-);
+export const routeSecurityAuthority: RouteSecurityAuthorityInterface =
+  routeSecurityAuthorityFactory.create(routeSecurityAuthorityAlgebra);

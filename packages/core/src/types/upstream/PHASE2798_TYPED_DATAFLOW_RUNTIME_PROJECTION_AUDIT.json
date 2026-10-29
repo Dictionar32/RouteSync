@@ -1,0 +1,23 @@
+{
+  "phase": 2798,
+  "title": "Typed Dataflow Runtime Projection Audit",
+  "change": "Replace function-valued export with interface-first frozen operation object",
+  "runtimeTrace": [
+    "CLI scan/sync",
+    "manifest preparation/build",
+    "LaravelSourceAstPipelineInterface",
+    "SemanticDataflowManifestSurfaceInterface",
+    "ManifestBuilderJudgment",
+    "RouteSyncManifestDataflowAnalysisOperationsInterface",
+    "closedSemanticDataflowJudgmentProjection.project",
+    "DataFlowAuthorityInterface"
+  ],
+  "verification": {
+    "structuralAudit": "audit:phase2798-typed-dataflow-runtime-projection",
+    "fullTypecheck": false,
+    "build": false,
+    "fullTestSuite": false,
+    "cliEndToEnd": false
+  },
+  "collectionsTsBytes": 0
+}

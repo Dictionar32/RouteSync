@@ -9,7 +9,7 @@ const derivationTypes = read('packages/core/src/types/upstream/semanticJudgmentD
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [];
 const check = (name, ok, detail) => checks.push({ name, status: ok ? 'PASS' : 'FAIL', detail });
 

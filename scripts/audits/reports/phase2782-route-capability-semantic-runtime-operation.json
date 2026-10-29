@@ -1,0 +1,13 @@
+{
+  "phase": 2782,
+  "title": "Route Capability Semantic Runtime Operation",
+  "passed": true,
+  "checks": 14,
+  "passedChecks": 14,
+  "failedChecks": [],
+  "limits": [
+    "Static source-contract audit only; this does not establish a successful TypeScript build or end-to-end runtime test.",
+    "SourceScanJudgment remains not fully wired through the scanner-to-manifest path.",
+    "collections.ts remains empty by explicit project requirement; dependent collection imports remain a separate root-cause task."
+  ]
+}

@@ -9,8 +9,8 @@ const checks = [
   ['interface currently returns scope directly', read('packages/core/src/types/upstream/controllerPolicyActionScopeJudgmentInterface.ts').includes('=> ControllerPolicyActionScope')],
   ['route flow currently has no closed blocked outcome', !read('packages/core/src/types/upstream/routeMiddleware.ts').includes("kind: 'route_middleware_flow_blocked'")],
   ['root-cause report exists', fs.existsSync(path.join(root, 'packages/core/src/types/upstream/PHASE1971_POLICY_SCOPE_CLOSED_JUDGMENT_ROOT_CAUSE_TRACE.md'))],
-  ['no forbidden relation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation'))],
-  ['no forbidden foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no forbidden relation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation'))],
+  ['no forbidden foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
 ];
 for (const [name, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);
 const failed = checks.filter(([, passed]) => !passed);

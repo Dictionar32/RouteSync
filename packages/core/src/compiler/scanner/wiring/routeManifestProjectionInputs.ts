@@ -1,20 +1,15 @@
 import type { ModelAst, RequestAst, ResourceAst } from '../../../types/upstream/ast';
 import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
-import type { Sequence, SourceDiscovery } from '../../../types/upstream/collections';
-import { matchDiscovered, matchSourceDiscovery } from '../../../types/upstream/collections';
+import type { SourceDiscovery } from '../../../types/upstream/collections';
 
-const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>
-  items.kind === 'empty' ? output : sequenceToArray(items.tail, Object.freeze([...output, items.head]));
+const discoveredItems = <T>(discovery: SourceDiscovery<T>, category: string): readonly T[] => {
+  if (discovery.kind === 'not_scanned') {
+    throw new Error(`CompleteSourceAst invariant violated: ${category} was not scanned before manifest projection.`);
+  }
 
-const discoveredMany = <T>(discovery: SourceDiscovery<T>): readonly T[] =>
-  matchSourceDiscovery(discovery, {
-    notScanned: () => [],
-    scanned: scanned => matchDiscovered(scanned.result, {
-      empty: () => [],
-      many: many => sequenceToArray(many.items),
-    }),
-  });
+  return discovery.items;
+};
 
 export interface RouteManifestProjectionInputsInterface {
   readonly routeFlowsFromManifest: (manifest: RouteSyncManifest) => readonly RouteSemanticFlow[];
@@ -28,9 +23,9 @@ export const routeManifestProjectionInputs: RouteManifestProjectionInputsInterfa
   routeFlowsFromManifest: (manifest: RouteSyncManifest): readonly RouteSemanticFlow[] =>
     Object.freeze(manifest.ast.ast.routeFlows),
   modelAstsFromManifest: (manifest: RouteSyncManifest): readonly ModelAst[] =>
-    discoveredMany(manifest.ast.ast.models.items),
+    discoveredItems(manifest.ast.ast.models.items, 'models'),
   resourceAstsFromManifest: (manifest: RouteSyncManifest): readonly ResourceAst[] =>
-    discoveredMany(manifest.ast.ast.resources.items),
+    discoveredItems(manifest.ast.ast.resources.items, 'resources'),
   requestAstsFromManifest: (manifest: RouteSyncManifest): readonly RequestAst[] =>
-    discoveredMany(manifest.ast.ast.requests.items),
+    discoveredItems(manifest.ast.ast.requests.items, 'requests'),
 });

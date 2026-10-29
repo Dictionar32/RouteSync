@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { controllerResourceBindingAuthority } from '../controllerResourceBindingAuthority';
-import { createSourceFile } from '../names';
+import { sourceFileIdentityFactory, stringValue } from '../names';
 import { SemanticValueFactory } from '../../domain/semanticValues';
 import { responseRef } from '../semanticReferences';
 import type { ControllerResourceBindingPublicationInput } from '../controllerResourceBindingInterface';
@@ -13,7 +13,7 @@ describe('controller resource binding canonical publication phase 2234', () => {
       response: responseRef('PostResponse'),
       source: {
         kind: 'source_span',
-        file: createSourceFile('/app/Http/Controllers/PostController.php'),
+        file: sourceFileIdentityFactory.create(stringValue.create('/app/Http/Controllers/PostController.php')),
         start: { kind: 'number_value', value: 18 },
         end: { kind: 'number_value', value: 43 },
       },

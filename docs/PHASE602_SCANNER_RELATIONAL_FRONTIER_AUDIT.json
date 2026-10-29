@@ -1998,7 +1998,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/PhpAst.ts": {
+    "/compiler/frontend/php/PhpAst.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2019,7 +2019,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/SourceStream.ts": {
+    "/compiler/frontend/php/SourceStream.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2040,7 +2040,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/arrayParser.ts": {
+    "/compiler/frontend/php/arrayParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2061,7 +2061,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/astClassifier.ts": {
+    "/compiler/frontend/php/astClassifier.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2082,7 +2082,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/astClassifierEvidence.ts": {
+    "/compiler/frontend/php/astClassifierEvidence.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2103,7 +2103,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/controllerAstTypes.ts": {
+    "/compiler/frontend/php/controllerAstTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2124,7 +2124,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/controllerBodyAstTypes.ts": {
+    "/compiler/frontend/php/controllerBodyAstTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2145,7 +2145,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/controllerBodyParser.ts": {
+    "/compiler/frontend/php/controllerBodyParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2166,7 +2166,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/controllerDataflowAnalyzer.ts": {
+    "/compiler/frontend/php/controllerDataflowAnalyzer.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2187,7 +2187,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/controllerDeclarationParser.ts": {
+    "/compiler/frontend/php/controllerDeclarationParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2208,7 +2208,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/controllerMethodParser.ts": {
+    "/compiler/frontend/php/controllerMethodParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2229,7 +2229,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/controllerReturnParser.ts": {
+    "/compiler/frontend/php/controllerReturnParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2250,7 +2250,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/index.ts": {
+    "/compiler/frontend/php/index.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2271,7 +2271,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/modelAstTypes.ts": {
+    "/compiler/frontend/php/modelAstTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2292,7 +2292,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/modelDeclarationParser.ts": {
+    "/compiler/frontend/php/modelDeclarationParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2313,7 +2313,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstAlgebra.ts": {
+    "/compiler/frontend/php/phpAstAlgebra.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2334,7 +2334,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstCoreTypes.ts": {
+    "/compiler/frontend/php/phpAstCoreTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2355,7 +2355,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstDeclarationTypes.ts": {
+    "/compiler/frontend/php/phpAstDeclarationTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2376,7 +2376,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstExpressionTypes.ts": {
+    "/compiler/frontend/php/phpAstExpressionTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2397,7 +2397,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstFactory.ts": {
+    "/compiler/frontend/php/phpAstFactory.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2418,7 +2418,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstStatementKinds.ts": {
+    "/compiler/frontend/php/phpAstStatementKinds.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2439,7 +2439,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstStatementTypes.ts": {
+    "/compiler/frontend/php/phpAstStatementTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2460,7 +2460,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpAstTypes.ts": {
+    "/compiler/frontend/php/phpAstTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2481,7 +2481,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpControlEvidence.ts": {
+    "/compiler/frontend/php/phpControlEvidence.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2502,7 +2502,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpMethodAstTypes.ts": {
+    "/compiler/frontend/php/phpMethodAstTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2523,7 +2523,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/phpMethodParser.ts": {
+    "/compiler/frontend/php/phpMethodParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2544,7 +2544,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/responseDtoAstTypes.ts": {
+    "/compiler/frontend/php/responseDtoAstTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2565,7 +2565,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/responseDtoDeclarationParser.ts": {
+    "/compiler/frontend/php/responseDtoDeclarationParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2586,7 +2586,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/delimiterNavigation.ts": {
+    "/compiler/frontend/php/routeAst/delimiterNavigation.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2607,7 +2607,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/index.ts": {
+    "/compiler/frontend/php/routeAst/index.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2628,7 +2628,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts": {
+    "/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2649,7 +2649,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts": {
+    "/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2670,7 +2670,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts": {
+    "/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2691,7 +2691,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts": {
+    "/compiler/frontend/php/routeAst/routeBindingDeclarationAst.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2712,7 +2712,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/routeDataFlow.ts": {
+    "/compiler/frontend/php/routeAst/routeDataFlow.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2733,7 +2733,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts": {
+    "/compiler/frontend/php/routeAst/routeDeclarationAst.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2754,7 +2754,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts": {
+    "/compiler/frontend/php/routeAst/routeDeclarationParser.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2775,7 +2775,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts": {
+    "/compiler/frontend/php/routeAst/routeResourceDeclarationAst.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2796,7 +2796,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.ts": {
+    "/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2817,7 +2817,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticClosureEngine.ts": {
+    "/compiler/frontend/php/routeAst/semanticClosureEngine.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2838,7 +2838,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts": {
+    "/compiler/frontend/php/routeAst/semanticCompilationArtifact.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2859,7 +2859,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts": {
+    "/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2880,7 +2880,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts": {
+    "/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2901,7 +2901,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts": {
+    "/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2922,7 +2922,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts": {
+    "/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2943,7 +2943,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts": {
+    "/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2964,7 +2964,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts": {
+    "/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -2985,7 +2985,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts": {
+    "/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3006,7 +3006,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts": {
+    "/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3027,7 +3027,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts": {
+    "/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3048,7 +3048,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationProgram.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3069,7 +3069,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationSolver.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3090,7 +3090,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationStore.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationStore.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3111,7 +3111,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationTheory.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3132,7 +3132,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationalAlgebra.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3153,7 +3153,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3174,7 +3174,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3195,7 +3195,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationalCollections.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3216,7 +3216,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts": {
+    "/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3237,7 +3237,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts": {
+    "/compiler/frontend/php/routeAst/semanticRewriteEngine.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3258,7 +3258,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts": {
+    "/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3279,7 +3279,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts": {
+    "/compiler/frontend/php/routeAst/semanticStateDataFlow.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3300,7 +3300,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts": {
+    "/compiler/frontend/php/routeAst/semanticTypedRelation.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3321,7 +3321,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts": {
+    "/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3342,7 +3342,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts": {
+    "/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3363,7 +3363,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/syntaxRange.ts": {
+    "/compiler/frontend/php/routeAst/syntaxRange.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3384,7 +3384,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts": {
+    "/compiler/frontend/php/routeAst/syntaxRelationProgram.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3405,7 +3405,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/syntaxScan.ts": {
+    "/compiler/frontend/php/routeAst/syntaxScan.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3426,7 +3426,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/routeAst/syntaxValue.ts": {
+    "/compiler/frontend/php/routeAst/syntaxValue.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3447,7 +3447,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/serviceAstTypes.ts": {
+    "/compiler/frontend/php/serviceAstTypes.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3468,7 +3468,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/tokenize/characterPredicates.ts": {
+    "/compiler/frontend/php/tokenize/characterPredicates.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3489,7 +3489,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/tokenize/compoundScanners.ts": {
+    "/compiler/frontend/php/tokenize/compoundScanners.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3510,7 +3510,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/tokenize/index.ts": {
+    "/compiler/frontend/php/tokenize/index.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -3531,7 +3531,7 @@
       "new": 0,
       "ternary": 0
     },
-    "/compiler/scanner/lexer/tokenizer.ts": {
+    "/compiler/frontend/php/tokenizer.ts": {
       "if": 0,
       "while": 0,
       "for": 0,
@@ -8090,7 +8090,7 @@
     }
   },
   "modified": [
-    "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+    "packages/core/src/compiler/frontend/php/phpAstFactory.ts",
     "packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts"
   ],
   "removed": [

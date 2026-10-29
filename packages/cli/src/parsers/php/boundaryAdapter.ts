@@ -12,7 +12,7 @@ import type {
 import type { PhpGrammarNode, GrammarStatement } from './ast/grammar';
 import { phpGrammarMatchingOperation, type PhpGrammarVisitor } from './ast/grammarCatamorphism';
 import { phpCalleeMatchingOperation, phpCalleeAstVisitorFactory } from './ast/calleeCatamorphism';
-import { phpAstBoundaryJudgment, type PhpAstBoundaryJudgment } from './astBoundarySemanticInterface';
+import { phpAstBoundaryOperations, type PhpAstBoundaryJudgment } from './astBoundarySemanticInterface';
 import { relationResolve, relationOptionFold, relationOptionalFold, relationFirst, relationFirstOption, relationEqual, relationNotEqual, relationNone, relationSome, relationAll, relationVariant, projectRelation } from '@routesync/core';
 const propertyName = (value: string): PhpPropertyName => ({ kind: 'property_name', value });
 const className = (value: string): PhpClassName => ({ kind: 'class_name', value });
@@ -146,11 +146,14 @@ const arrayKey = (key: PhpGrammarNode | null, adapt: (node: PhpGrammarNode) => P
 
 const adaptPhpAstBoundaryJudgmentImplementation = (node: PhpGrammarNode, code: string): PhpAstBoundaryJudgment => {
     const ast = adaptGrammarNode(node, code, true);
-    return phpAstBoundaryJudgment(node, ast, relationEqual(ast.originalCode, code));
+    return phpAstBoundaryOperations.judgment(node, ast, relationEqual(ast.originalCode, code));
 }
 
 const adaptPhpAstBoundaryImplementation = (node: PhpGrammarNode, code: string): PhpAstNode =>
-    phpAstBoundaryAdapter.adaptJudgment(node, code).ast;
+    phpAstBoundaryAdapter.adaptJudgment(node, code).continueWith({
+        onAdapted: judgment => judgment.ast,
+        onParserGap: judgment => judgment.ast,
+    });
 
 function adaptGrammarNode(node: PhpGrammarNode, sourceText: string, root: boolean): PhpAstNode {
     const code = relationResolve(root, () => sourceText, () => requireNodeSource(node, sourceText));

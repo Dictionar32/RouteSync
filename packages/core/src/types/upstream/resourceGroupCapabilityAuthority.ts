@@ -15,8 +15,18 @@ export const resourceGroupCapabilityAuthority: ResourceGroupCapabilityAlgebraInt
   compose: (routes: readonly RouteSemanticFlow[]) => resourceGroupCapabilityAlgebra.compose(routes),
 });
 
-export function resourceGroupCapabilitiesFromRoutes(
-  routes: readonly RouteSemanticFlow[],
-): readonly ResourceGroupCapabilityContract[] {
-  return resourceGroupCapabilityAuthority.compose(routes);
+export interface ResourceGroupCapabilityAuthorityOperationsInterface {
+  readonly fromRoutes: (
+    routes: readonly RouteSemanticFlow[],
+  ) => readonly ResourceGroupCapabilityContract[];
 }
+
+const resourceGroupCapabilitiesFromRoutesImpl = (
+  routes: readonly RouteSemanticFlow[],
+): readonly ResourceGroupCapabilityContract[] =>
+  resourceGroupCapabilityAuthority.compose(routes);
+
+/** Public, fully typed operation object for callers that need a direct route-to-capability projection. */
+export const resourceGroupCapabilityAuthorityOperations: ResourceGroupCapabilityAuthorityOperationsInterface = Object.freeze({
+  fromRoutes: resourceGroupCapabilitiesFromRoutesImpl,
+});

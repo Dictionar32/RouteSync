@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const target = path.join(root, 'packages/core/src/semantic/kernel/syntax/relationalSyntaxCursor.ts');
-const legacy = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/tokenCursor.ts');
+const legacy = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/tokenCursor.ts');
 const source = fs.readFileSync(target, 'utf8');
 const patterns = [
   /\bif\b/, /\bfor\b/, /\bwhile\b/, /\bswitch\b/, /\.map\b/, /\.filter\b/, /\.reduce\b/, /\.flatMap\b/,

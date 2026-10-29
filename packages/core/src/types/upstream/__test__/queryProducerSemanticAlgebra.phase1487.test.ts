@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { queryProducerSemanticAlgebra } from '../queryProducerSemanticAlgebra';
 import { queryProducerSemanticReasoning } from '../queryProducerSemanticReasoning';
-import { createClassName, createMethodName, createModelName, createSourceFile, stringValue } from '../names';
+import { createClassName, createMethodName, createModelName, stringValue, sourceFileIdentityFactory } from '../names';
 import { numberValue } from '../valueObjects';
 import type { SourceSpan } from '../provenance';
 import type { Expression } from '../expression';
 import { RELATION_NONE } from '../../../semantic/relations/relationalSequence';
 import { queryOperationSemanticRuleRequirements, validateQueryOperationSemanticRuleCatalog, type QueryOperationSemanticRuleDeclaration } from '../queryProducerSemanticInterface';
 
-const source: SourceSpan = { kind: 'source_span', file: createSourceFile('User.php'), start: numberValue(0), end: numberValue(12) };
+const source: SourceSpan = { kind: 'source_span', file: sourceFileIdentityFactory.create(stringValue.create('User.php')), start: numberValue(0), end: numberValue(12) };
 const stringExpression = (value: string): Expression => ({ kind: 'literal', value: { kind: 'string_literal', value: { kind: 'string_value', value } }, source });
 const arrayExpression = (values: readonly Expression[]): Expression => ({
   kind: 'array',
@@ -100,7 +100,7 @@ describe('query producer semantic algebra phase 1487', () => {
     const evidence: Expression = {
       kind: 'static_method',
       receiver: { kind: 'class', name: createClassName('User') },
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('all') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('all') } },
       arguments: { kind: 'expression_arguments', items: { kind: 'empty' } },
       source,
     };
@@ -109,7 +109,7 @@ describe('query producer semantic algebra phase 1487', () => {
     });
     expect(queryProducerSemanticAlgebra.resolveModelOrigin({
       ...evidence,
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('mystery') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('mystery') } },
     })).toEqual({ kind: 'not_applicable' });
   });
 
@@ -117,7 +117,7 @@ describe('query producer semantic algebra phase 1487', () => {
     const evidence: Expression = {
       kind: 'static_method',
       receiver: { kind: 'class', name: createClassName('User') },
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('where') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('where') } },
       arguments: { kind: 'expression_arguments', items: { kind: 'empty' } },
       source,
     };
@@ -128,7 +128,7 @@ describe('query producer semantic algebra phase 1487', () => {
     const evidence: Expression = {
       kind: 'static_method',
       receiver: { kind: 'class', name: createClassName('User') },
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('orderBy') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('orderBy') } },
       arguments: { kind: 'expression_arguments', items: {
         kind: 'cons', head: { kind: 'positional', value: stringExpression('created_at') },
         tail: { kind: 'cons', head: { kind: 'positional', value: stringExpression('sideways') }, tail: { kind: 'empty' } },
@@ -142,14 +142,14 @@ describe('query producer semantic algebra phase 1487', () => {
     const base: Expression = {
       kind: 'static_method',
       receiver: { kind: 'class', name: createClassName('User') },
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('select') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('select') } },
       arguments: { kind: 'expression_arguments', items: { kind: 'empty' } },
       source,
     };
     expect(queryProducerSemanticAlgebra.resolveModelOrigin(base)).toMatchObject({ kind: 'malformed' });
     expect(queryProducerSemanticAlgebra.resolveModelOrigin({
       ...base,
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('with') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('with') } },
       arguments: { kind: 'expression_arguments', items: { kind: 'cons', head: { kind: 'positional', value: stringExpression('posts..comments') }, tail: { kind: 'empty' } } },
     })).toMatchObject({ kind: 'malformed' });
   });
@@ -157,7 +157,7 @@ describe('query producer semantic algebra phase 1487', () => {
     const evidence: Expression = {
       kind: 'static_method',
       receiver: { kind: 'class', name: createClassName('User') },
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('orderBy') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('orderBy') } },
       arguments: { kind: 'expression_arguments', items: {
         kind: 'cons', head: { kind: 'positional', value: stringExpression('created_at') },
         tail: { kind: 'cons', head: { kind: 'positional', value: stringExpression('desc') }, tail: { kind: 'empty' } },
@@ -177,7 +177,7 @@ describe('query producer semantic algebra phase 1487', () => {
     const evidence: Expression = {
       kind: 'static_method',
       receiver: { kind: 'class', name: createClassName('User') },
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('where') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('where') } },
       arguments: { kind: 'expression_arguments', items: {
         kind: 'cons', head: { kind: 'positional', value: stringExpression('status') },
         tail: { kind: 'cons', head: { kind: 'positional', value: stringExpression('sideways') },
@@ -192,7 +192,7 @@ describe('query producer semantic algebra phase 1487', () => {
     const evidence: Expression = {
       kind: 'static_method',
       receiver: { kind: 'class', name: createClassName('User') },
-      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue('orderBy') } },
+      action: { kind: 'domain', name: { kind: 'method_name', value: stringValue.create('orderBy') } },
       arguments: { kind: 'expression_arguments', items: {
         kind: 'cons', head: { kind: 'positional', value: stringExpression('created_at') },
         tail: { kind: 'cons', head: { kind: 'positional', value: stringExpression('sideways') }, tail: { kind: 'empty' } },
@@ -214,7 +214,7 @@ describe('query producer semantic algebra phase 1487', () => {
   it('distinguishes absent name evidence from malformed name evidence', () => {
     expect(queryProducerSemanticAlgebra.resolvePropertyName(RELATION_NONE)).toEqual({ kind: 'not_applicable' });
     expect(queryProducerSemanticAlgebra.resolveRelationName(RELATION_NONE)).toEqual({ kind: 'not_applicable' });
-    expect(queryProducerSemanticAlgebra.resolvePropertyName({ kind: 'variable', name: { kind: 'variable_name', value: stringValue('column') }, source })).toMatchObject({ kind: 'malformed' });
+    expect(queryProducerSemanticAlgebra.resolvePropertyName({ kind: 'variable', name: { kind: 'variable_name', value: stringValue.create('column') }, source })).toMatchObject({ kind: 'malformed' });
   });
 
   it('resolves relation aggregate vocabulary as a closed judgment', () => {

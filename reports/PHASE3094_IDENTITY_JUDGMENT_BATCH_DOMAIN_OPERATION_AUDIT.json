@@ -1,0 +1,16 @@
+{
+  "phase": 3094,
+  "scope": "individual source identity judgment → identity batch accumulator operation",
+  "genericIndividualJudgmentHandlersRemoved": true,
+  "genericIndividualJudgmentContinuationRemoved": true,
+  "namedContributeToBatchOperationDeclared": true,
+  "boundJudgmentContributesToBatch": true,
+  "rejectedJudgmentContributesToBatch": true,
+  "batchFactoryConsumesNamedOperation": true,
+  "regressionTestAdded": true,
+  "aggregateBatchGenericContinuationRemains": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false,
+  "passed": true
+}

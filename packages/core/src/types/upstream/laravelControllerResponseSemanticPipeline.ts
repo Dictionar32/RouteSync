@@ -2,8 +2,8 @@ import { laravelControllerAstProjectionSemanticAuthority } from './laravelContro
 import { laravelSourceIdentitySemantics } from './sourceProjectIdentity';
 import { createClassName, createModelName, createPropertyName, createResponseTypeName } from './names';
 import { phpClassNameResolutionAuthority } from './phpClassNameResolutionAuthority';
-import { createLaravelControllerResponseDtoDeclarationResolutionAuthority } from './laravelControllerResponseDtoDeclarationResolutionAuthority';
-import { createLaravelDtoTypeReferenceBindingAuthority } from './laravelDtoTypeReferenceBindingAuthority';
+import { laravelControllerResponseDtoDeclarationResolutionAuthorityFactory } from './laravelControllerResponseDtoDeclarationResolutionAuthority';
+import { laravelDtoTypeReferenceBindingAuthorityFactory } from './laravelDtoTypeReferenceBindingAuthority';
 import { laravelDtoResponseContractProjectionAuthority } from './laravelDtoResponseContractProjectionAuthority';
 import { createDomainAstJudgment } from './ast';
 import type { ResponseDefinition, ResponseResult, ResponseStatus, ResponseTransport } from './response';
@@ -194,7 +194,7 @@ const pipelineContract: LaravelControllerResponseSemanticPipelineContract = Obje
   rejectedCorrelationArtifactRule: 'controller_response_declaration_source_correlation_rejected-retains-the-exact-invocation-judgment-and-rejected-source-correlation-receipt-and-is-a-first-class-response-judgment-ADT-member-for-AST-projection',
   rejectedBindingRule: 'rejected-source-binding-cannot-be-converted-to-a-complete-response-judgment',
   noReclassificationRule: 'scanner-and-runtime-executor-forward-existing-judgments-and-never-reclassify-descriptors-or-reconstruct-provenance',
-  noReplacementLayerRule: 'compose-existing-contracts-without-adding-relation-or-foundation-subscanners-or-a-parallel-semantic-authority',
+  noReplacementLayerRule: 'compose-existing-contracts-without-adding-relation-or-foundation-operations-or-a-parallel-semantic-authority',
   projectionBoundaryRule: 'AST-projection-authority-is-composed-as-an-existing-dependency;the-response-pipeline-does-not-own-or-reimplement-AST-projection-semantics',
   responseArtifactOutcomeRule: 'scanner-artifact-retains-either-a-closed-response-semantic-judgment-or-an-explicit-source-binding-or-declaration-correlation-rejection-judgment;rejection-is-never-erased-into-an-empty-success',
   invocationOutcomeUniformityRule: 'every-closed-invocation-judgment-outcome-enters-the-same-response-evidence-and-AST-projection-sequence;response-authority-and-projection-ADT-preserve-outcome-differences;scanner-does-not-branch-or-reconstruct-by-invocation-response-kind',
@@ -1402,18 +1402,16 @@ function projectMethodResponseAst(
   return Object.freeze({ kind: 'controller_method_response_ast_projection_complete', product, actionJudgment, outputTypeJudgment, definition, ast });
 }
 
-export function createLaravelControllerMethodResponseAstProjection(
+const createLaravelControllerMethodResponseAstProjectionImpl = (
   outputTypeJudgment: LaravelControllerResponseOutputTypeJudgmentInterface,
-): LaravelControllerMethodResponseAstProjectionInterface {
-  return Object.freeze({
-    kind: 'laravel_controller_method_response_ast_projection',
-    contract: methodResponseAstProjectionContract,
-    outputTypeJudgment,
-    project: (input: LaravelControllerMethodResponseAstProjectionInput) => projectMethodResponseAst(input, outputTypeJudgment),
-  });
-}
+): LaravelControllerMethodResponseAstProjectionInterface => Object.freeze({
+  kind: 'laravel_controller_method_response_ast_projection',
+  contract: methodResponseAstProjectionContract,
+  outputTypeJudgment,
+  project: (input: LaravelControllerMethodResponseAstProjectionInput) => projectMethodResponseAst(input, outputTypeJudgment),
+});
 
-const methodResponseAstProjection = createLaravelControllerMethodResponseAstProjection(responseOutputTypeJudgment);
+const methodResponseAstProjection = createLaravelControllerMethodResponseAstProjectionImpl(responseOutputTypeJudgment);
 
 type MethodResponseProjectionTail =
   | Readonly<{ readonly kind: 'controller_method_response_projection_complete'; readonly methods: readonly LaravelControllerMethodResponseProduct[] }>
@@ -1616,38 +1614,34 @@ function judgeResponse(
   }
 }
 
-export function createLaravelControllerResponseSemanticJudgmentAuthority(
+const createLaravelControllerResponseSemanticJudgmentAuthorityImpl = (
   sourceIdentitySemantics: LaravelSourceIdentitySemanticsInterface,
-): LaravelControllerResponseSemanticJudgmentAuthorityInterface {
-  return Object.freeze({
-    kind: 'laravel_controller_response_semantic_judgment_authority',
-    closed: true,
-    contract: responseJudgmentContract,
-    sourceIdentitySemantics,
-    sourceBindingContract: evidenceSourceBindingContract,
-    returnResponseProjection,
-    judge: judgeResponse,
-  });
-}
+): LaravelControllerResponseSemanticJudgmentAuthorityInterface => Object.freeze({
+  kind: 'laravel_controller_response_semantic_judgment_authority',
+  closed: true,
+  contract: responseJudgmentContract,
+  sourceIdentitySemantics,
+  sourceBindingContract: evidenceSourceBindingContract,
+  returnResponseProjection,
+  judge: judgeResponse,
+});
 
-export function createLaravelControllerResponseSemanticRuntimeExecutor<
+const createLaravelControllerResponseSemanticRuntimeExecutorImpl = <
   Authority extends LaravelControllerResponseSemanticJudgmentAuthorityInterface,
->(authority: Authority): LaravelControllerResponseSemanticRuntimeExecutorInterface<Authority> {
-  return Object.freeze({
-    kind: 'laravel_controller_response_semantic_runtime_executor',
-    closed: true,
-    contractVersion: 2,
-    authority,
-    returnResponseProjection: authority.returnResponseProjection,
-    execute: authority.judge,
-  });
-}
+>(authority: Authority): LaravelControllerResponseSemanticRuntimeExecutorInterface<Authority> => Object.freeze({
+  kind: 'laravel_controller_response_semantic_runtime_executor',
+  closed: true,
+  contractVersion: 2,
+  authority,
+  returnResponseProjection: authority.returnResponseProjection,
+  execute: authority.judge,
+});
 
-const responseSemanticAuthority = createLaravelControllerResponseSemanticJudgmentAuthority(laravelSourceIdentitySemantics);
-const dtoDeclarationResolutionAuthority = createLaravelControllerResponseDtoDeclarationResolutionAuthority(
+const responseSemanticAuthority = createLaravelControllerResponseSemanticJudgmentAuthorityImpl(laravelSourceIdentitySemantics);
+const dtoDeclarationResolutionAuthority = laravelControllerResponseDtoDeclarationResolutionAuthorityFactory.create(
   Object.freeze({ sourceIdentitySemantics: laravelSourceIdentitySemantics }),
 );
-const dtoTypeReferenceBindingAuthority = createLaravelDtoTypeReferenceBindingAuthority(
+const dtoTypeReferenceBindingAuthority = laravelDtoTypeReferenceBindingAuthorityFactory.create(
   Object.freeze({
     classNameResolutionAuthority: phpClassNameResolutionAuthority,
     declarationResolutionAuthority: dtoDeclarationResolutionAuthority,
@@ -1846,10 +1840,10 @@ export const laravelControllerResponseSemanticPipelineDependencies: LaravelContr
   astProjectionAuthority: laravelControllerAstProjectionSemanticAuthority,
 });
 
-export const createLaravelControllerResponseSemanticPipeline = (
+const createLaravelControllerResponseSemanticPipelineImpl = (
   dependencies: LaravelControllerResponseSemanticPipelineDependenciesInterface,
 ): LaravelControllerResponseSemanticPipelineInterface => {
-  const responseExecutor = createLaravelControllerResponseSemanticRuntimeExecutor(dependencies.responseSemanticAuthority);
+  const responseExecutor = createLaravelControllerResponseSemanticRuntimeExecutorImpl(dependencies.responseSemanticAuthority);
   const boundEvidenceSourceBinding: LaravelControllerResponseEvidenceSourceBindingAuthorityInterface = Object.freeze({
     kind: 'laravel_controller_response_evidence_source_binding_authority',
     closed: true,
@@ -1879,7 +1873,31 @@ export const createLaravelControllerResponseSemanticPipeline = (
   });
 };
 
+export interface LaravelControllerResponseSemanticRuntimeOperationsInterface {
+  readonly createMethodResponseAstProjection: (
+    outputTypeJudgment: LaravelControllerResponseOutputTypeJudgmentInterface,
+  ) => LaravelControllerMethodResponseAstProjectionInterface;
+  readonly createSemanticJudgmentAuthority: (
+    sourceIdentitySemantics: LaravelSourceIdentitySemanticsInterface,
+  ) => LaravelControllerResponseSemanticJudgmentAuthorityInterface;
+  readonly createRuntimeExecutor: <
+    Authority extends LaravelControllerResponseSemanticJudgmentAuthorityInterface,
+  >(authority: Authority) => LaravelControllerResponseSemanticRuntimeExecutorInterface<Authority>;
+  readonly createPipeline: (
+    dependencies: LaravelControllerResponseSemanticPipelineDependenciesInterface,
+  ) => LaravelControllerResponseSemanticPipelineInterface;
+}
+
+export const laravelControllerResponseSemanticRuntimeOperations:
+  LaravelControllerResponseSemanticRuntimeOperationsInterface = Object.freeze({
+    createMethodResponseAstProjection: createLaravelControllerMethodResponseAstProjectionImpl,
+    createSemanticJudgmentAuthority: createLaravelControllerResponseSemanticJudgmentAuthorityImpl,
+    createRuntimeExecutor: createLaravelControllerResponseSemanticRuntimeExecutorImpl,
+    createPipeline: createLaravelControllerResponseSemanticPipelineImpl,
+  });
+
 /** Composition root binds the interface-owned authority; scanner consumers depend only on the pipeline interface. */
-export const laravelControllerResponseSemanticPipeline = createLaravelControllerResponseSemanticPipeline(
-  laravelControllerResponseSemanticPipelineDependencies,
-);
+export const laravelControllerResponseSemanticPipeline: LaravelControllerResponseSemanticPipelineInterface =
+  laravelControllerResponseSemanticRuntimeOperations.createPipeline(
+    laravelControllerResponseSemanticPipelineDependencies,
+  );

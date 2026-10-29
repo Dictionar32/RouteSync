@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const route = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const routeRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const endpoint = read('packages/core/src/types/upstream/endpointBindings.ts');
 const routeContract = read('packages/core/src/types/upstream/route.ts');
 const relationModel = read('packages/core/src/types/upstream/highLevelSourceModel.ts');

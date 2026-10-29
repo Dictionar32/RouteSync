@@ -2,9 +2,9 @@ const fs = require('fs');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts',
-  'packages/core/src/compiler/scanner/subscanners/semantic/modelTypeDeriver.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/semantic/modelTypeDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/model/eloquentProducer.ts',
 ];
 function auditFile(file) {
   const source = fs.readFileSync(file, 'utf8');

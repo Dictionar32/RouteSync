@@ -1,6 +1,6 @@
 /** Core relations and contracts for the incremental query engine. */
 import type { FileSpan } from '../../types/FileSpan';
-import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+import type { RelationOption } from '../../../semantic/relations/semanticRelations';
 import type { MemoizedQueryKey } from '../TypedCache';
 
 export interface QueryKey<O> extends MemoizedQueryKey<O> {

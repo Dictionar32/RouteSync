@@ -28,7 +28,7 @@ const compiler = read(path.join(sourceRoot, 'types/upstream/semanticJudgmentRule
 const algebra = read(path.join(sourceRoot, 'types/upstream/invocationSemanticJudgmentAlgebra.ts'));
 const authority = read(path.join(sourceRoot, 'types/upstream/invocationSemanticJudgmentAuthority.ts'));
 const executor = read(path.join(sourceRoot, 'types/upstream/invocationSemanticRuntimeExecutor.ts'));
-const scanner = read(path.join(sourceRoot, 'compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts'));
+const scanner = read(path.join(sourceRoot, 'compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts'));
 check('Declarative derivation contract remains independent of the retired path', !importReference.test(derivation));
 check('Generic derivation compiler remains independent of the retired path', !importReference.test(compiler) && /compileSemanticJudgmentRule/.test(algebra));
 check('Invocation algebra consumes the declarative compiler and new relation engine', /compileSemanticJudgmentRule/.test(algebra) && /semantic\/relations\//.test(algebra));

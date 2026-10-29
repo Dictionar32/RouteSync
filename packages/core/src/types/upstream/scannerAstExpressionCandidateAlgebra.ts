@@ -4,8 +4,10 @@ import { scannerAstOperatorEvidenceAlgebra } from './scannerAstOperatorEvidenceA
 import { SCANNER_AST_OPERATOR, SCANNER_AST_OPERATOR_EVIDENCE_FOUND } from './scannerAstOperatorEvidenceInterface';
 import {
   SCANNER_EXPRESSION_CANDIDATE as CANDIDATE,
+  type ScannerExpressionCandidateContinuation,
   type ScannerExpressionCandidateEvidence,
   type ScannerExpressionCandidateInterface,
+  type ScannerExpressionCandidateJudgment,
   type ScannerExpressionCandidateQuery,
 } from './scannerAstExpressionCandidateInterface';
 
@@ -13,8 +15,19 @@ const castTypes = Object.freeze(['int', 'float', 'string', 'bool', 'array', 'obj
 const assignmentOperators = Object.freeze(['??=', '<<=', '>>=', '**=', '+=', '-=', '*=', '/=', '%=', '.=', '&=', '|=', '^=', '=']);
 const includes = (tokens: readonly string[], value: string): boolean => tokens.includes(value);
 
-const resolveCandidates = <Token>(query: ScannerExpressionCandidateQuery<Token>) => {
-  if (query.tokens.length === 0) return { kind: 'not_applicable' as const };
+const notApplicableJudgment = <Token>(): ScannerExpressionCandidateJudgment<Token> => Object.freeze({
+  kind: 'not_applicable' as const,
+  continueForAstClassification: <Output>(continuation: ScannerExpressionCandidateContinuation<Token, Output>): Output => continuation.notApplicable(),
+});
+
+const resolvedJudgment = <Token>(candidates: readonly ScannerExpressionCandidateEvidence<Token>[]): ScannerExpressionCandidateJudgment<Token> => Object.freeze({
+  kind: 'resolved' as const,
+  candidates,
+  continueForAstClassification: <Output>(continuation: ScannerExpressionCandidateContinuation<Token, Output>): Output => continuation.resolved(candidates),
+});
+
+const resolveCandidates = <Token>(query: ScannerExpressionCandidateQuery<Token>): ScannerExpressionCandidateJudgment<Token> => {
+  if (query.tokens.length === 0) return notApplicableJudgment();
 
   const values = query.tokens.map(query.tokenValue);
   const candidates: ScannerExpressionCandidateEvidence<Token>[] = [];
@@ -76,7 +89,7 @@ const resolveCandidates = <Token>(query: ScannerExpressionCandidateQuery<Token>)
 
   // Explicit structural fallback; it is not a competing syntax-specific guess.
   add(CANDIDATE.compound, query.tokens);
-  return { kind: 'resolved' as const, candidates: Object.freeze(candidates) };
+  return resolvedJudgment(Object.freeze(candidates));
 };
 
 export const scannerAstExpressionCandidateContractAlgebra: ScannerExpressionCandidateInterface = Object.freeze({

@@ -5,12 +5,12 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const upstream = read('packages/core/src/types/upstream/controllerProducerInterface.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const judgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const packageJson = JSON.parse(read('package.json'));
-const controllerDir = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDir = 'packages/core/src/compiler/scanner/operations/controller';
 const checks = [
   ['producer input accepts the source-correlated judgment instead of independent file/source values', /readonly invocationJudgment: LaravelControllerInvocationSemanticJudgmentInterface/.test(upstream) && !/readonly file: SourceFile/.test(upstream) && !/readonly source: SourceSpan/.test(upstream)],
   ['producer output preserves the exact invocation judgment', /readonly invocationJudgment: LaravelControllerInvocationSemanticJudgmentInterface/.test(upstream) && /invocationJudgment: input\.invocationJudgment/.test(producer)],

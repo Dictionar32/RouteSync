@@ -3,9 +3,9 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const producer = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const producer = read('packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts');
 const adapter = read('packages/core/src/types/upstream/semanticKnowledgeEvidenceAdapterInterface.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const checks = [

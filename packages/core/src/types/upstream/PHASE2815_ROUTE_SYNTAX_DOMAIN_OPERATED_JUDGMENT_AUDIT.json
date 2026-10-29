@@ -1,0 +1,22 @@
+{
+  "phase": 2815,
+  "title": "Route Syntax Domain-Operated Judgment",
+  "scope": [
+    "RouteSyntaxSemanticFact domain proof-relation continuation",
+    "interface-first RouteSyntaxSemanticJudgment factory",
+    "CLI-to-manifest route-syntax trace"
+  ],
+  "reusedContracts": [
+    "RouteSyntaxSemanticFact",
+    "RouteSyntaxSemanticJudgment"
+  ],
+  "genericReasoningPrimitiveAdded": false,
+  "collectionsModuleBytes": 0,
+  "verification": {
+    "architectureAudit": "run separately",
+    "fullTypecheck": "not claimed",
+    "productionBuild": "not claimed",
+    "fullTests": "not claimed",
+    "cliScanSyncE2E": "not claimed"
+  }
+}

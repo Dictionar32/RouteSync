@@ -1,0 +1,141 @@
+{
+  "phase": 3101,
+  "method": "TypeScript compiler AST scan",
+  "scope": [
+    "packages/core/src",
+    "packages/cli/src",
+    "packages/sdk/src",
+    "packages/react/src"
+  ],
+  "typescriptFiles": 2245,
+  "exportFunctionDeclarations": 520,
+  "exportedArrowVariableDeclarations": 459,
+  "exportedFunctionExpressionVariableDeclarations": 0,
+  "totalNamedExportFunctionCandidates": 979,
+  "remainingGenericContinueWithArrowImplementations": 51,
+  "sampleExportFunctions": [
+    {
+      "file": "packages/core/src/client/http/formDataTransformer.ts",
+      "name": "isFileOrBlob",
+      "line": 9
+    },
+    {
+      "file": "packages/core/src/client/http/formDataTransformer.ts",
+      "name": "hasFiles",
+      "line": 16
+    },
+    {
+      "file": "packages/core/src/client/http/formDataTransformer.ts",
+      "name": "toFormData",
+      "line": 32
+    },
+    {
+      "file": "packages/core/src/client/http/requestTransformer.ts",
+      "name": "prepareRequest",
+      "line": 18
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/AnalysisManager.ts",
+      "name": "AnalysisManager",
+      "line": 33
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/UseDefAnalysis.ts",
+      "name": "UseDefGraph",
+      "line": 17
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/backwardSolver.ts",
+      "name": "runBackwardAnalysisWithJudgment",
+      "line": 54
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/backwardSolver.ts",
+      "name": "runBackwardAnalysis",
+      "line": 65
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/forwardSolver.ts",
+      "name": "runForwardAnalysisWithJudgment",
+      "line": 79
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/forwardSolver.ts",
+      "name": "runForwardAnalysis",
+      "line": 98
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dominator/dominatorRpo.ts",
+      "name": "computeRPO",
+      "line": 7
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/loop/loopDetector.ts",
+      "name": "getNaturalLoopBlocks",
+      "line": 10
+    }
+  ],
+  "sampleExportArrows": [
+    {
+      "file": "packages/core/src/compiler/analysis/DominatorAnalysis.ts",
+      "name": "computeDominanceAnalysis",
+      "line": 13
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/PassAnalysisStore.ts",
+      "name": "createPassAnalysisStore",
+      "line": 17
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/SSAAnalysis.ts",
+      "name": "computeSSA",
+      "line": 11
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/SymbolAnalysis.ts",
+      "name": "createSymbolDatabase",
+      "line": 26
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/astAnalysisInterface.ts",
+      "name": "astAnalysisTypeJudgment",
+      "line": 63
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/astAnalysisInterface.ts",
+      "name": "astAnalysisJudgment",
+      "line": 81
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/astAnalysisInterface.ts",
+      "name": "astAnalysisInterface",
+      "line": 120
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/dataFlowConfigContributorInterface.ts",
+      "name": "composeDataFlowConfigContributors",
+      "line": 28
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/dataFlowConfigInterface.ts",
+      "name": "createDataFlowConfig",
+      "line": 36
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/dataFlowFactPolicyInterface.ts",
+      "name": "selectDataFlowFacts",
+      "line": 12
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/dataFlowSolveJudgment.ts",
+      "name": "requireConvergedDataFlow",
+      "line": 19
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/dataFlowStateConfigInterface.ts",
+      "name": "liftDataFlowConfigToState",
+      "line": 28
+    }
+  ],
+  "conversionComplete": false
+}

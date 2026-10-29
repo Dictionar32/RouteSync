@@ -3,14 +3,14 @@ const path = require('node:path');
 
 const root = process.cwd();
 const files = [
-  'packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts',
+  'packages/core/src/compiler/frontend/php/controllerMethodParser.ts',
+  'packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts',
   'packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts',
   'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
-  'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts',
+  'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts',
+  'packages/core/src/compiler/scanner/operations/controller/actionScanner.ts',
+  'packages/core/src/compiler/scanner/operations/ControllerScanner.ts',
 ];
 const text = f => fs.readFileSync(path.join(root, f), 'utf8');
 const parser = text(files[0]);

@@ -2,12 +2,12 @@
   "phase": 607,
   "frontier": "scanner descriptor relational cutover",
   "modifiedFiles": [
-    "packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts",
-    "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts",
-    "packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts",
-    "packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts",
-    "packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts",
-    "packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts"
+    "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceFieldDescriptor.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/requestTypeDescriptor.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/formActionDescriptor.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/formFieldDescriptor.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionDescriptor.ts"
   ],
   "forbiddenConstructCounts": {
     "if": 0,

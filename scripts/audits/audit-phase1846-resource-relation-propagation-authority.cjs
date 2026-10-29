@@ -6,7 +6,7 @@ const authority = read('packages/core/src/compiler/semantic/resourceModelBinding
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts');
 const contract = read('packages/core/src/types/upstream/laravelResourceScannerInterface.ts');
 const judgment = read('packages/core/src/types/upstream/laravelScannerSemanticJudgment.ts');
-const sourceEvidence = read('packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts');
+const sourceEvidence = read('packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [
   ['resource scanner interface advances to current contract version 10', /contractVersion: 10/.test(contract)],

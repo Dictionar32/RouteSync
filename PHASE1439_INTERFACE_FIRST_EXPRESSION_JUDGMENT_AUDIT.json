@@ -5,8 +5,8 @@
   "scope": [
     "packages/core/src/types/upstream/scannerExpressionJudgmentInterface.ts",
     "packages/core/src/types/upstream/scannerExpressionStructure.ts",
-    "packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts",
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts"
+    "packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts"
   ],
   "invariants": [
     "The public judgment interface is declared separately from its implementation.",

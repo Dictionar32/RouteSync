@@ -58,7 +58,7 @@ export type ArrayKey =
 
 export type PhpAstSource =
     | { readonly kind: 'absent' }
-    | { readonly kind: 'present'; readonly source: import('../../../types/semantic').SourceRef };
+    | { readonly kind: 'present'; readonly source: import('../../semantic').SourceRef };
 
 
 export type PhpArgument =

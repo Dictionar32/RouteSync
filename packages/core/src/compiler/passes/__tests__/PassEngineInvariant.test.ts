@@ -7,6 +7,7 @@ import type { CompilerPass } from '../CompilerPass';
 import { createTypedPassAdapter } from '../TypedPassAdapter';
 import type { ExecutablePass } from '../ExecutablePass';
 import { PassGraph } from '../PassGraph';
+import { passGraphAnalysisOperations } from '../graph/graphAnalyzer';
 
 function metadata(producer: string) {
     return {
@@ -259,5 +260,34 @@ describe('Pass Engine invariants', () => {
         };
 
         expect(pass.outputKeys).toEqual(['ScopeGraph']);
+    });
+});
+
+describe('Pass graph domain operations', () => {
+    it('exposes graph ownership through domain operations instead of relation foundation imports', () => {
+        const producer = parsePass('Parse', 'AST');
+        const consumer: ExecutablePass = {
+            name: 'Analyze',
+            descriptor: { consumes: ['AST'], produces: ['ScopeGraph'] },
+            requires: [{ artifact: 'AST', producer: 'Parse' }],
+            execute: async (state) => state,
+        };
+        const analysis = passGraphAnalysisOperations.analyze([producer, consumer]);
+
+        expect(analysis.producerOf('AST')?.name).toBe('Parse');
+        expect(analysis.containsRemainingProducer('AST', [producer])).toBe(true);
+        expect(analysis.dependentsOf('AST').map((pass) => pass.name)).toEqual(['Analyze']);
+    });
+
+    it('preserves external source evidence when a graph input has no producer pass', () => {
+        const consumer: ExecutablePass = {
+            name: 'Analyze',
+            descriptor: { consumes: ['AST'], produces: ['ScopeGraph'] },
+            requires: [{ artifact: 'AST' }],
+            execute: async (state) => state,
+        };
+
+        expect(() => passGraphAnalysisOperations.analyze([consumer], ['AST'])).not.toThrow();
+        expect(() => passGraphAnalysisOperations.analyze([consumer])).toThrow(/Missing provider at artifact: AST|Missing provider for artifact: AST/);
     });
 });

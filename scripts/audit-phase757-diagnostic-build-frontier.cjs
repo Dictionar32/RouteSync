@@ -2,9 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const validation = path.join(root, 'packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts');
-const mutations = path.join(root, 'packages/core/src/compiler/scanner/descriptors/route/routeMutations.ts');
-const factory = path.join(root, 'packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts');
+const validation = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts');
+const mutations = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/route/routeMutations.ts');
+const factory = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts');
 const parsedNames = [
   'packages/core/src/types/semantic/parsedAstAlgebra.ts',
   'packages/core/src/types/semantic/parsedAstTypes.ts',

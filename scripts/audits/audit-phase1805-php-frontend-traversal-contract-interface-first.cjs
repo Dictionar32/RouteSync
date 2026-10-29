@@ -7,9 +7,9 @@ const frontend = read('packages/core/src/types/upstream/phpSourceFrontendInterfa
 const validationInterface = read('packages/core/src/types/upstream/phpSourceFrontendValidationAuthorityInterface.ts');
 const validationAuthority = read('packages/core/src/types/upstream/phpSourceFrontendExtractionValidationAuthority.ts');
 const pipelineAuthority = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineAuthority.ts');
-const tokenizer = read('packages/core/src/compiler/scanner/lexer/tokenizer.ts');
-const methodParser = read('packages/core/src/compiler/scanner/lexer/phpMethodParser.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const tokenizer = read('packages/core/src/compiler/frontend/php/tokenizer.ts');
+const methodParser = read('packages/core/src/compiler/frontend/php/phpMethodParser.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const scannerBinding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 
 const checks = [

@@ -1,0 +1,76 @@
+{
+  "phase": 3106,
+  "scope": [
+    "packages/core/src",
+    "packages/cli/src",
+    "packages/sdk/src",
+    "packages/react/src"
+  ],
+  "auditMode": "TypeScript compiler AST inventory plus static checks of the real PHP controller discovery-to-manifest boundary; counts do not authorize mechanical deletion",
+  "counts": {
+    "typescriptFiles": 2245,
+    "exportedFunctionDeclarations": 520,
+    "exportedArrowVariableDeclarations": 459,
+    "exportedFunctionExpressionVariableDeclarations": 0,
+    "genericContinueWithArrowImplementations": 57,
+    "ifStatements": 2224,
+    "switchStatements": 571,
+    "forStatements": 315,
+    "whileStatements": 33,
+    "conditionalExpressions": 1232,
+    "nullishCoalescingExpressions": 228,
+    "strictEqualityExpressions": 4089,
+    "mapPropertyCalls": 814,
+    "reducePropertyCalls": 18,
+    "arrayLiteralExpressions": 8922,
+    "stringKeywordTypes": 5219,
+    "numberKeywordTypes": 1517,
+    "booleanKeywordTypes": 978,
+    "undefinedKeywordTypes": 271,
+    "nullKeywordTypes": 166,
+    "anyKeywordTypes": 92,
+    "unknownKeywordTypes": 916,
+    "voidKeywordTypes": 423,
+    "asExpressions": 3802,
+    "typePredicateDeclarations": 342,
+    "lookupIdentifiers": 95,
+    "visitorIdentifiers": 1308
+  },
+  "runtimeTrace": [
+    "packages/cli/src/commands/scan.ts and sync.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts: controllerInvocationManifestCompositionAuthorityFactory.create / canonicalProjectCompositionOperation.compose",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts: LaravelControllerSourceDiscoveryResult operations",
+    "filesystem adapter: fs.realpath / fs.readdir / fs.lstat and Dirent classification",
+    "discoveredSourceReadSettlementOperation.readAll and source-document identity binding",
+    "source invocation semantic pipeline and semantic judgment inventory",
+    "manifestBuilderOperationPreparation and CLI terminal manifest operation",
+    "CLI manifest consumer / generator output"
+  ],
+  "manifestBoundary": {
+    "canonicalProjectCompositionUsesDiscoveryContinueWith": true,
+    "boundaryHasBlockedProjection": true,
+    "boundaryHasCompleteProjection": true,
+    "upstreamHasNamedCompleteDiscoveryOperation": true,
+    "upstreamOwnsSourceInventoryOperation": true,
+    "upstreamOwnsBlockedEvidenceOperation": true,
+    "cliTerminalKeepsBlockedDiscoveryEvidence": true,
+    "interpretation": "The upstream-to-CLI manifest projection remains an explicit boundary. The manifest contract belongs to CLI; moving it into core would reverse dependency direction. A neutral, core-owned projection contract is a candidate only if it removes the generic continuation without losing blocker/source provenance."
+  },
+  "dependencyDirection": {
+    "coreUpstreamImportsCli": false,
+    "noDeletedRelationFoundationRestored": true
+  },
+  "migrationPlan": [
+    "Batch A: remove generic continuation from discovery blocker/result ADTs using variant-owned domain operations; update runtime callers and evidence-preservation tests together.",
+    "Batch B: introduce a neutral upstream-owned manifest-input contract only if it does not import CLI manifest types and preserves complete/blocked/source identity evidence.",
+    "Batch C: migrate exported function declarations and exported arrow values to named interface-typed const exports by domain package, beginning with runtime scanner dependencies.",
+    "Batch D: classify primitive/control-flow occurrences by role; replace domain reasoning with data models while retaining necessary parser/lexer mechanics and exact PHP semantics.",
+    "Batch E: typecheck, targeted tests, full tests, then PHP -> CLI -> manifest -> generator E2E."
+  ],
+  "verification": {
+    "syntaxTranspileVerified": false,
+    "fullTypecheckVerified": false,
+    "fullTestSuiteVerified": false,
+    "phpToCliManifestGeneratorE2eVerified": false
+  }
+}

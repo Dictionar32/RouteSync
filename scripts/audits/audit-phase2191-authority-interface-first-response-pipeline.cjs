@@ -11,7 +11,7 @@ const checks = [
   ['pipeline factory receives contract authority through interface', read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts').includes('dtoResponseContractProjection: LaravelDtoResponseContractProjectionAuthorityInterface')],
   ['pipeline exposes the injected authority instead of rebuilding it', read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts').includes('dtoResponseContractProjection,\n  responseExecutor')],
   ['runtime executor delegates exact project method', read('packages/core/src/types/upstream/laravelDtoResponseContractProjectionAuthority.ts').includes('execute: laravelDtoResponseContractProjectionAuthority.project')],
-  ['response scanner accepts pipeline interface injection', read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts').includes('responsePipeline: LaravelControllerResponseSemanticPipelineInterface = laravelControllerResponseSemanticPipeline')],
+  ['response scanner accepts pipeline interface injection', read('packages/core/src/compiler/scanner/operations/responseScanner.ts').includes('responsePipeline: LaravelControllerResponseSemanticPipelineInterface = laravelControllerResponseSemanticPipeline')],
   ['pipeline contract version bumped to 25', read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts').includes('contractVersion: 25')],
   ['no new relation/foundation/subscanner authority module introduced', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/laravelDtoResponseProjectionRelation.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/laravelDtoResponseProjectionFoundation.ts'))],
 ];

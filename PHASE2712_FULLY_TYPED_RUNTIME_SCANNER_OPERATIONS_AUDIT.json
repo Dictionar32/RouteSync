@@ -1,0 +1,102 @@
+{
+  "phase": 2712,
+  "name": "fully-typed-runtime-scanner-upstream-syntax-ownership",
+  "status": "partial-source-boundary-repair",
+  "checks": {
+    "phase2712": {
+      "passed": 13,
+      "total": 13
+    },
+    "phase2703": {
+      "passed": 9,
+      "total": 9
+    },
+    "phase2476": {
+      "passed": 11,
+      "total": 11
+    },
+    "changedTypescriptSyntaxDiagnostics": 0,
+    "targetedTypecheck": {
+      "status": "failed",
+      "diagnosticCount": 552
+    },
+    "vitest": "not-run",
+    "cliScanSyncE2E": "not-run",
+    "details": [
+      {
+        "name": "SourceAstSyntaxParserInterface.parseProperties accepts source text",
+        "passed": true
+      },
+      {
+        "name": "sourceAstSyntaxParser owns property-operation tokenization",
+        "passed": true
+      },
+      {
+        "name": "whole-file parse reuses the owned property operation",
+        "passed": true
+      },
+      {
+        "name": "sourceAstSyntaxParser is an interface-typed object",
+        "passed": true
+      },
+      {
+        "name": "PhpMethodParserInterface exists",
+        "passed": true
+      },
+      {
+        "name": "phpMethodParser is an interface-typed frozen object",
+        "passed": true
+      },
+      {
+        "name": "legacy exported PHP method parser functions removed",
+        "passed": true
+      },
+      {
+        "name": "explicit barrel exports operation object and interface",
+        "passed": true
+      },
+      {
+        "name": "Laravel model scanner delegates source text",
+        "passed": true
+      },
+      {
+        "name": "resource source evidence delegates source text",
+        "passed": true
+      },
+      {
+        "name": "Laravel FormRequest scanner delegates source text",
+        "passed": true
+      },
+      {
+        "name": "subscanner FormRequest delegates source text",
+        "passed": true
+      },
+      {
+        "name": "remaining scanner free-function exports inventoried",
+        "passed": true
+      }
+    ]
+  },
+  "changes": [
+    "SourceAstSyntaxParserInterface.parseProperties now accepts source text instead of tokens",
+    "sourceAstSyntaxParser owns tokenization behind parseProperties and reuses the operation during whole-file parse",
+    "parsePhpMethod and parsePhpMethodOrThrow exports replaced with phpMethodParser interface-typed object",
+    "Runtime consumers migrated to phpMethodParser.parse / parseOrReject",
+    "Historical Phase 2476 audit updated for the new contract"
+  ],
+  "remaining": {
+    "lexerStillActive": true,
+    "exportFunctionCountInScanner": 167,
+    "filesWithExportFunction": 69,
+    "nonTestScannerFiles": 386,
+    "fullTypecheck": false,
+    "vitest": false,
+    "cliE2E": false,
+    "proofLawsComplete": false
+  },
+  "notes": [
+    "Static audits are not runtime integration proof.",
+    "The existing CLI php-parser AST adapter does not yet replace all core scanner consumers.",
+    "Deleting the lexer directory now would break active consumers; migration must precede deletion."
+  ]
+}

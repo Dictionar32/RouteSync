@@ -9,7 +9,7 @@ const check = (name, passed, detail) => checks.push({ name, passed, detail });
 const interfacePath = 'packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts';
 const algebraPath = 'packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts';
 const authorityPath = 'packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts';
-const scannerPath = 'packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts';
+const scannerPath = 'packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts';
 const interfaceSource = read(interfacePath);
 const algebraSource = read(algebraPath);
 const authoritySource = read(authorityPath);

@@ -1,7 +1,7 @@
 # Upstream AST Interface Specification — Berbasis Laravel Toko-Online
 ## *Model Tinggi Level 7 (Zero Data Bebas, Zero Fake Branding, Atomic Colon Lexemes, Zero 'if')*
 
-Dokumen ini adalah cetak biru (*blueprint*) dan kode implementasi antarmuka scanner hulu di RouteSync (`packages/core/src/compiler/scanner/lexer/`).
+Dokumen ini adalah cetak biru (*blueprint*) dan kode implementasi antarmuka scanner hulu di RouteSync (`packages/core/src/compiler/frontend/php/`).
 
 Seluruh model didasarkan langsung pada **Trace Nyata Source Code Laravel `toko-online`**:
 - Lokasi: `/home/annas-zen/Documents/laragon-docker/www/toko-online`
@@ -23,7 +23,7 @@ Dalam proses leksikal PHP (`compoundScanners.ts:48-60`), kursor pertama kali mem
 
 ---
 
-## 2. Berkas Sumber 0: `packages/core/src/compiler/scanner/lexer/phpLexicalSymbols.ts`
+## 2. Berkas Sumber 0: `packages/core/src/compiler/frontend/php/phpLexicalSymbols.ts`
 
 > **Status**: Diterapkan (51 baris, $\le 100$ baris per Rule 14).
 
@@ -73,7 +73,7 @@ export type TokenType =
 
 ---
 
-## 3. Berkas Sumber 1: `packages/core/src/compiler/scanner/lexer/phpAstTypes.ts`
+## 3. Berkas Sumber 1: `packages/core/src/compiler/frontend/php/phpAstTypes.ts`
 
 > **Status**: Diterapkan (97 baris, $\le 100$ baris per Rule 14, 0 `?:`, 0 Fake Branding).
 
@@ -168,7 +168,7 @@ export interface ParsedPhpArrayResult { readonly entries: readonly PhpArrayEntry
 
 ---
 
-## 4. Berkas Sumber 2: `packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts`
+## 4. Berkas Sumber 2: `packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts`
 
 > **Status**: Diterapkan (79 baris, $\le 100$ baris per Rule 14, 0 `if`, 0 Fake Branding).
 
@@ -246,7 +246,7 @@ export interface RouteDeclarationAst {
 
 ---
 
-## 5. Berkas Sumber 3: `packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts`
+## 5. Berkas Sumber 3: `packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts`
 
 > **Status**: Diterapkan (45 baris, $\le 100$ baris per Rule 14, 0 `?:`, 0 Fake Branding).
 

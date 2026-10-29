@@ -983,7 +983,7 @@ export interface LaravelControllerResponseSemanticPipelineContract {
   readonly rejectedCorrelationArtifactRule: 'controller_response_declaration_source_correlation_rejected-retains-the-exact-invocation-judgment-and-rejected-source-correlation-receipt-and-is-a-first-class-response-judgment-ADT-member-for-AST-projection';
   readonly rejectedBindingRule: 'rejected-source-binding-cannot-be-converted-to-a-complete-response-judgment';
   readonly noReclassificationRule: 'scanner-and-runtime-executor-forward-existing-judgments-and-never-reclassify-descriptors-or-reconstruct-provenance';
-  readonly noReplacementLayerRule: 'compose-existing-contracts-without-adding-relation-or-foundation-subscanners-or-a-parallel-semantic-authority';
+  readonly noReplacementLayerRule: 'compose-existing-contracts-without-adding-relation-or-foundation-operations-or-a-parallel-semantic-authority';
   readonly projectionBoundaryRule: 'AST-projection-authority-is-composed-as-an-existing-dependency;the-response-pipeline-does-not-own-or-reimplement-AST-projection-semantics';
   readonly responseArtifactOutcomeRule: 'scanner-artifact-retains-either-a-closed-response-semantic-judgment-or-an-explicit-source-binding-or-declaration-correlation-rejection-judgment;rejection-is-never-erased-into-an-empty-success';
   readonly invocationOutcomeUniformityRule: 'every-closed-invocation-judgment-outcome-enters-the-same-response-evidence-and-AST-projection-sequence;response-authority-and-projection-ADT-preserve-outcome-differences;scanner-does-not-branch-or-reconstruct-by-invocation-response-kind';

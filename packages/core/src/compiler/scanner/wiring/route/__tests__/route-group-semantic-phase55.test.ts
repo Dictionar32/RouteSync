@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert';
-import { parseRouteDeclarations } from '../../lexer/routeAst/routeDeclarationParser';
-import { routeGroupContextResolver } from '../../../descriptors/route/routeGroupContextResolver';
+import { routeDeclarationParser } from '../../../../frontend/php/routeAst/routeDeclarationParser';
+import { routeGroupContextResolver } from '../../../operations/domain-model/route/routeGroupContextResolver';
 
 describe('route group semantic elevation', () => {
   it('elevates Laravel group attributes without removing RouteAst inputs', () => {
@@ -23,6 +23,6 @@ describe('route group semantic elevation', () => {
     assert.equal(context.bindingScope.kind, 'scoped');
     assert.equal(context.constraints.kind, 'cons');
     assert.equal(context.middlewareMutations.kind, 'cons');
-    void parseRouteDeclarations(tokens);
+    void routeDeclarationParser.parse(tokens);
   });
 });

@@ -15,7 +15,7 @@
     "response_dto_declaration"
   ],
   "legacySemanticOwnerStillActive": [
-    "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts::resolveResponse",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts::resolveResponse",
     "packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts",
     "packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts"
   ],

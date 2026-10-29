@@ -1,19 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { createClassName, createResourceName, createRoutePath } from '../names';
-import {
-  defaultApiResourceRegistration,
-  resolveApiResourceFlow,
-  singularizeLaravelResourceName,
-} from '../routeResourceFlow';
+import { routeResourceFlowOperations } from '../routeResourceFlow';
 
-const registration = (name: string) => defaultApiResourceRegistration(
+const registration = (name: string) => routeResourceFlowOperations.defaultApiResourceRegistration(
   createResourceName(name),
   { kind: 'conventional_controller', className: createClassName('PhotoController') },
 );
 
 describe('Laravel apiResource upstream route flow phase 48', () => {
   it('uses Laravel singular resource parameters instead of hardcoded {id}', () => {
-    const plan = resolveApiResourceFlow({
+    const plan = routeResourceFlowOperations.resolveApiResourceFlow({
       declarationPath: createRoutePath('photos'),
       prefix: [],
       resource: createResourceName('photos'),
@@ -47,7 +43,7 @@ describe('Laravel apiResource upstream route flow phase 48', () => {
   });
 
   it('resolves nested resources according to Laravel resource URI conventions', () => {
-    const plan = resolveApiResourceFlow({
+    const plan = routeResourceFlowOperations.resolveApiResourceFlow({
       declarationPath: createRoutePath('photos.comments'),
       prefix: [],
       resource: createResourceName('comments'),
@@ -66,7 +62,7 @@ describe('Laravel apiResource upstream route flow phase 48', () => {
 
   it('resolves the supplied API/group prefix before returning the closed plan', () => {
     const resource = createResourceName('photos');
-    const plan = resolveApiResourceFlow({
+    const plan = routeResourceFlowOperations.resolveApiResourceFlow({
       declarationPath: createRoutePath('photos'),
       prefix: [createRoutePath('api'), createRoutePath('v1')],
       resource,
@@ -84,8 +80,8 @@ describe('Laravel apiResource upstream route flow phase 48', () => {
   });
 
   it('supports Laravel-style singularization for common resource names', () => {
-    expect(singularizeLaravelResourceName('categories')).toBe('category');
-    expect(singularizeLaravelResourceName('people')).toBe('person');
-    expect(singularizeLaravelResourceName('orders')).toBe('order');
+    expect(routeResourceFlowOperations.singularizeLaravelResourceName('categories')).toBe('category');
+    expect(routeResourceFlowOperations.singularizeLaravelResourceName('people')).toBe('person');
+    expect(routeResourceFlowOperations.singularizeLaravelResourceName('orders')).toBe('order');
   });
 });

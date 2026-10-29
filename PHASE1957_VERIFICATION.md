@@ -13,7 +13,7 @@
 ## Key changed files
 
 - `packages/core/src/types/upstream/astClassifierEvidenceContract.ts`
-- `packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts`
+- `packages/core/src/compiler/frontend/php/astClassifierEvidence.ts`
 - `packages/core/src/index.ts`
 - `scripts/audits/audit-phase1957-ast-semantic-integrated-response-interface-first.cjs`
 - `package.json`

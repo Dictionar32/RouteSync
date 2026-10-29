@@ -8,8 +8,8 @@ const pipelineInterface = read('packages/core/src/types/upstream/invocationSeman
 const pipelineRuntime = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
 const resolution = read('packages/core/src/types/upstream/phpFunctionNameResolutionInterface.ts');
 const callAuthority = read('packages/core/src/types/upstream/phpFunctionCallSemanticAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const resourceScanner = read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const resourceScanner = read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts');
 
 const checks = [
   ['batch-contract-version-2', invocation.includes('readonly version: 2;') && invocation.includes('version: 2,')],

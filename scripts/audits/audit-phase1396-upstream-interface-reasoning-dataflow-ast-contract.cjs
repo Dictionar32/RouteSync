@@ -6,7 +6,7 @@ const exists = relative => fs.existsSync(path.join(root, relative));
 const packageJson = JSON.parse(read('package.json'));
 const operation = read('packages/core/src/types/upstream/operationIdentityCapability.ts');
 const operationAuthority = read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts');
-const operationProducer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const operationProducer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const semanticCapability = read('packages/core/src/types/upstream/semanticCapability.ts');
 const semanticReasoning = read('packages/core/src/types/upstream/semanticReasoning.ts');
 const semanticDataflow = read('packages/core/src/types/upstream/semanticDataflow.ts');

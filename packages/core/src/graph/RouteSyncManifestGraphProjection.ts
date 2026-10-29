@@ -45,6 +45,3 @@ export const routeSyncManifestGraphProjection: RouteSyncManifestGraphProjectionI
   }),
 });
 
-export const routeSyncManifestGraphSurfaceFromFlow = (
-  manifest: RouteSyncManifestFlow,
-): RouteSyncManifestGraphSurface => routeSyncManifestGraphProjection.project(manifest);

@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { controllerStaticCallOriginAuthority } from '../controllerStaticCallOriginAuthority';
 import type { ControllerStaticCallModelClassIdentity, ControllerStaticCallOriginInput } from '../controllerStaticCallOriginInterface';
 import { createClassName, createMethodName, createModelName } from '../names';
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import type { PhpClassNameResolutionContext } from '../phpClassNameResolutionInterface';
 
 const model = (shortName: string, qualifiedName: string): ControllerStaticCallModelClassIdentity => Object.freeze({
   kind: 'controller_static_call_model_class_identity',
   className: createClassName(shortName),
   modelName: createModelName(qualifiedName),
-  qualifiedName: createPhpQualifiedClassName(qualifiedName),
+  qualifiedName: phpQualifiedClassNameFactory.create(qualifiedName),
 });
 
 const input = (
@@ -37,7 +37,7 @@ const context = (
   importInventory: PhpClassNameResolutionContext['importInventory'] = 'complete',
 ): PhpClassNameResolutionContext => Object.freeze({
   kind: 'php_class_name_resolution_context',
-  namespaceName: createPhpQualifiedClassName(namespace),
+  namespaceName: phpQualifiedClassNameFactory.create(namespace),
   classImports,
   importInventory,
 });
@@ -46,7 +46,7 @@ describe('controller static-call class reference context phase 2061', () => {
   it('resolves a simple class name through an explicit import alias', () => {
     const identity = model('User', 'App\\Models\\User');
     const judgment = controllerStaticCallOriginAuthority.judge(input('Member', context('App\\Http\\Controllers', [
-      { kind: 'php_class_import_binding', alias: createClassName('Member'), target: createPhpQualifiedClassName('App\\Models\\User') },
+      { kind: 'php_class_import_binding', alias: createClassName('Member'), target: phpQualifiedClassNameFactory.create('App\\Models\\User') },
     ]), [identity]));
     expect(judgment).toMatchObject({ kind: 'resolved', origin: { kind: 'model_class', name: createModelName('App\\Models\\User') } });
   });

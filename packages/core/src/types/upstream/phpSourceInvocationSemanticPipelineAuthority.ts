@@ -10,7 +10,9 @@ import type {
 } from './phpSourceFrontendValidationAuthorityInterface';
 import type {
   PhpSourceInvocationSemanticPipelineBlocked,
+  PhpSourceInvocationSemanticPipelineBlockedPayload,
   PhpSourceInvocationSemanticPipelineComplete,
+  PhpSourceInvocationSemanticPipelineCompletePayload,
   PhpSourceInvocationSemanticPipelineContract,
   PhpSourceInvocationSemanticPipelineInterface,
   PhpSourceInvocationSemanticPipelineResult,
@@ -25,6 +27,13 @@ import type {
   PhpFunctionResolutionSourceInventoryAuthorityInterface,
 } from './phpFunctionNameResolutionInterface';
 import type { SourceSpan } from './provenance';
+import type { SourceFile } from './names';
+import type {
+  PhpSourceInvocationSemanticPipelineIntegrationComplete,
+  PhpSourceInvocationSemanticPipelineIntegrationBlocked,
+} from './phpSourceInvocationSemanticPipelineIntegrationInterface';
+import { phpSourceInvocationSemanticPipelineIntegrationJudgmentOperations } from './phpSourceInvocationSemanticPipelineIntegration';
+import type { PhpSourceInvocationSemanticSourceBindingJudgment } from './phpSourceInvocationSemanticSourceBindingInterface';
 
 export interface PhpSourceInvocationSemanticPipelineAuthorityDependencies {
   readonly frontend: PhpSourceFrontendInterface;
@@ -35,13 +44,75 @@ export interface PhpSourceInvocationSemanticPipelineAuthorityDependencies {
   readonly invocationBatch: PhpFunctionInvocationSemanticJudgmentBatchClosureAuthorityInterface;
 }
 
-export interface PhpSourceInvocationSemanticPipelineAuthorityInterface extends PhpSourceInvocationSemanticPipelineInterface {
+export interface PhpSourceInvocationSemanticPipelineAuthorityInterface extends Omit<PhpSourceInvocationSemanticPipelineInterface, 'kind'> {
   readonly kind: 'php_source_invocation_semantic_pipeline_authority';
   readonly contract: PhpSourceInvocationSemanticPipelineContract;
   readonly dependencies: PhpSourceInvocationSemanticPipelineAuthorityDependencies;
 }
 
-const blocked = (result: PhpSourceInvocationSemanticPipelineBlocked): PhpSourceInvocationSemanticPipelineResult => Object.freeze(result);
+export interface PhpSourceInvocationSemanticPipelineAuthorityFactoryInterface {
+  readonly kind: 'php_source_invocation_semantic_pipeline_authority_factory';
+  readonly create: (
+    dependencies: PhpSourceInvocationSemanticPipelineAuthorityDependencies,
+  ) => PhpSourceInvocationSemanticPipelineAuthorityInterface;
+}
+
+type ClosedControllerSourceBinding = Extract<
+  PhpSourceInvocationSemanticSourceBindingJudgment,
+  { readonly kind: 'php_source_invocation_semantic_source_binding_closed' }
+>;
+
+type IntegratedPipelineOutcome = Exclude<
+  import('./phpSourceInvocationSemanticPipelineIntegrationInterface').PhpSourceInvocationSemanticPipelineIntegrationResult,
+  { readonly kind: 'php_source_invocation_integration_not_connected' | 'php_source_invocation_integration_source_binding_rejected' }
+>;
+
+const integrateCompletePipeline = (
+  sourceBinding: ClosedControllerSourceBinding,
+  pipeline: PhpSourceInvocationSemanticPipelineComplete,
+): PhpSourceInvocationSemanticPipelineIntegrationComplete => {
+  let result: PhpSourceInvocationSemanticPipelineIntegrationComplete;
+  result = Object.freeze({
+    kind: 'php_source_invocation_integration_complete',
+    sourceBinding,
+    pipeline,
+    batch: pipeline.batch,
+    toControllerInvocationSemanticJudgment: (sourceFile: SourceFile) => phpSourceInvocationSemanticPipelineIntegrationJudgmentOperations.complete(sourceFile, result),
+  });
+  return result;
+};
+
+const integrateBlockedPipeline = (
+  sourceBinding: ClosedControllerSourceBinding,
+  pipeline: PhpSourceInvocationSemanticPipelineBlocked,
+): PhpSourceInvocationSemanticPipelineIntegrationBlocked => {
+  let result: PhpSourceInvocationSemanticPipelineIntegrationBlocked;
+  result = Object.freeze({
+    kind: 'php_source_invocation_integration_blocked',
+    sourceBinding,
+    pipeline,
+    toControllerInvocationSemanticJudgment: (sourceFile: SourceFile) => phpSourceInvocationSemanticPipelineIntegrationJudgmentOperations.blocked(sourceFile, result),
+  });
+  return result;
+};
+
+const blocked = (payload: PhpSourceInvocationSemanticPipelineBlockedPayload): PhpSourceInvocationSemanticPipelineBlocked => {
+  let judgment: PhpSourceInvocationSemanticPipelineBlocked;
+  judgment = Object.freeze({
+    ...payload,
+    integrateWithControllerSourceBinding: (sourceBinding: ClosedControllerSourceBinding): IntegratedPipelineOutcome => integrateBlockedPipeline(sourceBinding, judgment),
+  });
+  return judgment;
+};
+
+const completed = (payload: PhpSourceInvocationSemanticPipelineCompletePayload): PhpSourceInvocationSemanticPipelineComplete => {
+  let judgment: PhpSourceInvocationSemanticPipelineComplete;
+  judgment = Object.freeze({
+    ...payload,
+    integrateWithControllerSourceBinding: (sourceBinding: ClosedControllerSourceBinding): IntegratedPipelineOutcome => integrateCompletePipeline(sourceBinding, judgment),
+  });
+  return judgment;
+};
 
 const wholeFileInvocationInventory = (
   document: PhpSourceDocument,
@@ -59,14 +130,14 @@ const wholeFileInvocationInventory = (
       'all-php-function-call-nodes-inventoried',
       'all-call-arguments-captured',
       'all-name-resolution-environments-accounted-for',
-    ]),
+    ] as const),
   }),
 });
 
 const rejectedValidation = (
   document: PhpSourceDocument,
   validation: Extract<PhpSourceFrontendExtractionValidation, { readonly kind: 'php_source_frontend_extraction_rejected' }>,
-): PhpSourceInvocationSemanticPipelineBlocked => Object.freeze({
+): PhpSourceInvocationSemanticPipelineBlockedPayload => Object.freeze({
   kind: 'php_source_invocation_semantic_pipeline_blocked',
   stage: 'frontend_validation',
   document,
@@ -76,7 +147,7 @@ const rejectedValidation = (
 const incompleteCoverage = (
   document: PhpSourceDocument,
   validation: Extract<PhpSourceFrontendExtractionValidation, { readonly kind: 'php_source_frontend_extraction_validated' }>,
-): PhpSourceInvocationSemanticPipelineBlocked => Object.freeze({
+): PhpSourceInvocationSemanticPipelineBlockedPayload => Object.freeze({
   kind: 'php_source_invocation_semantic_pipeline_blocked',
   stage: 'frontend_coverage',
   document,
@@ -87,7 +158,7 @@ const incompleteInventory = (
   document: PhpSourceDocument,
   extraction: PhpSourceFrontendExtraction,
   inventory: Extract<PhpFunctionResolutionSourceInventory, { readonly kind: 'php_function_resolution_source_inventory_incomplete' }>,
-): PhpSourceInvocationSemanticPipelineBlocked => Object.freeze({
+): PhpSourceInvocationSemanticPipelineBlockedPayload => Object.freeze({
   kind: 'php_source_invocation_semantic_pipeline_blocked',
   stage: 'source_inventory',
   document,
@@ -187,23 +258,26 @@ const createPipeline = (
           batch,
         }));
       case 'php_function_invocation_semantic_judgment_batch_validated':
-        return Object.freeze({
+        return completed({
           kind: 'php_source_invocation_semantic_pipeline_complete',
           document,
           extraction: Object.freeze({ ...validation, completeness: 'complete' }),
           inventory: sourceInventory,
           resolutions: Object.freeze(resolutions),
           batch,
-        }) satisfies PhpSourceInvocationSemanticPipelineComplete;
+        });
     }
   };
 
   return Object.freeze({
-    kind: 'php_source_invocation_semantic_pipeline',
+    kind: 'php_source_invocation_semantic_pipeline_authority',
     contract: PHP_SOURCE_INVOCATION_SEMANTIC_PIPELINE_CONTRACT,
     dependencies,
     analyze,
   });
 };
 
-export const createPhpSourceInvocationSemanticPipelineAuthority = createPipeline;
+export const phpSourceInvocationSemanticPipelineAuthorityFactory: PhpSourceInvocationSemanticPipelineAuthorityFactoryInterface = Object.freeze({
+  kind: 'php_source_invocation_semantic_pipeline_authority_factory',
+  create: createPipeline,
+});

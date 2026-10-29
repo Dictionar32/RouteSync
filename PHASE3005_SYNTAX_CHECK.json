@@ -1,0 +1,13 @@
+{
+  "phase": 3005,
+  "method": "TypeScript transpileModule syntax diagnostics",
+  "files": [
+    "packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingInterface.ts",
+    "packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingAuthority.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts"
+  ],
+  "filesChecked": 3,
+  "syntaxDiagnostics": 0,
+  "fullTypecheck": "not verified",
+  "tests": "not run"
+}

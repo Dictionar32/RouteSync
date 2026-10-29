@@ -6,22 +6,23 @@
  * Class/closure/unresolved expressions remain controller policy evidence and
  * are never coerced into a string name.
  */
-import type { ControllerMiddlewareRelation, ControllerPolicyActionScope, ControllerPolicyRelation } from '../../../../types/upstream/controller';
+import type { ControllerMiddlewareRelation, ControllerPolicyRelation } from '../../../../types/upstream/controller';
 import type { MiddlewareName } from '../../../../types/upstream/names';
 import type { RouteMiddlewareContract, RouteMiddlewareExclusionContract, RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
-import { relationExpand, relationGate, relationSelect, relationVariantFold } from '../../../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 import type { Sequence } from '../../../../types/upstream/collections';
 
-const sequenceToArray = <T>(sequence: Sequence<T>): readonly T[] =>
-  relationGate(
-    relationEqual(sequence.kind, 'empty'),
-    () => [],
-    () => {
-      const cons = sequence as Extract<Sequence<T>, { readonly kind: 'cons' }>;
-      return [cons.head, ...sequenceToArray(cons.tail)];
-    },
-  );
+const sequenceToArray = <T>(sequence: Sequence<T>): readonly T[] => {
+  switch (sequence.kind) {
+    case 'empty':
+      return Object.freeze([]);
+    case 'cons':
+      return [sequence.head, ...sequenceToArray(sequence.tail)];
+    default: {
+      const exhaustive: never = sequence;
+      return exhaustive;
+    }
+  }
+};
 
 const actionScope = (relation: ControllerMiddlewareRelation): RouteMiddlewareScope => {
   switch (relation.actions.kind) {
@@ -34,6 +35,10 @@ const actionScope = (relation: ControllerMiddlewareRelation): RouteMiddlewareSco
       only: Object.freeze(sequenceToArray(relation.actions.only)),
       except: Object.freeze(sequenceToArray(relation.actions.except)),
     };
+    default: {
+      const exhaustive: never = relation.actions;
+      return exhaustive;
+    }
   }
 };
 const controllerScope = (relation: ControllerMiddlewareRelation): RouteMiddlewareScope => actionScope(relation);
@@ -64,20 +69,36 @@ export interface ControllerMiddlewareProjection {
   readonly exclusions: readonly RouteMiddlewareExclusionContract[];
 }
 
-export const projectControllerMiddlewareRelations = (
+export interface ControllerMiddlewareProjectionOperationsInterface {
+  readonly project: (policy: Sequence<ControllerPolicyRelation>) => ControllerMiddlewareProjection;
+}
+
+const projectControllerMiddlewareRelationsImplementation = (
   policy: Sequence<ControllerPolicyRelation>,
 ): ControllerMiddlewareProjection => {
-  const relations = relationSelect(sequenceToArray(policy), value => value.kind === 'controller_middleware_relation');
-  const declarations = relationExpand(relations, value => {
-    const relation = value as ControllerMiddlewareRelation;
-    return relation.exclusion ? [] : relationVariantFold({ kind: 'some', value: declaration(relation) }, 'some', item => item === undefined ? [] : [item], () => []);
-  });
-  const exclusions = relationExpand(relations, value => {
-    const relation = value as ControllerMiddlewareRelation;
-    return relation.exclusion ? relationVariantFold({ kind: 'some', value: exclusion(relation) }, 'some', item => item === undefined ? [] : [item], () => []) : [];
-  });
+  const relations: readonly ControllerMiddlewareRelation[] = sequenceToArray(policy).filter(
+    (value): value is ControllerMiddlewareRelation => value.kind === 'controller_middleware_relation',
+  );
+  const declarations: RouteMiddlewareContract[] = [];
+  const exclusions: RouteMiddlewareExclusionContract[] = [];
+
+  for (const relation of relations) {
+    if (relation.exclusion) {
+      const item = exclusion(relation);
+      if (item !== undefined) exclusions.push(item);
+    } else {
+      const item = declaration(relation);
+      if (item !== undefined) declarations.push(item);
+    }
+  }
+
   return Object.freeze({
     declarations: Object.freeze(declarations),
     exclusions: Object.freeze(exclusions),
   });
 };
+
+export const controllerMiddlewareProjectionOperations:
+  ControllerMiddlewareProjectionOperationsInterface = Object.freeze({
+    project: projectControllerMiddlewareRelationsImplementation,
+  });

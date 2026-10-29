@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const index = read('packages/core/src/index.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 const coverageType = pipeline.slice(pipeline.indexOf('export interface InvocationSemanticCoverageContract'), pipeline.indexOf('export const INVOCATION_SEMANTIC_COVERAGE_CONTRACT'));

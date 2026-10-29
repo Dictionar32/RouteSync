@@ -739,7 +739,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -761,7 +761,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifest/routeManifestDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -783,7 +783,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -827,7 +827,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelColumnDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelColumnDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -849,7 +849,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/fieldNodes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/fieldNodes.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -937,7 +937,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -959,7 +959,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/formActionDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -981,7 +981,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/formFieldDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1003,7 +1003,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/requestTypeDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1025,7 +1025,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceFieldDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1047,7 +1047,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1069,7 +1069,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/contractRouteFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/contractRouteFactories.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1091,7 +1091,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/schemaPayload.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/schemaPayload.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1113,7 +1113,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1245,7 +1245,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelAccessorDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1267,7 +1267,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1289,7 +1289,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1311,7 +1311,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/syntheticRouteFactory.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1333,7 +1333,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeQueryParameterDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeQueryParameterDescriptorClass.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1355,7 +1355,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMethods.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1377,7 +1377,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMutations.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMutations.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1399,7 +1399,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts",
       "if": 0,
       "while": 0,
       "for": 0,
@@ -1421,7 +1421,7 @@
       "ternary": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
       "if": 0,
       "while": 0,
       "for": 0,

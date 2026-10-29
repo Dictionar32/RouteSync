@@ -2,9 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
-const runtimePath = path.join(root, 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtimePath = path.join(root, 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const contractPath = path.join(root, 'packages/core/src/types/upstream/astClassifierEvidenceContract.ts');
-const testPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/astParenthesizedExpressionJudgment.phase2116.test.ts');
+const testPath = path.join(root, 'packages/core/src/compiler/frontend/php/astParenthesizedExpressionJudgment.phase2116.test.ts');
 const runtime = fs.readFileSync(runtimePath, 'utf8');
 const contract = fs.readFileSync(contractPath, 'utf8');
 const test = fs.readFileSync(testPath, 'utf8');

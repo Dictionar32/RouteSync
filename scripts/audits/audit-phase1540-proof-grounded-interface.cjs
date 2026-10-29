@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
 const interfacePath = path.join(root, 'packages/core/src/types/upstream/semanticDataflowInterface.ts');
-const scannerPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const scannerPath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const authorityPath = path.join(root, 'packages/core/src/types/upstream/semanticDataflowAuthority.ts');
 const admissionPath = path.join(root, 'packages/core/src/types/upstream/semanticDataflowAdmission.ts');
 const bindingPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/semanticDataflowRuntimeBinding.ts');

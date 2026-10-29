@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-Setelah penyelesaian refactoring pada [`routeDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts) (seluruh constructor parameter kini **0 `?`** dan body constructor **100% direct assignment**), audit ini memetakan seluruh kemunculan tanda `?` yang tersisa di seluruh basis kode RouteSync.
+Setelah penyelesaian refactoring pada [`routeDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts) (seluruh constructor parameter kini **0 `?`** dan body constructor **100% direct assignment**), audit ini memetakan seluruh kemunculan tanda `?` yang tersisa di seluruh basis kode RouteSync.
 
 Tanda `?` dianalisis ke dalam 3 jenis operator:
 1. **`?:` (Optional Property)**: Field opsional pada interface, type alias, atau parameter fungsi yang berpotensi melubangi kontrak data (*contract holes*).
@@ -21,7 +21,7 @@ Tanda `?` dianalisis ke dalam 3 jenis operator:
 
 | Rank | Total `?` | `?:` (Optional Prop) | `??` (Fallback) | `?.` (Opt Chain) | Lokasi Berkas | Kategori Domain |
 |:---:|:---:|:---:|:---:|:---:|:---|:---|
-| **1** | **147** | 103 | 34 | 10 | [`packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts) | Descriptors (*Semua constructor 0 `?`; sisa `?:` berada di static factory option objects*) |
+| **1** | **147** | 103 | 34 | 10 | [`packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts) | Descriptors (*Semua constructor 0 `?`; sisa `?:` berada di static factory option objects*) |
 | **2** | **124** | 59 | 3 | 62 | [`packages/react/src/hooks/createCrudHooks.ts`](file:///home/annas-zen/Documents/RouteSync/packages/react/src/hooks/createCrudHooks.ts) | React Hook Factory |
 | **3** | **94** | 92 | 0 | 2 | [`packages/core/src/types/ir.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/types/ir.ts) | Intermediate Representation Types |
 | **4** | **11** | 8 | 2* | 1* | [`packages/cli/src/generators/semantic-resolver.ts`](file:///home/annas-zen/Documents/RouteSync/packages/cli/src/generators/semantic-resolver.ts) | CLI Semantic Resolver (*✅ 100% Zero `??` & Zero `?.` pada executable code; sisa 2 `??` dan 1 `?.` adalah dokumentasi komentar*) |
@@ -31,7 +31,7 @@ Tanda `?` dianalisis ke dalam 3 jenis operator:
 | **8** | **46** | 45 | 1 | 0 | [`packages/core/src/types/semantic.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/types/semantic.ts) | Semantic Type System |
 | **9** | **46** | 1 | 0 | 45 | [`packages/core/src/compiler/scanner/subscanners/ModelScanner.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/subscanners/ModelScanner.ts) | Model AST Lexer / Scanner |
 | **10** | **44** | 28 | 11 | 5 | [`packages/cli/src/utils/incremental.ts`](file:///home/annas-zen/Documents/RouteSync/packages/cli/src/utils/incremental.ts) | Incremental Scan & Caching |
-| **11** | **43** | 32 | 11 | 0 | [`packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts) | Model Descriptors |
+| **11** | **43** | 32 | 11 | 0 | [`packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts) | Model Descriptors |
 | **12** | **42** | 12 | 13 | 17 | [`packages/cli/src/generators/route-classifier.ts`](file:///home/annas-zen/Documents/RouteSync/packages/cli/src/generators/route-classifier.ts) | Route Classifier |
 | **13** | **35** | 32 | 1 | 2 | [`packages/cli/src/generators/normalizer.ts`](file:///home/annas-zen/Documents/RouteSync/packages/cli/src/generators/normalizer.ts) | Manifest Normalizer |
 | **14** | **34** | 0 | 22 | 12 | [`packages/core/src/types/domain/contracts.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/types/domain/contracts.ts) | Endpoint Contract Model |
@@ -40,12 +40,12 @@ Tanda `?` dianalisis ke dalam 3 jenis operator:
 | **17** | **30** | 20 | 4 | 6 | [`packages/sdk/src/defineApi.ts`](file:///home/annas-zen/Documents/RouteSync/packages/sdk/src/defineApi.ts) | SDK API Definition |
 | **18** | **27** | 21 | 0 | 6 | [`packages/core/src/ir/ContractIRBuilder.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/ir/ContractIRBuilder.ts) | Contract IR Builder |
 | **19** | **26** | 3 | 2 | 21 | [`packages/core/src/compiler/domain/common/SemanticTypeResolver.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/domain/common/SemanticTypeResolver.ts) | Semantic Type Resolver |
-| **20** | **25** | 14 | 7 | 4 | [`packages/core/src/compiler/scanner/descriptors/channelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/channelDescriptors.ts) | Broadcast Channel Descriptors |
+| **20** | **25** | 14 | 7 | 4 | [`packages/core/src/compiler/scanner/operations/domain-model/channelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/channelDescriptors.ts) | Broadcast Channel Descriptors |
 | **21** | **24** | 16 | 3 | 5 | [`packages/core/src/compiler/types/SemanticType.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/types/SemanticType.ts) | Compiler Semantic Types |
 | **22** | **23** | 1 | 3 | 19 | [`packages/core/src/compiler/scanner/subscanners/RouteScanner.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/subscanners/RouteScanner.ts) | Route Lexer Subscanner |
 | **23** | **23** | 23 | 0 | 0 | [`packages/core/src/semantic/types.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/semantic/types.ts) | Semantic Spec Types |
 | **24** | **22** | 22 | 0 | 0 | [`packages/core/src/types/field.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/types/field.ts) | Field Definition Types |
-| **25** | **21** | 19 | 2 | 0 | [`packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts) | Request & Form Field Descriptors |
+| **25** | **21** | 19 | 2 | 0 | [`packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts) | Request & Form Field Descriptors |
 
 ---
 
@@ -54,15 +54,15 @@ Tanda `?` dianalisis ke dalam 3 jenis operator:
 ### Cluster 1: Descriptors Layer (Target Alami Pembersihan Constructor)
 File-file descriptor bertugas memodelkan representasi AST yang beku (`Object.freeze`). Sebagian besar constructor sudah bersih, namun masih menyisakan fallback minor:
 
-1. **[`modelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts)**: ✅ **SELESAI (100% Clean Constructors & Complete Contracts)**
+1. **[`modelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts)**: ✅ **SELESAI (100% Clean Constructors & Complete Contracts)**
    - `ScannedModelDescriptor`, `ScannedModelRelationDescriptor`, `ScannedModelColumnDescriptor`, `ScannedModelCastDescriptor`, `ScannedModelAccessorDescriptor`.
    - Seluruh interface constructor parameter 0 `?`. Seluruh constructor 100% direct assignment (`this.x = params.x`).
    - Default resolution & `Object.freeze` dipindahkan sepenuhnya ke Static Semantic Factories (`.create()`, `.empty()`, `.fromTable()`, `.none()`, `.belongsTo()`, `.hasMany()`, `.single()`, `.collection()`, `.primaryKey()`, `.string()`, `.fromReturnType()`, `.fromMapping()`).
-2. **[`requestDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts)**: ✅ **SELESAI (100% Clean Constructors & Complete Contracts)**
+2. **[`requestDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts)**: ✅ **SELESAI (100% Clean Constructors & Complete Contracts)**
    - `ScannedControllerActionDescriptor`, `ScannedFormFieldDescriptor`, `ScannedFormActionDescriptor`, `ScannedRequestTypeDescriptor`.
    - Seluruh interface constructor parameter 0 `?`. Seluruh constructor 100% direct assignment (0 `??`, 0 `?.`, 0 `if (!x)`).
    - Static Semantic Factories di Origin Boundary (`.create()`, `.empty()`, `.required()`, `.optional()`, `.file()`).
-3. **[`channelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/descriptors/channelDescriptors.ts)**: ✅ **SELESAI (100% Clean Constructor & Complete Contract)**
+3. **[`channelDescriptors.ts`](file:///home/annas-zen/Documents/RouteSync/packages/core/src/compiler/scanner/operations/domain-model/channelDescriptors.ts)**: ✅ **SELESAI (100% Clean Constructor & Complete Contract)**
    - `ScannedBroadcastChannelDescriptor`.
    - Interface constructor parameter `ScannedBroadcastChannelParams` 0 `?`. Constructor 100% direct assignment (`this.parameters = parameters`).
    - Helper `compileBroadcastRuntimePattern()` di Origin Boundary, mengeliminasi duplikasi regex.

@@ -1,0 +1,63 @@
+{
+  "phase": 3021,
+  "passed": 14,
+  "total": 14,
+  "checks": [
+    {
+      "name": "StringValueFactoryInterface is explicitly declared",
+      "pass": true
+    },
+    {
+      "name": "stringValue export is interface-backed",
+      "pass": true
+    },
+    {
+      "name": "core public export exposes the factory interface",
+      "pass": true
+    },
+    {
+      "name": "DescriptionTextFactoryInterface accepts StringValue",
+      "pass": true
+    },
+    {
+      "name": "descriptionText export is interface-backed",
+      "pass": true
+    },
+    {
+      "name": "factory projects typed sourceText value",
+      "pass": true
+    },
+    {
+      "name": "query reasoning wraps source message first",
+      "pass": true
+    },
+    {
+      "name": "query producer wraps diagnostic literal first",
+      "pass": true
+    },
+    {
+      "name": "endpoint IR uses typed factory path",
+      "pass": true
+    },
+    {
+      "name": "old raw message factory call removed",
+      "pass": true
+    },
+    {
+      "name": "legacy stringValue(...) calls removed",
+      "pass": true
+    },
+    {
+      "name": "typed stringValue.create calls exist",
+      "pass": true
+    },
+    {
+      "name": "collections.ts remains one byte newline",
+      "pass": true
+    },
+    {
+      "name": "removed relation foundation remains absent",
+      "pass": true
+    }
+  ]
+}

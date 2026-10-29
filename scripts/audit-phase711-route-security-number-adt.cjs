@@ -10,7 +10,7 @@ const checks = {
   resolverUsesNumberValue: /const maxAttempts = numberValue\(/.test(resolver) && /const decayMinutes = numberValue\(/.test(resolver),
   fixedRateLimitUsesTypedNumbers: /kind: 'fixed' as const, limit: Object\.freeze\(\{ kind: 'fixed' as const, maxAttempts, decayMinutes \}\)/.test(resolver),
   noRawRateLimitNumberFields: !/maxAttempts:\s*relationTextNumber|decayMinutes:\s*relationTextNumber/.test(resolver),
-  noLegacyResourceNameInRequestDescriptor: !fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts'), 'utf8').includes('resourceName:'),
+  noLegacyResourceNameInRequestDescriptor: !fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts'), 'utf8').includes('resourceName:'),
 };
 
 const forbidden = {

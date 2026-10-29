@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
 
-const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts');
+const target = path.join(process.cwd(), 'packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts');
 const source = fs.readFileSync(target, 'utf8');
 const checks = {
   if: /\bif\b/g,

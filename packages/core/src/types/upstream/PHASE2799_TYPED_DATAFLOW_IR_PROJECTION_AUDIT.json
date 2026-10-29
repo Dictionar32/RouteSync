@@ -1,0 +1,15 @@
+{
+  "phase": 2799,
+  "title": "Typed Dataflow IR Projection Audit",
+  "checks": 11,
+  "scope": "structural source audit",
+  "contract_reused": "SemanticDataflowIRProjectionInterface",
+  "new_upstream_contracts": 0,
+  "collections_bytes": 0,
+  "limitations": [
+    "Full TypeScript typecheck not run",
+    "Build not run",
+    "Full test suite not run",
+    "CLI scan/sync end-to-end not run"
+  ]
+}

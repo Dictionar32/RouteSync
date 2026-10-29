@@ -8,7 +8,7 @@ const scannerContract = read('packages/core/src/types/upstream/laravelController
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const tests = read('packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.phase1968.test.ts');
 const dependencies = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const oldDependencies = !scanner.includes('semantic/relations') && !scanner.includes('subscanners/') && dependencies.includes("from '../subscanners/controller'");
+const oldDependencies = !scanner.includes('semantic/relations') && !scanner.includes('operations/') && dependencies.includes("from '../operations/controller'");
 const checks = [
   ['declaration subject has canonical source identity', contract.includes('readonly sourceIdentity: SourceFile;')],
   ['correspondence is a closed matched-or-mismatch ADT', contract.includes("readonly kind: 'controller_declaration_semantic_correspondence'") && contract.includes("readonly kind: 'controller_declaration_source_identity_mismatch'")],

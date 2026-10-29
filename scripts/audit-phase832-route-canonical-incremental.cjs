@@ -34,7 +34,7 @@ const preserved = [
   'packages/cli/src/utils/incremental/descriptors/scannedManifestDescriptor.ts'
 ].map(p => ({ path: p, exists: fs.existsSync(path.join(root, p)), bytes: fs.existsSync(path.join(root, p)) ? fs.statSync(path.join(root, p)).size : -1 }));
 
-const coreFactory = path.join(root, 'packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts');
+const coreFactory = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts');
 const coreFactoryRefs = allProduction
   .filter(p => p !== coreFactory && /RouteSemanticFlowFactory/.test(text(p)))
   .map(rel);

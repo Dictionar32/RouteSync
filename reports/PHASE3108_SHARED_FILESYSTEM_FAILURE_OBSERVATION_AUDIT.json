@@ -1,0 +1,19 @@
+{
+  "phase": 3108,
+  "scope": "single shared Node filesystem failure observation plus upstream-owned blocked-discovery settlement on the runtime path",
+  "sharedObservationHasNamedInterface": true,
+  "sharedObservationRetainsFailureCodeNameAndMessage": true,
+  "observationAcceptsUnknownPlatformRejectionAtBoundary": true,
+  "coreSourceReaderUsesSharedObservation": true,
+  "cliLocalDuplicateObservationRemoved": true,
+  "cliImportsSharedObservation": true,
+  "sharedObservationExportedFromCore": true,
+  "upstreamDiscoveryFactoryOwnsFilesystemFailureSettlement": true,
+  "cliDelegatesBlockedJudgmentConstructionToUpstream": true,
+  "regressionTestsCoverErrorAndNonErrorRejections": true,
+  "regressionTestCoversUpstreamFailureSettlementAndEvidencePreservation": true,
+  "deletedRelationFoundationNotReferenced": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

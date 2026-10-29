@@ -4,14 +4,14 @@
  * binding dispatch is a closed semantic catalog, not host-language control flow.
  */
 import type { OriginModelSymbol, ModelSymbolTable } from "../../symbols/ModelSymbolTable";
-import { type PhpAstValue, matchPhpAstValue } from "../../lexer/PhpAst";
+import { type PhpAstValue, matchPhpAstValue } from "../../../frontend/php/PhpAst";
 import type { SourceFile } from "../../../../types/upstream/names";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import { bindWhenLoadedField } from "./whenLoadedBinder";
 import { readWhenLoadedRelation } from "./whenLoadedRelationArgument";
 import { bindPropertyAccessField } from "./propertyAccessBinder";
 import { bindPropertyPathField } from "./propertyPathBinder";
-import { matchPhpAccessMode, matchPhpPropertyPath } from "../../lexer/phpAstAlgebra";
+import { matchPhpAccessMode, matchPhpPropertyPath } from "../../../frontend/php/phpAstAlgebra";
 import { matchResourceOperationKind, resourceOperationKindForMethod } from "../../../../types/upstream/resourceVocabulary";
 import { matchLookup } from "../../../../types/upstream/collections";
 import { relationAll, relationGate, relationProject, relationEqual } from "../../../../semantic/relations/semanticRelations";
@@ -29,13 +29,13 @@ import {
     bindFallbackField
 } from "./compositeBinders";
 
-type KeyedPhpArrayEntry = Extract<import('../../lexer/phpAstTypes').PhpArrayEntry, { readonly kind: 'keyed' }>;
-const keyedEntry = (entry: import('../../lexer/phpAstTypes').PhpArrayEntry) =>
+type KeyedPhpArrayEntry = Extract<import('../../../frontend/php/phpAstTypes').PhpArrayEntry, { readonly kind: 'keyed' }>;
+const keyedEntry = (entry: import('../../../frontend/php/phpAstTypes').PhpArrayEntry) =>
     relationRefine(entry, (candidate): candidate is KeyedPhpArrayEntry => relationEqual(candidate.kind, 'keyed'));
-const expressionKey = (key: import('../../lexer/phpAstTypes').PhpArrayKey) =>
-    relationRefine(key, (candidate): candidate is Extract<import('../../lexer/phpAstTypes').PhpArrayKey, { readonly kind: 'expression' }> => relationEqual(candidate.kind, 'expression'));
+const expressionKey = (key: import('../../../frontend/php/phpAstTypes').PhpArrayKey) =>
+    relationRefine(key, (candidate): candidate is Extract<import('../../../frontend/php/phpAstTypes').PhpArrayKey, { readonly kind: 'expression' }> => relationEqual(candidate.kind, 'expression'));
 
-const resolvedNestedEntry = (entry: import('../../lexer/phpAstTypes').PhpArrayEntry, definitions: RelationIndex<string, PhpAstValue>, visited: RelationMembership<string>) =>
+const resolvedNestedEntry = (entry: import('../../../frontend/php/phpAstTypes').PhpArrayEntry, definitions: RelationIndex<string, PhpAstValue>, visited: RelationMembership<string>) =>
     relationOptionFold(keyedEntry(entry),
         () => ({ ...entry, value: resolveVariableReceivers(entry.value, definitions, visited) }),
         keyed => ({ ...keyed, value: resolveVariableReceivers(keyed.value, definitions, visited), key: relationOptionFold(expressionKey(keyed.key), () => keyed.key, key => ({ ...key, value: resolveVariableReceivers(key.value, definitions, visited) })) }),
@@ -44,7 +44,7 @@ const resolvedNestedEntry = (entry: import('../../lexer/phpAstTypes').PhpArrayEn
 function bindPropertyAccessWithAccess(
     key: string,
     property: string,
-    access: import("../../lexer/phpAstExpressionTypes").PhpAccessMode,
+    access: import("../../../frontend/php/phpAstExpressionTypes").PhpAccessMode,
     modelSymbol: OriginModelSymbol
 ): BoundResourceFieldResult {
     return matchPhpAccessMode(access, {
@@ -140,7 +140,8 @@ function resolveVariableReceivers(
 }
 
 
-export function bindField({
+export interface BindFieldOperation {
+  ({
     key,
     value,
     modelSymbol,
@@ -154,7 +155,24 @@ export function bindField({
     readonly modelSymbolTable: ModelSymbolTable;
     readonly sourceFile: SourceFile;
     readonly variableDefinitions?: RelationIndex<string, PhpAstValue>;
-}): BoundResourceFieldResult {
+}): BoundResourceFieldResult;
+}
+
+export const bindField: BindFieldOperation = Object.freeze(({
+    key,
+    value,
+    modelSymbol,
+    modelSymbolTable,
+    variableDefinitions = Object.freeze([]),
+    sourceFile,
+}: {
+    readonly key: string;
+    readonly value: PhpAstValue;
+    readonly modelSymbol: OriginModelSymbol;
+    readonly modelSymbolTable: ModelSymbolTable;
+    readonly sourceFile: SourceFile;
+    readonly variableDefinitions?: RelationIndex<string, PhpAstValue>;
+}): BoundResourceFieldResult => {
     const semanticValue = resolveVariableReceivers(value, variableDefinitions);
     const bindNestedField = (params: { readonly key: string; readonly value: PhpAstValue; readonly modelSymbol: OriginModelSymbol; readonly modelSymbolTable: ModelSymbolTable }): BoundResourceFieldResult => bindField({ ...params, sourceFile });
     return matchPhpAstValue(semanticValue, {
@@ -217,4 +235,4 @@ export function bindField({
         arrowFunction: () => bindFallbackField(key),
         unsupported: () => bindFallbackField(key),
     });
-}
+});

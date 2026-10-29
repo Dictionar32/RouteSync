@@ -5,13 +5,13 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [];
 const check = (name, condition) => checks.push({ name, result: condition ? 'PASS' : 'FAIL' });
 
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
-const methodParser = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
+const methodParser = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
 const contract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const judgmentInterface = read('packages/core/src/types/upstream/phpAstExpressionSemanticAuthorityInterface.ts');
-const authorityImpl = read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts');
+const authorityImpl = read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts');
 
 check('existing upstream PHP expression authority interface is the injected contract',
   judgmentInterface.includes('interface PhpAstExpressionSemanticAuthorityInterface<Evidence>') &&

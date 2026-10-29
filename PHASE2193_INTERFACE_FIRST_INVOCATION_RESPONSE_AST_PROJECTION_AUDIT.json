@@ -2,7 +2,7 @@
   "phase": 2193,
   "title": "Interface-first invocation/response AST projection dependency",
   "status": "implemented-static-validation-only",
-  "scope": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts;packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts;packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts;packages/core/src/compiler/scanner/LaravelSourceLexer.ts;packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts;packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
+  "scope": "packages/core/src/compiler/frontend/php/controllerBodyParser.ts;packages/core/src/compiler/frontend/php/controllerMethodParser.ts;packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts;packages/core/src/compiler/scanner/LaravelSourceLexer.ts;packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts;packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
   "trace": [
     "LaravelControllerScannerInterface.astProjectionAuthority",
     "LaravelControllerScannerExecutor.astProjectionAuthority",

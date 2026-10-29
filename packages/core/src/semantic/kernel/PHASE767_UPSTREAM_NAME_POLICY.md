@@ -41,7 +41,7 @@ compatibility conversion in the capability builder.
 
 ## Next frontier
 
-The next architectural sweep must continue upward through scanner/lexer,
+The next architectural sweep must continue upward through frontend/php,
 resolver graph, AST/upstream mapping, analysis/data-flow, semantic-type
 lowering, diagnostic algebra, generic solver and rewrite engine. Host control
 flow and collection operations must be removed from semantic authority by

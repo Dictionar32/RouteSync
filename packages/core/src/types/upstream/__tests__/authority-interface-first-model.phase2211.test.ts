@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { legacyLaravelControllerExecutionDependencies } from '../../../compiler/scanner/wiring/laravelControllerExecutionDependencies';
-import { controllerBodySemanticJudgmentAuthority } from '../../../compiler/scanner/subscanners/controller/controllerAstCanonical';
+import { controllerBodySemanticJudgmentAuthority } from '../../../compiler/scanner/operations/controller/controllerAstCanonical';
 
 describe('authority interface-first model phase 2211', () => {
   it('declares exact body-judgment preservation as part of canonical action knowledge', () => {

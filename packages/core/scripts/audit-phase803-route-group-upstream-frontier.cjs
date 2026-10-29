@@ -3,10 +3,10 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const parser = read('src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts');
-const syntax = read('src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
+const parser = read('src/compiler/frontend/php/routeAst/routeDeclarationParser.ts');
+const syntax = read('src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
 const facts = read('src/types/upstream/routeGroupFacts.ts');
-const adapter = read('src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts');
+const adapter = read('src/compiler/scanner/operations/domain-model/route/routeGroupAstAdapter.ts');
 const resolver = read('src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts');
 
 const checks = {

@@ -6,7 +6,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/phpClassNameResolutionInterface.ts');
 const authority = read('packages/core/src/types/upstream/phpClassNameResolutionAuthority.ts');
 const regression = read('packages/core/src/types/upstream/__tests__/php-class-name-resolution-authority.phase2063.test.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
 const staticAuthority = read('packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const invocationAuthority = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts');
@@ -21,7 +21,7 @@ const checks = [
   ['invocation semantic judgment remains an outcome-indexed value, not a second class resolver', () => { assert.match(invocation, /response: Extract<PhpSourceInvocationSemanticPipelineIntegrationResult/); assert.match(invocation, /singleCanonicalModelRule/); assert.doesNotMatch(invocation, /PhpClassNameResolutionRuleInterface/); }],
   ['existing invocation authority delegates source binding and integrated response projection', () => { assert.match(invocationAuthority, /dependencies\.sourceBinding\.bind/); assert.match(invocationAuthority, /dependencies\.integration\.project/); assert.doesNotMatch(invocationAuthority, /phpClassNameResolutionAuthority/); }],
   ['runtime executor remains a downstream execution boundary and does not own class-name resolution', () => { assert.match(runtime, /interface|contract|execute|project/i); assert.doesNotMatch(runtime, /phpClassNameResolutionAuthority|classImports\.find/); }],
-  ['no relation/foundation subscanner or parallel invocation/response/AST authority was introduced', () => { assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')), false); assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')), false); assert.doesNotMatch(parser, /new .*Authority/i); }],
+  ['no relation/foundation subscanner or parallel invocation/response/AST authority was introduced', () => { assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')), false); assert.equal(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')), false); assert.doesNotMatch(parser, /new .*Authority/i); }],
   ['audit command is registered', () => { assert.equal(packageJson.scripts['audit:phase2064-closed-php-class-name-resolution-judgment-interface-first'], 'node scripts/audits/audit-phase2064-closed-php-class-name-resolution-judgment-interface-first.cjs'); }],
 ];
 const results = checks.map(([name, check]) => { try { check(); console.log(`PASS ${name}`); return true; } catch (error) { console.log(`FAIL ${name} — ${error.message}`); return false; } });

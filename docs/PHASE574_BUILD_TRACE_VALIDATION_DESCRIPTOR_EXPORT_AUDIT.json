@@ -5,8 +5,8 @@
     "TS2305: Module './validationDescriptors' has no exported member 'RouteSemanticFlowValidationRuleSet'",
     "TS2459: Module './validationDescriptors' declares 'RouteValidationRuleSet' locally, but it is not exported"
   ],
-  "canonicalSource": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts",
-  "reexportSurface": "packages/core/src/compiler/scanner/descriptors/validationDescriptors.ts",
+  "canonicalSource": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts",
+  "reexportSurface": "packages/core/src/compiler/scanner/operations/domain-model/validationDescriptors.ts",
   "status": "source-closure-fixed",
   "fullBuildExecuted": false,
   "fullBuildReason": "node_modules is absent from the extracted checkpoint"

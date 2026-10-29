@@ -9,7 +9,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 const controller = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const routeJudgment = read('packages/core/src/types/upstream/laravelScannerSemanticJudgment.ts');
 const invocationPipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
-const invocationAnalyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const invocationAnalyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const routeInterface = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const resourceInterface = read('packages/core/src/types/upstream/laravelResourceScannerInterface.ts');

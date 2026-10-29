@@ -21,14 +21,14 @@ const legacyReferences = files.flatMap(file => {
 
 const changed = [
   'packages/core/src/types/upstream/modelVocabulary.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/memberAccessorsParser.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelAccessorExpressionMapper.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelAccessorCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/model/memberAccessorsParser.ts',
   'packages/core/src/types/domain/eloquentTypes.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelAccessorDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts',
 ];
 const transpileDiagnostics = [];
 for (const file of changed) {
@@ -44,10 +44,10 @@ for (const file of changed) {
 }
 
 const vocabulary = read('packages/core/src/types/upstream/modelVocabulary.ts');
-const accessorMapper = read('packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts');
-const accessorCanonical = read('packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts');
+const accessorMapper = read('packages/core/src/compiler/scanner/operations/model/modelAccessorExpressionMapper.ts');
+const accessorCanonical = read('packages/core/src/compiler/scanner/operations/model/modelAccessorCanonical.ts');
 const eloquent = read('packages/core/src/types/domain/eloquentTypes.ts');
-const routeLegacy = read('packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts');
+const routeLegacy = read('packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts');
 
 let inactive = { allCandidatesEmpty: false };
 try {

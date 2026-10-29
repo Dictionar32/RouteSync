@@ -6,9 +6,9 @@ const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
 const contract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
-const producer = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts');
+const producer = read('packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts');
 const adapterContract = read('packages/core/src/types/upstream/semanticKnowledgeEvidenceAdapterInterface.ts');
 
 check('scanner contract and value share version 84', contract.includes('readonly version: 84;') && contract.includes('  version: 84,'));

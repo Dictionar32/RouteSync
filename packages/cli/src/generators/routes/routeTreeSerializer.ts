@@ -9,7 +9,11 @@
 import { matchPageEndpoint } from '@routesync/core';
 import { ScannedPageEndpointDescriptor } from './pageEndpointDescriptor';
 
-export function buildRouteTree(pages: Record<string, unknown>): any {
+export interface BuildRouteTreeOperation {
+  (pages: Record<string, unknown>): any;
+}
+
+export const buildRouteTree: BuildRouteTreeOperation = Object.freeze((pages: Record<string, unknown>): any => {
   const routeTree: any = {};
 
   for (const [key, value] of Object.entries(pages)) {
@@ -49,9 +53,13 @@ export function buildRouteTree(pages: Record<string, unknown>): any {
   }
 
   return routeTree;
+});
+
+export interface SerializeRouteTreeOperation {
+  (tree: any, indent: string = '  '): { js: string[], dts: string[] };
 }
 
-export function serializeRouteTree(tree: any, indent: string = '  '): { js: string[], dts: string[] } {
+export const serializeRouteTree: SerializeRouteTreeOperation = Object.freeze((tree: any, indent: string = '  '): { js: string[], dts: string[] } => {
   const jsLines: string[] = [];
   const dtsLines: string[] = [];
 
@@ -95,4 +103,4 @@ export function serializeRouteTree(tree: any, indent: string = '  '): { js: stri
     }
   }
   return { js: jsLines, dts: dtsLines };
-}
+});

@@ -6,8 +6,8 @@
     "packages/core/src/types/upstream/semanticInterproceduralDataFlowInterface.ts",
     "packages/core/src/types/upstream/semanticInterproceduralDataFlowAlgebra.ts",
     "packages/core/src/types/upstream/semanticInterproceduralDataFlowAuthority.ts",
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts",
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts"
+    "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts",
+    "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts"
   ],
   "invariants": {
     "interface_directly_imports_generic_rewrite_implementation_types": false,

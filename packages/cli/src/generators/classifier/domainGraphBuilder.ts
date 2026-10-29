@@ -18,7 +18,11 @@ import { projectRoutes, buildResourceMap } from './routeGrouper';
 import { resolveGroupErrorType, getStandardMutationKeys } from './typeResolver';
 import { buildCrudGroupDescriptor, buildCustomOrSingletonGroupDescriptor } from './builders';
 
-export function buildClassifiedDomainGraph(manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute> {
+export interface BuildClassifiedDomainGraphOperation {
+  (manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute>;
+}
+
+export const buildClassifiedDomainGraph: BuildClassifiedDomainGraphOperation = Object.freeze((manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute> => {
   const groupAliases = manifest.frontend && manifest.frontend.groupAliases ? manifest.frontend.groupAliases : undefined;
   const classified = projectRoutes(manifest.routes, groupAliases);
   const rawResources = buildResourceMap(classified);
@@ -70,4 +74,4 @@ export function buildClassifiedDomainGraph(manifest: RouteManifest): ClassifiedD
     resourceGroupGraph,
     models: Object.freeze(manifest.models ? [...manifest.models] : [])
   });
-}
+});

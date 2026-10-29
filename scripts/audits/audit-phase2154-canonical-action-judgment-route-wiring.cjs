@@ -7,7 +7,7 @@ const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControlle
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const routeScanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const routeContract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
-const routeProjection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeProjection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const routeRequestAdt = read('packages/core/src/types/domain/request.ts');
 const endpointAdt = read('packages/core/src/types/upstream/endpointBindings.ts');
 const requestSolver = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
@@ -28,7 +28,7 @@ const checks = [
   ['existing route binding authority remains owner of target-resolution judgment', /bindingAuthority\.judge\(/.test(routeScanner) && /RouteControllerBindingJudgmentAuthority/.test(routeContract)],
   ['controller publication and prepared route-operation contracts retain their versions', /contractVersion: 44/.test(scannerContract) && /contractVersion = 44 as const/.test(scanner) && /readonly contractVersion: 33;/.test(routeContract) && /contractVersion: 33,/.test(routeScanner)],
   ['typed request projection-loss obligation no longer claims the route boundary is unwired', !/typed_request_binding_projection_loss/.test(actionCoverage) && /route-boundary-consumes-source-correlated-canonical-action-judgment/.test(actionCoverage)],
-  ['no relation/foundation or new subscanner layer added', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/actionJudgmentRouteRequest.ts'))],
+  ['no relation/foundation or new subscanner layer added', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/actionJudgmentRouteRequest.ts'))],
 ];
 const syntaxFiles = [
   'packages/core/src/types/upstream/laravelControllerScannerInterface.ts',
@@ -41,7 +41,7 @@ const syntaxFiles = [
   'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts',
   'packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts',
   'packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts',
+  'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts',
 ];
 for (const file of syntaxFiles) {
   const result = ts.transpileModule(read(file), { fileName: file, reportDiagnostics: true, compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } });

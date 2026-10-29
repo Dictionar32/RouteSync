@@ -2203,6 +2203,12 @@ export type RequestTypeDerivationSemanticPipelineContractMismatch = Readonly<{
   readonly actual: RequestTypeDerivationContract;
 }>;
 
+/** Domain handlers for continuing from the assembly decision without redispatching on `kind`. */
+export interface RequestTypeDerivationSemanticPipelineAssemblyHandlers<TResult, TContract extends RequestTypeDerivationContract = RequestTypeDerivationContract, TInference extends RequestTypeDerivationSemanticInferenceFor<TContract> = RequestTypeDerivationSemanticInferenceFor<TContract>> {
+  readonly assembled: (pipeline: RequestTypeDerivationSemanticPipelineInterface<TContract, TInference>) => TResult;
+  readonly rejected: (result: Extract<RequestTypeDerivationSemanticPipelineAssemblyResult<TContract, TInference>, { readonly kind: 'rejected' }>) => TResult;
+}
+
 /** Result of validating the composition boundary before exposing a consumer pipeline. */
 export type RequestTypeDerivationSemanticPipelineAssemblyResult<
   TContract extends RequestTypeDerivationContract = RequestTypeDerivationContract,
@@ -2212,6 +2218,7 @@ export type RequestTypeDerivationSemanticPipelineAssemblyResult<
   | Readonly<{
       readonly kind: 'assembled';
       readonly pipeline: RequestTypeDerivationSemanticPipelineInterface<TContract, TInference>;
+      readonly continueWith: <TResult>(handlers: RequestTypeDerivationSemanticPipelineAssemblyHandlers<TResult, TContract, TInference>) => TResult;
     }>
   | Readonly<{
       readonly kind: 'rejected';
@@ -2219,6 +2226,7 @@ export type RequestTypeDerivationSemanticPipelineAssemblyResult<
         RequestTypeDerivationSemanticPipelineContractMismatch,
         ...RequestTypeDerivationSemanticPipelineContractMismatch[],
       ];
+      readonly continueWith: <TResult>(handlers: RequestTypeDerivationSemanticPipelineAssemblyHandlers<TResult, TContract, TInference>) => TResult;
     }>;
 
 /**
@@ -2253,11 +2261,11 @@ export interface RequestTypeDerivationJudgmentConsumerInterface {
 }
 
 /**
- * Closed result of upstream operation preparation and runtime execution.
- * Only outcomes justified by semantic authority are represented here; contract
- * construction, source binding, and assessment validation belong upstream.
+ * Data view of a closed RequestType derivation outcome. The data view is used
+ * when a domain operation hands evidence to a downstream lowering boundary;
+ * it deliberately excludes runtime operations from serialized evidence.
  */
-export type RequestTypeDerivationRuntimeExecutionResult =
+export type RequestTypeDerivationRuntimeExecutionResultData =
   | Readonly<{
       readonly kind: 'projected';
       readonly assessment: Extract<RequestTypeDerivationSemanticAuthorityAssessmentFor, { readonly kind: 'derivation_verified' }>;
@@ -2299,6 +2307,50 @@ export type RequestTypeDerivationRuntimeExecutionResult =
         { readonly kind: 'integrity_invalid' }
       >;
     }>;
+
+export type RequestTypeDerivationProjectableRuntimeExecutionData = Extract<
+  RequestTypeDerivationRuntimeExecutionResultData,
+  { readonly kind: 'projected' }
+>;
+
+export type RequestTypeDerivationBlockedRuntimeExecutionData = Exclude<
+  RequestTypeDerivationRuntimeExecutionResultData,
+  { readonly kind: 'projected' }
+>;
+
+/**
+ * Domain-specific classification for the manifest lowering boundary. This is
+ * not a generic Result/visitor abstraction: it answers one question owned by
+ * RequestType derivation — whether a verified projection is available.
+ */
+export type RequestTypeDerivationManifestProjectionDisposition =
+  | Readonly<{
+      readonly kind: 'request_type_derivation_projectable';
+      readonly derivation: RequestTypeDerivationProjectableRuntimeExecutionData;
+    }>
+  | Readonly<{
+      readonly kind: 'request_type_derivation_not_projectable';
+      readonly derivation: RequestTypeDerivationBlockedRuntimeExecutionData;
+    }>;
+
+/**
+ * Closed result of upstream RequestType derivation. Each outcome owns a
+ * domain operation that states whether its evidence can enter manifest
+ * projection; consumers do not supply handlers or re-interpret the ADT kind.
+ */
+export type RequestTypeDerivationRuntimeExecutionResult =
+  | (RequestTypeDerivationProjectableRuntimeExecutionData & Readonly<{
+      readonly toManifestProjectionDisposition: () => Extract<
+        RequestTypeDerivationManifestProjectionDisposition,
+        { readonly kind: 'request_type_derivation_projectable' }
+      >;
+    }>)
+  | (RequestTypeDerivationBlockedRuntimeExecutionData & Readonly<{
+      readonly toManifestProjectionDisposition: () => Extract<
+        RequestTypeDerivationManifestProjectionDisposition,
+        { readonly kind: 'request_type_derivation_not_projectable' }
+      >;
+    }>);
 
 /**
  * Upstream preparation contract for RequestType derivation.

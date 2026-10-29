@@ -15,7 +15,7 @@ const checks = [
   ['response AST projection receives the same invocation judgment', scanner.includes('judgment: invocationJudgment,\n                responseJudgment,')],
   ['artifact retains invocation and response judgments', scanner.includes('invocationJudgment,\n                responseJudgment,\n                projectionJudgment,')],
   ['contract declares canonical source identity ownership', contract.includes('Source correlation must use LaravelSourceIdentitySemanticsInterface')],
-  ['no relation/foundation subscanner introduced by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation'))],
+  ['no relation/foundation subscanner introduced by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation'))],
 ];
 let passed = 0;
 for (const [name, ok] of checks) {

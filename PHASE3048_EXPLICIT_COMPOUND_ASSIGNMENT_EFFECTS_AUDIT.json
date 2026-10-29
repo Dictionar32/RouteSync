@@ -1,0 +1,36 @@
+{
+  "phase": 3048,
+  "title": "Explicit Compound Assignment Effects — Domain-Owned Read/Write Projection",
+  "runtimeTrace": [
+    "PHP AST assignment expression or statement enters the corresponding syntax evidence producer",
+    "producer creates one canonical SemanticAssignment and emits that exact assignment fact",
+    "the assignment operator references an explicit SemanticAssignmentEffectDefinition",
+    "the effect definition owns a typed project operation: plain assignment emits mod; compound assignment emits ref and mod",
+    "the producer forwards every projected relation through the adapter-owned relation continuation",
+    "SemanticKnowledgeDataFlow.modRefRelations preserves the relations for semanticObjectIdentityOperations.modRefEvidence",
+    "integrated semantic response continues through the interface-backed CLI scan and controller-invocation manifest composition path"
+  ],
+  "checks": {
+    "effectDefinitionOwnsTypedDomainProjection": true,
+    "writeOnlyAssignmentProjectsMod": true,
+    "compoundAssignmentProjectsSeparateRefAndMod": true,
+    "noCompositeModRefForCompoundAssignmentProjection": true,
+    "expressionProducerUsesDomainProjection": true,
+    "statementProducerUsesDomainProjection": true,
+    "adapterPreservesEveryProjectedRelation": true,
+    "testAssertsReadAndWriteAreDistinct": true,
+    "runtimeCliManifestInterfacePathPreserved": true,
+    "noVisitorSwitchOrLookupAddedToEffectProjection": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 12,
+  "total": 12,
+  "remainingDebt": [
+    "The parser boundary still resolves syntax operator codes into canonical operator definitions; no global primitive elimination is claimed.",
+    "The separate ref/mod outcomes currently share the assignment source span and target identity; exact PHP evaluation order, indirect locations, and by-reference aliasing require further modeling.",
+    "Callable effect summaries remain unresolved blockers.",
+    "Full repository typecheck, full Vitest, and end-to-end CLI-to-manifest execution remain unverified."
+  ],
+  "failedChecks": []
+}

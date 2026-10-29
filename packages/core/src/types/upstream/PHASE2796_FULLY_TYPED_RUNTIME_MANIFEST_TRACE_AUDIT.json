@@ -1,0 +1,16 @@
+{
+  "phase": 2796,
+  "title": "Fully Typed Runtime Scanner Operations — CLI Upstream Manifest Trace",
+  "scope": "CLI scan/sync through source inventory closure and upstream manifest construction",
+  "contractFirst": true,
+  "newUpstreamContractsAdded": false,
+  "runtimePattern": "export const operation: ExistingInterface = Object.freeze({...})",
+  "adtPreservation": ["LaravelSourceAstProjectionJudgment", "ManifestBuilderJudgment", "ManifestBuilderSourceAstBlockedJudgment", "ManifestBuilderSourceModelBlockedJudgment"],
+  "genericReasoningPrimitiveAdded": false,
+  "collectionsTsBytes": 0,
+  "auditChecks": 12,
+  "fullTypecheck": "not run",
+  "build": "not run",
+  "fullTestSuite": "not run",
+  "cliScanSyncE2E": "not run"
+}

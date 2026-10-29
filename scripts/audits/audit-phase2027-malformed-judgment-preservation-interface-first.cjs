@@ -5,7 +5,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const algebra = read('packages/core/src/types/upstream/astClassifierRuleAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const scanner = read('packages/core/src/types/upstream/scannerMatchExpressionInterface.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');

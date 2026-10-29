@@ -17,7 +17,7 @@
       "diagnostics": []
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts",
       "diagnostics": []
     }
   ]

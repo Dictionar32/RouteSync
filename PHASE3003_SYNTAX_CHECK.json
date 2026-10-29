@@ -1,0 +1,31 @@
+{
+  "phase": 3003,
+  "files": 6,
+  "syntaxClean": true,
+  "results": [
+    {
+      "file": "packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticCoveragePublicationAuthority.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/index.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/__test__/ecommerceShopDataflowPhase104.spec.ts",
+      "diagnostics": []
+    }
+  ]
+}

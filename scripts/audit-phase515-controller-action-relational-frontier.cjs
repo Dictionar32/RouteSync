@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const source = fs.readFileSync(target, 'utf8');
 const checks = {
   if: /\bif\b/g,

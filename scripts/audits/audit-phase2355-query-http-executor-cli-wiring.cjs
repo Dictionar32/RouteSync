@@ -29,7 +29,7 @@ const checks = [
   ['manifest builder executes the source AST pipeline used by CLI', /laravelSourceAstPipeline\.execute\(pipelineInput\)/.test(manifest)],
   ['active SDK executor path adds no semantic foundation dependency', !/semantic\/foundation/.test(sdk + client + emitter + generator)],
   ['active SDK executor path adds no semantic relation dependency', !/semantic\/relation/.test(sdk + client + emitter + generator)],
-  ['active SDK executor path adds no subscanner dependency', !/subscanners?\//.test(sdk + client + emitter + generator)],
+  ['active SDK executor path adds no subscanner dependency', !/operations?\//.test(sdk + client + emitter + generator)],
   ['executor accepts complete method evidence rather than creating a new per-verb interface', !/interface\s+QueryHttpClient|interface\s+QueryOperationExecutor/.test(client + sdk)],
 ];
 const failed = checks.filter(([, ok]) => !ok);

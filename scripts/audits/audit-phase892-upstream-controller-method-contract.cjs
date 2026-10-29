@@ -3,10 +3,10 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '../..');
 const controller = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/controller.ts'), 'utf8');
-const ast = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts'), 'utf8');
-const body = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts'), 'utf8');
-const parser = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts'), 'utf8');
-const canonical = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts'), 'utf8');
+const ast = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerAstTypes.ts'), 'utf8');
+const body = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts'), 'utf8');
+const parser = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerMethodParser.ts'), 'utf8');
+const canonical = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts'), 'utf8');
 
 const allTs = [];
 function walk(dir) {

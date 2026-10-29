@@ -1,0 +1,48 @@
+{
+  "phase": 2727,
+  "audit": "resolver-graph-runtime-operations",
+  "passed": 8,
+  "total": 8,
+  "checks": [
+    {
+      "name": "resolver graph operation contract is interface-first",
+      "passed": true,
+      "detail": "Named operation contract and frozen runtime object exist."
+    },
+    {
+      "name": "resolver graph has no exported free-function entrypoints",
+      "passed": true,
+      "detail": "Previous exported function and arrow-function entrypoints are private implementations now."
+    },
+    {
+      "name": "runtime operations preserve typed judgment and interface outputs",
+      "passed": true,
+      "detail": "Both operation results remain fully typed."
+    },
+    {
+      "name": "semantic judgment remains closed and discriminated",
+      "passed": true,
+      "detail": "The existing semantic judgment tags and closure marker remain."
+    },
+    {
+      "name": "fixed-point relation solver remains the semantic implementation",
+      "passed": true,
+      "detail": "No boolean shortcut or replacement semantic foundation introduced."
+    },
+    {
+      "name": "upstream CLI manifest trace audit remains in workspace",
+      "passed": true,
+      "detail": "Existing upstream manifest trace retains complete/blocked distinction."
+    },
+    {
+      "name": "Phase 2726 semantic mapping audit remains available",
+      "passed": true,
+      "detail": "Prior semantic mapping runtime ownership checks remain available."
+    },
+    {
+      "name": "no relationFoundation replacement introduced in this phase",
+      "passed": true,
+      "detail": "No relationFoundation module recreated."
+    }
+  ]
+}

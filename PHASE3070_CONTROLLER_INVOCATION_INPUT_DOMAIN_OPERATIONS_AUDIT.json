@@ -1,0 +1,63 @@
+{
+  "phase": 3070,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — controller invocation input domain operations",
+  "status": "PASS",
+  "passed": 14,
+  "total": 14,
+  "checks": {
+    "genericInputHandlersRemoved": true,
+    "explicitInputDomainOperationsDeclared": true,
+    "notProvidedInputOwnsDomainOperation": true,
+    "providedInputOwnsDomainOperation": true,
+    "authorityConsumesInputOperationDirectly": true,
+    "noGenericHandlerDispatchRemainsInJudge": true,
+    "notProvidedOutcomePreserved": true,
+    "providedOutcomePreservesBindingAndIntegration": true,
+    "inputContractVersionUpdated": true,
+    "exportedFactoryRemainsInterfaceFirst": true,
+    "exportedRuntimeAuthorityIsInterfaceFirstObject": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": [
+    {
+      "phase": "phase3069",
+      "status": "PASS",
+      "output": "PASS genericIntegrationHandlerContractRemoved\nPASS integrationOutcomesOwnExplicitControllerJudgmentOperation\nPASS operationHasDomainSpecificReturnType\nPASS integrationContractVersionBumped\nPASS contractNamesDomainOperation\nPASS notConnectedOutcomeInstallsOperation\nPASS sourceBindingRejectedOutcomeInstallsOperation\nPASS completeOutcomeInstallsOperation\nPASS blockedOutcomeInstallsOperation\nPASS operationPreservesExactResponseAndSourceIdentity\nPASS operationIsInterfaceFirstExport\nPASS consumerUsesDomainOperationInsteadOfGenericDispatch\nPASS oldGenericHandlerIsNotRetainedInIntegrationModule\nPASS canonicalIdentityAuthorityStillOwnsIdentityRelation\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n17/17 checks passed\nPhase 3068 regression: PASS\nPhase 3067 regression: PASS\n"
+    },
+    {
+      "phase": "phase3068",
+      "status": "PASS",
+      "output": "PASS producerContractOwnsDomainIntegrationOperation\nPASS producerNoLongerExposesGenericResultHandlers\nPASS producerAuthorityInstallsOperationOnBlockedOutcome\nPASS producerAuthorityInstallsOperationOnCompleteOutcome\nPASS sourceBindingAdtOwnsCompositionProjection\nPASS sourceBindingAuthorityUsesItsDomainOperation\nPASS compositionEvidenceAdtOwnsIntegrationOperation\nPASS notConnectedEvidenceOwnsIntegrationOperation\nPASS connectedAndRejectedEvidenceOwnIntegrationOperation\nPASS integrationOutcomeFactoryIsExplicitlyTyped\nPASS completeIntegrationRetainsExactPipelineAndBatch\nPASS blockedIntegrationRetainsExactPipelineAndSourceBinding\nPASS consumerCallsProducerDomainOperation\nPASS integrationAuthorityDelegatesToEvidenceDomainOperation\nPASS consumerNoLongerDispatchesPipelineResultHandlers\nPASS completionAndBlockageRemainSeparate\nPASS sourceBindingKeepsExactPipelineResult\nPASS contractVersionBumpedForOperationChange\nPASS manifestBuilderBlockedProjectionStillExists\nPASS cliScanBlockedGatePrecedesOutputWrites\nPASS cliSyncBlockedGatePrecedesOutputWrites\nPASS deletedRelationFoundationRemainsAbsent\nPASS protectedCollectionsInvariantOneNewlineByte\n23/23 checks passed\nPhase 3067 regression: PASS\nPhase 3062 regression: PASS\n"
+    },
+    {
+      "phase": "phase3067",
+      "status": "PASS",
+      "output": "PASS genericSchemaEvidenceHandlerContractRemoved\nPASS availableEvidenceExposesDomainBoundaryProjection\nPASS unavailableEvidenceExposesDomainBoundaryProjection\nPASS availableConstructorRetainsCanonicalSchemaAndEvidenceIdentity\nPASS unavailableConstructorRetainsReasonAndEvidenceIdentity\nPASS availableAndUnavailableNoLongerExposeGenericContinueWith\nPASS routeCompositionUsesSingleBoundaryProjectionForControllerAction\nPASS routeCompositionUsesSingleBoundaryProjectionForControllerReference\nPASS closureTargetUsesUnavailableEvidenceProjection\nPASS routeCompositionDoesNotDispatchOnSchemaEvidenceKind\nPASS regressionTestsAssertEvidenceIdentityAndReason\nPASS manifestBuilderBlockedProjectionStillExists\nPASS cliScanBlockedGatePrecedesOutputWrites\nPASS cliSyncBlockedGatePrecedesOutputWrites\nPASS deletedRelationFoundationRemainsAbsent\nPASS protectedCollectionsInvariantOneNewlineByte\n16/16 checks passed\nPhase 3066 boundary projection regression: PASS\n"
+    }
+  ],
+  "runtimeTrace": [
+    "CLI controller scanning obtains a canonical controller source and its optional whole-file PHP invocation pipeline result.",
+    "The upstream invocation-input factory constructs one of two closed inputs: pipeline-not-provided or pipeline-provided.",
+    "Each input exposes toControllerInvocationSemanticJudgment(domainOperations); it no longer stores a generic Result callback or handler bundle.",
+    "The invocation authority receives that explicit operation and executes the matching domain operation.",
+    "The no-pipeline operation produces the not-connected integration outcome; the provided-pipeline operation preserves source binding and integrated response outcome.",
+    "The integration outcome converts to the exact controller judgment while preserving source identity relation semantics; downstream scanner and manifest consume that judgment."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "changedFileSyntaxTranspile": "PASS",
+    "regressions": "PASS",
+    "strictTypeScript": "NOT_CLAIMED — syntax transpilation does not establish whole-program type correctness; the repository has previously observed dependency-graph diagnostics.",
+    "vitestRuntime": "NOT_RUN — workspace Vitest installation is incomplete.",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "globalPrimitiveOrGenericElimination": "NOT_CLAIMED"
+  },
+  "remainingRisks": [
+    "Other upstream domains still expose generic continuation operations; this phase only migrates the controller invocation input boundary.",
+    "The public authority is an interface-first object, while a class-backed executor remains internally for compatibility; this phase does not claim a repository-wide conversion of every implementation to object literals.",
+    "Full PHP → CLI → manifest/IR execution remains unverified."
+  ]
+}

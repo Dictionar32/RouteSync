@@ -15,7 +15,7 @@ const checks = [
   ['runtime executor explicitly forwards coverage without upgrading it', /explicit value-level coverage/.test(executor) && /never upgrades partial coverage/.test(executor) && /semanticJudgment: input\.semanticJudgment/.test(wiring) && /coverage: controllerActionSemanticKnowledgeCoverage/.test(wiring)],
   ['scanner still passes the exact action judgment to the runtime executor', /this\.executionDependencies\.actionJudgment\.judge\(/.test(scanner) && /this\.executionDependencies\.actionExecution\.execute\(\{\s*semanticJudgment\s*[,}]/.test(scanner)],
   ['legacy derivation remains disclosed rather than represented as migrated', /scanControllerAction\(/.test(wiring) && /upstream-action-derivation-is-not-yet-closed/.test(wiring)],
-  ['no relation/foundation or new subscanner layer is introduced', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|subscanners\/(relation|foundation)/.test(contract + executor + wiring)],
+  ['no relation/foundation or new subscanner layer is introduced', !/types\/upstream\/(relation|foundation)|semantic\/(relation|foundation)|operations\/(relation|foundation)/.test(contract + executor + wiring)],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

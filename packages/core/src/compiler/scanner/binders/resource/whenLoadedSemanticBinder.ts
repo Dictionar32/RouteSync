@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
+import { semanticTypeConstruction } from '../../../semantic/semanticTypeConstruction';
 import type { OriginModelSymbol } from "../../symbols/ModelSymbolTable";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 import { BoundSemanticFactory } from "../../../../types/domain/boundAst";
@@ -11,22 +11,24 @@ import { matchLookup, type Lookup } from "../../../../types/upstream/collections
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import type { RelationName } from "../../../../types/upstream/names";
 
-export function resolveWhenLoadedRelation(
-    modelSymbol: OriginModelSymbol,
-    relationName: RelationName,
-): Lookup<ModelSemanticRelation> {
-    return modelSymbol.relation(relationName);
+export interface ResolveWhenLoadedRelationOperation {
+  (modelSymbol: OriginModelSymbol, relationName: RelationName): Lookup<ModelSemanticRelation>;
 }
 
-export function bindWhenLoadedResolution(
-    key: string,
-    resolution: Lookup<ModelSemanticRelation>,
-): BoundResourceFieldResult {
+export const resolveWhenLoadedRelation: ResolveWhenLoadedRelationOperation = Object.freeze((modelSymbol: OriginModelSymbol, relationName: RelationName): Lookup<ModelSemanticRelation> => {
+    return modelSymbol.relation(relationName);
+});
+
+export interface BindWhenLoadedResolutionOperation {
+  (key: string, resolution: Lookup<ModelSemanticRelation>): BoundResourceFieldResult;
+}
+
+export const bindWhenLoadedResolution: BindWhenLoadedResolutionOperation = Object.freeze((key: string, resolution: Lookup<ModelSemanticRelation>): BoundResourceFieldResult => {
     return matchLookup(resolution, {
         missing: () => unresolvedWhenLoaded(key),
         found: ({ value }) => bindResolvedWhenLoaded(key, value),
     });
-}
+});
 
 function bindResolvedWhenLoaded(key: string, relation: ModelSemanticRelation): BoundResourceFieldResult {
     const semanticType = relation.semanticType;
@@ -59,7 +61,7 @@ function unresolvedWhenLoaded(key: string): BoundResourceFieldResult {
     const boundAst = BoundSemanticFactory.unsupported('unresolved_relation');
     const expression = ResourceFieldExpressionFactory.unsupported('unresolved_relation');
     const binding = ResourceFieldSemanticBinding.fromExpression(
-        key, expression, scannerSemanticType.error('whenLoaded relation could not be resolved'), toCamelCase(key), boundAst,
+        key, expression, semanticTypeConstruction.error('whenLoaded relation could not be resolved'), toCamelCase(key), boundAst,
     );
     return { binding, boundAst };
 }

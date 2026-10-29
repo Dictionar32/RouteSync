@@ -3,7 +3,7 @@ const path = require('path');
 const ts = require('typescript');
 const roots = [
   'packages/core/src/compiler/scanner/resolvers',
-  'packages/core/src/compiler/scanner/subscanners/model',
+  'packages/core/src/compiler/scanner/operations/model',
   'packages/core/src/compiler/domain/common',
   'packages/core/src/semantic/plugins',
 ];

@@ -8,7 +8,7 @@ Control flow (`if`, `while`, `switch`) is allowed only when it is generic traver
 
 ## Audit scope
 
-`packages/core/src/compiler/scanner/lexer/routeAst`, route semantic adapters, and upstream route ADTs.
+`packages/core/src/compiler/frontend/php/routeAst`, route semantic adapters, and upstream route ADTs.
 
 ## Findings from Phase 119 checkpoint
 

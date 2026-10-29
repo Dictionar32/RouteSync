@@ -18,22 +18,22 @@
       "never": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMethods.ts",
       "null": 1,
       "never": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts",
       "null": 1,
       "never": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstFactory.ts",
       "null": 1,
       "never": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts",
       "null": 2,
       "never": 0
     },

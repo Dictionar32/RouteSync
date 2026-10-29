@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '../..');
-const target = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const parser = path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
+const target = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const parser = path.join(root, 'packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
 const text = fs.readFileSync(target, 'utf8');
 const parserText = fs.readFileSync(parser, 'utf8');
 

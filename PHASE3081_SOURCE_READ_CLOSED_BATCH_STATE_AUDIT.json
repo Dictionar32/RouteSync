@@ -1,0 +1,42 @@
+{
+  "phase": 3081,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — closed source-read batch state",
+  "status": "PASS_STRUCTURAL",
+  "passed": 12,
+  "total": 12,
+  "checks": {
+    "batchAccumulatorIsClosedStateUnion": true,
+    "openStateTransitionsToRejectedState": true,
+    "rejectedStateCannotReturnToOpen": true,
+    "rejectionDecisionNotInferredFromArrayLength": true,
+    "rejectedEvidenceAndSourceIdentityPreserved": true,
+    "settlementsContributeThroughDomainOperation": true,
+    "manifestConsumesBatchJudgmentAtExistingRuntimeBoundary": true,
+    "interfaceFirstFactoryExport": true,
+    "noExportedFunctionDeclarationInChangedUpstreamFile": true,
+    "changedFilesTranspileWithoutSyntaxDiagnostics": true,
+    "collectionsInvariantPreserved": true,
+    "deletedRelationFoundationNotRestored": true
+  },
+  "syntaxDiagnostics": [],
+  "runtimeTrace": [
+    "CLI discovered source inventory → source document reader → typed settlement operations.",
+    "Fulfilled settlements preserve read order in the open batch state.",
+    "The first rejected settlement transitions the accumulator to a rejected state; that state cannot transition back to open/fulfilled.",
+    "The rejected state preserves every rejection and the SourceFileInventory before the existing CLI manifest terminal consumes the batch judgment."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "syntaxTranspile": "PASS",
+    "strictWholeWorkspaceTypecheck": "NOT_RUN — dependencies/toolchain are not installed in this extracted workspace",
+    "fullTestSuite": "NOT_RUN",
+    "phpCliManifestGeneratorEndToEnd": "NOT_RUN",
+    "genericBatchContinuation": "STILL_OPEN — retained as manifest-neutral elimination boundary",
+    "indexBasedSettlementTraversal": "STILL_OPEN — intentionally not represented as solved"
+  },
+  "nextFrontiers": [
+    "Replace index-based settlement traversal with a typed sequence/cursor domain operation and prove source ordering.",
+    "Replace generic final batch continuation with a manifest-neutral typed operation without importing CLI terminal types into core.",
+    "Run strict TypeScript, focused source-read tests, and PHP → CLI → manifest → generator integration."
+  ]
+}

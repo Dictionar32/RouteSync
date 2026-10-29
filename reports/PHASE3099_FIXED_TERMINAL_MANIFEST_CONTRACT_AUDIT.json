@@ -1,0 +1,15 @@
+{
+  "phase": 3099,
+  "scope": "fixed typed result contract for CLI manifest terminal operation",
+  "terminalHandlerResultGenericRemoved": true,
+  "terminalOperationResultGenericRemoved": true,
+  "successfulTerminalReturnTypeExplicit": true,
+  "successfulHandlerReturnTypeExplicit": true,
+  "namedTerminalHandlersRetained": true,
+  "terminalFactoryStillBindsDomainHandlers": true,
+  "scanSyncAndDriftConsumersRemainOnTypedOperation": true,
+  "sourceEvidenceAndBlockedHandlerShapesRetained": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

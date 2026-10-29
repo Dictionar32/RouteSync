@@ -2,7 +2,7 @@
 
 ## Direction
 
-The scanner/lexer/resolver boundary now follows the same semantic authority used by the
+The frontend/php/resolver boundary now follows the same semantic authority used by the
 relation solver: lexical operators remain language evidence, while host-language semantic
 selection is expressed through relation gates, relation equality, recursive relation closure,
 and text relations.
@@ -37,5 +37,5 @@ Result:
 - `transpileDiagnosticsClean: true`
 - `ok: true`
 
-The audit targets the active scanner/lexer/resolver frontier rather than tests or historical
+The audit targets the active frontend/php/resolver frontier rather than tests or historical
 migration artifacts.

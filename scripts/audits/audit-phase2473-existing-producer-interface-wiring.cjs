@@ -1,10 +1,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const providerCanonical = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts'), 'utf8');
-const providerProducer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/providerProducer.ts'), 'utf8');
-const serviceCanonical = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts'), 'utf8');
-const serviceProducer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/serviceProducer.ts'), 'utf8');
+const providerCanonical = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/providerAstCanonical.ts'), 'utf8');
+const providerProducer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/providerProducer.ts'), 'utf8');
+const serviceCanonical = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts'), 'utf8');
+const serviceProducer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/serviceProducer.ts'), 'utf8');
 const checks = [
   ['provider canonical operation is typed by existing ProviderProducer interface', /export const buildProviderSemanticResultFromSource:\s*ProviderProducer\['produceResult'\]/.test(providerCanonical)],
   ['provider canonical operation consumes existing ProviderProducerInput', /\(input:\s*ProviderProducerInput\):\s*ProviderProducerResult/.test(providerCanonical)],

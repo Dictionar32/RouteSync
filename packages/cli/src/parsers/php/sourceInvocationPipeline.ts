@@ -1,6 +1,7 @@
 /** Production composition root: parser adapter is injected into upstream semantic authorities. */
 import {
-  createPhpSourceInvocationSemanticPipelineAuthority,
+  phpSourceInvocationSemanticPipelineAuthorityFactory,
+  PHP_SOURCE_INVOCATION_SEMANTIC_PIPELINE_CONTRACT,
   phpFunctionInvocationSemanticJudgmentBatchClosureAuthority,
   phpFunctionNameResolutionAuthority,
   phpFunctionResolutionEnvironmentProjectionAuthority,
@@ -8,10 +9,10 @@ import {
   phpSourceFrontendExtractionValidationAuthority,
 } from '@routesync/core';
 import { phpSourceInvocationSemanticPipelineDelivery } from '@routesync/core';
-import type { PhpSourceDocument, PhpSourceInvocationSemanticPipelineResult, PhpSourceInvocationSemanticPipelineDeliveryBatch } from '@routesync/core';
+import type { PhpSourceDocument, PhpSourceInvocationSemanticPipelineInterface } from '@routesync/core';
 import { phpSourceFrontendAstAdapter } from './sourceFrontendAstAdapter';
 
-export const phpSourceInvocationSemanticPipeline = createPhpSourceInvocationSemanticPipelineAuthority({
+const phpSourceInvocationSemanticPipelineAuthority = phpSourceInvocationSemanticPipelineAuthorityFactory.create({
   frontend: phpSourceFrontendAstAdapter,
   extractionValidation: phpSourceFrontendExtractionValidationAuthority,
   sourceInventory: phpFunctionResolutionSourceInventoryAuthority,
@@ -20,23 +21,9 @@ export const phpSourceInvocationSemanticPipeline = createPhpSourceInvocationSema
   invocationBatch: phpFunctionInvocationSemanticJudgmentBatchClosureAuthority,
 });
 
-export interface PhpSourceInvocationSemanticPipelineOperationsInterface {
-  readonly analyze: (
-    document: PhpSourceDocument,
-  ) => PhpSourceInvocationSemanticPipelineResult;
-  readonly analyzeBatch: (
-    documents: readonly PhpSourceDocument[],
-  ) => PhpSourceInvocationSemanticPipelineDeliveryBatch;
-}
-
-/** Public runtime operations are grouped behind one explicit interface object. */
-export const phpSourceInvocationSemanticPipelineOperations: PhpSourceInvocationSemanticPipelineOperationsInterface = Object.freeze({
-  analyze: (
-    document: PhpSourceDocument,
-  ): PhpSourceInvocationSemanticPipelineResult => phpSourceInvocationSemanticPipeline.analyze(document),
-  analyzeBatch: (
-    documents: readonly PhpSourceDocument[],
-  ): PhpSourceInvocationSemanticPipelineDeliveryBatch => phpSourceInvocationSemanticPipelineDelivery.deliver(
-    Object.freeze(documents.map(document => phpSourceInvocationSemanticPipeline.analyze(document))),
-  ),
+/** Public runtime operation reuses the existing upstream pipeline contract. */
+export const phpSourceInvocationSemanticPipelineOperations: PhpSourceInvocationSemanticPipelineInterface = Object.freeze({
+  kind: 'php_source_invocation_semantic_pipeline',
+  contract: PHP_SOURCE_INVOCATION_SEMANTIC_PIPELINE_CONTRACT,
+  analyze: (document: PhpSourceDocument) => phpSourceInvocationSemanticPipelineAuthority.analyze(document),
 });

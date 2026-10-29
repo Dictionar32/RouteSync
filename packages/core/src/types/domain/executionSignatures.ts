@@ -82,16 +82,16 @@ export const RouteSemanticFlowExecutionSignature: RouteSemanticFlowExecutionSign
 
   requiredPayload: (typeName: string): RequiredPayloadExecutionSignature => Object.freeze({
     payloadMode: RoutePayloadMode.Required,
-    parameterDeclaration: SemanticValueFactory.stringValue(`payload: ${typeName}`),
-    callArgumentsExpression: SemanticValueFactory.stringValue('payload'),
+    parameterDeclaration: SemanticValueFactory.stringValue.create(`payload: ${typeName}`),
+    callArgumentsExpression: SemanticValueFactory.stringValue.create('payload'),
     hasPayload: true,
     isOptional: false
   }),
 
   optionalPayload: (typeName: string): OptionalPayloadExecutionSignature => Object.freeze({
     payloadMode: RoutePayloadMode.Optional,
-    parameterDeclaration: SemanticValueFactory.stringValue(`payload: ${typeName} = {}`),
-    callArgumentsExpression: SemanticValueFactory.stringValue('payload'),
+    parameterDeclaration: SemanticValueFactory.stringValue.create(`payload: ${typeName} = {}`),
+    callArgumentsExpression: SemanticValueFactory.stringValue.create('payload'),
     hasPayload: true,
     isOptional: true
   }),

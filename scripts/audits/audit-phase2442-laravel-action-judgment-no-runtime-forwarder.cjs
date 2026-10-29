@@ -10,7 +10,7 @@ const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControlle
 const dependencies = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const coreIndex = read('packages/core/src/index.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
-const constraintFacade = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts');
+const constraintFacade = read('packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 assert('Laravel controller scanner consumes the exact judgment published upstream', /const semanticJudgment = actionPublication\.judgment/.test(scanner) && /contract: actionPublication\.projection, semanticJudgment \}/.test(scanner));

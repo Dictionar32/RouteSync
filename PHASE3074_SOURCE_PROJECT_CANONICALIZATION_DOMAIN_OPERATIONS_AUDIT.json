@@ -1,0 +1,68 @@
+{
+  "phase": 3074,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — source-project canonicalization domain operations",
+  "status": "PASS",
+  "passed": 14,
+  "total": 14,
+  "checks": {
+    "canonicalizationHandlersAndGenericResultRemoved": true,
+    "canonicalizedOutcomeOwnsSourceDiscoveryIdentityOperation": true,
+    "blockedOutcomeOwnsFailurePreservationOperation": true,
+    "canonicalizationOutcomesAreClosedTypedUnion": true,
+    "canonicalizationFactoryIsInterfaceFirst": true,
+    "filesystemRealpathStillOwnsCanonicalRoot": true,
+    "queryPolicyDefaultAndExplicitBranchesPreserved": true,
+    "compositionConsumesDomainOperationsInsteadOfGenericContinuation": true,
+    "blockedManifestTerminalStillReceivesOriginalTypedJudgment": true,
+    "obsoleteGenericTypesNotPubliclyReexported": true,
+    "noExportedFunctionDeclarationsInChangedUpstreamIdentity": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedFilesTranspileWithoutSyntaxDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": [
+    {
+      "phase": "phase3072",
+      "status": "PASS",
+      "output": "PASS genericContinuationRemovedFromBoundaryDomain\nPASS genericHandlerBundleRemoved\nPASS delimiterRecognitionIsClosedTypedJudgment\nPASS statementPositionIsClosedTypedJudgment\nPASS cursorValidityUsesDomainOperation\nPASS canonicalRuntimeExportIsInterfaceFirst\nPASS compatibilityRuntimeExportIsInterfaceFirst\nPASS noExportedFunctionDeclarations\nPASS terminatorRuntimeFixture\nPASS endOfInputRuntimeFixture\nPASS unexpectedCloserRuntimeFixture\nPASS mismatchedCloserRuntimeFixture\nPASS unclosedDelimiterRuntimeFixture\nPASS invalidCursorRuntimeFixture\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedFileTranspilesWithoutSyntaxDiagnostics\n17/17 checks passed\nphase3071 regression: PASS\nphase3070 regression: PASS\nphase3069 regression: PASS\n"
+    },
+    {
+      "phase": "phase3071",
+      "status": "PASS",
+      "output": "PASS genericContinueWithRemovedFromScannerControl\nPASS genericResultHandlerContractsRemoved\nPASS tokenPresenceHasExplicitDomainOperation\nPASS keywordRecognitionHasNamedDomainCatalog\nPASS semanticOutcomeIsClosedAndTyped\nPASS noMapSideChannel\nPASS publicRuntimeContractRemainsInterfaceFirst\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedFileTranspilesWithoutSyntaxDiagnostics\n10/10 checks passed\nphase3070 regression: PASS\nphase3069 regression: PASS\nphase3068 regression: PASS\n"
+    },
+    {
+      "phase": "phase3070",
+      "status": "PASS",
+      "output": "PASS genericInputHandlersRemoved\nPASS explicitInputDomainOperationsDeclared\nPASS notProvidedInputOwnsDomainOperation\nPASS providedInputOwnsDomainOperation\nPASS authorityConsumesInputOperationDirectly\nPASS noGenericHandlerDispatchRemainsInJudge\nPASS notProvidedOutcomePreserved\nPASS providedOutcomePreservesBindingAndIntegration\nPASS inputContractVersionUpdated\nPASS exportedFactoryRemainsInterfaceFirst\nPASS exportedRuntimeAuthorityIsInterfaceFirstObject\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n14/14 checks passed\nphase3069 regression: PASS\nphase3068 regression: PASS\nphase3067 regression: PASS\n"
+    },
+    {
+      "phase": "phase3069",
+      "status": "PASS",
+      "output": "PASS genericIntegrationHandlerContractRemoved\nPASS integrationOutcomesOwnExplicitControllerJudgmentOperation\nPASS operationHasDomainSpecificReturnType\nPASS integrationContractVersionBumped\nPASS contractNamesDomainOperation\nPASS notConnectedOutcomeInstallsOperation\nPASS sourceBindingRejectedOutcomeInstallsOperation\nPASS completeOutcomeInstallsOperation\nPASS blockedOutcomeInstallsOperation\nPASS operationPreservesExactResponseAndSourceIdentity\nPASS operationIsInterfaceFirstExport\nPASS consumerUsesDomainOperationInsteadOfGenericDispatch\nPASS oldGenericHandlerIsNotRetainedInIntegrationModule\nPASS canonicalIdentityAuthorityStillOwnsIdentityRelation\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n17/17 checks passed\nPhase 3068 regression: PASS\nPhase 3067 regression: PASS\n"
+    }
+  ],
+  "runtimeTrace": [
+    "CLI scan/sync creates the requested SourceProjectIdentity and invokes the manifest scan operation.",
+    "Manifest composition input calls the injected upstream canonicalization interface before source discovery.",
+    "The filesystem adapter resolves the root with fs.realpath and preserves default versus explicit query-policy selection.",
+    "The canonicalized ADT exposes continueToSourceDiscoveryIdentity; the blocked ADT exposes preserveFailureEvidence. Generic continueWith<Result> is removed from this canonicalization result.",
+    "The CLI composition boundary maps the blocked judgment to the existing source-project-identity-blocked manifest terminal; the canonicalized judgment proceeds into source discovery and manifest construction.",
+    "Manifest projection, validation, generator save, and persistence remain in the existing CLI scan path; no end-to-end execution is claimed."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "changedFileSyntaxTranspile": "PASS",
+    "regressions": "PASS",
+    "endToEndPhpCliManifestExecution": "NOT_RUN",
+    "wholeProgramStrictTypeScript": "NOT_CLAIMED",
+    "rawFailurePayload": "RETAINED as unknown at the Node filesystem rejection boundary and blocked judgment; normalization into a closed failure-evidence ADT remains a separate migration frontier.",
+    "globalPrimitiveElimination": "NOT_CLAIMED — runtime adapters still use filesystem boundary interpretation and normal branching; this phase removes only the generic canonicalization continuation."
+  },
+  "remainingRisks": [
+    "The blocked canonicalization judgment retains failure: unknown so the original Node rejection payload is not discarded. A later migration must replace this with an explicit evidence model without losing diagnostically useful data.",
+    "A discriminated switch remains at the CLI composition boundary because core cannot depend on CLI manifest terminal types; this preserves dependency direction and does not duplicate domain classification.",
+    "This audit proves source structure and syntax transpilation, not full-project type correctness or a live PHP-to-manifest integration run."
+  ]
+}

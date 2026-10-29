@@ -1,0 +1,18 @@
+{
+  "phase": 2893,
+  "title": "Source Read Operation Rejection ADT",
+  "checks": {
+    "sourceReadsUseSettledDomainOutcomes": true,
+    "rejectedReadOperationsHaveDistinctTerminalADT": true,
+    "affectedSourceFilesArePreserved": true,
+    "terminalADTOwnsContinuation": true,
+    "scanHandlesRejectedReaderOperation": true,
+    "syncHandlesRejectedReaderOperation": true,
+    "driftAuditHandlesRejectedReaderOperation": true,
+    "upstreamCollectionsRemainEmpty": true,
+    "compositionHasNoExportFunction": true
+  },
+  "passed": 9,
+  "total": 9,
+  "typecheckBuildTestsE2E": "not-run: dependencies and compatible TypeScript libs/types are unavailable in extracted workspace"
+}

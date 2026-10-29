@@ -1,0 +1,22 @@
+{
+  "phase": 2946,
+  "title": "Fully Explicit Manifest Filesystem Continuations",
+  "scope": "CLI manifest formation filesystem operations and existing source-read ADTs",
+  "changes": [
+    "Removed try/catch from controller source project canonicalization",
+    "Removed try/catch from controller directory discovery",
+    "Mapped Promise fulfillment/rejection to existing domain judgments and settlements",
+    "Preserved existing filesystem failure authority and source-read ADTs",
+    "Kept packages/core/src/types/upstream/collections.ts empty"
+  ],
+  "verification": {
+    "structuralAudit": "9/9 passed",
+    "typescriptSyntaxTranspile": "3/3 changed TypeScript files passed with 0 syntax diagnostics",
+    "packageJsonParse": "passed",
+    "collectionsTs": "empty (0 bytes)",
+    "fullTypecheck": "not run",
+    "unitTests": "not run",
+    "build": "not run",
+    "cliEndToEnd": "not run"
+  }
+}

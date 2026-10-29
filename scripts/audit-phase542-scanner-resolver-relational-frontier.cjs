@@ -3,10 +3,10 @@ const path = require('path');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/semantic/resourceTypeDeriver.ts',
-  'packages/core/src/compiler/scanner/subscanners/semantic/route-response/shapeExtractor.ts',
-  'packages/core/src/compiler/scanner/subscanners/semantic/routeResponseDeriver.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts',
+  'packages/core/src/compiler/scanner/operations/semantic/resourceTypeDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/semantic/route-response/shapeExtractor.ts',
+  'packages/core/src/compiler/scanner/operations/semantic/routeResponseDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts',
 ];
 
 function audit(source, file) {

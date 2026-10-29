@@ -113,5 +113,5 @@ Files designated as disposable remain present and empty; they are not deleted:
 
 ```text
 packages/core/src/types/upstream/routeResourceFacts.ts.tmp
-packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts.tmp
+packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts.tmp
 ```

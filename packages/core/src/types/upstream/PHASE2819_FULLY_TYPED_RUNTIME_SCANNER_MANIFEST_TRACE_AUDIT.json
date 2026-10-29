@@ -1,0 +1,27 @@
+{
+  "phase": 2819,
+  "title": "Fully Typed Runtime Scanner Operations: Upstream CLI Manifest Trace Audit",
+  "scope": [
+    "upstream contract reuse",
+    "CLI scan/sync manifest composition",
+    "AST-to-manifest blocked/complete preservation",
+    "route-path Direct ADT runtime",
+    "trace evidence versus recommendations"
+  ],
+  "decision": "reuse_or_evolve_existing_contracts_first",
+  "newGenericReasoningPrimitive": false,
+  "newParallelRouteMethodContract": false,
+  "runtimeEntryPointPattern": "export const operation: ExistingInterface = Object.freeze({...})",
+  "routePathADTDomainOperation": "RoutePathTokenFact.continueForAcceptance",
+  "manifestJudgment": ["manifest_builder_complete", "manifest_builder_blocked"],
+  "astFailurePromotedToEmptyManifest": false,
+  "globalRelationUtilityRemoval": false,
+  "collectionsFileBytes": 0,
+  "verification": {
+    "structuralAudit": "provided",
+    "typecheck": "not_run",
+    "productionBuild": "not_run",
+    "fullTestSuite": "not_run",
+    "cliScanSyncEndToEnd": "not_run"
+  }
+}

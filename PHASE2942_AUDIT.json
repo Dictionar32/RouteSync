@@ -1,0 +1,27 @@
+{
+  "phase": 2942,
+  "title": "Fully Explicit Route-Scan ADT Continuation",
+  "scope": "Move route-scan terminal dispatch from the AST pipeline consumer into the existing route-scan ADT operation, preserving exact blockers.",
+  "routeScanConsumerKindDispatches": 0,
+  "centralRouteScanOutcomeSwitch": false,
+  "terminalOperationsAttachedAtProducerBoundary": true,
+  "routeScanAdtTerminalCallbacks": [
+    "onComplete",
+    "onSourceSelectionBlocked",
+    "onSourceReadBlocked",
+    "onResponseBlocked",
+    "onPolicyBlocked"
+  ],
+  "structuralAudits": {
+    "phase2940": "11/11 passed",
+    "phase2942": "9/9 passed"
+  },
+  "changedTypeScriptSyntaxTranspilation": "7/7 passed",
+  "collectionsTsEmpty": true,
+  "fullTypecheck": "not verified; node_modules and node/vitest type definitions unavailable; global TypeScript rejects configured ES2025 target/lib",
+  "unitTests": "not verified",
+  "build": "not verified",
+  "cliEndToEnd": "not verified",
+  "exportFunctionDeclarationCount": 478,
+  "exportFunctionMigrationStatus": "not complete; text search only, not compiler-aware inventory"
+}

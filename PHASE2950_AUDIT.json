@@ -1,0 +1,21 @@
+{
+  "phase": 2950,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations \u2014 Canonicalization Failure ADT",
+  "scope": "CLI PHP controller-invocation manifest composition path; realpath canonicalization rejection contract",
+  "changes": [
+    "Extended canonicalization blocked judgment with existing typed filesystem failure code and location ADTs",
+    "Retained original realpath rejection evidence without stringification or reconstruction",
+    "Incremented canonicalization contract version from 1 to 2",
+    "Added structural audit for typed evidence, ADT continuations, interface-first runtime, and no exported function declarations in scoped modules",
+    "Kept upstream collections.ts empty"
+  ],
+  "verification": {
+    "structuralAudit": "13/13 passed",
+    "typescriptSyntaxTranspile": "2/2 changed TypeScript modules; zero syntax error diagnostics",
+    "fullTypecheck": "not run",
+    "unitTests": "not run",
+    "build": "not run",
+    "cliEndToEnd": "not run",
+    "priorPhase2949StructuralAudit": "13/13 passed"
+  }
+}

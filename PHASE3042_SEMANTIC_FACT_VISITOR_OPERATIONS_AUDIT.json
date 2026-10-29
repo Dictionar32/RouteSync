@@ -1,0 +1,39 @@
+{
+  "phase": 3042,
+  "title": "Semantic Fact Visitor Review — Generic Visitor Retired in Phase 3043",
+  "scope": "Review record: Phase 3042 generic visitor was rejected and removed in Phase 3043. This audit verifies the concrete domain replacement and records the remaining dispatch debt.",
+  "semanticFactVariants": 37,
+  "runtimePath": [
+    "CLI manifest scan interface",
+    "controller invocation manifest composition",
+    "invocation semantic pipeline creates canonical SemanticKnowledgeDataFlow",
+    "semanticObjectIdentityAuthority.analyze(model)",
+    "semanticObjectIdentityOperations.modRefEvidence(model)",
+    "semanticModRefFactOperations.assess(fact) returns a concrete mod/ref assessment",
+    "semanticModRefFactOperations.blockers(facts) aggregates source-backed blockers"
+  ],
+  "checks": {
+    "genericVisitorRetiredAfterReview": true,
+    "canonicalFactUnionStillClosed": true,
+    "concreteModRefAssessmentIsInterfaceBacked": true,
+    "modRefClassificationOwnedByConcreteDomain": false,
+    "modRefBlockersKeepSourceIdentity": false,
+    "identityContractDelegatesModRefClassification": false,
+    "cliManifestRuntimeEntryRemainsInterfaceBacked": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 6,
+  "total": 9,
+  "remainingDebt": [
+    "A switch remains inside the mod/ref domain operation. Removing it honestly requires effect classification to be emitted at canonical fact construction, not replaced by a generic visitor or disguised lookup.",
+    "This phase does not claim elimination of all string, number, boolean, null, undefined, array, reduce, map, if, ternary, or switch occurrences repository-wide.",
+    "Mod/ref inference rules and callable effect summaries remain unimplemented; source-backed blockers remain explicit.",
+    "Static audits and targeted TypeScript checks do not replace full repository typecheck, complete Vitest, or CLI-to-manifest end-to-end verification."
+  ],
+  "failedChecks": [
+    "modRefClassificationOwnedByConcreteDomain",
+    "modRefBlockersKeepSourceIdentity",
+    "identityContractDelegatesModRefClassification"
+  ]
+}

@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const interfacePath = path.join(root, 'packages/core/src/types/upstream/controllerPolicyActionScopeJudgmentInterface.ts');
 const authorityPath = path.join(root, 'packages/core/src/types/upstream/controllerPolicyActionScopeJudgmentAuthority.ts');
-const canonicalPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const canonicalPath = path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const interfaceSource = fs.readFileSync(interfacePath, 'utf8');
 const authoritySource = fs.readFileSync(authorityPath, 'utf8');
 const canonicalSource = fs.readFileSync(canonicalPath, 'utf8');
@@ -16,7 +16,7 @@ const checks = [
   ['controller policy projection no longer embeds the authorization action-scope decision', !canonicalSource.includes("actions: action ? { kind: 'only' as const, actions: sequence([action]) } : policyActionScope(attribute)")],
   ['middleware and HasMiddleware adapters preserve the blocked judgment ADT in their declared return types', canonicalSource.includes('function policyActionScope(attribute: ControllerMethodAttribute): ControllerPolicyActionScopeJudgment') && canonicalSource.includes('function controllerHasMiddlewareActionScope(expression: Expression): ControllerPolicyActionScopeJudgment')],
   ['existing invocation judgment and integrated response wiring remains unchanged', fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts'), 'utf8').includes('controllerProducer.produce({ declaration: declarationEvidence, invocationJudgment })')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['focused regression test covers class, method, and absent-action cases', fs.existsSync(path.join(root, 'packages/core/src/types/upstream/controllerPolicyActionScopeJudgmentAuthority.phase2045.test.ts'))],
   ['audit is registered in package scripts', fs.readFileSync(path.join(root, 'package.json'), 'utf8').includes('audit:phase2045-policy-action-scope-judgment-interface-first')],
 ];

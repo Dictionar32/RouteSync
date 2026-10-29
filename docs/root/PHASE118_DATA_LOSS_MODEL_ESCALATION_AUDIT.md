@@ -2,7 +2,7 @@
 
 ## Scope
 
-Audit continued from Phase 117 across `packages/core/src/compiler/scanner/lexer/routeAst`.
+Audit continued from Phase 117 across `packages/core/src/compiler/frontend/php/routeAst`.
 
 Targets:
 

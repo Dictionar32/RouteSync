@@ -12,6 +12,7 @@ import type {
   SemanticDataflowFact,
   SemanticDataflowInput,
   SemanticDataflowJudgment,
+  SemanticDataflowReasoningAuthorityInterface,
 } from './semanticDataflow';
 
 export type {
@@ -19,6 +20,8 @@ export type {
   SemanticDataflowRole,
   SemanticDataflowIdentity,
   SemanticDataflowIdentityKey,
+  SemanticDataflowIdentityOperationsInterface,
+  SemanticDataflowFactLineageOperationsInterface,
   SemanticDataflowGuard,
   SemanticDataflowPath,
   SemanticDataflowFactLineage,
@@ -26,18 +29,19 @@ export type {
   SemanticDataflowDerivation,
   SemanticDataflowInputFact,
   SemanticDataflowJudgment,
+  SemanticDataflowJudgmentOperationsInterface,
   SemanticDataflowClosureCertificate,
   SemanticDataflowOrigin,
   SemanticDataflowLineageProducer,
   SemanticDataflowLineage,
   SemanticDataflowInput,
   SemanticDataflowInterface,
+  SemanticDataflowInterfaceFactoryInterface,
 } from './semanticDataflow';
 export {
-  semanticDataflowIdentityKey,
-  semanticDataflowIdentityEqual,
-  semanticDataflowFactWithLineage,
-  semanticDataflowInterfaceFromJudgment,
+  semanticDataflowIdentityOperations,
+  semanticDataflowFactLineageOperations,
+  semanticDataflowInterfaceFactory,
 } from './semanticDataflow';
 
 /** Canonical semantic identity used by AST-derived dataflow facts. */
@@ -68,6 +72,7 @@ export type SemanticDataflowBoundaryRejection = Readonly<{
     | 'judgment_not_closed'
     | 'reasoning_contract_not_closed'
     | 'missing_evidence_collections'
+    | 'judgment_operations_missing'
     | 'origin_identity_mismatch'
     | 'reasoning_proof_facets_inconsistent'
     | 'source_identity_mismatch'
@@ -169,4 +174,14 @@ export interface SemanticDataflowRuntimeExecutorInterface {
     /** Union overload allows adapters to forward a closed request algebra without dispatching semantics. */
     (request: SemanticDataflowRuntimeExecutionRequest): SemanticDataflowRuntimeExecutionResult;
   };
+}
+
+
+/** Interface-first composition factory for the runtime execution boundary. */
+export interface SemanticDataflowRuntimeExecutorFactoryInterface {
+  readonly kind: 'semantic_dataflow_runtime_executor_factory';
+  readonly create: (
+    authority: SemanticDataflowReasoningAuthorityInterface,
+    boundary: SemanticDataflowJudgmentBoundaryInterface,
+  ) => SemanticDataflowRuntimeExecutorInterface;
 }

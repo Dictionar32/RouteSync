@@ -2,7 +2,7 @@
 
 ## Direction
 
-Phase 547 continues the relational cutover at the scanner/lexer semantic boundary. The target is not to erase PHP syntax vocabulary (`&&`, `||`, `null`, etc.) from lexical evidence; those spellings are input facts. The target is to prevent host-language control/collection operators from becoming semantic decision machinery.
+Phase 547 continues the relational cutover at the frontend/php semantic boundary. The target is not to erase PHP syntax vocabulary (`&&`, `||`, `null`, etc.) from lexical evidence; those spellings are input facts. The target is to prevent host-language control/collection operators from becoming semantic decision machinery.
 
 The architecture follows the useful separation seen across SDF3/Statix, MLIR PDL/DRR, K, and relational/fixed-point systems:
 
@@ -12,7 +12,7 @@ SDF3 treats lexical/context-free syntax and disambiguation as declarative gramma
 
 ## Cutover
 
-The following scanner/lexer semantic modules were moved further toward relation algebra:
+The following frontend/php semantic modules were moved further toward relation algebra:
 
 - semantic rewrite matching and saturation
 - semantic knowledge/data-flow validation

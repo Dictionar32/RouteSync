@@ -1,0 +1,18 @@
+{
+  "phase": 2805,
+  "title": "Manifest Projection ADT Dispatch",
+  "scope": "Remove semantic projection switches from CLI consumers without weakening the explicit domain ADT.",
+  "resultKinds": ["manifest_projected", "manifest_projection_blocked"],
+  "runtimeOperation": "routeManifestProjectionCompositionOutcomeOperations",
+  "operationContract": "RouteManifestProjectionCompositionOutcomeOperationsInterface",
+  "consumers": ["packages/cli/src/commands/scan.ts", "packages/cli/src/commands/sync.ts"],
+  "ownership": "The outcome operation lives beside the existing projection ADT; no parallel upstream contract is added.",
+  "collectionsModuleBytes": 0,
+  "verification": {
+    "structuralAudit": "npm run audit:phase2805-manifest-projection-adt-dispatch",
+    "fullTypecheck": "not_run",
+    "productionBuild": "not_run",
+    "fullTestSuite": "not_run",
+    "cliEndToEnd": "not_run"
+  }
+}

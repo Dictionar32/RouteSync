@@ -13,7 +13,7 @@ This phase evolves the existing `AstSemanticInterface` rather than creating a pa
 
 ### Scanner trace
 
-The scanner currently imports AST semantic term helpers from `astSemanticInterface.ts` in `ResourceModelResolver.ts`, `semanticDataFlowAnalyzer.ts`, and `resourceSemanticMappingRelations.ts`. The scanner also has a distinct relational closure path under `compiler/scanner/lexer/routeAst/`, including `semanticClosureEngine.ts`, `semanticRelationTheory.ts`, `semanticRelationalBehaviorKernel.ts`, and `semanticRelationProgram.ts`.
+The scanner currently imports AST semantic term helpers from `astSemanticInterface.ts` in `ResourceModelResolver.ts`, `semanticDataFlowAnalyzer.ts`, and `resourceSemanticMappingRelations.ts`. The scanner also has a distinct relational closure path under `compiler/frontend/php/routeAst/`, including `semanticClosureEngine.ts`, `semanticRelationTheory.ts`, `semanticRelationalBehaviorKernel.ts`, and `semanticRelationProgram.ts`.
 
 This phase does **not** claim those scanner closure implementations have been migrated to `closeVerified`. That is a separate wiring migration requiring evidence that the rule vocabularies and proof invariants are equivalent. The architectural boundary is now explicit and testable; a subsequent phase should trace each scanner closure consumer and either wire it to the canonical AST authority or document why it belongs to a different semantic domain. Do not merge generic data-flow reachability and AST judgment merely because both use fixed-point closure.
 

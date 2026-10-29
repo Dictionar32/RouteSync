@@ -1,0 +1,33 @@
+{
+  "phase": 2881,
+  "title": "Inventory Rejection Domain Transition",
+  "checks": [
+    {
+      "name": "inventory rejection accumulation contract",
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts",
+      "passed": true
+    },
+    {
+      "name": "validated result transition",
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+      "passed": true
+    },
+    {
+      "name": "rejected result accumulation",
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+      "passed": true
+    },
+    {
+      "name": "authority fold delegates to ADT",
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+      "passed": true
+    },
+    {
+      "name": "public type export",
+      "file": "packages/core/src/index.ts",
+      "passed": true
+    }
+  ],
+  "fullTypecheck": "not verified: missing dependencies/types and installed TypeScript 5.8.3 does not support repository ES2025 config",
+  "collectionsFileEmpty": true
+}

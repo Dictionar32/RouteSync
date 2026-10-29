@@ -36,58 +36,58 @@
 - `packages/core/src/compiler/scanner/binders/resource/whenLoadedBinder.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution
 - `packages/core/src/compiler/scanner/binders/resource/whenLoadedRelationArgument.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
 - `packages/core/src/compiler/scanner/binders/resource/whenLoadedSemanticBinder.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution
-- `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/descriptors/route/routeGroupSemanticResolver.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution
-- `packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupContextResolver.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupSemanticResolver.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution
+- `packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
 - `packages/core/src/compiler/scanner/laravelAttributeScanner.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
 - `packages/core/src/compiler/scanner/laravelFormRequestScanner.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/arrayParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/astClassifier.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/index.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/phpAstFactory.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/phpExpressionOperatorContract.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/phpExpressionStructureProjector.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/phpMethodParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/controllerResourceReturnSourceEvidenceProjection.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/index.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionClosure.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionMappings.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSemanticAuthority.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation, runtime_or_execution_boundary
-- `packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/resourceExpressionSemanticAuthority.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
-- `packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts` — semantic-reasoning-candidate; signals: semantic_closure_entrypoint, relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution
-- `packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/tokenize/index.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
-- `packages/core/src/compiler/scanner/lexer/tokenizer.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/arrayParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/astClassifier.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/astClassifierEvidence.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/astClassifierRuntime.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/controllerAstTypes.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/controllerBodyParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/controllerMethodParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/controllerReturnParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/index.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/modelDeclarationParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/phpAstAlgebra.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/phpAstFactory.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/phpExpressionOperatorContract.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/phpExpressionStructureProjector.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/phpMethodParser.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, ast_or_domain_classification, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/controllerResourceReturnSourceEvidenceProjection.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/index.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionClosure.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionMappings.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSemanticAuthority.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation, runtime_or_execution_boundary
+- `packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/resourceExpressionSemanticAuthority.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
+- `packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.ts` — semantic-reasoning-candidate; signals: semantic_closure_entrypoint, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
+- `packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
+- `packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution
+- `packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/tokenize/index.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
+- `packages/core/src/compiler/frontend/php/tokenizer.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, relation_calculus_or_closure, evidence_collection_or_adaptation
 - `packages/core/src/compiler/scanner/operations/expressionAstCanonical.ts` — semantic-reasoning-candidate; signals: relation_calculus_or_closure
 - `packages/core/src/compiler/scanner/operations/form-request/canonicalValidationRuleEntry.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution, evidence_collection_or_adaptation
 - `packages/core/src/compiler/scanner/operations/resourceProducer.ts` — semantic-reasoning-candidate; signals: semantic_inference_or_resolution

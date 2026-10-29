@@ -4,10 +4,10 @@ const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const judgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
-const body = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const body = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [
   ['existing Laravel scanner boundary evolves in place to v69', /readonly version: 69/.test(boundary) && /version: 69,/.test(boundary)],

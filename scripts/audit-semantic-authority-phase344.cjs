@@ -5,7 +5,7 @@ const targets = [
   'packages/core/src/compiler/constraints/solver/declarativeConstraintProgram.ts',
   'packages/core/src/semantic/kernel/syntax/syntaxEvidenceClosure.ts',
   'packages/core/src/compiler/constraints/solver/constraintStep.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
 ];
 const forbidden = /\b(if|while|for|switch)\b|\.map\(|\.filter\(|\.reduce\(|\.flatMap\(|\bundefined\b|\?\?|===|!==|\bas\b/g;

@@ -1,0 +1,14 @@
+{
+  "phase": 2829,
+  "title": "CLI composition ADT domain continuation and manifest trace",
+  "changed": [
+    "packages/cli/src/upstreamCompositionFactory.ts",
+    "packages/cli/src/index.ts",
+    "scripts/audits/audit-phase2829-cli-composition-adt-continuation.cjs"
+  ],
+  "contract": "RouteSyncCliUpstreamCompositionResolution",
+  "operation": "continueForCliComposition",
+  "preserves": ["routesync_cli_upstream_composition_available", "routesync_cli_upstream_semantic_assembly_rejected", "ManifestBuilderJudgment complete/blocked"],
+  "upstreamCollectionsBytes": 0,
+  "validation": "focused structural audit only; typecheck/build/tests/CLI E2E not claimed"
+}

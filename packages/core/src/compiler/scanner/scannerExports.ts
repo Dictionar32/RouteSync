@@ -23,7 +23,7 @@ export {
     type RouteSemanticFlowParams,
     type ScannedRouteParameterParams,
     type ScannedRouteQueryParameterParams,
-    compileBroadcastRuntimePattern,
+    broadcastRuntimePatternCompiler,
     ScannedFormFieldDescriptor,
     type ScannedFormFieldParams,
     ScannedFormActionDescriptor,
@@ -35,7 +35,7 @@ export {
     type ControllerActionInfo,
     type RequestActionDefinition,
     buildRequestTypeWithActions,
-} from "./descriptors";
+} from "./operations/domain-model";
 
 export { ResourceFieldSemanticBinding, type ResourceFieldSemanticBindingInput } from "../../types/domain/resourceFieldSemanticBinding";
 

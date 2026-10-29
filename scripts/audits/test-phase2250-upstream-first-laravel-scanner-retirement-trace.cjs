@@ -14,8 +14,8 @@ const check = (label, condition) => {
 };
 const action = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const projection = read('packages/core/src/types/upstream/controllerResourceReturnSourceEvidenceProjectionInterface.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const authority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const executor = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
@@ -29,7 +29,7 @@ check('legacy dataflow contract still owns recursive resource AST traversal', /c
 check('legacy dataflow contract still imports semantic relations', /semantic\/relations\//.test(dataflow));
 check('upstream dataflow authority no longer imports semantic relations directly', !/semantic\/relations\//.test(authority));
 check('production action wiring still calls the legacy resolver', /resolveControllerActionContract\(/.test(wiring));
-check('production action wiring still imports controller AST canonicalization', /subscanners\/controller\/controllerAstCanonical/.test(wiring));
+check('production action wiring still imports controller AST canonicalization', /operations\/controller\/controllerAstCanonical/.test(wiring));
 check('resource judgment remains owned by the existing upstream authority', /ControllerResourceBindingAuthorityInterface/.test(projection) && /resourceBindingAuthority: controllerResourceBindingAuthority/.test(wiring) && /controllerResourceBindingAuthority/.test(wiring));
 check('integrated response remains owned by the existing response pipeline', /judgeIntegratedResponse/.test(response));
 check('runtime executor contract forbids semantic reclassification', /without-semantic-reclassification/.test(action) && /semanticJudgment/.test(executor));

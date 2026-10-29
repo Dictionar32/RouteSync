@@ -1,0 +1,17 @@
+{
+  "phase": 2890,
+  "title": "Discovery Source Identity Preservation",
+  "checks": {
+    "sourceFileIdentityImportedForDiscovery": true,
+    "partialSourceIdentityPreserved": true,
+    "nestedSourceIdentityPreserved": true,
+    "sourceIdentityNotStringifiedAndRewrapped": true,
+    "existingDiscoveryContractReused": true,
+    "manifestJudgmentContinuationRetained": true,
+    "noExportFunctionInComposition": true,
+    "collectionsRemainsEmpty": true
+  },
+  "passed": 8,
+  "total": 8,
+  "typecheckBuildTestsE2e": "not-run"
+}

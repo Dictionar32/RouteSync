@@ -5,13 +5,21 @@
  * @module cli/commands/annotate/template
  */
 
-import { buildRoutePreamble } from './routePreamble';
-import { buildResourceDiscoverySnippet } from './resourceDiscovery';
-import { buildModelResolutionSnippet } from './modelResolution';
+import { routePreambleTemplateOperations } from './routePreamble';
+import { resourceDiscoveryTemplateOperations } from './resourceDiscovery';
+import { modelResolutionTemplateOperations } from './modelResolution';
 
-export function buildPhpDiscoveryScript(forceFlag: boolean): string {
+function buildPhpDiscoveryScript(forceFlag: boolean): string {
     const forceStr = forceFlag ? 'true' : 'false';
-    return buildRoutePreamble(forceStr) +
-        buildResourceDiscoverySnippet() +
-        buildModelResolutionSnippet();
+    return routePreambleTemplateOperations.build(forceStr) +
+        resourceDiscoveryTemplateOperations.build() +
+        modelResolutionTemplateOperations.build();
 }
+
+export interface PhpDiscoveryTemplateOperationsInterface {
+  readonly build: (forceFlag: boolean) => string;
+}
+
+export const phpDiscoveryTemplateOperations: PhpDiscoveryTemplateOperationsInterface = Object.freeze({
+  build: buildPhpDiscoveryScript,
+});

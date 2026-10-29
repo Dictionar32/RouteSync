@@ -3,7 +3,7 @@ import type {
   ControllerVariableSemanticResolutionInputAdapterInterface,
 } from '../../../types/upstream/controllerVariableSemanticResolutionInputAdapterInterface';
 import type { ControllerVariableSemanticResolutionRequest } from '../../../types/upstream/controllerVariableSemanticInterface';
-import type { AstIdentifier, PhpAstValue } from '../lexer/phpAstTypes';
+import type { AstIdentifier, PhpAstValue } from '../../frontend/php/phpAstTypes';
 import { controllerVariableSemanticEvidenceAdapter } from './controllerVariableSemanticEvidenceAdapter';
 
 export type ControllerVariableSemanticParameterBinding = readonly [AstIdentifier, ControllerVariableSemantic];

@@ -6,7 +6,11 @@
  * @module cli/generators/constants/enumLinesFormatter
  */
 
-export function formatEnumLines(enumGroups: Record<string, Record<string, string[]>>): string[] {
+export interface FormatEnumLinesOperation {
+  (enumGroups: Record<string, Record<string, string[]>>): string[];
+}
+
+export const formatEnumLines: FormatEnumLinesOperation = Object.freeze((enumGroups: Record<string, Record<string, string[]>>): string[] => {
   const lines: string[] = [];
   if (Object.keys(enumGroups).length === 0) {
     return lines;
@@ -37,4 +41,4 @@ export function formatEnumLines(enumGroups: Record<string, Record<string, string
   lines.push(``);
 
   return lines;
-}
+});

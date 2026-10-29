@@ -6,7 +6,7 @@ const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
 const contract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const model = read('packages/core/src/types/upstream/controller.ts');
 const invocationModel = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 

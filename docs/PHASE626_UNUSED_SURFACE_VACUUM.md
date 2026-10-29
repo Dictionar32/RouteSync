@@ -21,4 +21,4 @@ Reference direction: declarative semantic relations, recursive/fixed-point evalu
 - No production file was deleted.
 - Each listed path remains present and is zero bytes.
 - Source-language vocabulary such as PHP `null`, `??`, ternary, or Laravel `any` remains valid when it is part of the source AST/domain vocabulary. The cleanup targets host-language implementation authority, not source syntax.
-- Active scanner/lexer, resolver graph, AST/upstream mapping, analysis, and semantic type-lowering surfaces are not emptied merely because they contain prohibited host constructs; they require consumer/authority migration first.
+- Active frontend/php, resolver graph, AST/upstream mapping, analysis, and semantic type-lowering surfaces are not emptied merely because they contain prohibited host constructs; they require consumer/authority migration first.

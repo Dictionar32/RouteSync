@@ -1,0 +1,16 @@
+{
+  "phase": 3101,
+  "scope": "replace query-policy selection generic continuation with a domain-owned manifest contract operation",
+  "genericSelectionHandlersRemoved": true,
+  "genericSelectionContinuationRemoved": true,
+  "selectionOwnsPolicyContractMaterialization": true,
+  "defaultSelectionReturnsClosedEmptyPolicySet": true,
+  "explicitSelectionMaterializesJudgmentsWithItsIntent": true,
+  "manifestSurfaceDelegatesToSelectionDomainOperation": true,
+  "staleHandlerBarrelExportsRemoved": true,
+  "regressionCoverageAdded": true,
+  "noDeletedRelationFoundationRestored": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

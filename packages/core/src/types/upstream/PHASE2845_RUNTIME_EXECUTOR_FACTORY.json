@@ -1,0 +1,9 @@
+{
+  "phase": 2845,
+  "name": "interface-first-semantic-dataflow-runtime-executor-factory",
+  "trace": ["runtime request", "semanticDataflowRuntimeExecutor.execute", "authority.judge", "boundary.admit"],
+  "contract": "SemanticDataflowRuntimeExecutorFactoryInterface",
+  "operation": "semanticDataflowRuntimeExecutorFactory.create",
+  "preserves": ["evidence judgment admission", "no-evidence ADT", "existing authority and boundary", "empty collections.ts"],
+  "verification": "structural audit only"
+}

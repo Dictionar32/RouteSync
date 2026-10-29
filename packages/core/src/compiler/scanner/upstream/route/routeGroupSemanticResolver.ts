@@ -5,14 +5,12 @@ import type { Sequence } from '../../../../types/upstream/collections';
 import { createRoutePath } from '../../../../types/upstream/names';
 import type { RouteGroupFact } from '../../../../types/upstream/routeGroupFacts';
 import type { RouteMiddlewareMutation } from '../../../../types/upstream/route';
-import { relationAdvanceIndex, relationGate, relationProject, relationVariantFold } from '../../../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export interface RouteGroupResolutionJudgment {
   readonly kind: 'route_group_resolution_judgment';
   readonly input: RouteGroupFact;
   readonly context: RouteGroupContext;
-  readonly resolution: 'relation_fact_projection';
+  readonly resolution: 'typed_fact_projection';
   readonly target: 'route_semantic_context';
   readonly closed: true;
 }
@@ -33,7 +31,7 @@ const resolveJudgment = (facts: RouteGroupFact): RouteGroupResolutionJudgment =>
   const middlewareMutations: Sequence<RouteMiddlewareMutation> = sequenceFromValues(middlewareItems);
 
   const constraints: Sequence<RouteConstraint> = sequenceFromValues(
-    relationProject(facts.constraints, constraint => routeConstraintFromArgument(constraint.parameter, constraint.argument)),
+    facts.constraints.map(constraint => routeConstraintFromArgument(constraint.parameter, constraint.argument)),
   );
 
   const namePrefix = resolveNamePrefix(facts.namePrefix);
@@ -54,7 +52,7 @@ const resolveJudgment = (facts: RouteGroupFact): RouteGroupResolutionJudgment =>
     kind: 'route_group_resolution_judgment',
     input: facts,
     context,
-    resolution: 'relation_fact_projection',
+    resolution: 'typed_fact_projection',
     target: 'route_semantic_context',
     closed: true,
   });
@@ -68,70 +66,82 @@ export const routeGroupSemanticResolver: RouteGroupSemanticResolverInterface = O
 });
 
 
-function routeConstraintFromArgument(parameter: RouteGroupFact['constraints'][number]['parameter'], argument: RouteGroupFact['constraints'][number]['argument']): RouteConstraint {
-  return relationVariantFold(argument, 'pattern',
-    () => Object.freeze({ kind: 'unconstrained' }),
-    rest => relationVariantFold(rest, 'values',
-      () => Object.freeze({ kind: 'unconstrained' }),
-      values => Object.freeze({ kind: 'set', parameter, values: sequenceFromValues(values.values) }),
-      () => Object.freeze({ kind: 'unconstrained' })),
-    pattern => Object.freeze({ kind: 'pattern', parameter, value: pattern.value }));
-}
+const routeConstraintFromArgument = (
+  parameter: RouteGroupFact['constraints'][number]['parameter'],
+  argument: RouteGroupFact['constraints'][number]['argument'],
+): RouteConstraint => {
+  switch (argument.kind) {
+    case 'none':
+      return Object.freeze({ kind: 'unconstrained' });
+    case 'values':
+      return Object.freeze({ kind: 'set', parameter, values: sequenceFromValues(argument.values) });
+    case 'pattern':
+      return Object.freeze({ kind: 'pattern', parameter, value: argument.value });
+    default: {
+      const exhaustive: never = argument;
+      return exhaustive;
+    }
+  }
+};
 
-function resolvePrefix(values: RouteGroupFact['prefix']): RouteGroupContext['prefix'] {
-  return relationGate(
-    relationEqual(values.length, 0),
-    () => ({ kind: 'none' }),
-    () => ({ kind: 'some', value: createRoutePath(relationProject(values, value => value.value).join('/')) }),
-  );
-}
+const resolvePrefix = (values: RouteGroupFact['prefix']): RouteGroupContext['prefix'] => {
+  if (values.length === 0) return Object.freeze({ kind: 'none' });
+  return Object.freeze({ kind: 'some', value: createRoutePath(values.map(value => value.value).join('/')) });
+};
 
-function resolveMiddlewareItems(values: RouteGroupFact['middleware']): readonly RouteMiddlewareMutation[] {
-  return relationGate(
-    relationEqual(values.length, 0),
-    () => Object.freeze([]),
-    () => Object.freeze([{ kind: 'with', middleware: sequenceFromValues(values) }]),
-  );
-}
+const resolveMiddlewareItems = (values: RouteGroupFact['middleware']): readonly RouteMiddlewareMutation[] =>
+  values.length === 0
+    ? Object.freeze([])
+    : Object.freeze([{ kind: 'with', middleware: sequenceFromValues(values) }]);
 
-function resolveNamePrefix(values: RouteGroupFact['namePrefix']): RouteGroupContext['namePrefix'] {
-  return relationGate(
-    relationEqual(values.length, 0),
-    () => ({ kind: 'none' }),
-    () => ({ kind: 'some', value: stringValue(relationProject(values, value => value.value).join('')) }),
-  );
-}
+const resolveNamePrefix = (values: RouteGroupFact['namePrefix']): RouteGroupContext['namePrefix'] => {
+  if (values.length === 0) return Object.freeze({ kind: 'none' });
+  return Object.freeze({ kind: 'some', value: stringValue.create(values.map(value => value.value).join('')) });
+};
 
-function sequenceFromValues<T>(values: readonly T[], index = 0): Sequence<T> {
-  return relationGate(
-    index < values.length,
-    () => ({ kind: 'cons', head: values[index], tail: sequenceFromValues(values, relationAdvanceIndex(index, 1)) }),
-    () => ({ kind: 'empty' }),
-  );
-}
+const sequenceFromValues = <T>(values: readonly T[], index = 0): Sequence<T> =>
+  index < values.length
+    ? Object.freeze({ kind: 'cons', head: values[index], tail: sequenceFromValues(values, index + 1) })
+    : Object.freeze({ kind: 'empty' });
 
-function resolveBindingScope(value: RouteGroupFact['bindingScope']): RouteGroupContext['bindingScope'] {
-  const knowledge = Object.freeze({
-    scoped: Object.freeze({ kind: 'scoped' }),
-    without_scoped: Object.freeze({ kind: 'without_scoped' }),
-    default: Object.freeze({ kind: 'default' }),
-  });
-  return knowledge[value];
-}
+const resolveBindingScope = (value: RouteGroupFact['bindingScope']): RouteGroupContext['bindingScope'] => {
+  switch (value) {
+    case 'scoped':
+      return Object.freeze({ kind: 'scoped' });
+    case 'without_scoped':
+      return Object.freeze({ kind: 'without_scoped' });
+    case 'default':
+      return Object.freeze({ kind: 'default' });
+    default: {
+      const exhaustive: never = value;
+      return exhaustive;
+    }
+  }
+};
 
 
-function resolveController(value: RouteGroupFact['controller']): RouteGroupContext['controller'] {
-  return relationGate(
-    relationEqual(value.kind, 'absent'),
-    () => ({ kind: 'none' }),
-    () => ({ kind: 'some', value: { kind: 'controller_reference', name: value.value } }),
-  );
-}
+const resolveController = (value: RouteGroupFact['controller']): RouteGroupContext['controller'] => {
+  switch (value.kind) {
+    case 'absent':
+      return Object.freeze({ kind: 'none' });
+    case 'present':
+      return Object.freeze({ kind: 'some', value: Object.freeze({ kind: 'controller_reference', name: value.value }) });
+    default: {
+      const exhaustive: never = value;
+      return exhaustive;
+    }
+  }
+};
 
-function resolveDomain(value: RouteGroupFact['domain']): RouteGroupContext['domain'] {
-  return relationGate(
-    relationEqual(value.kind, 'absent'),
-    () => ({ kind: 'default' }),
-    () => ({ kind: 'explicit', value: value.value }),
-  );
-}
+const resolveDomain = (value: RouteGroupFact['domain']): RouteGroupContext['domain'] => {
+  switch (value.kind) {
+    case 'absent':
+      return Object.freeze({ kind: 'default' });
+    case 'present':
+      return Object.freeze({ kind: 'explicit', value: value.value });
+    default: {
+      const exhaustive: never = value;
+      return exhaustive;
+    }
+  }
+};

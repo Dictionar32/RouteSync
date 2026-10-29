@@ -18,7 +18,7 @@ const checks = [
   ['subscanner contract names evidence-binding ownership', /responseEvidenceBindingOwner: 'LaravelControllerResponseEvidenceSourceBindingAuthorityInterface/.test(retirement)],
   ['public exports include binding authority and input ADT', /LaravelControllerResponseEvidenceSourceBindingAuthorityInterface/.test(publicIndex) && /LaravelControllerResponseEvidenceSourceBindingInput/.test(publicIndex)],
   ['runtime scanner intentionally remains unmodified and gap is visible', !/responseJudgment:\s*produced\./.test(scanner) && /responseJudgment/.test(fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/laravelControllerScannerInterface.ts'), 'utf8'))],
-  ['no semantic/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/semantic/foundation'))],
+  ['no semantic/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/semantic/foundation'))],
   ['no new relation/foundation layer in phase files', !/semantic\/(relations|foundation)/.test(response.slice(response.indexOf('export interface LaravelControllerResponseEvidenceSourceBindingAuthorityInterface')))],
 ];
 const failures = checks.filter(([, passed]) => !passed);

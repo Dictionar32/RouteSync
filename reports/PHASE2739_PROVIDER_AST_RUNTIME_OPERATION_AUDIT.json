@@ -1,0 +1,60 @@
+{
+  "phase": 2739,
+  "title": "Provider AST ADT Runtime Scanner Operations and Upstream CLI Manifest Trace",
+  "checks": [
+    {
+      "name": "semantic relations directory remains empty",
+      "passed": true
+    },
+    {
+      "name": "semantic foundation directory remains empty",
+      "passed": true
+    },
+    {
+      "name": "provider bundle scanner is internal, not an exported free function",
+      "passed": true
+    },
+    {
+      "name": "provider AST scanner is internal, not an exported free function",
+      "passed": true
+    },
+    {
+      "name": "provider operations interface explicitly types both runtime operations",
+      "passed": true
+    },
+    {
+      "name": "provider operation is interface-first and frozen",
+      "passed": true
+    },
+    {
+      "name": "production provider dependency uses operation.scanBundle",
+      "passed": true
+    },
+    {
+      "name": "provider judgment preserves AST-definition pairing",
+      "passed": true
+    },
+    {
+      "name": "CLI scan and sync retain shared manifest scan operation",
+      "passed": true
+    },
+    {
+      "name": "upstream composition still creates shared manifest scan operation",
+      "passed": true
+    },
+    {
+      "name": "manifest builder preserves complete and blocked ADT outcomes",
+      "passed": true
+    },
+    {
+      "name": "no relationFoundation references remain in core source",
+      "passed": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "relationFoundationReferencesInCoreSource": 0,
+  "relationDirectoryFileCount": 0,
+  "foundationDirectoryFileCount": 0,
+  "verificationScope": "Static source audit only; does not claim full project typecheck, unit tests, build, or CLI end-to-end execution. Empty semantic directories are intentionally preserved without replacement abstractions."
+}

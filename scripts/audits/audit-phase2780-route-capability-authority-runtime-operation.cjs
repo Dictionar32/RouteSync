@@ -1,0 +1,32 @@
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
+const authority = read('packages/core/src/types/upstream/routeCapabilityAuthority.ts');
+const barrel = read('packages/core/src/index.ts');
+const boundary = read('packages/core/src/compiler/semantic/route-boundary/boundaryInputResolution.ts');
+const builder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
+const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
+const judgment = read('packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts');
+const scanJudgment = read('packages/core/src/types/upstream/sourceScanJudgment.ts');
+const collections = read('packages/core/src/types/upstream/collections.ts');
+check('collections.ts remains intentionally empty', collections.length === 0);
+check('factory interface exposes a typed create operation', /export interface RouteCapabilityAuthorityFactoryInterface/.test(authority) && /readonly create: \(algebra: RouteCapabilityAuthorityAlgebraInterface\) => RouteCapabilityAuthorityInterface/.test(authority));
+check('public factory is an explicitly typed frozen operation object', /export const routeCapabilityAuthorityFactory:\s*RouteCapabilityAuthorityFactoryInterface\s*=\s*Object\.freeze\(/.test(authority));
+check('authority module has no exported function declarations', !/^export\s+function\s/m.test(authority));
+check('legacy exported factory is removed from barrel', !/createRouteCapabilityAuthority\s*[,}]/.test(barrel));
+check('new factory and type are publicly exported', /routeCapabilityAuthorityFactory/.test(barrel) && /RouteCapabilityAuthorityFactoryInterface/.test(barrel));
+check('actual route-boundary runtime uses canonical authority.resolve', /routeCapabilityAuthority\.resolve\(/.test(boundary));
+check('manifest builder executes source-AST pipeline', /sourceAstPipeline\.execute\(\)/.test(builder));
+check('source-AST projection keeps complete and blocked ADT arms', /laravel_source_ast_projection_complete/.test(judgment) && /laravel_source_ast_projection_blocked/.test(judgment));
+check('SourceScanJudgment remains explicitly not claimed as pipeline-integrated', /SourceScanJudgment/.test(scanJudgment) && !/SourceScanJudgment/.test(pipeline));
+let failed = 0;
+for (const item of checks) {
+  console.log(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}`);
+  if (!item.passed) failed++;
+}
+console.log(`\n${checks.length - failed}/${checks.length} checks passed`);
+if (failed) process.exitCode = 1;

@@ -101,10 +101,10 @@ algorithm is an implementation of those semantics rather than their definition.
 The Phase 335 audit shows the largest remaining semantic surfaces are:
 
 1. `compiler/scanner/subscanners/queryProducer.ts`
-2. `compiler/scanner/lexer/astClassifier.ts`
+2. `compiler/frontend/php/astClassifier.ts`
 3. provider/controller/resource/request canonical producers
 4. controller method/body parsers
-5. `compiler/scanner/lexer/routeAst/tokenCursor.ts`
+5. `compiler/frontend/php/routeAst/tokenCursor.ts`
 6. syntax error and expression classification paths
 
 Migration must proceed by semantic contract, not text substitution. In

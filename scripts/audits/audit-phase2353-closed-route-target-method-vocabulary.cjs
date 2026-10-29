@@ -4,9 +4,9 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const authority = read('packages/core/src/types/upstream/laravelRouteDeclarationMethodSemanticAuthority.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts');
-const syntax = read('packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts');
-const relations = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
+const ast = read('packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts');
+const syntax = read('packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts');
+const relations = read('packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const checks = [
   ['existing upstream contract defines a distinct target-method vocabulary', /export type LaravelRouteTargetMethod = LaravelStandardRouteMethod/.test(contract)],

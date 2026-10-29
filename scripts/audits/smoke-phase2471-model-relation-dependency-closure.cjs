@@ -7,10 +7,10 @@ require.extensions['.ts'] = (module, filename) => {
   module._compile(output, filename);
 };
 const root = path.resolve(__dirname, '../..');
-const { correlateModelColumnFacts } = require(path.join(root, 'packages/core/src/compiler/scanner/subscanners/model/modelColumnOrigin.ts'));
+const { correlateModelColumnFacts } = require(path.join(root, 'packages/core/src/compiler/scanner/operations/model/modelColumnOrigin.ts'));
 const { createColumnName, createPropertyName } = require(path.join(root, 'packages/core/src/types/upstream/names.ts'));
 const { PrimitiveKind, primitiveType } = require(path.join(root, 'packages/core/src/types/domain/semanticType.ts'));
-const { semanticType } = require(path.join(root, 'packages/core/src/compiler/scanner/subscanners/model/semanticTypeCanonical.ts'));
+const { semanticType } = require(path.join(root, 'packages/core/src/compiler/scanner/operations/model/semanticTypeCanonical.ts'));
 const { stringValue, numberValue, truthValue } = require(path.join(root, 'packages/core/src/types/upstream/valueObjects.ts'));
 const source = { kind: 'source_span', file: { kind: 'source_file', value: stringValue('migration.php') }, start: numberValue(0), end: numberValue(8) };
 const column = {

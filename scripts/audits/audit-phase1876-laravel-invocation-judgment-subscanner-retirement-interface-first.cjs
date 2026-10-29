@@ -9,10 +9,10 @@ const judgmentAuthority = read('packages/core/src/types/upstream/laravelControll
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const sourcePipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
-const routeScanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
-const subscannerIndex = read('packages/core/src/compiler/scanner/subscanners/index.ts');
+const routeScanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
+const subscannerIndex = read('packages/core/src/compiler/scanner/operations/index.ts');
 const packageJson = JSON.parse(read('package.json'));
-const legacyFile = path.join(root, 'packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts');
+const legacyFile = path.join(root, 'packages/core/src/compiler/scanner/operations/ControllerScanner.ts');
 const productionFiles = [];
 const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
   const full = path.join(directory, entry.name);

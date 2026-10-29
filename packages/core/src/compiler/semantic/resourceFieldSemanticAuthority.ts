@@ -7,17 +7,17 @@ import type {
   ResourceFieldSemanticJudgment,
   ResourceFieldOutputShapeJudgment,
 } from '../../types/upstream/resourceFieldSemanticAuthorityInterface';
-import type { PhpAstValue } from '../scanner/lexer/PhpAst';
-import type { OriginModelSymbol } from '../scanner/symbols/model/originModelSymbol';
-import type { ResolvedPropertyBinding } from '../scanner/symbols/model/types';
+import type { PhpAstValue } from '../frontend/php/PhpAst';
+import type { OriginModelSymbol } from './model/originModelSymbol';
+import type { ResolvedPropertyBinding } from './model/resolvedPropertyBinding';
 import { matchLookup, type Lookup } from '../../types/upstream/collections';
 import type { ModelReference, ResourceReference } from '../../types/upstream/semanticReferences';
 import type { PropertyName } from '../../types/upstream/names';
 import type { StringValue } from '../../types/upstream/valueObjects';
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
-const propertyName = (value: string): PropertyName => ({ kind: 'property_name', value: stringValue(value) });
-const resourceReference = (value: string): ResourceReference => ({ kind: 'resource_reference', name: { kind: 'resource_name', value: stringValue(value) } });
+const propertyName = (value: string): PropertyName => ({ kind: 'property_name', value: stringValue.create(value) });
+const resourceReference = (value: string): ResourceReference => ({ kind: 'resource_reference', name: { kind: 'resource_name', value: stringValue.create(value) } });
 const modelReference = (value: StringValue): ModelReference => ({ kind: 'model_reference', name: { kind: 'model_name', value } });
 
 const missingBinding: Lookup<ResolvedPropertyBinding> = { kind: 'missing' };
@@ -74,10 +74,10 @@ const fieldType = (binding: Lookup<ResolvedPropertyBinding>): TypeExpression =>
 
 const outputShape = (value: PhpAstValue): ResourceFieldOutputShapeJudgment => {
   if (value.kind === 'resource_single') {
-    return { kind: 'resource', resourceName: stringValue(value.resourceName) };
+    return { kind: 'resource', resourceName: stringValue.create(value.resourceName) };
   }
   if (value.kind === 'resource_collection') {
-    return { kind: 'resource_collection', resourceName: stringValue(value.resourceName) };
+    return { kind: 'resource_collection', resourceName: stringValue.create(value.resourceName) };
   }
   if (value.kind === 'nested_array') {
     return { kind: 'nested_object' };

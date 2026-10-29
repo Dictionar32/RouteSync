@@ -13,7 +13,7 @@ const files = [
   'packages/core/src/compiler/domain/common/ts-lowerer/builder/objectTypeLowerer.ts',
   'packages/core/src/compiler/domain/common/resolved-types/catamorphism.ts',
   'packages/core/src/compiler/analysis/ssa/renamer/blockInstructionRenamer.ts',
-  'packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts',
+  'packages/core/src/compiler/frontend/php/phpAstAlgebra.ts',
 ];
 const forbidden = [
   ['host:new', /\bnew\s+[A-Za-z_$]/g], ['host:undefined', /\bundefined\b/g],

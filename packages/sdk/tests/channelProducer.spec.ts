@@ -2,12 +2,13 @@ import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ChannelScanner } from '../../core/src/compiler/scanner/subscanners/ChannelScanner';
-import { channelProducer } from '../../core/src/compiler/scanner/subscanners/channelProducer';
-import { ScannedBroadcastChannelDescriptor } from '../../core/src/compiler/scanner/descriptors/channelDescriptors';
-import { ScannedRouteParameterDescriptor } from '../../core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass';
+import { ChannelScanner } from '../../core/src/compiler/scanner/operations/ChannelScanner';
+import { channelProducer } from '../../core/src/compiler/scanner/operations/channelProducer';
+import { ScannedBroadcastChannelDescriptor } from '../../core/src/compiler/scanner/operations/domain-model/channelDescriptors';
+import { ScannedRouteParameterDescriptor } from '../../core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass';
 import type { Sequence } from '../../core/src/types/upstream/collections';
 import type { SourceProjectIdentity } from '../../core/src/types/upstream/highLevelSourceModel';
+import { semanticDataflowQueryPolicySelectionFactory } from '../../core/src/types/upstream/semanticDataflowQueryPolicy';
 import type { SourceSpan } from '../../core/src/types/upstream/provenance';
 
 const sequenceToArray = <T>(items: Sequence<T>): readonly T[] => {
@@ -31,6 +32,7 @@ const project = (root: string): SourceProjectIdentity => ({
   kind: 'laravel_project',
   root: source(root, 1).file,
   source: source(root, 1),
+  queryPolicySelection: semanticDataflowQueryPolicySelectionFactory.defaultSelection,
 });
 
 describe('ChannelAst producer', () => {

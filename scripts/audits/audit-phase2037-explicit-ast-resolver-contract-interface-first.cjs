@@ -5,7 +5,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const algebra = read('packages/core/src/types/upstream/astClassifierRuleAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const controller = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const pkg = JSON.parse(read('package.json'));
 const ruleStart = runtime.indexOf('const AST_CLASSIFICATION_RULES:');
@@ -21,7 +21,7 @@ const checks = [
   ['resolver selection preserves all four AST resolution outcomes through the canonical branch', runtime.includes('case \'judgment\': return resolver.resolve(input)') && runtime.includes('return Object.freeze({ kind: \'not_resolved\' })')],
   ['existing ordered AST rule algebra remains the single selection authority', runtime.includes('astClassificationRuleAlgebra.resolveFirst(AST_CLASSIFICATION_RULES, input)')],
   ['Laravel invocation judgment and integrated response remain connected', controller.includes('invocationJudgment') && controller.includes('responseJudgment')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['phase audit is registered in package scripts', typeof pkg.scripts['audit:phase2037-explicit-ast-resolver-contract-interface-first'] === 'string'],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);

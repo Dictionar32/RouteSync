@@ -1,0 +1,23 @@
+{
+  "phase": 2816,
+  "title": "Route Path Acceptance Domain Operation Audit",
+  "rootCause": "Route path acceptance re-created the same fact twice and kept domain policy in a separate lookup rather than on the fact.",
+  "changes": [
+    "Added RoutePathTokenFact.continueForAcceptance for the closed string/any expectation.",
+    "Converted route path fact creation and acceptance to interface-first frozen operation objects.",
+    "Migrated routeDeclarationParser to routePathTokenAcceptanceOperation.accepts.",
+    "Removed the exported standalone routePathTokenFact and isRoutePathToken functions."
+  ],
+  "preserved": [
+    "Existing route syntax semantic judgment and proof continuation ADT",
+    "Existing route method policy catalog",
+    "packages/core/src/types/upstream/collections.ts remains 0 bytes"
+  ],
+  "verification": {
+    "architectureAudit": "run separately and report actual result",
+    "typecheck": "not claimed",
+    "build": "not claimed",
+    "fullTests": "not claimed",
+    "cliE2E": "not claimed"
+  }
+}

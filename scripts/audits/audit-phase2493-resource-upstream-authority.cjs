@@ -7,13 +7,13 @@ const targets = [
   'packages/core/src/compiler/scanner/operations/resourceFieldProducer.ts',
   'packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
-  'packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts',
+  'packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts',
 ];
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const assertions = [
   ['existing producer contract is upstream-owned', () => /export interface ResourceProducerInterface/.test(read('packages/core/src/types/upstream/resourceProducerInterface.ts'))],
-  ['canonical scanner still imports producer from subscanners (open frontier)', () => /from ['"]\.\.\/subscanners\/resourceProducer['"]/.test(read('packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts'))],
-  ['legacy binder directly imports the producer (open frontier)', () => /from ['"]\.\.\/\.\.\/subscanners\/resourceProducer['"]/.test(read('packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts'))],
+  ['canonical scanner still imports producer from operations (open frontier)', () => /from ['"]\.\.\/operations\/resourceProducer['"]/.test(read('packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts'))],
+  ['legacy binder directly imports the producer (open frontier)', () => /from ['"]\.\.\/\.\.\/operations\/resourceProducer['"]/.test(read('packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts'))],
   ['source evidence contract exists upstream', () => /interface ResourceSourceEvidenceScannerInterface/.test(read('packages/core/src/types/upstream/laravelResourceScannerInterface.ts'))],
   ['resource semantic mapping contract exists upstream', () => /interface ResourceSemanticMappingAuthorityInterface/.test(read('packages/core/src/types/upstream/resourceSemanticMappingInterface.ts'))],
   ...targets.map((file) => [`${file} still has relation dependency (open frontier)`, () => /semantic\/relations/.test(read(file))]),

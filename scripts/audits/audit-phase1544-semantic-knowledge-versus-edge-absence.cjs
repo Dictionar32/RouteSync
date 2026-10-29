@@ -1,8 +1,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = process.cwd();
-const analyzerPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
-const testPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.phase908.test.ts');
+const analyzerPath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
+const testPath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.phase908.test.ts');
 const analyzer = fs.readFileSync(analyzerPath, 'utf8');
 const test = fs.readFileSync(testPath, 'utf8');
 const adapterPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts');

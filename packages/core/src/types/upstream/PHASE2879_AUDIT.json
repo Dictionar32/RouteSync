@@ -1,0 +1,12 @@
+{
+  "phase": 2879,
+  "name": "invocation-judgment-preparation",
+  "status": "structural-audit-passed",
+  "checksPassed": 12,
+  "checksTotal": 12,
+  "typescriptSyntaxDiagnostics": 0,
+  "fullTypecheckVerified": false,
+  "buildVerified": false,
+  "endToEndVerified": false,
+  "collectionsFileMustRemainEmpty": true
+}

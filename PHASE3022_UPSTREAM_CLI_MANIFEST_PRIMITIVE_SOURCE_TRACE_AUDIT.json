@@ -1,0 +1,47 @@
+{
+  "phase": 3022,
+  "checks": [
+    {
+      "name": "canonical StringValue factory interface is exported from names",
+      "passed": true
+    },
+    {
+      "name": "duplicate local stringValue function is absent",
+      "passed": true
+    },
+    {
+      "name": "route prefix projection uses explicit factory operation",
+      "passed": true
+    },
+    {
+      "name": "route group-name projection uses explicit factory operation",
+      "passed": true
+    },
+    {
+      "name": "CLI manifest scan boundary remains interface-first",
+      "passed": true
+    },
+    {
+      "name": "manifest composition input retains domain continuation",
+      "passed": true
+    },
+    {
+      "name": "manifest terminal ADT retains domain continuation",
+      "passed": true
+    },
+    {
+      "name": "collections invariant remains one newline byte",
+      "passed": true
+    },
+    {
+      "name": "deleted relation foundation modules remain absent",
+      "passed": true
+    }
+  ],
+  "passed": 9,
+  "total": 9,
+  "status": "passed",
+  "fullTypecheck": "not_run_environment_missing_dependencies_and_repository_tsconfig_targets_unsupported_by_global_typescript_5.8.3",
+  "tests": "not_run",
+  "primitiveElimination": "incomplete"
+}

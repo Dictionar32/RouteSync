@@ -20,20 +20,32 @@ import {
     UNKNOWN_SQL_TYPE_MAPPING,
 } from './visitors';
 
-export function getSqlTypeMapping(sqlType: string): SqlTypeMapping | null {
+export interface GetSqlTypeMappingOperation {
+  (sqlType: string): SqlTypeMapping | null;
+}
+
+export const getSqlTypeMapping: GetSqlTypeMappingOperation = Object.freeze((sqlType: string): SqlTypeMapping | null => {
     const kind = DatabaseColumnTypeMapper.toColumnKind(sqlType);
     const mapping = matchDatabaseColumnKind(kind, createSqlTypeVisitor(sqlType));
     return mapping.baseType === 'unknown' ? null : mapping;
+});
+
+export interface GetCastMappingOperation {
+  (castType: string): SqlTypeMapping | null;
 }
 
-export function getCastMapping(castType: string): SqlTypeMapping | null {
+export const getCastMapping: GetCastMappingOperation = Object.freeze((castType: string): SqlTypeMapping | null => {
     const { castKind } = EloquentCastMapper.resolve(castType);
     const mapping = matchEloquentCastKind(castKind, CAST_TYPE_VISITOR);
     return mapping.baseType === 'unknown' ? null : mapping;
+});
+
+export interface MapSqlTypeToMappingOperation {
+  (sqlType: string, cast?: string): SqlTypeMapping;
 }
 
-export function mapSqlTypeToMapping(sqlType: string, cast?: string): SqlTypeMapping {
+export const mapSqlTypeToMapping: MapSqlTypeToMappingOperation = Object.freeze((sqlType: string, cast?: string): SqlTypeMapping => {
     const castMapping = cast ? getCastMapping(cast) : null;
     const sqlMapping = getSqlTypeMapping(sqlType);
     return castMapping ?? sqlMapping ?? UNKNOWN_SQL_TYPE_MAPPING;
-}
+});

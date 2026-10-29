@@ -3,8 +3,8 @@
 Files explicitly classified as obsolete compatibility artifacts are now physically empty rather than retaining a second semantic implementation.
 
 Erased files:
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxNavigation.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/phpAstSyntaxEvidenceRelationProgram.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxNavigation.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/phpAstSyntaxEvidenceRelationProgram.ts`
 
 The canonical semantic path remains relation-first:
 

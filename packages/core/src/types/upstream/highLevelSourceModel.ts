@@ -4,7 +4,7 @@ import { matchRequestValidationCapability } from './request';
 import type { RouteDefinition } from './route';
 import type { SourceSpan } from './provenance';
 import type { ActionName, ControllerName, SourceFile } from './names';
-import { matchDiscovered, matchSourceDiscovery, sequenceAlgebra, type Sequence } from './collections';
+import { sourceDiscoveryMatcher, sequenceAlgebra, type Sequence } from './collections';
 import type { ModelReference, ResourceReference, RequestReference, ResponseReference, RouteReference, ChannelReference, ServiceReference, ControllerReference, ClassReference, SemanticRelation, SemanticRelationGraph } from './semanticReferences';
 import type { EffectiveControllerActionPolicy, EffectiveControllerActionPolicyCatalogEntry } from './effectiveControllerActionPolicy';
 import { controllerActionPolicyRelations } from './controllerActionPolicyRelations';
@@ -18,7 +18,8 @@ import type { MigrationDefinition } from './migration';
 import { migrationInterfaceFromDefinition } from './migrationInterface';
 import type { DtoDefinition, MiddlewareDefinition, AttributeDefinition } from './application';
 import type { ChannelDefinition } from './channel';
-import type { SemanticDataflowQueryPolicyIntent } from './semanticDataflowQueryPolicy';
+import type { SemanticDataflowQueryPolicySelection } from './semanticDataflowQueryPolicy';
+import type { ManifestBuilderJudgment } from './manifestBuilderInterface';
 
 import type { RequestFieldTarget } from './request';
 import type { EndpointResponseBinding, EndpointRequestBinding } from './endpointBindings';
@@ -73,8 +74,8 @@ export interface SourceProjectIdentity {
   readonly kind: 'laravel_project';
   readonly root: SourceFile;
   readonly source: SourceSpan;
-  /** Explicit query intent supplied to the upstream producer; never inferred by Runtime. */
-  readonly dataflowQueryPolicyIntent?: SemanticDataflowQueryPolicyIntent;
+  /** Required ADT: the selected policy mode is explicit and carries its continuation operation. */
+  readonly queryPolicySelection: SemanticDataflowQueryPolicySelection;
 }
 
 export interface ModelSemanticNode {
@@ -84,14 +85,21 @@ export interface ModelSemanticNode {
   readonly source: SourceSpan;
 }
 
-export function modelSemanticNodeFromAst(ast: ModelAst): ModelSemanticNode {
-  return {
+/** Object-style runtime contract for projecting one AST model into its semantic node. */
+export interface ModelSemanticNodeFromAstOperation {
+  readonly kind: 'model_semantic_node_from_ast_operation';
+  project(ast: ModelAst): ModelSemanticNode;
+}
+
+export const modelSemanticNodeFromAst: ModelSemanticNodeFromAstOperation = Object.freeze({
+  kind: 'model_semantic_node_from_ast_operation',
+  project: (ast: ModelAst): ModelSemanticNode => ({
     kind: 'model_semantic_node',
     identity: { kind: 'model_reference', name: ast.definition.identity.name },
     definition: ast.definition,
-    source: ast.source
-  };
-}
+    source: ast.source,
+  }),
+});
 
 export interface ResourceSemanticNode {
   readonly kind: 'resource_semantic_node';
@@ -143,7 +151,7 @@ export interface RouteSemanticNode {
   readonly source: SourceSpan;
 }
 
-const modelNodeFromAst = (ast: ModelAst): ModelSemanticNode => modelSemanticNodeFromAst(ast);
+const modelNodeFromAst = (ast: ModelAst): ModelSemanticNode => modelSemanticNodeFromAst.project(ast);
 const serviceNodeFromAst = (ast: ServiceAst): ServiceSemanticNode => ({
   kind: 'service_semantic_node',
   identity: { kind: 'service_reference', name: ast.definition.name },
@@ -464,120 +472,120 @@ const effectiveControllerActionPolicyBinding = (
   catalogControllers: [],
 });
 
-export const sourceModelReferenceIndexFromCatalog: SourceModelReferenceIndexBuilderInterface['build'] = (
-  catalog,
-  effectivePolicies,
-): SourceModelReferenceIndex => {
-  const modelNodes: readonly ModelSemanticNode[] = sequenceAlgebra.toArray(catalog.models);
-  const relationValues = Object.freeze([
-    ...sequenceAlgebra.expand(catalog.routes, route => {
-      return effectiveRouteActionPolicyRelations(route, effectivePolicies);
-    }),
-    ...sequenceAlgebra.expand(catalog.controllers, controller => [
-      ...(() => {
-        const binding = effectiveControllerActionPolicyBinding(effectivePolicies, controller);
-        switch (binding.kind) {
-          case 'supplied_policy':
-            return controllerActionPolicyRelations(binding.value);
-          case 'supplied_policy_ambiguous':
-            return controllerActionPolicyRelations(blockedControllerActionPolicyForAmbiguity(
-              controller.identity.name,
-              controller.identity.action,
-              Object.freeze(binding.candidates.flatMap(candidate => candidate.value.source)),
-              binding.candidates.map(candidate => Object.freeze({
-                controller: candidate.value.controller,
-                action: candidate.value.action,
-                source: candidate.value.source,
-              })),
-            ));
-          case 'unbound':
-            return controllerActionPolicyRelations(blockedControllerActionPolicyForUnbound(
-              controller.identity.name,
-              controller.identity.action,
-              Object.freeze([controller.action.source]),
-            ));
-          case 'catalog_controller':
-            return controllerActionPolicyRelations(blockedControllerActionPolicyForUnbound(
-              controller.identity.name,
-              controller.identity.action,
-              Object.freeze([controller.action.source]),
-            ));
-          case 'catalog_controller_ambiguous':
-            return controllerActionPolicyRelations(blockedControllerActionPolicyForAmbiguity(
-              controller.identity.name,
-              controller.identity.action,
-              Object.freeze(binding.candidates.flatMap(candidate => [candidate.value.action.source])),
-              binding.candidates.map(candidate => Object.freeze({
-                controller: candidate.value.identity.name,
-                action: candidate.value.identity.action,
-                source: Object.freeze([candidate.value.action.source]),
-              })),
-            ));
-        }
-      })(),
-      ...sequenceAlgebra.expand(controller.action.semantic.resources, resource => [
-        { kind: 'controller_resource' as const, controller: controller.identity, resource: resource.resource },
-        { kind: 'controller_model' as const, controller: controller.identity, model: resource.model },
-        { kind: 'controller_response' as const, controller: controller.identity, response: resource.response },
-      ]),
-      ...sequenceAlgebra.expand(controller.action.dependencies, dependency => {
-        const modelNames = sequenceAlgebra.project(catalog.models, model => model.identity.name);
-        const serviceNames = sequenceAlgebra.project(catalog.services, service => service.identity.name);
-        const resolved = resolveServiceDependencyTarget(dependency.type, modelNames, serviceNames);
-        return [{
-          kind: 'controller_dependency' as const,
-          controller: controller.identity,
-          dependency: resolved,
-        } satisfies ControllerDependencyRelation];
-      }),
-    ]),
-    ...modelNodes.flatMap(model => model.definition.semantic.relation.semantic.map(relation => ({
-      kind: 'model_relation' as const,
-      model: model.identity,
-      target: { kind: 'model_reference' as const, name: relation.targetModel },
-      relation,
-    }))),
-    ...sequenceAlgebra.expand(catalog.resources, resource => [
-      { kind: 'resource_model' as const, resource: resource.identity, model: resource.definition.model },
-      { kind: 'response_resource' as const, response: resource.definition.response, resource: resource.identity },
-    ]),
-    ...sequenceAlgebra.expand(catalog.requests, request => {
-      const fields = matchRequestValidationCapability(request.definition.validation, {
-        no_form_request_validation: () => ({ kind: 'empty' as const }),
-        form_request_validation: value => value.schema.fields.items,
-      });
-      return sequenceAlgebra.expand(fields, field => REQUEST_PROPERTY_RELATION_MODEL[field.target.kind](request.identity, field.target));
-    }),
-    ...sequenceAlgebra.expand(catalog.routes, route => {
-      const request = route.definition.bindings.request;
-      const response = route.definition.bindings.response;
-      const target = route.definition.bindings.target;
-      return [
-        ...ROUTE_REQUEST_RELATION_MODEL[request.kind](route.identity, request),
-        ...ROUTE_RESPONSE_RELATION_MODEL[response.kind](route.identity, response),
-        ...ROUTE_TARGET_RELATION_MODEL[target.kind](route.identity, target),
-      ];
-    }),
-  ]);
-
-  return {
-    kind: 'source_model_reference_index',
-    controllers: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.controllers, node => node.identity)),
-    models: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.models, node => node.identity)),
-    resources: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.resources, node => node.identity)),
-    requests: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.requests, node => node.identity)),
-    responses: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.responses, node => node.identity)),
-    routes: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.routes, node => node.identity)),
-    graph: { kind: 'semantic_relation_graph', relations: sequenceAlgebra.fromArray(relationValues) },
-  };
-}
-
-/** Canonical operation value for source-model reference-index construction. */
-export const sourceModelReferenceIndexBuilder: SourceModelReferenceIndexBuilderInterface = Object.freeze({
+export const sourceModelReferenceIndexFromCatalog: SourceModelReferenceIndexBuilderInterface = Object.freeze({
   kind: 'source_model_reference_index_builder',
   contractVersion: 1,
-  build: sourceModelReferenceIndexFromCatalog,
+  build: (
+    catalog: SourceModelCatalog,
+    effectivePolicies: readonly EffectiveControllerActionPolicy[],
+  ): SourceModelReferenceIndex => {
+    const modelNodes: readonly ModelSemanticNode[] = sequenceAlgebra.toArray(catalog.models);
+    const relationValues = Object.freeze([
+      ...sequenceAlgebra.expand(catalog.routes, route => {
+        return effectiveRouteActionPolicyRelations(route, effectivePolicies);
+      }),
+      ...sequenceAlgebra.expand(catalog.controllers, controller => [
+        ...(() => {
+          const binding = effectiveControllerActionPolicyBinding(effectivePolicies, controller);
+          switch (binding.kind) {
+            case 'supplied_policy':
+              return controllerActionPolicyRelations(binding.value);
+            case 'supplied_policy_ambiguous':
+              return controllerActionPolicyRelations(blockedControllerActionPolicyForAmbiguity(
+                controller.identity.name,
+                controller.identity.action,
+                Object.freeze(binding.candidates.flatMap(candidate => candidate.value.source)),
+                binding.candidates.map(candidate => Object.freeze({
+                  controller: candidate.value.controller,
+                  action: candidate.value.action,
+                  source: candidate.value.source,
+                })),
+              ));
+            case 'unbound':
+              return controllerActionPolicyRelations(blockedControllerActionPolicyForUnbound(
+                controller.identity.name,
+                controller.identity.action,
+                Object.freeze([controller.action.source]),
+              ));
+            case 'catalog_controller':
+              return controllerActionPolicyRelations(blockedControllerActionPolicyForUnbound(
+                controller.identity.name,
+                controller.identity.action,
+                Object.freeze([controller.action.source]),
+              ));
+            case 'catalog_controller_ambiguous':
+              return controllerActionPolicyRelations(blockedControllerActionPolicyForAmbiguity(
+                controller.identity.name,
+                controller.identity.action,
+                Object.freeze(binding.candidates.flatMap(candidate => [candidate.value.action.source])),
+                binding.candidates.map(candidate => Object.freeze({
+                  controller: candidate.value.identity.name,
+                  action: candidate.value.identity.action,
+                  source: Object.freeze([candidate.value.action.source]),
+                })),
+              ));
+          }
+        })(),
+        ...sequenceAlgebra.expand(controller.action.semantic.resources, resource => [
+          { kind: 'controller_resource' as const, controller: controller.identity, resource: resource.resource },
+          { kind: 'controller_model' as const, controller: controller.identity, model: resource.model },
+          { kind: 'controller_response' as const, controller: controller.identity, response: resource.response },
+        ]),
+        ...sequenceAlgebra.expand(controller.action.dependencies, dependency => {
+          const modelNames = sequenceAlgebra.project(catalog.models, model => model.identity.name);
+          const serviceNames = sequenceAlgebra.project(catalog.services, service => service.identity.name);
+          const resolved = resolveServiceDependencyTarget(dependency.type, modelNames, serviceNames);
+          return [{
+            kind: 'controller_dependency' as const,
+            controller: controller.identity,
+            dependency: resolved,
+          } satisfies ControllerDependencyRelation];
+        }),
+      ]),
+      ...modelNodes.flatMap(model => model.definition.semantic.relation.semantic.map(relation => ({
+        kind: 'model_relation' as const,
+        model: model.identity,
+        target: { kind: 'model_reference' as const, name: relation.targetModel },
+        relation,
+      }))),
+      ...sequenceAlgebra.expand(catalog.resources, resource => [
+        { kind: 'resource_model' as const, resource: resource.identity, model: resource.definition.model },
+        { kind: 'response_resource' as const, response: resource.definition.response, resource: resource.identity },
+      ]),
+      ...sequenceAlgebra.expand(catalog.requests, request => {
+        const fields = matchRequestValidationCapability(request.definition.validation, {
+          no_form_request_validation: () => ({ kind: 'empty' as const }),
+          form_request_validation: value => value.schema.fields.items,
+        });
+        return sequenceAlgebra.expand(fields, field => REQUEST_PROPERTY_RELATION_MODEL[field.target.kind](request.identity, field.target));
+      }),
+      ...sequenceAlgebra.expand(catalog.routes, route => {
+        const request = route.definition.bindings.request;
+        const response = route.definition.bindings.response;
+        const target = route.definition.bindings.target;
+        return [
+          ...ROUTE_REQUEST_RELATION_MODEL[request.kind](route.identity, request),
+          ...ROUTE_RESPONSE_RELATION_MODEL[response.kind](route.identity, response),
+          ...ROUTE_TARGET_RELATION_MODEL[target.kind](route.identity, target),
+        ];
+      }),
+    ]);
+
+    return {
+      kind: 'source_model_reference_index',
+      controllers: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.controllers, node => node.identity)),
+      models: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.models, node => node.identity)),
+      resources: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.resources, node => node.identity)),
+      requests: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.requests, node => node.identity)),
+      responses: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.responses, node => node.identity)),
+      routes: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.routes, node => node.identity)),
+      graph: { kind: 'semantic_relation_graph', relations: sequenceAlgebra.fromArray(relationValues) },
+    };
+    },
 });
+
+/** Canonical alias retained for the source-model reference-index operation. */
+export const sourceModelReferenceIndexBuilder: SourceModelReferenceIndexBuilderInterface = sourceModelReferenceIndexFromCatalog;
 
 /**
  * Canonical projection boundary from semantic nodes into Laravel contracts.
@@ -585,30 +593,38 @@ export const sourceModelReferenceIndexBuilder: SourceModelReferenceIndexBuilderI
  * second semantic source. Consumers should depend on this interface rather
  * than the scanner/catalog implementation.
  */
-export function semanticContractCatalogFromSourceCatalog(catalog: SourceModelCatalog): LaravelSemanticContractCatalog {
-  const collectContracts = <N, C>(items: Sequence<N>, getContract: (node: N) => C): Sequence<C> =>
-    sequenceAlgebra.fromArray(sequenceAlgebra.project(items, getContract));
-
-  return {
-    models: collectContracts(catalog.models, node => node.definition),
-    resources: collectContracts(catalog.resources, node => node.definition),
-    requests: collectContracts(catalog.requests, node => node.definition),
-    responses: collectContracts(catalog.responses, node => node.definition),
-    routes: collectContracts(catalog.routes, node => node.definition),
-    controllers: collectContracts(catalog.controllers, node => node.action),
-    providers: collectContracts(catalog.providers, node => node.definition),
-    services: collectContracts(catalog.services, node => ({
-      ...node.definition,
-      resolvedDependencies: node.resolvedDependencies,
-    } satisfies ServiceSemanticContract)),
-    schemas: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.schemas, schemaInterfaceFromDefinition)),
-    migrations: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.migrations, migrationInterfaceFromDefinition)),
-    dtos: catalog.dtos,
-    middlewares: catalog.middlewares,
-    attributes: catalog.attributes,
-    channels: collectContracts(catalog.channels, node => node.definition),
-  };
+export interface SemanticContractCatalogFromSourceCatalogOperation {
+  readonly kind: 'semantic_contract_catalog_from_source_catalog_operation';
+  project(catalog: SourceModelCatalog): LaravelSemanticContractCatalog;
 }
+
+export const semanticContractCatalogFromSourceCatalog: SemanticContractCatalogFromSourceCatalogOperation = Object.freeze({
+  kind: 'semantic_contract_catalog_from_source_catalog_operation',
+  project: (catalog: SourceModelCatalog): LaravelSemanticContractCatalog => {
+    const collectContracts = <N, C>(items: Sequence<N>, getContract: (node: N) => C): Sequence<C> =>
+      sequenceAlgebra.fromArray(sequenceAlgebra.project(items, getContract));
+
+    return {
+      models: collectContracts(catalog.models, node => node.definition),
+      resources: collectContracts(catalog.resources, node => node.definition),
+      requests: collectContracts(catalog.requests, node => node.definition),
+      responses: collectContracts(catalog.responses, node => node.definition),
+      routes: collectContracts(catalog.routes, node => node.definition),
+      controllers: collectContracts(catalog.controllers, node => node.action),
+      providers: collectContracts(catalog.providers, node => node.definition),
+      services: collectContracts(catalog.services, node => ({
+        ...node.definition,
+        resolvedDependencies: node.resolvedDependencies,
+      } satisfies ServiceSemanticContract)),
+      schemas: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.schemas, schemaInterfaceFromDefinition)),
+      migrations: sequenceAlgebra.fromArray(sequenceAlgebra.project(catalog.migrations, migrationInterfaceFromDefinition)),
+      dtos: catalog.dtos,
+      middlewares: catalog.middlewares,
+      attributes: catalog.attributes,
+      channels: collectContracts(catalog.channels, node => node.definition),
+    };
+  },
+});
 
 
 export interface SemanticContractSeeds {
@@ -632,9 +648,17 @@ export interface CompleteLaravelSourceModel {
   readonly relations: SemanticRelationGraph;
 }
 
+/** Fixed-domain continuation from source-model construction into manifest construction. */
+export interface CompleteSourceModelManifestBuildContinuationInterface {
+  readonly onComplete: (judgment: CompleteSourceModelBuildCompleteResult) => Promise<ManifestBuilderJudgment>;
+  readonly onBlocked: (judgment: CompleteSourceModelBuildBlockedResult) => Promise<ManifestBuilderJudgment>;
+}
+
 export interface CompleteSourceModelBuildCompleteResult {
   readonly kind: 'complete_source_model';
   readonly value: CompleteLaravelSourceModel;
+  /** Continues this exact source-model judgment into the manifest domain without consumer discriminator checks. */
+  readonly continueToManifestBuild: (continuation: CompleteSourceModelManifestBuildContinuationInterface) => Promise<ManifestBuilderJudgment>;
 }
 
 /** A policy blocker discovered while constructing the canonical source model must reach manifest publication. */
@@ -647,6 +671,8 @@ export interface CompleteSourceModelBuildBlockedResult {
   readonly kind: 'source_model_build_blocked';
   readonly identity: SourceProjectIdentity;
   readonly blockers: readonly SourceModelPolicyBlocker[];
+  /** Continues this exact blocked source-model judgment without allowing it to masquerade as complete. */
+  readonly continueToManifestBuild: (continuation: CompleteSourceModelManifestBuildContinuationInterface) => Promise<ManifestBuilderJudgment>;
 }
 
 export type CompleteSourceModelBuildResult =
@@ -665,137 +691,141 @@ export interface CompleteLaravelSourceModelBuildInput {
 export interface CompleteLaravelSourceModelBuilderInterface {
   readonly kind: 'complete_laravel_source_model_builder';
   readonly closed: true;
-  readonly contractVersion: 1;
+  readonly contractVersion: 2;
   readonly build: (input: CompleteLaravelSourceModelBuildInput) => CompleteSourceModelBuildResult;
 }
 
-export const buildCompleteLaravelSourceModel: CompleteLaravelSourceModelBuilderInterface['build'] = (input) => {
-  const ast = input.ast;
-  const identity = input.identity;
-  const seeds = input.seeds;
-  const source = ast.ast;
-  const completeItems = <T>(discovery: import('./collections').SourceDiscovery<T>): Sequence<T> => matchSourceDiscovery(discovery, {
-    notScanned: () => { throw Error('CompleteSourceAst invariant violated: source category was not scanned.'); },
-    scanned: scanned => matchDiscovered(scanned.result, {
-      empty: () => ({ kind: 'empty' }),
-      many: value => value.items,
-    }),
-  });
-  const controllers = source.controllerActions;
-  const providers = seeds.providers;
-  const models = completeItems(source.models.items);
-  const responses = seeds.responses;
-  const services = seeds.services;
-  const routes = completeItems(source.routes.items);
-  const channels = completeItems(source.channels.items);
-
-  const catalog: SourceModelCatalog = {
-    kind: 'source_model_catalog',
-    providers: sequenceAlgebra.fromArray(providers.map(definition => ({
-      kind: 'provider_semantic_node' as const,
-      identity: definition.name,
-      definition,
-      source: definition.source,
-    }))),
-    controllers: sequenceAlgebra.fromArray(controllers.map(action => ({
-      kind: 'controller_semantic_node' as const,
-      identity: { kind: 'controller_reference' as const, name: action.controller, action: action.action },
-      action,
-      source: action.source,
-    }))),
-    models: sequenceAlgebra.fromArray(seeds.models.map(definition => ({
-      kind: 'model_semantic_node' as const,
-      identity: { kind: 'model_reference' as const, name: definition.identity.name },
-      definition,
-      source: definition.source,
-    }))),
-    resources: sequenceAlgebra.fromArray(
-      seeds.resources.map(definition => ({
-            kind: 'resource_semantic_node' as const,
-            identity: { kind: 'resource_reference' as const, name: definition.name },
-            definition,
-            source: definition.source,
-          })),
-    ),
-    requests: sequenceAlgebra.fromArray(
-      seeds.requests.map(definition => ({
-            kind: 'request_semantic_node' as const,
-            identity: { kind: 'request_reference' as const, name: definition.identity.request },
-            definition,
-            source: definition.source,
-          })),
-    ),
-    responses: sequenceAlgebra.fromArray(responses.map(definition => ({
-      kind: 'response_semantic_node' as const,
-      identity: { kind: 'response_reference' as const, name: definition.typeName },
-      definition,
-      source: definition.source,
-    }))),
-    services: sequenceAlgebra.fromArray(services.map(definition => {
-      const modelNames = sequenceAlgebra.project(models, model => model.definition.identity.name);
-      const serviceNames = services.map(service => service.name);
-      const resolved = sequenceAlgebra.project(definition.dependencies.items, fact => ({
-        kind: 'resolved_service_dependency' as const,
-        fact,
-        target: resolveServiceDependencyTarget(fact.target, modelNames, serviceNames),
-      }));
-      return {
-        kind: 'service_semantic_node' as const,
-        identity: { kind: 'service_reference' as const, name: definition.name },
-        definition,
-        resolvedDependencies: { kind: 'resolved_service_dependencies', items: sequenceAlgebra.fromArray(resolved) },
-        source: definition.source,
-      };
-    })),
-    routes: sequenceAlgebra.fromArray(sequenceAlgebra.project(routes, routeNodeFromAst)),
-    channels: sequenceAlgebra.fromArray(sequenceAlgebra.project(channels, astItem => ({
-      kind: 'channel_semantic_node',
-      identity: { kind: 'channel_reference', name: astItem.definition.name },
-      definition: astItem.definition,
-      source: astItem.source,
-    }))),
-    schemas: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.schemas.items), item => item.definition)),
-    migrations: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.migrations.items), item => item.definition)),
-    dtos: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.dtos.items), item => item.definition)),
-    middlewares: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.middlewares.items), item => item.definition)),
-    attributes: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.attributes.items), item => item.definition)),
-  };
-
-  const contracts = semanticContractCatalogFromSourceCatalog(catalog);
-  const effectivePolicies = effectiveControllerActionPolicyInventory.inventory(Object.freeze({
-    kind: 'effective_controller_action_policy_inventory_input',
-    catalog,
-  }));
-  const referenceIndex = sourceModelReferenceIndexBuilder.build(catalog, effectivePolicies);
-  const blockers = Object.freeze(sequenceAlgebra.toArray(referenceIndex.graph.relations).filter(
-    (relation): relation is SourceModelPolicyBlocker =>
-      relation.kind === 'controller_action_policy_blocked' || relation.kind === 'route_action_policy_blocked',
-  ));
-
-  if (blockers.length > 0) {
-    return Object.freeze({
-      kind: 'source_model_build_blocked',
-      identity,
-      blockers,
-    });
-  }
-
-  return Object.freeze({
-    kind: 'complete_source_model',
-    value: Object.freeze({
-      kind: 'complete_laravel_source_model',
-      identity,
-      contracts,
-      relations: referenceIndex.graph,
-    }),
-  });
-}
-
-
-/** Canonical interface-bound operation for complete Laravel source-model construction. */
-export const completeLaravelSourceModelBuilder: CompleteLaravelSourceModelBuilderInterface = Object.freeze({
+export const buildCompleteLaravelSourceModel: CompleteLaravelSourceModelBuilderInterface = Object.freeze({
   kind: 'complete_laravel_source_model_builder',
   closed: true,
-  contractVersion: 1,
-  build: buildCompleteLaravelSourceModel,
+  contractVersion: 2,
+  build: (input: CompleteLaravelSourceModelBuildInput): CompleteSourceModelBuildResult => {
+    const ast = input.ast;
+    const identity = input.identity;
+    const seeds = input.seeds;
+    const source = ast.ast;
+    const completeItems = <T>(discovery: import('./collections').SourceDiscovery<T>): Sequence<T> => sourceDiscoveryMatcher.match(discovery, {
+      notScanned: () => { throw Error('CompleteSourceAst invariant violated: source category was not scanned.'); },
+      scanned: scanned => sequenceAlgebra.fromArray(scanned.items),
+    });
+    const controllers = source.controllerActions;
+    const providers = seeds.providers;
+    const models = completeItems(source.models.items);
+    const responses = seeds.responses;
+    const services = seeds.services;
+    const routes = completeItems(source.routes.items);
+    const channels = completeItems(source.channels.items);
+
+    const catalog: SourceModelCatalog = {
+      kind: 'source_model_catalog',
+      providers: sequenceAlgebra.fromArray(providers.map(definition => ({
+        kind: 'provider_semantic_node' as const,
+        identity: definition.name,
+        definition,
+        source: definition.source,
+      }))),
+      controllers: sequenceAlgebra.fromArray(controllers.map(action => ({
+        kind: 'controller_semantic_node' as const,
+        identity: { kind: 'controller_reference' as const, name: action.controller, action: action.action },
+        action,
+        source: action.source,
+      }))),
+      models: sequenceAlgebra.fromArray(seeds.models.map(definition => ({
+        kind: 'model_semantic_node' as const,
+        identity: { kind: 'model_reference' as const, name: definition.identity.name },
+        definition,
+        source: definition.source,
+      }))),
+      resources: sequenceAlgebra.fromArray(
+        seeds.resources.map(definition => ({
+              kind: 'resource_semantic_node' as const,
+              identity: { kind: 'resource_reference' as const, name: definition.name },
+              definition,
+              source: definition.source,
+            })),
+      ),
+      requests: sequenceAlgebra.fromArray(
+        seeds.requests.map(definition => ({
+              kind: 'request_semantic_node' as const,
+              identity: { kind: 'request_reference' as const, name: definition.identity.request },
+              definition,
+              source: definition.source,
+            })),
+      ),
+      responses: sequenceAlgebra.fromArray(responses.map(definition => ({
+        kind: 'response_semantic_node' as const,
+        identity: { kind: 'response_reference' as const, name: definition.typeName },
+        definition,
+        source: definition.source,
+      }))),
+      services: sequenceAlgebra.fromArray(services.map(definition => {
+        const modelNames = sequenceAlgebra.project(models, model => model.definition.identity.name);
+        const serviceNames = services.map(service => service.name);
+        const resolved = sequenceAlgebra.project(definition.dependencies.items, fact => ({
+          kind: 'resolved_service_dependency' as const,
+          fact,
+          target: resolveServiceDependencyTarget(fact.target, modelNames, serviceNames),
+        }));
+        return {
+          kind: 'service_semantic_node' as const,
+          identity: { kind: 'service_reference' as const, name: definition.name },
+          definition,
+          resolvedDependencies: { kind: 'resolved_service_dependencies', items: sequenceAlgebra.fromArray(resolved) },
+          source: definition.source,
+        };
+      })),
+      routes: sequenceAlgebra.fromArray(sequenceAlgebra.project(routes, routeNodeFromAst)),
+      channels: sequenceAlgebra.fromArray(sequenceAlgebra.project(channels, astItem => ({
+        kind: 'channel_semantic_node',
+        identity: { kind: 'channel_reference', name: astItem.definition.name },
+        definition: astItem.definition,
+        source: astItem.source,
+      }))),
+      schemas: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.schemas.items), item => item.definition)),
+      migrations: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.migrations.items), item => item.definition)),
+      dtos: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.dtos.items), item => item.definition)),
+      middlewares: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.middlewares.items), item => item.definition)),
+      attributes: sequenceAlgebra.fromArray(sequenceAlgebra.project(completeItems(source.attributes.items), item => item.definition)),
+    };
+
+    const contracts = semanticContractCatalogFromSourceCatalog.project(catalog);
+    const effectivePolicies = effectiveControllerActionPolicyInventory.inventory(Object.freeze({
+      kind: 'effective_controller_action_policy_inventory_input',
+      catalog,
+    }));
+    const referenceIndex = sourceModelReferenceIndexBuilder.build(catalog, effectivePolicies);
+    const blockers = Object.freeze(sequenceAlgebra.toArray(referenceIndex.graph.relations).filter(
+      (relation): relation is SourceModelPolicyBlocker =>
+        relation.kind === 'controller_action_policy_blocked' || relation.kind === 'route_action_policy_blocked',
+    ));
+
+    if (blockers.length > 0) {
+      let blockedJudgment: CompleteSourceModelBuildBlockedResult;
+      blockedJudgment = Object.freeze({
+        kind: 'source_model_build_blocked',
+        identity,
+        blockers,
+        continueToManifestBuild: (continuation: CompleteSourceModelManifestBuildContinuationInterface): Promise<ManifestBuilderJudgment> =>
+          continuation.onBlocked(blockedJudgment),
+      });
+      return blockedJudgment;
+    }
+
+    let completeJudgment: CompleteSourceModelBuildCompleteResult;
+    completeJudgment = Object.freeze({
+      kind: 'complete_source_model',
+      value: Object.freeze({
+        kind: 'complete_laravel_source_model',
+        identity,
+        contracts,
+        relations: referenceIndex.graph,
+      }),
+      continueToManifestBuild: (continuation: CompleteSourceModelManifestBuildContinuationInterface): Promise<ManifestBuilderJudgment> =>
+        continuation.onComplete(completeJudgment),
+    });
+    return completeJudgment;
+    },
 });
+
+/** Canonical alias retained for complete Laravel source-model construction. */
+export const completeLaravelSourceModelBuilder: CompleteLaravelSourceModelBuilderInterface = buildCompleteLaravelSourceModel;

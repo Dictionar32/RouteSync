@@ -16,7 +16,7 @@ check('ambiguous parent cannot be published as a complete selection', /ancestry\
 check('regression test covers duplicate parent names across distinct source files', /blocks parent resolution when short class names are ambiguous/.test(test) && /Admin\/BaseController\.php[\s\S]*Store\/BaseController\.php/.test(test));
 check('blocker propagation accepts the stronger ancestry ADT without reclassification', /ControllerDeclarationAncestryTermination/.test(scannerContract) && /declarationBlockers/.test(scanner));
 check('scanner contract version and executor agree on version 26', /contractVersion: 26/.test(scannerContract) && (scanner.match(/contractVersion: 26/g) || []).length >= 2);
-check('no relation/foundation subscanner directories are introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('no relation/foundation subscanner directories are introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 const passed = checks.filter(item => item.passed).length;
 const result = { phase: 2018, audit: 'controller-parent-ambiguity-interface-first', passed, total: checks.length, checks };
 fs.writeFileSync(path.join(root, 'PHASE2018_AUDIT.json'), `${JSON.stringify(result, null, 2)}\n`);

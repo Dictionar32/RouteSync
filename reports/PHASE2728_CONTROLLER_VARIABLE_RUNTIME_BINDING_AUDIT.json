@@ -1,0 +1,53 @@
+{
+  "phase": 2728,
+  "audit": "controller-variable-runtime-binding",
+  "passed": 9,
+  "total": 9,
+  "checks": [
+    {
+      "name": "runtime binding exposes named interface-first operation",
+      "passed": true,
+      "detail": "Runtime API is a typed frozen object, not a free exported function."
+    },
+    {
+      "name": "previous exported function entrypoint is retired",
+      "passed": true,
+      "detail": "Implementation is private and production caller uses the operation object."
+    },
+    {
+      "name": "runtime operation explicitly types input and AST output",
+      "passed": true,
+      "detail": "No implicit any or erased AST result at the operation boundary."
+    },
+    {
+      "name": "production PHP parser calls the typed runtime operation",
+      "passed": true,
+      "detail": "The actual parser path uses the interface-first object."
+    },
+    {
+      "name": "operation only composes upstream semantic authorities",
+      "passed": true,
+      "detail": "No replacement semantic foundation or local boolean judgment added."
+    },
+    {
+      "name": "manifest CLI scan and sync still use the canonical manifest scan operation",
+      "passed": true,
+      "detail": "Scanner binding refactor does not bypass upstream manifest composition."
+    },
+    {
+      "name": "manifest builder retains distinct complete and blocked outcomes",
+      "passed": true,
+      "detail": "The upstream manifest ADT remains fail-closed."
+    },
+    {
+      "name": "previous runtime-operation audit is retained",
+      "passed": true,
+      "detail": "Phase 2727 regression audit remains available."
+    },
+    {
+      "name": "relationFoundation source files remain absent",
+      "passed": true,
+      "detail": "No relationFoundation file or renamed replacement is introduced."
+    }
+  ]
+}

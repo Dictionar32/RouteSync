@@ -13,7 +13,7 @@ const checks = [
   }],
   ['controller contract accepts source-backed FormRequest evidence', () => read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts').includes('readonly formRequests: readonly FormRequestSource[]')],
   ['route judgment exported through public package barrel', () => read('packages/core/src/index.ts').includes('LaravelRouteScanJudgment')],
-  ['legacy scanners remain until interface wiring and consumer migration', () => ['RouteScanner','ControllerScanner','ModelScanner','FormRequestScanner','ResourceScanner','ChannelScanner'].every(n => fs.existsSync(path.join(root, `packages/core/src/compiler/scanner/subscanners/${n}.ts`)))],
+  ['legacy scanners remain until interface wiring and consumer migration', () => ['RouteScanner','ControllerScanner','ModelScanner','FormRequestScanner','ResourceScanner','ChannelScanner'].every(n => fs.existsSync(path.join(root, `packages/core/src/compiler/scanner/operations/${n}.ts`)))],
   ['no semantic foundation dependency introduced by interface changes', () => !['packages/core/src/types/upstream/laravelRouteScannerInterface.ts','packages/core/src/types/upstream/laravelFormRequestScannerInterface.ts'].some(p => read(p).includes('semantic/foundation'))],
 ];
 let failed = 0;

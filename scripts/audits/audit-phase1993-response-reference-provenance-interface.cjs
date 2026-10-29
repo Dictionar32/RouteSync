@@ -21,7 +21,7 @@ const checks = [
   ['candidate evidence type is exported publicly', /LaravelControllerResponseReferenceCandidateEvidence/.test(publicExports) && !/LaravelControllerObservedResponseEvidence/.test(publicExports)],
   ['scanner trace confirms descriptor-derived response construction remains visible', /const response = \{ kind: 'response_present' as const, response: \{ kind: 'response_reference' as const, name: result\.descriptor\.response\.responseTypeName\(\) \} \}/.test(scanner)],
   ['no response producer runtime was added in scanner wiring', !/responseEvidenceProduction\.produce/.test(scanner) && /controllerProducer\.produce\(\{ declaration: declarationEvidence, invocationJudgment \}\)/.test(scanner)],
-  ['no relation/foundation response subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/response/relations')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/response/foundation'))],
+  ['no relation/foundation response subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/response/relations')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/response/foundation'))],
 ];
 const failures = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) process.stdout.write(`${ok ? 'PASS' : 'FAIL'} ${name}\n`);

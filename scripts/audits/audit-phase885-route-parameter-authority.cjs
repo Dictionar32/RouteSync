@@ -15,10 +15,10 @@ function walk(dir) {
 walk(core);
 
 const factory = path.join(core, 'compiler/scanner/semantic/route/routeParameterSemanticFactory.ts');
-const pathParser = path.join(core, 'compiler/scanner/subscanners/route-scanner/routePathParser.ts');
+const pathParser = path.join(core, 'compiler/scanner/operations/route-scanner/routePathParser.ts');
 const boundary = path.join(core, 'compiler/scanner/resolvers/boundary/boundaryBasics.ts');
-const producer = path.join(core, 'compiler/scanner/subscanners/routeProducerRelations.ts');
-const flowFactory = path.join(core, 'compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts');
+const producer = path.join(core, 'compiler/scanner/operations/routeProducerRelations.ts');
+const flowFactory = path.join(core, 'compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts');
 
 const text = files.map(p => ({ p, t: read(p) }));
 const productionFactoryImports = text.filter(({ p, t }) => p !== factory && /RouteParameterSemanticFactory/.test(t)).map(({p}) => path.relative(root,p));

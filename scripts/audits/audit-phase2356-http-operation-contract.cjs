@@ -25,7 +25,7 @@ const checks = [
   ['no method-specific executor interface was added', !/interface QueryHttpClient|interface QueryOperationExecutor/.test(operation + client + sdk)],
   ['transport operation path does not import semantic foundation', !/semantic\/foundation/.test(operation + client + sdk)],
   ['transport operation path does not import semantic relations', !/semantic\/relations?/.test(operation + client + sdk)],
-  ['transport operation path does not import scanner submodules', !/subscanners?\//.test(operation + client + sdk)],
+  ['transport operation path does not import scanner submodules', !/operations?\//.test(operation + client + sdk)],
 ];
 const failed = checks.filter(([, ok]) => !ok);
 for (const [name, ok] of checks) process.stdout.write(`${ok ? 'PASS' : 'FAIL'} ${name}\n`);

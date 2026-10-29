@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const modelDir = 'packages/core/src/compiler/scanner/subscanners/model';
+const modelDir = 'packages/core/src/compiler/scanner/operations/model';
 const targets = ['modelColumnOrigin.ts', 'propertyProducer.ts', 'semanticTypeCanonical.ts', 'modelCanonical.ts'];
 const modelFiles = fs.readdirSync(path.join(root, modelDir)).filter(file => file.endsWith('.ts'));
 const modelSources = modelFiles.map(file => [file, fs.readFileSync(path.join(root, modelDir, file), 'utf8')]);

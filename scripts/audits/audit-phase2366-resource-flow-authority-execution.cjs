@@ -6,8 +6,8 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const authority = read('packages/core/src/types/upstream/routeResourceFlow.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
-const barrel = read('packages/core/src/compiler/scanner/subscanners/route-scanner/index.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
+const barrel = read('packages/core/src/compiler/scanner/operations/route-scanner/index.ts');
 const executorBody = emitter.split('export function emitResourceRoutesFromJudgment(')[1].split('/** Compatibility entrypoint')[0];
 const checks = [
   ['existing RouteResourceFlowJudgment remains the closed semantic result', /interface RouteResourceFlowJudgment[\s\S]*readonly plan: RouteResourceFlowPlan[\s\S]*readonly closed: true/.test(authority)],

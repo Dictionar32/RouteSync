@@ -6,12 +6,12 @@ const contract = read('packages/core/src/types/upstream/controllerDeclarationSem
 const classResolution = read('packages/core/src/types/upstream/phpClassNameResolutionInterface.ts');
 const classResolutionAuthority = read('packages/core/src/types/upstream/phpClassNameResolutionAuthority.ts');
 const authority = read('packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerAstTypes.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const authorityTests = read('packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.phase1968.test.ts');
-const parserTests = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationClassIdentity.phase2019.test.ts');
+const parserTests = read('packages/core/src/compiler/frontend/php/controllerDeclarationClassIdentity.phase2019.test.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2019_PHP_CLASS_IDENTITY_INTERFACE_FIRST.md');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [];
@@ -27,7 +27,7 @@ check('blocked name-resolution judgment propagates to blocked ancestry ADT', /pa
 check('scanner contract and executor agree on version 26', /contractVersion: 26/.test(scannerContract) && (scanner.match(/contractVersion: 26/g) || []).length >= 2 && /classIdentity: item\.declaration\.classIdentity/.test(scanner));
 check('regression coverage includes aliased import and incomplete grouped import', /canonical PHP class identity/.test(authorityTests) && /incomplete class-import evidence/.test(authorityTests) && /ParentController/.test(parserTests) && /grouped class imports/.test(parserTests));
 check('phase documentation and package audit entry are present', docs.includes('Phase 2019') && packageJson.scripts['audit:phase2019-php-class-identity-interface-first'] === 'node scripts/audits/audit-phase2019-php-class-identity-interface-first.cjs');
-check('no relation/foundation subscanner directories are introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('no relation/foundation subscanner directories are introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 const passed = checks.filter(item => item.passed).length;
 const result = { phase: 2019, audit: 'php-class-identity-interface-first', passed, total: checks.length, checks, note: 'Structural audit only; full TypeScript typecheck/build and Vitest execution are not asserted.' };
 fs.writeFileSync(path.join(root, 'PHASE2019_AUDIT.json'), `${JSON.stringify(result, null, 2)}\n`);

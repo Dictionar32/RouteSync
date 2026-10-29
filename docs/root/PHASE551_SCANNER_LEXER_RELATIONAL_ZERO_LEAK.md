@@ -2,7 +2,7 @@
 
 ## Objective
 
-Continue the declarative semantic cutover after Phase 550. The remaining production scanner/lexer leakage was converted to relation selection, recursive relation folds, presence/option folds, and relation gates. Source-language syntax remains evidence; the audit is TypeScript-AST based.
+Continue the declarative semantic cutover after Phase 550. The remaining production frontend/php leakage was converted to relation selection, recursive relation folds, presence/option folds, and relation gates. Source-language syntax remains evidence; the audit is TypeScript-AST based.
 
 ## Research direction
 
@@ -84,7 +84,7 @@ The 19 production files under `packages/core/src/compiler/scanner/resolvers` wer
 
 ## Architectural consequence
 
-The scanner/lexer and scanner resolver boundary is now a relation-only semantic surface. Remaining work should move upward/downstream rather than re-opening scanner control flow:
+The frontend/php and scanner resolver boundary is now a relation-only semantic surface. Remaining work should move upward/downstream rather than re-opening scanner control flow:
 
 1. unify the relation solver with scope/declaration/reference resolution;
 2. make resolution witnesses/provenance first-class closure facts;

@@ -1,0 +1,18 @@
+{
+  "phase": 2823,
+  "title": "Route Syntax Lookup Operation Migration",
+  "decision": "reuse_existing_vocabulary_and_add_domain_owned_operation_interfaces",
+  "migratedOperations": [
+    "routeMethodLookupOperation.lookup",
+    "routeConstraintMethodLookupOperation.lookup",
+    "resourceMethodLookupOperation.lookup"
+  ],
+  "retiredFunctionShapedExports": ["routeMethod", "routeConstraintMethod", "resourceMethod"],
+  "newGenericReasoningPrimitive": false,
+  "routePathAdtDomainOperation": "RoutePathTokenFact.continueForAcceptance",
+  "collectionsBytes": 0,
+  "typescriptBuild": "not_run_node_modules_absent",
+  "fullTests": "not_run_node_modules_absent",
+  "cliEndToEnd": "not_run_node_modules_absent",
+  "auditCommand": "npm run audit:phase2823-route-syntax-lookup-operations"
+}

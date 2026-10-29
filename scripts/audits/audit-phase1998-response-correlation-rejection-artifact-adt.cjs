@@ -24,7 +24,7 @@ check('scan judgment contract version advanced to 23', /interface LaravelControl
 check('pipeline contract version 3 records rejection preservation', /LaravelControllerResponseSemanticPipelineInterface[\s\S]*?contractVersion: 3/.test(response) && /rejectedCorrelationArtifactRule:[^\n]*first-class-response-judgment-ADT-member-for-AST-projection/.test(response));
 check('public index exports the new rejection judgment', /LaravelControllerResponseEvidenceProductionSourceCorrelationRejectedJudgment/.test(publicIndex));
 check('documentation states runtime integration remains unresolved', /Runtime trace remains unresolved[\s\S]*?does not consume `responseSemanticPipeline`/.test(report));
-check('no new relation/foundation subscanner added by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/responseSemanticPipeline')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/responseSemanticFoundation')));
+check('no new relation/foundation subscanner added by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/responseSemanticPipeline')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/responseSemanticFoundation')));
 
 const failed = checks.filter((entry) => !entry.passed);
 const output = { phase: 1998, audit: 'response-correlation-rejection-artifact-adt', passed: checks.length - failed.length, total: checks.length, checks };

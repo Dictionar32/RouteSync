@@ -11,8 +11,8 @@ const retirement = read('packages/core/src/types/upstream/laravelSubscannerRetir
 const results = [
   ['cli pipeline composition remains canonical', cliComposition.includes('buildManifestWithInvocationPipeline')],
   ['source AST pipeline consumes LaravelResourceScannerInterface implementation', pipeline.includes('laravelResourceScanner.scan')],
-  ['legacy ResourceScanner.ts is absent', !exists('packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts')],
-  ['legacy resourceProducer remains an active production dependency', resourceWiring.includes("from '../subscanners/resourceProducer'") && resourceWiring.includes('resourceProducer.produceResult')],
+  ['legacy ResourceScanner.ts is absent', !exists('packages/core/src/compiler/scanner/operations/ResourceScanner.ts')],
+  ['legacy resourceProducer remains an active production dependency', resourceWiring.includes("from '../operations/resourceProducer'") && resourceWiring.includes('resourceProducer.produceResult')],
   ['resource scanner interface owns closed scan contract', upstream.includes('interface LaravelResourceScannerInterface') && upstream.includes('readonly closed: true')],
   ['retirement contract explicitly gates deletion on zero production consumers', retirement.includes('zero-production-consumers-and-audit-passes')],
   ['resource binding consumes complete controller scan judgment', resourceWiring.includes('controllerScan: input.controllerScan')],

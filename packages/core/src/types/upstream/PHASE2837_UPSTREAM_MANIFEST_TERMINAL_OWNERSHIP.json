@@ -1,0 +1,34 @@
+{
+  "phase": 2837,
+  "title": "Upstream Manifest Terminal Ownership",
+  "rootCause": "Phase 2836 removed switch syntax but left terminal dispatch in a downstream continuation and represented composition workflow as a declarative reasoning contract.",
+  "changes": [
+    "Removed ControllerInvocationManifestCompositionReasoningContract and its runtime constant.",
+    "Added continueForDriftAudit as an operation on each CLI manifest terminal ADT arm.",
+    "Bound terminal operations at the producer boundary; drift auditor invokes the result-owned operation rather than dispatching by kind.",
+    "Kept generic ManifestBuilderJudgment in core and adapted its two outcomes at the CLI composition boundary.",
+    "Reused existing upstream identity, discovery, document binding, pipeline, inventory and manifest builder contracts."
+  ],
+  "runtimeTrace": [
+    "driftAuditor.auditManifestDrift",
+    "controllerInvocationManifestBuilder.build",
+    "routeSyncCliManifestScanOperationFactory.scan",
+    "ControllerInvocationManifestCompositionAuthorityInterface.compose",
+    "project identity canonicalization",
+    "controller source discovery",
+    "source document read and identity binding",
+    "semantic pipeline and delivery",
+    "invocation judgment authority",
+    "inventory closure authority",
+    "manifest builder",
+    "producer-bound terminal domain operation",
+    "drift audit action"
+  ],
+  "verification": {
+    "structuralAudit": "audit:phase2837-upstream-manifest-terminal-ownership",
+    "typecheck": "not verified",
+    "build": "not verified",
+    "endToEnd": "not verified",
+    "collectionsFileBytes": 0
+  }
+}

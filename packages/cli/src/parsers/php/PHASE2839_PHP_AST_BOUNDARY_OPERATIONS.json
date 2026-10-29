@@ -1,0 +1,36 @@
+{
+  "phase": 2839,
+  "title": "PHP AST Boundary Operations",
+  "rootCause": [
+    "Exported free-function constructors bypassed the interface-first runtime contract.",
+    "The parser-boundary judgment was data-only and included a reasoning workflow label.",
+    "Runtime consumers could read the AST payload directly without invoking the judgment's domain operation."
+  ],
+  "runtimeTrace": [
+    "PhpGrammarNode",
+    "adaptGrammarNode",
+    "phpAstBoundaryOperations.judgment",
+    "PhpAstBoundaryJudgment.continueWith",
+    "PhpAstBoundaryAdapterInterface.adapt",
+    "PhpAstNodeMappingOperationInterface.map"
+  ],
+  "changes": [
+    "Replace exported phpAstBoundaryFact/phpAstBoundaryJudgment constructors with phpAstBoundaryOperations: PhpAstBoundaryOperationsInterface.",
+    "Add continueWith handlers for adapted AST and parser-gap outcomes.",
+    "Bind continuation at the judgment producer.",
+    "Remove the reasoning field.",
+    "Route boundaryAdapter and nodeMapper runtime usage through the operation.",
+    "Export the operation and its contracts explicitly through PHP and CLI barrels."
+  ],
+  "verification": {
+    "phase2839Audit": "14/14 passed",
+    "phase2838Audit": "11/11 passed",
+    "phase2837Audit": "18/18 passed",
+    "phase2832Audit": "12/12 passed",
+    "phase2833Audit": "10/10 passed",
+    "phase2819Audit": "13/13 passed",
+    "typescriptTranspileSyntax": "5/5 passed",
+    "fullTypecheck": "not verified; workspace TypeScript/toolchain and dependency limitations remain",
+    "collectionsFileBytes": 0
+  }
+}

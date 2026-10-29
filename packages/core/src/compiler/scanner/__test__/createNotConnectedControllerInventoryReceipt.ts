@@ -1,8 +1,8 @@
 import { sourceFileAcquisition } from '../sourceFiles';
 import path from 'node:path';
 import type { SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
-import { createSourceFile } from '../../../types/upstream/names';
-import { laravelControllerInvocationSemanticJudgmentAuthority } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentAuthority';
+import { sourceFileIdentityFactory, stringValue } from '../../../types/upstream/names';
+import { laravelControllerInvocationSemanticJudgmentAuthority, laravelControllerInvocationSemanticInputFactory } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentAuthority';
 import { laravelControllerInvocationSemanticJudgmentInventoryAuthority } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority';
 import type {
   LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt,
@@ -15,7 +15,7 @@ export async function createNotConnectedControllerInventoryReceipt(
   sourceProject: SourceProjectIdentity,
 ): Promise<LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt> {
   const sourceFiles = await sourceFileAcquisition.collectPhpFiles(path.join(sourceProject.root.value.value, 'app', 'Http', 'Controllers'));
-  const sources = Object.freeze(sourceFiles.map(createSourceFile));
+  const sources = Object.freeze(sourceFiles.map(sourcePath => sourceFileIdentityFactory.create(stringValue.create(sourcePath))));
   const sourceInventory: LaravelControllerSourceInventoryInterface = Object.freeze({
     kind: 'laravel_controller_source_inventory',
     contractVersion: 1,
@@ -33,10 +33,7 @@ export async function createNotConnectedControllerInventoryReceipt(
     }),
   });
   const judgments = Object.freeze(sources.map(sourceFile =>
-    laravelControllerInvocationSemanticJudgmentAuthority.judge({
-      kind: 'controller_invocation_pipeline_not_provided',
-      sourceFile,
-    }),
+    laravelControllerInvocationSemanticJudgmentAuthority.judge(laravelControllerInvocationSemanticInputFactory.withoutPipeline(sourceFile)),
   ));
   const result: LaravelControllerInvocationSemanticJudgmentInventoryResult =
     laravelControllerInvocationSemanticJudgmentInventoryAuthority.close({

@@ -8,13 +8,13 @@ const frontier = [
   'packages/core/src/types/domain/validationRules.ts',
   'packages/core/src/types/domain/executionSignatures.ts',
   'packages/core/src/types/upstream/routeExecutionVocabulary.ts',
-  'packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts',
+  'packages/core/src/compiler/scanner/operations/ResourceScanner.ts',
   'packages/core/src/compiler/scanner/binders/SemanticResourceBinder.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
   'packages/core/src/compiler/scanner/StaticLaravelScanner.ts',
-  'packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts',
-  'packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resourceDescriptors.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts',
 ];
 
 const source = file => fs.readFileSync(path.join(root, file), 'utf8');

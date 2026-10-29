@@ -3,15 +3,15 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const barrel = read('packages/core/src/compiler/scanner/subscanners/index.ts');
-const routeScanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
+const barrel = read('packages/core/src/compiler/scanner/operations/index.ts');
+const routeScanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const routeWiring = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const routeInterface = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const retirement = read('packages/core/src/types/upstream/laravelSubscannerRetirementInterface.ts');
 const checks = [
   ['legacy RouteScanner is no longer exported from internal subscanner barrel', !/export\s*\{\s*RouteScanner\s*\}\s*from\s*["']\.\/RouteScanner["']/.test(barrel)],
-  ['legacy source file is retained rather than deleted', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/RouteScanner.ts'))],
+  ['legacy source file is retained rather than deleted', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/RouteScanner.ts'))],
   ['canonical pipeline imports the existing wired route scanner', /import\s*\{\s*laravelRouteScanner\s*\}\s*from\s*["']\.\/laravelRouteScanner["']/.test(pipeline)],
   ['canonical pipeline dependency object uses the existing route scanner', /routeScanner:\s*laravelRouteScanner/.test(pipeline)],
   ['canonical scanner wiring is typed by LaravelRouteScannerInterface', /export\s+const\s+laravelRouteScanner:\s*LaravelRouteScannerInterface/.test(routeWiring)],
@@ -25,16 +25,16 @@ const checks = [
       for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         const full = path.join(dir, entry.name);
         if (entry.isDirectory()) walk(full);
-        else if (entry.isFile() && /\.(ts|tsx|mts|cts)$/.test(entry.name) && !full.endsWith('/subscanners/RouteScanner.ts') && !full.endsWith('/subscanners/index.ts')) {
+        else if (entry.isFile() && /\.(ts|tsx|mts|cts)$/.test(entry.name) && !full.endsWith('/operations/RouteScanner.ts') && !full.endsWith('/operations/index.ts')) {
           const source = fs.readFileSync(full, 'utf8');
-          if (/from\s*["'][^"']*subscanners\/RouteScanner["']|from\s*["'][^"']*subscanners["'][^\n]*RouteScanner/.test(source) || /new\s+RouteScanner\s*\(/.test(source)) matches.push(path.relative(root, full));
+          if (/from\s*["'][^"']*operations\/RouteScanner["']|from\s*["'][^"']*operations["'][^\n]*RouteScanner/.test(source) || /new\s+RouteScanner\s*\(/.test(source)) matches.push(path.relative(root, full));
         }
       }
     };
     for (const dir of roots) walk(path.join(root, dir));
     return matches.length === 0;
   })()],
-  ['legacy file is not silently represented as the canonical implementation', /export\s+class\s+RouteScanner/.test(routeScanner) && !routeWiring.includes("from '../subscanners/RouteScanner'")],
+  ['legacy file is not silently represented as the canonical implementation', /export\s+class\s+RouteScanner/.test(routeScanner) && !routeWiring.includes("from '../operations/RouteScanner'")],
   ['no new foundation dependency in changed contract/wiring files', !/semantic\/foundation/.test(barrel + routeWiring + routeInterface)],
   ['no duplicate V2 route scanner contract introduced', !/LaravelRouteScannerInterfaceV2|RouteScannerV2/.test(barrel + routeWiring + routeInterface)],
 ];

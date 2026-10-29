@@ -17,7 +17,7 @@ The response pipeline is already wired by `packages/core/src/compiler/scanner/wi
 3. `ControllerResponseAttributeSourceEvidence` now distinguishes absent/declaration cases and a declared attribute retains exact `SourceSpan` provenance.
 4. `LaravelControllerResponseEvidenceProductionCoverage` explicitly says the producer is partial: `resolved_response_attribute_descriptor` and `response_dto_declaration` are missing.
 5. `ControllerDeclarationEvidence` contains controller methods and their response-attribute facts, but no closed inventory of DTO declarations. `SourceProjectIdentity` is project identity, not a DTO source inventory. Therefore the current evidence-production interface cannot honestly claim it has enough source facts to resolve DTO declarations.
-6. `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts` still calls `resolveResponse(...)`; the declared case delegates to `responseAttributeScanner.ts`, which resolves the DTO file, reads properties, and merges observed returns. This is the remaining legacy semantic ownership, not a missing response pipeline.
+6. `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts` still calls `resolveResponse(...)`; the declared case delegates to `responseAttributeScanner.ts`, which resolves the DTO file, reads properties, and merges observed returns. This is the remaining legacy semantic ownership, not a missing response pipeline.
 7. The response runtime executor's interface correctly indexes `execute` to the authority's `judge` signature. The missing piece is upstream evidence completeness, not executor branching.
 
 ## Required interface-first correction

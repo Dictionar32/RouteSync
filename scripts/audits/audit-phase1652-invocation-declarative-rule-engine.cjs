@@ -6,7 +6,7 @@ const contract = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const scannerTest = read('packages/core/src/compiler/scanner/__test__/ecommerceShopDataflowPhase104.spec.ts');
 const boundaryFiles = [contract, algebra, authority, executor, scanner];
 const executableIds = [...contract.matchAll(/invocationExecutionRule\('([^']+)'/g)].map(match => match[1]);

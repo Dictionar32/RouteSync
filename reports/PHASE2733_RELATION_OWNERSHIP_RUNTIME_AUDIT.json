@@ -1,0 +1,60 @@
+{
+  "phase": 2733,
+  "audit": "relation-ownership-runtime",
+  "checks": [
+    {
+      "name": "relationFoundation has no remaining source references",
+      "passed": true,
+      "detail": "0 references remain across 0 TypeScript files"
+    },
+    {
+      "name": "no relationFoundation module was recreated",
+      "passed": true,
+      "detail": "all former foundation paths remain absent"
+    },
+    {
+      "name": "semantic predicates have a named operation interface",
+      "passed": true,
+      "detail": "predicate and branch operations are exposed as a frozen interface-first object"
+    },
+    {
+      "name": "semantic relation option ADT is explicitly tagged",
+      "passed": true,
+      "detail": "none/some remain distinct typed variants with an explicit fold contract"
+    },
+    {
+      "name": "sequence overloads no longer export function declarations",
+      "passed": true,
+      "detail": "overloaded public sequence entrypoints use typed const contracts"
+    },
+    {
+      "name": "membership uses interface-first semantic operations on runtime path",
+      "passed": true,
+      "detail": "membership runtime calls the typed operation object rather than importing free predicate entrypoints"
+    },
+    {
+      "name": "CLI scan still enters the manifest scan operation",
+      "passed": true,
+      "detail": "scan continues through the composed manifest scan operation"
+    },
+    {
+      "name": "CLI sync still enters the manifest scan operation",
+      "passed": true,
+      "detail": "sync continues through the composed manifest scan operation"
+    },
+    {
+      "name": "CLI composition still creates the upstream manifest operation",
+      "passed": true,
+      "detail": "the CLI composition remains the source of manifest scan authority"
+    },
+    {
+      "name": "manifest builder preserves complete and blocked judgments",
+      "passed": true,
+      "detail": "complete and blocked ADT cases remain distinct"
+    }
+  ],
+  "passed": 10,
+  "total": 10,
+  "relationFoundationReferences": 0,
+  "relationFoundationFiles": []
+}

@@ -7,11 +7,11 @@
 
 export {
     type ResolvedPropertyBinding
-} from './types';
+} from '../../../semantic/model/resolvedPropertyBinding';
 
 export type {
     OriginModelSymbol
-} from './originModelSymbol';
+} from '../../../semantic/model/originModelSymbol';
 
 export type { ModelSymbolTable } from './modelSymbolTableClass';
 export { createModelSymbolTable } from './modelSymbolTableClass';

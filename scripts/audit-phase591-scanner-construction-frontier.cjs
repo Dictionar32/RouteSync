@@ -4,8 +4,8 @@ const path = require('path');
 
 const roots = [
   'packages/core/src/compiler/scanner/binders/resource',
-  'packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts',
-  'packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts',
   'packages/core/src/compiler/scanner/semanticTypeConstructionRelations.ts',
 ];
 

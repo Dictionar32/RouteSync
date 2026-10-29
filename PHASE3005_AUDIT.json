@@ -1,0 +1,78 @@
+{
+  "phase": 3005,
+  "title": "Source Binding Operational ADT and Interface-First Projection",
+  "passed": 14,
+  "total": 14,
+  "checks": [
+    {
+      "name": "source-binding-terminal-adt-has-continuation",
+      "passed": true,
+      "detail": "Closed and rejected source-binding outcomes expose a typed domain continuation."
+    },
+    {
+      "name": "source-binding-handler-preserves-both-outcomes",
+      "passed": true,
+      "detail": "Handlers retain distinct closed and rejected outcomes."
+    },
+    {
+      "name": "source-binding-projector-interface-defined",
+      "passed": true,
+      "detail": "The projection API has a named interface contract."
+    },
+    {
+      "name": "source-binding-projector-interface-first-runtime-export",
+      "passed": true,
+      "detail": "Runtime projection is exported as an explicitly typed frozen operation object."
+    },
+    {
+      "name": "projection-delegates-to-adt-continuation",
+      "passed": true,
+      "detail": "Projection delegates outcome dispatch to the source-binding ADT."
+    },
+    {
+      "name": "runtime-consumer-uses-operation-member",
+      "passed": true,
+      "detail": "Invocation judgment authority consumes the interface operation, not a free function."
+    },
+    {
+      "name": "legacy-direct-function-call-absent",
+      "passed": true,
+      "detail": "The traced consumer no longer calls the exported helper as a bare function."
+    },
+    {
+      "name": "contract-version-aligned",
+      "passed": true,
+      "detail": "Source-binding contract runtime and type versions agree at 6."
+    },
+    {
+      "name": "upstream-barrel-retains-operation-export",
+      "passed": true,
+      "detail": "The interface-first operation remains exported through the upstream barrel."
+    },
+    {
+      "name": "core-barrel-retains-operation-export",
+      "passed": true,
+      "detail": "The interface-first operation remains exported through the core barrel."
+    },
+    {
+      "name": "collections-remains-empty",
+      "passed": true,
+      "detail": "Intentionally empty upstream collections module remains untouched."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:relationMembership.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/relationMembership.ts remains absent."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:relationalSequence.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/relationalSequence.ts remains absent."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:semanticRelations.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/semanticRelations.ts remains absent."
+    }
+  ]
+}

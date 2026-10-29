@@ -5,7 +5,7 @@ const { transpileModule, ModuleKind, ScriptTarget } = require('typescript');
 const root = path.resolve(__dirname, '..');
 const compilerRoot = path.join(root, 'packages/core/src/compiler');
 const layers = [
-  ['scanner_lexer', 'packages/core/src/compiler/scanner/lexer'],
+  ['scanner_lexer', 'packages/core/src/compiler/frontend/php'],
   ['resolver_graph', 'packages/core/src/compiler/scanner/upstream'],
   ['ast_mapping', 'packages/core/src/types/upstream'],
   ['analysis', 'packages/core/src/compiler/analysis'],

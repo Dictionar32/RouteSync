@@ -9,25 +9,25 @@ import path from "path";
 import type { ModelCast } from "../../types/upstream/model";
 import type { ModelAccessorFact } from "../../types/upstream/modelSourceFacts";
 import type { SchemaInterface } from "../../types/upstream/schema";
-import type { TokenDescriptor } from "./lexer/phpAstTypes";
-import type { ModelDeclarationAst } from "./lexer/modelAstTypes";
-import type { PhpClassPropertyAst } from "./lexer/phpAstDeclarationTypes";
+import type { TokenDescriptor } from "../frontend/php/phpAstTypes";
+import type { ModelDeclarationAst } from "../frontend/php/modelAstTypes";
+import type { PhpClassPropertyAst } from "../frontend/php/phpAstDeclarationTypes";
 import type { SourceProjectIdentity } from "../../types/upstream/highLevelSourceModel";
 import { createClassName, createModelName } from "../../types/upstream/names";
-import { createPhpQualifiedClassName } from "../../types/upstream/phpClassNameResolutionInterface";
+import { phpQualifiedClassNameFactory } from "../../types/upstream/phpClassNameResolutionInterface";
 import type { ControllerStaticCallModelClassIdentity } from "../../types/upstream/controllerStaticCallOriginInterface";
 import type { LaravelModelScanArtifact, LaravelModelScannerInterface } from "../../types/upstream/laravelModelScannerInterface";
 import { LaravelSourceLexer } from "./LaravelSourceLexer";
-import { parseModelDeclaration } from "./lexer";
-import { sourceAstSyntaxParser } from "../semantic/sourceAstSyntaxParser";
+import { parseModelDeclaration } from "../frontend/php";
+import { sourceAstSyntaxParser } from "../frontend/php/sourceAstSyntaxParser";
 import { modelCastFactsAuthority } from "../../types/upstream/modelCastFactsAuthority";
 import { modelCastEvidenceProducer } from "./modelCastEvidenceProducer";
 import { modelAccessorEvidenceProducer } from "./modelAccessorEvidenceProducer";
 import { modelAccessorFactsAuthority } from "../../types/upstream/modelAccessorFactsAuthority";
 import { modelRelationFactsProducer } from "./modelRelationFactsProducer";
 import type { ModelProducerInput, ModelProducerInterface, ModelProducerResult } from "../../types/upstream/modelProducerInterface";
-import { modelSemanticDefinitionFromAst } from "./subscanners/model/modelParser";
-import { modelAstFromSemantic } from "./subscanners/model/modelCanonical";
+import { modelSemanticDefinitionFromAst } from "./operations/model/modelParser";
+import { modelAstFromSemantic } from "./operations/model/modelCanonical";
 
 /** Scans Eloquent model source and returns paired AST, definition, and class identity artifacts. */
 interface ModelScanBundle {
@@ -78,7 +78,7 @@ async function scanModelBundle(
         const source = await sourceFileAcquisition.readSourceText(fullPath);
         const modelName = path.basename(fullPath, ".php");
         const tokens = LaravelSourceLexer.tokenize(source);
-        const propertyAsts = sourceAstSyntaxParser.parseProperties(tokens);
+        const propertyAsts = sourceAstSyntaxParser.parseProperties(source);
         const declaration = parseModelDeclaration(tokens);
         const sourceSpan = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: fullPath } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: source.length } };
         const castEvidence = modelCastEvidenceProducer.produce({ propertyAsts, declaration, source: sourceSpan });
@@ -92,7 +92,7 @@ async function scanModelBundle(
             kind: "controller_static_call_model_class_identity",
             className: createClassName(declaration.name),
             modelName: result.definition.identity.name,
-            qualifiedName: createPhpQualifiedClassName([namespaceName, declaration.name].filter(Boolean).join("\\")),
+            qualifiedName: phpQualifiedClassNameFactory.create([namespaceName, declaration.name].filter(Boolean).join("\\")),
         });
         return Object.freeze({ result, classIdentity });
     }));

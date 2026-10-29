@@ -8,20 +8,16 @@ import type {
 } from './phpSourceFrontendValidationAuthorityInterface';
 import { PHP_SOURCE_FRONTEND_EXTRACTION_VALIDATION_CONTRACT } from './phpSourceFrontendValidationAuthorityInterface';
 import type { SourceFile } from './names';
-import type { SourceSpan } from './provenance';
+import { sourceSpanOperations, type SourceSpan } from './provenance';
 import { numberValue } from './valueObjects';
 
 const sameFile = (left: SourceFile, right: SourceFile): boolean => left.value.value === right.value.value;
 const sameSpan = (left: SourceSpan, right: SourceSpan): boolean =>
-  sameFile(left.file, right.file)
-  && left.start.value === right.start.value
-  && left.end.value === right.end.value;
-const validSpan = (span: SourceSpan): boolean => span.start.value >= 0 && span.end.value >= span.start.value;
+  sourceSpanOperations.same(left, right).kind === 'same_source_span';
+const validSpan = (span: SourceSpan): boolean =>
+  sourceSpanOperations.validate(span).kind === 'source_span_ordered';
 const within = (span: SourceSpan, outer: SourceSpan): boolean =>
-  sameFile(span.file, outer.file)
-  && validSpan(span)
-  && span.start.value >= outer.start.value
-  && span.end.value <= outer.end.value;
+  sourceSpanOperations.contains(outer, span).kind === 'source_span_contained';
 
 const syntaxSpans = (syntax: PhpFunctionNameSyntaxEvidence): readonly SourceSpan[] => {
   switch (syntax.kind) {
@@ -75,7 +71,7 @@ const validate = (input: PhpSourceFrontendExtractionValidationInput): PhpSourceF
     violations.push({ kind: 'invalid-whole-file-span', source });
   }
   const documentLength = input.document.content.value.value.length;
-  if (source.start.value !== 0 || source.end.value !== documentLength) {
+  if (sourceSpanOperations.coversDocument(source, numberValue(documentLength)).kind !== 'source_span_covers_document') {
     violations.push({
       kind: 'whole-file-span-does-not-cover-document-content',
       source,

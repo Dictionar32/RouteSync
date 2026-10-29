@@ -4,10 +4,10 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..', '..');
 const files = {
   controller: path.join(root, 'packages/core/src/types/upstream/controller.ts'),
-  canonical: path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts'),
-  producer: path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts'),
-  scanner: path.join(root, 'packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts'),
-  test: path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts'),
+  canonical: path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts'),
+  producer: path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts'),
+  scanner: path.join(root, 'packages/core/src/compiler/scanner/operations/ControllerScanner.ts'),
+  test: path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerMethodContract.phase894.test.ts'),
 };
 const text = Object.fromEntries(Object.entries(files).map(([k, file]) => [k, fs.readFileSync(file, 'utf8')]));
 const checks = {

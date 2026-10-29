@@ -1,0 +1,66 @@
+{
+  "phase": 3060,
+  "title": "Runtime outcome to controller and CLI trace",
+  "passed": 13,
+  "total": 13,
+  "status": "PASS",
+  "results": [
+    {
+      "name": "upstream owns the language-neutral produced/blocked outcome ADT",
+      "pass": true
+    },
+    {
+      "name": "blocked outcome preserves validation violations",
+      "pass": true
+    },
+    {
+      "name": "producer uses the outcome-aware operation on the runtime adapter path",
+      "pass": true
+    },
+    {
+      "name": "projection retains canonical source identity and evidence provenance",
+      "pass": true
+    },
+    {
+      "name": "controller analyzer sends the complete projection into one authority correlation",
+      "pass": true
+    },
+    {
+      "name": "published controller semantic model retains the exact evidence projection",
+      "pass": true
+    },
+    {
+      "name": "runtime binding is an interface-backed exported object",
+      "pass": true
+    },
+    {
+      "name": "controller body parser consumes the real runtime binding",
+      "pass": true
+    },
+    {
+      "name": "audit identifies that blocked outcome is not yet a controller-body ADT case",
+      "pass": true
+    },
+    {
+      "name": "audit identifies CLI/manifest terminal outcome gate as not proven by this path",
+      "pass": true
+    },
+    {
+      "name": "deleted relation foundation modules remain absent",
+      "pass": true
+    },
+    {
+      "name": "protected upstream collections file remains exactly one newline byte",
+      "pass": true
+    },
+    {
+      "name": "phase audit command is registered",
+      "pass": true
+    }
+  ],
+  "blockers": [
+    "The blocked production outcome is preserved inside semanticKnowledgeProjection, but controllerBodyParser does not yet project it as a blocked ControllerBodyAst case.",
+    "The parser currently calls analyze() as if it always yields a completed dataflow judgment; a typed blocked outcome does not yet gate CLI/manifest publication.",
+    "Strict TypeScript closure and end-to-end CLI-to-manifest execution are not claimed by this structural audit."
+  ]
+}

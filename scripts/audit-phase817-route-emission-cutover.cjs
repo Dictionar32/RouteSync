@@ -2,10 +2,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
-const bridge = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/routeProducer.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
+const bridge = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/routeProducer.ts');
 const result = {
   phase: 817,
   routeProducerConstructorCount: (producer.match(/routeProducer\s*:\s*RouteProducer/g) || []).length,

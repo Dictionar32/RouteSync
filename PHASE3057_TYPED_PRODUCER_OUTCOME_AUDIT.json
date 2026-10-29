@@ -1,0 +1,49 @@
+{
+  "phase": 3057,
+  "title": "Typed PHP semantic producer outcome",
+  "passed": 10,
+  "total": 10,
+  "status": "PASS",
+  "results": [
+    {
+      "name": "producer outcome is an explicit closed ADT",
+      "pass": true
+    },
+    {
+      "name": "blocked producer outcome retains model and typed violations",
+      "pass": true
+    },
+    {
+      "name": "scanner producer contract exposes interface-typed produceWithOutcome",
+      "pass": true
+    },
+    {
+      "name": "new outcome operation returns produced or blocked without throwing",
+      "pass": true
+    },
+    {
+      "name": "legacy graph-only producer is explicitly marked compatibility",
+      "pass": true
+    },
+    {
+      "name": "legacy producer delegates to the typed outcome instead of revalidating",
+      "pass": true
+    },
+    {
+      "name": "upstream continuation retains continue and blocked outcomes",
+      "pass": true
+    },
+    {
+      "name": "audit package script is registered",
+      "pass": true
+    },
+    {
+      "name": "deleted generic relation foundations remain absent",
+      "pass": true
+    },
+    {
+      "name": "collections invariant remains exactly one newline byte",
+      "pass": true
+    }
+  ]
+}

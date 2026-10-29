@@ -4,12 +4,12 @@ const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
-const consumer = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const consumer = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const implementation = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const packageJson = JSON.parse(read('package.json'));
-const controllerDir = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDir = 'packages/core/src/compiler/scanner/operations/controller';
 const checks = [
   ['resource binding has an upstream authority interface with a closed judgment', /ControllerResourceBindingAuthorityInterface/.test(contract) && /ControllerResourceBindingJudgment/.test(contract) && /closed: true/.test(contract)],
   ['semantic model origin evidence preserves variable and static-call judgments', /variable_semantic_judgment/.test(contract) && /static_call_origin_input/.test(contract) && /ControllerVariableSemanticJudgment/.test(contract) && /ControllerStaticCallOriginInput/.test(contract)],

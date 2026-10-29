@@ -1,0 +1,36 @@
+{
+  "phase": 3032,
+  "title": "PHP Invocation Name Source-Provenance Identity — Explicit Typed ADT Operations",
+  "scope": "Static contract audit that extends Phase 3031 typed invocation identity to preserve every PHP function-name segment source span and malformed-name source span. It does not claim repository-wide primitive elimination or full runtime correctness.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "PHP invocation source inventory and semantic judgment batch closure",
+    "phpFunctionInvocationEvidenceIdentityOperations creates and compares typed identity evidence",
+    "Each lexical name segment and malformed syntax source span remains inspectable in the identity ADT",
+    "Duplicate invocation evidence remains a rejection-ledger violation"
+  ],
+  "checks": {
+    "nameSegmentIdentityRetainsTypedNameAndSourceSpan": true,
+    "namedIdentityRetainsPerSegmentProvenance": true,
+    "malformedIdentityRetainsReasonAndSourceSpan": true,
+    "sourceSpanOperationsCompareSegmentProvenance": true,
+    "malformedIdentityEqualityIncludesSource": true,
+    "identityOperationsRemainInterfaceBacked": true,
+    "duplicateCheckUsesTypedIdentityOperation": true,
+    "serializedCompositeEvidenceKeyAbsent": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionRemainsInRuntimeTrace": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 12,
+  "total": 12,
+  "remainingDebt": [
+    "SourceSpan offsets still use NumberValue as parser-boundary representation.",
+    "FunctionName and source paths retain typed StringValue payloads at parser/domain boundaries.",
+    "The static audit does not replace executable behavioral tests for same-name/different-span and malformed evidence cases.",
+    "Full TypeScript typecheck, complete Vitest suite, and CLI-to-manifest end-to-end tests remain unverified because dependencies are unavailable in this workspace.",
+    "Repository-wide removal of primitive representations and all control-flow constructs is not complete and is not claimed; parser syntax dispatch remains where it preserves closed ADT variants and evidence."
+  ]
+}

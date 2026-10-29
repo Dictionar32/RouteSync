@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const model = read('packages/core/src/types/domain/expressions.ts');
-const authority = read('packages/core/src/compiler/scanner/lexer/routeAst/resourceExpressionSemanticAuthority.ts');
+const authority = read('packages/core/src/compiler/frontend/php/routeAst/resourceExpressionSemanticAuthority.ts');
 const operation = read('packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts');
 const contract = read('packages/core/src/types/upstream/resourceAstExpressionMappingInterface.ts');
 const checks = [

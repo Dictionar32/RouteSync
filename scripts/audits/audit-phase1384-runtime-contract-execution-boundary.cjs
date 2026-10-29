@@ -12,8 +12,8 @@ const manifestSurface = read('packages/core/src/types/upstream/semanticDataflowM
 const materializerTypes = read('packages/core/src/types/upstream/operationIdentityCapability.ts');
 const materializerImpl = read('packages/core/src/types/upstream/operationIdentityCapabilityAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
-const legacyAnalyzer = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
+const legacyAnalyzer = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const pkg = JSON.parse(read('package.json'));
 
 check('runtime boundary accepts closed judgment', boundary.includes('SemanticDataflowJudgment') && !boundary.includes('SemanticDataflowInput'), 'runtime boundary input is a judgment, not raw semantic input');

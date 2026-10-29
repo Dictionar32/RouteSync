@@ -5,11 +5,11 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = (file) => fs.existsSync(path.join(root, file));
 const contract = read('packages/core/src/types/upstream/controllerVariableSemanticInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const expressionTypes = read('packages/core/src/types/upstream/expression.ts');
 const upstreamBarrel = read('packages/core/src/types/upstream/index.ts');
 const packageJson = JSON.parse(read('package.json'));
-const controllerDir = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDir = 'packages/core/src/compiler/scanner/operations/controller';
 const checks = [
   ['source judgment owns expression-vocabulary value in the same closed union', /ControllerVariableResolvedSemanticJudgment/.test(contract) && /readonly expressionValue: Extract<SemanticValue, \{ readonly kind: 'reference' \}>/.test(contract) && /readonly expressionValue: Extract<SemanticValue, \{ readonly kind: 'unresolved' \}>/.test(contract)],
   ['resolved source judgment retains rule, semantic, evidence and expression value', /kind: 'resolved'[\s\S]*readonly rule: ControllerVariableSemanticRuleId[\s\S]*readonly semantic: Extract<ControllerVariableSemantic, \{ readonly kind: 'model_origin' \}>[\s\S]*readonly expressionValue: Extract<SemanticValue, \{ readonly kind: 'reference' \}>[\s\S]*readonly evidence: ControllerVariableSemanticEvidence[\s\S]*readonly closed: true/.test(contract)],

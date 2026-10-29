@@ -7,7 +7,7 @@ const authority = read('packages/core/src/types/upstream/phpFunctionResolutionSo
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const invocation = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const checks = [
   ['inventory authority implementation consumes the upstream authority interface', authority.includes('PhpFunctionResolutionSourceInventoryAuthorityInterface') && authority.includes('PhpFunctionResolutionSourceInventoryInput')],

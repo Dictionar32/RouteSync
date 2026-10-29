@@ -10,7 +10,7 @@ Complete the existing upstream interfaces before scanner delegation: implement t
 - `packages/core/src/types/upstream/invocationSemanticCoverageInventory.ts` implements the existing inventory interface from canonical `SemanticKnowledgeDataFlow.facts`.
 - `packages/core/src/types/upstream/invocationSemanticCoveragePublicationAuthority.ts` implements the existing publication interface. It validates inventory identity uniqueness, analysis identity membership, duplicate judgments, source evidence, and preserves typed rejections. It does not derive semantic judgments.
 - `packages/core/src/types/upstream/invocationSemanticPipeline.ts` composes the inventory, semantic pipeline, and publication authority through the already-defined dependency contract.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` now invokes only `invocationSemanticIntegratedResponseComposition.integrate(...)` for invocation semantics and retains the source-bound result in `ControllerDataflowAst`.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` now invokes only `invocationSemanticIntegratedResponseComposition.integrate(...)` for invocation semantics and retains the source-bound result in `ControllerDataflowAst`.
 
 ## Result
 

@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const schema = read('packages/core/src/types/domain/validationRules.ts');
 const bodyInterface = read('packages/core/src/types/upstream/controllerBodySemanticJudgmentInterface.ts');
-const bodyAuthority = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const bodyAuthority = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const actionAuthority = read('packages/core/src/types/upstream/controllerActionSchemaSemanticJudgmentAuthority.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [

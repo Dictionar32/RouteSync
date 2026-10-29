@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/phpFunctionNameResolutionInterface.ts');
 const authority = read('packages/core/src/types/upstream/phpFunctionNameResolutionAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const scannerBinding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const checks = [

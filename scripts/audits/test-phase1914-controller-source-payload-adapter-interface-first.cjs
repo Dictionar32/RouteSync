@@ -6,8 +6,8 @@ const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
 const contract = read('packages/core/src/types/upstream/controllerDataflowSourcePayloadEvidenceAdapterInterface.ts');
-const adapter = read('packages/core/src/compiler/scanner/lexer/routeAst/phpControllerDataflowSourcePayloadEvidenceAdapter.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const adapter = read('packages/core/src/compiler/frontend/php/routeAst/phpControllerDataflowSourcePayloadEvidenceAdapter.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');

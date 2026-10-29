@@ -2,9 +2,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
-const providerPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts');
+const providerPath = path.join(root, 'packages/core/src/compiler/scanner/operations/providerAstCanonical.ts');
 const producerPath = path.join(root, 'packages/core/src/compiler/scanner/attributeProducer.ts');
-const authorityPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSemanticAuthority.ts');
+const authorityPath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSemanticAuthority.ts');
 const provider = fs.readFileSync(providerPath, 'utf8');
 const producer = fs.readFileSync(producerPath, 'utf8');
 const authority = fs.readFileSync(authorityPath, 'utf8');

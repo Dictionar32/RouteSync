@@ -7,8 +7,8 @@ const compiler = read('src/types/upstream/semanticJudgmentRuleCompiler.ts');
 const genericInterface = read('src/types/upstream/semanticJudgmentDerivationInterface.ts');
 const upstreamIndex = read('src/types/upstream/index.ts');
 const algebra = read('src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
-const test = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
-const scanner = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const test = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
+const scanner = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const executor = read('src/types/upstream/invocationSemanticRuntimeExecutor.ts');
 const checks = [
   ['Contract v6 binds rule application premises and bindings into proof', /readonly version: 6/.test(contract) && /'rule-application-premises-and-bindings'/.test(contract) && /applications: SemanticRelationExecutionJudgment/.test(contract)],

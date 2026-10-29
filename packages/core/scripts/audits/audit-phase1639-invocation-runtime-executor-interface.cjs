@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const executor = read('src/types/upstream/invocationSemanticRuntimeExecutor.ts');
 const authority = read('src/types/upstream/invocationSemanticJudgmentAuthority.ts');
-const scanner = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const scanner = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const checks = [
   ['single-invocation judgment is the canonical result contract', /analyze: \(input: InvocationSemanticInput\) => InvocationSemanticJudgment/.test(contract)],
   ['runtime executor is an explicit upstream-authority boundary', /interface InvocationSemanticRuntimeExecutorInterface[\s\S]*authority: 'upstream'[\s\S]*execute: \(input: InvocationSemanticInput\) => InvocationSemanticJudgment/.test(contract)],

@@ -1,0 +1,64 @@
+{
+  "phase": 3078,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — source-read rejection inventory domain operations",
+  "status": "PASS",
+  "passed": 13,
+  "total": 13,
+  "checks": {
+    "rejectedInventoryAccumulatedAtDomainBoundary": true,
+    "finalRejectedEvidenceUsesAccumulatedInventory": true,
+    "postHocReduceRemovedFromBatchFinalization": true,
+    "sourceInventorySeededOnceAtAccumulatorCreation": true,
+    "fulfilledReadOrderStillPreserved": true,
+    "rejectionOrderAndEvidenceStillPreserved": true,
+    "settlementDomainOperationRemainsExplicit": true,
+    "manifestBlockedTerminalRetainsRejectionEvidence": true,
+    "canonicalRuntimeFactoryRemainsInterfaceFirst": true,
+    "noExportedFunctionDeclarationInChangedUpstreamFile": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedFilesTranspileWithoutSyntaxDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": [
+    {
+      "file": "PHASE3077_AUDIT.log",
+      "status": "ARTIFACT_PRESENT_NOT_RERUN"
+    },
+    {
+      "file": "PHASE3076_AUDIT.log",
+      "status": "ARTIFACT_PRESENT_NOT_RERUN"
+    },
+    {
+      "file": "PHASE3075_AUDIT.log",
+      "status": "ARTIFACT_PRESENT_NOT_RERUN"
+    },
+    {
+      "file": "PHASE3074_AUDIT.log",
+      "status": "ARTIFACT_PRESENT_NOT_RERUN"
+    },
+    {
+      "file": "PHASE3072_AUDIT.log",
+      "status": "ARTIFACT_PRESENT_NOT_RERUN"
+    }
+  ],
+  "runtimeTrace": [
+    "CLI scan/sync awaits source reads for the discovered canonical source inventory.",
+    "Fulfilled and rejected read settlements contribute to a source-read-owned batch accumulator.",
+    "Each rejected settlement adds its source identity to SourceFileInventory at the moment it enters the domain accumulator.",
+    "The rejected batch carries the accumulated inventory and the ordered normalized rejection evidence to the existing blocked manifest terminal."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "changedFileSyntaxTranspile": "PASS",
+    "regressionAuditExecution": "NOT_RUN — prior audit artifacts are checked for presence only",
+    "wholeWorkspaceStrictTypeScript": "NOT_CLAIMED",
+    "endToEndPhpCliManifestExecution": "NOT_RUN",
+    "globalPrimitiveElimination": "NOT_CLAIMED — the final batch judgment still exposes continueWith and the collection traversal remains index-based."
+  },
+  "remainingFrontiers": [
+    "Replace the final source-read batch generic continuation with a manifest-neutral, source-read-specific domain operation without making core depend on CLI terminal types.",
+    "Audit and normalize source-discovery blocker evidence at the filesystem adapter boundary.",
+    "Run strict TypeScript and an actual PHP → CLI → manifest fixture when dependency setup permits."
+  ]
+}

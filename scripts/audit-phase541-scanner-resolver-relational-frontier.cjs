@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
 
-const targets = ['packages/core/src/compiler/scanner/subscanners/schemaProducer.ts','packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts'];
+const targets = ['packages/core/src/compiler/scanner/operations/schemaProducer.ts','packages/core/src/compiler/scanner/operations/controller/responseDtoReader.ts'];
 function audit(source, file) {
   const sf = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
   const counts = { if:0, for:0, while:0, switch:0, map:0, filter:0, reduce:0, flatMap:0, undefined:0, null:0, strictEquality:0, asUnknown:0, or:0, and:0, trim:0, slice:0, never:0, indexPlus123:0, ternary:0 };

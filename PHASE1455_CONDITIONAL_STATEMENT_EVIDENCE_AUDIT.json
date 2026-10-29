@@ -4,7 +4,7 @@
   "scope": [
     "packages/core/src/types/upstream/scannerConditionalStatementInterface.ts",
     "packages/core/src/types/upstream/scannerConditionalStatementAlgebra.ts",
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
     "packages/core/src/types/upstream/index.ts",
     "packages/core/src/types/upstream/docs/PHASE1455_CONDITIONAL_STATEMENT_EVIDENCE_CONTRACT.md",
     "scripts/audits/audit-phase1455-conditional-statement-evidence-contract.cjs"

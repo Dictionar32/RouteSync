@@ -1,4 +1,5 @@
 import type { SourceFile } from './names';
+import type { SourceFileIdentityRelationJudgment } from './sourceProjectIdentity';
 import type { PhpSourceInvocationSemanticPipelineResult } from './phpSourceInvocationSemanticPipelineInterface';
 import type {
   PhpSourceInvocationSemanticPipelineIntegrationInterface,
@@ -7,23 +8,44 @@ import type {
 import type { PhpSourceInvocationSemanticSourceBindingAuthorityInterface } from './phpSourceInvocationSemanticSourceBindingInterface';
 import type { LaravelControllerIntegratedResponseJudgment } from './laravelControllerResponseSemanticJudgmentInterface';
 
-/** Closed evidence supplied to the upstream judgment authority for exactly one controller source. */
+/** Domain-owned operations for interpreting each closed invocation input. */
+export interface LaravelControllerInvocationSemanticInputDomainOperationsInterface {
+  readonly judgePipelineNotProvided: (input: LaravelControllerInvocationPipelineNotProvidedInput) => LaravelControllerInvocationSemanticJudgmentInterface;
+  readonly judgePipelineProvided: (input: LaravelControllerInvocationPipelineProvidedInput) => LaravelControllerInvocationSemanticJudgmentInterface;
+}
+
+/** Each input variant exposes the exact domain operation that can interpret it. */
+export type LaravelControllerInvocationPipelineNotProvidedInput = Readonly<{
+  readonly kind: 'controller_invocation_pipeline_not_provided';
+  readonly sourceFile: SourceFile;
+  readonly toControllerInvocationSemanticJudgment: (operations: LaravelControllerInvocationSemanticInputDomainOperationsInterface) => LaravelControllerInvocationSemanticJudgmentInterface;
+}>;
+
+export type LaravelControllerInvocationPipelineProvidedInput = Readonly<{
+  readonly kind: 'controller_invocation_pipeline_provided';
+  readonly sourceFile: SourceFile;
+  readonly pipelineResult: PhpSourceInvocationSemanticPipelineResult;
+  readonly toControllerInvocationSemanticJudgment: (operations: LaravelControllerInvocationSemanticInputDomainOperationsInterface) => LaravelControllerInvocationSemanticJudgmentInterface;
+}>;
+
+/** Closed, operational evidence supplied to the upstream judgment authority. */
 export type LaravelControllerInvocationSemanticInput =
-  | Readonly<{
-      readonly kind: 'controller_invocation_pipeline_not_provided';
-      readonly sourceFile: SourceFile;
-    }>
-  | Readonly<{
-      readonly kind: 'controller_invocation_pipeline_provided';
-      readonly sourceFile: SourceFile;
-      readonly pipelineResult: PhpSourceInvocationSemanticPipelineResult;
-    }>;
+  | LaravelControllerInvocationPipelineNotProvidedInput
+  | LaravelControllerInvocationPipelineProvidedInput;
+
+export interface LaravelControllerInvocationSemanticInputFactoryInterface {
+  readonly kind: 'laravel_controller_invocation_semantic_input_factory';
+  readonly withoutPipeline: (sourceFile: SourceFile) => LaravelControllerInvocationPipelineNotProvidedInput;
+  readonly withPipeline: (sourceFile: SourceFile, pipelineResult: PhpSourceInvocationSemanticPipelineResult) => LaravelControllerInvocationPipelineProvidedInput;
+}
 
 /** Common provenance shared by each closed invocation-judgment outcome. */
 interface LaravelControllerInvocationSemanticJudgmentBase {
   readonly kind: 'laravel_controller_invocation_semantic_judgment';
-  readonly contractVersion: 2;
+  readonly contractVersion: 3;
   readonly sourceFile: SourceFile;
+  /** Relates this judgment's canonical source identity to another source file. */
+  readonly relateSourceFileIdentity: (candidate: SourceFile) => SourceFileIdentityRelationJudgment;
 }
 
 /**
@@ -101,11 +123,11 @@ export type LaravelControllerInvocationIntegratedResponseOutcomeKind =
  */
 export interface LaravelControllerInvocationSemanticJudgmentContract {
   readonly kind: 'laravel_controller_invocation_semantic_judgment_contract';
-  readonly version: 15;
+  readonly version: 18;
   readonly judgmentShape: 'closed_discriminated_union';
-  readonly authorityEntryPoint: 'one-judge-signature-accepts-the-closed-input-ADT-and-publishes-the-closed-output-ADT-without-overload-based-semantic-partitioning';
-  readonly sourceIdentity: 'canonical_source_file_on_judgment';
-  readonly inputOutcomeRule: 'pipeline-not-provided-can-only-produce-not-connected;provided-pipeline-outcomes-preserve-source-binding-rejected-complete-or-blocked-without-collapsing-distinct-outcomes';
+  readonly authorityEntryPoint: 'each-input-variant-invokes-its-explicit-controller-judgment-domain-operation-and-publishes-the-closed-output-ADT';
+  readonly sourceIdentity: 'canonical_source_file_on_judgment-with-judgment-owned-identity-relation-operation';
+  readonly inputOutcomeRule: 'pipeline-not-provided-domain-operation-produces-not-connected;provided-pipeline-domain-operation-preserves-source-binding-rejected-complete-or-blocked-without-collapsing-distinct-outcomes';
   readonly responseCorrelation: 'integrated_response_indexed_by_exact_invocation_judgment';
 }
 
@@ -116,7 +138,7 @@ export interface LaravelControllerInvocationSemanticJudgmentAuthorityDependencie
 }
 
 /** Callable execution is separated from the judgment value and its semantic contract. */
-export interface LaravelControllerInvocationSemanticJudgmentAuthorityInterface {
+export interface LaravelControllerInvocationSemanticJudgmentAuthorityInterface extends LaravelControllerInvocationSemanticInputDomainOperationsInterface {
   readonly kind: 'laravel_controller_invocation_semantic_judgment_authority';
   readonly contract: LaravelControllerInvocationSemanticJudgmentContract;
   readonly dependencies: LaravelControllerInvocationSemanticJudgmentAuthorityDependencies;

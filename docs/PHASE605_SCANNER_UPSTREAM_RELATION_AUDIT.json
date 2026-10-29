@@ -60,7 +60,7 @@
     "packages/core/src/compiler/ir/StructuredContractIRBuilder.ts",
     "packages/core/src/compiler/ir/StructuredResponseIRBuilder.ts",
     "packages/core/src/compiler/ir/__tests__/ContractIRTypeBuilder.test.ts",
-    "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts",
     "packages/core/src/types/domain/modelEntityDescriptor.ts",
     "packages/core/src/types/domain/routeEntityDescriptor.ts",
     "packages/core/src/types/emitTypes.ts",

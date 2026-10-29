@@ -28,11 +28,11 @@ const legacyRefs = production.filter(({ source }) => /ScannedResourceFieldDescri
 const binding = read('packages/core/src/compiler/scanner/semantic/resourceFieldSemanticBinding.ts');
 const binder = read('packages/core/src/compiler/scanner/binders/SemanticResourceBinder.ts');
 const oldFiles = [
-  'packages/core/src/compiler/scanner/descriptors/resource/index.ts',
-  'packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts',
-  'packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resource/index.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resource/resourceFieldDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/resourceDescriptors.ts',
 ];
 
 const checks = {

@@ -3,8 +3,8 @@ const path = require('path');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionClosure.ts',
 ];
 
 function audit(source, file) {

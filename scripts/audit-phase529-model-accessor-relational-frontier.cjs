@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
-const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts');
+const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/operations/model/modelAccessorExpressionMapper.ts');
 const source = fs.readFileSync(target, 'utf8');
 const checks = {
   if: /\bif\b/g, for: /\bfor\b/g, while: /\bwhile\b/g, switch: /\bswitch\b/g,

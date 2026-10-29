@@ -7,9 +7,9 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const executor = read('packages/core/src/types/upstream/semanticRewriteRuntimeExecutor.ts');
 const constraintExecutor = read('packages/core/src/types/upstream/semanticConstraintRuntimeExecutor.ts');
 const behaviorKernel = read('packages/core/src/types/upstream/semanticRelationalBehaviorKernel.ts');
-const scannerFacade = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts');
-const resourceMapper = read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts');
-const resourceRelations = read('packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts');
+const scannerFacade = read('packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts');
+const resourceMapper = read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts');
+const resourceRelations = read('packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const productionFiles = [constraintExecutor, behaviorKernel, scannerFacade, resourceMapper, resourceRelations];
 const checks = [

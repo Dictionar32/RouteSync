@@ -1,14 +1,14 @@
-import { buildRouteMiddlewareSemanticInput, middlewareNames } from './routeMiddlewareSemanticInputBuilder';
-import { projectRouteResourceMiddleware } from './resourceMiddlewareProjection';
+import { routeMiddlewareSemanticInputOperations } from './routeMiddlewareSemanticInputBuilder';
+import { routeResourceMiddlewareOperations } from './resourceMiddlewareProjection';
 import { present } from '../../../../types/upstream/presence';
-import { createRouteResourceControllerAst, createRouteResourceNameAst } from '../../lexer/routeAst/routeResourceDeclarationAst';
+import { routeResourceControllerAstFactory, routeResourceNameAstFactory } from '../../../frontend/php/routeAst/routeResourceDeclarationAst';
 
 describe('phase 903 route middleware semantic input builder', () => {
   it('aggregates route, resource, and controller evidence without resolving applicability', () => {
-    const resource = projectRouteResourceMiddleware({
+    const resource = routeResourceMiddlewareOperations.project({
       method: 'resource',
-      resource: createRouteResourceNameAst('users'),
-      controller: createRouteResourceControllerAst('UserController'),
+      resource: routeResourceNameAstFactory.create('users'),
+      controller: routeResourceControllerAstFactory.create('UserController'),
       shallow: false,
       creatable: true,
       destroyable: true,
@@ -16,12 +16,12 @@ describe('phase 903 route middleware semantic input builder', () => {
       middlewareExclusions: [{ middleware: ['subscribed'], scope: { kind: 'only', actions: ['destroy'] } }],
       source: { file: 'routes/web.php', line: 10, column: 1, offset: 0 },
     });
-    const input = buildRouteMiddlewareSemanticInput({
-      routeGroup: middlewareNames(['auth']),
-      route: middlewareNames(['throttle:api']),
+    const input = routeMiddlewareSemanticInputOperations.build({
+      routeGroup: routeMiddlewareSemanticInputOperations.names(['auth']),
+      route: routeMiddlewareSemanticInputOperations.names(['throttle:api']),
       resource,
       controller: {
-        declarations: [{ middleware: { name: middlewareNames(['can'])[0], parameters: [] }, source: { kind: 'controller_method' }, scope: { kind: 'all' } }],
+        declarations: [{ middleware: { name: routeMiddlewareSemanticInputOperations.names(['can'])[0], parameters: [] }, source: { kind: 'controller_method' }, scope: { kind: 'all' } }],
         exclusions: [],
       },
     }, present({ kind: 'show' }));

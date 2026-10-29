@@ -5,12 +5,12 @@
   "canonicalProducer": "packages/core/src/compiler/scanner/semantic/route/routeParameterSemanticFactory.ts",
   "productionPathParameterProducers": [
     "packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts",
-    "packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts",
-    "packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts"
+    "packages/core/src/compiler/scanner/operations/ChannelScanner.ts",
+    "packages/core/src/compiler/scanner/operations/route-scanner/routePathParser.ts"
   ],
   "productionRouteBoundaryFactoryConsumers": [
-    "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
-    "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts"
+    "packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts",
+    "packages/core/src/compiler/scanner/operations/routeProducerRelations.ts"
   ],
   "sparseRouteSemanticFlowProductionConsumers": [],
   "boundaryFallbackRecomputesFromPath": true,

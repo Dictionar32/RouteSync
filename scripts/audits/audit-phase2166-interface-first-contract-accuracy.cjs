@@ -9,8 +9,8 @@ const responsePipeline = read('packages/core/src/types/upstream/laravelControlle
 const invocation = read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const invocationExecutor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const attributeScanner = read('packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const attributeScanner = read('packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts');
 const evidence = read('packages/core/src/types/upstream/controllerEvidence.ts');
 check('invocation authority remains existing upstream contract', /interface InvocationSemanticAuthorityInterface[\s\S]*readonly analyze:/.test(invocation));
 check('invocation runtime executor delegates rather than classifies', /execute: \(input: InvocationSemanticInput\): InvocationSemanticJudgment => authority\.analyze\(input\)/.test(invocationExecutor));

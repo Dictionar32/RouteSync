@@ -4,7 +4,7 @@ const ts = require('typescript');
 
 const root = path.resolve(__dirname, '..');
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/route-scanner/routeContextTracker.ts',
+  'packages/core/src/compiler/scanner/operations/route-scanner/routeContextTracker.ts',
 ];
 const forbidden = {
   if: /\bif\b/g,

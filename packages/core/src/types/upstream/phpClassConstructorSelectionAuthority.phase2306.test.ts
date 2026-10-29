@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { phpClassConstructorSelectionAuthority } from './phpClassConstructorSelectionAuthority';
-import { createMethodName, createSourceFile } from './names';
+import { createMethodName, sourceFileIdentityFactory, stringValue } from './names';
 import { numberValue } from './valueObjects';
 import type { SourceSpan } from './provenance';
 
 const classSource: SourceSpan = Object.freeze({
   kind: 'source_span',
-  file: createSourceFile('/app/Attributes/Context.php'),
+  file: sourceFileIdentityFactory.create(stringValue.create('/app/Attributes/Context.php')),
   start: numberValue(1),
   end: numberValue(20),
 });

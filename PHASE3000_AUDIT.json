@@ -1,0 +1,44 @@
+{
+  "phase": 3000,
+  "title": "Typed Schema Evidence Domain Continuation: Upstream CLI Manifest Trace",
+  "scope": "Focused runtime path: controller-action schema evidence ADT and route composition consumers",
+  "structuralAudit": {
+    "passed": 15,
+    "total": 15,
+    "status": "passed",
+    "command": "npm run audit:phase3000-schema-evidence-domain-continuation"
+  },
+  "typescriptSyntax": {
+    "checkedFiles": 11,
+    "diagnostics": 0,
+    "status": "passed",
+    "method": "TypeScript transpileModule syntax diagnostics"
+  },
+  "tests": {
+    "focusedTestAdded": "packages/core/src/types/__tests__/controller-action-schema-evidence-continuation-phase-3000.test.ts",
+    "executed": false,
+    "reason": "node_modules is absent from the workspace"
+  },
+  "fullTypecheck": {
+    "executed": false,
+    "reason": "node_modules is absent from the workspace"
+  },
+  "runtimeExportAudit": {
+    "scope": [
+      "packages/core/src/compiler/scanner/upstream/routeDeclarationComposition.ts",
+      "packages/core/src/types/upstream/controllerActionSchemaSemanticJudgmentAuthority.ts",
+      "packages/core/src/types/upstream/laravelControllerActionRouteCorrelationAuthority.ts",
+      "packages/cli/src/generators/ManifestGenerator.ts",
+      "packages/cli/src/generators/ManifestSerializer.ts"
+    ],
+    "exportFunctionDeclarationsFound": 0,
+    "repositoryWide": false
+  },
+  "architectureConstraints": {
+    "upstreamCollectionsRemainsEmpty": true,
+    "removedRelationFoundationModulesRestored": false,
+    "schemaEvidenceAuthorityDuplicated": false,
+    "invocationManifestFieldByFieldEvidenceBridgeProven": false
+  },
+  "result": "Structural and syntax checks pass; full typecheck and focused runtime tests remain unverified."
+}

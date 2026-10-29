@@ -4,10 +4,10 @@ const ts = require('typescript');
 
 const targets = [
   'packages/core/src/semantic/kernel/relationalSequence.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts',
+  'packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteSecurityResolver.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts',
-  'packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts',
+  'packages/core/src/compiler/scanner/operations/route-scanner/routePathParser.ts',
 ];
 const result = {};
 let ok = true;

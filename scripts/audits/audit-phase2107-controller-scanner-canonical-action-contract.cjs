@@ -16,8 +16,8 @@ const checks = [
   ['scanner resource binding projection reads contract.dataflow', scanner.includes('({ contract }) => contract.dataflow.resourceBindings.map(binding => Object.freeze({')],
   ['scanner action identity comes from canonical contract identity', scanner.includes('action: contract.identity.actionName')],
   ['scanner does not consume a compatibility descriptor', !scanner.includes('descriptor') && !scanner.includes('compatibilityDescriptor')],
-  ['scanner has no direct imports from relations, foundation, or subscanners', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('subscanners/')],
-  ['wiring is the composition adapter for the upstream execution interface', composition.includes("import type { LaravelControllerActionExecutionInput, LaravelControllerActionExecutionInterface, LaravelControllerActionExecutionResult } from '../../../types/upstream/laravelControllerActionExecutionInterface'") && composition.includes("import { scanControllerAction } from '../subscanners/controller'")],
+  ['scanner has no direct imports from relations, foundation, or operations', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('operations/')],
+  ['wiring is the composition adapter for the upstream execution interface', composition.includes("import type { LaravelControllerActionExecutionInput, LaravelControllerActionExecutionInterface, LaravelControllerActionExecutionResult } from '../../../types/upstream/laravelControllerActionExecutionInterface'") && composition.includes("import { scanControllerAction } from '../operations/controller'")],
   ['upstream barrel exports the action execution contract', upstreamIndex.includes("export * from './laravelControllerActionExecutionInterface';")],
   ['package public entry exports the action execution contract', publicIndex.includes('LaravelControllerActionExecutionInterface') && publicIndex.includes('LaravelControllerActionExecutionResult')],
 ];

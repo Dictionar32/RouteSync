@@ -97,7 +97,7 @@ explicit contract layer for typed component boundaries.
    analysis relations and connect resolver edges directly to analysis premises.
 4. Make semantic type legality a proof-carrying analysis-to-lowering transition,
    rather than only a legality field on the lowering judgment.
-5. Continue scanner/lexer migration by replacing residual `Extract`/optional
+5. Continue frontend/php migration by replacing residual `Extract`/optional
    host constructs only at semantic authority boundaries; source-language
    variants such as PHP `null`, ternary, coalesce, and strict equality remain
    valid **data vocabulary** when represented as closed AST ADTs.

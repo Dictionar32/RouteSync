@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const routeRequest = read('packages/core/src/types/domain/request.ts');
 const endpoint = read('packages/core/src/types/upstream/endpointBindings.ts');
-const projection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const projection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const relationModel = read('packages/core/src/types/upstream/highLevelSourceModel.ts');
 const solver = read('packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts');
 const coverage = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
@@ -18,12 +18,12 @@ const checks = [
   ['high-level source model handles unresolved endpoint input', /unresolved_input: \(\) => \[\]/.test(relationModel)],
   ['request-type solver explicitly skips unresolved instead of casting it as FormRequest', /kind, 'unresolved_request'/.test(solver) && /kind, 'framework_request'/.test(solver)],
   ['canonical action judgment wiring remains explicitly open', /canonical-action-request-judgment-is-not-yet-wired-to-route-boundary/.test(coverage) && /typed_request_binding_projection_loss/.test(coverage)],
-  ['no relation/foundation or subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/route-request-binding'))],
+  ['no relation/foundation or subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/route-request-binding'))],
 ];
 const syntaxFiles = [
   'packages/core/src/types/domain/request.ts',
   'packages/core/src/types/upstream/endpointBindings.ts',
-  'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts',
+  'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts',
   'packages/core/src/types/upstream/highLevelSourceModel.ts',
   'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSolver.ts',
 ];

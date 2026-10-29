@@ -1,0 +1,27 @@
+{
+  "phase": 2832,
+  "title": "CLI source-invocation pipeline interface-first runtime",
+  "owner": "packages/cli/src/parsers/php/sourceInvocationPipeline.ts",
+  "existingContractsReused": [
+    "PhpSourceInvocationSemanticPipelineInterface",
+    "PhpSourceInvocationSemanticPipelineDeliveryInterface",
+    "ControllerInvocationManifestCompositionDependencies",
+    "ManifestBuilderJudgment"
+  ],
+  "runtimeOperations": ["analyze", "analyzeBatch"],
+  "consumer": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+  "manifestTrace": [
+    "controller discovery and source document reading",
+    "interface-first source invocation pipeline",
+    "upstream source-correlated semantic judgments",
+    "upstream delivery operation",
+    "source inventory authority",
+    "manifest builder preparation",
+    "complete or blocked manifest judgment",
+    "CLI manifest projection"
+  ],
+  "newUpstreamContractCreated": false,
+  "genericReasoningPrimitiveCreated": false,
+  "collectionsFileBytes": 0,
+  "validation": "structural audit only; full typecheck and CLI E2E not established"
+}

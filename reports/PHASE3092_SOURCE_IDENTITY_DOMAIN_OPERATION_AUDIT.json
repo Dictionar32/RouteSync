@@ -1,0 +1,13 @@
+{
+  "phase": 3092,
+  "scope": "focused PHP source-read result to source identity-binding domain operation",
+  "genericReadResultHandlersRemoved": true,
+  "genericReadResultContinueWithRemoved": true,
+  "explicitBindIdentityOperationDeclared": true,
+  "completeAndBlockedOperationsDeclared": true,
+  "identityAuthorityImplementsNamedOperations": true,
+  "identityAuthorityDelegatesThroughDomainOperation": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

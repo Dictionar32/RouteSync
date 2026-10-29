@@ -1,0 +1,89 @@
+{
+  "phase": 3119,
+  "title": "Semantic Value Factory Interface Migration",
+  "execution": "static-cjs-typescript-ast-no-vitest",
+  "migratedFactories": [
+    "semanticText",
+    "semanticNumber",
+    "semanticBoolean",
+    "semanticSourceOffset",
+    "semanticSourceSpan"
+  ],
+  "packageTypeScriptFilesParsed": 2383,
+  "legacyDirectCalls": [],
+  "checks": [
+    {
+      "check": "semanticText has named domain interface",
+      "passed": true
+    },
+    {
+      "check": "semanticText export is annotated with SemanticTextFactoryInterface",
+      "passed": true
+    },
+    {
+      "check": "semanticText factory exposes create operation",
+      "passed": true
+    },
+    {
+      "check": "semanticNumber has named domain interface",
+      "passed": true
+    },
+    {
+      "check": "semanticNumber export is annotated with SemanticNumberFactoryInterface",
+      "passed": true
+    },
+    {
+      "check": "semanticNumber factory exposes create operation",
+      "passed": true
+    },
+    {
+      "check": "semanticBoolean has named domain interface",
+      "passed": true
+    },
+    {
+      "check": "semanticBoolean export is annotated with SemanticBooleanFactoryInterface",
+      "passed": true
+    },
+    {
+      "check": "semanticBoolean factory exposes create operation",
+      "passed": true
+    },
+    {
+      "check": "semanticSourceOffset has named domain interface",
+      "passed": true
+    },
+    {
+      "check": "semanticSourceOffset export is annotated with SemanticSourceOffsetFactoryInterface",
+      "passed": true
+    },
+    {
+      "check": "semanticSourceOffset factory exposes create operation",
+      "passed": true
+    },
+    {
+      "check": "semanticSourceSpan has named domain interface",
+      "passed": true
+    },
+    {
+      "check": "semanticSourceSpan export is annotated with SemanticSourceSpanFactoryInterface",
+      "passed": true
+    },
+    {
+      "check": "semanticSourceSpan factory exposes create operation",
+      "passed": true
+    },
+    {
+      "check": "all package TypeScript files parse",
+      "passed": true,
+      "value": 2383
+    },
+    {
+      "check": "no legacy direct calls remain for migrated factories",
+      "passed": true,
+      "value": []
+    }
+  ],
+  "failed": [],
+  "migrationCompleteForSelectedFactories": true,
+  "repositoryWideExportMigrationComplete": false
+}

@@ -1,7 +1,7 @@
 # Phase 446 — Scanner/Lexer + Resolver Relational Frontier
 
 ## Objective
-Continue the declarative cutover beyond parser adapters: scanner/lexer and remaining resolvers must expose semantic relations and solver/rewrite boundaries rather than imperative control-flow authority.
+Continue the declarative cutover beyond parser adapters: frontend/php and remaining resolvers must expose semantic relations and solver/rewrite boundaries rather than imperative control-flow authority.
 
 ## Architecture decision
 The scanner frontier is split into four relation layers:
@@ -22,9 +22,9 @@ Absence is represented by explicit algebraic option relations at the new boundar
 ## Phase 446 frontier
 The next authority migration is ordered:
 
-1. `scanner/lexer/astClassifierEvidence.ts`
+1. `frontend/php/astClassifierEvidence.ts`
 2. `scanner/subscanners/queryEvidenceProducer.ts`
-3. `scanner/lexer/controllerDataflowAnalyzer.ts`
+3. `frontend/php/controllerDataflowAnalyzer.ts`
 4. `scanner/subscanners/RouteScanner.ts`
 5. remaining `scanner/subscanners/*Resolver.ts`
 6. CLI/domain resolvers that still consume sentinel-based scanner output

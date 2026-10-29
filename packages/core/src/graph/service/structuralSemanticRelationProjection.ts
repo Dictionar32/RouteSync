@@ -1,21 +1,25 @@
 import type { StructuralSemanticRelation } from '../../types/upstream/semanticReferences';
 import type { ServiceDependency } from '../../types/semantic/modelGraphTypes';
 import type { GraphEdgeRelation } from './graphEdgeRelation';
-import { createGraphEdgeRelation } from './graphEdgeRelation';
+import { graphEdgeRelationOperations } from './graphEdgeRelation';
 
 /** Closed result for the structural-relation -> graph-edge boundary. */
 export type StructuralGraphEdgeProjection =
   | { readonly kind: 'projected'; readonly relation: GraphEdgeRelation }
   | { readonly kind: 'not_projectable'; readonly sourceKind: StructuralSemanticRelation['kind'] };
 
-export const projectStructuralSemanticRelationToGraphEdge = (
+export interface StructuralSemanticRelationProjectionOperationsInterface {
+  readonly project: (relation: StructuralSemanticRelation) => StructuralGraphEdgeProjection;
+}
+
+const projectStructuralSemanticRelationToGraphEdgeValue = (
   relation: StructuralSemanticRelation,
 ): StructuralGraphEdgeProjection => {
   switch (relation.kind) {
     case 'controller_dependency':
       return {
         kind: 'projected',
-        relation: createGraphEdgeRelation(
+        relation: graphEdgeRelationOperations.create(
           relation.controller,
           relation.dependency,
           'calls',
@@ -26,7 +30,7 @@ export const projectStructuralSemanticRelationToGraphEdge = (
     case 'controller_resource':
       return {
         kind: 'projected',
-        relation: createGraphEdgeRelation(
+        relation: graphEdgeRelationOperations.create(
           relation.controller,
           relation.resource,
           'composes',
@@ -38,7 +42,7 @@ export const projectStructuralSemanticRelationToGraphEdge = (
       return relation.model.kind === 'model_class'
         ? {
             kind: 'projected',
-            relation: createGraphEdgeRelation(
+            relation: graphEdgeRelationOperations.create(
               relation.controller,
               { kind: 'model_reference', name: relation.model.name },
               'depends_on_model',
@@ -50,7 +54,7 @@ export const projectStructuralSemanticRelationToGraphEdge = (
     case 'resource_model':
       return {
         kind: 'projected',
-        relation: createGraphEdgeRelation(
+        relation: graphEdgeRelationOperations.create(
           relation.resource,
           relation.model,
           'depends_on_model',
@@ -61,7 +65,7 @@ export const projectStructuralSemanticRelationToGraphEdge = (
     case 'model_relation':
       return {
         kind: 'projected',
-        relation: createGraphEdgeRelation(
+        relation: graphEdgeRelationOperations.create(
           relation.model,
           relation.target,
           'depends_on_model',
@@ -77,7 +81,7 @@ export const projectStructuralSemanticRelationToGraphEdge = (
     case 'route_controller':
       return {
         kind: 'projected',
-        relation: createGraphEdgeRelation(
+        relation: graphEdgeRelationOperations.create(
           relation.route,
           relation.controller,
           'routes_to_controller',
@@ -94,3 +98,7 @@ export const projectStructuralSemanticRelationToGraphEdge = (
       return { kind: 'not_projectable', sourceKind: relation.kind };
   }
 };
+
+export const structuralSemanticRelationProjectionOperations: StructuralSemanticRelationProjectionOperationsInterface = Object.freeze({
+  project: projectStructuralSemanticRelationToGraphEdgeValue,
+});

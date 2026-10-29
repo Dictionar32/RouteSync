@@ -24,17 +24,17 @@ const forbidden = [
 ];
 
 const closed = new Set([
-  'subscanners/InvalidationResolver.ts',
-  'subscanners/controller/controllerBodyResolver.ts',
+  'operations/InvalidationResolver.ts',
+  'operations/controller/controllerBodyResolver.ts',
   'descriptors/route/routeResourceSemanticResolver.ts',
   'upstream/route/routeResourceSemanticResolver.ts',
   'semantic/route/routeMiddlewareResolver.ts',
   'upstream/route/routeGroupSemanticResolver.ts',
   'binders/resource/composite/literalTernaryBinders.ts',
   'lexer/astClassifierEvidence.ts',
-  'subscanners/providerAstCanonical.ts',
-    'subscanners/migrationProducer.ts',
-  'subscanners/serviceAstCanonical.ts',
+  'operations/providerAstCanonical.ts',
+    'operations/migrationProducer.ts',
+  'operations/serviceAstCanonical.ts',
 ]);
 
 function files(dir) {

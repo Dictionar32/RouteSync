@@ -1,0 +1,32 @@
+{
+  "phase": 3030,
+  "title": "PHP Invocation Semantic Batch Closure — SourceSpan Domain Operations",
+  "scope": "Static contract audit for a concrete upstream PHP invocation batch-closure consumer. Confirms span equality and containment delegate to canonical SourceSpan ADT operations; does not claim repository-wide primitive elimination or full runtime correctness.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "PHP invocation source inventory and semantic judgment batch closure",
+    "phpFunctionInvocationSemanticJudgmentBatchClosureAuthority delegates span equality and containment to sourceSpanOperations",
+    "Existing evidence completeness, duplicate/orphan judgments, and blocker/rejection ledger remain intact"
+  ],
+  "checks": {
+    "batchClosureUsesCanonicalSpanEquality": true,
+    "batchClosureUsesCanonicalSpanContainment": true,
+    "batchClosureDoesNotReimplementSpanCoordinateRules": true,
+    "sourceSpanOperationsRemainInterfaceBacked": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionRemainsInRuntimeTrace": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 8,
+  "total": 8,
+  "remainingDebt": [
+    "Parser-boundary offsets remain NumberValue; a richer source-position domain is still needed beyond wrapping the numeric representation.",
+    "evidenceIdentity still serializes file, offsets, and function-name evidence into a string key; a typed identity ADT is a separate migration and must preserve the full evidence identity.",
+    "Syntax-evidence collection, violation-ledger construction, and array operations remain in the closure authority; they have not been mechanically rewritten.",
+    "Other upstream consumers still contain direct coordinate reads and need individually scoped migrations based on their real source types.",
+    "Repository-wide removal of string, number, undefined, null, boolean, reduce, empty arrays, nullish coalescing, ternaries, and exported function declarations is not complete and is not claimed.",
+    "Full TypeScript typecheck, complete Vitest suite, and CLI-to-manifest end-to-end tests were not run in this environment."
+  ]
+}

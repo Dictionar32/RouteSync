@@ -41,6 +41,6 @@ These were not part of the active import graph despite being present as historic
 
 The production surface now has less dormant semantic authority competing with the canonical relation/solver/rewrite path:
 
-`scanner/lexer evidence -> semantic relations -> candidate/witness -> closure/fixed point -> solver -> canonical authority -> rewrite/saturation`
+`frontend/php evidence -> semantic relations -> candidate/witness -> closure/fixed point -> solver -> canonical authority -> rewrite/saturation`
 
-The next work should therefore target active scanner/lexer/resolver files, not resurrect or patch the vacuumed legacy modules.
+The next work should therefore target active frontend/php/resolver files, not resurrect or patch the vacuumed legacy modules.

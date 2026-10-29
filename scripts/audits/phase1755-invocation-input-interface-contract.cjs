@@ -8,7 +8,7 @@ const contract = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 
 assert.match(contract, /readonly version: 36;/);
 assert.match(contract, /readonly positionalArgumentEvidence: 'required-explicit-upstream-judgment-must-match-exact-invocation-and-ordered-arguments'/);

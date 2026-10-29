@@ -3,7 +3,7 @@
   "title": "Statement Runtime Executor Simplification",
   "scope": [
     "packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts",
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
     "packages/core/src/types/upstream/docs/PHASE1453_STATEMENT_RUNTIME_EXECUTOR_SIMPLIFICATION.md",
     "scripts/audits/audit-phase1453-statement-runtime-executor-simplification.cjs"
   ],

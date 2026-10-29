@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '../..');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/RouteScanner.ts'), 'utf8');
-const flow = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/RouteScanner.ts'), 'utf8');
+const flow = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts'), 'utf8');
 const checks = {
   declarationFlowHasSemanticJudgment: /export interface RouteDeclarationFlow/.test(flow),
   scannerConsumesDeclarationFlow: /routeDeclarationFlow\(declaration\)/.test(scanner),

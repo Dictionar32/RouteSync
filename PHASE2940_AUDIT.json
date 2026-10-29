@@ -1,0 +1,26 @@
+{
+  "phase": 2940,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations",
+  "scope": "Integrate existing upstream PHP source-read ADT into Laravel route scanner and preserve read failures through AST projection.",
+  "structuralChecks": {
+    "passed": 11,
+    "total": 11,
+    "script": "scripts/audits/audit-phase2940-simple-typed-route-source-read.cjs"
+  },
+  "syntaxChecks": {
+    "passed": 7,
+    "total": 7,
+    "method": "TypeScript transpileModule; syntax diagnostics only"
+  },
+  "typecheck": "not verified: workspace lacks global type definitions, @types/node and vitest/globals; global compiler rejects ES2025 config",
+  "unitTests": "not verified",
+  "build": "not verified",
+  "cliEndToEnd": "not verified",
+  "collectionsTsEmpty": true,
+  "runtimeSourceChanged": true,
+  "repositoryWideExportFunctionAudit": {
+    "scope": "packages/core/src and packages/cli/src TypeScript files",
+    "count": 480,
+    "status": "not migrated globally in this phase; phase scope is the manifest source-read route"
+  }
+}

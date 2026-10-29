@@ -1,0 +1,55 @@
+{
+  "phase": 3069,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — integration outcome to controller judgment domain operation",
+  "status": "PASS",
+  "passed": 17,
+  "total": 17,
+  "checks": {
+    "genericIntegrationHandlerContractRemoved": true,
+    "integrationOutcomesOwnExplicitControllerJudgmentOperation": true,
+    "operationHasDomainSpecificReturnType": true,
+    "integrationContractVersionBumped": true,
+    "contractNamesDomainOperation": true,
+    "notConnectedOutcomeInstallsOperation": true,
+    "sourceBindingRejectedOutcomeInstallsOperation": true,
+    "completeOutcomeInstallsOperation": true,
+    "blockedOutcomeInstallsOperation": true,
+    "operationPreservesExactResponseAndSourceIdentity": true,
+    "operationIsInterfaceFirstExport": true,
+    "consumerUsesDomainOperationInsteadOfGenericDispatch": true,
+    "oldGenericHandlerIsNotRetainedInIntegrationModule": true,
+    "canonicalIdentityAuthorityStillOwnsIdentityRelation": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": {
+    "phase3068UpstreamPipelineDomainIntegration": "PASS",
+    "phase3067SchemaEvidenceDomainOperations": "PASS"
+  },
+  "runtimeTrace": [
+    "PHP whole-file source pipeline produces complete or blocked invocation evidence.",
+    "Source-binding judgment composes exact pipeline evidence into one of four closed integration outcomes.",
+    "Each integration outcome owns toControllerInvocationSemanticJudgment(sourceFile), a domain-specific operation with no generic Result callback.",
+    "The operation preserves the exact integration outcome as the response and attaches canonical source-file identity relation semantics.",
+    "Controller invocation authority calls the outcome-owned operation rather than redispatching through generic handlers.",
+    "Controller invocation judgment continues to controller scanner, source-AST pipeline, manifest builder, and CLI scan/sync blocker gate."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "changedFileSyntaxTranspile": "PASS",
+    "phase3068Regression": "PASS",
+    "phase3067Regression": "PASS",
+    "strictTypeScript": "BLOCKED — targeted dependency graph reports 585 repository diagnostics from deleted relation-foundation imports, the protected one-byte collections.ts invariant, and ambient type/dependency gaps; none of the four changed files appears in the diagnostic output. Syntax transpilation is not a type-check.",
+    "vitestRuntime": "NOT_RUN — workspace Vitest installation is incomplete.",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "globalGenericOrPrimitiveElimination": "NOT_CLAIMED"
+  },
+  "remainingRisks": [
+    "The controller invocation input ADT still exposes generic continueWith; it is the next upstream boundary to migrate.",
+    "Source-file identity relation judgments still expose generic continuation in their own domain.",
+    "No claim is made that all generic callbacks or primitives have been removed repository-wide.",
+    "Full PHP → CLI → manifest/IR execution remains unverified."
+  ]
+}

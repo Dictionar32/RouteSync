@@ -8,8 +8,8 @@ const contract = read('packages/core/src/types/upstream/semanticRewriteInterface
 const authority = read('packages/core/src/types/upstream/semanticRewriteAuthority.ts');
 const executorPath = 'packages/core/src/types/upstream/semanticRewriteRuntimeExecutor.ts';
 const executorExists = fs.existsSync(path.join(root, executorPath));
-const facade = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts');
-const calculus = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts');
+const facade = read('packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts');
+const calculus = read('packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 check('canonical-contract-is-upstream', /SemanticRewriteAuthorityInterface/.test(contract) && !/SemanticRewriteRuntimeExecutorInterface/.test(contract) && !/solveSemanticRelationsDetailed/.test(contract), 'The upstream interface declares the authority/executor boundary without importing a solver.');
 check('judgment-distinguishes-closed-from-incomplete', /status: 'closed'[\s\S]*?saturated: true[\s\S]*?closed: true/.test(contract) && /status: 'incomplete'[\s\S]*?saturated: false[\s\S]*?closed: false[\s\S]*?max_rounds_exceeded/.test(contract), 'A round-limited result cannot be represented as a successful least-fixed-point judgment.');

@@ -5,7 +5,7 @@
 
 import type { ActionName, ControllerName, PropertyName, ResourceName, SourceFile } from "../../../types/upstream/names";
 import { HttpMethod, HTTP_METHOD_REGISTRY, type ResponseDescriptor } from "../../../types/route";
-import type { ControllerActionInfo } from "../descriptors/requestDescriptors";
+import type { ControllerActionInfo } from "../operations/domain-model/requestDescriptors";
 import { RouteParameterSemanticFactory } from "../semantic/route/routeParameterSemanticFactory";
 import type { RouteResourceFlowJudgment } from "../../../types/upstream/routeResourceFlow";
 import type { RouteBoundaryContract } from "../../../types/upstream/route";

@@ -20,7 +20,7 @@ const checks = [
   ['focused regression test covers private and protected methods', /method\('internal', 'private'\)/.test(test) && /method\('protectedHelper', 'protected'\)/.test(test)],
   ['focused regression test covers cyclic ancestry closure', /closes a cyclic ancestry/.test(test) && /toEqual\(\['SecondController'\]\)/.test(test)],
   ['integrated invocation judgment remains passed unchanged to producer', /controllerProducer\.produce\(\{ declaration: declarationEvidence, invocationJudgment \}\)/.test(scanner)],
-  ['no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
 ];
 let failures = 0;
 for (const [label, passed] of checks) {

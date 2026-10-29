@@ -10,7 +10,7 @@
   "runtime_function_relocation": false,
   "known_open_frontiers": [
     "scanner/subscanners/RequestTypeDeriver.ts and request-deriver/* retain RequestType derivation",
-    "scanner/lexer/astClassifierRuntime.ts constructs candidate rule precedence locally",
+    "frontend/php/astClassifierRuntime.ts constructs candidate rule precedence locally",
     "scanner/wiring/routeManifestTypeLowering.ts still routes RequestType derivation through scanner facade"
   ],
   "verification": {

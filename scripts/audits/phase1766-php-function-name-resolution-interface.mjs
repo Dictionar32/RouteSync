@@ -4,10 +4,10 @@ const paths = {
   contract: 'packages/core/src/types/upstream/phpFunctionNameResolutionInterface.ts',
   barrel: 'packages/core/src/types/upstream/index.ts',
   functionAuthority: 'packages/core/src/types/upstream/phpFunctionCallSemanticAuthorityInterface.ts',
-  mapper: 'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts',
+  mapper: 'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts',
   invocationContract: 'packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts',
   integratedResponse: 'packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts',
-  scannerDataflow: 'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts',
+  scannerDataflow: 'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts',
 };
 const source = Object.fromEntries(Object.entries(paths).map(([key, path]) => [key, readFileSync(path, 'utf8')]));
 const checks = [

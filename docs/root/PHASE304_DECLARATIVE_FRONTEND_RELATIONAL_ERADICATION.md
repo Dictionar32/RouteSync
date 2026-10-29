@@ -138,7 +138,7 @@ PHASE304-PRODUCTION-AST-CLEAN
 
 The audit covers the production files below:
 
-- `packages/core/src/compiler/scanner/lexer/routeAst/**`
+- `packages/core/src/compiler/frontend/php/routeAst/**`
 - `packages/cli/src/parsers/php/**`
 
 with historical phase files and test files excluded.

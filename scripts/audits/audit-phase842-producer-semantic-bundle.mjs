@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 
 const files = {
-  resourceProducer: 'packages/core/src/compiler/scanner/subscanners/resourceProducer.ts',
-  resourceScanner: 'packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts',
-  requestProducer: 'packages/core/src/compiler/scanner/subscanners/requestProducer.ts',
-  requestScanner: 'packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts',
+  resourceProducer: 'packages/core/src/compiler/scanner/operations/resourceProducer.ts',
+  resourceScanner: 'packages/core/src/compiler/scanner/operations/ResourceScanner.ts',
+  requestProducer: 'packages/core/src/compiler/scanner/operations/requestProducer.ts',
+  requestScanner: 'packages/core/src/compiler/scanner/operations/FormRequestScanner.ts',
   sourceScanner: 'packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts',
   sourceModel: 'packages/core/src/types/upstream/highLevelSourceModel.ts',
   manifestBuilder: 'packages/core/src/compiler/scanner/upstream/upstreamManifestBuilder.ts',

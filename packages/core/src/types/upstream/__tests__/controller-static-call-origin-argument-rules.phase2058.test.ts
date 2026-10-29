@@ -1,4 +1,4 @@
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import { describe, expect, it } from 'vitest';
 import { controllerStaticCallOriginAuthority } from '../controllerStaticCallOriginAuthority';
 import { createClassName, createMethodName } from '../names';
@@ -8,7 +8,7 @@ describe('controller static-call origin argument rules phase 2058', () => {
   const input = (tableArgument: import('../controllerStaticCallOriginInterface').ControllerStaticCallTableArgumentEvidence) => ({
     kind: 'controller_static_call_origin_input' as const,
     classReference: { kind: 'simple_name' as const, name: createClassName('DB') },
-    classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
+    classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
     methodName: createMethodName('table'),
     tableArgument,
     modelClasses: [],
@@ -27,11 +27,11 @@ describe('controller static-call origin argument rules phase 2058', () => {
   it('resolves a string literal through the declared argument rule', () => {
     expect(controllerStaticCallOriginAuthority.judge(input({
       kind: 'positional_string_literal',
-      value: stringValue('posts'),
+      value: stringValue.create('posts'),
     }))).toEqual({
       kind: 'resolved',
       rule: 'database_facade_table_literal',
-      origin: { kind: 'table', name: { kind: 'table_name', value: stringValue('posts') } },
+      origin: { kind: 'table', name: { kind: 'table_name', value: stringValue.create('posts') } },
     });
   });
 

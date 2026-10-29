@@ -8,11 +8,11 @@ const checks = [
     return ['not_applicable', 'resolved', 'malformed', 'contract_violation'].every((kind) => source.includes(`kind: '${kind}'`));
   }],
   ['runtime normalizes malformed diagnostics at the structured boundary', () => {
-    const source = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+    const source = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
     return source.includes("diagnostic.startsWith('Malformed ')") && source.includes("{ kind: 'malformed', diagnostic }") && source.includes("reason: 'invalid_resolution'");
   }],
   ['loop and switch malformed judgments are not collapsed into not-applicable', () => {
-    const source = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+    const source = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
     return [
       /judgment\.kind === 'malformed'[\s\S]{0,100}Malformed collection iteration statement/.test(source),
       /judgment\.kind === 'malformed'[\s\S]{0,100}Malformed pretest iteration statement/.test(source),

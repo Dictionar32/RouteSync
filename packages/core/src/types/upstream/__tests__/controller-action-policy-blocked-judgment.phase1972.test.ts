@@ -5,17 +5,17 @@ import type { EffectiveControllerActionPolicy } from '../effectiveControllerActi
 
 const source = Object.freeze({
   kind: 'source_span' as const,
-  file: Object.freeze({ kind: 'source_file' as const, value: stringValue('Controller.php') }),
+  file: Object.freeze({ kind: 'source_file' as const, value: stringValue.create('Controller.php') }),
   start: Object.freeze({ kind: 'number_value' as const, value: 0 }),
   end: Object.freeze({ kind: 'number_value' as const, value: 1 }),
 });
 
 const argument = Object.freeze({
   kind: 'named' as const,
-  name: Object.freeze({ kind: 'expression_argument_name' as const, value: stringValue('only') }),
+  name: Object.freeze({ kind: 'expression_argument_name' as const, value: stringValue.create('only') }),
   value: Object.freeze({
     kind: 'variable' as const,
-    name: Object.freeze({ kind: 'variable_name' as const, value: stringValue('methods') }),
+    name: Object.freeze({ kind: 'variable_name' as const, value: stringValue.create('methods') }),
     source,
   }),
 });

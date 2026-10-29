@@ -6,10 +6,10 @@
  */
 import type { SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowReasoningAuthorityInterface } from './semanticDataflow';
 import { semanticDataflowReasoningAuthority } from './semanticDataflowAuthority';
-import { semanticDataflowInputProducer, type SemanticDataflowSeedProducerInterface } from './semanticDataflowInputFactory';
+import { semanticDataflowInputProducer } from './semanticDataflowInputFactory';
 import type { CompleteLaravelSourceModel } from './highLevelSourceModel';
 import type { Sequence } from './collections';
-import { materializeSemanticDataflowQueryPolicy, type SemanticDataflowQueryPolicyContract, type SemanticDataflowQueryPolicyIntent } from './semanticDataflowQueryPolicy';
+import type { SemanticDataflowQueryPolicyContract, SemanticDataflowQueryPolicySelection } from './semanticDataflowQueryPolicy';
 
 export interface SemanticDataflowManifestSurfaceInterface {
   readonly kind: 'semantic_dataflow_manifest_surface';
@@ -18,7 +18,7 @@ export interface SemanticDataflowManifestSurfaceInterface {
   /** Materializes the selected judgments into closed policy contracts at the upstream boundary. */
   readonly queryPolicyContractsFromJudgments: (
     judgments: Sequence<SemanticDataflowJudgment>,
-    intent: SemanticDataflowQueryPolicyIntent | undefined,
+    selection: SemanticDataflowQueryPolicySelection,
   ) => readonly SemanticDataflowQueryPolicyContract[];
 }
 
@@ -33,35 +33,23 @@ const judgmentsFromInputs = (
       tail: judgmentsFromInputs(inputs.tail, authority),
     };
 
-export const createSemanticDataflowManifestSurface = (
-  producer: SemanticDataflowSeedProducerInterface,
-  authority: SemanticDataflowReasoningAuthorityInterface,
-): SemanticDataflowManifestSurfaceInterface => Object.freeze({
+/**
+ * Canonical interface-first runtime operation. The previously exported factory
+ * and forwarding functions duplicated this object's existing operation surface;
+ * dependencies are fixed at this composition boundary and consumers call methods
+ * on this typed object directly.
+ */
+export const semanticDataflowManifestSurface: SemanticDataflowManifestSurfaceInterface = Object.freeze({
   kind: 'semantic_dataflow_manifest_surface',
-  inputsFromSourceModel: (sourceModel: CompleteLaravelSourceModel) => producer.sourceModelSeeds(sourceModel),
-  judgmentsFromInputs: (inputs: Sequence<SemanticDataflowInput>) => judgmentsFromInputs(inputs, authority),
-  queryPolicyContractsFromJudgments: (judgments: Sequence<SemanticDataflowJudgment>, intent: SemanticDataflowQueryPolicyIntent | undefined) => intent === undefined
-    ? Object.freeze([])
-    : Object.freeze((function materializeAll(items: Sequence<SemanticDataflowJudgment>, output: readonly SemanticDataflowQueryPolicyContract[] = []): readonly SemanticDataflowQueryPolicyContract[] {
-        return items.kind === 'empty'
-          ? output
-          : materializeAll(items.tail, [...output, materializeSemanticDataflowQueryPolicy(items.head, intent)]);
-      })(judgments)),
+  inputsFromSourceModel: (sourceModel: CompleteLaravelSourceModel): Sequence<SemanticDataflowInput> =>
+    semanticDataflowInputProducer.sourceModelSeeds(sourceModel),
+  judgmentsFromInputs: (inputs: Sequence<SemanticDataflowInput>): Sequence<SemanticDataflowJudgment> =>
+    judgmentsFromInputs(inputs, semanticDataflowReasoningAuthority),
+  queryPolicyContractsFromJudgments: (
+    judgments: Sequence<SemanticDataflowJudgment>,
+    selection: SemanticDataflowQueryPolicySelection,
+  ): readonly SemanticDataflowQueryPolicyContract[] => selection.materializeQueryPolicyContracts(judgments),
 });
-
-export const semanticDataflowManifestSurface = createSemanticDataflowManifestSurface(
-  semanticDataflowInputProducer,
-  semanticDataflowReasoningAuthority,
-);
-
-export const semanticDataflowInputsFromSourceModel = (
-  sourceModel: CompleteLaravelSourceModel,
-): Sequence<SemanticDataflowInput> => semanticDataflowManifestSurface.inputsFromSourceModel(sourceModel);
-
-/** Upstream-owned handoff; judgments are produced through the injected authority interface. */
-export const semanticDataflowJudgmentsFromInputs = (
-  inputs: Sequence<SemanticDataflowInput>,
-): Sequence<SemanticDataflowJudgment> => semanticDataflowManifestSurface.judgmentsFromInputs(inputs);
 
 export interface ManifestDataflowSeedSurface {
   readonly dataflowInputs: Sequence<SemanticDataflowInput>;

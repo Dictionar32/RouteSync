@@ -34,4 +34,4 @@ Reduce scanner-owned runtime and semantic policy. Scanner modules should acquire
 
 ## Remaining boundary
 
-This phase removes direct generic solver calls from production `scanner/lexer/routeAst` modules, but it does not claim that all 537 scanner files are free of domain classification. The next trace should inventory semantic rule catalogs and classification branches outside route-AST, then migrate by domain into existing upstream authority contracts. Do not bulk-move parsing/evidence acquisition or generic combinators just to reduce line counts.
+This phase removes direct generic solver calls from production `frontend/php/routeAst` modules, but it does not claim that all 537 scanner files are free of domain classification. The next trace should inventory semantic rule catalogs and classification branches outside route-AST, then migrate by domain into existing upstream authority contracts. Do not bulk-move parsing/evidence acquisition or generic combinators just to reduce line counts.

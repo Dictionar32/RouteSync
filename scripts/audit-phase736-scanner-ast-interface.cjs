@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const controllerPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
-const routePath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts');
-const syntaxPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts');
+const controllerPath = path.join(root, 'packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
+const routePath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts');
+const syntaxPath = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts');
 const archivePaths = [
   path.join(root, 'packages/core/src/types/semantic/__archive__/parsedAstAlgebra.ts'),
   path.join(root, 'packages/core/src/types/semantic/__archive__/parsedAstTypes.ts'),

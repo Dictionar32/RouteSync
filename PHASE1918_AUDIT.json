@@ -2,7 +2,7 @@
   "phase": 1918,
   "title": "Laravel knowledge evidence adapter interface-first",
   "scope": [
-    "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+    "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts",
     "packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts",
     "packages/core/src/types/upstream/laravelControllerScannerInterface.ts",
     "scripts/audits/test-phase1918-controller-knowledge-evidence-interface-first.cjs"

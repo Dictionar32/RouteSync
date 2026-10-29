@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const interfacePath = path.join(root, 'src/types/upstream/queryProducerSemanticInterface.ts');
 const algebraPath = path.join(root, 'src/types/upstream/queryProducerSemanticAlgebra.ts');
-const producerPath = path.join(root, 'src/compiler/scanner/subscanners/queryEvidenceProducer.ts');
+const producerPath = path.join(root, 'src/compiler/scanner/operations/queryEvidenceProducer.ts');
 const testPath = path.join(root, 'src/types/upstream/__test__/queryProducerSemanticAlgebra.phase1487.test.ts');
 const source = Object.fromEntries(Object.entries({
   interface: interfacePath, algebra: algebraPath, producer: producerPath, tests: testPath,

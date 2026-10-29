@@ -5,14 +5,25 @@ import type { ServiceGraphNodeReference, ServiceDependency } from '../../types/s
 export type GraphEdgeRelation = GraphSemanticRelation;
 export type GraphEdgeRelationOrigin = GraphSemanticRelationOrigin;
 
-export const createGraphEdgeRelation = (
-  from: ServiceGraphNodeReference,
-  to: ServiceGraphNodeReference,
-  type: ServiceDependency['type'],
-  origin: GraphEdgeRelationOrigin,
+export interface GraphEdgeRelationOperationsInterface {
+  readonly create: (
+    from: ServiceGraphNodeReference,
+    to: ServiceGraphNodeReference,
+    type: ServiceDependency['type'],
+    origin: GraphEdgeRelationOrigin,
+    weight?: number,
+    provenance?: GraphEdgeRelation['provenance'],
+  ) => GraphEdgeRelation;
+}
+
+const createGraphEdgeRelationValue: GraphEdgeRelationOperationsInterface['create'] = (
+  from,
+  to,
+  type,
+  origin,
   weight = 1,
-  provenance?: GraphEdgeRelation['provenance'],
-): GraphEdgeRelation => Object.freeze({
+  provenance,
+) => Object.freeze({
   kind: 'graph_edge_relation',
   from,
   to,
@@ -21,4 +32,8 @@ export const createGraphEdgeRelation = (
   origin,
   closed: true,
   ...(provenance === undefined ? {} : { provenance }),
+});
+
+export const graphEdgeRelationOperations: GraphEdgeRelationOperationsInterface = Object.freeze({
+  create: createGraphEdgeRelationValue,
 });

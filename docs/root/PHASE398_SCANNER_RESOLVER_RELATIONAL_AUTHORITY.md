@@ -2,7 +2,7 @@
 
 ## Scope
 
-Phase 398 continues the scanner/lexer migration from imperative traversal toward the canonical semantic relation kernel. The selected boundary is `arrayParser.ts`, where array-opening discovery, nested-bracket depth, entry segmentation, key classification, and scalar-value extent are now expressed as recursive relation closure.
+Phase 398 continues the frontend/php migration from imperative traversal toward the canonical semantic relation kernel. The selected boundary is `arrayParser.ts`, where array-opening discovery, nested-bracket depth, entry segmentation, key classification, and scalar-value extent are now expressed as recursive relation closure.
 
 ## Architectural change
 

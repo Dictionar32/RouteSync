@@ -1,0 +1,19 @@
+{
+  "phase": 3015,
+  "compiler": "global TypeScript transpileModule",
+  "target": "ES2022",
+  "files": [
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "syntaxDiagnostics": 0,
+      "diagnostics": []
+    }
+  ],
+  "totalFiles": 2,
+  "syntaxDiagnostics": 0
+}

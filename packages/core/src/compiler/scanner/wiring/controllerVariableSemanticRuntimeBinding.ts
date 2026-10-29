@@ -1,24 +1,40 @@
 import { controllerVariableSemanticAuthority } from '../../../types/upstream/controllerVariableSemanticAuthority';
-import { createControllerDataflowAnalyzer } from '../lexer/controllerDataflowAnalyzer';
+import { createControllerDataflowAnalyzer } from '../../frontend/php/controllerDataflowAnalyzer';
 import { controllerDataflowSemanticJudgmentAuthority } from '../../../types/upstream/controllerDataflowSemanticJudgmentAuthority';
-import { phpAstExpressionSemanticAuthority } from '../lexer/routeAst/phpAstExpressionSemanticAuthority';
+import { phpAstExpressionSemanticAuthority } from '../../frontend/php/routeAst/phpAstExpressionSemanticAuthority';
 
-import { phpControllerDataflowSourcePayloadEvidenceAdapter } from '../lexer/routeAst/phpControllerDataflowSourcePayloadEvidenceAdapter';
+import { phpControllerDataflowSourcePayloadEvidenceAdapter } from '../../frontend/php/routeAst/phpControllerDataflowSourcePayloadEvidenceAdapter';
 import { phpControllerVariableSemanticResolutionInputAdapter } from './controllerVariableSemanticResolutionInputAdapter';
-import { phpAstSemanticKnowledgeEvidenceAdapter } from '../lexer/routeAst/semanticKnowledgeDataFlowProducer';
-import { createPhpControllerDataflowDefinitionProjectionAuthority } from '../lexer/routeAst/phpControllerDataflowDefinitionProjectionAuthority';
+import { phpAstSemanticKnowledgeEvidenceAdapter } from '../../frontend/php/routeAst/semanticKnowledgeDataFlowProducer';
+import { createPhpControllerDataflowDefinitionProjectionAuthority } from '../../frontend/php/routeAst/phpControllerDataflowDefinitionProjectionAuthority';
 import type { LaravelControllerInvocationSemanticJudgmentInterface } from '../../../types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
+import type { ControllerDataflowAnalysisOutcome } from '../../../types/upstream/controllerDataflowAnalysisOutcomeInterface';
+import type { PhpControllerDataflowPayload } from '../../frontend/php/routeAst/phpControllerDataflowSourcePayloadEvidenceAdapter';
 
 /** Existing expression authority shared with controller dependency evidence projection. */
 export const controllerPhpAstExpressionSemanticAuthority = phpAstExpressionSemanticAuthority;
 
-/** Scanner wiring injects the upstream semantic authority directly; no pass-through runtime wrapper. */
-/** Execute source-evidence projection through one upstream-owned closed semantic judgment. */
-export const analyzeControllerDataflowWithInvocationJudgment = (
-  block: import('../lexer/phpAstTypes').PhpBlock,
-  parameterSemantics: readonly (readonly [import('../lexer/phpAstTypes').AstIdentifier, import('../../../types/upstream/controller').ControllerVariableSemantic])[],
+type ControllerDataflowInput = import('../../frontend/php/phpAstTypes').PhpBlock;
+type ControllerParameterSemantics = readonly (readonly [
+  import('../../frontend/php/phpAstTypes').AstIdentifier,
+  import('../../../types/upstream/controller').ControllerVariableSemantic,
+])[];
+
+/** Public runtime contract for scanner wiring; semantic judgments remain upstream-owned. */
+export interface ControllerVariableSemanticRuntimeBindingInterface {
+  readonly analyze: (
+    block: ControllerDataflowInput,
+    parameterSemantics: ControllerParameterSemantics,
+    judgment: LaravelControllerInvocationSemanticJudgmentInterface,
+  ) => ControllerDataflowAnalysisOutcome<PhpControllerDataflowPayload>;
+}
+
+/** Compose the canonical upstream authorities without introducing a second semantic decision path. */
+const analyzeControllerDataflowWithInvocationJudgmentImplementation = (
+  block: ControllerDataflowInput,
+  parameterSemantics: ControllerParameterSemantics,
   judgment: LaravelControllerInvocationSemanticJudgmentInterface,
-) => createControllerDataflowAnalyzer(
+): ControllerDataflowAnalysisOutcome<PhpControllerDataflowPayload> => createControllerDataflowAnalyzer(
   judgment,
   controllerDataflowSemanticJudgmentAuthority,
   phpControllerDataflowSourcePayloadEvidenceAdapter,
@@ -30,3 +46,7 @@ export const analyzeControllerDataflowWithInvocationJudgment = (
   }),
   phpAstSemanticKnowledgeEvidenceAdapter,
 )(block, parameterSemantics);
+
+export const controllerVariableSemanticRuntimeBinding: ControllerVariableSemanticRuntimeBindingInterface = Object.freeze({
+  analyze: analyzeControllerDataflowWithInvocationJudgmentImplementation,
+});

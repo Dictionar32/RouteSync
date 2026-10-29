@@ -6,7 +6,11 @@
  * @module cli/generators/constants
  */
 
-export function resolveRouteKey(routePath: string): string {
+export interface ResolveRouteKeyOperation {
+  (routePath: string): string;
+}
+
+export const resolveRouteKey: ResolveRouteKeyOperation = Object.freeze((routePath: string): string => {
   const cleanPath = routePath.replace(/^\/|\/$/g, '');
   const segments = cleanPath.split('/');
 
@@ -36,4 +40,4 @@ export function resolveRouteKey(routePath: string): string {
     }
   }
   return keySegments.filter(Boolean).join('_');
-}
+});

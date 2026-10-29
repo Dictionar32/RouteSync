@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 const evidenceInterface = read('packages/core/src/types/upstream/laravelControllerRequestSemanticBindingInterface.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const actionAuthority = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');

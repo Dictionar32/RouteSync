@@ -8,19 +8,15 @@ import type {
 } from './phpFunctionNameResolutionInterface';
 import { PHP_FUNCTION_RESOLUTION_SOURCE_INVENTORY_CONTRACT } from './phpFunctionNameResolutionInterface';
 import type { SourceFile } from './names';
-import type { SourceSpan } from './provenance';
+import { sourceSpanOperations, type SourceSpan } from './provenance';
 
 const sameFile = (left: SourceFile, right: SourceFile): boolean => left.value.value === right.value.value;
 const sameSpan = (left: SourceSpan, right: SourceSpan): boolean =>
-  sameFile(left.file, right.file)
-  && left.start.value === right.start.value
-  && left.end.value === right.end.value;
-const validSpan = (span: SourceSpan): boolean => span.start.value >= 0 && span.end.value >= span.start.value;
+  sourceSpanOperations.same(left, right).kind === 'same_source_span';
+const validSpan = (span: SourceSpan): boolean =>
+  sourceSpanOperations.validateNonEmpty(span).kind === 'source_span_ordered';
 const spanWithin = (span: SourceSpan, outer: SourceSpan): boolean =>
-  sameFile(span.file, outer.file)
-  && validSpan(span)
-  && span.start.value >= outer.start.value
-  && span.end.value <= outer.end.value;
+  sourceSpanOperations.contains(outer, span).kind === 'source_span_contained';
 const sameRegion = (left: PhpNamespaceRegionIdentity, right: PhpNamespaceRegionIdentity): boolean => {
   if (left.kind !== right.kind || !sameFile(left.sourceFile, right.sourceFile) || !sameSpan(left.source, right.source)) return false;
   if (left.kind === 'global_php_namespace_region' && right.kind === 'global_php_namespace_region') return true;
@@ -54,8 +50,7 @@ const regionInventoryIsBound = (inventory: PhpNamespaceRegionInventory, sourceFi
 const duplicateOrOverlappingRegions = (regions: readonly PhpNamespaceRegionInventory[]): boolean => regions.some((left, index) =>
   regions.slice(index + 1).some(right =>
     sameRegion(left.region, right.region)
-    || (left.region.source.start.value < right.region.source.end.value
-      && right.region.source.start.value < left.region.source.end.value),
+    || sourceSpanOperations.overlaps(left.region.source, right.region.source).kind === 'source_span_overlapping',
   ),
 );
 

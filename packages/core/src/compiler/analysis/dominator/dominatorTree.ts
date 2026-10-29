@@ -6,7 +6,7 @@ import { computeRPO } from './dominatorRpo';
 import { intersectDominators } from './dominatorIntersect';
 import { relationIndexLookup, relationIndexAdd, relationContains, type RelationIndex } from '../../../semantic/relations/relationMembership';
 import { relationOptionFold, relationFold, relationFixedPoint, relationResolve, relationEqual } from '../../../semantic/relations/relationalSequence';
-import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+import type { RelationOption } from '../../../semantic/relations/semanticRelations';
 
 export interface DominatorTree {
     readonly idoms: RelationIndex<number, number>;

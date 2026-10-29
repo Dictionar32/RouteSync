@@ -9,7 +9,7 @@ This phase continues the existing Phase 1541 interface-first dataflow route. It 
 - `types/upstream/semanticDataflowInterface.ts` owns judgment admission and now also defines the explicit no-evidence runtime outcome.
 - `types/upstream/semanticDataflowRuntimeExecutor.ts` composes the authority and admission boundary and constructs the typed no-evidence outcome.
 - `compiler/scanner/wiring/semanticDataflowInputAdapter.ts` translates scanner knowledge evidence into canonical input when evidence exists.
-- `compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` routes both non-empty execution and empty-evidence reporting through the same upstream runtime contract. The legacy return shape remains a compatibility projection.
+- `compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` routes both non-empty execution and empty-evidence reporting through the same upstream runtime contract. The legacy return shape remains a compatibility projection.
 - `compiler/scanner/subscanners/queryEvidenceProducer.ts` is a separate semantic family: it uses `queryProducerSemanticAlgebra` and evidence-bound validation, but retains an explicit compatibility catalog for unclaimed query-operation families.
 
 ## Model improvement

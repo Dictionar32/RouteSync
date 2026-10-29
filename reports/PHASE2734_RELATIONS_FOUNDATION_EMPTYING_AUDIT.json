@@ -1,0 +1,17 @@
+{
+  "phase": 2734,
+  "title": "Empty semantic relations and foundation directories",
+  "user_directed": true,
+  "directories": [
+    "packages/core/src/semantic/relations",
+    "packages/core/src/semantic/foundation"
+  ],
+  "files_remaining_in_directories": 0,
+  "replacement_foundation_created": false,
+  "compatibility_wrappers_created": false,
+  "imports_may_fail": true,
+  "full_typecheck_verified": false,
+  "unit_tests_verified": false,
+  "build_verified": false,
+  "cli_e2e_verified": false
+}

@@ -17,11 +17,12 @@ import type {
   SemanticDataflowRuntimeExecutorInterface,
   SemanticDataflowRuntimeExecutionRequest,
   SemanticDataflowRuntimeExecutionResult,
+  SemanticDataflowRuntimeExecutorFactoryInterface,
 } from './semanticDataflowInterface';
 import { semanticDataflowJudgmentBoundary } from './semanticDataflowAdmission';
 import type { SemanticDataflowJudgmentBoundaryInterface } from './semanticDataflowInterface';
 
-export const createSemanticDataflowRuntimeExecutor = (
+const createSemanticDataflowRuntimeExecutor = (
   authority: SemanticDataflowReasoningAuthorityInterface,
   boundary: SemanticDataflowJudgmentBoundaryInterface,
 ): SemanticDataflowRuntimeExecutorInterface => {
@@ -46,7 +47,13 @@ export const createSemanticDataflowRuntimeExecutor = (
   });
 };
 
-export const semanticDataflowRuntimeExecutor: SemanticDataflowRuntimeExecutorInterface = createSemanticDataflowRuntimeExecutor(
-  semanticDataflowReasoningAuthority,
-  semanticDataflowJudgmentBoundary,
-);
+export const semanticDataflowRuntimeExecutorFactory: SemanticDataflowRuntimeExecutorFactoryInterface = Object.freeze({
+  kind: 'semantic_dataflow_runtime_executor_factory',
+  create: (
+    authority: SemanticDataflowReasoningAuthorityInterface,
+    boundary: SemanticDataflowJudgmentBoundaryInterface,
+  ): SemanticDataflowRuntimeExecutorInterface => createSemanticDataflowRuntimeExecutor(authority, boundary),
+});
+
+export const semanticDataflowRuntimeExecutor: SemanticDataflowRuntimeExecutorInterface =
+  semanticDataflowRuntimeExecutorFactory.create(semanticDataflowReasoningAuthority, semanticDataflowJudgmentBoundary);

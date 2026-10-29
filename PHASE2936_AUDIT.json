@@ -1,0 +1,27 @@
+{
+  "phase": 2936,
+  "title": "Fully Explicit Typed Runtime Scanner Operations \u2014 Manifest Judgment Domain Continuation",
+  "scope": "CLI manifest builder and flow projection path",
+  "checks": {
+    "manifestJudgmentOwnsDomainSpecificFlowContinuation": true,
+    "manifestBuilderHandlersGenericAbstractionRemoved": true,
+    "completeManifestProjectsThroughProvidedProjection": true,
+    "blockedManifestPreservesOriginalBlocker": true,
+    "manifestScannerDelegatesToJudgmentOperation": true,
+    "sourceObservationStillOwnsReadyBlockedContinuation": true,
+    "sourceObservationADTHasDomainOperation": true,
+    "cliManifestRuntimeInterfaceFirst": true,
+    "sourceSelectionBarrelExported": true,
+    "checkedRuntimePathHasNoExportedFunctionDeclarations": true,
+    "collectionsRemainEmpty": true,
+    "manifestBuilderContractVersionBumped": true
+  },
+  "exportedFunctions": [],
+  "verification": {
+    "staticAudit": "passed",
+    "typecheck": "attempted_failed_environment_missing_node_and_vitest_types_and_global_tsc_5_8_3_rejects_ES2025_target",
+    "unitTests": "not_run_dependencies_unavailable",
+    "build": "not_run_dependencies_unavailable",
+    "endToEnd": "not_run_dependencies_unavailable"
+  }
+}

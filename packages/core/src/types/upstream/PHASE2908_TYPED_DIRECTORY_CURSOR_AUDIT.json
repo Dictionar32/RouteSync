@@ -1,0 +1,33 @@
+{
+  "phase": 2908,
+  "title": "Typed Directory Cursor and Manifest Runtime Trace",
+  "scope": [
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "packages/core/src/index.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts",
+    "scripts/audits/audit-phase2908-typed-directory-cursor.cjs"
+  ],
+  "changes": [
+    "Added a specific exhausted/ready directory cursor ADT with continuation operation at the filesystem adapter boundary.",
+    "Removed the iterator-value Dirent assertion and string-keyed iterator-done dispatch.",
+    "Explicitly exported existing discovery-entry ADT types and runtime factory through the core barrel.",
+    "Documented the remaining OS error-code mapping gap instead of claiming all filesystem reasoning is removed."
+  ],
+  "verified": {
+    "phase2908_structural_checks": 14,
+    "package_json_parse": true,
+    "collections_ts_empty": true,
+    "zip_integrity": "passed with unzip -t",
+    "selected_prior_phase_audit_checks_passed": 80
+  },
+  "not_verified": [
+    "full project typecheck",
+    "full build",
+    "complete test suite",
+    "CLI end-to-end behavior"
+  ],
+  "remaining_root_cause_targets": [
+    "OS error code extraction and mapping to blockers",
+    "Dirent-to-domain-entry classification at the filesystem adapter boundary"
+  ]
+}

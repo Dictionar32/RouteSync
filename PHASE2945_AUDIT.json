@@ -1,0 +1,30 @@
+{
+  "phase": 2945,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations — Explicit Source Read Failure Operations",
+  "scope": [
+    "Remove try/catch from CLI source-read composition",
+    "Remove try/catch from shared filesystem reader by using Promise fulfillment/rejection handlers",
+    "Preserve original rejected Promise reason in the source-read settlement ADT",
+    "Preserve rejected operation evidence through the batch ADT and CLI terminal",
+    "Keep packages/core/src/types/upstream/collections.ts empty"
+  ],
+  "verification": {
+    "phase2940_structural_audit": "11/11 passed",
+    "phase2941_structural_audit": "9/9 passed",
+    "phase2942_structural_audit": "9/9 passed",
+    "phase2943_structural_audit": "8/8 passed",
+    "phase2944_structural_audit": "8/8 passed",
+    "phase2945_structural_audit": "8/8 passed",
+    "typescript_syntax_transpile": "4/4 changed TypeScript files passed",
+    "json_validation": "passed",
+    "full_typecheck": "not verified",
+    "unit_tests": "not run",
+    "build": "not run",
+    "cli_end_to_end": "not run"
+  },
+  "constraints": {
+    "generic_collection_abstraction_added": false,
+    "collections_ts_empty": true,
+    "global_export_function_migration_complete": false
+  }
+}

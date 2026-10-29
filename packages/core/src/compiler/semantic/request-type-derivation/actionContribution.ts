@@ -3,13 +3,13 @@
  *
  * Derives FormAction descriptors and actions from RouteSemanticFlow.
  *
- * @module core/compiler/scanner/subscanners/request-deriver
+ * @module core/compiler/scanner/operations/request-deriver
  */
 
 import { type RouteSemanticFlow, matchRouteActionKind } from "../../../types/route";
 import { FormActionName, type FormAction, type RequestField } from "../../../types/domain/request";
 import type { Option } from "../../../types/upstream/collections";
-import { ScannedFormActionDescriptor } from "../../scanner/descriptors/requestDescriptors";
+import { ScannedFormActionDescriptor } from "../../scanner/operations/domain-model/requestDescriptors";
 
 export interface DerivedActionInfo {
     readonly formActionName: Option<FormActionName>;

@@ -8,10 +8,10 @@
  */
 
 import type { ModelSymbolTable, OriginModelSymbol } from "../symbols/ModelSymbolTable";
-import type { PhpAstValue, PhpArrayEntry } from "../lexer/PhpAst";
+import type { PhpAstValue, PhpArrayEntry } from "../../frontend/php/PhpAst";
 import type { ResourceFieldSemanticBinding } from "../../../types/domain/resourceFieldSemanticBinding";
 import type { BoundSemanticNode } from "../../../types/domain/boundAst";
-import type { PhpStatement } from "../lexer/phpAstTypes";
+import type { PhpStatement } from "../../frontend/php/phpAstTypes";
 import type { ModelName, ResourceName, SourceFile } from "../../../types/upstream/names";
 import type { ResourceAst } from "../../../types/upstream/ast";
 import {

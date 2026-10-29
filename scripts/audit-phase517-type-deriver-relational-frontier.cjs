@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts');
+const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/operations/typeDeriverUtils.ts');
 const source = fs.readFileSync(target, 'utf8');
 const patterns = {
   if: /\bif\b/g, for: /\bfor\b/g, while: /\bwhile\b/g, switch: /\bswitch\b/g,

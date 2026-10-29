@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const roots = [
   'packages/core/src/semantic/kernel/syntax/cursorDecisionRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/tokenCursorAuthority.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/tokenCursorAuthority.ts',
   'packages/core/src/semantic/kernel/syntax/syntaxEvidenceRelations.ts',
   'packages/core/src/compiler/constraints/solver/declarativeConstraintRelations.ts',
 ].map((p) => path.resolve(process.cwd(), p));

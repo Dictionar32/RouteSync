@@ -32,7 +32,7 @@ The scanner remains a delegator. The runtime executor remains wiring only. The u
   - Derived compatibility rule exports from the model.
 - `packages/core/src/types/upstream/invocationSemanticModelCompiler.ts`
   - Vacated in place; invocation-specific compiler templates are no longer present.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`
   - Clarified the scanner boundary as delegation and projection only.
 - `scripts/audits/audit-phase1655-invocation-semantic-model-interface-first.cjs`
   - Added architecture audit for model ownership, generic lowering, scanner wiring, and executor purity.

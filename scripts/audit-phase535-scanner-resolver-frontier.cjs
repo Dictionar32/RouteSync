@@ -3,8 +3,8 @@ const path = require('path');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/model/columnInferrer.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts',
+  'packages/core/src/compiler/scanner/operations/model/columnInferrer.ts',
+  'packages/core/src/compiler/scanner/operations/controller/actionValidationExtractor.ts',
 ];
 const forbidden = {
   if: /\bif\b/g, for: /\bfor\b/g, while: /\bwhile\b/g, switch: /\bswitch\b/g,

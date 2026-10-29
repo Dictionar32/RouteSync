@@ -14,7 +14,7 @@ const files = {
   pipeline: 'packages/core/src/compiler/analysis/semanticDataflowPipeline.ts',
   policy: 'packages/core/src/compiler/analysis/dataflow/semanticDataflowFactAnalysisPolicy.ts',
   producer: 'packages/core/src/types/upstream/semanticDataflowManifestSurface.ts',
-  legacy: 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts',
+  legacy: 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts',
 };
 const src = Object.fromEntries(Object.entries(files).map(([key, file]) => [key, read(file)]));
 const pkg = JSON.parse(read('package.json'));

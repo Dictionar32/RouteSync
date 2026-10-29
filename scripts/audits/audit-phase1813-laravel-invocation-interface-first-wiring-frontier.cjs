@@ -5,11 +5,11 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const bodyParser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
-const methodParser = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
+const bodyParser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
+const methodParser = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const cliPipeline = read('packages/cli/src/parsers/php/sourceInvocationPipeline.ts');
-const dataflow = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const dataflow = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const compositionRoot = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');
 const checks = [
  ['whole-file pipeline authority exists', cliPipeline.includes('createPhpSourceInvocationSemanticPipelineAuthority') && cliPipeline.includes('analyzePhpSourceInvocationSemanticPipeline')],

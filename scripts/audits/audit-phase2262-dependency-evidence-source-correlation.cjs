@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = process.cwd();
-const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const resolver = fs.readFileSync(resolverPath, 'utf8');
 const checks = [
   ['constructor dependency projection receives source identity', /resolveConstructorDependencies\(constructorParameters,[\s\S]*?sourceFile\)/.test(resolver)],

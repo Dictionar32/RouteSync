@@ -5,8 +5,8 @@ import { describe, expect, it } from 'vitest';
 const root = resolve(__dirname, '../../../../../..');
 const responseInterface = readFileSync(resolve(root, 'packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts'), 'utf8');
 const responsePipeline = readFileSync(resolve(root, 'packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts'), 'utf8');
-const actionContract = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts'), 'utf8');
-const responseAttributeScanner = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts'), 'utf8');
+const actionContract = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts'), 'utf8');
+const responseAttributeScanner = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts'), 'utf8');
 const controllerScanner = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts'), 'utf8');
 
 describe('Phase 2224 integrated response authority closure trace', () => {

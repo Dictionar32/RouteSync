@@ -4,9 +4,9 @@ const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const judgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
-const methodParser = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
-const bodyParser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
+const methodParser = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
+const bodyParser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [

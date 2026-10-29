@@ -4,7 +4,7 @@ const root = process.cwd();
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [
   ['no duplicated integrated-response authority', !pipeline.includes('InvocationSemanticIntegratedResponseAuthorityInterface')],
   ['scanner does not own semantic analysis or correspondence validation', !analyzer.includes('InvocationSemanticCoveragePublicationInterface') && !analyzer.includes('validateCorrespondence')],

@@ -20,7 +20,7 @@ const checks = [
   ['closed complete/blocked policy ADT remains authoritative', highLevel.includes('switch (suppliedPolicy.judgment.kind)') && highLevel.includes("case 'blocked':") && highLevel.includes("case 'complete':")],
   ['invocation judgment continues through the existing controller producer', invocation.includes('controllerProducer.produce({ declaration: declarationEvidence, invocationJudgment })')],
   ['integrated response remains connected to invocation judgment', invocation.includes('responseSemanticPipeline.judgeIntegratedResponse(Object.freeze({') && invocation.includes("kind: 'laravel_controller_response_integrated_judgment_input'") && invocation.includes('judgment: invocationJudgment')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['audit is registered in package scripts', fs.readFileSync(path.join(root, 'package.json'), 'utf8').includes('audit:phase2050-canonical-policy-inventory-wired-interface-first')],
 ];
 let passed = 0;

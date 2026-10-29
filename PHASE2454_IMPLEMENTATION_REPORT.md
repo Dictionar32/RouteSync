@@ -38,7 +38,7 @@ Some historical audit scripts encode older repository states and remain stale or
 
 ### `semantic/relations`
 
-The active expression-projection implementation `packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSemanticAuthority.ts` still directly imports `semantic/relations`. The closure-return producer calls this projection, so the dependency is transitive into the Laravel route path. `resourceModelBindingAuthority.ts`, `semanticRewriteAuthority.ts`, and other consumers also retain relation imports. This phase does not remove them.
+The active expression-projection implementation `packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSemanticAuthority.ts` still directly imports `semantic/relations`. The closure-return producer calls this projection, so the dependency is transitive into the Laravel route path. `resourceModelBindingAuthority.ts`, `semanticRewriteAuthority.ts`, and other consumers also retain relation imports. This phase does not remove them.
 
 ### `semantic/foundation`
 

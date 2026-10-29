@@ -12,7 +12,7 @@ The scanner-specific `SemanticKnowledgeDataFlow` vocabulary is confined to the s
 
 ## Legacy analyzer
 
-`compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` remains only as a historical/test compatibility surface. Its barrel export was removed so it cannot become a production authority through `routeAst/index.ts`.
+`compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` remains only as a historical/test compatibility surface. Its barrel export was removed so it cannot become a production authority through `routeAst/index.ts`.
 
 ## Example corpus
 

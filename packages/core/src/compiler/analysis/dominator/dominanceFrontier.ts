@@ -3,7 +3,7 @@ import type { ControlFlowGraph } from '../../utils/ControlFlowGraph';
 import type { DominatorTree } from './dominatorTree';
 import { relationContains, relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
 import { relationOptionFold, relationFold, relationResolve, relationEqual } from '../../../semantic/relations/relationalSequence';
-import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+import type { RelationOption } from '../../../semantic/relations/semanticRelations';
 
 export interface DominanceFrontier {
   readonly frontiers: RelationIndex<number, readonly number[]>;

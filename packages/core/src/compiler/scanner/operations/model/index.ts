@@ -1,0 +1,13 @@
+/**
+ * model/index.ts
+ *
+ * Explicit Sub-Domain Exports for Eloquent Model Scanning.
+ * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
+ *
+ * @module core/compiler/scanner/operations/model
+ */
+
+export { modelColumnResolutionOperations } from "./columnInferrer";
+
+export { modelSemanticDefinitionFromAst, modelParserOperations } from "./modelParser";
+

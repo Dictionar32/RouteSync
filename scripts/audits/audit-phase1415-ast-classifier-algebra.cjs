@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const algebra = read('packages/core/src/types/upstream/astClassifierRuleAlgebra.ts');
 const contract = read('packages/core/src/types/upstream/astClassifierEvidenceContract.ts');
 const checks = [

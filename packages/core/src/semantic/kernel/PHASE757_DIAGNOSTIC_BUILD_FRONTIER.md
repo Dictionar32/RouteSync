@@ -30,8 +30,8 @@ No production reference to `ParsedDescriptor` or `parsedDescriptor` remains. The
 
 The target architecture is aligned with declarative compiler systems: MLIR separates pattern matching from rewriting; WebAssembly specifies validation as typed declarative judgments; and the RouteSync semantic kernel uses relation facts, closed ADTs, solver/fixed-point evaluation, and rewrite projections rather than host-language fallback state.
 
-The scanner/lexer remains a source-evidence boundary. PHP constructs such as `if`, `for`, `switch`, `null`, and `??` may exist as source-language evidence, but semantic implementation must not use those constructs as host control-flow or host absence mechanisms.
+The frontend/php remains a source-evidence boundary. PHP constructs such as `if`, `for`, `switch`, `null`, and `??` may exist as source-language evidence, but semantic implementation must not use those constructs as host control-flow or host absence mechanisms.
 
 ## Remaining frontier
 
-The strict relational audit still reports legacy leakage in the wider scanner/lexer/resolver graph. Those are the next migrations: AST/upstream mapping, resolver graph closure, data-flow analysis, and semantic type lowering. They should be migrated by replacing implementation mechanisms with closed relation judgments, not by mechanically deleting syntax that is itself PHP source evidence.
+The strict relational audit still reports legacy leakage in the wider frontend/php/resolver graph. Those are the next migrations: AST/upstream mapping, resolver graph closure, data-flow analysis, and semantic type lowering. They should be migrated by replacing implementation mechanisms with closed relation judgments, not by mechanically deleting syntax that is itself PHP source evidence.

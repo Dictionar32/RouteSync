@@ -1,8 +1,9 @@
 import type { RouteAst } from './ast';
-import type { LaravelRouteSourceSelectionIntent } from './laravelRouteSourceSelection';
+import type { LaravelRouteSourceSelectionIntent, LaravelRouteScanBlockedJudgment, LaravelRouteSourceFileObservation, LaravelRouteSourceObservationJudgment, LaravelRouteSourcePresenceInterface } from './laravelRouteSourceSelection';
+export type { LaravelRouteScanBlockedJudgment, LaravelRouteSourceFileObservation, LaravelRouteSourceObservationJudgment } from './laravelRouteSourceSelection';
 import type { RouteSemanticFlow } from '../domain/routes';
 import type { ControllerActionJudgmentPublication, LaravelControllerScanJudgment } from './laravelControllerScannerInterface';
-import type { SourceFile } from './names';
+import type { SourceFile, SourceFileInventory } from './names';
 import type { SourceProjectIdentity } from './highLevelSourceModel';
 import type { RouteControllerBindingJudgment, RouteControllerBindingJudgmentAuthority } from './laravelScannerSemanticJudgment';
 import type { MiddlewareName } from './names';
@@ -15,6 +16,9 @@ import type { LaravelRouteDeclarationMethodJudgment, LaravelRouteDeclarationMeth
 import type { RouteDeclarationEvidence } from './routeDeclarationEvidence';
 import type { RouteResourceFlowAuthority } from './routeResourceFlow';
 import type { LaravelRoutePathResolutionAuthority } from './routePathResolution';
+import type { PhpSourceDocumentReadBatchBlockedEvidence, PhpSourceDocumentReaderInterface } from './phpSourceFrontendInterface';
+import type { LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt } from './laravelControllerInvocationSemanticJudgmentInventoryInterface';
+import type { LaravelSourceAstProjectionJudgment } from './laravelSourceAstPipelineInterface';
 export type { LaravelRouteMethod, LaravelResourceRouteMethod, LaravelStandardRouteMethod, LaravelRouteTargetMethod, LaravelRouteDeclarationMethodJudgmentInput, LaravelRouteDeclarationMethodJudgment, LaravelRouteDeclarationMethodJudgmentAuthority } from './laravelRouteDeclarationMethodJudgment';
 
 /** Authorities and producers owned by the upstream route-scanner composition boundary. */
@@ -30,6 +34,7 @@ export interface LaravelRouteScannerAuthorityInterface {
   readonly routeProducerInputComposition: RouteProducerInputComposition;
   readonly routeProducer: RouteProducer;
   readonly declarationCompositionAuthority: LaravelRouteDeclarationCompositionAuthorityInterface;
+  readonly sourceDocumentReader: PhpSourceDocumentReaderInterface;
 }
 
 /** A prepared route scan carries its complete input and executes without runtime arguments. */
@@ -53,7 +58,7 @@ export interface LaravelRouteDeclarationCompositionAuthorityInterface {
   readonly compose: (input: LaravelRouteDeclarationCompositionInput) => readonly RouteBoundaryContract[];
   readonly catalogFromControllerScan: (controllerScan: LaravelControllerScanJudgment) => EffectiveControllerActionPolicyCatalogJudgment;
   readonly policyForBinding: (input: LaravelRoutePolicyProjectionInput) => Presence<EffectiveControllerActionPolicy>;
-  readonly resolveSourceFiles: (sourceProject: SourceProjectIdentity, intent: LaravelRouteSourceSelectionIntent) => readonly SourceFile[];
+  readonly resolveSourceFiles: (sourceProject: SourceProjectIdentity, intent: LaravelRouteSourceSelectionIntent) => SourceFileInventory;
   readonly observeSourceFiles: (input: LaravelRouteSourceObservationInput) => LaravelRouteSourceObservationJudgment;
   readonly outcomeFromScan: (scan: LaravelRouteScanJudgment) => LaravelRouteScanOutcome;
 }
@@ -69,18 +74,15 @@ export interface LaravelRoutePolicyProjectionInput {
 
 export interface LaravelRouteSourceObservationInput {
   readonly intent: LaravelRouteSourceSelectionIntent;
-  readonly selectedFiles: readonly SourceFile[];
-  readonly missingFiles: readonly SourceFile[];
+  readonly selectedFiles: SourceFileInventory;
+  readonly presence: LaravelRouteSourcePresenceInterface;
 }
 
-export type LaravelRouteSourceObservationJudgment =
-  | Readonly<{ readonly kind: 'laravel_route_source_observation_ready'; readonly sourceFiles: readonly LaravelRouteSourceFileObservation[] }>
-  | LaravelRouteScanBlockedJudgment;
 
 export interface LaravelRouteScanOperationInterface extends LaravelRouteScannerAuthorityInterface {
   readonly kind: 'prepared_laravel_route_scan_operation';
   readonly closed: true;
-  readonly contractVersion: 2;
+  readonly contractVersion: 4;
   readonly input: LaravelRouteScanInput;
   readonly execute: () => Promise<LaravelRouteScanOutcome>;
 }
@@ -89,7 +91,7 @@ export interface LaravelRouteScanOperationInterface extends LaravelRouteScannerA
 export interface LaravelRouteScannerInterface extends LaravelRouteScannerAuthorityInterface {
   readonly kind: 'laravel_route_scanner';
   readonly closed: true;
-  readonly contractVersion: 36;
+  readonly contractVersion: 39;
   /** Preparation closes source evidence and semantic judgments; execution only publishes the prepared outcome. */
   readonly prepare: (input: LaravelRouteScanInput) => Promise<LaravelRouteScanOperationInterface>;
 }
@@ -119,17 +121,6 @@ export interface LaravelRouteScanJudgment {
   readonly artifacts: readonly LaravelRouteScanArtifact[];
 }
 
-export type LaravelRouteSourceFileObservation =
-  | Readonly<{ readonly kind: 'laravel_route_source_file_scanned'; readonly file: SourceFile }>
-  | Readonly<{ readonly kind: 'laravel_route_source_file_absent_optional_default'; readonly file: SourceFile }>;
-
-export interface LaravelRouteScanBlockedJudgment {
-  readonly kind: 'laravel_route_scan_blocked';
-  readonly contractVersion: 27;
-  readonly reason: 'explicitly_selected_route_source_file_absent';
-  readonly missingFiles: readonly SourceFile[];
-}
-
 /** A route scan may be syntactically complete while a required controller policy judgment is blocked. */
 export interface LaravelRouteScanPolicyBlockedJudgment {
   readonly kind: 'laravel_route_scan_policy_blocked';
@@ -157,4 +148,67 @@ export interface LaravelRouteScanResponseBlockedJudgment {
   readonly policies: LaravelRouteScanPolicyBlockedJudgment['policies'];
 }
 
-export type LaravelRouteScanOutcome = LaravelRouteScanJudgment | LaravelRouteScanBlockedJudgment | LaravelRouteScanPolicyBlockedJudgment | LaravelRouteScanResponseBlockedJudgment;
+/** Source-read blockage evidence remains distinct from pre-scan explicit-file absence. */
+export interface LaravelRouteScanSourceReadBlockedEvidence {
+  readonly kind: 'laravel_route_scan_source_read_blocked';
+  readonly contractVersion: 28;
+  readonly sourceFiles: readonly LaravelRouteSourceFileObservation[];
+  readonly readBatch: PhpSourceDocumentReadBatchBlockedEvidence;
+}
+
+/** Every route-scan terminal owns its next AST-projection action. */
+export interface LaravelRouteScanProjectionContinuationInterface<Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt> {
+  readonly onComplete: (judgment: LaravelRouteScanJudgment) => Promise<LaravelSourceAstProjectionJudgment<Receipt>>;
+  readonly onSourceSelectionBlocked: (judgment: LaravelRouteScanBlockedJudgment) => Promise<LaravelSourceAstProjectionJudgment<Receipt>>;
+  readonly onSourceReadBlocked: (judgment: LaravelRouteScanSourceReadBlockedEvidence) => Promise<LaravelSourceAstProjectionJudgment<Receipt>>;
+  readonly onResponseBlocked: (judgment: LaravelRouteScanResponseBlockedJudgment) => Promise<LaravelSourceAstProjectionJudgment<Receipt>>;
+  readonly onPolicyBlocked: (judgment: LaravelRouteScanPolicyBlockedJudgment) => Promise<LaravelSourceAstProjectionJudgment<Receipt>>;
+}
+
+export type LaravelRouteScanSourceReadBlockedJudgment = LaravelRouteScanSourceReadBlockedEvidence;
+
+/** Common operation shape implemented independently by each route-scan terminal. */
+export interface LaravelRouteScanOutcomeContinuationInterface {
+  readonly continueToSourceAstProjection: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(
+    continuation: LaravelRouteScanProjectionContinuationInterface<Receipt>,
+  ) => Promise<LaravelSourceAstProjectionJudgment<Receipt>>;
+}
+
+export type LaravelRouteScanOutcome =
+  | (LaravelRouteScanJudgment & LaravelRouteScanOutcomeContinuationInterface)
+  | (LaravelRouteScanBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface)
+  | (LaravelRouteScanPolicyBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface)
+  | (LaravelRouteScanResponseBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface)
+  | (LaravelRouteScanSourceReadBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface);
+
+/** Constructors attach the operation at the terminal's origin; no consumer or central dispatcher reclassifies outcomes. */
+export interface LaravelRouteScanOutcomeOperationsInterface {
+  readonly complete: (judgment: LaravelRouteScanJudgment) => LaravelRouteScanJudgment & LaravelRouteScanOutcomeContinuationInterface;
+  readonly sourceSelectionBlocked: (judgment: LaravelRouteScanBlockedJudgment) => LaravelRouteScanBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface;
+  readonly sourceReadBlocked: (judgment: LaravelRouteScanSourceReadBlockedJudgment) => LaravelRouteScanSourceReadBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface;
+  readonly responseBlocked: (judgment: LaravelRouteScanResponseBlockedJudgment) => LaravelRouteScanResponseBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface;
+  readonly policyBlocked: (judgment: LaravelRouteScanPolicyBlockedJudgment) => LaravelRouteScanPolicyBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface;
+}
+
+export const laravelRouteScanOutcomeOperations: LaravelRouteScanOutcomeOperationsInterface = Object.freeze({
+  complete: (judgment: LaravelRouteScanJudgment): LaravelRouteScanJudgment & LaravelRouteScanOutcomeContinuationInterface => Object.freeze({
+    ...judgment,
+    continueToSourceAstProjection: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(continuation: LaravelRouteScanProjectionContinuationInterface<Receipt>): Promise<LaravelSourceAstProjectionJudgment<Receipt>> => continuation.onComplete(judgment),
+  }),
+  sourceSelectionBlocked: (judgment: LaravelRouteScanBlockedJudgment): LaravelRouteScanBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface => Object.freeze({
+    ...judgment,
+    continueToSourceAstProjection: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(continuation: LaravelRouteScanProjectionContinuationInterface<Receipt>): Promise<LaravelSourceAstProjectionJudgment<Receipt>> => continuation.onSourceSelectionBlocked(judgment),
+  }),
+  sourceReadBlocked: (judgment: LaravelRouteScanSourceReadBlockedJudgment): LaravelRouteScanSourceReadBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface => Object.freeze({
+    ...judgment,
+    continueToSourceAstProjection: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(continuation: LaravelRouteScanProjectionContinuationInterface<Receipt>): Promise<LaravelSourceAstProjectionJudgment<Receipt>> => continuation.onSourceReadBlocked(judgment),
+  }),
+  responseBlocked: (judgment: LaravelRouteScanResponseBlockedJudgment): LaravelRouteScanResponseBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface => Object.freeze({
+    ...judgment,
+    continueToSourceAstProjection: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(continuation: LaravelRouteScanProjectionContinuationInterface<Receipt>): Promise<LaravelSourceAstProjectionJudgment<Receipt>> => continuation.onResponseBlocked(judgment),
+  }),
+  policyBlocked: (judgment: LaravelRouteScanPolicyBlockedJudgment): LaravelRouteScanPolicyBlockedJudgment & LaravelRouteScanOutcomeContinuationInterface => Object.freeze({
+    ...judgment,
+    continueToSourceAstProjection: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(continuation: LaravelRouteScanProjectionContinuationInterface<Receipt>): Promise<LaravelSourceAstProjectionJudgment<Receipt>> => continuation.onPolicyBlocked(judgment),
+  }),
+});

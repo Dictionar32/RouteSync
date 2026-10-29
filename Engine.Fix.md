@@ -386,7 +386,7 @@ Do not manufacture runtime implementations for type-only contracts merely to cre
 
 ## Phase 1376 — Route Capability Authority Composition (2026-10-09)
 
-- Split the executable CRUD route reasoning surface from its authority metadata through `routeCapabilityAuthorityAlgebra` and `createRouteCapabilityAuthority(algebra)`. The wrapper delegates all operations and does not duplicate route/action classification.
+- Split the executable CRUD route reasoning surface from its authority metadata through `routeCapabilityAuthorityAlgebra` and `routeCapabilityAuthorityFactory.create(algebra)`. The wrapper delegates all operations and does not duplicate route/action classification.
 - Applied the same composition boundary to non-CRUD route capability reasoning with `routeCapabilitySemanticAuthorityAlgebra` and `createRouteCapabilitySemanticAuthority(algebra)`. The closed authority wrapper delegates `resolve` exactly once.
 - Kept `RouteActionKind` as the canonical mutability ADT, `RouteSchemaPayload.fields` as canonical request-shape evidence, and the existing proof/evidence resolution behavior intact.
 - Exported the algebra and composition factories from the core public entry point. Existing canonical authority names remain stable for current consumers.
@@ -423,7 +423,7 @@ Do not manufacture runtime implementations for type-only contracts merely to cre
 
 ## Phase 1399 — AST classifier runtime/port separation (2026-10-09)
 
-- Moved the large PHP AST classification implementation to `packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts`.
+- Moved the large PHP AST classification implementation to `packages/core/src/compiler/frontend/php/astClassifierRuntime.ts`.
 - Kept `astClassifierEvidence.ts` as a narrow adapter implementing the upstream `AstClassifierEvidenceInterface`; parser implementation details are no longer the module's public consumer surface.
 - Extended the generic upstream port to describe syntax-classification capabilities and the single-input semantic evidence operation without importing compiler/scanner runtime types.
 - Updated `astClassifier.ts` and `semanticEvidenceRelations.ts` to consume the port explicitly.
@@ -599,7 +599,7 @@ Evolved scanner boundary and assignment contracts instead of adding wrapper-only
 
 ## Phase 1425 — Expression root-operator contract
 
-- Trace source: `packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts`, especially `classifyCompoundExpression` and the former `findBinaryOperator` path.
+- Trace source: `packages/core/src/compiler/frontend/php/astClassifierRuntime.ts`, especially `classifyCompoundExpression` and the former `findBinaryOperator` path.
 - Migration: null-coalescing (`??`) was previously selected in a separate early runtime candidate, while binary operators used the precedence algebra. That split let candidate ordering—not a single structural rule catalog—decide the relationship between coalescing and binary operators.
 - Change: coalescing and supported binary operators now share `findExpressionRootOperator`, which delegates root selection to `scannerExpressionOperatorAlgebra`. The PHP adapter supplies token spellings, precedence/associativity facts, and the AST factory; recursive operand classification happens only after the root is resolved.
 - Structural rule for the supported PHP 8 operator subset: multiplication `60`, addition/subtraction `50`, concatenation `40`, comparisons `25–30`, `&&` `20`, `||` `10`, and right-associative `??` `5`. Lower values become the root split; right associativity selects the leftmost same-tier root so recursion forms the right-associated tree.
@@ -610,7 +610,7 @@ Evolved scanner boundary and assignment contracts instead of adding wrapper-only
 ## Phase 1426 — Expression operator contract migration (2026-10-09)
 
 - Trace found that Phase 1425 had unified `??` and binary root selection, but the PHP operator catalog and result adaptation still lived in `astClassifierRuntime.ts`.
-- Moved PHP-specific token spellings, operator identities, precedence facts, and associativity facts into `packages/core/src/compiler/scanner/lexer/phpExpressionOperatorContract.ts`. The runtime now delegates root-operator resolution through that contract and retains recursive AST projection.
+- Moved PHP-specific token spellings, operator identities, precedence facts, and associativity facts into `packages/core/src/compiler/frontend/php/phpExpressionOperatorContract.ts`. The runtime now delegates root-operator resolution through that contract and retains recursive AST projection.
 - Extended the language-neutral `scannerExpressionOperatorAlgebra` with `non_associative` precedence tiers. Chained top-level operators from such a tier now return the closed `malformed` result rather than silently producing a tree. PHP comparison/equality operators in the supported subset use this rule.
 - Added algebra tests for rejected unparenthesized comparison chains and accepted single comparisons; added `audit:phase1426-expression-operator-contract-migration`. The PHP contract covers the currently supported operator subset, not the complete PHP grammar. Ternary/short-ternary and several operators remain on separate paths.
 - Validation is limited to static audit and available local checks; full package build must not be claimed unless `tsdown` is installed and `npm run build` succeeds.

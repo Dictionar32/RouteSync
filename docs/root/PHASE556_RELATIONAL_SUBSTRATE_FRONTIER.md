@@ -1,6 +1,6 @@
 # Phase 556 — Relational Substrate Frontier
 
-Phase 556 continues the scanner/lexer/resolver cutover by removing the remaining host-absence sentinel leakage found in the scanner source surface and by closing the generic compiler relational sequence boundary.
+Phase 556 continues the frontend/php/resolver cutover by removing the remaining host-absence sentinel leakage found in the scanner source surface and by closing the generic compiler relational sequence boundary.
 
 ## Research basis
 

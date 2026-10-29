@@ -21,8 +21,20 @@ export type RouteMiddlewareIdentity = {
   readonly name: MiddlewareName;
 };
 
-export const routeMiddlewareIdentity = (reference: RouteMiddlewareReference): RouteMiddlewareIdentity =>
-  Object.freeze({ kind: 'named' as const, name: reference.name });
+export interface RouteMiddlewareIdentityComparisonHandlers<Result> {
+  readonly onSameIdentity: (identity: RouteMiddlewareIdentity) => Result;
+  readonly onDifferentIdentity: (left: RouteMiddlewareIdentity, right: RouteMiddlewareIdentity) => Result;
+}
+
+export interface RouteMiddlewareIdentityComparisonJudgment {
+  readonly continueWith: <Result>(handlers: RouteMiddlewareIdentityComparisonHandlers<Result>) => Result;
+}
+
+export interface RouteMiddlewareIdentityAuthorityInterface {
+  readonly kind: 'route_middleware_identity_authority';
+  readonly identify: (reference: RouteMiddlewareReference) => RouteMiddlewareIdentity;
+  readonly compare: (left: RouteMiddlewareIdentity, right: RouteMiddlewareIdentity) => RouteMiddlewareIdentityComparisonJudgment;
+}
 
 export type RouteMiddlewareSource =
   | { readonly kind: 'route_group' }
@@ -37,6 +49,27 @@ export type RouteMiddlewareScope =
   | { readonly kind: 'except'; readonly actions: readonly ActionName[] }
   | { readonly kind: 'only_except'; readonly only: readonly ActionName[]; readonly except: readonly ActionName[] }
   | { readonly kind: 'blocked'; readonly reason: ControllerPolicyActionScopeBlockReason };
+
+/** Closed, actionable judgment for a middleware scope against an explicit action presence. */
+export type RouteMiddlewareScopeNotApplicableJudgment =
+  | { readonly kind: 'middleware_scope_blocked' }
+  | { readonly kind: 'middleware_scope_action_required' }
+  | { readonly kind: 'middleware_scope_action_excluded'; readonly action: ActionName }
+  | { readonly kind: 'middleware_scope_action_not_included'; readonly action: ActionName };
+
+export interface RouteMiddlewareScopeApplicabilityHandlers<Result> {
+  readonly onApplicable: (scope: RouteMiddlewareScope, action: Presence<ActionName>) => Result;
+  readonly onNotApplicable: (judgment: RouteMiddlewareScopeNotApplicableJudgment) => Result;
+}
+
+export interface RouteMiddlewareScopeApplicabilityJudgment {
+  readonly continueWith: <Result>(handlers: RouteMiddlewareScopeApplicabilityHandlers<Result>) => Result;
+}
+
+export interface RouteMiddlewareScopeApplicabilityAuthorityInterface {
+  readonly kind: 'route_middleware_scope_applicability_authority';
+  readonly classify: (scope: RouteMiddlewareScope, action: Presence<ActionName>) => RouteMiddlewareScopeApplicabilityJudgment;
+}
 
 export interface RouteMiddlewareContract {
   readonly middleware: RouteMiddlewareReference;

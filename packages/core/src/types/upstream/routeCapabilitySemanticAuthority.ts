@@ -11,7 +11,7 @@ import { httpErrorResponseUnauthorized, httpErrorResponseValidation } from '../d
 import type { RouteSchemaPayload } from '../domain/validationRules';
 import type { RouteRequestBinding } from '../domain/request';
 import { RouteSemanticFlowExecutionSignature } from '../domain/executionSignatures';
-import { routePayloadLocationFromMethod, type RoutePayloadLocation, type RoutePayloadLocationDecision } from './routeExecutionVocabulary';
+import { routePayloadLocationOperations, type RoutePayloadLocation, type RoutePayloadLocationDecision } from './routeExecutionVocabulary';
 import type { RouteActionKind, RouteExecutionSignature, RouteHookKind, RequestContentType } from './routeExecutionVocabulary';
 import { RequestContentType as RequestContentTypeValue, RouteHookKind as RouteHookKindValue } from './routeExecutionVocabulary';
 import type { TruthValue } from './valueObjects';
@@ -201,7 +201,7 @@ export const routeCapabilitySemanticAuthorityAlgebra: RouteCapabilitySemanticAut
         kind: 'http_method_fallback_policy' as const,
         method: input.method,
         policy: 'laravel_http_method_payload_convention' as const,
-        location: routePayloadLocationFromMethod(input.method),
+        location: routePayloadLocationOperations.fromMethod(input.method),
         closed: true as const,
       }),
       value => Object.freeze({
@@ -241,22 +241,34 @@ export const routeCapabilitySemanticAuthorityAlgebra: RouteCapabilitySemanticAut
 
 
 /**
- * Compose upstream ownership around the semantic reasoning algebra. Runtime
- * consumers receive the closed contract and delegate resolution; they do not
- * duplicate route capability inference.
+ * Factory contract for composing the canonical semantic algebra into the
+ * closed upstream runtime authority. The factory does not classify routes or
+ * create a second semantic judgment.
  */
-export function createRouteCapabilitySemanticAuthority(
-  algebra: RouteCapabilitySemanticAuthorityAlgebraInterface,
-): RouteCapabilitySemanticAuthorityInterface {
-  return Object.freeze({
-    authority: 'upstream' as const,
-    closed: true as const,
-    resolve: (input: RouteCapabilitySemanticEvidence, overrides: RouteCapabilitySemanticOverrides): RouteCapabilitySemanticResolution =>
-      algebra.resolve(input, overrides),
-  });
+export interface RouteCapabilitySemanticAuthorityFactoryInterface {
+  readonly kind: 'route_capability_semantic_authority_factory';
+  readonly contractVersion: 1;
+  readonly create: (
+    algebra: RouteCapabilitySemanticAuthorityAlgebraInterface,
+  ) => RouteCapabilitySemanticAuthorityInterface;
 }
 
+const createRouteCapabilitySemanticAuthorityImpl = (
+  algebra: RouteCapabilitySemanticAuthorityAlgebraInterface,
+): RouteCapabilitySemanticAuthorityInterface => Object.freeze({
+  authority: 'upstream' as const,
+  closed: true as const,
+  resolve: (input: RouteCapabilitySemanticEvidence, overrides: RouteCapabilitySemanticOverrides): RouteCapabilitySemanticResolution =>
+    algebra.resolve(input, overrides),
+});
+
+/** Runtime factory: contract-first, frozen, and delegated to the canonical algebra. */
+export const routeCapabilitySemanticAuthorityFactory: RouteCapabilitySemanticAuthorityFactoryInterface = Object.freeze({
+  kind: 'route_capability_semantic_authority_factory',
+  contractVersion: 1,
+  create: createRouteCapabilitySemanticAuthorityImpl,
+});
+
 /** Canonical production authority bound to the one semantic reasoning algebra. */
-export const routeCapabilitySemanticAuthority: RouteCapabilitySemanticAuthorityInterface = createRouteCapabilitySemanticAuthority(
-  routeCapabilitySemanticAuthorityAlgebra,
-);
+export const routeCapabilitySemanticAuthority: RouteCapabilitySemanticAuthorityInterface =
+  routeCapabilitySemanticAuthorityFactory.create(routeCapabilitySemanticAuthorityAlgebra);

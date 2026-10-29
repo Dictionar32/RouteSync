@@ -1,0 +1,15 @@
+{
+  "phase": 3125,
+  "subject": "Upstream-owned manifest terminal operation migration",
+  "checksPassed": 7,
+  "checksFailed": 0,
+  "checks": [
+    "CLI manifest judgment adapter delegates to the upstream-owned operation without kind dispatch",
+    "complete upstream judgment owns manifest success operation",
+    "each blocked upstream judgment owns rejection operation",
+    "blocked error retains the original judgment and blocker evidence",
+    "core public barrel exports the runtime blocked-error class",
+    "CLI contract documents operation delegation instead of outcome redispatch",
+    "deleted relation foundation remains absent"
+  ]
+}

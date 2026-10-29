@@ -11,7 +11,7 @@ const checks = [
   ['unproven obligation must preserve exact invocation shape', /obligation does not preserve the exact requested invocation/.test(read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts'))],
   ['regression test covers conflicting same-ID invocation shape', /rejects a requested invocation that reuses a knowledge identity with altered semantic shape/.test(read('packages/core/src/types/upstream/__tests__/invocation-semantic-algebra.phase1677.test.ts'))],
   ['regression test covers conflicting obligation shape', /rejects an unproven-evidence obligation whose invocation shape differs despite sharing identity/.test(read('packages/core/src/types/upstream/__tests__/invocation-semantic-algebra.phase1677.test.ts'))],
-  ['Laravel scanner consumes integrated response projection', /invocationSemanticIntegratedResponseComposition\.integrate/.test(read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts')) && /invocationSemanticIntegratedResponseAnalysisProjection\.project/.test(read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts'))],
+  ['Laravel scanner consumes integrated response projection', /invocationSemanticIntegratedResponseComposition\.integrate/.test(read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts')) && /invocationSemanticIntegratedResponseAnalysisProjection\.project/.test(read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts'))],
 ];
 
 let failures = 0;

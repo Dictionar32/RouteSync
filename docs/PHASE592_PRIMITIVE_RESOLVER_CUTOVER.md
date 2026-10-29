@@ -62,4 +62,4 @@ The selected Phase 592 semantic/resolver files are also checked with a TypeScrip
 
 ## Next frontier
 
-The remaining high-authority surfaces are the other resolver classes, scanner/lexer construction, resolver graph closure, AST/upstream provenance, analysis state, and the remaining class-based semantic-type projections.
+The remaining high-authority surfaces are the other resolver classes, frontend/php construction, resolver graph closure, AST/upstream provenance, analysis state, and the remaining class-based semantic-type projections.

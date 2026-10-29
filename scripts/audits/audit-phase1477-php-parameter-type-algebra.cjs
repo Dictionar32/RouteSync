@@ -3,8 +3,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const interfacePath = 'packages/core/src/types/upstream/phpParameterTypeInterface.ts';
 const algebraPath = 'packages/core/src/types/upstream/phpParameterTypeAlgebra.ts';
-const mappingPath = 'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts';
-const canonicalPath = 'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts';
+const mappingPath = 'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts';
+const canonicalPath = 'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts';
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [
   ['typed semantic evidence and closed judgment exist', /PhpParameterTypeEvidence/.test(read(interfacePath)) && /kind: 'resolved'/.test(read(interfacePath)) && /kind: 'malformed'/.test(read(interfacePath))],

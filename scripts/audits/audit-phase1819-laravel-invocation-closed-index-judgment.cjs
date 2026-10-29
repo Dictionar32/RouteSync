@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/ControllerScanner.ts');
 const evidence = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineInterface.ts');
 const integrationInterface = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts');
 const integration = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts');

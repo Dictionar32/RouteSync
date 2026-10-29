@@ -2,9 +2,9 @@
 import type { QueryNode } from './salsaTypes';
 import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../semantic/relations/relationMembership';
 import { relationOptionFold, relationResolve, relationFold } from '../../../semantic/relations/relationalSequence';
-import { relationEqual, relationNotEqual } from '../../../semantic/relations/relationFoundation';
+import { relationEqual, relationNotEqual } from '../../../semantic/relations/semanticRelations';
 import { relationContains, relationInsert, relationRemove } from '../../../semantic/relations/relationMembership';
-import type { RelationOption } from '../../../semantic/relations/relationFoundation';
+import type { RelationOption } from '../../../semantic/relations/semanticRelations';
 
 export interface QueryGraphManager {
   readonly getNode: (keyId: string) => RelationOption<QueryNode>;

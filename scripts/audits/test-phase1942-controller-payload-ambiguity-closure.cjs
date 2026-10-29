@@ -9,8 +9,8 @@ const model = read('packages/core/src/types/upstream/controllerDataflowInvocatio
 const authority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const authorityInterface = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts');
 const authorityImplementation = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const bodyTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const bodyTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 
 check('existing semantic model publishes payload judgments as closed values, not a callable lookup authority',

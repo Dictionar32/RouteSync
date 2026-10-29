@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const route = read('packages/core/src/types/upstream/route.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const producerRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const producerRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const checks = [
   ['producer input composition has a named closed upstream input contract', /interface RouteProducerInputCompositionInput[\s\S]*?readonly boundary: RouteBoundaryContract[\s\S]*?readonly declaration: import\('\.\/routeDeclarationEvidence'\)\.RouteDeclarationEvidence[\s\S]*?readonly source: SourceSpan[\s\S]*?readonly methodJudgment: import\('\.\/laravelRouteDeclarationMethodJudgment'\)\.LaravelRouteDeclarationMethodJudgment/.test(route)],
   ['composition is modeled as an explicit closed operation, not as RouteProducer', /interface RouteProducerInputComposition \{[\s\S]*?readonly kind: 'route_producer_input_composition'[\s\S]*?readonly closed: true[\s\S]*?readonly compose: \(input: RouteProducerInputCompositionInput\) => RouteProducerInput/.test(route)],

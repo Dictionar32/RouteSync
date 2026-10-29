@@ -10,7 +10,7 @@ const checks = [
   ['ResolvedPhpType is exported as a type', /export type \{ ResolvedPhpType, ResolvedPhpTypeVisitor \}/.test(read('packages/core/src/index.ts'))],
   ['CompilerValidationError is exported as a type', /export type \{ CompilerValidationError \} from '\.\/compiler\/diagnostics'/.test(read('packages/core/src/index.ts'))],
   ['DiagnosticBag remains a runtime export', /export \{[\s\S]*?DiagnosticBag,[\s\S]*?\} from '\.\/compiler\/diagnostics'/.test(read('packages/core/src/index.ts'))],
-  ['syntaxRange has a single relationResolve import', (read('packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts').match(/relationResolve/g) || []).length >= 1 && (read('packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts').match(/import[^;]*relationResolve[^;]*from/g) || []).length === 1],
+  ['syntaxRange has a single relationResolve import', (read('packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts').match(/relationResolve/g) || []).length >= 1 && (read('packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts').match(/import[^;]*relationResolve[^;]*from/g) || []).length === 1],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

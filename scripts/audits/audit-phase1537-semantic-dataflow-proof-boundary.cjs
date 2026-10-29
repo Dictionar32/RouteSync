@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/semanticDataflowInterface.ts'), 'utf8');
 const authority = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/semanticDataflowAuthority.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts'), 'utf8');
 let passed = 0;
 const check = (label, condition) => {
   if (!condition) {

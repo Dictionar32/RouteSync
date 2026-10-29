@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 const read = path => readFileSync(new URL(path, import.meta.url), 'utf8');
 const pipelineInterface = read('../../packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const pipeline = read('../../packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const scannerTypes = read('../../packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const scannerAnalyzer = read('../../packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scannerTypes = read('../../packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const scannerAnalyzer = read('../../packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const scannerTest = read('../../packages/core/src/compiler/scanner/__test__/ecommerceShopDataflowPhase104.spec.ts');
 
 const checks = [

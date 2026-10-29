@@ -1,5 +1,5 @@
 /** Compatibility constructors backed by the canonical SemanticType ADT. */
-import type { ResponseCardinality } from '../upstream/response';
+import { responseCardinalityOperations, type ResponseCardinality } from '../upstream/response';
 
 import {
   primitiveType,
@@ -14,16 +14,25 @@ import {
   type SemanticType,
   type ObjectTypeDescriptorParams,
 } from '../domain/semanticType';
-import { relationResolve } from '../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
 
-export const ResolvedSemanticTypeFactory = Object.freeze({
+export interface ResolvedSemanticTypeFactoryInterface {
+  readonly primitive: (type: PrimitiveKind) => PrimitiveType;
+  readonly resource: (resource: string, cardinality?: ResponseCardinality) => SemanticType;
+  readonly model: (model: string) => ReferenceType;
+  readonly object: (properties: ObjectTypeDescriptorParams['properties']) => ObjectType;
+  readonly nullable: (innerType: SemanticType) => NullableType;
+  readonly array: (items: SemanticType) => ReadonlyCollectionType;
+  readonly union: (types: readonly SemanticType[]) => UnionType;
+}
+
+export const ResolvedSemanticTypeFactory: ResolvedSemanticTypeFactoryInterface = Object.freeze({
   primitive: (type: PrimitiveKind): PrimitiveType => primitiveType(type),
   resource: (resource: string, cardinality: ResponseCardinality = { kind: 'single' }): SemanticType => {
     const reference = ReferenceType.resource('', resource);
-    return relationResolve(relationEqual(cardinality.kind, 'collection'),
-      () => ReadonlyCollectionType(CollectionKind.ARRAY, reference),
-      () => reference);
+    return responseCardinalityOperations.continueWith(cardinality, {
+      single: () => reference,
+      collection: () => ReadonlyCollectionType(CollectionKind.ARRAY, reference),
+    });
   },
   model: (model: string): ReferenceType => ReferenceType.model('', model),
   object: (properties: ObjectTypeDescriptorParams['properties']): ObjectType => ObjectType.create({

@@ -17,7 +17,7 @@ export interface SemanticAuditOptions {
   readonly verbose?: boolean;
 }
 
-export function auditSemanticCoverage(options: SemanticAuditOptions, cwd: string = process.cwd()): void {
+const auditSemanticCoverage = (options: SemanticAuditOptions, cwd: string = process.cwd()): void => {
   const graphPath = path.resolve(cwd, options.graph);
   if (!fs.existsSync(graphPath)) {
     console.error(chalk.red(`Graph file not found: ${graphPath}`));
@@ -76,4 +76,12 @@ export function auditSemanticCoverage(options: SemanticAuditOptions, cwd: string
     }
     console.log('');
   }
+};
+
+export interface SemanticCoverageAuditOperationsInterface {
+  readonly audit: (options: SemanticAuditOptions, cwd?: string) => void;
 }
+
+export const semanticCoverageAuditOperations: SemanticCoverageAuditOperationsInterface = Object.freeze({
+  audit: auditSemanticCoverage,
+});

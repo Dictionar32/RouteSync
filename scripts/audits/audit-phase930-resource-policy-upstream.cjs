@@ -2,10 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
-const parser = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts');
+const parser = read('packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts');
+const ast = read('packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts');
 const evidence = read('packages/core/src/types/upstream/routeDeclarationEvidence.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const route = read('packages/core/src/types/upstream/route.ts');
 const audit = {
   parserCapturesResourceMiddleware: parser.includes('readResourceMiddleware') && parser.includes('resourceMiddlewareExclusions'),

@@ -153,32 +153,32 @@ const stringValue = (value: string): StringValue => Object.freeze({ kind: 'strin
 
 export const SemanticValueFactory = Object.freeze({
   stringValue,
-  modelName(value: string): ModelName { return Object.freeze({ kind: 'model_name', value: stringValue(value) }); },
-  tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value: stringValue(value) }); },
-  routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value: stringValue(value) }); },
-  responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value: stringValue(value) }); },
+  modelName(value: string): ModelName { return Object.freeze({ kind: 'model_name', value: stringValue.create(value) }); },
+  tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value: stringValue.create(value) }); },
+  routeName(value: string): RouteName { return Object.freeze({ kind: 'route_name', value: stringValue.create(value) }); },
+  responseTypeName(value: string): ResponseTypeName { return Object.freeze({ kind: 'response_type_name', value: stringValue.create(value) }); },
   httpErrorName(value: string): HttpErrorName { return createHttpErrorName(value); },
-  abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value: stringValue(value) }); },
-  className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value: stringValue(value) }); },
-  domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_type_name', value: stringValue(value) }); },
-  resourceName(value: string): ResourceName { return Object.freeze({ kind: 'resource_name', value: stringValue(value) }); },
-  columnName(value: string): ColumnName { return Object.freeze({ kind: 'column_name', value: stringValue(value) }); },
-  propertyName(value: string): PropertyName { return Object.freeze({ kind: 'property_name', value: stringValue(value) }); },
-  relationName(value: string): RelationName { return Object.freeze({ kind: 'relation_name', value: stringValue(value) }); },
-  methodName(value: string): MethodName { return Object.freeze({ kind: 'method_name', value: stringValue(value) }); },
-  actionName(value: string): ActionName { return Object.freeze({ kind: 'action_name', value: stringValue(value) }); },
-  controllerName(value: string): ControllerName { return Object.freeze({ kind: 'controller_name', value: stringValue(value) }); },
-  routePath(value: string): RoutePath { return Object.freeze({ kind: 'route_path', value: stringValue(value) }); },
-  routeParameterName(value: string): RouteParameterName { return Object.freeze({ kind: 'route_parameter_name', value: stringValue(value) }); },
-  sourceFilePath(value: string): SourceFilePath { return Object.freeze({ kind: 'source_file', value: stringValue(value) }); },
+  abilityName(value: string): AbilityName { return Object.freeze({ kind: 'ability_name', value: stringValue.create(value) }); },
+  className(value: string): ClassName { return Object.freeze({ kind: 'class_name', value: stringValue.create(value) }); },
+  domainName(value: string): DomainName { return Object.freeze({ kind: 'domain_type_name', value: stringValue.create(value) }); },
+  resourceName(value: string): ResourceName { return Object.freeze({ kind: 'resource_name', value: stringValue.create(value) }); },
+  columnName(value: string): ColumnName { return Object.freeze({ kind: 'column_name', value: stringValue.create(value) }); },
+  propertyName(value: string): PropertyName { return Object.freeze({ kind: 'property_name', value: stringValue.create(value) }); },
+  relationName(value: string): RelationName { return Object.freeze({ kind: 'relation_name', value: stringValue.create(value) }); },
+  methodName(value: string): MethodName { return Object.freeze({ kind: 'method_name', value: stringValue.create(value) }); },
+  actionName(value: string): ActionName { return Object.freeze({ kind: 'action_name', value: stringValue.create(value) }); },
+  controllerName(value: string): ControllerName { return Object.freeze({ kind: 'controller_name', value: stringValue.create(value) }); },
+  routePath(value: string): RoutePath { return Object.freeze({ kind: 'route_path', value: stringValue.create(value) }); },
+  routeParameterName(value: string): RouteParameterName { return Object.freeze({ kind: 'route_parameter_name', value: stringValue.create(value) }); },
+  sourceFilePath(value: string): SourceFilePath { return Object.freeze({ kind: 'source_file', value: stringValue.create(value) }); },
   sourceLineNumber(value: number): SourceLineNumber { return Object.freeze({ kind: 'number_value', value }); },
-  variableName(value: string): VariableName { return Object.freeze({ kind: 'variable_name', value: stringValue(value) }); },
+  variableName(value: string): VariableName { return Object.freeze({ kind: 'variable_name', value: stringValue.create(value) }); },
   responseFieldName(value: string): ResponseFieldName { return Object.freeze({ kind: 'response_field_name', value }); },
   requestFieldName(value: string): RequestFieldName { return Object.freeze({ kind: 'request_field_name', value }); },
   formTypeName(value: string): FormTypeName {
     return Object.freeze({
       kind: 'form_type_name' as const,
-      value: stringValue(value),
+      value: stringValue.create(value),
     });
   },
   formTypeNameFromRequestClass(value: ClassName): FormTypeName {
@@ -188,7 +188,7 @@ export const SemanticValueFactory = Object.freeze({
     }
     return Object.freeze({
       kind: 'form_type_name' as const,
-      value: stringValue(`${name.slice(0, -'Request'.length)}Form`),
+      value: stringValue.create(`${name.slice(0, -'Request'.length)}Form`),
     });
   },
   responseDataKey(value: string): ResponseDataKey { return Object.freeze({ kind: 'response_data_key', value }); },
@@ -199,10 +199,10 @@ export const SemanticValueFactory = Object.freeze({
   castTypeName(value: string): CastTypeName { return Object.freeze({ kind: 'cast_type_name', value }); },
   conditionExpression(value: string): ConditionExpression { return Object.freeze({ kind: 'condition_expression', value }); },
   semanticOperator(value: SemanticOperator['value']): SemanticOperator { return Object.freeze({ kind: 'semantic_operator', value }); },
-  phpFunctionName(value: string): PhpFunctionName { return Object.freeze({ kind: 'php_function_name', value: stringValue(value) }); },
+  phpFunctionName(value: string): PhpFunctionName { return Object.freeze({ kind: 'php_function_name', value: stringValue.create(value) }); },
   literalValue(value: BoundLiteralValue): BoundLiteralValue { return Object.freeze(value); },
 });
 
 // Construction helpers are defined in the upstream nominal vocabulary; re-export them here
 // for legacy domain consumers without introducing a second semantic identity implementation.
-export { createActionName, createControllerName, createSourceFile } from '../upstream/names';
+export { createActionName, createControllerName, sourceFileIdentityFactory, stringValue } from '../upstream/names';

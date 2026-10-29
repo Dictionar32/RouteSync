@@ -3,10 +3,10 @@ const path = require('path');
 const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const controller = read('packages/core/src/types/upstream/controller.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerAstTypes.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts');
 const result = {
   phase: 894,
   title: 'controller method contract projection and Laravel method attribute evidence',

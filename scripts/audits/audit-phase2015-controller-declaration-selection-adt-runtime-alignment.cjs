@@ -14,7 +14,7 @@ check('blocked selection excludes root-reached ancestry in contract', /kind: 'co
 check('authority branches on ancestry judgment instead of inventing a third kind', /ancestry\.termination\.kind === 'root_reached'/.test(authority) && !/kind: 'controller_declaration_semantic_selection'/.test(authority));
 check('authority preserves existing controller and inherited evidence', /controller: candidate\.controller/.test(authority) && /inheritedControllerNames: ancestry\.names/.test(authority) && /inheritedMiddlewareAttributes: ancestry\.attributes/.test(authority));
 check('scanner receives existing declaration judgment authority', /declarationAuthority\.selections/.test(controllerScanner));
-check('no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 const passed = checks.filter(item => item.passed).length;
 const result = { phase: 2015, audit: 'controller-declaration-selection-adt-runtime-alignment', passed, total: checks.length, checks };
 fs.writeFileSync(path.join(root, 'PHASE2015_AUDIT.json'), `${JSON.stringify(result, null, 2)}\n`);

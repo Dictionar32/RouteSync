@@ -1,0 +1,75 @@
+{
+  "phase": 2732,
+  "audit": "graph-runtime-relation-ownership",
+  "checks": [
+    {
+      "name": "graph assembler has explicit operation interface",
+      "passed": true,
+      "detail": "graph assembly public API is interface-first and frozen"
+    },
+    {
+      "name": "manifest graph compiler has explicit operation interface",
+      "passed": true,
+      "detail": "graph compilation public API is interface-first and frozen"
+    },
+    {
+      "name": "production builder invokes operation objects",
+      "passed": true,
+      "detail": "ServiceGraphBuilder uses the operation objects"
+    },
+    {
+      "name": "barrel exports operation objects and interfaces",
+      "passed": true,
+      "detail": "barrel exposes typed operations, not legacy free functions"
+    },
+    {
+      "name": "graph assembler no longer imports relationFoundation",
+      "passed": true,
+      "detail": "literal discriminants use direct equality"
+    },
+    {
+      "name": "manifest graph compiler no longer imports relationFoundation",
+      "passed": true,
+      "detail": "direct branch replaces relationResolve in controller action accumulation"
+    },
+    {
+      "name": "basic block relation builder no longer imports relationFoundation",
+      "passed": true,
+      "detail": "recursive tuple builders use explicit conditionals"
+    },
+    {
+      "name": "CLI scan reaches manifest scan operation",
+      "passed": true,
+      "detail": "scan command calls the composed manifest scan operation"
+    },
+    {
+      "name": "CLI sync reaches manifest scan operation",
+      "passed": true,
+      "detail": "sync command calls the composed manifest scan operation"
+    },
+    {
+      "name": "upstream composition creates manifest scan operation",
+      "passed": true,
+      "detail": "CLI composition owns the manifest scan operation"
+    },
+    {
+      "name": "manifest builder preserves complete and blocked ADT",
+      "passed": true,
+      "detail": "builder preserves both judgment variants"
+    },
+    {
+      "name": "removed relationFoundation file is not recreated",
+      "passed": true,
+      "detail": "no relationFoundation implementation module exists"
+    },
+    {
+      "name": "remaining relationFoundation references are explicitly reported",
+      "passed": true,
+      "detail": "33 references remain in 25 TypeScript files; this phase removes references only from graph assembler, graph compiler, and basicBlock"
+    }
+  ],
+  "passed": 13,
+  "total": 13,
+  "relationFoundationReferences": 33,
+  "relationFoundationFiles": 25
+}

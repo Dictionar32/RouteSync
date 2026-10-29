@@ -7,10 +7,9 @@
 import type { CompleteLaravelSourceModel } from './highLevelSourceModel';
 import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { RouteHighLevelContract } from './highLevelContracts';
-import type { Sequence } from '../../semantic/relations/relationalSequence';
-import { semanticDataflowFactWithLineage, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
+import { semanticDataflowFactLineageOperations, type SemanticDataflowInput, type SemanticDataflowInputFact, type SemanticDataflowIdentity } from './semanticDataflow';
 import type { RouteParameter } from './route';
-import { routeBindingInterfaceFrom } from './routeBinding';
+import { routeBindingInterfaceFactory } from './routeBinding';
 import type { ControllerParameter } from './controller';
 import { stringValue } from './valueObjects';
 
@@ -25,25 +24,40 @@ const routeControllerMatches = (route: RouteHighLevelContract, controller: Contr
     && target.controller.action.value.value === controllerAction(controller);
 };
 
-const sequenceItems = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>
-  items.kind === 'empty' ? output : sequenceItems(items.tail, [...output, items.head]);
+const routeContractItems = (
+  items: CompleteLaravelSourceModel['contracts']['routes'],
+  output: readonly RouteHighLevelContract[] = [],
+): readonly RouteHighLevelContract[] =>
+  items.kind === 'empty' ? output : routeContractItems(items.tail, [...output, items.head]);
+
+const routeParameterItems = (
+  items: ReturnType<typeof routeBindingInterfaceFactory.fromParameters>['parameters']['items'],
+  output: readonly RouteParameter[] = [],
+): readonly RouteParameter[] =>
+  items.kind === 'empty' ? output : routeParameterItems(items.tail, [...output, items.head]);
+
+const controllerParameterItems = (
+  items: ControllerActionFlowContract['parameters'],
+  output: readonly ControllerParameter[] = [],
+): readonly ControllerParameter[] =>
+  items.kind === 'empty' ? output : controllerParameterItems(items.tail, [...output, items.head]);
 
 const identityForRouteParameter = (route: RouteHighLevelContract, parameter: RouteParameter): SemanticDataflowIdentity => Object.freeze({
   kind: 'semantic_dataflow_identity',
   source: route.provenance.span,
   role: 'binding',
-  slot: stringValue(`route:${route.identity.key.value.value}:parameter:${parameter.name.value.value}`),
+  slot: stringValue.create(`route:${route.identity.key.value.value}:parameter:${parameter.name.value.value}`),
 });
 
 const identityForControllerParameter = (controller: ControllerActionFlowContract, parameter: ControllerParameter): SemanticDataflowIdentity => Object.freeze({
   kind: 'semantic_dataflow_identity',
   source: parameter.source,
   role: 'binding',
-  slot: stringValue(`controller:${controllerName(controller)}.${controllerAction(controller)}:parameter:${parameter.variable.value.value}`),
+  slot: stringValue.create(`controller:${controllerName(controller)}.${controllerAction(controller)}:parameter:${parameter.variable.value.value}`),
 });
 
-const routeParameters = (route: RouteHighLevelContract): readonly RouteParameter[] => sequenceItems(routeBindingInterfaceFrom(route.bindings.parameters).parameters.items);
-const controllerParameters = (controller: ControllerActionFlowContract): readonly ControllerParameter[] => sequenceItems(controller.parameters);
+const routeParameters = (route: RouteHighLevelContract): readonly RouteParameter[] => routeParameterItems(routeBindingInterfaceFactory.fromParameters(route.bindings.parameters).parameters.items);
+const controllerParameters = (controller: ControllerActionFlowContract): readonly ControllerParameter[] => controllerParameterItems(controller.parameters);
 
 const modelBinding = (parameter: RouteParameter): RouteParameter['binding'] => parameter.binding;
 
@@ -66,11 +80,11 @@ const routeBindingTarget = (
   );
 };
 
-export const semanticDataflowRouteParameterFacts = (
+const projectRouteParameterFactsFromSourceModel = (
   sourceModel: CompleteLaravelSourceModel,
   controller: ControllerActionFlowContract,
 ): readonly SemanticDataflowInputFact[] => {
-  const routes = sequenceItems(sourceModel.contracts.routes).filter(route => routeControllerMatches(route, controller));
+  const routes = routeContractItems(sourceModel.contracts.routes).filter(route => routeControllerMatches(route, controller));
   const facts: SemanticDataflowInputFact[] = [];
   for (const route of routes) {
     for (const routeParameter of routeParameters(route)) {
@@ -79,7 +93,7 @@ export const semanticDataflowRouteParameterFacts = (
         && parameter.kind.name.value.value === routeParameter.name.value.value,
       );
       if (!target) continue;
-      facts.push(semanticDataflowFactWithLineage(Object.freeze({
+      facts.push(semanticDataflowFactLineageOperations.withLineage(Object.freeze({
         kind: 'value_flow' as const,
         source: identityForRouteParameter(route, routeParameter),
         target: identityForControllerParameter(controller, target),
@@ -88,7 +102,7 @@ export const semanticDataflowRouteParameterFacts = (
 
       const boundModel = routeBindingTarget(controller, routeParameter);
       if (boundModel) {
-        facts.push(semanticDataflowFactWithLineage(Object.freeze({
+        facts.push(semanticDataflowFactLineageOperations.withLineage(Object.freeze({
           kind: 'value_flow' as const,
           source: identityForRouteParameter(route, routeParameter),
           target: identityForControllerParameter(controller, boundModel),
@@ -100,12 +114,40 @@ export const semanticDataflowRouteParameterFacts = (
   return Object.freeze(facts);
 };
 
+/** The result owns the Laravel-specific operation for enriching a controller seed. */
+export interface SemanticDataflowRouteProjectionResult {
+  readonly kind: 'semantic_dataflow_route_projection_result';
+  readonly facts: readonly SemanticDataflowInputFact[];
+  readonly appendToControllerSeed: (seed: SemanticDataflowInput) => SemanticDataflowInput;
+}
+
+const routeProjectionResult = (
+  facts: readonly SemanticDataflowInputFact[],
+): SemanticDataflowRouteProjectionResult => {
+  const canonicalFacts = facts;
+  return Object.freeze({
+    kind: 'semantic_dataflow_route_projection_result' as const,
+    facts: canonicalFacts,
+    appendToControllerSeed: (seed: SemanticDataflowInput): SemanticDataflowInput => Object.freeze({
+      ...seed,
+      facts: Object.freeze([...seed.facts, ...canonicalFacts]),
+    }),
+  });
+};
+
+const projectRouteParameterFacts = (
+  sourceModel: CompleteLaravelSourceModel,
+  controller: ControllerActionFlowContract,
+): SemanticDataflowRouteProjectionResult => routeProjectionResult(
+  projectRouteParameterFactsFromSourceModel(sourceModel, controller),
+);
+
 export interface SemanticDataflowRouteProjectionAuthorityInterface {
   readonly kind: 'semantic_dataflow_route_projection_authority';
-  readonly project: (sourceModel: CompleteLaravelSourceModel, controller: ControllerActionFlowContract) => readonly SemanticDataflowInputFact[];
+  readonly project: (sourceModel: CompleteLaravelSourceModel, controller: ControllerActionFlowContract) => SemanticDataflowRouteProjectionResult;
 }
 
 export const semanticDataflowRouteProjectionAuthority: SemanticDataflowRouteProjectionAuthorityInterface = Object.freeze({
   kind: 'semantic_dataflow_route_projection_authority',
-  project: semanticDataflowRouteParameterFacts,
+  project: projectRouteParameterFacts,
 });

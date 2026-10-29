@@ -1,0 +1,138 @@
+{
+  "phase": 3117,
+  "mode": "static CJS datum-flow contract test using TypeScript AST/source lineage; no Vitest and no project runtime imports",
+  "noVitestExecutionOrTestFrameworkDependency": true,
+  "productionTypeScriptParses": true,
+  "datumFlowChecks": [
+    {
+      "id": "discovery-input",
+      "producer": "canonicalProjectCompositionOperation",
+      "datum": [
+        "sourceProject",
+        "root"
+      ],
+      "consumer": "dependencies.sourceDiscovery.discover",
+      "invariant": "The requested project identity and controller root enter the upstream discovery operation.",
+      "passed": true
+    },
+    {
+      "id": "discovery-judgment-to-projection",
+      "producer": "sourceDiscovery.discover",
+      "datum": [
+        "discovery judgment"
+      ],
+      "consumer": "discovery.projectForManifest",
+      "invariant": "CLI consumes the upstream ADT projection rather than recreating the projection from raw fields.",
+      "passed": true
+    },
+    {
+      "id": "blocked-judgment-terminal",
+      "producer": "blocked manifest projection",
+      "datum": [
+        "sourceProject",
+        "root",
+        "partialSources",
+        "blocker",
+        "original judgment"
+      ],
+      "consumer": "sourceDiscoveryBlocked terminal operation",
+      "invariant": "Blocked discovery preserves the original judgment and blocker/partial inventory; it does not enter the complete-source read path.",
+      "passed": true
+    },
+    {
+      "id": "complete-projection-source-handoff",
+      "producer": "complete manifest projection",
+      "datum": [
+        "sources",
+        "sourceProject"
+      ],
+      "consumer": "discoveredSourcesContinuationOperation.continue",
+      "invariant": "Complete projection hands the same source inventory and project identity to the CLI continuation.",
+      "passed": true
+    },
+    {
+      "id": "source-inventory-to-read-input",
+      "producer": "discoveredSourcesContinuationOperation.continue",
+      "datum": [
+        "discoveredSources",
+        "requestedSourceFile"
+      ],
+      "consumer": "discoveredSourceReadSettlementOperation.readAll -> reader.read",
+      "invariant": "Each inventory source is converted into a read input while retaining the requested source identity.",
+      "passed": true
+    },
+    {
+      "id": "source-read-settlement-evidence",
+      "producer": "reader.read settlement",
+      "datum": [
+        "requestedSourceFile",
+        "read result or failure evidence"
+      ],
+      "consumer": "phpSourceDocumentReadOperationSettlementFactory",
+      "invariant": "Both fulfilled and rejected reads remain associated with the requested source; failures retain observed code/name/message.",
+      "passed": true
+    },
+    {
+      "id": "blocked-read-evidence-to-terminal",
+      "producer": "sourceReadBatch.preserveRejectedEvidence / preserveBlockedEvidence",
+      "datum": [
+        "sourceFiles",
+        "rejections",
+        "partialDocuments",
+        "blockedReads"
+      ],
+      "consumer": "manifest terminal operations",
+      "invariant": "Rejected/blocked read evidence is projected into terminal manifest operations rather than silently discarded.",
+      "passed": true
+    },
+    {
+      "id": "complete-documents-to-semantic-judgments",
+      "producer": "sourceReadBatch.provideDocumentsForSemanticPipeline",
+      "datum": [
+        "documents",
+        "discoverySourceProject",
+        "requestedSourceProject"
+      ],
+      "consumer": "laravelControllerInvocationSemanticJudgmentPreparationInputFactory.create",
+      "invariant": "Successfully read documents and both identity contexts enter semantic judgment preparation.",
+      "passed": true
+    },
+    {
+      "id": "named-interface-runtime-contract",
+      "producer": "upstream and CLI operation factories",
+      "datum": [
+        "explicit interface annotations",
+        "domain operations"
+      ],
+      "consumer": "runtime operation chain",
+      "invariant": "Key runtime operations have named interfaces and upstream ADT owns follow-up domain operations.",
+      "passed": true
+    }
+  ],
+  "allDatumFlowsPreserveRequiredEvidence": true,
+  "deletedRelationFoundationNotReintroduced": true,
+  "inventory": {
+    "typescriptFiles": 2245,
+    "parseDiagnostics": 0,
+    "exportedFunctionDeclarations": 520,
+    "exportedFunctionVariables": 459,
+    "exportedFunctionVariablesWithExplicitType": 14,
+    "ifStatements": 2225,
+    "switchStatements": 571,
+    "forStatements": 315,
+    "whileStatements": 33,
+    "conditionalExpressions": 1232,
+    "nullishCoalescingExpressions": 228,
+    "typeAssertions": 3798,
+    "mapCalls": 815,
+    "reduceCalls": 18,
+    "arrayLiteralExpressions": 8923,
+    "anyKeywordTypes": 92,
+    "unknownKeywordTypes": 916
+  },
+  "parseErrors": [],
+  "globalExportInterfaceMigrationComplete": false,
+  "globalPrimitiveAndControlFlowErasureComplete": false,
+  "fullSemanticTypecheckVerified": false,
+  "fullPhpToCliManifestE2eVerified": false
+}

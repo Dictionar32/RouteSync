@@ -3,9 +3,9 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const resolver = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts'), 'utf8');
-const matcher = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/resolvers/resource/structuralFieldMatcher.ts'), 'utf8');
+const matcher = fs.readFileSync(path.join(root, 'packages/core/src/compiler/semantic/resource-model/structuralFieldMatcher.ts'), 'utf8');
 const table = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts'), 'utf8');
-const controller = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts'), 'utf8');
+const controller = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts'), 'utf8');
 
 const forbidden = source => ({
   if: (source.match(/\bif\b/g) || []).length,

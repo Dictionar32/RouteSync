@@ -6,7 +6,7 @@ const contract = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const policyBlock = contract.match(/const invocationSemanticRulePolicies[^=]*= \[([\s\S]*?)\];/);
 const policyIds = policyBlock ? [...policyBlock[1].matchAll(/ruleId: '([^']+)'/g)].map(match => match[1]) : [];
 const executableIds = [...contract.matchAll(/invocationExecutionRule\('([^']+)'/g)].map(match => match[1]);

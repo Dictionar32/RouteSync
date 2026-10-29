@@ -4,9 +4,9 @@ const root = path.resolve(__dirname, '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const algebra = read('packages/core/src/types/domain/phpAst/algebra.ts');
 const projector = read('packages/core/src/compiler/projectors/ApiFieldProjector.ts');
-const resourceDescriptorIndex = read('packages/core/src/compiler/scanner/descriptors/resource/index.ts');
-const resourceClass = read('packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts');
-const resourceTypes = read('packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts');
+const resourceDescriptorIndex = read('packages/core/src/compiler/scanner/operations/domain-model/resource/index.ts');
+const resourceClass = read('packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts');
+const resourceTypes = read('packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = {
   phpAstUsesRefinementAlgebra: algebra.includes('relationRefine(') && algebra.includes('relationOptionFold('),

@@ -2,7 +2,7 @@
   "phase": 1445,
   "title": "Assignment Wiring Contract",
   "scope": [
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
     "packages/core/src/types/upstream/scannerAssignmentPartsInterface.ts",
     "packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts",
     "packages/core/src/compiler/scanner/__test__/upstream-contracts/scannerAssignmentInterfaceWiring.phase1445.test.ts"

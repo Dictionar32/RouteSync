@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/resourceProducer.ts',
+  'packages/core/src/compiler/scanner/operations/resourceProducer.ts',
 ];
 
 const patterns = {

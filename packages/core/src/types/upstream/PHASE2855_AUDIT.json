@@ -1,0 +1,36 @@
+{
+  "phase": 2855,
+  "title": "Fully Typed Runtime Scanner Operations Audit",
+  "status": "partial_migration_with_audited_runtime_trace",
+  "runtimeTrace": [
+    "packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts",
+    "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts",
+    "packages/core/src/types/upstream/manifestBuilderInterface.ts",
+    "packages/cli/src/manifestScanOperationInterface.ts",
+    "packages/cli/src/upstreamCompositionInterface.ts",
+    "packages/cli/src/commands/scan.ts",
+    "packages/cli/src/commands/sync.ts",
+    "packages/cli/src/generators/ManifestGenerator.ts"
+  ],
+  "changes": [
+    "routeDomainAuthority no longer imports semantic/relations utilities",
+    "route-domain evidence uses field-specific ADTs",
+    "route-domain candidate selection exposes domain continuation operations",
+    "typedSelect runtime export uses an interface-first const export",
+    "route-domain continuation test added"
+  ],
+  "audit": {
+    "filesImportingSemanticRelations": 306,
+    "semanticRelationsImportStatements": 567,
+    "scannerFilesImportingSemanticRelations": 41,
+    "upstreamTypeFilesImportingSemanticRelations": 57,
+    "cliFilesImportingSemanticRelations": 0,
+    "exportFunctionDeclarationsInTargetPaths": 0,
+    "collectionsTsBytes": 0
+  },
+  "verification": {
+    "targetedSyntaxTranspilation": "passed",
+    "focusedTypecheck": "blocked_by_existing_empty_collections_and_missing_semantic_relations_imports",
+    "vitest": "not_verified"
+  }
+}

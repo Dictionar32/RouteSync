@@ -6,8 +6,8 @@ const contractPath = path.join(root, 'packages/core/src/types/upstream/requestTy
 const contract = fs.readFileSync(contractPath, 'utf8');
 const baseline = '/mnt/data/routesync-phase1576-work/RouteSync';
 const untouched = [
-  'packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts',
-  'packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts',
+  'packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/request-deriver/groupAggregator.ts',
   'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationAuthority.ts',
   'packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts',
 ];

@@ -6,7 +6,7 @@ const contract = read('packages/core/src/types/upstream/scannerStatementBoundary
 const barrel = read('packages/core/src/types/upstream/index.ts');
 const algebra = read('packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts');
 const sequence = read('packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE1450_STATEMENT_BOUNDARY_INTERFACE_FIRST.md');
 const checks = [
   ['public statement boundary interface exists', /export interface ScannerStatementBoundaryInterface/.test(contract)],

@@ -1,0 +1,14 @@
+{
+  "phase": 2853,
+  "title": "Terminal Failure Without Sentinels",
+  "rootCause": "The generic terminal continuation allowed blocked/rejected handlers to return undefined, forcing consumers to guard an optional success value.",
+  "contract": "Only complete handler returns Result; all failure handlers return never.",
+  "runtimeConsumers": [
+    "packages/cli/src/commands/scan.ts",
+    "packages/cli/src/commands/sync.ts",
+    "packages/cli/src/commands/audit/driftAuditor.ts"
+  ],
+  "audit": "scripts/audits/audit-phase2853-terminal-failure-no-sentinel.cjs",
+  "collectionsBytes": 0,
+  "verificationScope": "structural audits and TypeScript transpile syntax only"
+}

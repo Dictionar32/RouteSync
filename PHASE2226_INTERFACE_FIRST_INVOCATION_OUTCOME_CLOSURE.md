@@ -10,7 +10,7 @@ This phase intentionally changes the existing upstream interface contract first.
 2. `packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts` composes the existing source-binding and invocation-integration authorities. It does not own Laravel HTTP response meaning.
 3. `packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts` owns `LaravelControllerResponseSemanticPipelineInterface.judgeIntegratedResponse`, indexed by the exact invocation judgment subtype. Its result preserves complete response judgments and explicit source-binding/source-correlation rejection judgments.
 4. `packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts` passes the same `invocationJudgment` into integrated response judgment and AST projection, then stores both on the same controller artifact.
-5. `packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts` and `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts` still retain the legacy action/response descriptor derivation path. This phase does not claim that path has been migrated.
+5. `packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts` and `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts` still retain the legacy action/response descriptor derivation path. This phase does not claim that path has been migrated.
 
 ## Interface correction
 

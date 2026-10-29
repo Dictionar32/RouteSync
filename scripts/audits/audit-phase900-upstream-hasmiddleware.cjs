@@ -3,14 +3,14 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const files = {
-  astTypes: read('packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts'),
-  methodParser: read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts'),
-  declarationParser: read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts'),
-  canonical: read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts'),
-  producer: read('packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts'),
-  scanner: read('packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts'),
+  astTypes: read('packages/core/src/compiler/frontend/php/controllerAstTypes.ts'),
+  methodParser: read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts'),
+  declarationParser: read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts'),
+  canonical: read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts'),
+  producer: read('packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts'),
+  scanner: read('packages/core/src/compiler/scanner/operations/ControllerScanner.ts'),
   upstream: read('packages/core/src/types/upstream/controller.ts'),
-  regression: read('packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts'),
+  regression: read('packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts'),
 };
 const checks = {
   methodStorageClosed: files.astTypes.includes("ControllerMethodStorageAst = 'instance' | 'static'"),

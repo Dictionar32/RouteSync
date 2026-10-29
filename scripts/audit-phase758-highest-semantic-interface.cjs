@@ -3,7 +3,7 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const validation = read('packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts');
+const validation = read('packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts');
 const stage = read('packages/core/src/types/upstream/astSemanticStageInterface.ts');
 const stageAlgebra = read('packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts');
 const parsed = [

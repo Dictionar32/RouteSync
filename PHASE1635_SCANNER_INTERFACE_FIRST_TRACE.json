@@ -64,32 +64,32 @@
         "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts",
         "packages/core/src/compiler/scanner/subscanners/RouteScanner.ts",
         "packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts",
-        "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
-        "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+        "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts",
+        "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
         "packages/core/src/compiler/scanner/resolvers/resource/structuralFieldMatcher.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts"
+        "packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts"
       ]
     },
     "rewrite_engine": {
       "file_count": 11,
       "examples": [
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/index.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.phase266.test.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase231.test.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/index.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.phase266.test.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase236.test.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
         "packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts"
       ]
     },
     "rewrite_executor": {
       "file_count": 3,
       "examples": [
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts",
+        "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts",
         "packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts",
         "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts"
       ]
@@ -108,7 +108,7 @@
         "packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts",
         "packages/core/src/compiler/scanner/resolvers/boundary/capabilityResolution.ts",
         "packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts",
-        "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts"
+        "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts"
       ]
     }
   }

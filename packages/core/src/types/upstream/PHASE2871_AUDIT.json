@@ -1,0 +1,43 @@
+{
+  "phase": 2871,
+  "title": "Fully Typed Runtime Scanner Operations — AST Export Contract Inventory",
+  "counts": {
+    "productionTypeScriptFiles": 421,
+    "exportedFunctionDeclarations": 0,
+    "exportedVariableDeclarations": 618,
+    "explicitlyTypedExportedVariables": 340,
+    "unannotatedExportedVariables": 278,
+    "unannotatedExportedArrowVariables": 231,
+    "unannotatedExportedObjectVariables": 0,
+    "unannotatedExportedCallVariables": 29,
+    "otherUnannotatedExportedVariables": 18
+  },
+  "checks": {
+    "upstreamContainsNoExportFunctionDeclarations": true,
+    "cliManifestScanFactoryIsInterfaceFirst": true,
+    "cliManifestBuilderIsInterfaceFirst": true,
+    "compositionAuthorityIsInterfaceFirst": true,
+    "compositionUsesExistingDomainDependencies": true,
+    "manifestJudgmentsExposeDomainContinuation": true,
+    "cliTerminalsExposeDomainContinuation": true,
+    "astFailureRemainsBlocked": true,
+    "upstreamBarrelMentionsSemanticDataflowKnowledge": true,
+    "upstreamBarrelDoesNotRemoveEmptyCollectionsModule": true,
+    "traceDisclosesRemainingCompositionBranches": true
+  },
+  "passedChecks": 11,
+  "totalChecks": 11,
+  "collectionsBytes": 0,
+  "interpretation": [
+    "An unannotated exported arrow is an audit candidate, not proof that it should receive an interface. Classify domain operation, value constructor, constant/data, and internal helper first.",
+    "Existing CLI manifest boundary exports are interface-first; this does not establish that every upstream export is compliant.",
+    "The inventory uses the TypeScript compiler API for declaration classification; it does not run semantic typechecking or tests."
+  ],
+  "nextWorkOrder": [
+    "First review unannotated arrows in the manifest/AST/judgment production path, then reuse existing authority and judgment contracts.",
+    "For true domain operations, add or evolve a named domain interface and annotate the exported const; do not create generic helper interfaces.",
+    "For constructors and vocabulary constants, preserve their domain/value contract rather than mechanically wrapping each in an operations interface.",
+    "Add continuation operations to domain judgments at the producing authority boundary, then migrate consumers away from repeated discriminant dispatch.",
+    "After each bounded migration, run package typecheck, targeted tests, build, and CLI manifest end-to-end tests using supported project dependencies."
+  ]
+}

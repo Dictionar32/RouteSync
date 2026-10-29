@@ -9,20 +9,20 @@ import type { PropertyName, ResourceName } from "../../../../types/upstream/name
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
 import {
     type ResourceModelBinding,
-    ResourceModelBindingFactory,
+    resourceModelBindingFactory,
+    resourceModelBindingMatcher,
     ResourceModelBindingSource,
-} from "../../symbols/resource/resourceBindingTypes";
-import { matchStructuralFields } from "./structuralFieldMatcher";
-import { findControllerResourceBinding, type ControllerResourceDataflow } from "../../subscanners/controller/resourceDataflowAggregator";
+} from "../../../semantic/resource-model/resourceModelBinding";
+import { structuralFieldMatcher } from "../../../semantic/resource-model/structuralFieldMatcher";
+import { type ControllerResourceDataflow, resourceDataflowAggregatorOperations } from "../../operations/controller/resourceDataflowAggregator";
 import { matchLookup, type Lookup, type Option } from "../../../../types/upstream/collections";
-import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
+import type { OriginModelSymbol } from "../../../semantic/model/originModelSymbol";
 import type { ResourceModelKnowledgeDataFlow } from "../../../semantic/resourceModelKnowledgeDataFlowAuthority";
 import { absent, present, type Presence, presenceFold } from "../../../../types/upstream/presence";
 import { relationEqual } from "../../../../semantic/relations/semanticRelations";
 import { relationFirst, relationOptionFold, relationProject } from "../../../../semantic/relations/relationalSequence";
 import { astSemanticTextTerm } from "../../../../types/upstream/astSemanticInterface";
 import { stringValue } from "../../../../types/upstream/valueObjects";
-import { matchResourceModelBinding } from "../../symbols/resource/resourceBindingTypes";
 import { createResolverGraphPort, resolverGraphFact } from "../../../../types/upstream/astSemanticStageAuthority";
 import type { AstSemanticStagePort } from "../../../../types/upstream/astSemanticStageInterface";
 import {
@@ -64,7 +64,7 @@ const compilerCandidates = (input: ResourceModelResolutionInput): readonly Resou
         input.controllerDataflowMap,
         () => [] as readonly ResourceModelCandidate[],
         dataflow => relationOptionFold(
-            findControllerResourceBinding(dataflow, input.resourceName),
+            resourceDataflowAggregatorOperations.findControllerResourceBinding(dataflow, input.resourceName),
             () => [] as readonly ResourceModelCandidate[],
             binding => presenceFold(
                 candidateFromLookup(input.resourceName, 'controller_dataflow', input.modelSymbolTable.findForControllerOrigin(binding.model)),
@@ -100,7 +100,7 @@ const compilerCandidates = (input: ResourceModelResolutionInput): readonly Resou
         relationFirst([input.fieldNames], fields => fields.length > 0),
         () => [] as readonly ResourceModelCandidate[],
         fields => presenceFold(
-            matchStructuralFields(fields, input.modelSymbolTable),
+            structuralFieldMatcher.match(fields, input.modelSymbolTable),
             () => [],
             value => [{ resource: input.resourceName, model: value.name, source: 'structural' as const }],
         ),
@@ -118,26 +118,26 @@ const resolveResourceModel = (input: ResourceModelResolutionInput): ResourceMode
 
     return presenceFold(
         judgment.model,
-        () => ResourceModelBindingFactory.unbackedDto(
-            stringValue(`Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`),
+        () => resourceModelBindingFactory.unbackedDto(
+            stringValue.create(`Resource '${input.resourceName.value.value}' is a DTO without a matching Eloquent model.`),
         ),
         model => presenceFold(
             judgment.source,
-            () => ResourceModelBindingFactory.unbackedDto(
-                stringValue(`Resource '${input.resourceName.value.value}' has no semantic binding source.`),
+            () => resourceModelBindingFactory.unbackedDto(
+                stringValue.create(`Resource '${input.resourceName.value.value}' has no semantic binding source.`),
             ),
             source => matchLookup(input.modelSymbolTable.get(model), {
-                missing: () => ResourceModelBindingFactory.unbackedDto(
-                    stringValue(`Resource '${input.resourceName.value.value}' resolved to an unavailable model.`),
+                missing: () => resourceModelBindingFactory.unbackedDto(
+                    stringValue.create(`Resource '${input.resourceName.value.value}' resolved to an unavailable model.`),
                 ),
-                found: ({ value }) => ResourceModelBindingFactory.mono(value, bindingSourceByReasoningSource(source)),
+                found: ({ value }) => resourceModelBindingFactory.mono(value, bindingSourceByReasoningSource(source)),
             }),
         ),
     );
 };
-export const resolveResourceModelPort = (input: ResourceModelResolutionInput): AstSemanticStagePort => {
+const resolveResourceModelPortImplementation = (input: ResourceModelResolutionInput): AstSemanticStagePort => {
     const binding = resolveResourceModel(input);
-    return createResolverGraphPort(matchResourceModelBinding(binding, {
+    return createResolverGraphPort(resourceModelBindingMatcher.match(binding, {
         mono: value => [resolverGraphFact(
             'resolver_resolves',
             astSemanticTextTerm(input.resourceName.value.value),
@@ -155,5 +155,12 @@ export const resolveResourceModelPort = (input: ResourceModelResolutionInput): A
         )],
     }));
 };
-export const ResourceModelResolver = Object.freeze({ resolve: resolveResourceModel, resolvePort: resolveResourceModelPort });
-export const resolveResourceModelInterface = (...args: Parameters<typeof resolveResourceModelPort>) => resolveResourceModelPort(...args);
+export interface ResourceModelResolverInterface {
+    readonly resolve: (input: ResourceModelResolutionInput) => ResourceModelBinding;
+    readonly resolvePort: (input: ResourceModelResolutionInput) => AstSemanticStagePort;
+}
+
+export const ResourceModelResolver: ResourceModelResolverInterface = Object.freeze({
+    resolve: resolveResourceModel,
+    resolvePort: resolveResourceModelPortImplementation,
+});

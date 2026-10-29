@@ -1,0 +1,1948 @@
+[
+  {
+    "file": "packages/core/src/types/upstream/assignment.ts",
+    "line": 91,
+    "name": "matchAssignmentTarget",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 198,
+    "name": "emptyAstSequence",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 200,
+    "name": "astSequenceCons",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 206,
+    "name": "emptyAstDerivation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 211,
+    "name": "astDerivationStep",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 277,
+    "name": "astRelationNode",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 278,
+    "name": "astRelationRule",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 279,
+    "name": "astRelationWitness",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 280,
+    "name": "astRelationSource",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 281,
+    "name": "astRelationSurface",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 283,
+    "name": "astRelationFact",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 289,
+    "name": "emptyAstRelationFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 400,
+    "name": "matchAstJudgment",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 479,
+    "name": "createDomainAstJudgment",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/ast.ts",
+    "line": 491,
+    "name": "createAstJudgment",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+    "line": 69,
+    "name": "astMappingInterface",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+    "line": 110,
+    "name": "astSemanticAuthorityPipeline",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+    "line": 139,
+    "name": "astSemanticAuthorityStage",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+    "line": 152,
+    "name": "createAstSemanticAuthorityPipeline",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticEvidenceProducer.ts",
+    "line": 30,
+    "name": "produceAstSemanticEvidence",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 140,
+    "name": "astSemanticRequestIdentity",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 144,
+    "name": "astSemanticRoundLimit",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 330,
+    "name": "astSemanticFact",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 343,
+    "name": "astSemanticFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 620,
+    "name": "createAstSemanticJudgment",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 685,
+    "name": "astSemanticNodeTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 686,
+    "name": "astSemanticSourceTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 687,
+    "name": "astSemanticRuleTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 688,
+    "name": "astSemanticWitnessTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 689,
+    "name": "astSemanticStageTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 690,
+    "name": "astSemanticTextTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 691,
+    "name": "astSemanticSyntaxTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 711,
+    "name": "astSemanticFactFromRelation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 733,
+    "name": "astSemanticFactsFromRelations",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 738,
+    "name": "emptyAstSemanticFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 739,
+    "name": "emptyAstSemanticSequence",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "line": 740,
+    "name": "astSemanticSequenceCons",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 98,
+    "name": "astSemanticStageContract",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 324,
+    "name": "astSemanticStageFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 329,
+    "name": "createAstSemanticStagePort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 357,
+    "name": "createScannerEvidencePort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 358,
+    "name": "createUpstreamMappingPort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 359,
+    "name": "createResolverGraphPort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 360,
+    "name": "createAnalysisPort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 361,
+    "name": "createSemanticTypeLoweringPort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 362,
+    "name": "createTargetProjectionPort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 364,
+    "name": "createAstSemanticBoundary",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 382,
+    "name": "createAstSemanticPipeline",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 389,
+    "name": "appendAstSemanticPort",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 394,
+    "name": "pipelineFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 400,
+    "name": "stageFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 413,
+    "name": "astSemanticFactAtStage",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "line": 425,
+    "name": "astSemanticJudgmentPipeline",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+    "line": 33,
+    "name": "astSemanticStageInterface",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+    "line": 45,
+    "name": "astSemanticStageInterfaceOf",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+    "line": 62,
+    "name": "astSemanticStageInterfaceAt",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+    "line": 67,
+    "name": "astSemanticPipelineInterfaces",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+    "line": 81,
+    "name": "astSemanticInterfaceFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+    "line": 82,
+    "name": "astSemanticInterfaceProofs",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+    "line": 31,
+    "name": "preservationContract",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+    "line": 93,
+    "name": "stagePreservationFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/compilerPassFailure.ts",
+    "line": 25,
+    "name": "compilerPassFailureOf",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/compilerPassFailure.ts",
+    "line": 38,
+    "name": "compilerPassFailureMessage",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/completeness.ts",
+    "line": 49,
+    "name": "validateCompleteSourceAst",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/controllerActionPolicyRelations.ts",
+    "line": 88,
+    "name": "controllerActionPolicyRelationsFromEvidence",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/controllerActionPolicyRelations.ts",
+    "line": 145,
+    "name": "controllerActionPolicyRelations",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts",
+    "line": 196,
+    "name": "createControllerDataflowSemanticJudgmentAuthority",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/eloquent.ts",
+    "line": 41,
+    "name": "eloquentRelationAstFromDescriptor",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "line": 164,
+    "name": "invocationPositionalEvidenceUnproven",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "line": 708,
+    "name": "analyzeInvocationSemanticAlgebra",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "line": 744,
+    "name": "analyzeInvocationJudgmentAlgebra",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "line": 750,
+    "name": "callTargetForInvocation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "line": 757,
+    "name": "parameterFlowsForInvocation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+    "line": 766,
+    "name": "invocationSemanticAlgebraHelpers",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "line": 63,
+    "name": "assertInvocationSemanticInputContract",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "line": 128,
+    "name": "assertInvocationSemanticJudgmentContract",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "line": 267,
+    "name": "analyzeInvocationSemantics",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "line": 269,
+    "name": "analyzeAllInvocationSemantics",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "line": 282,
+    "name": "analyzeSemanticInterproceduralDataFlow",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "line": 283,
+    "name": "callTargetFor",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+    "line": 284,
+    "name": "parameterFlowsFor",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 417,
+    "name": "invocationSemanticRulePolicy",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1020,
+    "name": "invocationWitnessOwnerRuleId",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1211,
+    "name": "INVOCATION_EVIDENCE_PRESENCE_RULE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1212,
+    "name": "INVOCATION_TARGET_RESOLUTION_RULE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1213,
+    "name": "INVOCATION_TARGET_AMBIGUITY_RULE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1214,
+    "name": "INVOCATION_ARGUMENT_BINDING_RULE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1215,
+    "name": "INVOCATION_RESULT_EMISSION_RULE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1216,
+    "name": "INVOCATION_EXCEPTION_EMISSION_RULE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1217,
+    "name": "INVOCATION_UNRESOLVED_TARGET_RULE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1316,
+    "name": "invocationSemanticRule",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+    "line": 1537,
+    "name": "SEMANTIC_INVOCATION_SEMANTIC_CONTRACT",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticPipeline.ts",
+    "line": 35,
+    "name": "createInvocationSemanticPipeline",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticPipeline.ts",
+    "line": 69,
+    "name": "createInvocationSemanticIntegratedResponseComposition",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticPipeline.ts",
+    "line": 99,
+    "name": "invocationSemanticIntegratedResponseComposition",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts",
+    "line": 12,
+    "name": "createInvocationSemanticRuntimeExecutor",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/laravelControllerResponseDtoDeclarationResolutionAuthority.ts",
+    "line": 41,
+    "name": "createLaravelControllerResponseDtoDeclarationResolutionAuthority",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/laravelControllerResponseDtoDeclarationResolutionAuthority.ts",
+    "line": 131,
+    "name": "laravelControllerResponseDtoDeclarationResolutionAuthority",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/laravelDtoResponseContractProjectionAuthority.ts",
+    "line": 99,
+    "name": "createLaravelDtoResponseContractProjectionAuthority",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/laravelDtoResponseContractProjectionAuthority.ts",
+    "line": 116,
+    "name": "laravelDtoResponseContractProjectionAuthority",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/laravelDtoTypeReferenceBindingAuthority.ts",
+    "line": 95,
+    "name": "laravelDtoTypeReferenceBindingAuthority",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/migrationInterface.ts",
+    "line": 17,
+    "name": "migrationInterfaceFromDefinition",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/model.ts",
+    "line": 128,
+    "name": "modelSemanticRelationIdentityOf",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/model.ts",
+    "line": 138,
+    "name": "modelSemanticRelationIdentityKey",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/modelVocabulary.ts",
+    "line": 64,
+    "name": "EloquentRelationType",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/modelVocabulary.ts",
+    "line": 90,
+    "name": "eloquentRelationMultiplicity",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 22,
+    "name": "createExceptionName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 33,
+    "name": "createModelName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 34,
+    "name": "createEnumName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 35,
+    "name": "createClassName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 36,
+    "name": "classNameEquals",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 37,
+    "name": "variableNameEquals",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 38,
+    "name": "modelNameMatchesClassName",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 39,
+    "name": "createTableName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 40,
+    "name": "createColumnName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 44,
+    "name": "stringValue",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 47,
+    "name": "createServiceName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 49,
+    "name": "createResourceName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 50,
+    "name": "createRouteName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 51,
+    "name": "createControllerName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 52,
+    "name": "createActionName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 53,
+    "name": "createConstantName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 54,
+    "name": "createSourceFile",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 55,
+    "name": "createChannelName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 56,
+    "name": "createMiddlewareName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 58,
+    "name": "createMethodName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 59,
+    "name": "methodNameEquals",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 61,
+    "name": "createPropertyName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 64,
+    "name": "createRelationName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 67,
+    "name": "createRequestName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 70,
+    "name": "createResponseTypeName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 73,
+    "name": "createRoutePath",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 74,
+    "name": "createRouteParameterName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 75,
+    "name": "createDomainTypeName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 77,
+    "name": "createAbilityName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 79,
+    "name": "createHttpErrorName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/names.ts",
+    "line": 84,
+    "name": "deriveRouteConstantKey",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/phpClassNameResolutionInterface.ts",
+    "line": 10,
+    "name": "createPhpQualifiedClassName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/phpSourceFrontendInterface.ts",
+    "line": 24,
+    "name": "phpSourceTextOf",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineAuthority.ts",
+    "line": 209,
+    "name": "createPhpSourceInvocationSemanticPipelineAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineDeliveryInterface.ts",
+    "line": 46,
+    "name": "phpSourceInvocationSemanticPipelineDeliveryBatchFromResults",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingAuthority.ts",
+    "line": 73,
+    "name": "phpSourceInvocationPipelineEvidenceFromSourceBinding",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 6,
+    "name": "absent",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 7,
+    "name": "present",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 9,
+    "name": "isPresent",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 11,
+    "name": "isAbsent",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 16,
+    "name": "fromBooleanFlag",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 25,
+    "name": "cardinalityOf",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 28,
+    "name": "presenceOf",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 35,
+    "name": "mapPresenceValue",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 42,
+    "name": "presenceFold",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 55,
+    "name": "mapPresence",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/presence.ts",
+    "line": 58,
+    "name": "bindPresence",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "line": 246,
+    "name": "queryOperationSemanticRuleRequirements",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "line": 339,
+    "name": "validateQueryOperationSemanticRuleCatalog",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "line": 523,
+    "name": "validateQueryOperationSemanticEvidenceBoundExecution",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "line": 590,
+    "name": "validateQueryOperationSemanticDecision",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/request.ts",
+    "line": 468,
+    "name": "matchRequestValidationCapability",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "line": 13,
+    "name": "REQUEST_TYPE_DERIVATION_LAW_IDS",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "line": 77,
+    "name": "REQUEST_TYPE_DERIVATION_LAW_OBLIGATIONS",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "line": 1394,
+    "name": "REQUEST_TYPE_AUTHORITY_DECISION_RULE_IDS",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceModelBindingSemanticInterface.ts",
+    "line": 93,
+    "name": "RESOURCE_MODEL_BINDING_BATCH_STATE_SEMANTICS_IDENTITY",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceModelKeyCapability.ts",
+    "line": 58,
+    "name": "resourceModelKeyCapabilitiesFromAsts",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceModelKeyCapability.ts",
+    "line": 96,
+    "name": "resourceModelKeyCapabilityFor",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceModelReasoning.ts",
+    "line": 60,
+    "name": "reasonResourceModel",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "line": 97,
+    "name": "resolveResourceSemanticKind",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "line": 99,
+    "name": "resolveResourceSemanticMappingPort",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "line": 140,
+    "name": "resolveResourceStructuralKind",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "line": 157,
+    "name": "resolveResourceStaticReceiver",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "line": 168,
+    "name": "resolveResourceStaticAction",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "line": 181,
+    "name": "resolveResourceAstMappingInterface",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "line": 238,
+    "name": "resolveResourceSemanticMappingInterface",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAuthority.ts",
+    "line": 36,
+    "name": "resolveResourceSemanticKindThroughAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAuthority.ts",
+    "line": 37,
+    "name": "resolveResourceStructuralKindThroughAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAuthority.ts",
+    "line": 38,
+    "name": "resolveResourceStaticReceiverThroughAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAuthority.ts",
+    "line": 39,
+    "name": "resolveResourceStaticActionThroughAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAuthority.ts",
+    "line": 40,
+    "name": "resolveResourceMappingPortThroughAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAuthority.ts",
+    "line": 41,
+    "name": "resolveResourceAstMappingInterfaceThroughAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceSemanticMappingAuthority.ts",
+    "line": 42,
+    "name": "resolveResourceMappingInterfaceThroughAuthority",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+    "line": 66,
+    "name": "resourceOperationKindForMethod",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+    "line": 96,
+    "name": "matchResourceOperationKind",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/route.ts",
+    "line": 343,
+    "name": "SecuritySchemeKind",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/route.ts",
+    "line": 355,
+    "name": "createRouteSecurityDescriptor",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/route.ts",
+    "line": 373,
+    "name": "RoutePolicyKind",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeActionPolicyRelations.ts",
+    "line": 53,
+    "name": "routeActionPolicyRelationsFromEffectivePolicy",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeActionPolicyRelations.ts",
+    "line": 94,
+    "name": "routeActionPolicyRelations",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeCapabilitySemanticAuthority.ts",
+    "line": 86,
+    "name": "hasCanonicalRequestFields",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeConstraints.ts",
+    "line": 29,
+    "name": "matchRouteConstraintArgument",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeErrorVocabulary.ts",
+    "line": 4,
+    "name": "HttpErrorKind",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeExecutionVocabulary.ts",
+    "line": 4,
+    "name": "RouteHookKind",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeExecutionVocabulary.ts",
+    "line": 11,
+    "name": "CrudRole",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeExecutionVocabulary.ts",
+    "line": 21,
+    "name": "RouteActionKind",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeExecutionVocabulary.ts",
+    "line": 29,
+    "name": "RequestContentType",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeExecutionVocabulary.ts",
+    "line": 37,
+    "name": "HttpMethod",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeExecutionVocabulary.ts",
+    "line": 49,
+    "name": "RoutePayloadMode",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeExecutionVocabulary.ts",
+    "line": 57,
+    "name": "RoutePayloadLocation",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeInvalidationVocabulary.ts",
+    "line": 3,
+    "name": "InvalidationTargetKind",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+    "line": 206,
+    "name": "resolveApiResourceFlowJudgment",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+    "line": 338,
+    "name": "resolveRouteResourceDeclarationJudgment",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts",
+    "line": 22,
+    "name": "SCANNER_EXPRESSION_CANDIDATE",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/scannerAstOperatorEvidenceAlgebra.ts",
+    "line": 41,
+    "name": "validateScannerAstOperatorVocabulary",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/scannerAstOperatorEvidenceInterface.ts",
+    "line": 22,
+    "name": "SCANNER_AST_OPERATOR",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/scannerExpressionCandidateAlgebra.ts",
+    "line": 11,
+    "name": "SCANNER_EXPRESSION_STRUCTURE_PRIORITY",
+    "syntax": "unannotated-call",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/scannerExpressionCandidateAlgebra.ts",
+    "line": 22,
+    "name": "scannerExpressionStructurePriority",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/schema.ts",
+    "line": 55,
+    "name": "schemaInterfaceFromDefinition",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/schemaRelation.ts",
+    "line": 41,
+    "name": "schemaRelationIndexFrom",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/schemaRelation.ts",
+    "line": 64,
+    "name": "schemaForeignKeyEvidence",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticClosureEngine.ts",
+    "line": 59,
+    "name": "closeCanonicalSemanticRelations",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticClosureEngine.ts",
+    "line": 84,
+    "name": "closeCanonicalSemanticTheory",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticClosureEngine.ts",
+    "line": 89,
+    "name": "canonicalSemanticFact",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticConstraintAuthority.ts",
+    "line": 101,
+    "name": "toSemanticRelationRewrites",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticConstraintAuthority.ts",
+    "line": 111,
+    "name": "solveSemanticConstraintProgram",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticConstraintAuthority.ts",
+    "line": 130,
+    "name": "resolveSemanticConstraints",
+    "syntax": "other-initializer",
+    "priority": "classify-before-changing"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts",
+    "line": 107,
+    "name": "solveConstraintHandlingRules",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflow.ts",
+    "line": 57,
+    "name": "semanticDataflowIdentityKey",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflow.ts",
+    "line": 69,
+    "name": "semanticDataflowIdentityEqual",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflow.ts",
+    "line": 126,
+    "name": "semanticDataflowFactWithLineage",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowControllerProjection.ts",
+    "line": 104,
+    "name": "semanticDataflowControllerFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowControllerQueryProjection.ts",
+    "line": 59,
+    "name": "semanticDataflowControllerQueryFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowInputFactory.ts",
+    "line": 116,
+    "name": "createSemanticDataflowInputProducer",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 83,
+    "name": "semanticPresent",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 84,
+    "name": "semanticAbsent",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 699,
+    "name": "semanticText",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 700,
+    "name": "semanticNumber",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 701,
+    "name": "semanticBoolean",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 702,
+    "name": "semanticSourceOffset",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 703,
+    "name": "semanticSourceSpan",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 714,
+    "name": "knowledgeId",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 724,
+    "name": "knowledgeIdKey",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "line": 742,
+    "name": "semanticFact",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+    "line": 52,
+    "name": "semanticDataflowFactContractKey",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+    "line": 75,
+    "name": "materializeSemanticDataflowQueryPolicy",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+    "line": 175,
+    "name": "validateSemanticDataflowQueryPolicyContract",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+    "line": 270,
+    "name": "decodeSemanticDataflowQueryPolicyContract",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+    "line": 286,
+    "name": "semanticDataflowQueryPolicyMatches",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowRequestProjection.ts",
+    "line": 212,
+    "name": "semanticDataflowRequestFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticDataflowRouteProjection.ts",
+    "line": 69,
+    "name": "semanticDataflowRouteParameterFacts",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticJudgmentRuleCompiler.ts",
+    "line": 38,
+    "name": "compileSemanticJudgmentRule",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticJudgmentRuleCompiler.ts",
+    "line": 80,
+    "name": "compileSemanticJudgmentModel",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticObjectIdentityAuthority.ts",
+    "line": 73,
+    "name": "analyzeSemanticObjectIdentity",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticObjectIdentityAuthority.ts",
+    "line": 151,
+    "name": "semanticAlias",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticReasoning.ts",
+    "line": 220,
+    "name": "semanticReasoningContract",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticReferences.ts",
+    "line": 49,
+    "name": "isControllerActionPolicyRelation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticReferences.ts",
+    "line": 56,
+    "name": "isRouteActionPolicyRelation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticReferences.ts",
+    "line": 63,
+    "name": "isPolicySemanticRelation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticReferences.ts",
+    "line": 68,
+    "name": "isStructuralSemanticRelation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticReferences.ts",
+    "line": 89,
+    "name": "modelRef",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticReferences.ts",
+    "line": 94,
+    "name": "responseRef",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRelationProgram.ts",
+    "line": 31,
+    "name": "validateSemanticRelationProgram",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRelationProgram.ts",
+    "line": 85,
+    "name": "assertSemanticRelationProgram",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRelationTheory.ts",
+    "line": 48,
+    "name": "validateSemanticTheoryFact",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRelationTheory.ts",
+    "line": 61,
+    "name": "assertCanonicalSemanticRelationName",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRelationTheory.ts",
+    "line": 68,
+    "name": "semanticTheoryFact",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRelationalBehaviorKernel.ts",
+    "line": 68,
+    "name": "solveSemanticBehavior",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRewriteAuthority.ts",
+    "line": 135,
+    "name": "solveClosedSemanticRelations",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+    "line": 127,
+    "name": "semanticTextTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+    "line": 128,
+    "name": "semanticOrdinalTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+    "line": 129,
+    "name": "semanticTruthTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+    "line": 130,
+    "name": "semanticAbsenceTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+    "line": 131,
+    "name": "semanticVariableTerm",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypeDerivationInterface.ts",
+    "line": 84,
+    "name": "semanticTypeSourceEvidence",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypeDerivationInterface.ts",
+    "line": 107,
+    "name": "assertSemanticTypeDerivationJudgment",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 19,
+    "name": "typedRelation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 22,
+    "name": "typedEmptyRelation",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 24,
+    "name": "typedUnion",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 27,
+    "name": "typedProject",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 73,
+    "name": "typedExpand",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 86,
+    "name": "typedDefine",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 91,
+    "name": "typedDistinct",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "line": 112,
+    "name": "typedJoin",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/service.ts",
+    "line": 73,
+    "name": "resolveServiceDependencyTarget",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/sourceBoundaryAlgebra.ts",
+    "line": 13,
+    "name": "sourceBoundaryInputFromCanonicalNode",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/sourceBoundaryAlgebra.ts",
+    "line": 51,
+    "name": "sourceBoundaryNodeOf",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/sourceProjectIdentity.ts",
+    "line": 92,
+    "name": "createLaravelSourceProjectIdentity",
+    "syntax": "unannotated-arrow",
+    "priority": "domain-operation-or-constructor-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/valueObjects.ts",
+    "line": 6,
+    "name": "stringValue",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/valueObjects.ts",
+    "line": 14,
+    "name": "numberValue",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/valueObjects.ts",
+    "line": 22,
+    "name": "truthValue",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  },
+  {
+    "file": "packages/core/src/types/upstream/valueObjects.ts",
+    "line": 35,
+    "name": "descriptionText",
+    "syntax": "unannotated-arrow",
+    "priority": "unannotated-arrow-review"
+  }
+]

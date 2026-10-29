@@ -1,6 +1,6 @@
 # Phase 557 — Relational Type-System Frontier
 
-This phase extends the closed declarative frontier from scanner/lexer/resolver/lowering into the type-system resolver graph.
+This phase extends the closed declarative frontier from frontend/php/resolver/lowering into the type-system resolver graph.
 
 ## Cutover
 

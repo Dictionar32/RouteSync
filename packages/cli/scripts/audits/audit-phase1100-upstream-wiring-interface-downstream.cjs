@@ -7,7 +7,7 @@ const read = p => fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : '';
 const exists = p => fs.existsSync(p);
 const runtimeAdapter = path.join(core, 'src/compiler/analysis/semanticDataflowDataFlowAdapter.ts');
 const runtimeComposition = path.join(core, 'src/compiler/analysis/semanticDataflowRuntimeComposition.ts');
-const analyzer = read(path.join(core, 'src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts'));
+const analyzer = read(path.join(core, 'src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts'));
 const scan = read(path.join(cli, 'src/commands/scan.ts'));
 const sync = read(path.join(cli, 'src/commands/sync.ts'));
 const explain = read(path.join(cli, 'src/commands/explain.ts'));

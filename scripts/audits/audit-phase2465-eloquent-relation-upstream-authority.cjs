@@ -27,7 +27,7 @@ const checks = [
   ['authority constructs canonical Eloquent relation AST', /eloquentRelationAstFromDescriptor/.test(factsAuthority)],
   ['scanner producer delegates complete judgment upstream', /eloquentRelationFactsAuthority\.judge/.test(producer)],
   ['scanner producer has no direct relation/foundation dependency', !/semantic\/(relations|foundation)/.test(producer)],
-  ['legacy relation parser and producer are retired', !exists('packages/core/src/compiler/scanner/subscanners/model/memberRelationsParser.ts') && !exists('packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts')],
+  ['legacy relation parser and producer are retired', !exists('packages/core/src/compiler/scanner/operations/model/memberRelationsParser.ts') && !exists('packages/core/src/compiler/scanner/operations/model/eloquentProducer.ts')],
   ['upstream barrel exports both authorities', /eloquentRelationFactsAuthorityInterface/.test(barrel) && /eloquentRelationFactsAuthority'/.test(barrel)],
 ];
 for (const [label, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${label}\n`);

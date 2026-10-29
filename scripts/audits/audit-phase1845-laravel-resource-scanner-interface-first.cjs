@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts');
-const sourceEvidence = read('packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts');
+const sourceEvidence = read('packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts');
 const contract = read('packages/core/src/types/upstream/laravelResourceScannerInterface.ts');
 const sourceAsts = read('packages/core/src/types/upstream/collections.ts');
 const packageJson = JSON.parse(read('package.json'));
@@ -20,7 +20,7 @@ const checks = [
   ['resource scanner passes the whole controller scan to the binding authority', /controllerScan: input\.controllerScan/.test(scanner) && /input\.bindingAuthority\.judgeBatch/.test(scanner)],
   ['only authority-resolved models are passed to ResourceProducer', /relationRefine\(outcome, isResolved\)/.test(scanner) && /model: Object/.test(scanner) === false && /model,/.test(scanner) && /candidate\.candidate\.model\.identity\.name/.test(scanner)],
   ['resource source evidence extraction does not make model-binding decisions', /scanResourceSourceEvidence/.test(sourceEvidence) && !/ResourceModelBindingJudgmentAuthority/.test(sourceEvidence) && !/resourceProducer/.test(sourceEvidence)],
-  ['legacy ResourceScanner implementation and export are retired', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts')) && !/ResourceScanner/.test(read('packages/core/src/compiler/scanner/subscanners/index.ts')) && !/from ['"]\.\.\/subscanners\/ResourceScanner['"]/.test(scanner)],
+  ['legacy ResourceScanner implementation and export are retired', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/ResourceScanner.ts')) && !/ResourceScanner/.test(read('packages/core/src/compiler/scanner/operations/index.ts')) && !/from ['"]\.\.\/operations\/ResourceScanner['"]/.test(scanner)],
   ['resource source evidence preserves file provenance, PHP syntax, and nested resource relation facts', /sourceFile: SemanticValueFactory\.sourceFilePath\(fullPath\)/.test(sourceEvidence) && /entries: parsedArray\.entries/.test(sourceEvidence) && /sourceLength: source\.length/.test(sourceEvidence) && /resourceRelationEvidence\(resourceName/.test(sourceEvidence) && /evidence => evidence\.relations/.test(scanner)],
   ['implementation does not depend on semantic foundation or use casts', !/semantic\/foundation/.test(scanner) && !/\bas\s+(?:unknown|any)\b/.test(scanner)],
   ['audit command is registered', packageJson.scripts?.['audit:phase1845-laravel-resource-scanner-interface-first'] === 'node scripts/audits/audit-phase1845-laravel-resource-scanner-interface-first.cjs'],

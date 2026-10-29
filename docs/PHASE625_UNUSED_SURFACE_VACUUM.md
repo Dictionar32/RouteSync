@@ -23,4 +23,4 @@ The path remains available for future migration compatibility, but it no longer 
 
 ## Remaining frontier
 
-The next substantive work should target active scanner/lexer, graph resolver, AST/upstream mapping, analysis, and semantic type-lowering consumers. Those surfaces must be migrated through relation/fact/rule/closure/rewrite authority before being emptied.
+The next substantive work should target active frontend/php, graph resolver, AST/upstream mapping, analysis, and semantic type-lowering consumers. Those surfaces must be migrated through relation/fact/rule/closure/rewrite authority before being emptied.

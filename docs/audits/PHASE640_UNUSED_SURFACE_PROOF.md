@@ -28,7 +28,7 @@ Already-vacuumed paths verified at 0 bytes:
 
 ## Architecture frontier
 
-Dead-surface vacuum is separated from semantic migration. Active scanner/lexer, AST/upstream, graph resolver, analysis, and semantic type lowering must be transformed rather than emptied unless their authority is demonstrably replaced and their old path becomes unreachable.
+Dead-surface vacuum is separated from semantic migration. Active frontend/php, AST/upstream, graph resolver, analysis, and semantic type lowering must be transformed rather than emptied unless their authority is demonstrably replaced and their old path becomes unreachable.
 
 Target architecture:
 

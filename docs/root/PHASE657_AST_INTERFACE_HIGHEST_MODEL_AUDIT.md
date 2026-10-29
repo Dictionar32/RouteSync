@@ -135,7 +135,7 @@ The concrete order is:
 2. resource binding: path/origin/traversal as derived relations;
 3. resource grouping: group classification as relation facts plus typed extraction;
 4. semantic type lowering: closed target-type term algebra;
-5. scanner/lexer: retain only source evidence and typed syntax judgments;
+5. frontend/php: retain only source evidence and typed syntax judgments;
 6. vacuum remaining compatibility files only when the dependency audit proves they are inactive.
 
 The forbidden-construct audit should remain a **model-boundary invariant**, not a global blind source rewrite. Tests and compatibility evidence can contain ordinary host-language control flow where it is not semantic authority; production semantic boundaries should progressively move to declarative relations, ADTs, and fixed-point/rewrite closure.

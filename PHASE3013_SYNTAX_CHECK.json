@@ -1,0 +1,49 @@
+{
+  "phase": 3013,
+  "compiler": "global TypeScript transpileModule",
+  "target": "ES2022",
+  "files": 8,
+  "diagnostics": 0,
+  "results": [
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticAlgebraInterface.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/index.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/__tests__/invocation-semantic-algebra.phase1677.test.ts",
+      "syntaxDiagnostics": 0,
+      "errors": []
+    }
+  ]
+}

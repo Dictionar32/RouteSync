@@ -269,7 +269,7 @@ for (const group of graph.resourceGroupGraph.all) {
 6. **`packages/cli/src/generators/QueryKeyGenerator.ts`**:
    - Mandatory `domainGraph: ClassifiedDomainGraph<ClassifiedRoute>` parameter.
    - Replace `if (group.isCrud)` with `yield* group.lowerQueryKeyBlock()`.
-7. **`packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts`**:
+7. **`packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts`**:
    - Replace procedural script in `ScannedRouteDescriptor.create()` with explicit factories (`fromControllerAction`, `fromControllerReference`, `fromClosure`, `synthetic`).
    - Clean up `ScannedRouteParameterDescriptor` and `ScannedRoutePolicyDescriptor` (guaranteed non-nullable strings).
 8. **`packages/core/src/compiler/scanner/subscanners/RouteScanner.ts`**:

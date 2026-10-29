@@ -23,7 +23,7 @@ const checks = [
   ['public core entry exports pipeline derivation result ADT', index.includes('RequestTypeDerivationSemanticPipelineDerivationResult')],
   ['legacy RequestType[] solver is not used to fabricate proof in assembler', !assembler.includes('requestTypeDerivationSolver') && !assembler.includes('RequestType[]')],
   ['new wiring does not import semantic foundation/relation', !/semantic\/(foundation|relations)|semantic\/relation/.test(assembler + gate + preparation)],
-  ['new wiring does not introduce subscanner imports', !/subscanners\//.test(assembler + gate + preparation)],
+  ['new wiring does not introduce subscanner imports', !/operations\//.test(assembler + gate + preparation)],
   ['source occurrence guard remains a decorator of the supplied complete verifier', /createSourceOccurrenceGuardedRequestTypeDerivationProofVerifier\(composition\.verifier\)/.test(assembler)],
 ];
 let failed = 0;

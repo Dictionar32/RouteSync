@@ -1,5 +1,6 @@
 import type { PhpSourceInvocationSemanticPipelineIntegrationResult } from './phpSourceInvocationSemanticPipelineIntegrationInterface';
 import type { SemanticKnowledgeEvidenceProjection } from './semanticKnowledgeEvidenceAdapterInterface';
+import type { SemanticObjectIdentityAnalysis } from './semanticObjectIdentityInterface';
 
 /** Scanner-facing input is already authority-integrated; raw source evidence stops upstream. */
 export type InvocationPhpSourceIntegratedResponse = PhpSourceInvocationSemanticPipelineIntegrationResult;
@@ -63,6 +64,15 @@ export interface InvocationSemanticPipelineInterface {
   readonly analyzeKnowledge: (
     knowledge: SemanticKnowledgeDataFlow,
   ) => InvocationSemanticAnalysis;
+}
+
+/** Construction is an explicit upstream domain operation, not an exported parameterized function. */
+export interface InvocationSemanticPipelineFactoryInterface {
+  readonly kind: 'invocation_semantic_pipeline_factory';
+  readonly create: (
+    invocationAuthority: InvocationSemanticAuthorityInterface,
+    batchAuthority: SemanticInterproceduralDataFlowAuthorityInterface,
+  ) => InvocationSemanticPipelineInterface;
 }
 
 /**
@@ -298,31 +308,49 @@ export type InvocationSemanticCoveragePublicationCorrespondence =
       readonly publicationEntry: Extract<InvocationSemanticCoveragePublicationEntry, { readonly kind: 'static-invocation-coverage-entry' }>;
     }>;
 
-/** A successful result carries the correspondence ledger, not only a self-asserted validation label. */
+/** Successful publication data, retaining the authority-issued correspondence ledger. */
+export interface InvocationSemanticValidatedPublication {
+  readonly kind: 'validated-publication';
+  readonly publication: InvocationSemanticCoveragePublication;
+  readonly validation: Readonly<{
+    readonly kind: 'invocation_semantic_coverage_publication_validation';
+    readonly contract: InvocationSemanticCoverageContract;
+    /** Exact authority boundary whose invariants were enforced to build this receipt. */
+    readonly authorityBoundary: InvocationSemanticCoveragePublicationAuthorityBoundaryContract;
+    /** Exact analysis input whose judgments were checked against the canonical inventory and publication. */
+    readonly analysis: InvocationSemanticAnalysis;
+    readonly correspondences: readonly InvocationSemanticCoveragePublicationCorrespondence[];
+    readonly invariant: 'one-publication-entry-per-inventory-identity-with-matching-form-subject-and-source-evidence-and-each-published-ordinary-judgment-bound-to-the-exact-analysis-judgment';
+  }>;
+}
+
+/** Rejected publication data retains the exact analysis and a non-empty typed violation ledger. */
+export interface InvocationSemanticRejectedPublication {
+  readonly kind: 'rejected-publication';
+  readonly analysis: InvocationSemanticAnalysis;
+  readonly violations: readonly [
+    InvocationSemanticCoveragePublicationViolation,
+    ...InvocationSemanticCoveragePublicationViolation[],
+  ];
+}
+
+/** Domain continuation handlers consume a typed publication outcome without rechecking its discriminant. */
+export interface InvocationSemanticCoveragePublicationResultHandlers<Result> {
+  readonly onValidated: (result: InvocationSemanticValidatedPublication) => Result;
+  readonly onRejected: (result: InvocationSemanticRejectedPublication) => Result;
+}
+
+/**
+ * Publication is an operational ADT: each outcome retains its evidence and offers
+ * continueWith so downstream consumers can continue from the domain result directly.
+ */
 export type InvocationSemanticCoveragePublicationResult =
-  | Readonly<{
-      readonly kind: 'validated-publication';
-      readonly publication: InvocationSemanticCoveragePublication;
-      readonly validation: Readonly<{
-        readonly kind: 'invocation_semantic_coverage_publication_validation';
-        readonly contract: InvocationSemanticCoverageContract;
-        /** Exact authority boundary whose invariants were enforced to build this receipt. */
-        readonly authorityBoundary: InvocationSemanticCoveragePublicationAuthorityBoundaryContract;
-        /** Exact analysis input whose judgments were checked against the canonical inventory and publication. */
-        readonly analysis: InvocationSemanticAnalysis;
-        readonly correspondences: readonly InvocationSemanticCoveragePublicationCorrespondence[];
-        readonly invariant: 'one-publication-entry-per-inventory-identity-with-matching-form-subject-and-source-evidence-and-each-published-ordinary-judgment-bound-to-the-exact-analysis-judgment';
-      }>;
-    }>
-  | Readonly<{
-      readonly kind: 'rejected-publication';
-      /** Exact analysis input evaluated by this authority; rejection does not detach its subject judgments from the failure ledger. */
-      readonly analysis: InvocationSemanticAnalysis;
-      readonly violations: readonly [
-        InvocationSemanticCoveragePublicationViolation,
-        ...InvocationSemanticCoveragePublicationViolation[],
-      ];
-    }>;
+  | (Readonly<InvocationSemanticValidatedPublication> & Readonly<{
+      readonly continueWith: <Result>(handlers: InvocationSemanticCoveragePublicationResultHandlers<Result>) => Result;
+    }>)
+  | (Readonly<InvocationSemanticRejectedPublication> & Readonly<{
+      readonly continueWith: <Result>(handlers: InvocationSemanticCoveragePublicationResultHandlers<Result>) => Result;
+    }>);
 
 export interface InvocationSemanticCoveragePublicationInput {
   /** Canonical inventory produced by the source-subject inventory authority. */
@@ -390,7 +418,7 @@ export interface InvocationSemanticCoveragePublicationInterface {
  */
 export interface InvocationSemanticIntegratedResponseContract {
   readonly kind: 'invocation_semantic_integrated_response_contract';
-  readonly version: 10;
+  readonly version: 11;
   readonly acceptedAnalysisOwnership: 'integrated-response-retains-the-exact-publication-result-whose-validation-receipt-or-rejection-result-owns-analysis';
   readonly correspondenceOwnership: 'publication-authority-is-the-single-owner-of-inventory-analysis-publication-correspondence-validation';
   readonly rejectionMeaning: 'rejected-publication-is-forwarded-directly-with-its-exact-analysis-input-and-typed-violations';
@@ -400,11 +428,12 @@ export interface InvocationSemanticIntegratedResponseContract {
   readonly phpFunctionInvocationOwnership: 'integrated-response-contains-the-typed-php-invocation-integration-state-inside-the-response-not-as-a-detached-sidecar';
   readonly phpFunctionInvocationClosure: 'only-an-authority-issued-validated-receipt-is-accepted-as-a-batch-and-rejected-closure-remains-an-explicit-typed-outcome';
   readonly publicationOwnership: 'the-exact-publication-authority-result-is-retained-as-one-component-without-revalidation-or-reconstruction';
+  readonly objectIdentityOwnership: 'integrated-response-carries-domain-owned-object-identity-analysis-derived-from-the-same-canonical-knowledge-graph-without-republishing-that-graph';
 }
 
 export const INVOCATION_SEMANTIC_INTEGRATED_RESPONSE_CONTRACT: InvocationSemanticIntegratedResponseContract = Object.freeze({
   kind: 'invocation_semantic_integrated_response_contract',
-  version: 10,
+  version: 11,
   acceptedAnalysisOwnership: 'integrated-response-retains-the-exact-publication-result-whose-validation-receipt-or-rejection-result-owns-analysis',
   correspondenceOwnership: 'publication-authority-is-the-single-owner-of-inventory-analysis-publication-correspondence-validation',
   rejectionMeaning: 'rejected-publication-is-forwarded-directly-with-its-exact-analysis-input-and-typed-violations',
@@ -416,6 +445,7 @@ export const INVOCATION_SEMANTIC_INTEGRATED_RESPONSE_CONTRACT: InvocationSemanti
   scannerInputClosureBoundary: 'scanner-facing-composition-accepts-only-the-authority-integrated-php-source-outcome-raw-composition-evidence-cannot-cross-this-boundary',
   phpFunctionInvocationClosure: 'only-an-authority-issued-validated-receipt-is-accepted-as-a-batch-and-rejected-closure-remains-an-explicit-typed-outcome',
   publicationOwnership: 'the-exact-publication-authority-result-is-retained-as-one-component-without-revalidation-or-reconstruction',
+  objectIdentityOwnership: 'integrated-response-carries-domain-owned-object-identity-analysis-derived-from-the-same-canonical-knowledge-graph-without-republishing-that-graph',
 });
 
 /**
@@ -427,6 +457,7 @@ export interface InvocationSemanticIntegratedResponse {
   readonly kind: 'invocation_semantic_integrated_response';
   readonly publication: InvocationSemanticCoveragePublicationResult;
   readonly phpFunctionInvocations: PhpSourceInvocationSemanticPipelineIntegrationResult;
+  readonly objectIdentity: SemanticObjectIdentityAnalysis;
 }
 
 /**
@@ -437,12 +468,12 @@ export interface InvocationSemanticIntegratedResponse {
  */
 export interface InvocationSemanticIntegratedResponseCompositionContract {
   readonly kind: 'invocation_semantic_integrated_response_composition_contract';
-  readonly version: 20;
-  readonly compositionOrder: 'derive-inventory-and-analysis-from-the-same-knowledge-then-publish-the-pair-and-return-the-publication-bound-integrated-response';
+  readonly version: 21;
+  readonly compositionOrder: 'derive-inventory-analysis-and-object-identity-from-the-same-knowledge-then-publish-the-pair-and-return-the-publication-bound-integrated-response';
   readonly inventoryOwnership: 'source-subject-inventory-interface-owns-canonical-subject-discovery';
   readonly judgmentOwnership: 'invocation-semantic-pipeline-owns-analysis-and-judgment-derivation';
   readonly correspondenceOwnership: 'coverage-publication-authority-remains-the-single-owner-of-inventory-analysis-publication-validation';
-  readonly responseOwnership: 'integrated-response-is-one-aggregate-containing-the-exact-publication-result-and-lossless-typed-php-invocation-outcome';
+  readonly responseOwnership: 'integrated-response-is-one-aggregate-containing-the-exact-publication-result-the-lossless-typed-php-invocation-outcome-and-derived-object-identity-judgment';
   readonly sourceBinding: 'composition-consumes-the-complete-source-correlated-knowledge-projection;inventory-and-analysis-use-its-exact-canonical-knowledge-graph;response-only-result-does-not-republish-knowledge-or-provenance';
   readonly failureSemantics: 'preserve-the-publication-authoritys-typed-result-and-never-fabricate-a-fallback-analysis-or-receipt';
   readonly publicBoundary: 'expose-only-the-integrate-operation-and-its-contract; component-authorities-remain-private-implementation-dependencies';
@@ -458,16 +489,17 @@ export interface InvocationSemanticIntegratedResponseCompositionContract {
   readonly scannerInputClosureBoundary: 'scanner-facing-composition-accepts-only-the-authority-integrated-php-source-outcome-raw-composition-evidence-cannot-cross-this-boundary';
   readonly sourceOutcomePreservation: 'composition-retains-the-exact-phpSourceInvocationPipeline-input-as-phpFunctionInvocations;the-composition-result-publishes-only-the-integrated-response-and-does-not-repeat-the-canonical-knowledge-value';
   readonly provenanceBinding: 'the-composition-input-retains-source-file-and-evidence-provider-with-the-knowledge-graph-until-both-inventory-and-analysis-have-consumed-that-exact-graph';
+  readonly objectIdentityBinding: 'object-identity-analysis-is-derived-from-the-same-canonical-knowledge-reference-and-retained-in-the-integrated-response-as-a-domain-judgment-not-a-duplicate-knowledge-graph';
 }
 
 export const INVOCATION_SEMANTIC_INTEGRATED_RESPONSE_COMPOSITION_CONTRACT: InvocationSemanticIntegratedResponseCompositionContract = Object.freeze({
   kind: 'invocation_semantic_integrated_response_composition_contract',
-  version: 20,
-  compositionOrder: 'derive-inventory-and-analysis-from-the-same-knowledge-then-publish-the-pair-and-return-the-publication-bound-integrated-response',
+  version: 21,
+  compositionOrder: 'derive-inventory-analysis-and-object-identity-from-the-same-knowledge-then-publish-the-pair-and-return-the-publication-bound-integrated-response',
   inventoryOwnership: 'source-subject-inventory-interface-owns-canonical-subject-discovery',
   judgmentOwnership: 'invocation-semantic-pipeline-owns-analysis-and-judgment-derivation',
   correspondenceOwnership: 'coverage-publication-authority-remains-the-single-owner-of-inventory-analysis-publication-validation',
-  responseOwnership: 'integrated-response-is-one-aggregate-containing-the-exact-publication-result-and-lossless-typed-php-invocation-outcome',
+  responseOwnership: 'integrated-response-is-one-aggregate-containing-the-exact-publication-result-the-lossless-typed-php-invocation-outcome-and-derived-object-identity-judgment',
   sourceBinding: 'composition-consumes-the-complete-source-correlated-knowledge-projection;inventory-and-analysis-use-its-exact-canonical-knowledge-graph;response-only-result-does-not-republish-knowledge-or-provenance',
   failureSemantics: 'preserve-the-publication-authoritys-typed-result-and-never-fabricate-a-fallback-analysis-or-receipt',
   publicBoundary: 'expose-only-the-integrate-operation-and-its-contract; component-authorities-remain-private-implementation-dependencies',
@@ -483,6 +515,7 @@ export const INVOCATION_SEMANTIC_INTEGRATED_RESPONSE_COMPOSITION_CONTRACT: Invoc
   scannerInputClosureBoundary: 'scanner-facing-composition-accepts-only-the-authority-integrated-php-source-outcome-raw-composition-evidence-cannot-cross-this-boundary',
   sourceOutcomePreservation: 'composition-retains-the-exact-phpSourceInvocationPipeline-input-as-phpFunctionInvocations;the-composition-result-publishes-only-the-integrated-response-and-does-not-repeat-the-canonical-knowledge-value',
   provenanceBinding: 'the-composition-input-retains-source-file-and-evidence-provider-with-the-knowledge-graph-until-both-inventory-and-analysis-have-consumed-that-exact-graph',
+  objectIdentityBinding: 'object-identity-analysis-is-derived-from-the-same-canonical-knowledge-reference-and-retained-in-the-integrated-response-as-a-domain-judgment-not-a-duplicate-knowledge-graph',
 });
 
 /** The knowledge graph and closed-or-pending source-pipeline evidence enter one composition. */
@@ -525,6 +558,14 @@ export interface InvocationSemanticIntegratedResponseCompositionInterface {
   readonly integrate: (
     input: InvocationSemanticIntegratedResponseCompositionInput,
   ) => InvocationSemanticIntegratedResponseCompositionResult;
+}
+
+/** Composition construction is owned by a typed domain factory. */
+export interface InvocationSemanticIntegratedResponseCompositionFactoryInterface {
+  readonly kind: 'invocation_semantic_integrated_response_composition_factory';
+  readonly create: (
+    dependencies: InvocationSemanticIntegratedResponseCompositionDependencies,
+  ) => InvocationSemanticIntegratedResponseCompositionInterface;
 }
 
 /** Candidate-specific evidence linking a static class/operation pair to one callable. */
@@ -1627,7 +1668,7 @@ export const INVOCATION_SEMANTIC_COVERAGE_CONTRACT: InvocationSemanticCoverageCo
 
 export interface InvocationSemanticPipelineContract {
   readonly kind: 'invocation_semantic_pipeline_contract';
-  readonly version: 61;
+  readonly version: 62;
   readonly staticProofLedger: InvocationStaticSemanticProofLedgerContract;
   readonly staticAlgebra: InvocationStaticSemanticAlgebraContract;
   /** Source-form coverage is explicit; aggregate analysis must not overclaim unsupported forms. */
@@ -1683,7 +1724,7 @@ export interface InvocationSemanticPipelineContract {
 
 export const INVOCATION_SEMANTIC_PIPELINE_CONTRACT: InvocationSemanticPipelineContract = Object.freeze({
   kind: 'invocation_semantic_pipeline_contract',
-  version: 61,
+  version: 62,
   staticProofLedger: INVOCATION_STATIC_SEMANTIC_PROOF_LEDGER_CONTRACT,
   staticAlgebra: INVOCATION_STATIC_SEMANTIC_ALGEBRA_CONTRACT,
   coverage: INVOCATION_SEMANTIC_COVERAGE_CONTRACT,

@@ -1,0 +1,82 @@
+{
+  "phase": 2803,
+  "title": "Typed Controller Method and Return Runtime Audit",
+  "status": "structural_audit_passed",
+  "scope": [
+    "controller method parser interface-first runtime operation",
+    "parameter attribute parser operation ownership",
+    "controller return parser interface-first runtime operation",
+    "CLI to upstream manifest runtime trace",
+    "contract-first review of existing upstream return contracts",
+    "explicit preservation of projection and inventory ADTs"
+  ],
+  "changes": [
+    {
+      "file": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
+      "change": "Replaced exported parseControllerMethod overload function and exported parseParameterAttributes function with controllerMethodParser: ControllerMethodParserInterface = Object.freeze({...}); retained overload correlation in ControllerMethodParserOperationInterface."
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/controllerReturnParser.ts",
+      "change": "Replaced exported parseControllerReturns function with controllerReturnParser: ControllerReturnParserInterface = Object.freeze({...})."
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts",
+      "change": "Migrated method and parameter-attribute parser call sites to controllerMethodParser."
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/operations/controller/controllerMethodContract.phase894.test.ts",
+      "change": "Migrated parser regression test to controllerMethodParser.parse."
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/index.ts",
+      "change": "Exported typed method and return parser operation objects and their interfaces."
+    }
+  ],
+  "contract_review": {
+    "existing_contracts_inspected": [
+      "controllerRuntimeReturnProjectionInterface.ts",
+      "controllerReturnSemanticProductionInterface.ts",
+      "controllerEvidence.ts",
+      "controllerBodySemanticJudgmentInterface.ts"
+    ],
+    "new_upstream_contract_added": false,
+    "reason": "Parser inputs and outputs are frontend-owned concrete syntax types. Existing upstream return contracts represent downstream runtime projection or semantic production, not token-to-AST parsing."
+  },
+  "runtime_trace": [
+    "CLI scan.ts / sync.ts",
+    "manifestScanOperation.scan(input)",
+    "ManifestBuilderOperationPreparationInterface.prepare(input)",
+    "ManifestBuilderInterface.build()",
+    "LaravelSourceAstPipelineInterface.execute()",
+    "controllerDeclarationParser",
+    "controllerMethodParser.parse()",
+    "controllerMethodParser.parseParameterAttributes()",
+    "controllerReturnParser.parse()",
+    "controllerBodyParser.parse()",
+    "controller method declaration inventory complete | blocked",
+    "source-model judgment complete | blocked",
+    "SemanticDataflowManifestSurfaceInterface",
+    "ManifestBuilderJudgment complete | blocked",
+    "CLI manifest projection / validation / serialization"
+  ],
+  "verification": {
+    "phase2803_audit": "14/14 passed",
+    "phase2802_audit": "12/12 passed",
+    "phase2801_audit": "12/12 passed",
+    "syntax_only_transpile": "5 changed/relevant TypeScript files; 0 syntax errors",
+    "legacy_parser_api_references_in_packages_typescript": "no direct calls to parseControllerMethod(), parseControllerReturns(), or parseParameterAttributes() remain; parameter attribute usage is through controllerMethodParser.parseParameterAttributes()",
+    "collections_ts_bytes": 0,
+    "zip_integrity": "verified separately before delivery"
+  },
+  "not_verified": [
+    "full TypeScript typecheck",
+    "production build",
+    "complete test suite",
+    "CLI scan/sync end-to-end"
+  ],
+  "references": [
+    "https://www.typescriptlang.org/docs/handbook/interfaces",
+    "https://www.typescriptlang.org/docs/handbook/2/functions.html",
+    "https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html"
+  ]
+}

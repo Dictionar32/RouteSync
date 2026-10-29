@@ -21,7 +21,7 @@ import {
 import { relationFold, relationProject, relationResolve, relationLookup, relationOptionFold } from '../../semantic/relations/relationalSequence';
 import { relationEqual } from '../../semantic/relations/semanticRelations';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
-import { stageProofObligations } from './astSemanticStageProof';
+import { astSemanticStageProofOperations } from './astSemanticStageProof';
 import type {
   AstSemanticStage,
   ScannerEvidenceRelation,
@@ -315,7 +315,7 @@ const stageJudgment = (
     facts,
     derivations: stageDerivations(astSemanticStageFacts(stage, facts)),
     preservation: contract.preservation,
-    proofObligations: stageProofObligations(stage, contract),
+    proofObligations: astSemanticStageProofOperations.obligations(stage, contract),
     reasoning: contract.reasoning,
     closed: true,
   });

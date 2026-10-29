@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/queryProducerSemanticInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts');
 const checks = [
   ['source-bound execution has explicit runtime validation result', contract.includes('QueryOperationSemanticEvidenceBoundExecutionValidation')],
   ['validator checks ownership against closed decision', contract.includes('ownership_decision_mismatch') && contract.includes('validateQueryOperationSemanticDecision(execution.evidence.operation, execution.decision)')],

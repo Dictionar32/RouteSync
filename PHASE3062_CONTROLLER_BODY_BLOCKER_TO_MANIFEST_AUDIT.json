@@ -1,0 +1,33 @@
+{
+  "phase": 3062,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — controller body blocker to manifest gate",
+  "checks": {
+    "upstreamControllerScanHasSemanticBodyBlockerArm": true,
+    "blockerRetainsSourceIdentityMethodSpanAndExactOutcome": true,
+    "scannerGatesBlockedBodiesBeforeActionProjection": true,
+    "scannerDoesNotPublishPartialControllerArtifactsOnBlockedBody": true,
+    "sourceAstProjectionCarriesNonCompleteControllerScan": true,
+    "sourcePipelineUsesScannerOwnedDomainContinuation": true,
+    "existingManifestBuilderTurnsBlockedProjectionIntoTerminalManifestBlocker": true,
+    "manifestJudgmentIsClosedCompleteOrBlocked": true,
+    "cliScanRoutesBlockedManifestToTerminalHandler": true,
+    "cliSyncRoutesBlockedManifestToTerminalHandler": true,
+    "cliManifestContinuationHasDistinctBlockedArm": true,
+    "controllerBlockerExportedFromCoreBarrel": true,
+    "protectedCollectionsFileStillOneNewlineByte": true,
+    "deletedRelationFoundationModulesRemainAbsent": true,
+    "noClaimOfGlobalPrimitiveElimination": true
+  },
+  "passed": 15,
+  "total": 15,
+  "status": "PASS",
+  "runtimeVerification": {
+    "strictTypeScript": "BLOCKED_BY_EXISTING_DELETED_RELATION_FOUNDATION_IMPORTS_AND_REPOSITORY_TYPE_ERRORS",
+    "endToEndPhpToCliManifest": "NOT_RUN"
+  },
+  "openItems": [
+    "End-to-end PHP source fixture must prove blocked controller body reaches CLI scan/sync manifestBlocked handlers before any manifest/IR write.",
+    "Strict TypeScript closure remains blocked by imports into intentionally deleted relation foundations and unrelated existing type diagnostics.",
+    "Parser-boundary primitives and syntax dispatch remain; no global elimination is claimed."
+  ]
+}

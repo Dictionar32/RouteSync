@@ -1,0 +1,55 @@
+{
+  "phase": 3051,
+  "title": "Upstream → CLI → Manifest Deleted-Foundation Import Frontier",
+  "status": "passed_with_blocking_findings",
+  "runtimeTrace": [
+    "CLI entry: packages/cli/src/manifestScanOperationInterface.ts",
+    "Manifest composition: packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts",
+    "PHP semantic producer: packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts",
+    "Actual semantic construction: packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+    "Semantic validation facade: packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts",
+    "The producer/validation route reaches imports that still name the deleted generic relation foundation."
+  ],
+  "deletedModules": [
+    "packages/core/src/semantic/relations/relationMembership.ts",
+    "packages/core/src/semantic/relations/relationalSequence.ts",
+    "packages/core/src/semantic/relations/semanticRelations.ts"
+  ],
+  "legacyImports": [
+    {
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "line": "import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "line": "import { relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';"
+    },
+    {
+      "file": "packages/core/src/compiler/relational/sequence.ts",
+      "line": "import { relationFirstOption, relationOptionFold, relationEqual } from '../../semantic/relations/relationalSequence';"
+    },
+    {
+      "file": "packages/core/src/compiler/relational/sequence.ts",
+      "line": "} from '../../semantic/relations/relationalSequence';"
+    }
+  ],
+  "legacyImportCount": 4,
+  "checks": {
+    "cliManifestEntryPresent": true,
+    "manifestCompositionBoundaryPresent": true,
+    "phpSemanticProducerPresent": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "staleImportsIntoDeletedFoundationsDetected": true,
+    "noGenericRelationFoundationRecreatedByThisAudit": true
+  },
+  "passed": 6,
+  "total": 6,
+  "blocker": "The deleted relation foundation modules are absent, but active source files still import them. Restoring those modules or recreating a generic replacement is prohibited. The runtime path is not proven build-clean until imports are migrated by actual domain ownership into existing upstream/compiler interfaces.",
+  "migrationPlan": [
+    "Map each referenced operation to the domain consumer that owns its meaning; do not bulk-rewrite imports to a new generic collection foundation.",
+    "Start with the real PHP semantic producer/validator imports and preserve source identity, evidence provider, fact identity, and blocker data.",
+    "Migrate CLI → manifest consumers only after the producer boundary compiles without deleted-foundation imports.",
+    "Run focused strict TypeScript tests, then the actual CLI-to-manifest path; report any unresolved imports rather than claiming end-to-end success."
+  ],
+  "failedChecks": []
+}

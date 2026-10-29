@@ -1,0 +1,44 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, condition, evidence) => checks.push({ name, passed: Boolean(condition), evidence });
+const names = read('packages/core/src/types/upstream/names.ts');
+const coreIndex = read('packages/core/src/index.ts');
+const semanticValues = read('packages/core/src/types/domain/semanticValues.ts');
+const operation = read('packages/cli/src/manifestScanOperationInterface.ts');
+const composition = read('packages/cli/src/upstreamCompositionInterface.ts');
+const manifestComposition = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');
+const scan = read('packages/cli/src/commands/scan.ts');
+const sync = read('packages/cli/src/commands/sync.ts');
+check('source-file identity factory accepts domain-typed StringValue', /SourceFileIdentityFactoryInterface[\s\S]*readonly create: \(sourcePath: StringValue\) => SourceFile/.test(names), 'core/src/types/upstream/names.ts');
+check('source-file identity is constructed by an interface-backed object', /export const sourceFileIdentityFactory: SourceFileIdentityFactoryInterface = Object\.freeze\(/.test(names), 'core/src/types/upstream/names.ts');
+check('legacy raw-string createSourceFile factory is removed', !/export const createSourceFile\s*=\s*\(value:\s*string\)/.test(names), 'core/src/types/upstream/names.ts');
+const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/lib/typescript.js');
+const childProcess = require('node:child_process');
+const tsFiles = childProcess.execSync("find packages -type f -name '*.ts'", { cwd: root, encoding: 'utf8' }).split('\n').filter(Boolean);
+let legacyRuntimeCalls = 0;
+for (const file of tsFiles) {
+  const source = fs.readFileSync(path.join(root, file), 'utf8');
+  const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const visit = node => {
+    if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && node.expression.text === 'createSourceFile') legacyRuntimeCalls++;
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+}
+check('legacy createSourceFile runtime call sites are removed', legacyRuntimeCalls === 0, `identifier-call count=${legacyRuntimeCalls}`);
+check('canonical core public export exposes typed factory', /export \{ sourceFileIdentityFactory,/.test(coreIndex), 'core/src/index.ts');
+check('compatibility semantic-value surface re-exports typed factory and source text factory', /sourceFileIdentityFactory, stringValue/.test(semanticValues), 'core/src/types/domain/semanticValues.ts');
+check('scan and sync commands consume canonical manifest scan operation', /manifestScanOperation\.scan\(/.test(scan) && /manifestScanOperation\.scan\(/.test(sync), 'CLI scan/sync runtime');
+check('manifest operation delegates to canonical composition authority', /authority\.compose\(input\)/.test(operation), 'CLI manifest scan operation');
+check('upstream composition exposes the typed manifest operation', /readonly manifestScanOperation: RouteSyncCliManifestScanOperationInterface/.test(composition), 'CLI upstream composition');
+check('manifest composition constructs source identities from typed text at the ingestion boundary', /sourceFileIdentityFactory\.create\(stringValue\.create\(/.test(manifestComposition), 'CLI source discovery/manifest composition');
+const collections = path.join(root, 'packages/core/src/types/upstream/collections.ts');
+check('collections.ts remains exactly one newline byte', fs.existsSync(collections) && fs.readFileSync(collections).length === 1 && fs.readFileSync(collections)[0] === 10, 'protected file invariant');
+check('deleted relation foundation remains absent', !['relationMembership.ts','relationalSequence.ts','semanticRelations.ts'].some(name => fs.existsSync(path.join(root,'packages/core/src/semantic/relations',name))), 'do not restore deleted relation foundation');
+const failed = checks.filter(item => !item.passed);
+const result = { phase: 3022, audit: 'source-file-identity-interface-conversion', passed: checks.length - failed.length, total: checks.length, checks };
+console.log(JSON.stringify(result, null, 2));
+if (failed.length) process.exitCode = 1;

@@ -1,0 +1,93 @@
+{
+  "phase": 3003,
+  "title": "Upstream Domain Continuations and Interface-First Runtime Factory",
+  "passed": 17,
+  "total": 17,
+  "checks": [
+    {
+      "name": "factory-interface-exists",
+      "passed": true,
+      "detail": "Factory contract is declared in upstream interface module."
+    },
+    {
+      "name": "factory-is-explicit-const",
+      "passed": true,
+      "detail": "Runtime factory uses export const name: Interface = Object.freeze({...})."
+    },
+    {
+      "name": "legacy-parameterized-factory-removed",
+      "passed": true,
+      "detail": "Old exported parameterized factory name is absent."
+    },
+    {
+      "name": "singleton-uses-canonical-factory",
+      "passed": true,
+      "detail": "Production singleton is composed through the same interface-first factory."
+    },
+    {
+      "name": "factory-exported-upstream",
+      "passed": true,
+      "detail": "Upstream barrel exposes the new operation."
+    },
+    {
+      "name": "dependencies-have-domain-contract",
+      "passed": true,
+      "detail": "Factory dependencies are part of the upstream interface contract."
+    },
+    {
+      "name": "publication-result-handlers-exist",
+      "passed": true,
+      "detail": "Publication ADT exposes typed validated/rejected handlers."
+    },
+    {
+      "name": "pipeline-contract-version-synchronized",
+      "passed": true,
+      "detail": "Pipeline contract interface and runtime value both declare version 62."
+    },
+    {
+      "name": "publication-result-has-continuation",
+      "passed": true,
+      "detail": "Both publication outcomes require continueWith."
+    },
+    {
+      "name": "validated-outcome-continues-domain-handler",
+      "passed": true,
+      "detail": "Validated publication delegates to onValidated without reclassification."
+    },
+    {
+      "name": "rejected-outcome-continues-domain-handler",
+      "passed": true,
+      "detail": "Rejected publication delegates to onRejected while retaining its violation ledger."
+    },
+    {
+      "name": "consumer-example-uses-continuation",
+      "passed": true,
+      "detail": "Focused scanner test consumes publication ADT through its domain operation."
+    },
+    {
+      "name": "no-export-function-in-changed-runtime-modules",
+      "passed": true,
+      "detail": "Changed runtime authority modules contain no exported function declarations."
+    },
+    {
+      "name": "collections-remains-empty",
+      "passed": true,
+      "detail": "Intentionally empty collections.ts remains untouched."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:relationMembership.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/relationMembership.ts was not restored."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:relationalSequence.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/relationalSequence.ts was not restored."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:semanticRelations.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/semanticRelations.ts was not restored."
+    }
+  ]
+}

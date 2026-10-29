@@ -1,0 +1,15 @@
+{
+  "phase": 2889,
+  "scope": "discovery runtime trace and ADT ownership audit",
+  "checks": {
+    "compositionConsumesDiscoveryContinuation": true,
+    "upstreamDiscoveryEvidenceContractExists": true,
+    "upstreamDiscoveryContinuationContractExists": true,
+    "producerContinuationStillBranchesOnEvidenceKind": true,
+    "recursiveTraversalPreservesSourceFileIdentity": true,
+    "recursiveTraversalDoesNotUnwrapSourceFile": true,
+    "sourceReadBatchUsesPromiseAllMap": true,
+    "collectionsFileRemainsEmpty": true
+  },
+  "validation": "structural audit only; no full typecheck/build/test/E2E claim"
+}

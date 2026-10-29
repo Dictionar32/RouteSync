@@ -1,0 +1,13 @@
+{
+  "phase": 3091,
+  "scope": "focused source-read result to batch domain operation",
+  "resultOperationDeclared": true,
+  "completeResultContributesDocument": true,
+  "blockedResultContributesBlockerEvidence": true,
+  "batchFactoryDelegatesToDomainOperation": true,
+  "runtimeCliConsumerPreserved": true,
+  "fullRepositoryExportMigrationComplete": false,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

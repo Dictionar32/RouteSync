@@ -1,0 +1,20 @@
+{
+  "phase": 2820,
+  "title": "Upstream Barrel Export Gap Inventory",
+  "directBarrelGapSourceFileCountBeforeTargetedChanges": 52,
+  "directBarrelGapSourceFileCountRemaining": 49,
+  "targetedExplicitExportsAdded": [
+    "routeConstraints.ts: route constraint algebra, ADT, and contracts",
+    "controllerDependencySemanticJudgmentInterface.ts: controller dependency judgment contracts",
+    "controllerReturnSemanticProductionInterface.ts: controller return production contracts"
+  ],
+  "newContractsCreated": false,
+  "collectionsFileBytes": 0,
+  "verification": {
+    "structuralInventory": "available",
+    "typecheck": "not_run",
+    "declarationBuild": "not_run",
+    "fullTestSuite": "not_run",
+    "cliEndToEnd": "not_run"
+  }
+}

@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../semanticTypeConstructionRelations';
+import { semanticTypeConstruction } from '../../../semantic/semanticTypeConstruction';
 /** Declarative direct model-property binding. */
 import type { OriginModelSymbol } from "../../symbols/ModelSymbolTable";
 import { createPropertyName } from "../../../../types/upstream/names";
@@ -10,26 +10,25 @@ import { ResourceFieldSemanticBinding } from "../../../../types/domain/resourceF
 import type { SemanticType } from "../../../../types/domain/semanticType";
 import type { BoundNullability } from "../../../../types/domain/boundAst";
 import type { ResourceFieldExpression } from "../../../../types/domain/expressions";
-import { matchPhpAccessMode } from "../../lexer/phpAstAlgebra";
-import type { PhpAccessMode } from "../../lexer/phpAstExpressionTypes";
+import { matchPhpAccessMode } from "../../../frontend/php/phpAstAlgebra";
+import type { PhpAccessMode } from "../../../frontend/php/phpAstExpressionTypes";
 import type { BoundResourceFieldResult } from "../SemanticResourceBinder";
 import { matchLookup } from "../../../../types/upstream/collections";
 import { relationVariantFold } from "../../../../semantic/relations/relationalSequence";
 import { relationResolve } from "../../../../semantic/relations/relationalSequence";
-import type { ResolvedPropertyBinding } from "../../symbols/model/types";
+import type { ResolvedPropertyBinding } from "../../../semantic/model/resolvedPropertyBinding";
 
-export function bindPropertyAccessField(
-    key: string,
-    prop: string,
-    access: PhpAccessMode,
-    modelSymbol: OriginModelSymbol,
-): BoundResourceFieldResult {
+export interface BindPropertyAccessFieldOperation {
+  (key: string, prop: string, access: PhpAccessMode, modelSymbol: OriginModelSymbol): BoundResourceFieldResult;
+}
+
+export const bindPropertyAccessField: BindPropertyAccessFieldOperation = Object.freeze((key: string, prop: string, access: PhpAccessMode, modelSymbol: OriginModelSymbol): BoundResourceFieldResult => {
     const propertyName = createPropertyName(prop);
     return matchLookup(modelSymbol.resolveProperty(propertyName), {
         missing: () => unresolved(key),
         found: lookup => bindResolved(key, access, modelSymbol, lookup.value),
     });
-}
+});
 
 const bindResolved = (
     key: string,
@@ -50,7 +49,7 @@ const bindResolved = (
 
 const applyNullsafe = (type: SemanticType, access: PhpAccessMode): SemanticType => matchPhpAccessMode(access, {
     direct: () => type,
-    nullsafe: () => relationResolve(!type.isNullable(), () => scannerSemanticType.nullable(type), () => type),
+    nullsafe: () => relationResolve(!type.isNullable(), () => semanticTypeConstruction.nullable(type), () => type),
 });
 
 const toNullability = (type: SemanticType): BoundNullability => relationResolve(
@@ -135,7 +134,7 @@ function unresolved(key: string): BoundResourceFieldResult {
     const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
-        scannerSemanticType.error('Model property could not be resolved'),
+        semanticTypeConstruction.error('Model property could not be resolved'),
         toCamelCase(key),
         boundAst,
     );

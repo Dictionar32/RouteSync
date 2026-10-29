@@ -7,7 +7,7 @@ Phase 407 continues the scanner/resolver authority migration from Phase 406.
 Production scanner/resolver targets:
 
 - `packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts`
-- `packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts`
+- `packages/core/src/compiler/frontend/php/astClassifierEvidence.ts`
 
 ## Architectural change
 

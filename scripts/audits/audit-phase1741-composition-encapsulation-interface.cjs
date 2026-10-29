@@ -4,7 +4,7 @@ const root = process.cwd();
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const index = read('packages/core/src/index.ts');
 const pkg = JSON.parse(read('package.json'));
 const compositionContract = pipeline.slice(pipeline.indexOf('export interface InvocationSemanticIntegratedResponseCompositionContract'), pipeline.indexOf('/** One source knowledge graph'));

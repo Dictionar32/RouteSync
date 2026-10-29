@@ -2,7 +2,7 @@
 
 ## Objective
 
-Push the construct-free frontier through the remaining scanner/lexer/resolver surfaces and the compiler compatibility/constraint boundary. Host-language semantic machinery is not allowed in the audited production frontier:
+Push the construct-free frontier through the remaining frontend/php/resolver surfaces and the compiler compatibility/constraint boundary. Host-language semantic machinery is not allowed in the audited production frontier:
 
 - `if`, `for`, `while`, `switch`, ternary
 - `.map`, `.filter`, `.reduce`, `.flatMap`

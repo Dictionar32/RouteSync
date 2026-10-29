@@ -3,10 +3,10 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const ast = read('packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts');
-const controller = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
-const model = read('packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts');
-const modelTypes = read('packages/core/src/compiler/scanner/lexer/modelAstTypes.ts');
+const ast = read('packages/core/src/compiler/frontend/php/astClassifierEvidence.ts');
+const controller = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
+const model = read('packages/core/src/compiler/frontend/php/modelDeclarationParser.ts');
+const modelTypes = read('packages/core/src/compiler/frontend/php/modelAstTypes.ts');
 
 const checks = {
   phase: 740,

@@ -4,7 +4,7 @@ const root = process.cwd();
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });

@@ -1,0 +1,40 @@
+{
+  "phase": 3036,
+  "title": "Semantic Object Identity — Typed Pair Domain Operations",
+  "scope": "Static contract audit for moving object-pair equality, alias-pair matching, alias deduplication, and same-identity seeding onto upstream typed domain operations. Relation-solver atom conversion remains an explicit legacy boundary.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "Upstream semantic object identity authority consumes SemanticKnowledgeDataFlow assignment evidence",
+    "semanticObjectIdentityOperations.sameUnorderedPair matches alias pairs using canonical KnowledgeId identity",
+    "Typed upstream object-identity domain closes finite by-reference evidence without the legacy relation-solver atom boundary",
+    "Closed or incomplete identity judgments continue through the existing composition path"
+  ],
+  "checks": {
+    "objectIdentityOperationsAreInterfaceBacked": true,
+    "objectIdentityUsesCanonicalKnowledgeIdEquality": true,
+    "focusedPairBehaviorTestAdded": true,
+    "orderedPairEqualityIsDomainOwned": true,
+    "unorderedPairEqualityIsDomainOwned": true,
+    "objectIdentityAuthorityUsesTypedPairEquality": true,
+    "pairKeySerializationRemovedFromConsumer": true,
+    "aliasAssignmentMatchingUsesTypedPairIdentity": true,
+    "aliasEvidenceMatchingUsesTypedPairIdentity": true,
+    "aliasDeduplicationUsesTypedIdentityNotTypedDistinctStringKey": true,
+    "solverAtomConversionIsExplicitlyNamedBoundary": true,
+    "sameIdentitySeedUsesDomainOperation": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionRemainsInRuntimeTrace": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 16,
+  "total": 16,
+  "remainingDebt": [
+    "Phase 3037 retired the object-identity consumer from the legacy relation-solver atom boundary; other consumers remain to be migrated separately.",
+    "The authority still has orchestration branches for closed versus incomplete solver judgments.",
+    "Repository-wide string/number/undefined/null/boolean, map/reduce/array, nullish, ternary, if/switch, and comparison cleanup is not complete.",
+    "Full TypeScript typecheck, Vitest, and CLI-to-manifest end-to-end verification require project dependencies that are not present in this workspace."
+  ],
+  "failedChecks": []
+}

@@ -6,7 +6,7 @@ const contract = readFileSync(resolve(root, 'phpFunctionInvocationSemanticAuthor
 const authority = readFileSync(resolve(root, 'phpFunctionInvocationSemanticAuthority.ts'), 'utf8');
 const nameResolution = readFileSync(resolve(root, 'phpFunctionNameResolutionInterface.ts'), 'utf8');
 const legacyCallAuthority = readFileSync(resolve(root, 'phpFunctionCallSemanticAuthority.ts'), 'utf8');
-const resourceConsumer = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
+const resourceConsumer = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
 const checks = [
   ['resolved invocation retains the closed name-resolution judgment', contract.includes("readonly kind: 'php_function_invocation_resolved'") && contract.includes('readonly resolution: ResolvedPhpFunctionNameJudgment;')],
   ['unresolved invocation retains ambiguous/unresolved/deferred judgment variants', contract.includes('UnresolvedPhpFunctionNameJudgment') && nameResolution.includes("readonly kind: 'function_name_deferred'")],

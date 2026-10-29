@@ -1,7 +1,5 @@
+import type { SourceFile } from './names';
 /** Canonical upstream semantic knowledge/dataflow vocabulary. Scanner syntax is evidence only. */
-import { relationContains, relationUnique } from '../../semantic/relations/relationMembership';
-import { relationOptionalFold, relationVariant, relationVariantValue } from '../../semantic/relations/relationalSequence';
-import { relationAll, relationAny, relationEqual, relationNotEqual, relationResolve, relationFirstOption, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';
 /**
  * Phase 163 — semantic Knowledge/Data-Flow source of truth.
  *
@@ -47,32 +45,65 @@ export type SemanticAbsenceReasonCode = 'not_applicable' | 'not_provided' | 'emp
 export interface SemanticAbsenceReasonDefinition {
     readonly code: SemanticAbsenceReasonCode;
 }
+export interface SemanticPresenceHandlers<T, R> {
+    readonly present: (value: T) => R;
+    readonly absent: (reason: SemanticAbsenceReasonDefinition) => R;
+}
 export type SemanticPresence<T> = {
     readonly kind: 'present';
     readonly value: T;
+    readonly continueWith: <R>(handlers: SemanticPresenceHandlers<T, R>) => R;
 } | {
     readonly kind: 'absent';
     readonly reason: SemanticAbsenceReasonDefinition;
+    readonly continueWith: <R>(handlers: SemanticPresenceHandlers<T, R>) => R;
 };
 export const SEMANTIC_ABSENCE_REASON_KNOWLEDGE: readonly SemanticAbsenceReasonDefinition[] = Object.freeze([{ code: 'not_applicable' }, { code: 'not_provided' }, { code: 'empty_clause' }, { code: 'void_emission' }] satisfies readonly SemanticAbsenceReasonDefinition[]);
-export const semanticPresent = <T>(value: T): SemanticPresence<T> => Object.freeze({ kind: 'present', value });
-export const semanticAbsent = <T>(code: SemanticAbsenceReasonCode): SemanticPresence<T> => Object.freeze({ kind: 'absent', reason: Object.freeze({ code }) });
-function semanticPresenceRefine<T, U extends T>(
-    value: SemanticPresence<T>,
-    predicate: (candidate: SemanticPresence<T>) => candidate is { readonly kind: 'present'; readonly value: U },
-): readonly { readonly kind: 'present'; readonly value: U }[];
-function semanticPresenceRefine<T>(
-    value: SemanticPresence<T>,
-    predicate: (candidate: SemanticPresence<T>) => boolean,
-): readonly SemanticPresence<T>[] {
-    return relationResolve(predicate(value), () => [value], () => []);
+export interface SemanticPresenceOperationsInterface {
+    readonly present: <T>(value: T) => SemanticPresence<T>;
+    readonly absent: <T>(code: SemanticAbsenceReasonCode) => SemanticPresence<T>;
 }
-export function semanticPresenceFold<T, R1, R2>(presence: SemanticPresence<T>, absentBranch: () => R1, presentBranch: (value: T) => R2): R1 | R2;
-export function semanticPresenceFold<T, R>(presence: SemanticPresence<T>, absentBranch: () => R, presentBranch: (value: T) => R): R;
-export function semanticPresenceFold<T, R1, R2>(presence: SemanticPresence<T>, absentBranch: () => R1, presentBranch: (value: T) => R2): R1 | R2 {
-    const witnesses = semanticPresenceRefine(presence, (candidate): candidate is { readonly kind: 'present'; readonly value: T } => relationEqual(candidate.kind, 'present'));
-    return relationResolve(witnesses.length > 0, () => presentBranch(witnesses[0].value), absentBranch);
+export const semanticPresenceOperations: SemanticPresenceOperationsInterface = Object.freeze({
+    present: <T>(value: T): SemanticPresence<T> => Object.freeze({
+        kind: 'present',
+        value,
+        continueWith: <R>(handlers: SemanticPresenceHandlers<T, R>): R => handlers.present(value),
+    }),
+    absent: <T>(code: SemanticAbsenceReasonCode): SemanticPresence<T> => {
+        const reason = Object.freeze({ code });
+        return Object.freeze({
+            kind: 'absent',
+            reason,
+            continueWith: <R>(handlers: SemanticPresenceHandlers<T, R>): R => handlers.absent(reason),
+        });
+    },
+});
+export const semanticPresent = <T>(value: T): SemanticPresence<T> => semanticPresenceOperations.present(value);
+export const semanticAbsent = <T>(code: SemanticAbsenceReasonCode): SemanticPresence<T> => semanticPresenceOperations.absent(code);
+
+/**
+ * Domain-owned selection for canonical semantic knowledge. This deliberately
+ * replaces the deleted generic relation foundation only for this vocabulary;
+ * it is not exported as a reusable collection/relation framework.
+ */
+interface SemanticKnowledgeSelectionOperationsInterface {
+    readonly assignmentReference: (code: SemanticAssignmentReferenceCode) => SemanticPresence<SemanticAssignmentReferenceDefinition>;
+    readonly parserEvidence: () => SemanticEvidenceProvider;
+    readonly dataFlowRole: (code: SemanticDataFlowRoleCode) => SemanticDataFlowRoleDefinition;
+    readonly optionalGuard: (guard: SemanticFlowGuard | undefined) => SemanticPresence<SemanticFlowGuard>;
 }
+
+const semanticKnowledgeSelectionOperations: SemanticKnowledgeSelectionOperationsInterface = Object.freeze({
+    assignmentReference: (code: SemanticAssignmentReferenceCode): SemanticPresence<SemanticAssignmentReferenceDefinition> => {
+        const definition = SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE.find(candidate => Object.is(candidate.code, code));
+        return definition === undefined ? semanticAbsent('not_provided') : semanticPresent(definition);
+    },
+    parserEvidence: (): SemanticEvidenceProvider => SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE.find(candidate => Object.is(candidate.code, 'parser'))!,
+    dataFlowRole: (code: SemanticDataFlowRoleCode): SemanticDataFlowRoleDefinition =>
+        SEMANTIC_DATA_FLOW_ROLE_KNOWLEDGE.find(candidate => Object.is(candidate.code, code))!,
+    optionalGuard: (guard: SemanticFlowGuard | undefined): SemanticPresence<SemanticFlowGuard> =>
+        guard === undefined ? semanticAbsent('not_provided') : semanticPresent(guard),
+});
 export interface SemanticKnowledgeIdentity {
     readonly kind: 'knowledge-identity';
     readonly source: SemanticSource;
@@ -227,36 +258,93 @@ export interface SemanticOutcome {
 export type SemanticAssignmentOperatorCode = 'set' | 'add' | 'subtract' | 'multiply' | 'divide' | 'modulo' | 'concatenate' | 'null_coalesce' | 'power' | 'bitwise_and' | 'bitwise_or' | 'bitwise_xor' | 'shift_left' | 'shift_right';
 export interface SemanticAssignmentOperatorDefinition {
     readonly code: SemanticAssignmentOperatorCode;
+    readonly effect: SemanticAssignmentEffectDefinition;
 }
 export type SemanticAssignmentEffectCode = 'write' | 'read-write';
+export interface SemanticAssignmentEffectProjectionInterface {
+    readonly project: (assignment: SemanticAssignment) => readonly SemanticModRefRelation[];
+}
 export interface SemanticAssignmentEffectDefinition {
     readonly code: SemanticAssignmentEffectCode;
-    readonly operators: readonly SemanticAssignmentOperatorCode[];
+    readonly projection: SemanticAssignmentEffectProjectionInterface;
 }
-/** Semantic operator→memory-effect knowledge; consumers do not encode operator policy. */
-export const SEMANTIC_ASSIGNMENT_EFFECT_KNOWLEDGE: readonly SemanticAssignmentEffectDefinition[] = Object.freeze([
-    Object.freeze({ code: 'write', operators: Object.freeze(['set'] satisfies SemanticAssignmentOperatorCode[]) }),
-    Object.freeze({
-        code: 'read-write',
-        operators: Object.freeze([
-            'add', 'subtract', 'multiply', 'divide', 'modulo', 'concatenate', 'null_coalesce',
-            'power', 'bitwise_and', 'bitwise_or', 'bitwise_xor', 'shift_left', 'shift_right',
-        ] satisfies SemanticAssignmentOperatorCode[]),
+export interface SemanticAssignmentEffectKnowledgeInterface {
+    readonly write: SemanticAssignmentEffectDefinition;
+    readonly readWrite: SemanticAssignmentEffectDefinition;
+}
+/**
+ * Assignment effects own their domain projection. Compound assignment exposes
+ * separate read and write relations instead of compressing both into `mod-ref`.
+ */
+export const semanticAssignmentEffectKnowledge: SemanticAssignmentEffectKnowledgeInterface = Object.freeze({
+    write: Object.freeze({
+        code: 'write',
+        projection: Object.freeze({
+            project: (assignment: SemanticAssignment): readonly SemanticModRefRelation[] => Object.freeze([
+                Object.freeze({ accessor: assignment.id, location: assignment.target, kind: 'mod', alias: 'must-alias', source: assignment.source }),
+            ]),
+        }),
     }),
-]);
-export const semanticAssignmentEffect = (operator: SemanticAssignmentOperatorCode): SemanticPresence<SemanticAssignmentEffectDefinition> => relationOptionFold(relationFirstOption(SEMANTIC_ASSIGNMENT_EFFECT_KNOWLEDGE, effect => relationAny(relationProject(effect.operators, candidate => relationEqual(candidate, operator)))), () => semanticAbsent('not_provided'), effect => semanticPresent(effect));
+    readWrite: Object.freeze({
+        code: 'read-write',
+        projection: Object.freeze({
+            project: (assignment: SemanticAssignment): readonly SemanticModRefRelation[] => Object.freeze([
+                Object.freeze({ accessor: assignment.id, location: assignment.target, kind: 'ref', alias: 'must-alias', source: assignment.source }),
+                Object.freeze({ accessor: assignment.id, location: assignment.target, kind: 'mod', alias: 'must-alias', source: assignment.source }),
+            ]),
+        }),
+    }),
+});
 export const SEMANTIC_ASSIGNMENT_OPERATOR_KNOWLEDGE: readonly SemanticAssignmentOperatorDefinition[] = Object.freeze([
-    { code: 'set' }, { code: 'add' }, { code: 'subtract' }, { code: 'multiply' },
-    { code: 'divide' }, { code: 'modulo' }, { code: 'concatenate' }, { code: 'null_coalesce' },
-    { code: 'power' }, { code: 'bitwise_and' }, { code: 'bitwise_or' }, { code: 'bitwise_xor' },
-    { code: 'shift_left' }, { code: 'shift_right' },
+    Object.freeze({ code: 'set', effect: semanticAssignmentEffectKnowledge.write }),
+    Object.freeze({ code: 'add', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'subtract', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'multiply', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'divide', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'modulo', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'concatenate', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'null_coalesce', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'power', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'bitwise_and', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'bitwise_or', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'bitwise_xor', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'shift_left', effect: semanticAssignmentEffectKnowledge.readWrite }),
+    Object.freeze({ code: 'shift_right', effect: semanticAssignmentEffectKnowledge.readWrite }),
 ] satisfies readonly SemanticAssignmentOperatorDefinition[]);
 export type SemanticAssignmentReferenceCode = 'by_value' | 'by_reference';
+export interface SemanticAssignmentReferenceIdentityBinding {
+    readonly assignment: KnowledgeId;
+    readonly left: KnowledgeId;
+    readonly right: KnowledgeId;
+    readonly source: SemanticSource;
+}
+export interface SemanticAssignmentReferenceIdentityProjectionInterface {
+    readonly project: (assignment: SemanticAssignment) => readonly SemanticAssignmentReferenceIdentityBinding[];
+}
 export interface SemanticAssignmentReferenceDefinition {
     readonly code: SemanticAssignmentReferenceCode;
+    /** Reference mode owns whether this assignment establishes an identity binding. */
+    readonly identityProjection: SemanticAssignmentReferenceIdentityProjectionInterface;
 }
-export const SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE: readonly SemanticAssignmentReferenceDefinition[] = Object.freeze([{ code: 'by_value' }, { code: 'by_reference' }] satisfies readonly SemanticAssignmentReferenceDefinition[]);
-export const semanticAssignmentReference = (code: SemanticAssignmentReferenceCode): SemanticPresence<SemanticAssignmentReferenceDefinition> => relationOptionFold(relationFirstOption(SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE, definition => relationEqual(definition.code, code)), () => semanticAbsent('not_provided'), definition => semanticPresent(definition));
+const noAssignmentReferenceBindings: readonly SemanticAssignmentReferenceIdentityBinding[] = Object.freeze([]);
+const byValueAssignmentReferenceIdentityProjection: SemanticAssignmentReferenceIdentityProjectionInterface = Object.freeze({
+    project: (_assignment: SemanticAssignment): readonly SemanticAssignmentReferenceIdentityBinding[] => noAssignmentReferenceBindings,
+});
+const byReferenceAssignmentIdentityProjection: SemanticAssignmentReferenceIdentityProjectionInterface = Object.freeze({
+    project: (assignment: SemanticAssignment): readonly SemanticAssignmentReferenceIdentityBinding[] => Object.freeze([
+        Object.freeze({ assignment: assignment.id, left: assignment.target, right: assignment.value, source: assignment.source }),
+    ]),
+});
+export const SEMANTIC_ASSIGNMENT_REFERENCE_KNOWLEDGE: readonly SemanticAssignmentReferenceDefinition[] = Object.freeze([
+    Object.freeze({ code: 'by_value', identityProjection: byValueAssignmentReferenceIdentityProjection }),
+    Object.freeze({ code: 'by_reference', identityProjection: byReferenceAssignmentIdentityProjection }),
+] satisfies readonly SemanticAssignmentReferenceDefinition[]);
+export interface SemanticAssignmentReferenceOperationsInterface {
+    readonly resolve: (code: SemanticAssignmentReferenceCode) => SemanticPresence<SemanticAssignmentReferenceDefinition>;
+}
+export const semanticAssignmentReference: SemanticAssignmentReferenceOperationsInterface = Object.freeze({
+    resolve: semanticKnowledgeSelectionOperations.assignmentReference,
+});
 export interface SemanticAssignment {
     readonly id: KnowledgeId;
     readonly target: KnowledgeId;
@@ -585,6 +673,41 @@ export type SemanticFact = {
     readonly kind: 'scope';
     readonly value: SemanticScope;
 };
+/** Source-backed effect results emitted beside the canonical semantic fact. */
+/** Concrete assignment-reference continuation owned by the upstream semantic fact domain. */
+export interface SemanticAssignmentReferenceFactOperationsInterface {
+    readonly identityBindings: (facts: readonly SemanticFact[]) => readonly SemanticAssignmentReferenceIdentityBinding[];
+}
+
+const identityBindingsFromAssignmentFacts = (facts: readonly SemanticFact[]): readonly SemanticAssignmentReferenceIdentityBinding[] => {
+    const bindings: SemanticAssignmentReferenceIdentityBinding[] = [];
+    for (const fact of facts) {
+        if (fact.kind === 'assignment') {
+            bindings.push(...fact.value.reference.identityProjection.project(fact.value));
+        }
+    }
+    return Object.freeze(bindings);
+};
+
+export const semanticAssignmentReferenceFactOperations: SemanticAssignmentReferenceFactOperationsInterface = Object.freeze({
+    identityBindings: identityBindingsFromAssignmentFacts,
+});
+
+export type SemanticModRefKind = 'mod' | 'ref' | 'mod-ref' | 'no-mod-ref';
+export type SemanticAliasKind = 'must-alias' | 'may-alias' | 'no-alias';
+export interface SemanticModRefRelation {
+  readonly accessor: KnowledgeId;
+  readonly location: KnowledgeId;
+  readonly kind: SemanticModRefKind;
+  readonly alias: SemanticAliasKind;
+  readonly source: SemanticSource;
+}
+export type SemanticModRefFact = Readonly<{
+  readonly kind: 'invocation_effect_summary_unmodeled';
+  readonly fact: KnowledgeId;
+  readonly source: SemanticSource;
+}>;
+
 export type SemanticKnowledgeRoleCode = SemanticFact['kind'] | 'reference';
 export type SemanticDataFlowRelationCode = 'depends_on' | 'flows_to';
 export interface SemanticDataFlowRelationDefinition {
@@ -673,57 +796,162 @@ export interface SemanticDataFlowEdge {
 /** Canonical semantic knowledge/dataflow input contract. */
 export interface SemanticKnowledgeDataFlow {
   readonly facts: readonly SemanticFact[];
+  /** Effect-domain evidence emitted at the source construction boundary. */
+  readonly modRefFacts: readonly SemanticModRefFact[];
+  /** Concrete mod/ref effects emitted at the same source construction boundary. */
+  readonly modRefRelations: readonly SemanticModRefRelation[];
   readonly dataFlow: readonly SemanticDataFlowFact[];
   readonly relations: readonly SemanticDataFlowEdge[];
 }
 
-export const semanticText = (value: string): SemanticText => Object.freeze({ kind: 'text', value });
-export const semanticNumber = (value: number): SemanticNumber => Object.freeze({ kind: 'number', value });
-export const semanticBoolean = (value: boolean): SemanticBoolean => Object.freeze({ kind: 'boolean', value });
-export const semanticSourceOffset = (value: number): SemanticSourceOffset => Object.freeze({ kind: 'source-offset', value });
-export const semanticSourceSpan = (start: number, end: number): SemanticSourceSpan => Object.freeze({
-    kind: 'source-span',
-    start: semanticSourceOffset(start),
-    end: semanticSourceOffset(end),
+/** Domain constructor contract: text values are created through the semantic text ADT. */
+export interface SemanticTextFactoryInterface {
+    readonly create: (value: string) => SemanticText;
+}
+export const semanticText: SemanticTextFactoryInterface = Object.freeze({
+    create: (value: string): SemanticText => Object.freeze({ kind: 'text', value }),
 });
-export const semanticSource = (filePath: string, startOffset: number, endOffset: number, evidence: SemanticEvidenceProvider = relationOptionFold(relationFirstOption(SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE, item => relationEqual(item.code, 'parser')), () => SEMANTIC_EVIDENCE_PROVIDER_KNOWLEDGE[0], item => item)): SemanticSource => Object.freeze({ filePath: semanticText(filePath), span: semanticSourceSpan(startOffset, endOffset), evidence });
+
+/** Domain constructor contract for numeric semantic facts. */
+export interface SemanticNumberFactoryInterface {
+    readonly create: (value: number) => SemanticNumber;
+}
+export const semanticNumber: SemanticNumberFactoryInterface = Object.freeze({
+    create: (value: number): SemanticNumber => Object.freeze({ kind: 'number', value }),
+});
+
+/** Domain constructor contract for boolean semantic facts. */
+export interface SemanticBooleanFactoryInterface {
+    readonly create: (value: boolean) => SemanticBoolean;
+}
+export const semanticBoolean: SemanticBooleanFactoryInterface = Object.freeze({
+    create: (value: boolean): SemanticBoolean => Object.freeze({ kind: 'boolean', value }),
+});
+
+/** Source navigation offsets are created as explicit semantic values. */
+export interface SemanticSourceOffsetFactoryInterface {
+    readonly create: (value: number) => SemanticSourceOffset;
+}
+export const semanticSourceOffset: SemanticSourceOffsetFactoryInterface = Object.freeze({
+    create: (value: number): SemanticSourceOffset => Object.freeze({ kind: 'source-offset', value }),
+});
+
+/** Source spans own their endpoint construction instead of leaking offset arithmetic to consumers. */
+export interface SemanticSourceSpanFactoryInterface {
+    readonly create: (start: number, end: number) => SemanticSourceSpan;
+}
+export const semanticSourceSpan: SemanticSourceSpanFactoryInterface = Object.freeze({
+    create: (start: number, end: number): SemanticSourceSpan => Object.freeze({
+        kind: 'source-span',
+        start: semanticSourceOffset.create(start),
+        end: semanticSourceOffset.create(end),
+    }),
+});
+export type SemanticSourceEquality =
+    | Readonly<{ readonly kind: 'same_semantic_source' }>
+    | Readonly<{ readonly kind: 'different_semantic_source' }>;
+export interface SemanticSourceOperationsInterface {
+    readonly create: (filePath: string, startOffset: number, endOffset: number, evidence?: SemanticEvidenceProvider) => SemanticSource;
+    readonly createForFile: (sourceFile: SourceFile, startOffset: number, endOffset: number, evidence: SemanticEvidenceProvider) => SemanticSource;
+    readonly same: (left: SemanticSource, right: SemanticSource) => SemanticSourceEquality;
+}
+export const semanticSource: SemanticSourceOperationsInterface = Object.freeze({
+    create: (filePath: string, startOffset: number, endOffset: number, evidence: SemanticEvidenceProvider = semanticKnowledgeSelectionOperations.parserEvidence()): SemanticSource => Object.freeze({ filePath: semanticText.create(filePath), span: semanticSourceSpan.create(startOffset, endOffset), evidence }),
+    createForFile: (sourceFile: SourceFile, startOffset: number, endOffset: number, evidence: SemanticEvidenceProvider): SemanticSource => Object.freeze({ filePath: semanticText.create(sourceFile.value.value), span: semanticSourceSpan.create(startOffset, endOffset), evidence }),
+    same: (left: SemanticSource, right: SemanticSource): SemanticSourceEquality =>
+        left.filePath.value === right.filePath.value
+        && left.span.start.value === right.span.start.value
+        && left.span.end.value === right.span.end.value
+        && left.evidence.code === right.evidence.code
+            ? Object.freeze({ kind: 'same_semantic_source' as const })
+            : Object.freeze({ kind: 'different_semantic_source' as const }),
+});
 export const knowledgeId = (source: SemanticSource, role: SemanticKnowledgeRoleCode, slot = 'self'): KnowledgeId => Object.freeze({
     kind: 'knowledge-id',
     identity: Object.freeze({
         kind: 'knowledge-identity',
         source,
         role,
-        slot: semanticText(slot),
+        slot: semanticText.create(slot),
     }),
 });
-/** Derived lookup key. This string is never semantic source-of-truth. */
+export type KnowledgeIdEquality =
+    | Readonly<{ readonly kind: 'same_knowledge_id' }>
+    | Readonly<{ readonly kind: 'different_knowledge_id' }>;
+export interface SemanticKnowledgeIdOperationsInterface {
+    readonly same: (left: KnowledgeId, right: KnowledgeId) => KnowledgeIdEquality;
+}
+export const semanticKnowledgeIdOperations: SemanticKnowledgeIdOperationsInterface = Object.freeze({
+    same: (left: KnowledgeId, right: KnowledgeId): KnowledgeIdEquality =>
+        semanticSource.same(left.identity.source, right.identity.source).kind === 'same_semantic_source'
+        && Object.is(left.identity.role, right.identity.role)
+        && Object.is(left.identity.slot.value, right.identity.slot.value)
+            ? Object.freeze({ kind: 'same_knowledge_id' as const })
+            : Object.freeze({ kind: 'different_knowledge_id' as const }),
+});
+/** Derived lookup key for legacy relation indexes; typed equality is the identity contract. */
 export const knowledgeIdKey = (id: KnowledgeId): string => {
     const { source, role, slot } = id.identity;
     return `${source.filePath.value}:${source.span.start.value}:${source.span.end.value}:${role}:${slot.value}`;
 };
-export const semanticIdentifier = (value: string): SemanticIdentifier => Object.freeze({ kind: 'identifier', value: semanticText(value) });
-export const semanticOperation = (value: string): SemanticOperation => Object.freeze({ kind: 'operation', name: semanticText(value) });
+/** Creates an explicit semantic identifier value used by upstream knowledge facts. */
+export interface SemanticIdentifierOperationsInterface {
+    readonly create: (value: string) => SemanticIdentifier;
+}
+export const semanticIdentifier: SemanticIdentifierOperationsInterface = Object.freeze({
+    create: (value: string): SemanticIdentifier => Object.freeze({ kind: 'identifier', value: semanticText.create(value) }),
+});
+/** Creates a semantic operation descriptor; it is not a generic string helper. */
+export interface SemanticOperationOperationsInterface {
+    readonly create: (value: string) => SemanticOperation;
+}
+export const semanticOperation: SemanticOperationOperationsInterface = Object.freeze({
+    create: (value: string): SemanticOperation => Object.freeze({ kind: 'operation', name: semanticText.create(value) }),
+});
 export const semanticFact = <T extends SemanticFact>(fact: T): T => Object.freeze(fact);
-export const semanticDataFlowRole = (code: SemanticDataFlowRoleCode): SemanticDataFlowRoleDefinition => relationOptionFold(relationFirstOption(SEMANTIC_DATA_FLOW_ROLE_KNOWLEDGE, definition => relationEqual(definition.code, code)), () => SEMANTIC_DATA_FLOW_ROLE_KNOWLEDGE[0], definition => definition);
-export const semanticDependency = (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard): SemanticDataFlowFact => Object.freeze({
-    kind: 'dependency',
-    source,
-    target,
-    role: semanticDataFlowRole(role),
-    guard: relationOptionalFold<SemanticFlowGuard, SemanticPresence<SemanticFlowGuard>>(guard, () => semanticAbsent<SemanticFlowGuard>('not_provided'), value => semanticPresent(value)),
+export interface SemanticDataFlowRoleOperationsInterface {
+    readonly resolve: (code: SemanticDataFlowRoleCode) => SemanticDataFlowRoleDefinition;
+}
+export const semanticDataFlowRole: SemanticDataFlowRoleOperationsInterface = Object.freeze({
+    resolve: semanticKnowledgeSelectionOperations.dataFlowRole,
 });
-export const semanticValueFlow = (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard): SemanticDataFlowFact => Object.freeze({
-    kind: 'value-flow',
-    source,
-    target,
-    role: semanticDataFlowRole(role),
-    guard: relationOptionalFold<SemanticFlowGuard, SemanticPresence<SemanticFlowGuard>>(guard, () => semanticAbsent<SemanticFlowGuard>('not_provided'), value => semanticPresent(value)),
+/** Domain operation for recording a dependency fact in the semantic data-flow model. */
+export interface SemanticDependencyOperationsInterface {
+    readonly create: (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard) => SemanticDataFlowFact;
+}
+export const semanticDependency: SemanticDependencyOperationsInterface = Object.freeze({
+    create: (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard): SemanticDataFlowFact => Object.freeze({
+        kind: 'dependency',
+        source,
+        target,
+        role: semanticDataFlowRole.resolve(role),
+        guard: semanticKnowledgeSelectionOperations.optionalGuard(guard),
+    }),
 });
-export const semanticEdge = (from: KnowledgeId, to: KnowledgeId, relation: SemanticDataFlowRelationCode, role: SemanticDataFlowRoleCode): SemanticDataFlowEdge => Object.freeze({
-    from,
-    to,
-    relation: Object.freeze({ code: relation }),
-    role: semanticDataFlowRole(role),
+/** Domain operation for recording value-flow facts without erasing their semantic kind. */
+export interface SemanticValueFlowOperationsInterface {
+    readonly create: (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard) => SemanticDataFlowFact;
+}
+export const semanticValueFlow: SemanticValueFlowOperationsInterface = Object.freeze({
+    create: (source: KnowledgeId, target: KnowledgeId, role: SemanticDataFlowRoleCode, guard?: SemanticFlowGuard): SemanticDataFlowFact => Object.freeze({
+        kind: 'value-flow',
+        source,
+        target,
+        role: semanticDataFlowRole.resolve(role),
+        guard: semanticKnowledgeSelectionOperations.optionalGuard(guard),
+    }),
+});
+/** Domain operation preserving the explicit semantic relationship code and endpoints. */
+export interface SemanticDataFlowEdgeOperationsInterface {
+    readonly create: (from: KnowledgeId, to: KnowledgeId, relation: SemanticDataFlowRelationCode, role: SemanticDataFlowRoleCode) => SemanticDataFlowEdge;
+}
+export const semanticEdge: SemanticDataFlowEdgeOperationsInterface = Object.freeze({
+    create: (from: KnowledgeId, to: KnowledgeId, relation: SemanticDataFlowRelationCode, role: SemanticDataFlowRoleCode): SemanticDataFlowEdge => Object.freeze({
+        from,
+        to,
+        relation: Object.freeze({ code: relation }),
+        role: semanticDataFlowRole.resolve(role),
+    }),
 });
 /**
  * Semantic vocabulary is data. Syntax producers resolve syntax into these

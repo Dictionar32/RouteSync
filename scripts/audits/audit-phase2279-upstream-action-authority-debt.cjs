@@ -4,7 +4,7 @@ const { join } = require('node:path');
 const root = process.cwd();
 const upstream = readFileSync(join(root, 'packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts'), 'utf8');
 const wiring = readFileSync(join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts'), 'utf8');
-const legacy = readFileSync(join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts'), 'utf8');
+const legacy = readFileSync(join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts'), 'utf8');
 const dataflow = readFileSync(join(root, 'packages/core/src/types/upstream/semanticDataflowKnowledge.ts'), 'utf8');
 
 const checks = [

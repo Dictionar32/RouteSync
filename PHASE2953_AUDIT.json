@@ -1,0 +1,20 @@
+{
+  "phase": 2953,
+  "title": "SourceFileInventory Identity Operation",
+  "scope": [
+    "packages/core/src/types/upstream/names.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "packages/core/src/types/upstream/__tests__/source-file-inventory-domain-visitor.phase2921.test.ts"
+  ],
+  "verification": {
+    "structuralAudit": "11/11 passed",
+    "typescriptSyntax": "3/3 changed TypeScript files transpiled with zero syntax diagnostics",
+    "focusedVitest": "not run; vitest binary unavailable in workspace",
+    "fullTypecheck": "not run; local tsc executable unavailable",
+    "fullTests": "not run",
+    "build": "not run",
+    "cliE2E": "not run",
+    "collectionsTsBytes": 0,
+    "phase2952Audit": "11/11 passed after updating assertions to the new domain operation"
+  }
+}

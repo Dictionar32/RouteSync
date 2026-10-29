@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveEffectiveControllerActionPolicyUpstream } from '../effectiveControllerActionPolicyResolver';
+import { effectiveControllerActionPolicyUpstreamOperations } from '../effectiveControllerActionPolicyResolver';
 import { createActionName, createControllerName, createMiddlewareName } from '../names';
 
 describe('Phase 931 effective route resource policy', () => {
@@ -9,7 +9,7 @@ describe('Phase 931 effective route resource policy', () => {
     const auth = createMiddlewareName('auth');
     const verified = createMiddlewareName('verified');
     const source = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: 'routes/web.php' } }, start: { kind: 'number_value' as const, value: 1 }, end: { kind: 'number_value' as const, value: 10 } };
-    const result = resolveEffectiveControllerActionPolicyUpstream({
+    const result = effectiveControllerActionPolicyUpstreamOperations.resolve({
       controller,
       action: index,
       middleware: {

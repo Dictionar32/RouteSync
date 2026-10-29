@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const query = read('packages/core/src/types/upstream/query.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts');
 const interfaceSource = read('packages/core/src/types/upstream/queryProducerSemanticInterface.ts');
 const checks = [
   ['query AST carries authoritative operation judgments', /readonly operationJudgments:\s*Sequence<QueryProducerSemanticJudgment<QueryOperationAst>>/.test(query)],

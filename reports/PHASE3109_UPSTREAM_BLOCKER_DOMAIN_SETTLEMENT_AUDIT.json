@@ -1,0 +1,17 @@
+{
+  "phase": 3109,
+  "scope": "replace generic discovery-blocker continuation with a fixed upstream-owned blocked-judgment operation",
+  "blockerHasFixedDomainOperation": true,
+  "genericBlockerHandlersRemoved": true,
+  "genericBlockerContinuationRemoved": true,
+  "filesystemFailureSettlementUsesBlockerOperation": true,
+  "blockerObjectIsPreservedInJudgment": true,
+  "filesystemClassifierStillOwnsFailureToBlockerMapping": true,
+  "runtimeCliStillUsesUpstreamFailureSettlement": true,
+  "regressionTestsCoverAllBlockerKinds": true,
+  "regressionTestsAssertEvidencePreservation": true,
+  "noDeletedRelationFoundationRestored": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

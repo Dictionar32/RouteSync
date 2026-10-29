@@ -1,0 +1,57 @@
+{
+  "phase": 3059,
+  "title": "Evidence projection outcome propagation",
+  "passed": 12,
+  "total": 12,
+  "status": "PASS",
+  "results": [
+    {
+      "name": "upstream defines a language-neutral production outcome ADT",
+      "pass": true
+    },
+    {
+      "name": "blocked outcome retains typed validation violations",
+      "pass": true
+    },
+    {
+      "name": "projection preserves source identity and evidence provenance",
+      "pass": true
+    },
+    {
+      "name": "projection carries production outcome as domain data",
+      "pass": true
+    },
+    {
+      "name": "PHP evidence adapter calls outcome-producing operation",
+      "pass": true
+    },
+    {
+      "name": "projection retains the canonical knowledge for compatibility",
+      "pass": true
+    },
+    {
+      "name": "upstream contract does not import PHP compiler implementation",
+      "pass": true
+    },
+    {
+      "name": "production outcome is exported from the upstream type barrel",
+      "pass": true
+    },
+    {
+      "name": "typed producer outcome remains defined in upstream rather than duplicated",
+      "pass": true
+    },
+    {
+      "name": "deleted generic relation foundations remain absent",
+      "pass": true
+    },
+    {
+      "name": "collections invariant remains exactly one newline byte",
+      "pass": true
+    },
+    {
+      "name": "audit command is registered",
+      "pass": true
+    }
+  ]
+}

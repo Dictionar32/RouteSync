@@ -23,10 +23,10 @@ Elevate callable-boundary handling from a scanner-adjacent low-level rewrite int
    - Reduced to a small public authority binding that delegates to the canonical algebra.
    - Retains compatibility exports for existing consumers.
 
-4. `packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts`
+4. `packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts`
    - Remains a compatibility facade only. It delegates to the upstream interface and authority; it contains no invocation reasoning branch.
 
-5. `packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts`
+5. `packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts`
    - Added a regression case where one invocation has two arguments but the callable has one parameter.
    - Asserts that the known target and first binding are retained, the second argument becomes an explicit obligation, and semantic status is `incomplete` even though the rewrite proof is `closed`.
 

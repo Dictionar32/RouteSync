@@ -14,76 +14,90 @@ import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
 import type { ModelAst, ResourceAst } from '../../../types/upstream/ast';
 import { resourceModelKeyCapabilitiesFromAsts } from '../../../types/upstream/resourceModelKeyCapability';
-import { matchDiscovered, matchSourceDiscovery } from '../../../types/upstream/collections';
-import type { Sequence, SourceDiscovery } from '../../../types/upstream/collections';
+import type { SourceDiscovery } from '../../../types/upstream/collections';
 import type { RouteManifestProjection } from './routeManifestProjectionInterface';
 
-const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>
-  items.kind === 'empty' ? output : sequenceToArray(items.tail, Object.freeze([...output, items.head]));
+/** A complete manifest must never downgrade an unscanned source category to an empty collection. */
+const discoveredItems = <T>(discovery: SourceDiscovery<T>, category: string): readonly T[] => {
+    if (discovery.kind === 'not_scanned') {
+        throw new Error(`CompleteSourceAst invariant violated: ${category} was not scanned before manifest lowering.`);
+    }
 
-const discoveredMany = <T>(discovery: SourceDiscovery<T>): readonly T[] =>
-  matchSourceDiscovery(discovery, {
-    notScanned: () => [],
-    scanned: scanned => matchDiscovered(scanned.result, {
-      empty: () => [],
-      many: many => sequenceToArray(many.items),
-    }),
-  });
+    return discovery.items;
+};
 
-const routeFlowsFromManifest = (manifest: RouteSyncManifest): readonly RouteSemanticFlow[] =>
-  Object.freeze(manifest.ast.ast.routeFlows);
+export interface RouteManifestAstProjectionOperationsInterface {
+    readonly kind: 'route_manifest_ast_projection_operations';
+    readonly routeFlows: (manifest: RouteSyncManifest) => readonly RouteSemanticFlow[];
+    readonly models: (manifest: RouteSyncManifest) => readonly ModelAst[];
+    readonly resources: (manifest: RouteSyncManifest) => readonly ResourceAst[];
+    readonly channels: (manifest: RouteSyncManifest) => readonly BroadcastChannelDescriptor[];
+}
 
-const modelAsts = (manifest: RouteSyncManifest): readonly ModelAst[] =>
-  discoveredMany(manifest.ast.ast.models.items);
+export const routeManifestAstProjectionOperations: RouteManifestAstProjectionOperationsInterface = Object.freeze({
+    kind: 'route_manifest_ast_projection_operations',
+    routeFlows: (manifest: RouteSyncManifest): readonly RouteSemanticFlow[] =>
+        Object.freeze(manifest.ast.ast.routeFlows),
+    models: (manifest: RouteSyncManifest): readonly ModelAst[] =>
+        discoveredItems(manifest.ast.ast.models.items, 'models'),
+    resources: (manifest: RouteSyncManifest): readonly ResourceAst[] =>
+        discoveredItems(manifest.ast.ast.resources.items, 'resources'),
+    channels: (manifest: RouteSyncManifest): readonly BroadcastChannelDescriptor[] => {
+        const channels = discoveredItems(manifest.ast.ast.channels.items, 'channels');
+        return Object.freeze(channels.map(channel => {
+            const common = {
+                name: channel.semantic.name.value.value,
+                pattern: channel.semantic.pattern.value.value,
+                runtimePattern: channel.semantic.runtimePattern.value.value,
+                parameters: channel.semantic.parameters,
+            };
+            return channel.semantic.channelKind.continueWith({
+                public: () => Object.freeze({ ...common, kind: 'public' as const, isPrivate: false, isPresence: false }),
+                private: () => Object.freeze({ ...common, kind: 'private' as const, isPrivate: true, isPresence: false }),
+                presence: () => Object.freeze({ ...common, kind: 'presence' as const, isPrivate: true, isPresence: true }),
+            });
+        }));
+    },
+});
 
-const resourceAsts = (manifest: RouteSyncManifest): readonly ResourceAst[] =>
-  discoveredMany(manifest.ast.ast.resources.items);
+export interface RouteSyncManifestLoweringOperationsInterface {
+    readonly lower: (
+        manifest: RouteSyncManifest,
+        baseURL: string,
+        version: string,
+        projection: RouteManifestProjection,
+    ) => RouteManifest;
+}
 
-const channelDescriptorsFromManifest = (manifest: RouteSyncManifest): readonly BroadcastChannelDescriptor[] => {
-    const channels = discoveredMany(manifest.ast.ast.channels.items);
-    return Object.freeze(channels.map(channel => {
-        const kind = channel.semantic.channelKind.kind;
-        const parameters = sequenceToArray(channel.semantic.parameters);
+export const routeSyncManifestLoweringOperations: RouteSyncManifestLoweringOperationsInterface = Object.freeze({
+    lower: (
+        manifest: RouteSyncManifest,
+        baseURL: string,
+        version: string,
+        projection: RouteManifestProjection,
+    ): RouteManifest => {
+        const routes = routeManifestAstProjectionOperations.routeFlows(manifest);
+        const models = routeManifestAstProjectionOperations.models(manifest);
+        const resources = routeManifestAstProjectionOperations.resources(manifest);
+        const resourceModelKeyCapabilities = resourceModelKeyCapabilitiesFromAsts(resources, models);
+
         return Object.freeze({
-            name: channel.semantic.name.value.value,
-            kind,
-            pattern: channel.semantic.pattern.value.value,
-            runtimePattern: channel.semantic.runtimePattern.value.value,
-            parameters,
-            isPrivate: channel.semantic.requiresAuthentication.kind === 'true',
-            isPresence: kind === 'presence',
+            version,
+            baseURL,
+            routes,
+            resources,
+            models,
+            resourceModelKeyCapabilities,
+            resourceGroupCapabilities: manifest.resourceGroupCapabilities,
+            routeGroups: Object.freeze([]),
+            requestTypes: projection.requestTypes,
+            semanticTypes: projection.semanticTypes,
+            generatedAt: new Date().toISOString(),
+            channels: routeManifestAstProjectionOperations.channels(manifest),
+            frontend: { kind: 'disabled' as const },
+            pages: Object.freeze([]),
         });
-    }));
-};
-
-
-export const lowerRouteSyncManifestToRouteManifest: (
-    manifest: RouteSyncManifest,
-    baseURL: string,
-    version: string,
-    projection: RouteManifestProjection,
-) => RouteManifest = (manifest, baseURL, version, projection) => {
-    const routes = routeFlowsFromManifest(manifest);
-    const models = modelAsts(manifest);
-    const resources = resourceAsts(manifest);
-    const resourceModelKeyCapabilities = resourceModelKeyCapabilitiesFromAsts(resources, models);
-
-    return Object.freeze({
-        version,
-        baseURL,
-        routes,
-        resources,
-        models,
-        resourceModelKeyCapabilities,
-        resourceGroupCapabilities: manifest.resourceGroupCapabilities,
-        routeGroups: Object.freeze([]),
-        requestTypes: projection.requestTypes,
-        semanticTypes: projection.semanticTypes,
-        generatedAt: new Date().toISOString(),
-        channels: channelDescriptorsFromManifest(manifest),
-        frontend: { kind: 'disabled' as const },
-        pages: Object.freeze([]),
-    });
-};
+    },
+});
 
 

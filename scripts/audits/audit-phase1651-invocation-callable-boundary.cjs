@@ -5,11 +5,11 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
-const test = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
-const controllerAnalyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const controllerAst = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const knowledgeAdapter = read('packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const test = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
+const controllerAnalyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const controllerAst = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const knowledgeAdapter = read('packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts');
 const checks = [
   ['versioned callable-boundary invariants', /version: 8;[\s\S]*callableBoundary:[\s\S]*contract-validated-judgment/.test(contract)],
   ['authority publishes canonical contract', /readonly contract: InvocationSemanticContract/.test(contract) && /contract: INVOCATION_SEMANTIC_CONTRACT/.test(authority)],

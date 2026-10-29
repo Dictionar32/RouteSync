@@ -1,7 +1,7 @@
 import { relationOptionFold, relationRefine } from '../../../semantic/relations/relationalSequence';
 import { relationEqual } from '../../../semantic/relations/semanticRelations';
 import type { ControllerVariableSemanticEvidence } from '../../../types/upstream/controllerVariableSemanticInterface';
-import type { PhpAstValue } from '../lexer/phpAstTypes';
+import type { PhpAstValue } from '../../frontend/php/phpAstTypes';
 
 type StringLiteralValue = Extract<PhpAstValue, { readonly kind: 'literal'; readonly literalType: 'string' }>;
 const isStringLiteral = (candidate: PhpAstValue): candidate is StringLiteralValue => relationOptionFold(

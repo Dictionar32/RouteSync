@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const iface = read('packages/core/src/types/upstream/scannerCallableListInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerCallableListAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const checks = [
   ['parameter evidence is typed', iface.includes('CallableParameterEvidence<Token>') && iface.includes('CallableParameterJudgment<Token>')],
   ['argument evidence is a closed union', iface.includes("kind: 'positional'") && iface.includes("kind: 'named'") && iface.includes("kind: 'unpacked'")],

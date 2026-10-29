@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelParser.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelParser.ts',
 ].map(file => path.join(process.cwd(), file));
 const checks = {
   if: /\bif\b/g, for: /\bfor\b/g, while: /\bwhile\b/g, switch: /\bswitch\b/g,

@@ -2,7 +2,7 @@
 
 ## Trace finding
 
-The active Laravel scanner tokenizer (`packages/core/src/compiler/scanner/lexer/tokenizer.ts`) is a lexical scanner, while `phpMethodParser.ts` parses a method-level construct. Neither file constitutes a whole-file PHP AST frontend that inventories namespace regions, imports, named function declarations, all function calls, and arguments. The existing `PhpSourceFrontendInterface` had no typed traversal provenance to distinguish these scopes, so coverage labels alone could claim more than the current parser proves.
+The active Laravel scanner tokenizer (`packages/core/src/compiler/frontend/php/tokenizer.ts`) is a lexical scanner, while `phpMethodParser.ts` parses a method-level construct. Neither file constitutes a whole-file PHP AST frontend that inventories namespace regions, imports, named function declarations, all function calls, and arguments. The existing `PhpSourceFrontendInterface` had no typed traversal provenance to distinguish these scopes, so coverage labels alone could claim more than the current parser proves.
 
 ## Interface-first changes
 

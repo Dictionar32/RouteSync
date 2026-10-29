@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const routeProducer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeProducer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const requestBinding = read('packages/core/src/types/upstream/laravelControllerRequestSemanticBinding.ts');
 const executor = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
@@ -17,7 +17,7 @@ const checks = [
   ['action contract version synchronizes with production wiring', /readonly version: 18;/.test(contract) && /version: 18 as const/.test(wiring)],
   ['runtime executor still forwards the exact semantic judgment', /semanticJudgment: input\.semanticJudgment/.test(wiring) && /semanticJudgment: LaravelControllerActionSemanticJudgmentInterface/.test(executor)],
   ['invocation correlation and integrated response pipeline remain wired', /invocationJudgment/.test(scanner) && /judgeIntegratedResponse/.test(scanner)],
-  ['no new relation/foundation or subscanner layer was introduced', !/types\/upstream\/(relation|foundation)(\/|')|semantic\/(relation|foundation)(\/|')|subscanners\/(relation|foundation)(\/|')/.test(contract + wiring) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation'))],
+  ['no new relation/foundation or subscanner layer was introduced', !/types\/upstream\/(relation|foundation)(\/|')|semantic\/(relation|foundation)(\/|')|operations\/(relation|foundation)(\/|')/.test(contract + wiring) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation'))],
   ['source trace documentation records the open boundary', /typed_request_binding_projection_loss/.test(read('packages/core/src/types/upstream/docs/PHASE2149-TYPED-REQUEST-PROJECTION-LOSS-INTERFACE-FIRST.md')) && /no_request/.test(read('reports/phase2149/TRACE.md'))],
 ];
 const syntaxFiles = [

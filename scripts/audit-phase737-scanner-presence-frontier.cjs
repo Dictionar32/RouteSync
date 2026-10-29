@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const controller = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts'), 'utf8');
-const dataflow = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts'), 'utf8');
-const semanticPresence = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts'), 'utf8');
+const controller = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerBodyParser.ts'), 'utf8');
+const dataflow = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts'), 'utf8');
+const semanticPresence = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 const checks = {

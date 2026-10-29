@@ -19,7 +19,7 @@ const results = [
   ['integrated resource response retains the exact controller scan used for binding', /readonly controllerScan: LaravelControllerScanJudgment/.test(contract) && /controllerScan: input\.controllerScan/.test(scanner) && /sourceBinding: 'scan_judgment_carries_the_exact_controller_scan_object_used_for_binding'/.test(contract)],
   ['scanner executor uses canonical model and response contract', /semanticJudgmentModel: RESOURCE_MODEL_BINDING_SEMANTIC_JUDGMENT_MODEL/.test(scanner) && /responseContract: LARAVEL_RESOURCE_INTEGRATED_RESPONSE_CONTRACT/.test(scanner)],
   ['CLI invocation pipeline and source AST resource pipeline remain intact', /buildManifestWithInvocationPipeline/.test(cli) && /laravelResourceScanner\.scan/.test(pipeline)],
-  ['legacy ResourceScanner is not recreated and resourceProducer dependency remains explicit', !exists('packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts') && /resourceProducer\.produceResult/.test(scanner)],
+  ['legacy ResourceScanner is not recreated and resourceProducer dependency remains explicit', !exists('packages/core/src/compiler/scanner/operations/ResourceScanner.ts') && /resourceProducer\.produceResult/.test(scanner)],
   ['semantic authority still consumes the upstream declarative rule set', /RESOURCE_MODEL_BINDING_SEMANTIC_RULE_SET\.rules/.test(authority)],
   ['new model does not introduce semantic foundation dependency', !/semantic\/foundation/.test(model + contract + scanner)],
 ];

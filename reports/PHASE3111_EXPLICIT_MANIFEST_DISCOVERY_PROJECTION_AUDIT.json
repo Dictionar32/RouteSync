@@ -1,0 +1,22 @@
+{
+  "phase": 3111,
+  "scope": "replace the real CLI discovery-to-manifest generic visitor boundary with an explicit core-owned projection ADT",
+  "upstreamProjectionHasExplicitCompleteAndBlockedVariants": true,
+  "projectionPreservesCompleteIdentityAndEvidence": true,
+  "projectionPreservesBlockedIdentityPartialInventoryAndBlocker": true,
+  "runtimeCliConsumesProjectionInsteadOfGenericDiscoveryVisitor": true,
+  "runtimeBlockedManifestRetainsOriginalBlockedJudgment": true,
+  "regressionCoversCompleteAndBlockedProjection": true,
+  "noDeletedRelationFoundationRestored": true,
+  "astInventory": {
+    "typescriptFiles": 2245,
+    "exportedFunctionDeclarations": 520,
+    "exportedArrowOrFunctionExpressionVariables": 459,
+    "genericContinueWithArrowImplementations": 51
+  },
+  "globalExportMigrationComplete": false,
+  "globalPrimitiveAndControlFlowErasureComplete": false,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

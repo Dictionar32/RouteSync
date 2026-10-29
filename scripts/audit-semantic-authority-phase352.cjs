@@ -4,7 +4,7 @@ const root = process.cwd();
 const targets = [
   'packages/core/src/semantic/kernel',
   'packages/core/src/compiler/constraints/solver',
-  'packages/core/src/compiler/scanner/lexer/routeAst',
+  'packages/core/src/compiler/frontend/php/routeAst',
   'packages/core/src/semantic/plugins/expression',
 ];
 const forbidden = /\b(?:if|for|while|switch|map|filter|reduce|flatMap|undefined|null|as)\b|\?\?|===|!==/g;

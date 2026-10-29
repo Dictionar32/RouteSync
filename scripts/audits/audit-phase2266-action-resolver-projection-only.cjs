@@ -1,11 +1,11 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const resolverPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const wiringPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const contractPath = path.join(root, 'packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
-const legacyActionScannerPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
-const subscannerBarrelPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/index.ts');
+const legacyActionScannerPath = path.join(root, 'packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
+const subscannerBarrelPath = path.join(root, 'packages/core/src/compiler/scanner/operations/controller/index.ts');
 const retirementPath = path.join(root, 'packages/core/src/types/upstream/laravelSubscannerRetirementInterface.ts');
 const resolver = fs.readFileSync(resolverPath, 'utf8');
 const wiring = fs.readFileSync(wiringPath, 'utf8');
@@ -21,7 +21,7 @@ const checks = [
   ['resolver does not invoke semantic authorities', !/\.judge\(|\.produce\(|\.project\(/.test(resolverBody)],
   ['resolver does not classify resource candidates', !/resourceBindingAuthority|resourceReturnSourceEvidenceProjection|ControllerResourceBindingJudgment/.test(resolverBody)],
   ['resolver does not derive dependencies', !/resolveConstructorDependencies|resolveMethodDependencies|dependencySemanticJudgmentAuthority/.test(resolverBody)],
-  ['action contract module has no scanner subscanner imports', !/from ['"].*subscanners\//.test(resolver)],
+  ['action contract module has no scanner subscanner imports', !/from ['"].*operations\//.test(resolver)],
   ['existing response authority is wired before resolver', wiring.indexOf('responseReferenceJudgmentAuthority.judge(') < wiring.indexOf('actionContractResolver.resolve(')],
   ['existing return producer is wired before resolver', wiring.indexOf('returnSemanticProduction.produce(') < wiring.indexOf('actionContractResolver.resolve(')],
   ['existing resource authority is wired before resolver', wiring.indexOf('resourceBindingAuthority.judge(') < wiring.indexOf('actionContractResolver.resolve(')],

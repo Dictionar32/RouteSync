@@ -14,7 +14,7 @@ const checks = [
   ['scanner passes integrated judgment context rather than rebuilding response outcome', /kind: 'integrated_invocation_response_judgment'/.test(scanner) && /responseJudgment[,}]/.test(scanner)],
   ['runtime executor delegates judgment to upstream authority', /execute: \(input: InvocationSemanticInput\): InvocationSemanticJudgment => authority\.analyze\(input\)/.test(executor)],
   ['runtime executor contains no invocation outcome classifier', !/switch\s*\([^)]*\.kind|if\s*\([^)]*\.kind/.test(executor)],
-  ['no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation/foundation'))],
+  ['no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation/foundation'))],
 ];
 let failed = 0;
 for (const [name, pass] of checks) {

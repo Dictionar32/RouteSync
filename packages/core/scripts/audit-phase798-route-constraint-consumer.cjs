@@ -1,5 +1,5 @@
 const fs = require('fs');
-const p = 'packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts';
+const p = 'packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts';
 const s = fs.readFileSync(p,'utf8');
 const checks = {
   importsConstraintFactType: s.includes('type RouteConstraintSyntaxFact'),

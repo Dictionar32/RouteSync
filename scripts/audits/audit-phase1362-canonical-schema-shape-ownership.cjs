@@ -12,6 +12,7 @@ const validation = read('packages/core/src/types/domain/validationRules.ts');
 const operationAlgebra = read('packages/core/src/types/upstream/operationIdentityCapabilityAlgebra.ts');
 const operationAuthority = read('packages/core/src/types/upstream/operationIdentityCapabilityAuthority.ts');
 const manifestBuilder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
+const sourceAstPipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const dataflowInterface = read('packages/core/src/types/dataflow/dataFlowInterface.ts');
 const irProjection = read('packages/core/src/compiler/ir/SemanticDataflowIRProjection.ts');
 const graphProjection = read('packages/core/src/graph/service/structuralSemanticRelationProjection.ts');
@@ -19,7 +20,7 @@ const packageJson = JSON.parse(read('package.json'));
 const checks = [
   ['Canonical schema shape is derived from RouteSchemaPayload.fields only', (() => { const body = authority.match(/export const hasCanonicalRequestFields = \(schema: RouteSchemaPayload\)[\s\S]*?;\n/); return Boolean(body && /schema\.fields\.length/.test(body[0]) && !/schema\.rules/.test(body[0])); })()],
   ['Route capability semantic authority reuses the canonical schema-shape predicate', /const hasRules = hasCanonicalRequestFields/.test(authority)],
-  ['Canonical schema-shape predicate is exported from the core public entry point', /export \{ routeCapabilitySemanticAuthority, routeCapabilitySemanticAuthorityAlgebra, createRouteCapabilitySemanticAuthority, hasCanonicalRequestFields \}/.test(coreIndex)],
+  ['Canonical schema-shape predicate is exported from the core public entry point', /export \{ routeCapabilitySemanticAuthority, routeCapabilitySemanticAuthorityAlgebra, routeCapabilitySemanticAuthorityFactory, hasCanonicalRequestFields \}/.test(coreIndex)],
   ['Singleton/custom resource classifier consumes canonical schema shape', /hasCanonicalRequestFields\(route\.contract\.request\.body\.schema\)/.test(singleton) && !/schema\.rules/.test(singleton)],
   ['Form type resolver consumes canonical schema shape', /hasCanonicalRequestFields\(route\.contract\.request\.body\.schema\)/.test(resolver) && !/schema\.rules/.test(resolver)],
   ['SDK API emitter consumes canonical schema shape for body mappers', /hasCanonicalRequestFields\(route\.contract\.request\.body\.schema\)/.test(emitter) && !/schema\.rules/.test(emitter)],
@@ -27,7 +28,7 @@ const checks = [
   ['Canonical RouteSchemaPayload declares fields/messages/attributes rather than rules map', /interface RouteSchemaPayload[\s\S]*?readonly fields: readonly RequestField\[\][\s\S]*?readonly messages:[\s\S]*?readonly attributes:/.test(validation) && !/interface RouteSchemaPayload[\s\S]*?readonly rules:/.test(validation)],
   ['Operation identity algebra preserves upstream route identity and reasoning', /route: input\.identity/.test(operationAlgebra) && /input\.reasoning/.test(operationAlgebra)],
   ['Operation identity authority delegates to runtime algebra', /materializer\.materialize\(input\)/.test(operationAuthority) && /createOperationIdentityCapabilityAuthority/.test(operationAuthority) && /operationIdentityCapabilityContractMaterializer/.test(operationAuthority)],
-  ['Manifest construction validates source AST before source-model building', /validateCompleteSourceAst/.test(manifestBuilder) && /buildCompleteLaravelSourceModel/.test(manifestBuilder)],
+  ['Scanner pipeline validates AST and manifest builder blocks incomplete projections before source-model building', /validateCompleteSourceAst/.test(sourceAstPipeline) && /projection\.kind !== 'laravel_source_ast_projection_complete'/.test(manifestBuilder) && /sourceModelBuilder\.build/.test(manifestBuilder)],
   ['DataFlowInterface remains an explicit downstream consumer boundary', /interface DataFlowInterface/.test(dataflowInterface)],
   ['IR and graph projections retain separate semantic and structural authorities', /authority/.test(irProjection) && /GraphEdgeRelation/.test(graphProjection) && /StructuralSemanticRelation/.test(graphProjection)],
   ['Phase 1361 validation enum projection remains canonical ADT based', exists('packages/cli/src/generators/constants/enumConstantsBuilder.ts') && /field\.validation\.find\(rule => rule\.kind === ValidationRuleKind\.In\)/.test(read('packages/cli/src/generators/constants/enumConstantsBuilder.ts'))],

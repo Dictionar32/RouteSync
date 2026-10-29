@@ -14,11 +14,11 @@ export interface EndpointResponseInfo {
   readonly mapper: string | null;
 }
 
-export function resolveEndpointResponseInfo(
-  contract: EndpointContract,
-  usesZod: boolean,
-  usedMappers: Set<string>
-): EndpointResponseInfo {
+export interface ResolveEndpointResponseInfoOperation {
+  (contract: EndpointContract, usesZod: boolean, usedMappers: Set<string>): EndpointResponseInfo;
+}
+
+export const resolveEndpointResponseInfo: ResolveEndpointResponseInfoOperation = Object.freeze((contract: EndpointContract, usesZod: boolean, usedMappers: Set<string>): EndpointResponseInfo => {
   const success = contract.response.success;
   const schemaStr = (usesZod && success.validatorName !== 'undefined') ? success.validatorName : 'undefined';
 
@@ -29,4 +29,4 @@ export function resolveEndpointResponseInfo(
   const mapperStr = (!mapperName || mapperName === 'identity') ? null : mapperName;
   if (mapperStr) usedMappers.add(mapperStr);
   return { type: typeStr, schema: schemaStr, mapper: mapperStr };
-}
+});

@@ -10,7 +10,7 @@ const packageIndex = read('packages/core/src/index.ts');
 const implementation = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const checks = [
   ['argument-form outcome is a discriminated semantic judgment rather than nullable evidence', /kind: 'positional-form-established'/.test(pipeline) && /kind: 'argument-form-unproven'/.test(pipeline) && !/InvocationArgumentFormJudgment\s*=\s*InvocationPositionalArgumentEvidence\s*\|\s*null/.test(pipeline)],
   ['argument-form evidence producer has a dedicated upstream interface', /interface InvocationArgumentFormEvidenceInterface/.test(pipeline) && /deriveArgumentForm/.test(pipeline)],

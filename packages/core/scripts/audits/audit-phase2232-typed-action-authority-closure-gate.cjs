@@ -19,7 +19,7 @@ const checks = [
   ['integrated response remains owned by the existing response pipeline interface', /readonly judgeIntegratedResponse:/.test(responsePipeline) && /integratedResponseOwnership: 'controller-wide-integrated-response-remains-owned-by-LaravelControllerResponseSemanticPipelineInterface/.test(actionInterface)],
   ['invocation input remains a closed ADT and has one authority entry point', /export type LaravelControllerInvocationSemanticInput\s*=/.test(invocationInterface) && (invocationInterface.match(/\bjudge\(/g) || []).length === 1],
   ['public API exports both coverage states', /LaravelControllerActionSemanticKnowledgePartialCoverage/.test(publicIndex) && /LaravelControllerActionSemanticKnowledgeCompleteCoverage/.test(publicIndex)],
-  ['remaining subscanner dependency is explicitly detected rather than falsely marked retired', /import \{ scanControllerAction \} from '\.\.\/subscanners\/controller'/.test(actionWiring) && /resolveControllerActionContract/.test(actionWiring)],
+  ['remaining subscanner dependency is explicitly detected rather than falsely marked retired', /import \{ scanControllerAction \} from '\.\.\/operations\/controller'/.test(actionWiring) && /resolveControllerActionContract/.test(actionWiring)],
   ['action authority path has no relation/foundation import', !/semantic\/(relations|foundation)\//.test(actionInterface + actionWiring + actionExecutor)],
 ];
 for (const [name, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);

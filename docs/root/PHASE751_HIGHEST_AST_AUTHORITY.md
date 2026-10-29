@@ -91,7 +91,7 @@ The resulting boundary follows the strongest common structure found across decla
 
 This phase deliberately does **not** claim that the whole repository is now free of host primitives or legacy descriptors. The next structural reservoirs are:
 
-1. scanner/lexer route AST evidence adapters;
+1. frontend/php route AST evidence adapters;
 2. resolver graph boundary contracts;
 3. CLI `parsed_ast` / old PHP parser algebra consumers;
 4. controller/resource semantic data-flow surfaces;

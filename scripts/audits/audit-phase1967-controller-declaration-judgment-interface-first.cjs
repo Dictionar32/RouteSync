@@ -24,7 +24,7 @@ const checks = [
   ['scanner no longer owns action selection predicate', !/const actionMethods = relationSelect/.test(scanner) && !/hasMiddlewareInterface/.test(scanner)],
   ['scanner no longer owns recursive inheritance traversal', !/const inheritedAttributes =/.test(scanner) && !/const inheritedControllerNames = \(\(\)/.test(scanner)],
   ['exact invocation judgment still reaches producer', /controllerProducer\.produce\(\{ declaration: declarationEvidence, invocationJudgment \}\)/.test(scanner)],
-  ['no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
 ];
 let failures = 0;
 for (const [label, passed] of checks) {

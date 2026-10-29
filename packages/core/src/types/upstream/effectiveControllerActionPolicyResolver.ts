@@ -48,7 +48,7 @@ const missingInheritedControllers = (
  * orchestrator only; scope, exclusion, middleware, and authorization reasoning
  * are owned by the canonical algebra.
  */
-export const resolveEffectiveControllerActionPolicyUpstream = (
+const resolveEffectiveControllerActionPolicyUpstream = (
   input: EffectiveControllerActionPolicyUpstreamInput,
 ): EffectiveControllerActionPolicy => {
   const catalog = input.policyCatalog;
@@ -96,10 +96,18 @@ export const resolveEffectiveControllerActionPolicyUpstream = (
 };
 
 /** Existing upstream authority: one canonical semantic decision boundary. */
+export interface EffectiveControllerActionPolicyUpstreamOperationsInterface {
+  readonly resolve: (input: EffectiveControllerActionPolicyUpstreamInput) => EffectiveControllerActionPolicy;
+}
+
+export const effectiveControllerActionPolicyUpstreamOperations: EffectiveControllerActionPolicyUpstreamOperationsInterface = Object.freeze({
+  resolve: resolveEffectiveControllerActionPolicyUpstream,
+});
+
 export const effectiveControllerActionPolicySemanticAuthority: import('./effectiveControllerActionPolicy').EffectiveControllerActionPolicySemanticAuthorityInterface = Object.freeze({
   kind: 'effective_controller_action_policy_semantic_authority',
   closed: true,
   contractVersion: 4,
-  judge: resolveEffectiveControllerActionPolicyUpstream,
+  judge: effectiveControllerActionPolicyUpstreamOperations.resolve,
 });
 

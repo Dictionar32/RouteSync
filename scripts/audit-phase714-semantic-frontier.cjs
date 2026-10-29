@@ -4,7 +4,7 @@ const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript'
 const root = path.resolve(__dirname, '..');
 const targets = [
   'packages/core/src/types/domain/boundAst.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteSecurityResolver.ts',

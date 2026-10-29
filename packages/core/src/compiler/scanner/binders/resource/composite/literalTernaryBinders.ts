@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
+import { semanticTypeConstruction } from '../../../../semantic/semanticTypeConstruction';
 /**
  * Declarative resource-expression binders.
  *
@@ -11,7 +11,7 @@ import { relationContains } from '../../../../../semantic/relations/relationMemb
 import { relationAll, relationEqual } from "../../../../../semantic/relations/semanticRelations";
 import { relationFirst, relationOptionFold, relationSome, relationNone } from "../../../../../semantic/relations/relationalSequence";
 import type { OriginModelSymbol, ModelSymbolTable } from "../../../symbols/ModelSymbolTable";
-import type { PhpAstValue } from "../../../lexer/PhpAst";
+import type { PhpAstValue } from "../../../../frontend/php/PhpAst";
 import { ResourceFieldExpressionFactory } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
@@ -59,17 +59,18 @@ const literalBoundValue = (value: Extract<PhpAstValue, { kind: 'literal' }>) => 
     return readers[value.literalType]();
 };
 
-export function bindLiteralField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'literal' }>,
-): BoundResourceFieldResult {
+export interface BindLiteralFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'literal' }>): BoundResourceFieldResult;
+}
+
+export const bindLiteralField: BindLiteralFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'literal' }>): BoundResourceFieldResult => {
     const runtimeType = relationOptionFold(
         relationFirst(Object.entries(RUNTIME_LITERAL_TYPE), entry => relationEqual(entry[0], typeof value.value)),
         () => 'string' as RuntimeLiteralType,
         entry => entry[1],
     );
     const primKind = PRIMITIVE_KIND[runtimeType];
-    const primitive = scannerSemanticType.primitive(primKind);
+    const primitive = semanticTypeConstruction.primitive(primKind);
     const boundAst = BoundSemanticFactory.primitive(primitive, literalBoundValue(value));
     const expression = ResourceFieldExpressionFactory.literal(literalValue(value));
     const binding = ResourceFieldSemanticBinding.fromExpression(
@@ -80,7 +81,7 @@ export function bindLiteralField(
         boundAst,
     );
     return { binding, boundAst };
-}
+});
 
 const verifiedType = (result: BoundResourceFieldResult, fallback: () => ErrorType) =>
     relationResolve(
@@ -99,17 +100,15 @@ const branchType = (
     () => relationResolve(
         relationEqual(second.binding.semantic.kind, 'verified'),
         () => second.binding.semantic.type,
-        () => scannerSemanticType.error(message),
+        () => semanticTypeConstruction.error(message),
     ),
 );
 
-export function bindShortTernaryField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'short_ternary' }>,
-    modelSymbol: OriginModelSymbol,
-    modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: BindField,
-): BoundResourceFieldResult {
+export interface BindShortTernaryFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'short_ternary' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult;
+}
+
+export const bindShortTernaryField: BindShortTernaryFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'short_ternary' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult => {
     const condition = bindFieldFn({ key, value: value.condition, modelSymbol, modelSymbolTable });
     const falsy = bindFieldFn({ key, value: value.falseBranch, modelSymbol, modelSymbolTable });
     const semanticType = branchType(condition, falsy, 'Short ternary branches could not be semantically resolved');
@@ -121,7 +120,7 @@ export function bindShortTernaryField(
     const expression = ResourceFieldExpressionFactory.shortTernary(condition.binding.expression, falsy.binding.expression);
     const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
     return { binding, boundAst };
-}
+});
 
 const CAST_KIND: Readonly<Record<string, PrimitiveKind>> = Object.freeze({
     int: PrimitiveKind.NUMBER,
@@ -130,19 +129,17 @@ const CAST_KIND: Readonly<Record<string, PrimitiveKind>> = Object.freeze({
     string: PrimitiveKind.STRING,
 });
 
-export function bindCastField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'cast_expression' }>,
-    modelSymbol: OriginModelSymbol,
-    modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: BindField,
-): BoundResourceFieldResult {
+export interface BindCastFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'cast_expression' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult;
+}
+
+export const bindCastField: BindCastFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'cast_expression' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult => {
     const operand = bindFieldFn({ key, value: value.operand, modelSymbol, modelSymbolTable });
     const castKind = relationFirst(Object.entries(CAST_KIND), entry => relationEqual(entry[0], value.castType.kind));
     const semanticType = relationResolve(
         relationEqual(castKind.kind, 'some'),
-        () => scannerSemanticType.primitive(relationOptionFold(castKind, () => PrimitiveKind.STRING, entry => entry[1])),
-        () => verifiedType(operand, () => scannerSemanticType.error('Cast operand could not be semantically resolved')),
+        () => semanticTypeConstruction.primitive(relationOptionFold(castKind, () => PrimitiveKind.STRING, entry => entry[1])),
+        () => verifiedType(operand, () => semanticTypeConstruction.error('Cast operand could not be semantically resolved')),
     );
     const expression = ResourceFieldExpressionFactory.typeCast(
         SemanticValueFactory.castTypeName(value.castType.kind),
@@ -151,15 +148,13 @@ export function bindCastField(
     const boundAst = operand.boundAst;
     const binding = ResourceFieldSemanticBinding.fromExpression(key, expression, semanticType, toCamelCase(key), boundAst);
     return { binding, boundAst };
+});
+
+export interface BindTernaryFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'ternary_expression' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult;
 }
 
-export function bindTernaryField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'ternary_expression' }>,
-    modelSymbol: OriginModelSymbol,
-    modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: BindField,
-): BoundResourceFieldResult {
+export const bindTernaryField: BindTernaryFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'ternary_expression' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult => {
     const trueBranch = bindFieldFn({ key, value: value.trueBranch, modelSymbol, modelSymbolTable });
     const falseBranch = bindFieldFn({ key, value: value.falseBranch, modelSymbol, modelSymbolTable });
     const semanticType = branchType(trueBranch, falseBranch, 'Ternary branches could not be semantically resolved');
@@ -176,7 +171,7 @@ export function bindTernaryField(
         boundAst,
     );
     return { binding, boundAst };
-}
+});
 
 const BINARY_OPERATOR: Readonly<Record<string, string>> = Object.freeze({
     addition: 'add', subtraction: 'subtract', multiplication: 'multiply', division: 'divide', modulo: 'modulo',
@@ -196,13 +191,11 @@ const binaryOperator = (kind: string) => ({
     ),
 });
 
-export function bindBinaryField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'binary_expression' }>,
-    modelSymbol: OriginModelSymbol,
-    modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: BindField,
-): BoundResourceFieldResult {
+export interface BindBinaryFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'binary_expression' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult;
+}
+
+export const bindBinaryField: BindBinaryFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'binary_expression' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult => {
     const left = bindFieldFn({ key, value: value.left, modelSymbol, modelSymbolTable });
     const right = bindFieldFn({ key, value: value.right, modelSymbol, modelSymbolTable });
     const verified = relationAll([
@@ -215,8 +208,8 @@ export function bindBinaryField(
             const operator = binaryOperator(value.operator.kind);
             const resultingType = relationResolve(
                 relationContains(NUMERIC_OPERATORS, operator.value),
-                () => scannerSemanticType.number(),
-                () => relationResolve(relationContains(BOOLEAN_OPERATORS, operator.value), () => scannerSemanticType.boolean(), () => left.binding.semantic.type),
+                () => semanticTypeConstruction.number(),
+                () => relationResolve(relationContains(BOOLEAN_OPERATORS, operator.value), () => semanticTypeConstruction.boolean(), () => left.binding.semantic.type),
             );
             const expression = ResourceFieldExpressionFactory.binary(operator, left.binding.expression, right.binding.expression);
             const boundAst = BoundSemanticFactory.binary({ operator, left: left.boundAst, right: right.boundAst, resultingType });
@@ -225,15 +218,13 @@ export function bindBinaryField(
         },
         () => bindFallbackField(key),
     );
+});
+
+export interface BindNullCoalesceFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'null_coalesce' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult;
 }
 
-export function bindNullCoalesceField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'null_coalesce' }>,
-    modelSymbol: OriginModelSymbol,
-    modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: BindField,
-): BoundResourceFieldResult {
+export const bindNullCoalesceField: BindNullCoalesceFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'null_coalesce' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: BindField): BoundResourceFieldResult => {
     const left = bindFieldFn({ key, value: value.left, modelSymbol, modelSymbolTable });
     const right = bindFieldFn({ key, value: value.right, modelSymbol, modelSymbolTable });
     const verified = relationAll([
@@ -256,17 +247,21 @@ export function bindNullCoalesceField(
         },
         () => bindFallbackField(key),
     );
+});
+
+export interface BindFallbackFieldOperation {
+  (key: string): BoundResourceFieldResult;
 }
 
-export function bindFallbackField(key: string): BoundResourceFieldResult {
+export const bindFallbackField: BindFallbackFieldOperation = Object.freeze((key: string): BoundResourceFieldResult => {
     const boundAst = BoundSemanticFactory.unsupported('unsupported_syntax');
     const expression = ResourceFieldExpressionFactory.unsupported('unsupported_syntax');
     const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
-        scannerSemanticType.error('Resource expression requires semantic binding before a type can be assigned'),
+        semanticTypeConstruction.error('Resource expression requires semantic binding before a type can be assigned'),
         toCamelCase(key),
         boundAst,
     );
     return { binding, boundAst };
-}
+});

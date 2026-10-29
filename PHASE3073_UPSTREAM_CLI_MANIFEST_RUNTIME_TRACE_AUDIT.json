@@ -1,0 +1,39 @@
+{
+  "phase": 3073,
+  "title": "Upstream → CLI → Manifest Runtime Trace and Source Project Identity Frontier",
+  "status": "FAIL",
+  "passed": 13,
+  "total": 14,
+  "checks": {
+    "sourceProjectIdentityIsOwnedUpstream": true,
+    "projectIdentityFactoryIsInterfaceFirst": true,
+    "cliScanUsesManifestScanOperation": true,
+    "cliSyncUsesManifestScanOperation": true,
+    "manifestScanOperationIsInterfaceFirst": true,
+    "manifestScanOperationDelegatesToCompositionAuthority": true,
+    "compositionCanonicalizesBeforeDiscovery": true,
+    "canonicalizationUsesFilesystemRealpath": true,
+    "blockedCanonicalizationPreservedAsManifestTerminal": true,
+    "completeManifestFeedsProjectionAndGenerator": true,
+    "genericCanonicalizationContinuationStillPresentAndFlagged": false,
+    "canonicalizationRetainsUnknownFailurePayload": false,
+    "noDeletedRelationFoundationRestored": true,
+    "protectedCollectionsInvariantOneNewlineByte": true
+  },
+  "openFrontier": [],
+  "runtimeTrace": [
+    "CLI scan/sync constructs SourceProjectIdentity from the requested project root and explicit route-source selection.",
+    "RouteSyncCliManifestScanOperationInterface.scan delegates to the existing ControllerInvocationManifestCompositionAuthority.compose.",
+    "Composition input owns continueToCanonicalization; the injected CLI canonicalizer calls fs.realpath on the requested root.",
+    "Success reconstructs canonical SourceProjectIdentity while preserving explicit/default query-policy selection; failure retains requested identity, typed filesystem failure code/location, and original failure payload.",
+    "The composition authority maps canonicalization failure to controller_invocation_manifest_source_project_identity_blocked; successful canonical identity proceeds into source discovery, source document identity/read, invocation pipeline/inventory, and ManifestBuilderJudgment.",
+    "CLI scan consumes the executable manifest terminal, projects manifest flow/dataflow/graph and request-type evidence, then validates and persists the generated manifest."
+  ],
+  "verification": {
+    "structuralRuntimeTrace": "FAIL",
+    "genericCanonicalizationContinuation": "OPEN — explicitly detected, not claimed removed",
+    "endToEndPhpCliManifestExecution": "NOT_RUN",
+    "wholeProgramStrictTypeScript": "NOT_CLAIMED",
+    "globalPrimitiveElimination": "NOT_CLAIMED"
+  }
+}

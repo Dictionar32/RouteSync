@@ -19,7 +19,7 @@ RouteSync therefore treats scanner syntax as evidence and moves classification/d
 
 Targets:
 
-- `packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts`
+- `packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts`
 - `packages/core/src/compiler/scanner/subscanners/semantic/modelTypeDeriver.ts`
 - `packages/core/src/compiler/scanner/subscanners/model/eloquentProducer.ts`
 

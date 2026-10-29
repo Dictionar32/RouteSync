@@ -4,13 +4,13 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/controllerActionSchemaSemanticJudgmentInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerActionSchemaSemanticJudgmentAuthority.ts');
-const extractor = read('packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts');
-const contract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const extractor = read('packages/core/src/compiler/scanner/operations/controller/actionValidationExtractor.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const knowledge = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const publicIndex = read('packages/core/src/index.ts');
-const bodyAuthority = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const bodyAuthority = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [

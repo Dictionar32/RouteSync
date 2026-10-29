@@ -15,7 +15,7 @@ const checks = [
   ['active RequestType lowering still calls non-authority projection pipeline', /requestTypeDerivationProjectionPipeline\.derive/.test(read('packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts'))],
   ['authority-backed RequestType projection is not wired into active CLI projection', !/createAuthorityBackedRouteManifestProjection/.test(read('packages/core/src/compiler/scanner/wiring/routeManifestProjection.ts'))],
   ['upstream semantic type derivation contract already exists', /SemanticTypeDerivationRuntimeExecutorInterface/.test(read('packages/core/src/types/upstream/semanticTypeDerivationInterface.ts'))],
-  ['semantic type facade delegates through the existing executor', /runtimeExecutor\.execute\(/.test(read('packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts'))],
+  ['semantic type facade delegates through the existing executor', /runtimeExecutor\.execute\(/.test(read('packages/core/src/compiler/scanner/operations/SemanticTypeDeriver.ts'))],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

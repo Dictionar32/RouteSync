@@ -1,0 +1,15 @@
+{
+  "phase": 2960,
+  "name": "correspondence-domain-adt",
+  "checks": {
+    "phase2960_structural_audit": "10/10 passed",
+    "phase2958_source_inventory_predicate_retirement": "10/10 passed",
+    "phase2957_inventory_continuation_uniqueness": "11/11 passed",
+    "changed_authority_transpile_syntax_diagnostics": 0,
+    "upstream_collections_bytes": 0,
+    "full_typecheck": "not verified: global compiler incompatible with configured target and workspace type definitions unavailable",
+    "vitest": "not verified",
+    "full_build": "not verified",
+    "cli_end_to_end": "not verified"
+  }
+}

@@ -4,14 +4,14 @@ Date: 2026-10-02
 
 ## Scope
 
-The inactive-path audit was rerun before changing the live scanner/lexer authority.
+The inactive-path audit was rerun before changing the live frontend/php authority.
 Phase 525 reports no remaining non-test inactive production candidates. Phase 528 also
 reports no non-empty inactive scanner candidates. Therefore this phase targets an
 active semantic execution authority rather than deleting reachable code.
 
 Target:
 
-`packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts`
+`packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts`
 
 ## Architectural cutover
 
@@ -66,7 +66,7 @@ environment baseline failure.
 
 ## Active frontier after Phase 530
 
-The production scanner/lexer audit, excluding tests/archive paths, reports:
+The production frontend/php audit, excluding tests/archive paths, reports:
 
 - 170 files with remaining forbidden-surface matches
 - 863 total matches

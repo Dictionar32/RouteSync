@@ -1,0 +1,28 @@
+{
+  "phase": 2811,
+  "title": "Upstream Domain-Operated RequestType Derivation",
+  "status": "implemented_structural_audit_pending_execution",
+  "rootCause": "The upstream RequestTypeDerivationRuntimeExecutionResult carried semantic outcomes as data only, requiring downstream lowering to enumerate every semantic result kind.",
+  "changes": [
+    "Added concrete continueForManifestProjection operation to each upstream runtime derivation outcome.",
+    "Added explicit projectable and not-projectable disposition ADT for the RequestType manifest projection boundary.",
+    "Changed lowering to consume the upstream domain operation and eliminate only the two projection dispositions.",
+    "Preserved all original semantic outcome kinds and assessment/integrity evidence.",
+    "Exported new upstream contract types from the core package entrypoint."
+  ],
+  "constraints": {
+    "genericReasoningPrimitiveAdded": false,
+    "genericVisitorAdded": false,
+    "asNeverAdded": false,
+    "duplicateUpstreamSemanticAuthorityAdded": false,
+    "collectionsTsBytes": 0
+  },
+  "verification": {
+    "auditCommand": "npm run audit:phase2811-upstream-domain-operated-derivation",
+    "fullTypecheck": "not_verified",
+    "productionBuild": "not_verified",
+    "fullTestSuite": "not_verified",
+    "cliScanSyncE2E": "not_verified"
+  },
+  "designNote": "The remaining exhaustive elimination is over the two explicit projectability dispositions at the downstream lowering boundary; the upstream semantic outcome itself owns continueForManifestProjection. This avoids both a generic handler result and an upstream dependency on downstream manifest types."
+}

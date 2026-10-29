@@ -6,7 +6,7 @@ Continue from Phase 1907 by tracing the real controller dataflow analyzer and st
 
 ## Trace findings
 
-`packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` still performs these semantic operations:
+`packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` still performs these semantic operations:
 
 - `collectStatementPayloads` traverses PHP statements and constructs a local payload inventory.
 - `canonicalDefinition` matches a binding span to a payload by exact source offsets.

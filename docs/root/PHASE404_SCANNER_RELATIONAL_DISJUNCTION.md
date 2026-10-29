@@ -1,6 +1,6 @@
 # Phase 404 — Scanner Relational Disjunction
 
-Phase 404 continues the scanner/lexer authority migration after Phase 403.
+Phase 404 continues the frontend/php authority migration after Phase 403.
 
 ## Architectural change
 
@@ -10,7 +10,7 @@ The canonical semantic kernel now exposes `relationAny`, a recursive relation ov
 
 ## Target audit
 
-`packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts`
+`packages/core/src/compiler/frontend/php/controllerMethodParser.ts`
 
 Forbidden forms checked: `if`, `for`, `while`, `switch`, `map`, `filter`, `reduce`, `flatMap`, `undefined`, `??`, `null`, `===`, `as unknown`, `||`.
 

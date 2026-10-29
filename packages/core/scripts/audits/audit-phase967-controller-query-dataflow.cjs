@@ -6,7 +6,7 @@ const read = p => fs.readFileSync(path.join(repo, p), 'utf8');
 const exists = p => fs.existsSync(path.join(repo, p));
 const controller = read('packages/core/src/types/upstream/controller.ts');
 const projection = read('packages/core/src/types/upstream/semanticDataflowControllerQueryProjection.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const actionScanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const analysis = read('packages/core/src/compiler/analysis/routeSyncDataflowAnalysis.ts');
 const manifest = read('packages/core/src/types/upstream/manifest.ts');

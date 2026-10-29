@@ -18,4 +18,4 @@ Source-language vocabulary is not removed merely because a textual token such as
 
 ## Next frontier
 
-The remaining active frontier is scanner/lexer, graph resolver, AST/upstream mapping, analysis, and semantic type lowering. These require consumer migration into declarative relations, constraints, recursive closure/fixed-point evaluation, and rewrite/lowering rules before their old files can be vacuumed.
+The remaining active frontier is frontend/php, graph resolver, AST/upstream mapping, analysis, and semantic type lowering. These require consumer migration into declarative relations, constraints, recursive closure/fixed-point evaluation, and rewrite/lowering rules before their old files can be vacuumed.

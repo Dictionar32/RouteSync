@@ -24,7 +24,7 @@ check('invocation judgment remains a closed discriminated union', invocationCont
 check('integrated response remains generic over exact invocation judgment', responseContract.includes('LaravelControllerIntegratedResponseJudgment<\n  InvocationJudgment extends LaravelControllerInvocationSemanticJudgmentInterface'));
 check('AST projection forwards exact invocation and response judgment pair', invocationContract.includes('responseJudgment: LaravelControllerAstProjectionResponseJudgment<InvocationJudgment>'));
 check('controller scanner has no direct relation imports', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation'))
-check('legacy subscanner binding is isolated in explicit composition module', !scanner.includes('../subscanners/') && read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts').includes("from '../subscanners/controller'"))
+check('legacy subscanner binding is isolated in explicit composition module', !scanner.includes('../operations/') && read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts').includes("from '../operations/controller'"))
 
 for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
 process.stdout.write(`RESULT ${checks.filter(item => item.passed).length}/${checks.length}\n`);

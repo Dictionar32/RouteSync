@@ -12,16 +12,16 @@ import { resourceModelBindingAuthority } from '../../semantic/resourceModelBindi
 import { resourceModelBindingBatchCompletenessFold, resourceModelBindingOutcomeFold, type ResourceModelBindingBatchClosure, type ResourceModelBindingJudgmentAuthority, type ResourceModelBindingSubject } from '../../../types/upstream/laravelScannerSemanticJudgment';
 import type { ResourceReference } from '../../../types/upstream/semanticReferences';
 import type { SourceSpan } from '../../../types/upstream/provenance';
-import type { Sequence, Lookup } from '../../../types/upstream/collections';
-import type { ResourceScanEvidence } from '../lexer/resourceSourceEvidence';
-import type { OriginModelSymbol } from '../symbols/model/originModelSymbol';
-import type { PhpArrayEntry, PhpAstValue } from '../lexer/PhpAst';
-import type { PhpStatement } from '../lexer/phpAstTypes';
-import type { PhpMethodAst } from '../lexer/phpMethodAstTypes';
-import type { PhpClassPropertyAst } from '../lexer/phpAstDeclarationTypes';
+import type { Lookup } from '../../../types/upstream/collections';
+import type { ResourceScanEvidence } from '../../frontend/php/resourceSourceEvidence';
+import type { OriginModelSymbol } from '../../semantic/model/originModelSymbol';
+import type { PhpArrayEntry, PhpAstValue } from '../../frontend/php/PhpAst';
+import type { PhpStatement } from '../../frontend/php/phpAstTypes';
+import type { PhpMethodAst } from '../../frontend/php/phpMethodAstTypes';
+import type { PhpClassPropertyAst } from '../../frontend/php/phpAstDeclarationTypes';
 import type { ResourceProducerInterface } from '../../../types/upstream/resourceProducerInterface';
 import { createModelSymbolTable } from '../symbols/ModelSymbolTable';
-import { resourceProducer } from '../operations/resourceProducer';
+import { resourceProducer } from '../../semantic/resource-production/resourceProducer';
 import { matchLookup } from '../../../types/upstream/collections';
 
 type LaravelResourceProducerOperations = ResourceProducerInterface<
@@ -48,9 +48,6 @@ const sourceSpanFor = (evidence: ResourceScanEvidence): SourceSpan => ({
   start: { kind: 'number_value', value: 0 },
   end: { kind: 'number_value', value: evidence.identity.sourceLength },
 });
-
-const sequenceFromArray = <Item>(items: readonly Item[]): Sequence<Item> =>
-  items.reduceRight<Sequence<Item>>((tail, head) => ({ kind: 'cons', head, tail }), { kind: 'empty' });
 
 const projectResource = (
   modelSymbols: ReturnType<typeof createModelSymbolTable>,
@@ -160,7 +157,7 @@ export const laravelResourceScanner: LaravelResourceScannerInterface<ResourceSca
             kind: 'laravel_resource_integrated_response',
             controllerScan: input.controllerScan,
             bindingClosure,
-            artifacts: Object.freeze({ kind: 'laravel_resource_scan_artifact_sequence', items: sequenceFromArray(resolvedArtifacts) }),
+            artifacts: Object.freeze({ kind: 'laravel_resource_scan_artifacts', items: resolvedArtifacts }),
           }),
         });
       },
@@ -175,7 +172,7 @@ export const laravelResourceScanner: LaravelResourceScannerInterface<ResourceSca
             kind: 'laravel_resource_integrated_response',
             controllerScan: input.controllerScan,
             bindingClosure,
-            artifacts: Object.freeze({ kind: 'laravel_resource_scan_artifact_sequence', items: sequenceFromArray(artifacts) }),
+            artifacts: Object.freeze({ kind: 'laravel_resource_scan_artifacts', items: artifacts }),
           }),
           rejectedArtifacts,
         });

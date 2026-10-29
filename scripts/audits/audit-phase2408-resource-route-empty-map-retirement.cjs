@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
 const route = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const correlation = read('packages/core/src/types/upstream/laravelControllerActionRouteCorrelationAuthority.ts');
 const report = read('packages/core/src/types/upstream/docs/PHASE2408_RESOURCE_ROUTE_EMPTY_MAP_RETIREMENT.md');

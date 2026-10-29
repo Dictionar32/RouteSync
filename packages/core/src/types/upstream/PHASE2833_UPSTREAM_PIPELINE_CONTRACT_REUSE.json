@@ -1,0 +1,31 @@
+{
+  "phase": 2833,
+  "title": "Upstream Pipeline Contract Reuse",
+  "runtimeModule": "packages/cli/src/parsers/php/sourceInvocationPipeline.ts",
+  "runtimeExport": "phpSourceInvocationSemanticPipelineOperations",
+  "existingContractReused": "PhpSourceInvocationSemanticPipelineInterface",
+  "domainOperation": "analyze(document)",
+  "existingDeliveryContract": "PhpSourceInvocationSemanticPipelineDeliveryInterface",
+  "consumer": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+  "manifestTrace": [
+    "RouteSyncCliManifestScanOperationInterface.scan",
+    "ControllerInvocationManifestCompositionAuthorityInterface.compose",
+    "source discovery and identity binding",
+    "phpSourceInvocationSemanticPipelineOperations.analyze",
+    "phpSourceInvocationSemanticPipelineDelivery.deliver",
+    "invocation judgment authority",
+    "inventory authority",
+    "ManifestBuilderJudgment",
+    "manifest projection and output boundary"
+  ],
+  "removedDuplicateContract": "PhpSourceInvocationSemanticPipelineOperationsInterface",
+  "removedUnusedWrapper": "analyzeBatch",
+  "newReasoningPrimitive": false,
+  "collectionsBytes": 0,
+  "validation": {
+    "structuralAudit": "10/10",
+    "fullTypecheck": "not confirmed",
+    "build": "not confirmed",
+    "endToEnd": "not confirmed"
+  }
+}

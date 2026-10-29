@@ -1,6 +1,6 @@
 # Phase 546 — Scanner / Lexer Relational Frontier
 
-Phase 546 advances the scanner/lexer boundary from local syntax utilities toward a semantic navigation and fixed-point model.
+Phase 546 advances the frontend/php boundary from local syntax utilities toward a semantic navigation and fixed-point model.
 
 ## Research direction
 
@@ -19,8 +19,8 @@ The design is informed by current declarative language infrastructure:
 ## Closed targets
 
 - `packages/core/src/compiler/scanner/subscanners/route-scanner/routePathParser.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts`
 
 ## Changes
 

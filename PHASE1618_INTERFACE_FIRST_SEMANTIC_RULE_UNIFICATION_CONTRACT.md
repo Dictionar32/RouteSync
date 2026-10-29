@@ -10,7 +10,7 @@ Strengthen the existing semantic-decision contract before any scanner, wiring, a
 
 Phase 1617 introduced declarative rule atoms but left rule terms as opaque generic values. That did not define how rule variables bind to evidence, how repeated variables agree, or how proof receipts establish the exact match that licensed a conclusion. The proof was bound to a source snapshot but not to an explicit evidence fact-set identity or canonical rule-set identity.
 
-### `packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts`
+### `packages/core/src/compiler/frontend/php/astClassifierRuntime.ts`
 
 The scanner still constructs callback rules through `expressionRule(...)`. This remains a production migration target. It is intentionally untouched: the declarative contract must be mature before consumer migration.
 

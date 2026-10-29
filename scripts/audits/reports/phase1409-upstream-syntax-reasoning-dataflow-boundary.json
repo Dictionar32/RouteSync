@@ -58,7 +58,7 @@
     "Source syntax parsing is now separated from semantic product construction, but the syntax parser still uses the existing PHP lexer and method/property parser implementations rather than a full language-neutral parser port.",
     "The semantic producer still assigns semantic origin from source-family and owner context; that reasoning should eventually be represented as a source-family capability/judgment upstream of AST projection.",
     "Other Laravel source families are still produced through their existing scanner paths and have not all been migrated onto the same evidence/parse/semantic contract pipeline.",
-    "The parser runtime smoke test is blocked during module initialization by a pre-existing ReferenceError: relationRuleEntries is not defined in packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts; trace and repair that relation catalog/import boundary before claiming runtime execution.",
+    "The parser runtime smoke test is blocked during module initialization by a pre-existing ReferenceError: relationRuleEntries is not defined in packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts; trace and repair that relation catalog/import boundary before claiming runtime execution.",
     "Full TypeScript build and integration tests require the repository dependency toolchain, which must be verified in the target workspace."
   ],
   "flow": "Laravel source -> SourceAstEvidenceAcquisitionInterface -> SourceAstSyntaxParserInterface -> syntax AST -> semantic producer/reasoning -> closed AST/ADT and dataflow judgment -> wiring -> runtime executor -> manifest/graph/IR/CLI/SDK/React"

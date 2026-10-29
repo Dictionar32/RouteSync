@@ -14,7 +14,7 @@ The following production TypeScript files had no production consumer/reference a
 - `packages/core/src/compiler/domain/common/ArtifactContract.ts`
 - `packages/core/src/compiler/ir/StructuredContractIRBuilder.ts`
 - `packages/core/src/compiler/ir/StructuredResponseIRBuilder.ts`
-- `packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts`
+- `packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts`
 - `packages/core/src/types/semantic/parsedAstTypes.ts`
 - `packages/core/src/types/upstream/routeBindingResolution.ts`
 - `packages/core/src/types/upstream/routeMissing.ts`

@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const boundaryInterface = read('packages/core/src/types/upstream/scannerStatementBoundaryInterface.ts');
 const boundaryAlgebra = read('packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts');
 const sequence = read('packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE1453_STATEMENT_RUNTIME_EXECUTOR_SIMPLIFICATION.md');
 const checks = [
   ['interface remains the closed partition contract', /interface ScannerStatementBoundaryInterface/.test(boundaryInterface) && /kind: 'terminator'/.test(boundaryInterface) && /kind: 'end_of_input'/.test(boundaryInterface) && /kind: 'malformed'/.test(boundaryInterface)],

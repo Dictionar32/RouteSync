@@ -8,7 +8,7 @@
 
 Added `ControllerDataflowSourcePayloadEvidenceAdapterInterface<Source, Payload>` in `packages/core/src/types/upstream/controllerDataflowSourcePayloadEvidenceAdapterInterface.ts`. The upstream interface is generic and does not import PHP AST types. It defines source evidence acquisition, not semantic classification.
 
-Added the PHP-specific implementation in `packages/core/src/compiler/scanner/lexer/routeAst/phpControllerDataflowSourcePayloadEvidenceAdapter.ts`. It traverses `PhpBlock`, emits typed `ControllerDataflowSourcePayload` values, and uses the exact `SourceFile` from the canonical invocation judgment. The adapter does not correlate bindings, classify origin, resolve variable semantics, or group definitions.
+Added the PHP-specific implementation in `packages/core/src/compiler/frontend/php/routeAst/phpControllerDataflowSourcePayloadEvidenceAdapter.ts`. It traverses `PhpBlock`, emits typed `ControllerDataflowSourcePayload` values, and uses the exact `SourceFile` from the canonical invocation judgment. The adapter does not correlate bindings, classify origin, resolve variable semantics, or group definitions.
 
 `controllerDataflowAnalyzer.ts` now requests payloads through the injected interface. `controllerVariableSemanticRuntimeBinding.ts` supplies the PHP adapter. The existing upstream binding/payload correspondence authority remains the sole owner of matching and origin judgment.
 

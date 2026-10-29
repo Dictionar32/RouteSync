@@ -2,7 +2,7 @@
 
 ## Proven defect
 
-In `packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts`, the `RouteSpecialKind` registration previously hard-coded `only` and `except` to empty sequences, `shallow` and `scoped` to false, and `creatable` and `destroyable` to true. The source AST already carries `resourceActionFilter`, `resourceShallow`, `resourceScoped`, `resourceCreatable`, and `resourceDestroyable` in `packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts`. This meant the canonical `RouteAst` could lose source-declared resource semantics even when the parser had retained them.
+In `packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts`, the `RouteSpecialKind` registration previously hard-coded `only` and `except` to empty sequences, `shallow` and `scoped` to false, and `creatable` and `destroyable` to true. The source AST already carries `resourceActionFilter`, `resourceShallow`, `resourceScoped`, `resourceCreatable`, and `resourceDestroyable` in `packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts`. This meant the canonical `RouteAst` could lose source-declared resource semantics even when the parser had retained them.
 
 ## Change
 

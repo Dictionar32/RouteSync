@@ -27,16 +27,11 @@ import {
 } from '../typeResolver';
 import { partitionGroupSubRoutes, type ErrorResolutionResult } from './subRoutePartitioner';
 
-export function buildCrudGroupDescriptor(
-  groupName: string,
-  keyName: string,
-  titleName: string,
-  res: ResourceCrudMap,
-  errorRes: ErrorResolutionResult,
-  standardKeys: readonly string[],
-  resourceModelKeyCapabilities?: readonly ResourceModelKeyCapabilityContract[],
-  shape: 'full_crud' | 'read_only_crud' | 'flexible_crud' = 'flexible_crud'
-): ResourceGroupDescriptor<ClassifiedRoute> {
+export interface BuildCrudGroupDescriptorOperation {
+  (groupName: string, keyName: string, titleName: string, res: ResourceCrudMap, errorRes: ErrorResolutionResult, standardKeys: readonly string[], resourceModelKeyCapabilities?: readonly ResourceModelKeyCapabilityContract[], shape: 'full_crud' | 'read_only_crud' | 'flexible_crud' = 'flexible_crud'): ResourceGroupDescriptor<ClassifiedRoute>;
+}
+
+export const buildCrudGroupDescriptor: BuildCrudGroupDescriptorOperation = Object.freeze((groupName: string, keyName: string, titleName: string, res: ResourceCrudMap, errorRes: ErrorResolutionResult, standardKeys: readonly string[], resourceModelKeyCapabilities?: readonly ResourceModelKeyCapabilityContract[], shape: 'full_crud' | 'read_only_crud' | 'flexible_crud' = 'flexible_crud'): ResourceGroupDescriptor<ClassifiedRoute> => {
   const primaryKeyType = resolveItemPrimaryKeyType(res.show!, resourceModelKeyCapabilities);
   const listRes = resolveRouteResponseType(res.index);
   const detailRes = resolveRouteResponseType(res.show);
@@ -125,4 +120,4 @@ export function buildCrudGroupDescriptor(
     extraMutations: subRoutes.extraMutations,
     customQueries: subRoutes.customQueries
   });
-}
+});

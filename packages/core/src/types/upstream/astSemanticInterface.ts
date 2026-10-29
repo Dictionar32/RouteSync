@@ -19,13 +19,10 @@ import type {
   AstRelationTerm,
   AstResolutionStatus,
   AstRuleName,
-  AstSequence,
+  AstRelationFactSequence,
   AstWitnessName,
 } from './ast';
-import {
-  astSequenceCons,
-  emptyAstSequence,
-} from './ast';
+import { astSequenceOperations } from './ast';
 import {
   relationAny,
   relationAll,
@@ -139,7 +136,7 @@ export type AstSemanticRoundCount = Readonly<{
 
 export const astSemanticRequestIdentity = (value: string): AstSemanticRequestIdentity => Object.freeze({
   kind: 'ast_semantic_request_identity',
-  value: stringValue(value),
+  value: stringValue.create(value),
 });
 export const astSemanticRoundLimit = (value: number): AstSemanticRoundLimit => Object.freeze({
   kind: 'ast_semantic_round_limit',
@@ -150,16 +147,16 @@ const astSemanticRoundCount = (value: number): AstSemanticRoundCount => Object.f
   value: numberValue(value),
 });
 const astSemanticSeedSnapshotIdentity = (canonicalForm: string): AstSemanticSeedSnapshotIdentity => Object.freeze({
-  kind: 'ast_semantic_seed_snapshot_identity', canonicalForm: stringValue(canonicalForm),
+  kind: 'ast_semantic_seed_snapshot_identity', canonicalForm: stringValue.create(canonicalForm),
 });
 const astSemanticRuleSetIdentity = (canonicalForm: string): AstSemanticRuleSetIdentity => Object.freeze({
-  kind: 'ast_semantic_rule_set_identity', canonicalForm: stringValue(canonicalForm),
+  kind: 'ast_semantic_rule_set_identity', canonicalForm: stringValue.create(canonicalForm),
 });
 const astSemanticFactSetIdentity = (canonicalForm: string): AstSemanticFactSetIdentity => Object.freeze({
-  kind: 'ast_semantic_fact_set_identity', canonicalForm: stringValue(canonicalForm),
+  kind: 'ast_semantic_fact_set_identity', canonicalForm: stringValue.create(canonicalForm),
 });
 const astSemanticDerivationLedgerIdentity = (canonicalForm: string): AstSemanticDerivationLedgerIdentity => Object.freeze({
-  kind: 'ast_semantic_derivation_ledger_identity', canonicalForm: stringValue(canonicalForm),
+  kind: 'ast_semantic_derivation_ledger_identity', canonicalForm: stringValue.create(canonicalForm),
 });
 
 /**
@@ -383,7 +380,7 @@ const ruleDerivation = (
   round: astSemanticRoundCount(round),
   witness: Object.freeze({
     kind: 'ast_witness',
-    value: stringValue(`${rule.name.value.value}@round:${round}`),
+    value: stringValue.create(`${rule.name.value.value}@round:${round}`),
   }),
   premises: Object.freeze(relationProject(rule.premises, fact => Object.freeze({
     kind: 'ast_semantic_premise' as const,
@@ -720,7 +717,7 @@ export const astSemanticFactFromRelation = (
 
 const astSemanticFactsFromSequence = (
   stage: AstSemanticStage,
-  sequence: AstSequence<AstRelationFact>,
+  sequence: AstRelationFactSequence,
   output: readonly AstSemanticFact[] = [],
 ): AstSemanticFacts => relationVariantFold(sequence, 'ast_sequence_empty',
   () => astSemanticFacts(output),
@@ -736,5 +733,15 @@ export const astSemanticFactsFromRelations = (
 ): AstSemanticFacts => astSemanticFactsFromSequence(stage, relations.items);
 
 export const emptyAstSemanticFacts = (): AstSemanticFacts => astSemanticFacts([]);
-export const emptyAstSemanticSequence = <T>(): AstSequence<T> => emptyAstSequence<T>();
-export const astSemanticSequenceCons = <T>(head: T, tail: AstSequence<T>): AstSequence<T> => astSequenceCons(head, tail);
+
+export interface AstSemanticRelationSequenceFactoryInterface {
+  readonly empty: () => AstRelationFactSequence;
+  readonly cons: (head: AstRelationFact, tail: AstRelationFactSequence) => AstRelationFactSequence;
+  readonly consWithEmptyTail: (head: AstRelationFact) => AstRelationFactSequence;
+}
+
+export const astSemanticRelationSequenceFactory: AstSemanticRelationSequenceFactoryInterface = Object.freeze({
+  empty: () => astSequenceOperations.emptyRelationFacts(),
+  cons: (head: AstRelationFact, tail: AstRelationFactSequence): AstRelationFactSequence => astSequenceOperations.consRelationFact(head, tail),
+  consWithEmptyTail: (head: AstRelationFact): AstRelationFactSequence => astSequenceOperations.consRelationFactWithEmptyTail(head),
+});

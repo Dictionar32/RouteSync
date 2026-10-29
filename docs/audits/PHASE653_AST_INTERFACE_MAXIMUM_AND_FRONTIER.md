@@ -2,7 +2,7 @@
 
 ## Tujuan
 
-Phase ini tidak sekadar menghapus konstruksi host-language. AST dinaikkan menjadi **closed-schema proof-carrying semantic attributed term** yang dapat menjadi kontrak lintas scanner/lexer → resolver → analysis → semantic lowering → target projection.
+Phase ini tidak sekadar menghapus konstruksi host-language. AST dinaikkan menjadi **closed-schema proof-carrying semantic attributed term** yang dapat menjadi kontrak lintas frontend/php → resolver → analysis → semantic lowering → target projection.
 
 ## Interface tertinggi yang sekarang tersedia
 

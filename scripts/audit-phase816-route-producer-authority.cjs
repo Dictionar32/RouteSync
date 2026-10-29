@@ -13,9 +13,9 @@ function walk(dir) {
 walk(root);
 const read = f => fs.readFileSync(f, 'utf8');
 const matches = (needle, scope = files) => scope.filter(f => read(f).includes(needle));
-const routeEmitter = path.join(root, 'compiler', 'scanner', 'subscanners', 'route-scanner', 'routeEmitter.ts');
-const scanner = path.join(root, 'compiler', 'scanner', 'subscanners', 'RouteScanner.ts');
-const relationProducer = path.join(root, 'compiler', 'scanner', 'subscanners', 'routeProducerRelations.ts');
+const routeEmitter = path.join(root, 'compiler', 'scanner', 'operations', 'route-scanner', 'routeEmitter.ts');
+const scanner = path.join(root, 'compiler', 'scanner', 'operations', 'RouteScanner.ts');
+const relationProducer = path.join(root, 'compiler', 'scanner', 'operations', 'routeProducerRelations.ts');
 const pipeline = path.join(root, 'types', 'upstream', 'astSemanticAuthorityPipeline.ts');
 
 const result = {

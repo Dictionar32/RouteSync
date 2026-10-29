@@ -14,11 +14,11 @@ function walk(dir) {
 }
 walk(core);
 const text = file => fs.readFileSync(file, 'utf8');
-const parser = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts');
-const syntax = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
-const flow = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
+const parser = read('packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts');
+const syntax = read('packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
+const flow = read('packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
 
 const assertions = [
   ['parser_consumes_syntax_relations', /semanticRouteSyntaxRelations/.test(parser)],

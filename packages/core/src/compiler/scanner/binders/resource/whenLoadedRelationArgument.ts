@@ -1,16 +1,20 @@
-import type { PhpArgument, PhpAstValue } from "../../lexer/PhpAst";
-import { matchPhpAstValue } from "../../lexer/PhpAst";
+import type { PhpArgument, PhpAstValue } from "../../../frontend/php/PhpAst";
+import { matchPhpAstValue } from "../../../frontend/php/PhpAst";
 import { createRelationName } from "../../../../types/upstream/names";
 import type { RelationName } from "../../../../types/upstream/names";
 import { relationFold, relationGate } from "../../../../semantic/relations/relationalSequence";
 import { matchLookup, type Lookup } from "../../../../types/upstream/collections";
 
-export function readWhenLoadedRelation(argumentsAst: readonly PhpArgument[]): Lookup<RelationName> {
+export interface ReadWhenLoadedRelationOperation {
+  (argumentsAst: readonly PhpArgument[]): Lookup<RelationName>;
+}
+
+export const readWhenLoadedRelation: ReadWhenLoadedRelationOperation = Object.freeze((argumentsAst: readonly PhpArgument[]): Lookup<RelationName> => {
     return relationFold(argumentsAst, { kind: 'missing' } as Lookup<RelationName>, (result, argument) => matchLookup(result, {
         missing: () => readRelationArgument(argument),
         found: () => result,
     }));
-}
+});
 
 const literalRelationReaders: {
     readonly string: (value: Extract<PhpAstValue, { kind: 'literal'; literalType: 'string' }>) => Lookup<RelationName>;

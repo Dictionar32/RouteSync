@@ -4,10 +4,10 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/tokenizer.ts',
-  'packages/core/src/compiler/scanner/lexer/SourceStream.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts',
+  'packages/core/src/compiler/frontend/php/tokenizer.ts',
+  'packages/core/src/compiler/frontend/php/SourceStream.ts',
+  'packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts',
+  'packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteSecurityResolver.ts',
   'packages/core/src/compiler/scanner/resolvers/boundary/capabilityResolution.ts',
 ];

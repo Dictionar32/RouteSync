@@ -5,7 +5,7 @@ const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/
 const root = path.resolve(__dirname, '..');
 const files = [
   'packages/core/src/compiler/relational/sequence.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts',
   'packages/core/src/semantic/SymbolTable.ts',
   'packages/core/src/semantic/kernel/relationalSequence.ts',
   'packages/core/src/semantic/kernel/relationMembership.ts',
@@ -33,7 +33,7 @@ for (const name of ['relationUnique','relationIndexAdd','relationIndexLookup','e
 }
 const facade = fs.readFileSync(path.join(root, 'packages/core/src/compiler/relational/sequence.ts'), 'utf8');
 if ((facade.match(/\bexpandRelation\b/g) || []).length !== 1) diagnostics.push({ file: 'compiler/relational/sequence.ts', message: 'expandRelation facade must have exactly one export occurrence' });
-const model = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts'), 'utf8');
+const model = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts'), 'utf8');
 if ((model.match(/function\s+buildModelColumn\s*\(/g) || []).length !== 1) diagnostics.push({ file: 'modelDescriptorClass.ts', message: 'buildModelColumn must have exactly one canonical declaration' });
 const symbol = fs.readFileSync(path.join(root, 'packages/core/src/semantic/SymbolTable.ts'), 'utf8');
 for (const name of ['sequenceToRelation','createModelSymbol','createSymbolTable']) if (!new RegExp(`\\b${name}\\b`).test(symbol)) diagnostics.push({ file: 'semantic/SymbolTable.ts', message: `missing semantic boundary ${name}` });

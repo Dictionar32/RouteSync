@@ -7,9 +7,17 @@ export interface PhpQualifiedClassName {
   readonly value: StringValue;
 }
 
-export const createPhpQualifiedClassName = (value: string): PhpQualifiedClassName => Object.freeze({
-  kind: 'php_qualified_class_name',
-  value: Object.freeze({ kind: 'string_value', value: value.replace(/^\\+/, '') }),
+export interface PhpQualifiedClassNameFactoryInterface {
+  readonly kind: 'php_qualified_class_name_factory';
+  readonly create: (value: string) => PhpQualifiedClassName;
+}
+
+export const phpQualifiedClassNameFactory: PhpQualifiedClassNameFactoryInterface = Object.freeze({
+  kind: 'php_qualified_class_name_factory',
+  create: (value: string): PhpQualifiedClassName => Object.freeze({
+    kind: 'php_qualified_class_name',
+    value: Object.freeze({ kind: 'string_value', value: value.replace(/^\\+/, '') }),
+  }),
 });
 
 /** Class imports are distinct from function imports and retain their lexical source region. */

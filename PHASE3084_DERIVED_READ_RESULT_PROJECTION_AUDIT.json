@@ -1,0 +1,50 @@
+{
+  "phase": 3084,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — derived read-result projection",
+  "status": "PASS_STRUCTURAL",
+  "passed": 18,
+  "total": 18,
+  "checks": {
+    "readResultsIsAnOperationNotDuplicatedStoredField": true,
+    "bindingsRemainTheStoredSourceOfTruth": true,
+    "derivedProjectionUsesExplicitTypedSequence": true,
+    "upstreamProjectionHasNoMap": true,
+    "successfulBatchUsesDerivedProjection": true,
+    "rejectedBatchUsesSameDerivedProjection": true,
+    "cliConsumesProjectionOperation": true,
+    "batchStillPreservesMonotonicRejectionState": true,
+    "noArrayLengthClassification": true,
+    "runtimeProjectionPreservesOrderAndIdentity": true,
+    "runtimeProjectionIsDerivedAndImmutable": true,
+    "runtimeRejectionAndSuccessEvidenceCoexist": true,
+    "emptyBatchProjectionRemainsTyped": true,
+    "cliManifestGeneratorPathRemainsConnected": true,
+    "interfaceFirstFactoryExportPreserved": true,
+    "changedFilesTranspileWithoutSyntaxDiagnostics": true,
+    "collectionsSingleNewlineInvariantPreserved": true,
+    "deletedRelationFoundationNotRestored": true
+  },
+  "runtimeBehavior": {
+    "projectionPreservesBoundReadOrder": true,
+    "projectionIsFreshDerivedOutput": true,
+    "rejectionEvidenceAndSuccessfulBindingsCoexist": true,
+    "emptyBoundBatchProjectsAnEmptyInventory": true
+  },
+  "syntaxDiagnostics": [],
+  "runtimeTrace": [
+    "CLI scan/sync → manifest scan operation → Laravel controller source discovery → source-read settlements",
+    "source-read settlement batch → monotonic source identity binding judgment",
+    "identity batch stores bound identity evidence once; readResults() derives an immutable ordered projection from bindings",
+    "CLI consumes the domain projection → document-read batch → semantic invocation → manifest composition and validation → canonical manifest generator save"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "focusedRuntimeProjectionScenarios": "PASS",
+    "syntaxTranspile": "PASS",
+    "strictWholeWorkspaceTypecheck": "ATTEMPTED — blocked by pre-existing unresolved deleted-relation imports, protected collections.ts module invariant, and missing Node/@routesync/core type declarations; no diagnostics were reported directly in the two changed upstream identity-binding files.",
+    "fullTestSuite": "NOT_RUN",
+    "phpCliManifestGeneratorEndToEnd": "NOT_RUN",
+    "scope": "Removes the duplicated stored readResults field and map projection from the identity-binding authority. Does not claim workspace-wide removal of map, primitive types, or control flow."
+  },
+  "nextFrontier": "Trace source/evidence provenance field-by-field through semantic invocation and canonical manifest JSON; review each remaining collection projection under its domain owner."
+}

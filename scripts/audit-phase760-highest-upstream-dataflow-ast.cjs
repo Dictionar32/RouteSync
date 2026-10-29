@@ -14,9 +14,9 @@ const authority = read('packages/core/src/types/upstream/semanticDataflowAuthori
 const canonical = read('packages/core/src/types/upstream/semanticDataflow.ts');
 const compatibility = read('packages/core/src/compiler/analysis/astDataflowAuthority.ts');
 const analysis = read('packages/core/src/compiler/analysis/astAnalysisInterface.ts');
-const validation = read('packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts');
+const validation = read('packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts');
 const validationShape = read('packages/core/src/types/domain/validationRules.ts');
-const scalarBuilder = read('packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts');
+const scalarBuilder = read('packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts');
 const ecommerce = [
   'examples/ecommerce-shop-source/routes/api.php',
   'examples/ecommerce-shop-source/app/Http/Requests/StoreOrderRequest.php',

@@ -1,9 +1,9 @@
-import type { ModelDeclarationAst } from './lexer';
+import type { ModelDeclarationAst } from '../frontend/php';
 import type { SourceSpan } from '../../types/upstream/provenance';
 import type { ModelAccessorMethodEvidence, ModelAccessorReturnTypeEvidence } from '../../types/upstream/modelAccessorFactsAuthorityInterface';
 import { createClassName, createMethodName } from '../../types/upstream/names';
-import { createSourceFile } from '../../types/upstream/names';
-import { phpAstExpressionSemanticAuthority } from './lexer/routeAst/phpAstExpressionSemanticAuthority';
+import { sourceFileIdentityFactory, stringValue } from '../../types/upstream/names';
+import { phpAstExpressionSemanticAuthority } from '../frontend/php/routeAst/phpAstExpressionSemanticAuthority';
 
 export interface ModelAccessorEvidenceProductionInput {
   readonly declaration: ModelDeclarationAst;
@@ -34,7 +34,7 @@ const evidenceFor = (method: ModelDeclarationAst['methods'][number], source: Sou
   returnedExpressions: Object.freeze(method.returns.slice(0, 1).map(returned => phpAstExpressionSemanticAuthority.derive({
     kind: 'php_ast_expression_evidence',
     evidence: returned,
-    sourceFile: createSourceFile(source.file.value.value),
+    sourceFile: sourceFileIdentityFactory.create(stringValue.create(source.file.value.value)),
     classContext: { kind: 'none' },
   }))),
   source,

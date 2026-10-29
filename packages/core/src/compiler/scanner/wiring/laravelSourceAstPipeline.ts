@@ -1,46 +1,30 @@
-import { ChannelScanner } from "../subscanners";
-import { migrationInterfaceAdapter } from "../wiring/migrationInterfaceAdapter";
+import { ChannelScanner } from "../operations";
+import { migrationInterfaceAdapter } from "./migrationInterfaceAdapter";
 import type { FormRequestSource } from "../../../types/domain/request";
-import type { SourceAsts, SourceDiscovery, Sequence } from "../../../types/upstream/collections";
+import type { SourceAsts, SourceDiscovery } from "../../../types/upstream/collections";
 import { validateCompleteSourceAst } from "../../../types/upstream/completeness";
-import type { LaravelSourceAstProjectionJudgment, LaravelSourceAstPipelineDependenciesInterface, LaravelSourceAstPipelineExecutionInput, LaravelSourceAstPipelineInterface } from "../../../types/upstream/laravelSourceAstPipelineInterface";
+import { laravelSourceAstProjectionOperations, type LaravelSourceAstProjectionJudgment, type LaravelSourceAstPipelineDependenciesInterface, type LaravelSourceAstPipelineExecutionInput, type LaravelSourceAstPipelineInterface } from "../../../types/upstream/laravelSourceAstPipelineInterface";
 import type { ChannelAst, ControllerAst, ModelAst, RequestAst, ResourceAst, RouteAst, ServiceAst, ResponseAst, ProviderAst } from "../../../types/upstream/ast";
 import type { SourceProjectIdentity } from "../../../types/upstream/highLevelSourceModel";
 import type { ControllerStaticCallModelClassIdentity } from "../../../types/upstream/controllerStaticCallOriginInterface";
 import type { LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt } from "../../../types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface";
-import type { ResourceScanEvidence } from '../lexer/resourceSourceEvidence';
-import type { LaravelResourceResolvedArtifact } from '../../../types/upstream/laravelResourceScannerInterface';
-function sequence<T>(items: readonly T[]): Sequence<T> {
-    return items.reduceRight<Sequence<T>>(
-        (tail, head) => ({ kind: "cons", head, tail }),
-        { kind: "empty" },
-    );
-}
-
+import type { ResourceScanEvidence } from '../../frontend/php/resourceSourceEvidence';
 function scanned<T>(items: readonly T[]): SourceDiscovery<T> {
-    if (items.length === 0) {
-        return { kind: "scanned", result: { kind: "discovered_empty" } };
-    }
-
-    return { kind: "scanned", result: { kind: "discovered_many", items: sequence(items) } };
+    return { kind: "scanned", items: Object.freeze([...items]) };
 }
 
-function sequenceToArray<T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] {
-    if (items.kind === "empty") {
-        return output;
+function attributeScannedFilesToArray(items: import("../../../types/upstream/laravelAttributeScannerInterface").LaravelAttributeScannedFileSequence): readonly import("../../../types/upstream/ast").AttributeAst[] {
+    const output: import("../../../types/upstream/ast").AttributeAst[] = [];
+    let current = items;
+    while (current.kind !== "laravel_attribute_scanned_file_sequence_empty") {
+        output.push(current.evidence.attribute);
+        current = current.rest;
     }
-
-    return sequenceToArray(items.tail, [...output, items.head]);
-}
-
-function attributeScannedFilesToSequence(items: import("../../../types/upstream/laravelAttributeScannerInterface").LaravelAttributeScannedFileSequence): Sequence<import("../../../types/upstream/ast").AttributeAst> {
-    if (items.kind === "laravel_attribute_scanned_file_sequence_empty") return { kind: "empty" };
-    return { kind: "cons", head: items.evidence.attribute, tail: attributeScannedFilesToSequence(items.rest) };
+    return Object.freeze(output);
 }
 
 function attributeScannedFilesToDiscovery(items: import("../../../types/upstream/laravelAttributeScannerInterface").LaravelAttributeScannedFileSequence): SourceDiscovery<import("../../../types/upstream/ast").AttributeAst> {
-    if (items.kind === "laravel_attribute_scanned_file_sequence_empty") return { kind: "scanned", result: { kind: "discovered_empty" } };
-    return { kind: "scanned", result: { kind: "discovered_many", items: attributeScannedFilesToSequence(items) } };
+    return scanned(attributeScannedFilesToArray(items));
 }
 
 /** Interface contract for constructing the input-bound source-AST runtime operation. */
@@ -60,23 +44,21 @@ export const laravelSourceAstPipelineFactory: LaravelSourceAstPipelineFactoryInt
     const operation: LaravelSourceAstPipelineInterface<Receipt, ResourceScanEvidence> = {
         kind: "laravel_source_ast_pipeline",
         closed: true,
-        contractVersion: 17,
+        contractVersion: 20,
         input,
         dependencies,
-        async execute(): Promise<LaravelSourceAstProjectionJudgment<Receipt>> {
-            const dependencies = this.dependencies;
-            const input = this.input;
+        execute: async (): Promise<LaravelSourceAstProjectionJudgment<Receipt>> => {
     const { controllerScanner, resourceScanner, responseScanner, routeScanner } = dependencies;
     const invocationInventoryReceipt = input.invocationInventoryReceipt;
     const sourceProject: SourceProjectIdentity = invocationInventoryReceipt.sourceInventory.sourceProject;
     const attributeScan = await dependencies.attributeScanner.scan(sourceProject);
     if (attributeScan.kind === 'laravel_attribute_scan_blocked') {
-        return Object.freeze({
+        return laravelSourceAstProjectionOperations.blocked(Object.freeze({
             kind: 'laravel_source_ast_projection_attribute_scan_blocked',
             sourceProject,
             invocationInventoryReceipt,
             scan: attributeScan,
-        });
+        }));
     }
     const migrations = await dependencies.migrationScanner.scan(sourceProject);
     const migrationDiscovery = { kind: "migration_asts" as const, items: scanned(migrations) };
@@ -98,12 +80,12 @@ export const laravelSourceAstPipelineFactory: LaravelSourceAstPipelineFactoryInt
     const attributeDiscovery = attributeScannedFilesToDiscovery(attributeScan.discoveryReceipt.files);
     const dtoDeclarationInventory = await dependencies.dtoDeclarationInventoryScanner.scan(sourceProject);
     if (dtoDeclarationInventory.kind === 'laravel_project_dto_declaration_inventory_incomplete') {
-        return Object.freeze({
+        return laravelSourceAstProjectionOperations.blocked(Object.freeze({
             kind: 'laravel_source_ast_projection_dto_declaration_inventory_blocked',
             sourceProject,
             invocationInventoryReceipt,
             scan: dtoDeclarationInventory,
-        });
+        }));
     }
     const dtos = Object.freeze(dtoDeclarationInventory.receipt.declarations.map(evidence => evidence.declaration));
     const controllerScan = await controllerScanner.scan({
@@ -114,43 +96,45 @@ export const laravelSourceAstPipelineFactory: LaravelSourceAstPipelineFactoryInt
         dtoDeclarationInventory,
         invocationInventory: invocationInventoryReceipt,
     });
-    if (controllerScan.kind === 'laravel_controller_scan_blocked') {
-        return Object.freeze({
+    return controllerScan.continueToSourceAstProjection({
+        onBlocked: async scan => laravelSourceAstProjectionOperations.blocked(Object.freeze({
             kind: 'laravel_source_ast_projection_controller_scan_blocked',
             sourceProject,
             invocationInventoryReceipt,
-            scan: controllerScan,
-        });
-    }
+            scan,
+        })),
+        onComplete: async controllerScan => {
     const routeOperation = await routeScanner.prepare({
         controllerScan,
         sourceSelectionIntent: input.routeSelection,
     });
     const routeScan = await routeOperation.execute();
-    if (routeScan.kind === 'laravel_route_scan_blocked') {
-        return Object.freeze({
+    return routeScan.continueToSourceAstProjection({
+        onSourceSelectionBlocked: async scan => laravelSourceAstProjectionOperations.blocked(Object.freeze({
             kind: 'laravel_source_ast_projection_route_scan_blocked',
             sourceProject,
             invocationInventoryReceipt,
-            scan: routeScan,
-        });
-    }
-    if (routeScan.kind === 'laravel_route_scan_response_blocked') {
-        return Object.freeze({
+            scan,
+        })),
+        onSourceReadBlocked: async scan => laravelSourceAstProjectionOperations.blocked(Object.freeze({
+            kind: 'laravel_source_ast_projection_route_source_read_blocked',
+            sourceProject,
+            invocationInventoryReceipt,
+            scan,
+        })),
+        onResponseBlocked: async scan => laravelSourceAstProjectionOperations.blocked(Object.freeze({
             kind: 'laravel_source_ast_projection_route_response_blocked',
             sourceProject,
             invocationInventoryReceipt,
-            scan: routeScan,
-        });
-    }
-    if (routeScan.kind === 'laravel_route_scan_policy_blocked') {
-        return Object.freeze({
+            scan,
+        })),
+        onPolicyBlocked: async scan => laravelSourceAstProjectionOperations.blocked(Object.freeze({
             kind: 'laravel_source_ast_projection_route_policy_blocked',
             sourceProject,
             invocationInventoryReceipt,
-            scan: routeScan,
-        });
-    }
+            scan,
+        })),
+        onComplete: async routeScan => {
     const controllers: readonly ControllerAst[] = Object.freeze(controllerScan.controllers.map(artifact => artifact.ast));
     const controllerActions = Object.freeze(controllerScan.controllers.flatMap(artifact => artifact.actions));
     // Acquire Resource evidence once; binding judgment and AST projection consume this same inventory.
@@ -162,14 +146,14 @@ export const laravelSourceAstPipelineFactory: LaravelSourceAstPipelineFactoryInt
         resourceEvidence: resourceSourceEvidence,
     });
     if (resourceScan.kind === 'laravel_resource_scan_blocked') {
-        return Object.freeze({
+        return laravelSourceAstProjectionOperations.blocked(Object.freeze({
             kind: 'laravel_source_ast_projection_resource_scan_blocked',
             sourceProject,
             invocationInventoryReceipt,
             scan: resourceScan,
-        });
+        }));
     }
-    const resolvedResourceArtifacts = sequenceToArray<LaravelResourceResolvedArtifact>(resourceScan.response.artifacts.items);
+    const resolvedResourceArtifacts = resourceScan.response.artifacts.items;
     const resources: readonly ResourceAst[] = Object.freeze(resolvedResourceArtifacts.map(artifact => artifact.ast));
     const resourceDefinitions = Object.freeze(resolvedResourceArtifacts.map(artifact => artifact.definition));
     const responseBundle = await responseScanner.scan(Object.freeze({
@@ -234,8 +218,12 @@ export const laravelSourceAstPipelineFactory: LaravelSourceAstPipelineFactoryInt
     };
     const completeness = validateCompleteSourceAst(ast, sourceProject.source);
     return completeness.kind === 'complete_source_ast'
-        ? Object.freeze({ kind: 'laravel_source_ast_projection_complete', completion: completeness })
-        : Object.freeze({ kind: 'laravel_source_ast_projection_blocked', partial: ast, completeness });
+        ? laravelSourceAstProjectionOperations.complete(Object.freeze({ kind: 'laravel_source_ast_projection_complete', completion: completeness }))
+        : laravelSourceAstProjectionOperations.blocked(Object.freeze({ kind: 'laravel_source_ast_projection_blocked', partial: ast, completeness }));
+        },
+    });
+        },
+    });
         },
     };
     return Object.freeze(operation);

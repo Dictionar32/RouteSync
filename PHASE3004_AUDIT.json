@@ -1,0 +1,83 @@
+{
+  "phase": 3004,
+  "title": "CLI Manifest Terminal Continuation and Runtime Trace",
+  "passed": 15,
+  "total": 15,
+  "checks": [
+    {
+      "name": "cli-scan-operation-has-interface-first-export",
+      "passed": true,
+      "detail": "CLI scan factory is exported as a named, explicitly typed operation object."
+    },
+    {
+      "name": "composition-factory-has-interface-first-export",
+      "passed": true,
+      "detail": "Manifest composition factory uses the declared interface as its runtime contract."
+    },
+    {
+      "name": "composition-authority-is-interface-typed",
+      "passed": true,
+      "detail": "Canonical production authority is constructed through the typed factory."
+    },
+    {
+      "name": "manifest-result-is-operational-adt",
+      "passed": true,
+      "detail": "Every manifest terminal outcome carries a domain continuation."
+    },
+    {
+      "name": "manifest-builder-outcomes-use-upstream-continuation",
+      "passed": true,
+      "detail": "Complete/blocked builder outcomes are translated through the producer-owned continuation."
+    },
+    {
+      "name": "cli-command-consumes-manifest-adt",
+      "passed": true,
+      "detail": "CLI scan consumes the manifest terminal ADT through its operation."
+    },
+    {
+      "name": "scan-no-undefined-validation-sentinel",
+      "passed": true,
+      "detail": "Manifest validation rejection is handled at its ADT terminal, not encoded as undefined sentinel data."
+    },
+    {
+      "name": "scan-rejection-is-domain-handler",
+      "passed": true,
+      "detail": "Rejected validation is handled directly by the rejected-result continuation."
+    },
+    {
+      "name": "scan-sync-share-one-manifest-operation",
+      "passed": true,
+      "detail": "Scan and sync both use the composition-owned manifest scan operation."
+    },
+    {
+      "name": "cli-composition-uses-typed-scan-factory",
+      "passed": true,
+      "detail": "CLI composition reuses the canonical scan operation factory."
+    },
+    {
+      "name": "no-export-function-in-traced-composition-modules",
+      "passed": true,
+      "detail": "Traced composition/scan operation modules contain no exported function declarations."
+    },
+    {
+      "name": "collections-remains-empty",
+      "passed": true,
+      "detail": "Intentionally empty upstream collections module remains untouched."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:relationMembership.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/relationMembership.ts remains absent."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:relationalSequence.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/relationalSequence.ts remains absent."
+    },
+    {
+      "name": "forbidden-relation-foundation-absent:semanticRelations.ts",
+      "passed": true,
+      "detail": "packages/core/src/semantic/relations/semanticRelations.ts remains absent."
+    }
+  ]
+}

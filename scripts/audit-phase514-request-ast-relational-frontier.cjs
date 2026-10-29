@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/subscanners/requestAstCanonical.ts');
+const target = path.join(process.cwd(), 'packages/core/src/compiler/scanner/operations/requestAstCanonical.ts');
 const source = fs.readFileSync(target, 'utf8');
 const checks = {
   if: /\bif\b/g,

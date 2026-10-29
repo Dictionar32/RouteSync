@@ -27,6 +27,20 @@ export type ResponseCardinality =
   | { readonly kind: 'single' }
   | { readonly kind: 'collection' };
 
+export interface ResponseCardinalityHandlers<T> {
+  readonly single: () => T;
+  readonly collection: () => T;
+}
+
+export interface ResponseCardinalityOperationsInterface {
+  readonly continueWith: <T>(cardinality: ResponseCardinality, handlers: ResponseCardinalityHandlers<T>) => T;
+}
+
+export const responseCardinalityOperations: ResponseCardinalityOperationsInterface = Object.freeze({
+  continueWith: <T>(cardinality: ResponseCardinality, handlers: ResponseCardinalityHandlers<T>): T =>
+    cardinality.kind === 'single' ? handlers.single() : handlers.collection(),
+});
+
 export type ResponseJsonShape =
   | { readonly kind: 'single'; readonly payload: ResponseJsonPayload }
   | { readonly kind: 'collection'; readonly payload: ResponseJsonPayload }

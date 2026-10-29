@@ -7,7 +7,7 @@ const roots = [
   'packages/core/src/semantic/plugins',
   'packages/core/src/compiler/constraints',
   'packages/core/src/compiler/scanner/semantic',
-  'packages/core/src/compiler/scanner/lexer/routeAst',
+  'packages/core/src/compiler/frontend/php/routeAst',
 ];
 
 const forbidden = {

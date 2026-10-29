@@ -19,7 +19,7 @@ const checks = [
   ['exact-source derivation rule is explicit', /sourceCorrelationInputIntegrity: 'caller-cannot-supply-an-independent-identity-judgment/.test(response)],
   ['identity remains owned by existing semantics', /readonly identityOwner: 'LaravelSourceIdentitySemanticsInterface'/.test(response)],
   ['new input publicly exported', /LaravelControllerResponseDeclarationSourceCorrelationInput/.test(index)],
-  ['no relation/foundation subscanner introduced', !/subscanners\/(?:relation|foundation)/.test(scanner)],
+  ['no relation/foundation subscanner introduced', !/operations\/(?:relation|foundation)/.test(scanner)],
   ['production scanner now wires the existing integrated-response pipeline', /responseSemanticPipeline\.judgeIntegratedResponse\(/.test(scanner) && /responseSemanticPipeline\.astProjection\.judge/.test(scanner)],
 ];
 const failed = checks.filter(([, passed]) => !passed);

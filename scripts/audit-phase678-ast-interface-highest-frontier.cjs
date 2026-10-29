@@ -8,15 +8,15 @@ const upgraded = [
   'packages/cli/src/parsers/php/boundaryAdapter.ts',
   'packages/cli/src/parsers/php/nodeMapper.ts',
   'packages/core/src/types/domain/phpAst/algebra.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts',
   'packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts',
   'packages/core/src/compiler/analysis/astAnalysisInterface.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptNodeLowerer.ts',
   'packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts',
-  'packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts',
+  'packages/core/src/compiler/scanner/operations/serviceSourceStatements.ts',
 ];
 
 const forbidden = sourceFile => {
@@ -66,9 +66,9 @@ const reports = Object.fromEntries(upgraded.map(file => [file, inspect(file)]));
 const cleanUpgraded = Object.values(reports).every(report => Object.values(report.counts).every(value => value === 0) && report.transpileDiagnostics.length === 0);
 
 const frontierRoots = [
-  'packages/core/src/compiler/scanner/lexer',
+  'packages/core/src/compiler/frontend/php',
   'packages/core/src/compiler/scanner/resolvers',
-  'packages/core/src/compiler/scanner/subscanners',
+  'packages/core/src/compiler/scanner/operations',
   'packages/core/src/compiler/analysis',
   'packages/core/src/compiler/domain/common/ts-lowerer',
   'packages/cli/src/parsers/php',

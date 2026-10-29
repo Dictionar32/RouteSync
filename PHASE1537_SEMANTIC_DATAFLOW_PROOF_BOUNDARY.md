@@ -10,7 +10,7 @@ Strengthen the existing upstream semantic-dataflow interface before changing sol
 - `packages/core/src/types/upstream/semanticReasoning.ts`: proof facets for evidence, derivation, provenance, and closure.
 - `packages/core/src/types/upstream/semanticDataflowAuthority.ts`: sole owner of closure, path derivation, and judgment production.
 - `packages/core/src/types/upstream/semanticDataflowInterface.ts`: admission contract consumed at the scanner compatibility boundary.
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts`: obtains the upstream judgment, admits it, and only then projects to the legacy scanner vocabulary.
+- `packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts`: obtains the upstream judgment, admits it, and only then projects to the legacy scanner vocabulary.
 
 ## Interface model change
 

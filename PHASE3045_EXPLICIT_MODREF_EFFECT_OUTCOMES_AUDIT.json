@@ -1,0 +1,39 @@
+{
+  "phase": 3045,
+  "title": "Explicit Mod/Ref Effect Outcomes — Concrete Writes/Reads, Source-Backed Invocation Blockers",
+  "runtimeTrace": [
+    "PHP expression/statement producers create canonical SemanticFact values and source-backed mod/ref outcomes at the same syntax-evidence boundary",
+    "assignment effect definitions project concrete mod relations for plain writes and separate ref/mod relations for compound writes",
+    "property/array access emits a ref relation; assignment-target access is not incorrectly counted as a read",
+    "unset emits one mod relation per target KnowledgeId",
+    "invocation without a modeled callable summary remains an explicit source-backed blocker",
+    "SemanticKnowledgeDataFlow publishes modRefRelations and unresolved modRefFacts together",
+    "semanticObjectIdentityOperations.modRefEvidence preserves derived relations alongside unresolved blockers",
+    "CLI manifest scan and controller-invocation composition interfaces remain the downstream runtime route"
+  ],
+  "checks": {
+    "canonicalUpstreamOwnsTypedModRefRelation": true,
+    "unresolvedCallableEffectsRemainClosedBlockers": true,
+    "effectFactoryIsExplicitInterfaceObject": true,
+    "assignmentEmitsConcreteWriteRelation": true,
+    "accessEmitsConcreteReadRelation": true,
+    "unsetEmitsTargetSpecificWriteRelations": true,
+    "expressionProducerEmitsReadAndWriteEffects": true,
+    "assignmentTargetAccessIsNotMisclassifiedAsRead": true,
+    "canonicalProducerPublishesBothRelationsAndBlockers": true,
+    "consumerPreservesPartialResults": true,
+    "focusedTestChecksIdentityProvenanceAndPartialOutcome": true,
+    "cliManifestPathRemainsInterfaceBacked": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 14,
+  "total": 14,
+  "remainingDebt": [
+    "This phase models direct assignment/access/unset effects, not interprocedural callable summaries, alias-sensitive heap locations, or all PHP reference semantics.",
+    "The PHP syntax producer files cannot pass a repository-wide strict typecheck while legacy imports still point to intentionally deleted relation-foundation modules; none were restored.",
+    "The dedicated upstream mod/ref domain test passes; an older combined identity test still fails at its pre-existing identity-link-premise assertion, unrelated to the Phase 3045 effect assertions.",
+    "Full repository typecheck, full Vitest, and end-to-end CLI-to-manifest execution remain unverified."
+  ],
+  "failedChecks": []
+}

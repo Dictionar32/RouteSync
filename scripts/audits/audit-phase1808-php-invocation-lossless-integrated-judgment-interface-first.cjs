@@ -8,7 +8,7 @@ const contract = read('packages/core/src/types/upstream/phpSourceInvocationSeman
 const authority = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts');
 const response = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const composition = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const checks = [
   ['integration contract is defined in its interface-first module', contract.includes('interface PhpSourceInvocationSemanticPipelineIntegrationInterface') && contract.includes('readonly version: 10;')],

@@ -12,8 +12,8 @@ const check = (label, condition) => {
   passed += 1;
   process.stdout.write(`PASS ${label}\n`);
 };
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const projection = read('packages/core/src/compiler/scanner/lexer/routeAst/controllerResourceReturnSourceEvidenceProjection.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const projection = read('packages/core/src/compiler/frontend/php/routeAst/controllerResourceReturnSourceEvidenceProjection.ts');
 const projectionContract = read('packages/core/src/types/upstream/controllerResourceReturnSourceEvidenceProjectionInterface.ts');
 const dataflowAuthority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const correspondenceAuthority = read('packages/core/src/types/upstream/controllerDataflowBindingPayloadCorrespondenceAuthority.ts');
@@ -24,9 +24,9 @@ const wiring = read('packages/core/src/compiler/scanner/wiring/laravelController
 const executor = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
 const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const routeHandlerTypes = read('packages/core/src/types/domain/routeHandlers.ts');
-const actionTypeBuilder = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts');
-const legacyCanonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-check('production resolver no longer imports or invokes createControllerDataflowContract', !/createControllerDataflowContract|subscanners\/controller\/controllerDataflowContract/.test(resolver));
+const actionTypeBuilder = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionTypes.ts');
+const legacyCanonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+check('production resolver no longer imports or invokes createControllerDataflowContract', !/createControllerDataflowContract|operations\/controller\/controllerDataflowContract/.test(resolver));
 check('production resolver invokes the existing upstream return-resource evidence projection', /controllerResourceReturnSourceEvidenceProjection\.project/.test(resolver));
 check('projection adapter implements the already-declared upstream interface', /ControllerResourceReturnSourceEvidenceProjectionInterface<PhpAstValue, SourceRange>/.test(projection) && /ControllerResourceReturnSourceEvidenceProjectionInterface/.test(projectionContract));
 check('each projected candidate retains its exact expression source range', /source: value\.source/.test(projection) && /readonly source: TSourceLocation/.test(projectionContract));

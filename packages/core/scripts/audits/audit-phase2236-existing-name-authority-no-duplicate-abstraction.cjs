@@ -16,7 +16,7 @@ const checks = [
   ['resource binding authority has no relation/foundation dependency', !/semantic\/(relations|foundation)\//.test(authority)],
   ['canonical resource publication still belongs to existing authority', /publishResolved/.test(authority)],
   ['integrated response remains owned by existing response pipeline', /LaravelControllerResponseSemanticPipelineInterface/.test(read('src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts'))],
-  ['CLI wiring still exposes remaining action/body subscanner debt', /scanControllerAction/.test(wiring) && /controllerBodySemanticJudgmentAuthority/.test(wiring) && /subscanners\/controller/.test(wiring)],
+  ['CLI wiring still exposes remaining action/body subscanner debt', /scanControllerAction/.test(wiring) && /controllerBodySemanticJudgmentAuthority/.test(wiring) && /operations\/controller/.test(wiring)],
   ['regression test exercises typed method-name equality', fs.existsSync(path.join(root, 'src/types/upstream/__tests__/controller-resource-binding-no-relation-authority.phase2235.test.ts'))],
 ];
 for (const [name, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts',
-  'packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts',
+  'packages/core/src/compiler/scanner/operations/FormRequestScanner.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts',
 ].map(value => path.join(process.cwd(), value));
 const patterns = {
   if: /\bif\b/g, for: /\bfor\b/g, while: /\bwhile\b/g, switch: /\bswitch\b/g,

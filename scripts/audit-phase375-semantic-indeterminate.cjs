@@ -14,8 +14,8 @@ const files = [
   'packages/core/src/semantic/plugins/ExpressionResolver.ts',
   'packages/core/src/semantic/plugins/MethodReturnResolver.ts',
   'packages/core/src/semantic/plugins/PrimitiveResolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts',
 ];
 const forbidden = { if: 0, for: 0, while: 0, switch: 0, map: 0, filter: 0, reduce: 0, flatMap: 0, undefined: 0, null: 0, strictEqual: 0, strictNotEqual: 0, as: 0, unknownType: 0 };

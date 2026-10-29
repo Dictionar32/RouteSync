@@ -17,7 +17,7 @@ check('scanner binds selection by source-file identity rather than basename/cont
 check('missing correspondence error reports source identity', /Missing closed controller declaration judgment for source \$\{invocationJudgment\.sourceFile\.value\.value\}/.test(scanner));
 check('scanner interface and executor use the same evolved contract version', /contractVersion: 26/.test(scannerContract) && (scanner.match(/contractVersion: 26/g) || []).length >= 2);
 check('authority regression test covers duplicate controller names in distinct source files', /preserves exact source identity in each semantic selection/.test(test) && /OrderController\.php[\s\S]*Admin\/OrderController\.php/.test(test));
-check('no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 const passed = checks.filter(item => item.passed).length;
 const result = { phase: 2017, audit: 'source-correlated-controller-declaration-judgment-interface-first', passed, total: checks.length, checks };
 fs.writeFileSync(path.join(root, 'PHASE2017_AUDIT.json'), `${JSON.stringify(result, null, 2)}\n`);

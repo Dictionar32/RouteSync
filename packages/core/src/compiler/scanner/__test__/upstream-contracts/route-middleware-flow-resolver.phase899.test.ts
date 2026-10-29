@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { resolveRouteMiddlewareFlow } from '../../wiring/route/routeMiddlewareFlowResolver';
+import { routeMiddlewareFlowResolver } from '../../../semantic/routeMiddlewareFlowResolver';
 import type { RouteMiddlewareSemanticInput } from '../../../../types/upstream/routeMiddleware';
 import { present } from '../../../../types/upstream/presence';
 import { createActionName, createMiddlewareName } from '../../../../types/upstream/names';
@@ -28,7 +28,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: present(createActionName('show')),
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.middleware).toHaveLength(3);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['auth', 'subscribed', 'audit']);
   });
@@ -40,7 +40,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: present(createActionName('show')),
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['auth']);
   });
 
@@ -56,7 +56,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: present(createActionName('show')),
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['verified']);
   });
 
@@ -67,7 +67,7 @@ describe('Phase 899 route middleware semantic resolver', () => {
       action: { kind: 'absent' },
     };
 
-    const flow = resolveRouteMiddlewareFlow(input);
+    const flow = routeMiddlewareFlowResolver.resolve(input);
     expect(flow.effectiveMiddleware.map(item => item.middleware.name.value.value)).toEqual(['auth']);
   });
 });

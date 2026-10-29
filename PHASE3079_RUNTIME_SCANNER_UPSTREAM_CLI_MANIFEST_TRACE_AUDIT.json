@@ -1,0 +1,34 @@
+{
+  "phase": 3079,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — upstream CLI manifest trace",
+  "status": "PASS_WITH_OPEN_FRONTIERS",
+  "passed": 11,
+  "total": 11,
+  "checks": {
+    "cliScanSyncOperationFeedsCompositionAuthority": true,
+    "compositionReadsDiscoveredSourcesThroughSettlementOperation": true,
+    "settlementFactoryInterfaceFirst": true,
+    "rejectedIdentityAccumulatedAtBoundary": true,
+    "noPostHocRejectionReduce": true,
+    "rejectionEvidenceRetainedAtManifestTerminal": true,
+    "genericBatchContinuationExplicitlyFlagged": true,
+    "traversalArithmeticRemovedFromSourceReadBatch": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationAbsent": true,
+    "changedRuntimeFilesTranspileWithoutDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "verification": {
+    "focusedStructuralAudit": "PASS",
+    "TypeScriptTranspileSyntax": "PASS",
+    "wholeWorkspaceStrictTypeScript": "NOT_RUN — dependencies are not installed in extracted workspace",
+    "fullTestSuite": "NOT_RUN",
+    "phpCliManifestGeneratorEndToEnd": "NOT_RUN"
+  },
+  "openFrontiers": [
+    "Replace generic source-read batch continuation with a source-read-owned, manifest-neutral domain contract.",
+    "Trace field-level provenance from source reads through identity binding, semantic invocation, manifest projection, and canonical JSON.",
+    "Normalize source-discovery blocker evidence at the filesystem adapter boundary.",
+    "Audit query-policy and manifest-builder continuations on the reachable scan/sync path."
+  ]
+}

@@ -2,13 +2,13 @@
 
 ## Scope
 
-Phase 649 continues the declarative semantic cutover after Phase 648. The target is the remaining scanner/lexer and graph-resolver frontier, while preserving PHP/Laravel syntax as source evidence rather than treating it as TypeScript semantic authority.
+Phase 649 continues the declarative semantic cutover after Phase 648. The target is the remaining frontend/php and graph-resolver frontier, while preserving PHP/Laravel syntax as source evidence rather than treating it as TypeScript semantic authority.
 
 ## Changes
 
 ### 1. Scanner character classification
 
-`packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts`
+`packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts`
 
 - Replaced numeric `charCodeAt` range comparisons with explicit lexical character relations.
 - Digit and identifier-start membership are now expressed through the shared `relationTextCharIn` relation primitive.
@@ -17,7 +17,7 @@ Phase 649 continues the declarative semantic cutover after Phase 648. The target
 
 ### 2. Scanner dispatch frontier
 
-`packages/core/src/compiler/scanner/lexer/tokenizer.ts`
+`packages/core/src/compiler/frontend/php/tokenizer.ts`
 
 - Removed the unconditional terminal predicate from the lexical rule catalog.
 - Unknown/unclassified lexical evidence now reaches the relational fallback of `selectAction` after the explicit rule catalog is exhausted.

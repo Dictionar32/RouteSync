@@ -1,0 +1,47 @@
+{
+  "phase": 3082,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — typed source-read sequence traversal",
+  "status": "PASS_STRUCTURAL",
+  "passed": 14,
+  "total": 14,
+  "checks": {
+    "settlementTraversalUsesDomainContributionInStableSequence": true,
+    "settlementTraversalHasNoIndexArithmetic": true,
+    "documentReadTraversalUsesResultOwnedJudgment": true,
+    "documentReadTraversalHasNoIndexArithmetic": true,
+    "rejectedStateRemainsMonotonic": true,
+    "rejectionEvidenceAndSourceIdentityRemainPresent": true,
+    "cliUsesUpstreamManifestScanOperation": true,
+    "compositionUsesSourceReadBatchDomain": true,
+    "cliValidatesAndPersistsCanonicalManifest": true,
+    "manifestPersistenceIsInterfaceFirst": true,
+    "noExportedFunctionDeclarationInUpstreamFrontend": true,
+    "changedRuntimeFilesTranspileWithoutSyntaxDiagnostics": true,
+    "collectionsSingleNewlineInvariantPreserved": true,
+    "deletedRelationFoundationNotRestored": true
+  },
+  "syntaxDiagnostics": [],
+  "runtimeTrace": [
+    "scan/sync command → RouteSyncCliManifestScanOperationInterface.scan",
+    "upstream composition → Laravel controller source discovery → SourceFileInventory",
+    "discoveredSourceReadSettlementOperation.readAll → Promise.all settlement inventory in scheduled source order",
+    "PhpSourceDocumentReadOperationSettlement.contributeToBatch → closed open/rejected batch state; traversal uses ordered sequence iteration without exposed index arithmetic",
+    "batch judgment → source identity binding → PhpSourceDocumentReadBatchFactory.fromResults; each result ADT owns complete/blocked classification while ordered iteration accumulates domain state",
+    "complete documents → semantic invocation pipeline → manifest builder/projection → CLI manifest contract validation → manifestGeneratorOperations.save",
+    "sync additionally emits invocation, request evidence, dataflow and IR artifacts; these are additive to canonical manifest JSON persistence"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "syntaxTranspile": "PASS",
+    "strictWholeWorkspaceTypecheck": "NOT_RUN — dependency/toolchain availability is not established by syntax transpilation",
+    "focusedTests": "NOT_RUN",
+    "phpCliManifestGeneratorEndToEnd": "NOT_RUN",
+    "genericBatchContinuation": "OPEN — next frontier; core must remain CLI-manifest-neutral",
+    "primitiveControlFlow": "REDUCED AT TWO SOURCE-READ BATCH TRAVERSAL SITES; no claim of workspace-wide elimination"
+  },
+  "nextFrontiers": [
+    "Replace the generic final batch continuation with explicit manifest-neutral domain operations while preserving CLI ownership of terminal outcomes.",
+    "Trace field-level provenance from source scanner evidence to canonical manifest JSON and generator consumers.",
+    "Run strict TypeScript, focused tests, and PHP → CLI → manifest → generator integration in a fully installed workspace."
+  ]
+}

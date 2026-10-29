@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [
   ['producer interface exists outside implementation', fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/attributeProducerInterface.ts'))],
   ['producer contract uses existing AST and contextuality judgments', /AttributeAst/.test(read('packages/core/src/compiler/scanner/attributeProducerInterface.ts')) && /LaravelAttributeContextualityJudgment/.test(read('packages/core/src/compiler/scanner/attributeProducerInterface.ts'))],
-  ['producer implementation consumes extracted interface', /from '\.\.\/attributeProducerInterface'/.test(read('packages/core/src/compiler/scanner/subscanners/attributeProducer.ts'))],
+  ['producer implementation consumes extracted interface', /from '\.\.\/attributeProducerInterface'/.test(read('packages/core/src/compiler/scanner/operations/attributeProducer.ts'))],
   ['existing upstream pipeline interface retained', /interface LaravelSourceAstPipelineInterface/.test(read('packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts'))],
   ['existing upstream pipeline dependency interface retained', /interface LaravelSourceAstPipelineDependenciesInterface/.test(read('packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts'))],
   ['attribute scanner evolves in place to upstream contract v15', /interface LaravelAttributeScannerInterface\s*\{[^}]*contractVersion: 15/s.test(read('packages/core/src/types/upstream/laravelAttributeScannerInterface.ts'))],

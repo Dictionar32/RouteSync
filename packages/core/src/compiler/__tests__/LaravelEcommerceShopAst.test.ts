@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyAstValue } from '../scanner/lexer/astClassifier';
+import { classifyAstValue } from '../frontend/php/astClassifier';
 
 /** Regression vocabulary copied from the Library ecommerce_shop Laravel source. */
 describe('ecommerce_shop source AST vocabulary', () => {

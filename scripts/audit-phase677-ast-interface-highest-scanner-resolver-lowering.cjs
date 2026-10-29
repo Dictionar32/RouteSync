@@ -3,10 +3,10 @@ const path = require('path');
 const ts = require('typescript');
 const ROOT = process.cwd();
 const files = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts',
-  'packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts',
-  'packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts',
+  'packages/core/src/compiler/frontend/php/phpAstAlgebra.ts',
+  'packages/core/src/compiler/frontend/php/astClassifierEvidence.ts',
   'packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts',
   'packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts',
@@ -14,8 +14,8 @@ const files = [
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptNodeLowerer.ts',
   'packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts',
-  'packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts',
+  'packages/core/src/compiler/scanner/operations/serviceSourceStatements.ts',
 ];
 const inspect = file => {
   const source = fs.readFileSync(path.join(ROOT, file), 'utf8');

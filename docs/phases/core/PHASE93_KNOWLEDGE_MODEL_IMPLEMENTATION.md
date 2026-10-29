@@ -58,7 +58,7 @@ Resource nesting, selection, middleware scope, singleton creation/destruction, d
 File yang sudah tidak dipakai **tidak dihapus**. File tersebut dipertahankan dengan ukuran `0 byte`:
 
 - `types/upstream/routeResourceFacts.ts.tmp`
-- `compiler/scanner/lexer/routeAst/routeDeclarationAst.ts.tmp`
+- `compiler/frontend/php/routeAst/routeDeclarationAst.ts.tmp`
 
 ## Invariants
 

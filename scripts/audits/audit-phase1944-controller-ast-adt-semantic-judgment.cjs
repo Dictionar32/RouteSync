@@ -5,11 +5,11 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const vocabulary = read('packages/core/src/types/upstream/primitiveVocabulary.ts');
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const authority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 
 check('AST expression projection matches the closed payload judgment ADT exhaustively',

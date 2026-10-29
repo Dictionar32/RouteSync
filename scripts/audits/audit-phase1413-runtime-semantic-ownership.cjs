@@ -34,7 +34,7 @@ const report = {
   ],
   residuals: [
     { severity: 'high', owner: 'packages/cli/src/generators/classifier/routeGrouper.ts', detail: 'The CLI projection still invokes routeActionIdentityCapabilityAuthority.resolve. Move resolution to upstream manifest construction and pass the closed identity contract through wiring before claiming runtime-wide migration complete.' },
-    { severity: 'medium', owner: 'packages/core/src/compiler/scanner/lexer/astClassifier.ts', detail: 'Parser/scanner still produces AST classification; continue splitting syntax recognition from semantic judgment production using the AST semantic producer interface.' },
+    { severity: 'medium', owner: 'packages/core/src/compiler/frontend/php/astClassifier.ts', detail: 'Parser/scanner still produces AST classification; continue splitting syntax recognition from semantic judgment production using the AST semantic producer interface.' },
     { severity: 'medium', owner: 'packages/core/src/types/upstream/semanticReasoning.ts', detail: 'A total strategy-to-evidence Record remains upstream. It is not runtime classification, but can be migrated to a relation catalog if Record-free reasoning algebra is a hard requirement.' },
     { severity: 'medium', owner: 'packages/core/src/types/upstream/sourceAstSemanticOriginInterface.ts', detail: 'Origin rule totality currently uses Record in upstream authority; not a downstream/runtime classifier.' },
     { severity: 'medium', owner: 'packages/cli/src/generators/NextActionGenerator.ts', detail: 'Generator emits target control flow based on already-closed execution-signature fields; verify every branch is a projection of an upstream contract, not fresh semantic inference.' }

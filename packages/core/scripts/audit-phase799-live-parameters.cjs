@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const route = fs.readFileSync(path.join(root, 'src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts'), 'utf8');
-const model = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/model/modelColumnFactsCanonical.ts'), 'utf8');
-const parser = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/model/modelParser.ts'), 'utf8');
+const route = fs.readFileSync(path.join(root, 'src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts'), 'utf8');
+const model = fs.readFileSync(path.join(root, 'src/compiler/scanner/operations/model/modelColumnFactsCanonical.ts'), 'utf8');
+const parser = fs.readFileSync(path.join(root, 'src/compiler/scanner/operations/model/modelParser.ts'), 'utf8');
 
 const checks = {
   noDeadRouteStrategyParameters: !/\b_[A-Za-z][A-Za-z0-9]*\b/.test(route),

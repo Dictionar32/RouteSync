@@ -6,7 +6,7 @@ Interface-first refinement only. No production wiring or publication authority r
 ## Trace
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts`: the operational `InvocationSemanticCoveragePublicationInterface` already existed. The gap was that a successful receipt carried the coverage contract but did not carry the exact publication authority boundary contract whose invariants it claims were enforced.
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts`: scanner boundary did not explicitly require preserving both contract identities on the validated receipt.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`: existing delegation to `invocationSemanticPipeline.analyzeKnowledge(...)` remains unchanged.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`: existing delegation to `invocationSemanticPipeline.analyzeKnowledge(...)` remains unchanged.
 
 ## Changes
 - Successful `validated-publication` receipt now includes `authorityBoundary: InvocationSemanticCoveragePublicationAuthorityBoundaryContract` alongside the coverage contract and entry-by-entry correspondences.

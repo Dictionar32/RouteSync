@@ -6,7 +6,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [];
 const check = (label, condition) => checks.push({ label, passed: Boolean(condition) });
 
-const astRuntime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const astRuntime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const invocationJudgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const invocationExecutor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
@@ -25,7 +25,7 @@ check('Invocation remains one canonical outcome-indexed judgment ADT', /export t
 check('Invocation runtime executor delegates to the existing authority', /execute:\s*\(input: InvocationSemanticInput\): InvocationSemanticJudgment => authority\.analyze\(input\)/.test(invocationExecutor));
 check('Laravel scanner consumes closed invocation inventory receipt', /readonly invocationInventory: LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt/.test(scannerContract));
 check('Response pipeline consumes the canonical invocation judgment', /LaravelControllerInvocationSemanticJudgmentInterface/.test(responsePipeline));
-check('No relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('No relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 
 for (const item of checks) console.log(`${item.passed ? 'PASS' : 'FAIL'} ${item.label}`);
 console.log(`\nPhase 2021 audit: ${checks.filter(item => item.passed).length}/${checks.length} passed`);

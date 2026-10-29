@@ -6,7 +6,7 @@ const adapter = read('packages/cli/src/parsers/php/sourceFrontendAstAdapter.ts')
 const pipeline = read('packages/cli/src/parsers/php/sourceInvocationPipeline.ts');
 const parserIndex = read('packages/cli/src/parsers/php/index.ts');
 const coreIndex = read('packages/core/src/index.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [
   ['adapter uses existing php-parser dependency', adapter.includes("from 'php-parser'")],
   ['adapter implements upstream frontend interface', adapter.includes('PhpSourceFrontendInterface') && adapter.includes('phpSourceFrontendAstAdapter: PhpSourceFrontendInterface')],

@@ -1,0 +1,40 @@
+{
+  "phase": 3016,
+  "title": "Route projection result ADT and explicit domain continuation",
+  "checks": [
+    {
+      "name": "legacy direct projection export removed",
+      "passed": true
+    },
+    {
+      "name": "projection implementation is private",
+      "passed": true
+    },
+    {
+      "name": "projection result has explicit ADT kind",
+      "passed": true
+    },
+    {
+      "name": "projection result exposes domain continuation",
+      "passed": true
+    },
+    {
+      "name": "projection authority has explicit interface",
+      "passed": true
+    },
+    {
+      "name": "runtime consumer continues through projection ADT",
+      "passed": true
+    },
+    {
+      "name": "consumer does not directly spread projection result",
+      "passed": true
+    },
+    {
+      "name": "route and model binding facts remain generated from source model",
+      "passed": true
+    }
+  ],
+  "passed": 8,
+  "total": 8
+}

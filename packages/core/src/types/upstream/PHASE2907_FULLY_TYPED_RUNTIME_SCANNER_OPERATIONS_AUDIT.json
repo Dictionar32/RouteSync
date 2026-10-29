@@ -1,0 +1,33 @@
+{
+  "phase": 2907,
+  "title": "Variant-Owned Discovery Entry Operations",
+  "scope": [
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "scripts/audits/audit-phase2907-entry-owned-discovery.cjs"
+  ],
+  "changes": [
+    "Added a domain-specific LaravelControllerSourceDiscoveryEntry ADT with continueDiscovery operation.",
+    "Added an interface-first immutable upstream factory for directory, symbolic-link, PHP-source, and ignored entries.",
+    "Migrated CLI post-classification actions from a local string-keyed action table to the upstream ADT continuation.",
+    "Updated existing structural audits to assert the new contract rather than the retired local dispatch implementation."
+  ],
+  "verified": {
+    "structural_audit_checks_passed": 71,
+    "changed_typescript_files_syntax_diagnostics": 0,
+    "package_json_parse": true,
+    "collections_ts_empty": true,
+    "zip_integrity": "to be checked after packaging"
+  },
+  "not_verified": [
+    "full project typecheck",
+    "full build",
+    "complete test suite",
+    "CLI end-to-end behavior"
+  ],
+  "remaining_root_cause_targets": [
+    "filesystem error-code and root-versus-child classification still uses primitive OS error evidence",
+    "filesystem Dirent booleans remain an adapter-level classification boundary",
+    "directory iterator cursor currently has a type assertion"
+  ]
+}

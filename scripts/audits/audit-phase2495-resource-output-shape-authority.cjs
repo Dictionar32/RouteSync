@@ -42,7 +42,7 @@ const checks = [
     const producer = read('packages/core/src/compiler/scanner/operations/resourceProducer.ts');
     const field = read('packages/core/src/compiler/scanner/operations/resourceFieldProducer.ts');
     const mapper = read('packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts');
-    const authority = read('packages/core/src/compiler/scanner/lexer/routeAst/resourceExpressionSemanticAuthority.ts');
+    const authority = read('packages/core/src/compiler/frontend/php/routeAst/resourceExpressionSemanticAuthority.ts');
     return producer.includes('semantic/relations/') && !field.includes('semantic/relations/') && !mapper.includes('semantic/relations/') && authority.includes('semantic/relations/');
   }],
 ];

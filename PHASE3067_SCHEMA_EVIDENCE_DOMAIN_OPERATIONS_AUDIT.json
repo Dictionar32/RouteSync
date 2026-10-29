@@ -1,0 +1,47 @@
+{
+  "phase": 3067,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — remove generic route schema evidence continuation",
+  "status": "PASS",
+  "passed": 16,
+  "total": 16,
+  "checks": {
+    "genericSchemaEvidenceHandlerContractRemoved": true,
+    "availableEvidenceExposesDomainBoundaryProjection": true,
+    "unavailableEvidenceExposesDomainBoundaryProjection": true,
+    "availableConstructorRetainsCanonicalSchemaAndEvidenceIdentity": true,
+    "unavailableConstructorRetainsReasonAndEvidenceIdentity": true,
+    "availableAndUnavailableNoLongerExposeGenericContinueWith": true,
+    "routeCompositionUsesSingleBoundaryProjectionForControllerAction": true,
+    "routeCompositionUsesSingleBoundaryProjectionForControllerReference": true,
+    "closureTargetUsesUnavailableEvidenceProjection": true,
+    "routeCompositionDoesNotDispatchOnSchemaEvidenceKind": true,
+    "regressionTestsAssertEvidenceIdentityAndReason": true,
+    "manifestBuilderBlockedProjectionStillExists": true,
+    "cliScanBlockedGatePrecedesOutputWrites": true,
+    "cliSyncBlockedGatePrecedesOutputWrites": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "protectedCollectionsInvariantOneNewlineByte": true
+  },
+  "phase3066BoundaryProjectionRegression": "PASS",
+  "runtimeTrace": [
+    "Laravel PHP route/controller source → source-correlated controller action schema judgment",
+    "Available schema evidence owns canonical schema and source origin",
+    "Unavailable schema evidence owns an explicit absence reason",
+    "Both evidence variants expose the domain-specific continueToRouteBoundarySchema operation",
+    "The operation projects schema and the exact provenance-bearing evidence as one value",
+    "Route boundary → manifest builder complete/blocked judgment → CLI scan/sync terminal gate"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "phase3066Regression": "PASS",
+    "targetedVitest": "NOT_RUN — Vitest package is incomplete in this workspace; the npx invocation timed out",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "strictTypeScript": "NOT_RUN_IN_THIS_PHASE",
+    "globalPrimitiveElimination": "NOT_CLAIMED"
+  },
+  "remainingRisks": [
+    "This phase removes a generic continuation from route schema evidence only; unrelated ADTs may still have generic continuation APIs.",
+    "The full PHP → CLI → manifest/IR path has not been executed as an end-to-end fixture.",
+    "The repository-wide strict TypeScript build remains unverified in this phase."
+  ]
+}

@@ -7,10 +7,10 @@ const roots = [
   'packages/core/src/compiler/domain/common/semantic-resolver',
   'packages/core/src/compiler/domain/common/SemanticTypeResolver.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
-  'packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts',
-  'packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts',
+  'packages/core/src/compiler/scanner/operations/FormRequestScanner.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts',
 ];
 
 const patterns = Object.freeze({

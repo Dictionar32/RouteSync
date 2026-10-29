@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { resolveEffectiveControllerActionPolicy, resolveEffectiveControllerActionPolicyFromEvidence } from './effectiveControllerActionPolicyResolver';
-import { routeMiddlewareReference } from './resourceMiddlewareProjection';
+import { effectiveControllerActionPolicyOperations } from './effectiveControllerActionPolicyResolver';
+import { routeResourceMiddlewareOperations } from './resourceMiddlewareProjection';
 import type { ControllerAuthorizationRelation, ControllerInheritanceRelation, ControllerPolicyRelation } from '../../../../types/upstream/controller';
 import { createActionName, createControllerName, stringValue } from '../../../../types/upstream/names';
 import type { RouteMiddlewareContract } from '../../../../types/upstream/routeMiddleware';
 
 const middleware = (name: string, scope: 'all' | 'only' | 'except' = 'all'): RouteMiddlewareContract => ({
-  middleware: routeMiddlewareReference(name),
+  middleware: routeResourceMiddlewareOperations.reference(name),
   source: { kind: 'controller_class' as const },
   scope: scope === 'all' ? { kind: 'all' as const } : { kind: scope, actions: [createActionName('store')] },
 });
 
 describe('Phase 921 effective controller action policy', () => {
   it('normalizes scoped controller middleware without making it a dataflow fact', () => {
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: {
@@ -30,13 +30,13 @@ describe('Phase 921 effective controller action policy', () => {
   });
 
   it('applies middleware exclusions before producing the effective policy', () => {
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: {
         declarations: [middleware('auth'), middleware('audit', 'only')],
         exclusions: [{
-          middleware: routeMiddlewareReference('auth'),
+          middleware: routeResourceMiddlewareOperations.reference('auth'),
           source: { kind: 'controller_method' },
           scope: { kind: 'only', actions: [createActionName('store')] },
         }],
@@ -50,7 +50,7 @@ describe('Phase 921 effective controller action policy', () => {
 
 describe('Phase 921 evidence aggregation', () => {
   it('aggregates route, resource, and controller policy before action resolution', () => {
-    const policy = resolveEffectiveControllerActionPolicyFromEvidence({
+    const policy = effectiveControllerActionPolicyOperations.resolveFromEvidence({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       evidence: {
@@ -81,7 +81,7 @@ const inheritance = (child: string, parent: string): ControllerInheritanceRelati
 describe('Phase 922 closed policy resolution', () => {
   it('resolves inherited middleware and filters authorization to the concrete action', () => {
     const inheritedMiddleware: ControllerPolicyRelation = middleware('audit');
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },
@@ -99,7 +99,7 @@ describe('Phase 922 closed policy resolution', () => {
 
 describe('Phase 2335 current controller policy catalog fallback', () => {
   it('uses the current controller entry from the existing policy catalog when no separate own-policy slice is supplied', () => {
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },
@@ -124,7 +124,7 @@ describe('Phase 2046 canonical authorization scope delegation', () => {
         except: { kind: 'cons', head: createActionName('destroy'), tail: { kind: 'empty' } },
       },
     };
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },
@@ -136,16 +136,16 @@ describe('Phase 2046 canonical authorization scope delegation', () => {
   it('keeps blocked authorization evidence in the overall judgment while omitting it from resolved authorization products', () => {
     const source = Object.freeze({
       kind: 'source_span' as const,
-      file: Object.freeze({ kind: 'source_file' as const, value: stringValue('Controller.php') }),
+      file: Object.freeze({ kind: 'source_file' as const, value: stringValue.create('Controller.php') }),
       start: Object.freeze({ kind: 'number_value' as const, value: 0 }),
       end: Object.freeze({ kind: 'number_value' as const, value: 1 }),
     });
     const argument = Object.freeze({
       kind: 'named' as const,
-      name: Object.freeze({ kind: 'expression_argument_name' as const, value: stringValue('only') }),
+      name: Object.freeze({ kind: 'expression_argument_name' as const, value: stringValue.create('only') }),
       value: Object.freeze({
         kind: 'variable' as const,
-        name: Object.freeze({ kind: 'variable_name' as const, value: stringValue('methods') }),
+        name: Object.freeze({ kind: 'variable_name' as const, value: stringValue.create('methods') }),
         source,
       }),
     });
@@ -156,7 +156,7 @@ describe('Phase 2046 canonical authorization scope delegation', () => {
         reason: { kind: 'unsupported_only_expression', argument },
       },
     };
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },
@@ -178,9 +178,9 @@ describe('Phase 2336 inherited policy catalog closure', () => {
       scope: { kind: 'class' },
       actions: { kind: 'all' },
       exclusion: false,
-      source: { kind: 'source_span', file: { kind: 'source_file', value: stringValue('BaseController.php') }, start: { kind: 'number_value', value: 10 }, end: { kind: 'number_value', value: 25 } },
+      source: { kind: 'source_span', file: { kind: 'source_file', value: stringValue.create('BaseController.php') }, start: { kind: 'number_value', value: 10 }, end: { kind: 'number_value', value: 25 } },
     };
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },
@@ -204,9 +204,9 @@ describe('Phase 2336 inherited policy catalog closure', () => {
       scope: { kind: 'class' },
       actions: { kind: 'all' },
       exclusion: false,
-      source: { kind: 'source_span', file: { kind: 'source_file', value: stringValue('BaseController.php') }, start: { kind: 'number_value', value: 10 }, end: { kind: 'number_value', value: 25 } },
+      source: { kind: 'source_span', file: { kind: 'source_file', value: stringValue.create('BaseController.php') }, start: { kind: 'number_value', value: 10 }, end: { kind: 'number_value', value: 25 } },
     };
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },
@@ -227,13 +227,13 @@ describe('Phase 2337 inherited policy scope closure', () => {
   it('inherits class-level policy but does not leak an ancestor method-only policy into a child action', () => {
     const source = Object.freeze({
       kind: 'source_span' as const,
-      file: Object.freeze({ kind: 'source_file' as const, value: stringValue('BaseController.php') }),
+      file: Object.freeze({ kind: 'source_file' as const, value: stringValue.create('BaseController.php') }),
       start: Object.freeze({ kind: 'number_value' as const, value: 10 }),
       end: Object.freeze({ kind: 'number_value' as const, value: 25 }),
     });
     const inheritedClassMiddleware: ControllerPolicyRelation = {
       kind: 'controller_middleware_relation',
-      middleware: { kind: 'middleware_name', value: stringValue('auth') },
+      middleware: { kind: 'middleware_name', value: stringValue.create('auth') },
       origin: { kind: 'attribute' },
       scope: { kind: 'class' },
       actions: { kind: 'all' },
@@ -242,14 +242,14 @@ describe('Phase 2337 inherited policy scope closure', () => {
     };
     const ancestorMethodMiddleware: ControllerPolicyRelation = {
       kind: 'controller_middleware_relation',
-      middleware: { kind: 'middleware_name', value: stringValue('audit') },
+      middleware: { kind: 'middleware_name', value: stringValue.create('audit') },
       origin: { kind: 'attribute' },
       scope: { kind: 'method' },
       actions: { kind: 'only', actions: { kind: 'cons', head: createActionName('store'), tail: { kind: 'empty' } } },
       exclusion: false,
       source: Object.freeze({ ...source, start: Object.freeze({ kind: 'number_value' as const, value: 30 }), end: Object.freeze({ kind: 'number_value' as const, value: 40 }) }),
     };
-    const policy = resolveEffectiveControllerActionPolicy({
+    const policy = effectiveControllerActionPolicyOperations.resolve({
       controller: createControllerName('OrderController'),
       action: createActionName('store'),
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: createActionName('store') } },

@@ -6,8 +6,8 @@ const iface = read('packages/core/src/types/upstream/invocationSemanticJudgmentI
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const tests = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const tests = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
 const checks = [
   ['new judgment requires argumentBinding', /readonly argumentBinding: InvocationArgumentBindingJudgment/.test(iface)],
   ['algebra still returns legacy argumentParameters', /argumentParameters:\s*slice\.bindings/.test(algebra)],

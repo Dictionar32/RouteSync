@@ -7,41 +7,53 @@ import type {
 import { operationIdentityCapabilityContractMaterializer } from './operationIdentityCapabilityAlgebra';
 
 /**
- * Compose an upstream authority around the canonical executable algebra.
- * The authority adds ownership metadata and delegates judgment construction;
- * it does not rebuild identity, evidence, or semantic proof.
+ * Interface-first runtime surface for upstream operation-identity materialization.
+ * Each operation seals already-resolved evidence; it never infers route meaning
+ * or creates a replacement reasoning proof.
  */
-export function createOperationIdentityCapabilityAuthority(
+export interface OperationIdentityCapabilityAuthorityOperationsInterface {
+  readonly kind: 'operation_identity_capability_authority_operations';
+  readonly contractVersion: 1;
+  readonly createAuthority: (
+    materializer: OperationIdentityCapabilityContractMaterializerInterface,
+  ) => OperationIdentityCapabilityAuthorityInterface;
+  readonly materialize: (
+    input: OperationIdentityCapabilityInput,
+    authority?: OperationIdentityCapabilityAuthorityInterface,
+  ) => OperationIdentityCapabilityContract;
+  /** @deprecated Compatibility projection; prefer materialize. */
+  readonly fromRoute: (
+    input: OperationIdentityCapabilityInput,
+    authority?: OperationIdentityCapabilityAuthorityInterface,
+  ) => OperationIdentityCapabilityContract;
+}
+
+const createOperationIdentityCapabilityAuthorityImpl = (
   materializer: OperationIdentityCapabilityContractMaterializerInterface,
-): OperationIdentityCapabilityAuthorityInterface {
-  return Object.freeze({
-    kind: 'operation_identity_capability_authority',
-    authority: 'upstream',
-    closed: true,
-    materialize: (input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract =>
-      materializer.materialize(input),
-    fromRoute: (input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract =>
-      materializer.materialize(input),
-  });
-}
+): OperationIdentityCapabilityAuthorityInterface => Object.freeze({
+  kind: 'operation_identity_capability_authority',
+  authority: 'upstream',
+  closed: true,
+  materialize: (input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract =>
+    materializer.materialize(input),
+  fromRoute: (input: OperationIdentityCapabilityInput): OperationIdentityCapabilityContract =>
+    materializer.materialize(input),
+});
 
-/** Canonical upstream authority bound to the production algebra. */
-export const operationIdentityCapabilityAuthority = createOperationIdentityCapabilityAuthority(
-  operationIdentityCapabilityContractMaterializer,
-);
+/** Canonical upstream authority bound to the production materializer. */
+export const operationIdentityCapabilityAuthority: OperationIdentityCapabilityAuthorityInterface =
+  createOperationIdentityCapabilityAuthorityImpl(operationIdentityCapabilityContractMaterializer);
 
-/** Backwards-compatible authority entry point; callers may supply a composed authority. */
-export function operationIdentityCapabilityFromRoute(
-  route: OperationIdentityCapabilityInput,
-  authority: OperationIdentityCapabilityAuthorityInterface = operationIdentityCapabilityAuthority,
-): OperationIdentityCapabilityContract {
-  return authority.materialize(route);
-}
-
-/** Canonical producer entry point: materialize an identity from already-resolved route evidence. */
-export function materializeOperationIdentityCapability(
+const materializeOperationIdentityCapabilityImpl = (
   input: OperationIdentityCapabilityInput,
   authority: OperationIdentityCapabilityAuthorityInterface = operationIdentityCapabilityAuthority,
-): OperationIdentityCapabilityContract {
-  return authority.materialize(input);
-}
+): OperationIdentityCapabilityContract => authority.materialize(input);
+
+/** Public runtime operations: all exported behavior is accessed through this typed object. */
+export const operationIdentityCapabilityAuthorityOperations: OperationIdentityCapabilityAuthorityOperationsInterface = Object.freeze({
+  kind: 'operation_identity_capability_authority_operations',
+  contractVersion: 1,
+  createAuthority: createOperationIdentityCapabilityAuthorityImpl,
+  materialize: materializeOperationIdentityCapabilityImpl,
+  fromRoute: materializeOperationIdentityCapabilityImpl,
+});

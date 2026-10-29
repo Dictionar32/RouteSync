@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const modelPath = 'packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts';
 const model = read(modelPath);
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
 const audit1922 = read('scripts/audits/audit-phase1922-controller-semantic-model-ownership.cjs');
 const report1922 = read('reports/phase1922-controller-semantic-model-ownership-interface-first.md');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');

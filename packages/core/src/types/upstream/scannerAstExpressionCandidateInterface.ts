@@ -72,11 +72,23 @@ export type ScannerExpressionCandidateQuery<Token> = Readonly<{
   readonly tokenKind: (token: Token) => string;
 }>;
 
+/** The expression-candidate result owns its domain continuation, so downstream AST code
+ * follows the source-evidence judgment without reclassifying its discriminant.
+ */
+export interface ScannerExpressionCandidateContinuation<Token, Output> {
+  readonly notApplicable: () => Output;
+  readonly resolved: (candidates: readonly ScannerExpressionCandidateEvidence<Token>[]) => Output;
+}
+
 export type ScannerExpressionCandidateJudgment<Token> =
-  | Readonly<{ readonly kind: 'not_applicable' }>
+  | Readonly<{
+      readonly kind: 'not_applicable';
+      readonly continueForAstClassification: <Output>(continuation: ScannerExpressionCandidateContinuation<Token, Output>) => Output;
+    }>
   | Readonly<{
       readonly kind: 'resolved';
       readonly candidates: readonly ScannerExpressionCandidateEvidence<Token>[];
+      readonly continueForAstClassification: <Output>(continuation: ScannerExpressionCandidateContinuation<Token, Output>) => Output;
     }>;
 
 export interface ScannerExpressionCandidateInterface {

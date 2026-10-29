@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '..');
-const file = path.join(root, 'src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts');
+const file = path.join(root, 'src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts');
 const source = fs.readFileSync(file, 'utf8');
 const checks = {
   routeConstraintValuesConsumeBrandedAstDirectly: source.includes("semanticStringValue(value))"),

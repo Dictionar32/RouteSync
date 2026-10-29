@@ -5,7 +5,7 @@ import * as path from 'node:path';
 describe('Laravel response CLI projection provenance phase 2202', () => {
   it('retains exact method projection judgments in the response scanner bundle', () => {
     const source = fs.readFileSync(
-      path.resolve(__dirname, '../../../compiler/scanner/subscanners/responseScanner.ts'),
+      path.resolve(__dirname, '../../../compiler/scanner/operations/responseScanner.ts'),
       'utf8',
     );
     expect(source).toContain('readonly projectionJudgments: readonly LaravelControllerMethodResponseAstProjectionJudgment[]');

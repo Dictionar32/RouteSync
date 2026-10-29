@@ -16,7 +16,8 @@ const candidateIds = (values: readonly Token[]) => {
 
 describe('scanner expression candidate algebra phase 1457', () => {
   it('returns not-applicable for empty evidence', () => {
-    expect(resolve([])).toEqual({ kind: 'not_applicable' });
+    expect(resolve([]).kind).toBe('not_applicable');
+    expect(resolve([]).continueForAstClassification({ notApplicable: () => 'not-applicable', resolved: () => 'resolved' })).toBe('not-applicable');
   });
   it('recognizes cast from its leading token evidence', () => {
     expect(candidateIds([token('('), token('int', 'IDENTIFIER'), token(')'), token('$x', 'VARIABLE')])).toContain(CANDIDATE.cast);
@@ -27,6 +28,10 @@ describe('scanner expression candidate algebra phase 1457', () => {
   it('selects top-level instanceof and carries its partition evidence upstream', () => {
     const judgment = resolve([token('$x', 'VARIABLE'), token('instanceof'), token('Foo', 'IDENTIFIER')]);
     expect(candidateIds([token('$x', 'VARIABLE'), token('instanceof'), token('Foo', 'IDENTIFIER')])).toContain(CANDIDATE.instanceof);
+    expect(judgment.continueForAstClassification({
+      notApplicable: () => 'not-applicable',
+      resolved: candidates => candidates.some(entry => entry.id === CANDIDATE.instanceof) ? 'instanceof-present' : 'instanceof-absent',
+    })).toBe('instanceof-present');
     if (judgment.kind === 'resolved') {
       const candidate = judgment.candidates.find(entry => entry.id === CANDIDATE.instanceof);
       expect(candidate?.operatorEvidence?.[0]).toEqual({ before: [token('$x', 'VARIABLE')], token: token('instanceof'), after: [token('Foo', 'IDENTIFIER')] });

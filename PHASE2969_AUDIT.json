@@ -1,0 +1,31 @@
+{
+  "phase": 2969,
+  "title": "Source Observation Blocker Ownership",
+  "status": "bounded_domain_operation_migration",
+  "structuralAudit": {
+    "passed": 12,
+    "total": 12,
+    "command": "node scripts/audits/audit-phase2967-typed-runtime-upstream-cli-manifest.cjs"
+  },
+  "typecheck": "not_run",
+  "tests": "not_run",
+  "build": "not_run",
+  "cliEndToEnd": "not_run",
+  "changes": [
+    "Blocked explicit-source observation now owns creation of sourceSelectionBlocked route-scan outcome.",
+    "Consumer-owned onBlocked callback removed from Laravel route scanner source-observation continuation.",
+    "Ready source observation uses explicitly named scanReadyObservation capability."
+  ],
+  "invariants": {
+    "explicitMissingSourceRemainsBlocked": true,
+    "optionalDefaultAbsenceDistinctFromExplicitFailure": true,
+    "sourceReadFailureEvidencePreserved": true,
+    "upstreamCollectionsFileRemainsEmpty": true
+  },
+  "remainingGaps": [
+    "SourceFileInventory still exposes materialization and callback traversal.",
+    "ManifestBuilderJudgment complete/blocked continuation shape can be more precise.",
+    "Ready source reading/parsing remains scanner-owned and uses source-read batch continuations.",
+    "Repository-wide exported-function inventory is not yet fully classified."
+  ]
+}

@@ -3,18 +3,18 @@ const path = require('node:path');
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
 const facade = read('packages/core/src/compiler/scanner/LaravelSourceLexer.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const pkg = JSON.parse(read('package.json'));
 const expected = [
-  'subscanners/attributeAstCanonical.ts',
-  'subscanners/providerAstCanonical.ts',
-  'subscanners/middlewareAstCanonical.ts',
-  'subscanners/responseScanner.ts',
-  'subscanners/controller/controllerMethodContract.phase894.test.ts',
-  'subscanners/controller/controllerInheritance.phase905.test.ts',
-  'subscanners/controller/controllerHasMiddleware.phase900.test.ts',
+  'operations/attributeAstCanonical.ts',
+  'operations/providerAstCanonical.ts',
+  'operations/middlewareAstCanonical.ts',
+  'operations/responseScanner.ts',
+  'operations/controller/controllerMethodContract.phase894.test.ts',
+  'operations/controller/controllerInheritance.phase905.test.ts',
+  'operations/controller/controllerHasMiddleware.phase900.test.ts',
   'compiler/scanner/LaravelSourceLexer.ts',
 ];
 const checks = [

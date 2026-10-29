@@ -59,10 +59,11 @@ const routeIdentityKey = (route: RouteSemanticFlow): string => [
   String(route.provenance.sourceLine.value),
 ].join('::')
 
-export function projectRoutes(
-  routes: readonly RouteSemanticFlow[],
-  groupAliases?: Readonly<Record<string, string>>
-): ClassifiedRoute[] {
+export interface ProjectRoutesOperation {
+  (routes: readonly RouteSemanticFlow[], groupAliases?: Readonly<Record<string, string>>): ClassifiedRoute[];
+}
+
+export const projectRoutes: ProjectRoutesOperation = Object.freeze((routes: readonly RouteSemanticFlow[], groupAliases?: Readonly<Record<string, string>>): ClassifiedRoute[] => {
   const contract = routeActionIdentityCapabilityAuthority.resolve(routes.map(route => ({
     kind: 'route_action_identity_candidate' as const,
     routeKey: routeIdentityKey(route),
@@ -76,7 +77,7 @@ export function projectRoutes(
     if (!identity) throw new Error(`Missing upstream action identity for route ${routeIdentityKey(route)}`)
     return projectRoute(route, identity)
   })
-}
+});
 
 /**
  * @deprecated Compatibility alias. Semantic classification is upstream; this
@@ -88,7 +89,11 @@ export const classifyRoutes = projectRoutes;
  * Group already-classified routes into resource capability slots.
  * The resulting kind is resolved exactly once after all routes are known.
  */
-export function buildResourceMap(classified: readonly ClassifiedRoute[]): Map<string, ResourceCrudMap> {
+export interface BuildResourceMapOperation {
+  (classified: readonly ClassifiedRoute[]): Map<string, ResourceCrudMap>;
+}
+
+export const buildResourceMap: BuildResourceMapOperation = Object.freeze((classified: readonly ClassifiedRoute[]): Map<string, ResourceCrudMap> => {
   const map = new Map<string, ResourceCrudMap>()
 
   for (const route of classified) {
@@ -115,12 +120,16 @@ export function buildResourceMap(classified: readonly ClassifiedRoute[]): Map<st
   }
 
   return map
-}
+});
 
 /**
  * Flat grouping projection for consumers that need route collections.
  */
-export function buildGroupedRoutes(classified: readonly ClassifiedRoute[]): Record<string, ClassifiedRoute[]> {
+export interface BuildGroupedRoutesOperation {
+  (classified: readonly ClassifiedRoute[]): Record<string, ClassifiedRoute[]>;
+}
+
+export const buildGroupedRoutes: BuildGroupedRoutesOperation = Object.freeze((classified: readonly ClassifiedRoute[]): Record<string, ClassifiedRoute[]> => {
   const result: Record<string, ClassifiedRoute[]> = {}
   for (const route of classified) {
     const group = result[route.groupName] ?? []
@@ -128,7 +137,7 @@ export function buildGroupedRoutes(classified: readonly ClassifiedRoute[]): Reco
     result[route.groupName] = group
   }
   return result
-}
+});
 
 /** Concrete downstream wiring for the already-closed upstream route capability. */
 export const routeCapabilityProjection: RouteCapabilityProjectionInterface = Object.freeze({

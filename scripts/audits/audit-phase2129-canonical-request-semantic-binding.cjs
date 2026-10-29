@@ -21,7 +21,7 @@ const checks = [
   ['runtime executor forwards completed judgment unchanged', /semanticJudgment: input\.semanticJudgment/.test(dependencies)],
   ['integrated response remains controller-wide and separate from action request knowledge', /judgeIntegratedResponse\(/.test(scanner) && /LaravelControllerResponseSemanticPipelineInterface/.test(responsePipeline)],
   ['public entry point exports the upstream request semantic binding', /LaravelControllerRequestSemanticBinding/.test(index)],
-  ['remaining semantic derivation debt is explicit; no duplicate foundation/relation layer is added', /scanControllerAction\(/.test(dependencies) && /resolveControllerActionContract/.test(read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts')) && !/types\/upstream\/(?:foundation|relation)/.test(requestType + judgment + dependencies)],
+  ['remaining semantic derivation debt is explicit; no duplicate foundation/relation layer is added', /scanControllerAction\(/.test(dependencies) && /resolveControllerActionContract/.test(read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts')) && !/types\/upstream\/(?:foundation|relation)/.test(requestType + judgment + dependencies)],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

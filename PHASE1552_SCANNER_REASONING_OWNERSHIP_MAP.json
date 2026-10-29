@@ -40,7 +40,7 @@
     {
       "name": "AST construction and classification",
       "contract": "types/upstream/astClassifierRuleAlgebra.ts plus syntax structures",
-      "implementation": "compiler/scanner/lexer/astClassifierRuntime.ts",
+      "implementation": "compiler/frontend/php/astClassifierRuntime.ts",
       "status": "mixed-boundary-open",
       "scannerRole": "retain syntax parsing; audit domain inference separately"
     },

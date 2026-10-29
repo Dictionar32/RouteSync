@@ -9,7 +9,7 @@ This phase corrects the Phase 2475 continuation without relocating `modelPropert
 - Added `parseProperties(tokens)` to `SourceAstSyntaxParserInterface<MethodSyntax, PropertySyntax, TokenSyntax>`.
 - Integrated the existing model-property syntax recognition into `sourceAstSyntaxParser.ts`.
 - Rewired the three direct consumers to `sourceAstSyntaxParser.parseProperties(tokens)`.
-- Deleted `scanner/subscanners/model/modelPropertyAstParser.ts`; no copy was added to `scanner/lexer`.
+- Deleted `scanner/subscanners/model/modelPropertyAstParser.ts`; no copy was added to `frontend/php`.
 - Updated the phase 1409, 2460, and 2470 audits to follow the existing contract.
 - Added `audit:phase2476-upstream-syntax-parser-ownership`.
 

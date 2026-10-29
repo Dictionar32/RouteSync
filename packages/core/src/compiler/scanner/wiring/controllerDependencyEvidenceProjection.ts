@@ -10,8 +10,8 @@ import type { ControllerDependencySemanticInput } from '../../../types/upstream/
 import type { PhpAstExpressionSemanticAuthorityInterface } from '../../../types/upstream/phpAstExpressionSemanticAuthorityInterface';
 import type { ExpressionArgument, ExpressionArguments } from '../../../types/upstream/expression';
 import type { Sequence } from '../../../types/upstream/collections';
-import type { ControllerParameterAst } from '../lexer/controllerAstTypes';
-import type { PhpAstValue } from '../lexer/phpAstExpressionTypes';
+import type { ControllerParameterAst } from '../../frontend/php/controllerAstTypes';
+import type { PhpAstValue } from '../../frontend/php/phpAstExpressionTypes';
 
 export interface ControllerDependencyParameterEvidence {
     readonly parameter: ControllerParameterAst;

@@ -94,6 +94,23 @@ export interface ControllerDataflowSemanticJudgmentAuthorityInterface {
   ) => ControllerDataflowSemanticJudgment<Payload>;
 }
 
+/** Explicit dependency value used to construct the controller dataflow authority. */
+export interface ControllerDataflowSemanticJudgmentAuthorityDependencies {
+  readonly bindingPayloadCorrespondenceAuthority: ControllerDataflowBindingPayloadCorrespondenceAuthorityInterface;
+  readonly variableIdentityAuthority: ControllerDataflowVariableIdentityAuthorityInterface;
+  readonly variableFlowCompositionAuthority: ControllerSemanticVariableFlowCompositionAuthorityInterface;
+  readonly sourceIdentitySemantics: LaravelSourceIdentitySemanticsInterface;
+  readonly integratedResponseComposition: InvocationSemanticIntegratedResponseCompositionInterface;
+}
+
+/** Domain-owned constructor; consumers depend on this interface instead of an exported parameterized function. */
+export interface ControllerDataflowSemanticJudgmentAuthorityFactoryInterface {
+  readonly kind: 'controller_dataflow_semantic_judgment_authority_factory';
+  readonly create: (
+    dependencies: ControllerDataflowSemanticJudgmentAuthorityDependencies,
+  ) => ControllerDataflowSemanticJudgmentAuthorityInterface;
+}
+
 export interface ControllerDataflowSemanticJudgmentAuthorityContract {
   readonly kind: 'controller_dataflow_semantic_judgment_authority_contract';
   readonly version: 17;

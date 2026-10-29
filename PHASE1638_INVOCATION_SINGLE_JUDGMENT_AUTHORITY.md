@@ -5,7 +5,7 @@
 - `packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts`
 - `packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts`
 - `packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts`
-- scanner compatibility facade `packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts`
+- scanner compatibility facade `packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts`
 
 ## Trace and finding
 

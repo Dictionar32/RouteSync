@@ -5,13 +5,13 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 
-const contract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const actionScanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const actionScanner = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const routeProjection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeProjection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const judgmentInterface = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const retirementInterface = read('packages/core/src/types/upstream/laravelSubscannerRetirementInterface.ts');
-const tests = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts');
+const tests = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.phase10.test.ts');
 
 check('legacy resolveRequest semantic classifier is retired', !/function\s+resolveRequest\s*\(/.test(contract));
 check('action contract consumes the existing upstream request ADT', /export type ControllerRequestBinding = LaravelControllerRequestSemanticBinding/.test(contract));
@@ -30,7 +30,7 @@ check('schema compatibility consumes canonical request ADT exhaustively', /case 
 check('retired schema-request compatibility obligation is removed from live coverage', !/kind: 'legacy_schema_request_binding_compatibility'/.test(judgmentInterface) && /schema-request-evidence-projects-from-the-canonical-request-judgment/.test(judgmentInterface));
 check('action judgment contract version is synchronized at 19', /readonly version: 19;/.test(judgmentInterface) && /version: 19 as const/.test(wiring));
 check('request contract tests use upstream request judgment', /controllerRequestBindingJudgmentFromMethod\(method, \[\]\)/.test(tests));
-check('changed production files do not introduce relation/foundation or a new subscanner dependency', ![contract, actionScanner, wiring, routeProjection].some(source => /semantic\/foundation|subscanners\/requestSemanticAuthority/.test(source)));
+check('changed production files do not introduce relation/foundation or a new subscanner dependency', ![contract, actionScanner, wiring, routeProjection].some(source => /semantic\/foundation|operations\/requestSemanticAuthority/.test(source)));
 
 const failed = checks.filter(item => !item.passed);
 const report = { phase: 2155, title: 'Legacy Request Derivation Retirement — Interface First', passed: checks.length - failed.length, total: checks.length, checks };

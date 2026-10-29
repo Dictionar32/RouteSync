@@ -1,0 +1,22 @@
+{
+  "phase": 2894,
+  "name": "Fully Typed Runtime Scanner Operations",
+  "focus": "source-read settlement ADT ownership",
+  "status": "structural-audit-passed-typecheck-not-verified",
+  "auditCommand": "npm run audit:phase2894-source-read-settlement-adt",
+  "checks": {
+    "fulfilledAndRejectedSettlementVariants": true,
+    "settlementContinuation": true,
+    "batchOwnsOutcomeClassification": true,
+    "compositionUsesBatchContinuation": true,
+    "compositionDoesNotFilterOrBranchOnSettledOutcome": true,
+    "rejectionUsesDomainConstructor": true,
+    "upstreamBarrelAlreadyExportsContractModule": true,
+    "collectionsFileEmpty": true,
+    "noExportFunctionInComposition": true
+  },
+  "validationLimitations": [
+    "Full project typecheck not verified; workspace dependencies and configured module resolution are unavailable in the extracted environment.",
+    "Build, unit tests, and CLI end-to-end tests not run successfully."
+  ]
+}

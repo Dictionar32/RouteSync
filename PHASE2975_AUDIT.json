@@ -1,0 +1,93 @@
+{
+  "phase": 2975,
+  "audit": "pass-graph-domain-ownership",
+  "passed": 13,
+  "total": 13,
+  "remainingDirectSemanticRelationImports": 504,
+  "remainingFilesWithDirectSemanticRelationImports": 271,
+  "migratedDomain": "compiler pass graph analysis, producer ownership, adjacency, dependency validation, and topological ordering",
+  "remainingImportsSample": [
+    {
+      "file": "packages/core/src/compiler/analysis/AnalysisManager.ts",
+      "import": "from '../../semantic/relations/relationMembership'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/AnalysisManager.ts",
+      "import": "from '../../semantic/relations/semanticRelations'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/AnalysisManager.ts",
+      "import": "from '../../semantic/relations/relationalSequence'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/DataFlowAnalysis.ts",
+      "import": "from '../../semantic/relations/relationMembership'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/PassAnalysisStore.ts",
+      "import": "from '../../semantic/relations/relationMembership'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/PassAnalysisStore.ts",
+      "import": "from '../../semantic/relations/relationalSequence'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/PassAnalysisStore.ts",
+      "import": "from '../../semantic/relations/semanticRelations'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/SymbolAnalysis.ts",
+      "import": "from '../../semantic/relations/relationMembership'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/SymbolAnalysis.ts",
+      "import": "from '../../semantic/relations/relationalSequence'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/SymbolAnalysis.ts",
+      "import": "from '../../semantic/relations/semanticRelations'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/SymbolAnalysis.ts",
+      "import": "from '../../semantic/relations/semanticRelations'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/UseDefAnalysis.ts",
+      "import": "from '../../semantic/relations/relationMembership'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/UseDefAnalysis.ts",
+      "import": "from '../../semantic/relations/relationalSequence'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/UseDefAnalysis.ts",
+      "import": "from '../../semantic/relations/semanticRelations'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/backwardSolver.ts",
+      "import": "from '../../../semantic/relations/relationMembership'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/backwardSolver.ts",
+      "import": "from '../../../semantic/relations/relationalSequence'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/backwardSolver.ts",
+      "import": "from '../../../semantic/relations/semanticRelations'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/backwardSolver.ts",
+      "import": "from '../../../semantic/relations/relationalSequence'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/controlFlowDataFlowInterface.ts",
+      "import": "from '../../../semantic/relations/relationMembership'"
+    },
+    {
+      "file": "packages/core/src/compiler/analysis/dataflow/controlFlowDataFlowInterface.ts",
+      "import": "from '../../../semantic/relations/relationalSequence'"
+    }
+  ],
+  "fullBuildVerified": false,
+  "note": "This is a bounded domain migration. Other consumers of the deleted relation foundation remain unresolved and must be migrated by their own domain ownership."
+}

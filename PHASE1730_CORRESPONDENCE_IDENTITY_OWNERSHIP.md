@@ -2,7 +2,7 @@
 
 ## Interface-first trace
 
-Trace began at `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts` and followed the inventory entry, publication entry, correspondence receipt, coverage contract, and Laravel scanner boundary. The production scanner consumer remains `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`, which delegates whole-knowledge analysis to `invocationSemanticPipeline.analyzeKnowledge(...)`.
+Trace began at `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts` and followed the inventory entry, publication entry, correspondence receipt, coverage contract, and Laravel scanner boundary. The production scanner consumer remains `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`, which delegates whole-knowledge analysis to `invocationSemanticPipeline.analyzeKnowledge(...)`.
 
 ## Interface evolution
 

@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const runtimePath = path.join(root, 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtimePath = path.join(root, 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const interfacePath = path.join(root, 'packages/core/src/types/upstream/scannerCallableListInterface.ts');
 const algebraPath = path.join(root, 'packages/core/src/types/upstream/scannerCallableListAlgebra.ts');
 const testPath = path.join(root, 'packages/core/src/types/upstream/__test__/scannerCallableListAlgebra.phase1471.test.ts');

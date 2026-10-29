@@ -5,7 +5,7 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const controller = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const response = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const route = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
 const report = read('packages/core/src/types/upstream/docs/PHASE2407_INTEGRATED_RESPONSE_ROUTE_PROJECTION_OWNERSHIP.md');
 const checks = [
   ['controller producer runs before integrated response judgment', controller.indexOf('controllerProducer.produce(') >= 0 && controller.indexOf('controllerProducer.produce(') < controller.indexOf('this.responseSemanticPipeline.judgeIntegratedResponse(')],

@@ -7,7 +7,7 @@ const authority = read('packages/core/src/types/upstream/phpFunctionInvocationSe
 const callFacade = read('packages/core/src/types/upstream/phpFunctionCallSemanticAuthority.ts');
 const batch = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticJudgmentBatchClosureAuthority.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const checks = [
   ['invocation semantic contract has a closed versioned identity', contract.includes("kind: 'php_function_invocation_semantic_contract'") && contract.includes('readonly version: 2;') && contract.includes('version: 2,')],

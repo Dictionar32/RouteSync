@@ -3,9 +3,9 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const flow = read('packages/core/src/types/upstream/routeResourceFlow.ts');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
-const semanticKind = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
+const semanticKind = read('packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts');
 const result = {
   upstreamRouteResourceModesClosed: ['resource','apiResource','singleton','apiSingleton'].every(v => flow.includes(`'${v}'`)),
   upstreamActionKnowledgeIsCanonical: flow.includes('RESOURCE_ACTION_KNOWLEDGE') && flow.includes('RouteResourceMode'),

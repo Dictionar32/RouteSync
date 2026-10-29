@@ -7,13 +7,13 @@ const forbidden = /\b(if|while|for|switch)\s*\(|\.(map|filter|reduce|flatMap)\s*
 const boundaryFiles = [
   'packages/core/src/types/upstream/astSemanticStageInterface.ts',
   'packages/core/src/types/upstream/astSemanticStageContract.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts',
   'packages/core/src/compiler/scanner/upstream/route/routeGroupSemanticResolver.ts',
   'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts',
 ];
 const stageContract = read('packages/core/src/types/upstream/astSemanticStageInterface.ts');
 const stageAuthority = read('packages/core/src/types/upstream/astSemanticStageAuthority.ts');
@@ -38,13 +38,13 @@ const result = {
   factories: requiredFactories.every(name => stageAuthority.includes(name)),
   graph: requiredEdges.every(name => graph.includes(name)),
   graphContractExported: read('packages/core/src/types/upstream/index.ts').includes("./astSemanticStageContract"),
-  legacySolverEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts') === 0,
-  syntaxCoreEmpty: size('packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts') === 0,
+  legacySolverEmpty: size('packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts') === 0,
+  syntaxCoreEmpty: size('packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts') === 0,
   canonicalForbidden,
 };
 result.cleanBoundary = Object.values(canonicalForbidden).every(count => count === 0);
 result.contractHasNoRuntimeConstructors = !/export\s+(?:const|function)\s/.test(stageContract);
-result.legacyDataflowFacadeDelegatesUpstream = /@deprecated Compatibility facade/.test(read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts')) && /createSemanticDataflowJudgment/.test(read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts')) && !/relationFixedPoint|reachClosure/.test(read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts'));
+result.legacyDataflowFacadeDelegatesUpstream = /@deprecated Compatibility facade/.test(read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts')) && /createSemanticDataflowJudgment/.test(read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts')) && !/relationFixedPoint|reachClosure/.test(read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts'));
 result.success = result.contracts && result.factories && result.graph && result.graphContractExported && result.legacySolverEmpty && result.syntaxCoreEmpty && result.cleanBoundary && result.contractHasNoRuntimeConstructors && result.legacyDataflowFacadeDelegatesUpstream;
 console.log(JSON.stringify(result, null, 2));
 process.exit(result.success ? 0 : 1);

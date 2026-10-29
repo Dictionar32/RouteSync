@@ -6,7 +6,7 @@ The existing `PhpAstExpressionSemanticAuthorityInterface` was already adequate f
 
 ## Changes
 
-- Moved the canonical PHP AST expression authority implementation to `compiler/scanner/lexer/routeAst/phpAstExpressionSemanticAuthority.ts`, the parser-specific frontend owner.
+- Moved the canonical PHP AST expression authority implementation to `compiler/frontend/php/routeAst/phpAstExpressionSemanticAuthority.ts`, the parser-specific frontend owner.
 - Moved its shared mapping and closure projection helpers beside that implementation.
 - Renamed the public projection operations to `projectPhpAstExpressionToUpstream` and `projectPhpStatementsToSourceStatements` to remove resource-only naming from shared PHP frontend behavior.
 - Rewired source consumers, including controller return projection and controller variable semantic runtime binding, to the canonical frontend owner.

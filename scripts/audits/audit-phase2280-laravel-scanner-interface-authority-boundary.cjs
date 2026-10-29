@@ -6,7 +6,7 @@ const contract = readFileSync(join(root, 'packages/core/src/types/upstream/larav
 const executor = readFileSync(join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts'), 'utf8');
 const action = readFileSync(join(root, 'packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts'), 'utf8');
 const actionWiring = readFileSync(join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts'), 'utf8');
-const dataflow = readFileSync(join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts'), 'utf8');
+const dataflow = readFileSync(join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts'), 'utf8');
 
 const checks = [
   ['existing LaravelControllerScannerInterface evolved to contract version 38', contract.includes('readonly contractVersion: 38;') && executor.includes('readonly contractVersion = 38 as const;')],

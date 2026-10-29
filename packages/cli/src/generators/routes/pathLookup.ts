@@ -9,7 +9,11 @@
 import path from 'path';
 import fs from 'fs-extra';
 
-export function findNodeModulesRouteSync(outputDir: string): string | null {
+export interface FindNodeModulesRouteSyncOperation {
+  (outputDir: string): string | null;
+}
+
+export const findNodeModulesRouteSync: FindNodeModulesRouteSyncOperation = Object.freeze((outputDir: string): string | null => {
   let current = path.resolve(outputDir);
   while (true) {
     const target = path.join(current, 'node_modules', 'routesync');
@@ -23,4 +27,4 @@ export function findNodeModulesRouteSync(outputDir: string): string | null {
     current = parent;
   }
   return null;
-}
+});

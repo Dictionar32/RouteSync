@@ -15,7 +15,7 @@ const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAs
 const producer = read('packages/core/src/compiler/scanner/operations/resourceProducer.ts');
 const fieldProducer = read('packages/core/src/compiler/scanner/operations/resourceFieldProducer.ts');
 const binder = read('packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts');
-const sourceEvidence = read('packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts');
+const sourceEvidence = read('packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts');
 
 check('Resource producer input/result/operation contracts are owned by upstream',
   producerContract.includes('export interface ResourceProducerInput<') &&
@@ -54,7 +54,7 @@ check('Pipeline acquires Resource evidence once and passes that exact inventory'
   pipeline.includes('resourceEvidence: resourceSourceEvidence'));
 check('Binder no longer imports producer types from the subscanner implementation',
   binder.includes('types/upstream/resourceProducerInterface') &&
-  !binder.includes('import("../../subscanners/resourceProducer").ResourceProducer'));
+  !binder.includes('import("../../operations/resourceProducer").ResourceProducer'));
 check('Producer contract is publicly exported from the upstream barrel', read('packages/core/src/types/upstream/index.ts').includes("export * from './resourceProducerInterface';"));
 check('Upstream scanner and producer contracts do not import compiler lexer-owned AST types',
   !/from ['"][^'"]*compiler\/scanner\/lexer[^'"]*['"]/.test(upstream + producerContract));
@@ -66,10 +66,10 @@ for (const result of checks) {
 process.stdout.write(`\n${passed}/${checks.length} assertions passed.\n`);
 
 const outstanding = [
-  'resourceProducer.ts still contains semantic/relations imports and remains under subscanners.',
+  'resourceProducer.ts still contains semantic/relations imports and remains under operations.',
   'resourceSourceEvidence.ts still contains semantic/relations imports and remains under lexer.',
   'resourceBinder.ts still imports relation/foundation helpers and calls the legacy producer implementation.',
-  'Resource producer contract is upstream-owned, but its implementation still resides in subscanners and retains relation imports.',
+  'Resource producer contract is upstream-owned, but its implementation still resides in operations and retains relation imports.',
   'Full typecheck, build, Vitest, and CLI end-to-end are not verified in this environment.',
 ];
 process.stdout.write('\nKnown outstanding work (not counted as passing assertions):\n');

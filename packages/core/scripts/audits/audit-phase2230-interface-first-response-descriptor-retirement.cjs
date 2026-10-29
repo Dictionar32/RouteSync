@@ -2,12 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const action = read('src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const retiredResolver = read('src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts');
+const action = read('src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const retiredResolver = read('src/compiler/scanner/operations/controller/responseAttributeScanner.ts');
 const actionInterface = read('src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const actionWiring = read('src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const controllerScanner = read('src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const responseScanner = read('src/compiler/scanner/subscanners/responseScanner.ts');
+const responseScanner = read('src/compiler/scanner/operations/responseScanner.ts');
 const retirementInterface = read('src/types/upstream/laravelSubscannerRetirementInterface.ts');
 const checks = [
   ['action contract no longer owns ResponseDescriptor', !/readonly response: ResponseDescriptor/.test(action)],

@@ -7,10 +7,11 @@ export type GeneratedRoute = RouteSemanticFlow & {
   runtimePath: string
 }
 
-export function buildGeneratedRoutes(
-  routes: RouteSemanticFlow[],
-  groupAliases?: Record<string, string>
-): Record<string, GeneratedRoute[]> {
+export interface BuildGeneratedRoutesOperation {
+  (routes: RouteSemanticFlow[], groupAliases?: Record<string, string>): Record<string, GeneratedRoute[]>;
+}
+
+export const buildGeneratedRoutes: BuildGeneratedRoutesOperation = Object.freeze((routes: RouteSemanticFlow[], groupAliases?: Record<string, string>): Record<string, GeneratedRoute[]> => {
   const classified = projectRoutes(routes, groupAliases)
   const grouped: Record<string, GeneratedRoute[]> = {}
 
@@ -25,15 +26,23 @@ export function buildGeneratedRoutes(
   }
 
   return grouped
+});
+
+export interface ToTypeNameOperation {
+  (value: string): string;
 }
 
-export function toTypeName(value: string): string {
+export const toTypeName: ToTypeNameOperation = Object.freeze((value: string): string => {
   return splitWords(value)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('') || 'Root'
+});
+
+export interface ToIdentifierOperation {
+  (value: string): string;
 }
 
-export function toIdentifier(value: string): string {
+export const toIdentifier: ToIdentifierOperation = Object.freeze((value: string): string => {
   const [first = 'root', ...rest] = splitWords(value)
   const identifier = [
     first.toLowerCase(),
@@ -41,11 +50,15 @@ export function toIdentifier(value: string): string {
   ].join('')
 
   return /^[A-Za-z_$]/.test(identifier) ? identifier : `route${toTypeName(identifier)}`
+});
+
+export interface ToRuntimePathOperation {
+  (path: string): string;
 }
 
-export function toRuntimePath(path: string): string {
+export const toRuntimePath: ToRuntimePathOperation = Object.freeze((path: string): string => {
   return path.replace(/{([^}/]+)}/g, ':$1')
-}
+});
 
 function splitWords(value: string): string[] {
   return value
@@ -74,11 +87,15 @@ function uniquify(baseName: string, used: Set<string>): string {
   return name
 }
 
-export function toMethodName(route: RouteSemanticFlow): string {
+export interface ToMethodNameOperation {
+  (route: RouteSemanticFlow): string;
+}
+
+export const toMethodName: ToMethodNameOperation = Object.freeze((route: RouteSemanticFlow): string => {
   const routeName = route.identity.coordinates.name.value.value
   if (routeName.length > 0) {
     const parts = routeName.split('.')
     return toIdentifier(parts.join(' '))
   }
   return toIdentifier(route.identity.coordinates.method + ' ' + route.identity.coordinates.path.value.value)
-}
+});

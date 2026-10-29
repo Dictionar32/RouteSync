@@ -1,6 +1,6 @@
 import type { ArrayEntry, Expression, ModelStaticOperation, OrderDirection, QueryColumnReference, QueryDatePart, QueryDateRelative, QueryGrouping, QueryJoin, QueryJoinConstraint, QueryOrderingTarget, QueryRelationAggregate, QueryRelationAggregateFunction } from './expression';
 import type { SourceSpan } from './provenance';
-import { descriptionText, numberValue } from './valueObjects';
+import { descriptionText, numberValue, stringValue } from './valueObjects';
 import type { RelationPath, PropertyNames } from './collections';
 import type { PropertyName, RelationName } from './names';
 import { createModelName, createPropertyName, createRelationName, type MethodName } from './names';
@@ -103,7 +103,7 @@ const relationPathArgument = (expression: Expression): RelationOption<RelationPa
   ),
 );
 
-const semanticDiagnostic = (message: string): QuerySemanticDiagnostic => Object.freeze({ kind: 'query_semantic_diagnostic', message: descriptionText(message) });
+const semanticDiagnostic = (message: string): QuerySemanticDiagnostic => Object.freeze({ kind: 'query_semantic_diagnostic', message: descriptionText.create(stringValue.create(message)) });
 const malformed = <T>(diagnostic: string): QueryProducerSemanticJudgment<T> => Object.freeze({ kind: 'malformed', diagnostic: semanticDiagnostic(diagnostic) });
 const malformedWithDiagnostic = <T>(diagnostic: QuerySemanticDiagnostic): QueryProducerSemanticJudgment<T> => Object.freeze({ kind: 'malformed', diagnostic });
 

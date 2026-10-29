@@ -1,4 +1,4 @@
-/** Shared Laravel source-file acquisition owned by compiler/scanner, not by legacy subscanners. */
+/** Shared Laravel source-file acquisition owned by compiler/scanner, not by legacy operations. */
 import path from 'node:path';
 import * as fs from 'node:fs';
 

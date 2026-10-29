@@ -8,7 +8,7 @@
     "packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts",
     "packages/core/src/types/upstream/controllerVariableSemanticInterface.ts",
     "packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts",
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
     "packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1427.test.ts",
     "packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1457.test.ts",
     "scripts/audits/audit-phase1557-semantic-decision-proof-interface.cjs",

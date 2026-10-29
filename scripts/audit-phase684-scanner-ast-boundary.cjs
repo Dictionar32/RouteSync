@@ -8,12 +8,12 @@ const files = [
   'packages/core/src/compiler/scanner/symbols/model/index.ts',
 ];
 const frontierFiles = [
-  'packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts',
+  'packages/core/src/compiler/frontend/php/phpAstAlgebra.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts',
+  'packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts',
   'packages/core/src/types/upstream/expression.ts',
   'packages/core/src/types/upstream/presence.ts',
   'packages/core/src/compiler/analysis/ssa/ssaRenamer.ts',

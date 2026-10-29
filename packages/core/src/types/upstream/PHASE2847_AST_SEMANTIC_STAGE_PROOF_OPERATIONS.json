@@ -1,0 +1,8 @@
+{
+  "phase": 2847,
+  "name": "AST Semantic Stage Proof Operations",
+  "operation": "astSemanticStageProofOperations",
+  "contract": "AstSemanticStageProofOperationsInterface",
+  "validation": "audit:phase2847-ast-semantic-stage-proof-operations",
+  "collectionsFileMustRemainEmpty": true
+}

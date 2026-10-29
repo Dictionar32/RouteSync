@@ -36,15 +36,15 @@ const dataflow = read('src/types/dataflow/dataFlowInterface.ts');
 const graph = read('src/graph/RouteSyncManifestGraphProjectionInterface.ts');
 const ir = read('src/compiler/ir/SemanticDataflowIRProjection.ts');
 const typeLowering = read('src/compiler/scanner/wiring/routeManifestTypeLowering.ts');
-const typeDeriver = read('src/compiler/scanner/subscanners/TypeDeriver.ts');
+const typeDeriver = read('src/compiler/scanner/operations/TypeDeriver.ts');
 const checks = {
   upstreamExists: upstreamFiles.length > 0,
   upstreamHasNoCompilerCliSdkImports: !/(from\s+['"][^'"]*(?:compiler|cli|sdk)[^'"]*['"])/.test(upstreamText),
   upstreamDoesNotOwnBoundary: !upstreamText.includes('InterfaceDependencyBoundary') && !upstreamText.includes('DataFlowProjectionInterface'),
   wiringSurfaceExists: wiringFiles.every(exists),
   legacyWiringPathsPreservedEmpty: legacyWiringFiles.every(p => exists(p) && fs.statSync(path.join(coreRoot,p)).size === 0),
-  typeLoweringOwnsTypeDeriver: typeLowering.includes("from '../subscanners/TypeDeriver'") && typeLowering.includes('TypeDeriver.deriveRequestTypes') && typeLowering.includes('TypeDeriver.deriveSemanticTypes'),
-  typeDeriverNotBarrelExported: !read('src/compiler/scanner/subscanners/index.ts').includes('export { TypeDeriver }'),
+  typeLoweringOwnsTypeDeriver: typeLowering.includes("from '../operations/TypeDeriver'") && typeLowering.includes('TypeDeriver.deriveRequestTypes') && typeLowering.includes('TypeDeriver.deriveSemanticTypes'),
+  typeDeriverNotBarrelExported: !read('src/compiler/scanner/operations/index.ts').includes('export { TypeDeriver }'),
   dataFlowIsGeneric: !/(Laravel|Controller|Route|Eloquent|Resource|Model|Schema)/.test(dataflow),
   graphIsManifestBoundary: graph.includes('InterfaceDependencyBoundary<RouteSyncManifestFlow, RouteSyncManifestGraphSurface>'),
   irConsumesDataFlow: ir.includes('DataFlowInterface<SemanticDataflowInput, SemanticDataflowJudgment, SemanticDataflowIdentity>'),

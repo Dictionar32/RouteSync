@@ -1,0 +1,15 @@
+{
+  "phase": 3018,
+  "files": 2,
+  "diagnosticCount": 0,
+  "checks": [
+    {
+      "file": "packages/cli/src/commands/scan.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/commands/sync.ts",
+      "diagnostics": []
+    }
+  ]
+}

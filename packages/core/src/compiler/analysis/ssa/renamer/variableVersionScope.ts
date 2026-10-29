@@ -2,7 +2,7 @@
 
 import type { Operand } from '../../../utils/ControlFlowGraph';
 import { relationIndexAdd, relationIndexLookup, type RelationIndex } from '../../../../semantic/relations/relationMembership';
-import { relationOptionFold, relationResolve, relationEqual, type RelationOption } from '../../../../semantic/relations/relationFoundation';
+import { relationOptionFold, relationResolve, relationEqual, type RelationOption } from '../../../../semantic/relations/semanticRelations';
 import { relationVariantValue } from '../../../../semantic/relations/relationalSequence';
 
 export interface VariableVersionScope {

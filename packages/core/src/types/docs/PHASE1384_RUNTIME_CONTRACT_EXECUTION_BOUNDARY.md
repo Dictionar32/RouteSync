@@ -11,7 +11,7 @@ Keep runtime as an executor/projection of closed upstream contracts. A runtime b
 - `compiler/analysis/semanticDataflowRuntimeBoundary.ts`: accepts `SemanticDataflowJudgment`, not `SemanticDataflowInput`.
 - `compiler/analysis/semanticDataflowRuntimeComposition.ts`: delegates projection to `createSemanticDataflowDataFlowInterface`; it does not call `judge` or import the authority.
 - `compiler/analysis/routeSyncDataflowAnalysis.ts`: finds a judgment by canonical identity and fails closed when it is absent; it does not fall back to raw inputs.
-- `compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts`: still calls `judge`, but is explicitly a deprecated compatibility facade and the repository search found only test references, not production callers. Keep this distinction visible; do not treat it as the runtime path.
+- `compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts`: still calls `judge`, but is explicitly a deprecated compatibility facade and the repository search found only test references, not production callers. Keep this distinction visible; do not treat it as the runtime path.
 
 ## Operation identity interface/type evolution
 

@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const sequence = read('packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts');
 const tokenStructure = read('packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts');
 const assignment = read('packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [
   ['statement sequence returns closed completion or contract-violation ADT', /kind: 'complete'/.test(sequence) && /kind: 'contract_violation'/.test(sequence) && /malformed_boundary/.test(sequence)],

@@ -4,8 +4,8 @@ const ts = require('typescript');
 const ROOT = process.cwd();
 const boundaries = [
   'packages/core/src/types/upstream/astMappingInterface.ts',
-  'packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts',
+  'packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts',
   'packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts',
   'packages/core/src/compiler/scanner/resolvers/boundary/capabilityResolution.ts',
   'packages/core/src/compiler/analysis/astAnalysisInterface.ts',

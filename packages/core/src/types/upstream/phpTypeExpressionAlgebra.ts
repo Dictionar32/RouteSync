@@ -62,7 +62,7 @@ const parse = (source: string, classContext?: import('./phpTypeAtomInterface').P
     const members = union.map(member => parse(member, classContext));
     const rejected = members.find(member => member.kind !== 'resolved');
     return rejected === undefined
-      ? resolved({ kind: 'union', members: typeExpressions(members.map(member => member.kind === 'resolved' ? member.expression : { kind: 'error', diagnostic: stringValue('unreachable') })) })
+      ? resolved({ kind: 'union', members: typeExpressions(members.map(member => member.kind === 'resolved' ? member.expression : { kind: 'error', diagnostic: stringValue.create('unreachable') })) })
       : rejected;
   }
 
@@ -74,7 +74,7 @@ const parse = (source: string, classContext?: import('./phpTypeAtomInterface').P
     const members = intersection.map(member => parse(member, classContext));
     const rejected = members.find(member => member.kind !== 'resolved');
     if (rejected !== undefined) return rejected;
-    const expressions = members.map(member => member.kind === 'resolved' ? member.expression : { kind: 'error' as const, diagnostic: stringValue('unreachable') });
+    const expressions = members.map(member => member.kind === 'resolved' ? member.expression : { kind: 'error' as const, diagnostic: stringValue.create('unreachable') });
     if (expressions.some(expression => expression.kind === 'union')) return error(`PHP intersection containing a union must be rewritten as DNF: ${normalized}`);
     return resolved({ kind: 'intersection', members: typeExpressions(expressions) });
   }

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
 import { RouteManifest } from '@routesync/core'
-import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
+import { TypeDeriver } from '../../core/src/compiler/scanner/operations/TypeDeriver'
 
 describe('RouteSync - Toko Online Demo', () => {
   it('should compile online store models and generate type-safe frontend APIs', async () => {

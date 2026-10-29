@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const algebra = read('src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const executor = read('src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const scanner = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const checks = [
   ['Interface owns a typed invocation-evidence rule', /kind: 'invocation-evidence'[\s\S]*id: 'invocation-evidence-presence'[\s\S]*missingEvidence: 'invocation_evidence_missing-obligation'/.test(contract)],
   ['Canonical rule catalog includes evidence-presence rule', /INVOCATION_SEMANTIC_RULES[\s\S]*INVOCATION_EVIDENCE_PRESENCE_RULE/.test(contract)],

@@ -33,7 +33,7 @@ The retirement and structural audits check source ownership and wiring, not runt
 - `subscanners/resourceProducer.ts` is still the concrete producer implementation and imports `semantic/relations`.
 - `subscanners/resource/resourceFieldProducer.ts` and `resourceAstExpressionMapper.ts` still import `semantic/relations`.
 - `binders/resource/resourceBinder.ts` remains a separate legacy binder and imports `semantic/relations`; `ResourceDefinitionBindingOperationInterface` is not the canonical `laravelResourceScanner` contract.
-- `scanner/lexer/resourceSourceEvidence.ts` still imports `semantic/relations`.
+- `frontend/php/resourceSourceEvidence.ts` still imports `semantic/relations`.
 - The upstream knowledge data-flow contract is accepted by the legacy binder/resolver type surface, but this phase did not prove that the canonical scanner constructs and passes a populated `ResourceModelKnowledgeDataFlow` value. That connection requires a separate trace of the current evidence and binding path.
 - No repository-wide claim is made that `semantic/foundation` is absent.
 

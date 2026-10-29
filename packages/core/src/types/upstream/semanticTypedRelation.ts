@@ -37,18 +37,21 @@ export const typedProject = <A, B>(
   return typedRelation(visit(0, []));
 };
 
-export function typedSelect<T, S extends T>(
-  source: TypedRelation<T>,
-  predicate: (value: T, index: number, source: TypedRelation<T>) => value is S,
-): TypedRelation<S>;
-export function typedSelect<T>(
+export interface TypedSelectOperation {
+  <T, S extends T>(
+    source: TypedRelation<T>,
+    predicate: (value: T, index: number, source: TypedRelation<T>) => value is S,
+  ): TypedRelation<S>;
+  <T>(
+    source: TypedRelation<T>,
+    predicate: (value: T, index: number, source: TypedRelation<T>) => boolean,
+  ): TypedRelation<T>;
+}
+
+const typedSelectImplementation = <T>(
   source: TypedRelation<T>,
   predicate: (value: T, index: number, source: TypedRelation<T>) => boolean,
-): TypedRelation<T>;
-export function typedSelect<T>(
-  source: TypedRelation<T>,
-  predicate: (value: T, index: number, source: TypedRelation<T>) => boolean,
-): TypedRelation<T> {
+): TypedRelation<T> => {
   const visit = (index: number, output: readonly T[]): readonly T[] =>
     relationOptionFold(
       relationAt(source.tuples, index),
@@ -60,7 +63,12 @@ export function typedSelect<T>(
       ),
     );
   return typedRelation(visit(0, []));
-}
+};
+
+/** Public runtime export is interface-first; overloads remain in the named contract. */
+export const typedSelect: TypedSelectOperation = Object.freeze(
+  typedSelectImplementation as unknown as TypedSelectOperation,
+);
 
 export const typedExpand = <A, B>(
   source: TypedRelation<A>,

@@ -10,10 +10,10 @@ const checks = [
   ['upstream Sequence owns its ADT instead of re-exporting relation Sequence', /export type Sequence<T>\s*=\s*[\s\S]*?kind: 'empty'[\s\S]*?kind: 'cons'/.test(collections) && !/from ['"]\.\.\/\.\.\/semantic\/relations\//.test(collections)],
   ['upstream collection matchers no longer import relation folds/refinements', !/relationOptionFold|relationRefine|relationEqual|semantic\/relations/.test(collections)],
   ['source-AST pipeline no longer imports semantic relations directly', !/semantic\/relations|semantic\/foundation/.test(pipeline)],
-  ['source-AST pipeline sequence construction preserves the existing empty/cons ADT', /reduceRight<Sequence<T>>/.test(pipeline) && /kind: "empty"/.test(pipeline) && /kind: "cons"/.test(pipeline)],
-  ['source-AST discovery keeps the explicit empty/many closed outcomes', /kind: "discovered_empty"/.test(pipeline) && /kind: "discovered_many"/.test(pipeline)],
-  ['resource projection still filters only the resolved-resource ADT arm', /artifact is LaravelResourceResolvedArtifact => artifact\.kind === 'laravel_resource_resolved_artifact'/.test(pipeline)],
-  ['source evidence and scanner interface wiring remain present', /LaravelSourceAstPipelineDependenciesInterface/.test(pipeline) && /createLaravelSourceAstPipeline/.test(pipeline)],
+  ['source-AST pipeline publishes readonly arrays directly, without Sequence conversion', /return \{ kind: "scanned", items: Object\.freeze\(\[\.\.\.items\]\) \}/.test(pipeline) && !/reduceRight<Sequence<T>>|sequence\(items\)/.test(pipeline)],
+  ['source-AST discovery uses flat scanned/items contract with no empty/many wrapper', /kind: "scanned", items: Object\.freeze\(\[\.\.\.items\]\)/.test(pipeline) && !/discovered_empty|discovered_many/.test(pipeline) && /readonly items: readonly T\[\]/.test(collections)],
+  ['resource projection consumes the scanner’s already-resolved artifact inventory', /resourceScan\.response\.artifacts\.items/.test(pipeline) && /resolvedResourceArtifacts\.map\(artifact => artifact\.ast\)/.test(pipeline)],
+  ['source evidence and scanner interface wiring remain present', /LaravelSourceAstPipelineDependenciesInterface/.test(pipeline) && /laravelSourceAstPipelineFactory/.test(pipeline)],
 ];
 let failures = 0;
 for (const [name, passed] of checks) {

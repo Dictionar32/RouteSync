@@ -14,10 +14,10 @@ const check = (label, condition) => {
 };
 const action = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
 const dataflowAuthority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts');
 const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
 const resourceProjection = read('packages/core/src/types/upstream/controllerResourceReturnSourceEvidenceProjectionInterface.ts');

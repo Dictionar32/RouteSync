@@ -5,8 +5,8 @@ const root = path.resolve(__dirname, '../..');
 const core = path.join(root, 'packages/core/src');
 const read = p => fs.readFileSync(p, 'utf8');
 
-const producer = path.join(core, 'compiler/scanner/lexer/controllerMethodParser.ts');
-const routeProducer = path.join(core, 'compiler/scanner/subscanners/routeProducerRelations.ts');
+const producer = path.join(core, 'compiler/frontend/php/controllerMethodParser.ts');
+const routeProducer = path.join(core, 'compiler/scanner/operations/routeProducerRelations.ts');
 const factory = path.join(core, 'compiler/scanner/semantic/route/routeParameterSemanticFactory.ts');
 
 const parserText = read(producer);

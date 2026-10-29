@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = process.cwd();
-const runtime = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts'), 'utf8');
+const runtime = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts'), 'utf8');
 const algebra = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts'), 'utf8');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/scannerAssignmentPartsInterface.ts'), 'utf8');
 const assignmentWiring = runtime.split('function parseAssignmentParts(')[1]?.split('function classifyAssignment(')[0] ?? '';

@@ -1,0 +1,31 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
+const exists = relative => fs.existsSync(path.join(root, relative));
+const checks = [];
+const check = (name, passed, detail) => checks.push({ name, passed, detail });
+const contract = read('packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingInterface.ts');
+const authority = read('packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingAuthority.ts');
+const consumer = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts');
+const upstreamBarrel = read('packages/core/src/types/upstream/index.ts');
+const coreBarrel = read('packages/core/src/index.ts');
+check('source-binding-terminal-adt-has-continuation', /interface PhpSourceInvocationSemanticSourceBindingTerminalOperations[\s\S]*readonly continueWith/.test(contract), 'Closed and rejected source-binding outcomes expose a typed domain continuation.');
+check('source-binding-handler-preserves-both-outcomes', /interface PhpSourceInvocationSemanticSourceBindingHandlers[\s\S]*onClosed[\s\S]*onRejected/.test(contract), 'Handlers retain distinct closed and rejected outcomes.');
+check('source-binding-projector-interface-defined', /interface PhpSourceInvocationPipelineEvidenceFromSourceBindingInterface[\s\S]*readonly project/.test(contract), 'The projection API has a named interface contract.');
+check('source-binding-projector-interface-first-runtime-export', /export const phpSourceInvocationPipelineEvidenceFromSourceBinding:\s*PhpSourceInvocationPipelineEvidenceFromSourceBindingInterface\s*=\s*Object\.freeze\(/.test(authority), 'Runtime projection is exported as an explicitly typed frozen operation object.');
+check('projection-delegates-to-adt-continuation', /judgment\.continueWith\(\{[\s\S]*onClosed:[\s\S]*onRejected:/.test(authority), 'Projection delegates outcome dispatch to the source-binding ADT.');
+check('runtime-consumer-uses-operation-member', /phpSourceInvocationPipelineEvidenceFromSourceBinding\.project\(binding\)/.test(consumer), 'Invocation judgment authority consumes the interface operation, not a free function.');
+check('legacy-direct-function-call-absent', !/phpSourceInvocationPipelineEvidenceFromSourceBinding\(binding\)/.test(consumer), 'The traced consumer no longer calls the exported helper as a bare function.');
+check('contract-version-aligned', /version: 6,/.test(authority) && /readonly version: 6/.test(contract), 'Source-binding contract runtime and type versions agree at 6.');
+check('upstream-barrel-retains-operation-export', /phpSourceInvocationPipelineEvidenceFromSourceBinding/.test(upstreamBarrel), 'The interface-first operation remains exported through the upstream barrel.');
+check('core-barrel-retains-operation-export', /phpSourceInvocationPipelineEvidenceFromSourceBinding/.test(coreBarrel), 'The interface-first operation remains exported through the core barrel.');
+check('collections-remains-empty', fs.statSync(path.join(root, 'packages/core/src/types/upstream/collections.ts')).size === 0, 'Intentionally empty upstream collections module remains untouched.');
+for (const name of ['relationMembership.ts', 'relationalSequence.ts', 'semanticRelations.ts']) {
+  const file = `packages/core/src/semantic/relations/${name}`;
+  check(`forbidden-relation-foundation-absent:${name}`, !exists(file), `${file} remains absent.`);
+}
+const result = { phase: 3005, title: 'Source Binding Operational ADT and Interface-First Projection', passed: checks.filter(x => x.passed).length, total: checks.length, checks };
+fs.writeFileSync(path.join(root, 'PHASE3005_AUDIT.json'), JSON.stringify(result, null, 2) + '\n');
+console.log(JSON.stringify(result, null, 2));
+if (result.passed !== result.total) process.exitCode = 1;

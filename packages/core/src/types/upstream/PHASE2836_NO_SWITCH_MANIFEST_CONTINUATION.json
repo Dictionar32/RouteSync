@@ -1,0 +1,16 @@
+{
+  "phase": 2836,
+  "kind": "no_switch_manifest_continuation",
+  "runtimeModule": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+  "changes": [
+    "Replace closeInventory switch with explicit discriminant checks and a never exhaustiveness guard",
+    "Replace manifest drift continuation switch with explicit discriminant checks and named domain handlers",
+    "Strengthen Phase 2835 audit to reject switch statements in the active runtime composition module"
+  ],
+  "audit": {
+    "command": "node scripts/audits/audit-phase2835-manifest-drift-domain-continuation.cjs",
+    "result": "17/17 structural checks passed"
+  },
+  "collectionsBytes": 0,
+  "typecheckBuildE2E": "not verified"
+}

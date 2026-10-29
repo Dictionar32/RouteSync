@@ -2,12 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const validationRuleSet = path.join(root, 'packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts');
+const validationRuleSet = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts');
 const validationRules = path.join(root, 'packages/core/src/types/domain/validationRules.ts');
-const requestProducer = path.join(root, 'packages/core/src/compiler/scanner/subscanners/requestProducer.ts');
-const ruleCollector = path.join(root, 'packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts');
-const legacyAssembler = path.join(root, 'packages/core/src/compiler/scanner/subscanners/form-request/validationFieldAssembler.ts');
-const routeFactory = path.join(root, 'packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts');
+const requestProducer = path.join(root, 'packages/core/src/compiler/scanner/operations/requestProducer.ts');
+const ruleCollector = path.join(root, 'packages/core/src/compiler/scanner/operations/form-request/ruleCollector.ts');
+const legacyAssembler = path.join(root, 'packages/core/src/compiler/scanner/operations/form-request/validationFieldAssembler.ts');
+const routeFactory = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts');
 
 const read = file => fs.readFileSync(file, 'utf8');
 const stripComments = source => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|\s)\/\/.*$/gm, '$1');

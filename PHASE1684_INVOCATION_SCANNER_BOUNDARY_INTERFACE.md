@@ -12,7 +12,7 @@ This phase advances the invocation semantic contract before changing production 
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts` composes those contracts and now explicitly defines the scanner boundary.
 - `packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts` remains the current validation authority around algebra-produced judgments.
 - `packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts` remains a delegation wrapper.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` currently calls `invocationSemanticRuntimeExecutor.executeAll(semanticKnowledgeDataFlow)` and projects the resulting analysis into the existing AST shape.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` currently calls `invocationSemanticRuntimeExecutor.executeAll(semanticKnowledgeDataFlow)` and projects the resulting analysis into the existing AST shape.
 
 ## Contract change
 

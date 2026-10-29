@@ -19,8 +19,8 @@ const checks = {
   sourcePipelineContractConsumesClosedInventory: /execute: \(invocationInventoryReceipt: LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt\) => Promise<SourceAsts>/.test(sourcePipelineInterface),
   exactReceiptRetainedInSourceAsts: /controllerInvocationSemanticInventory:\s*invocationInventoryReceipt/.test(sourcePipelineRuntime),
   legacyStaticScannerRemainsEmpty: legacyScanner.trim().length === 0,
-  noRelationOrFoundationSubscannerAdded: !exists('packages/core/src/compiler/scanner/subscanners/relation') && !exists('packages/core/src/compiler/scanner/subscanners/foundation'),
+  noRelationOrFoundationSubscannerAdded: !exists('packages/core/src/compiler/scanner/operations/relation') && !exists('packages/core/src/compiler/scanner/operations/foundation'),
   rootGapExplicitlyRecorded: /Root problem still present/.test(report) && /directly invokes many concrete subscanner implementations/.test(report),
 };
-console.log(JSON.stringify({ phase: 1965, auditKind: 'trace-integrity-not-migration-completion', checks, passed: Object.values(checks).filter(Boolean).length, total: Object.keys(checks).length, remainingArchitectureGap: 'LaravelSourceAstPipeline runtime still directly orchestrates concrete subscanners and controller scanner still constructs controller evidence at runtime; next change must evolve the existing upstream interface from traced producer types.' }, null, 2));
+console.log(JSON.stringify({ phase: 1965, auditKind: 'trace-integrity-not-migration-completion', checks, passed: Object.values(checks).filter(Boolean).length, total: Object.keys(checks).length, remainingArchitectureGap: 'LaravelSourceAstPipeline runtime still directly orchestrates concrete operations and controller scanner still constructs controller evidence at runtime; next change must evolve the existing upstream interface from traced producer types.' }, null, 2));
 if (Object.values(checks).some(value => !value)) process.exitCode = 1;

@@ -1,4 +1,4 @@
-import { resolveEffectiveControllerActionPolicyUpstream } from '../effectiveControllerActionPolicyResolver';
+import { effectiveControllerActionPolicyUpstreamOperations } from '../effectiveControllerActionPolicyResolver';
 import { routeActionPolicyRelationsFromEffectivePolicy } from '../routeActionPolicyRelations';
 import { createActionName, createControllerName, createMiddlewareName } from '../names';
 
@@ -13,7 +13,7 @@ describe('Phase 928 effective route-action policy', () => {
     const auth = createMiddlewareName('auth');
     const audit = createMiddlewareName('audit');
     const source = { kind: 'source_span' as const, file: 'routes/web.php', start: { kind: 'number_value' as const, value: 1 }, end: { kind: 'number_value' as const, value: 10 } };
-    const policy = resolveEffectiveControllerActionPolicyUpstream({
+    const policy = effectiveControllerActionPolicyUpstreamOperations.resolve({
       controller,
       action,
       middleware: {
@@ -53,7 +53,7 @@ describe('Phase 928 effective route-action policy', () => {
     const auth = createMiddlewareName('auth');
     const audit = createMiddlewareName('audit');
     const source = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: 'app/Http/Controllers/ParentController.php' } }, start: { kind: 'number_value' as const, value: 1 }, end: { kind: 'number_value' as const, value: 10 } };
-    const policy = resolveEffectiveControllerActionPolicyUpstream({
+    const policy = effectiveControllerActionPolicyUpstreamOperations.resolve({
       controller: child,
       action: store,
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: store } },
@@ -78,7 +78,7 @@ describe('Phase 928 effective route-action policy', () => {
     const child = createControllerName('ChildController');
     const auth = createMiddlewareName('auth');
     const source = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: 'ParentController.php' } }, start: { kind: 'number_value' as const, value: 1 }, end: { kind: 'number_value' as const, value: 10 } };
-    const policy = resolveEffectiveControllerActionPolicyUpstream({
+    const policy = effectiveControllerActionPolicyUpstreamOperations.resolve({
       controller: child,
       action: store,
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: store } },
@@ -103,7 +103,7 @@ describe('Phase 928 effective route-action policy', () => {
     const child = createControllerName('ChildController');
     const action = createActionName('store');
     const source = { kind: 'source_span' as const, file: { kind: 'source_file' as const, value: { kind: 'string_value' as const, value: 'ChildController.php' } }, start: { kind: 'number_value' as const, value: 0 }, end: { kind: 'number_value' as const, value: 1 } };
-    const policy = resolveEffectiveControllerActionPolicyUpstream({
+    const policy = effectiveControllerActionPolicyUpstreamOperations.resolve({
       controller: child,
       action,
       middleware: { declarations: [], exclusions: [], action: { kind: 'present', value: action } },

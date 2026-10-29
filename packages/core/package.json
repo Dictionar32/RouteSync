@@ -109,6 +109,11 @@
     "audit:phase2472-model-source-semantics-upstream": "node ../../scripts/audits/audit-phase2472-model-source-semantics-upstream.cjs",
     "smoke:phase2472-model-source-semantics-upstream": "node ../../scripts/audits/smoke-phase2472-model-source-semantics-upstream.cjs",
     "audit:phase2511-request-producer-evidence-ownership": "node scripts/audits/audit-phase2511-request-producer-evidence-ownership.cjs",
-    "audit:phase2623-upstream-source-model-relation-authority": "node scripts/audits/audit-phase2623-upstream-source-model-relation-authority.cjs"
+    "audit:phase2623-upstream-source-model-relation-authority": "node scripts/audits/audit-phase2623-upstream-source-model-relation-authority.cjs",
+    "audit:phase2745-erase-descriptor-runtime-operation": "node ../../scripts/audits/audit-phase2745-erase-descriptor-runtime-operation.cjs",
+    "audit:phase2746-channel-factory-operations": "node ../../scripts/audits/audit-phase2746-channel-factory-operations.cjs",
+    "audit:phase2747-route-group-ast-runtime-operation": "node ../../scripts/audits/audit-phase2747-route-group-ast-runtime-operation.cjs",
+    "audit:phase2748-route-group-semantic-runtime": "node ../../scripts/audits/audit-phase2748-route-group-semantic-runtime.cjs",
+    "audit:phase2749-controller-middleware-runtime-operation": "node ../../scripts/audits/audit-phase2749-controller-middleware-runtime-operation.cjs"
   }
 }

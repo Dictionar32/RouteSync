@@ -3,8 +3,8 @@ import type { AttributeDefinition } from '../../types/upstream/application';
 import type { Expression } from '../../types/upstream/expression';
 import { createClassName, createMethodName } from '../../types/upstream/names';
 import type { SourceSpan } from '../../types/upstream/provenance';
-import type { ControllerDeclarationAst, ControllerMethodAst } from './lexer/controllerAstTypes';
-import type { PhpAstValue } from './lexer/phpAstExpressionTypes';
+import type { ControllerDeclarationAst, ControllerMethodAst } from '../frontend/php/controllerAstTypes';
+import type { PhpAstValue } from '../frontend/php/phpAstExpressionTypes';
 import type { AttributeProducerInput, AttributeProducerInterface, AttributeProducerJudgment } from './attributeProducerInterface';
 import type { PhpClassMethodDeclarationInventory } from '../../types/upstream/phpClassConstructorSelectionInterface';
 

@@ -1,0 +1,18 @@
+{
+  "phase": 2997,
+  "title": "Typed Route Schema Evidence Upstream CLI Manifest Trace",
+  "scope": "controller action schema evidence through route boundary and route-manifest serialization",
+  "verification": {
+    "staticAudit": "12/12 passed via scripts/audits/audit-phase2997-typed-route-schema-evidence.cjs",
+    "typescriptTranspileSyntax": "18 touched TypeScript files passed",
+    "fullTypecheck": "not run: node_modules absent and pre-existing removed relation module imports block repository build",
+    "unitTests": "not run",
+    "laravelFixtureE2E": "not run",
+    "cliManifestE2E": "not run"
+  },
+  "remaining": [
+    "controller invocation manifest remains a separate projection without a proven schema-evidence bridge",
+    "endpoint request body schema remains a compatibility payload; provenance is preserved on route binding.schemaEvidence",
+    "pre-existing imports of deleted relation foundation modules remain unresolved; modules were not restored"
+  ]
+}

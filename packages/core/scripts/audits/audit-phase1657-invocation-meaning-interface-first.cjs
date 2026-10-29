@@ -6,7 +6,7 @@ const iface = read('src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const authority = read('src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('src/types/upstream/invocationSemanticRuntimeExecutor.ts');
 const algebra = read('src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
-const scanner = read('src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [
   ['Invocation interface owns a high-level meaning model', /interface InvocationSemanticMeaningModel/.test(iface) && /readonly meaning: InvocationSemanticMeaningModel/.test(iface)],
   ['Meaning contract declares target cardinality and ambiguity semantics', /targetCardinality: 'exactly-one-distinct-target-for-closure'/.test(iface) && /multipleTargets: 'retain-candidates-and-mark-ambiguous'/.test(iface)],

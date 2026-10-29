@@ -1,0 +1,64 @@
+{
+  "phase": 3077,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — source read settlement domain operations",
+  "status": "FAIL",
+  "passed": 11,
+  "total": 13,
+  "checks": {
+    "settlementHandlersGenericContractRemoved": true,
+    "settlementExposesTypedDomainOperation": true,
+    "batchAccumulatorOwnsDomainActions": false,
+    "fulfilledSettlementContributesAsFulfilled": true,
+    "rejectedSettlementContributesAsRejected": true,
+    "batchFactoryConsumesDomainOperation": false,
+    "rejectedIdentityAndEvidencePreserved": true,
+    "manifestConsumesBatchOutcomesWithoutSettlementChanges": true,
+    "canonicalExportRemainsInterfaceFirst": true,
+    "noExportedFunctionDeclarationInChangedUpstreamFile": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedFilesTranspileWithoutSyntaxDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": [
+    {
+      "phase": "phase3076",
+      "status": "ARTIFACT_PRESENT",
+      "output": ""
+    },
+    {
+      "phase": "phase3075",
+      "status": "ARTIFACT_PRESENT",
+      "output": ""
+    },
+    {
+      "phase": "phase3074",
+      "status": "ARTIFACT_PRESENT",
+      "output": ""
+    },
+    {
+      "phase": "phase3072",
+      "status": "ARTIFACT_PRESENT",
+      "output": ""
+    }
+  ],
+  "runtimeTrace": [
+    "CLI scan/sync composition awaits source read settlements from the discovered source inventory.",
+    "Each fulfilled or rejected settlement contributes to a source-read-owned typed batch accumulator through contributeToBatch.",
+    "The accumulator creates either a fulfilled batch preserving read order or a rejected batch preserving all rejected source identities and normalized failure evidence.",
+    "The CLI manifest composition still consumes the final batch judgment and routes rejected batches to the blocked manifest terminal."
+  ],
+  "verification": {
+    "structuralAudit": "FAIL",
+    "changedFileSyntaxTranspile": "PASS",
+    "priorAuditArtifacts": "PRESENT",
+    "wholeWorkspaceStrictTypeScript": "NOT_CLAIMED",
+    "endToEndPhpCliManifestExecution": "NOT_RUN",
+    "globalPrimitiveElimination": "NOT_CLAIMED — index-based collection traversal and the final batch judgment continuation remain outside this phase scope."
+  },
+  "remainingFrontiers": [
+    "The final batch judgment still exposes generic continueWith handlers; migrate it separately to a manifest-neutral domain outcome operation.",
+    "Source discovery blocker evidence still includes unknown platform failure payloads; normalize at the filesystem adapter boundary before the upstream discovery ADT.",
+    "Run strict TypeScript and an actual PHP → CLI → manifest fixture when the workspace dependency setup supports them."
+  ]
+}

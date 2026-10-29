@@ -1,10 +1,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../../packages/core');
-const canonical = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts'), 'utf8');
+const canonical = fs.readFileSync(path.join(root, 'src/compiler/scanner/operations/controller/controllerAstCanonical.ts'), 'utf8');
 const scanner = fs.readFileSync(path.join(root, 'src/compiler/scanner/wiring/laravelControllerScanner.ts'), 'utf8');
 const pipeline = fs.readFileSync(path.join(root, 'src/compiler/scanner/wiring/laravelSourceAstPipeline.ts'), 'utf8');
-const test = fs.readFileSync(path.join(root, 'src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts'), 'utf8');
+const test = fs.readFileSync(path.join(root, 'src/compiler/scanner/operations/controller/controllerMethodContract.phase894.test.ts'), 'utf8');
 const checks = {
   queryAstConsumedByControllerCanonical: canonical.includes('QueryAst') && canonical.includes('controllerQueryOperations'),
   sourceSpanContainsQuery: canonical.includes('query.source') && canonical.includes('methodSource'),

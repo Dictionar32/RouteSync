@@ -1,12 +1,12 @@
+import { laravelRouteSourceSelectionAuthority } from '../../../types/upstream/laravelRouteSourceSelection';
+import { sourceFileIdentityFactory, stringValue } from '../../../types/upstream/names';
 import { describe, expect, test } from 'vitest';
 import path from 'node:path';
 import { manifestBuilderOperationPreparation } from '../../scanner/wiring/upstreamManifestBuilder';
 import { routeSyncManifestFlowProjection } from '../../scanner/orchestrator/upstreamManifestScanner';
-import { routeSyncManifestDataflowSurfaceFromFlow } from '../routeSyncManifestDataflowProjection';
+import { routeSyncManifestDataflowProjection } from '../routeSyncManifestDataflowProjection';
 import { createLaravelSourceProjectIdentity } from '../../../types/upstream/sourceProjectIdentity';
-import {
-  analyzeRouteSyncManifestDataflowWithPolicy,
-} from '../routeSyncDataflowAnalysis';
+import { routeSyncManifestDataflowAnalysisOperations } from '../routeSyncDataflowAnalysis';
 import { semanticDataflowFlowsUnderPolicy } from '../dataflow/semanticDataflowFactAnalysisPolicy';
 import { semanticDataflowRuntimeBoundary } from '../semanticDataflowRuntimeComposition';
 import type { SemanticDataflowFact } from '../../../types/upstream/semanticDataflow';
@@ -16,18 +16,22 @@ const fixtureRoot = path.resolve(__dirname, '../../../../../../examples/ecommerc
 
 describe('Phase 1029 ecommerce fact-scoped analysis policy', () => {
   test('consumes the production policy boundary with route source and resource sink lineage', async () => {
-    const sourceProject = createLaravelSourceProjectIdentity(fixtureRoot, {
-      kind: 'semantic_dataflow_query_policy_intent',
-      sourceProducers: ['route'],
-      sinkProducers: ['resource'],
-      closed: true,
+    const sourceProject = createLaravelSourceProjectIdentity.createWithPolicy({
+      kind: 'laravel_source_project_identity_with_policy_input',
+      sourceRoot: sourceFileIdentityFactory.create(stringValue.create(fixtureRoot)),
+      policyIntent: {
+        kind: 'semantic_dataflow_query_policy_intent',
+        sourceProducers: ['route'],
+        sinkProducers: ['resource'],
+        closed: true,
+      },
     });
     const receipt = await createNotConnectedControllerInventoryReceipt(sourceProject);
-    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: { kind: 'laravel_route_source_selection_default' } }).build();
+    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: laravelRouteSourceSelectionAuthority.defaultIntent() }).build();
     if (manifestJudgment.kind !== 'manifest_builder_complete') throw new Error(`Fixture manifest blocked: ${manifestJudgment.projection.kind}`);
     const manifest = manifestJudgment.manifest;
-    const dataflowSurface = routeSyncManifestDataflowSurfaceFromFlow(routeSyncManifestFlowProjection.project(manifest));
-    const results = analyzeRouteSyncManifestDataflowWithPolicy(dataflowSurface, semanticDataflowRuntimeBoundary);
+    const dataflowSurface = routeSyncManifestDataflowProjection.project(routeSyncManifestFlowProjection.project(manifest));
+    const results = routeSyncManifestDataflowAnalysisOperations.analyzeWithPolicy(dataflowSurface, semanticDataflowRuntimeBoundary);
 
     const nonEmpty = results.filter(result => result.analysis.input.facts.length > 0);
     const sourceFacts = nonEmpty.flatMap(result => result.policy.sourceFacts);
@@ -51,18 +55,22 @@ describe('Phase 1029 ecommerce fact-scoped analysis policy', () => {
   });
 
   test('does not change the canonical fixed-point judgment when policy is applied', async () => {
-    const sourceProject = createLaravelSourceProjectIdentity(fixtureRoot, {
-      kind: 'semantic_dataflow_query_policy_intent',
-      sourceProducers: ['route'],
-      sinkProducers: ['resource'],
-      closed: true,
+    const sourceProject = createLaravelSourceProjectIdentity.createWithPolicy({
+      kind: 'laravel_source_project_identity_with_policy_input',
+      sourceRoot: sourceFileIdentityFactory.create(stringValue.create(fixtureRoot)),
+      policyIntent: {
+        kind: 'semantic_dataflow_query_policy_intent',
+        sourceProducers: ['route'],
+        sinkProducers: ['resource'],
+        closed: true,
+      },
     });
     const receipt = await createNotConnectedControllerInventoryReceipt(sourceProject);
-    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: { kind: 'laravel_route_source_selection_default' } }).build();
+    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: laravelRouteSourceSelectionAuthority.defaultIntent() }).build();
     if (manifestJudgment.kind !== 'manifest_builder_complete') throw new Error(`Fixture manifest blocked: ${manifestJudgment.projection.kind}`);
     const manifest = manifestJudgment.manifest;
-    const dataflowSurface = routeSyncManifestDataflowSurfaceFromFlow(routeSyncManifestFlowProjection.project(manifest));
-    const results = analyzeRouteSyncManifestDataflowWithPolicy(dataflowSurface, semanticDataflowRuntimeBoundary);
+    const dataflowSurface = routeSyncManifestDataflowProjection.project(routeSyncManifestFlowProjection.project(manifest));
+    const results = routeSyncManifestDataflowAnalysisOperations.analyzeWithPolicy(dataflowSurface, semanticDataflowRuntimeBoundary);
 
     expect(results.every(result => result.analysis.interface.closed)).toBe(true);
     expect(results.every(result => result.analysis.interface.state.fixedPoint === 'least_fixed_point')).toBe(true);

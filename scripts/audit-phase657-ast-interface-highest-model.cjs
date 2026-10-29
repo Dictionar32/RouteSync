@@ -6,7 +6,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const files = {
   ast: 'packages/core/src/types/upstream/ast.ts',
   target: 'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts',
-  syntaxError: 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  syntaxError: 'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 };
 const forbidden = /\b(?:if|while|for|switch)\s*\(|\b(?:map|filter|reduce|flatMap)\s*\(|\bundefined\b|\?\?|===|as unknown|:\s*any|\bnew\s+(?:Set|Map)\b/;
 const count = (source, pattern) => (source.match(pattern) || []).length;

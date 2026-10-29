@@ -1,0 +1,68 @@
+{
+  "phase": 3022,
+  "audit": "source-file-identity-interface-conversion",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "name": "source-file identity factory accepts domain-typed StringValue",
+      "passed": true,
+      "evidence": "core/src/types/upstream/names.ts"
+    },
+    {
+      "name": "source-file identity is constructed by an interface-backed object",
+      "passed": true,
+      "evidence": "core/src/types/upstream/names.ts"
+    },
+    {
+      "name": "legacy raw-string createSourceFile factory is removed",
+      "passed": true,
+      "evidence": "core/src/types/upstream/names.ts"
+    },
+    {
+      "name": "legacy createSourceFile runtime call sites are removed",
+      "passed": true,
+      "evidence": "identifier-call count=0"
+    },
+    {
+      "name": "canonical core public export exposes typed factory",
+      "passed": true,
+      "evidence": "core/src/index.ts"
+    },
+    {
+      "name": "compatibility semantic-value surface re-exports typed factory and source text factory",
+      "passed": true,
+      "evidence": "core/src/types/domain/semanticValues.ts"
+    },
+    {
+      "name": "scan and sync commands consume canonical manifest scan operation",
+      "passed": true,
+      "evidence": "CLI scan/sync runtime"
+    },
+    {
+      "name": "manifest operation delegates to canonical composition authority",
+      "passed": true,
+      "evidence": "CLI manifest scan operation"
+    },
+    {
+      "name": "upstream composition exposes the typed manifest operation",
+      "passed": true,
+      "evidence": "CLI upstream composition"
+    },
+    {
+      "name": "manifest composition constructs source identities from typed text at the ingestion boundary",
+      "passed": true,
+      "evidence": "CLI source discovery/manifest composition"
+    },
+    {
+      "name": "collections.ts remains exactly one newline byte",
+      "passed": true,
+      "evidence": "protected file invariant"
+    },
+    {
+      "name": "deleted relation foundation remains absent",
+      "passed": true,
+      "evidence": "do not restore deleted relation foundation"
+    }
+  ]
+}

@@ -11,11 +11,11 @@ import type { AstSemanticPipeline, AstSemanticStage, AstSemanticStageFact } from
 import { astSemanticInterface } from './astSemanticInterface';
 import type { AstSemanticInterface } from './astSemanticInterface';
 import { astSemanticInterfaceFacts, astSemanticInterfaceProofs, astSemanticPipelineInterfaces, type AstSemanticStageInterface } from './astSemanticStageInterfaceAlgebra';
-import { astSemanticStageOrder, stageGraphContains } from './astSemanticStageContract';
+import { astSemanticStageTopologyAuthority } from './astSemanticStageContract';
 import { relationFirstOption, relationFold, relationOptionFold, relationRefine } from '../../semantic/relations/relationalSequence';
 import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
 import type { AstSemanticStageTransition } from './astSemanticStageTransition';
-import { astSemanticStageTransition } from './astSemanticStageTransition';
+import { astSemanticStageTransitionAuthority } from './astSemanticStageTransition';
 
 export type ScannerSemanticStageInterface = AstSemanticStageInterface & Readonly<{ readonly stage: 'scanner_evidence' }> ;
 export type UpstreamMappingSemanticStageInterface = AstSemanticStageInterface & Readonly<{ readonly stage: 'upstream_mapping' }> ;
@@ -52,10 +52,9 @@ const requireStage = <Stage extends AstSemanticStage>(
   interfaces: readonly AstSemanticStageInterface[],
   stage: Stage,
 ): AstSemanticStageInterface & Readonly<{ readonly stage: Stage }> =>
-  relationResolve(
-    stageGraphContains(stage),
-    () => { throw Error(`AST semantic stage '${stage}' is not declared by the upstream stage graph.`); },
-    () => relationOptionFold(
+  astSemanticStageTopologyAuthority.classifyMembership(stage).continueWith({
+    onUndeclared: () => { throw Error(`AST semantic stage '${stage}' is not declared by the upstream stage graph.`); },
+    onDeclared: () => relationOptionFold(
       relationFirstOption(interfaces, candidate => relationEqual(candidate.stage, stage)),
       () => { throw Error(`Missing AST semantic stage '${stage}'.`); },
       value => relationOptionFold(
@@ -64,7 +63,7 @@ const requireStage = <Stage extends AstSemanticStage>(
         narrowed => narrowed,
       ),
     ),
-  );
+  });
 
 
 
@@ -75,10 +74,15 @@ const requireTransition = (
 ): AstSemanticStageTransition => relationOptionFold(
   relationFirstOption(astSemanticInterfaceProofs(from), () => true),
   () => { throw Error(`Missing AST semantic proof from '${from.stage}'.`); },
-  proof => relationOptionFold(
-    astSemanticStageTransition(from.stage, to.stage, from.judgment.contract, proof),
-    () => { throw Error(`Invalid AST semantic transition '${from.stage}' -> '${to.stage}'.`); },
-    value => value,
+  proof => astSemanticStageTransitionAuthority.continueWith(
+    from.stage,
+    to.stage,
+    from.judgment.contract,
+    proof,
+    {
+      onTransition: value => value,
+      onRejected: rejection => { throw Error(`Invalid AST semantic transition '${from.stage}' -> '${to.stage}' (${rejection.reason}).`); },
+    },
   ),
 );
 
@@ -123,7 +127,7 @@ export const astSemanticAuthorityPipeline = (
     target,
     transitions: pipelineTransitions(scanner, mapping, resolver, analysis, lowering, target),
     facts: pipelineFacts(interfaces),
-    stageOrder: astSemanticStageOrder(),
+    stageOrder: astSemanticStageTopologyAuthority.order(),
     authority: 'ast_semantic_judgment',
     semanticAuthority: astSemanticInterface,
     closure: 'least_fixed_point',
@@ -162,7 +166,7 @@ export const createAstSemanticAuthorityPipeline = (
   target,
   transitions: pipelineTransitions(scanner, mapping, resolver, analysis, lowering, target),
   facts: pipelineFacts([scanner, mapping, resolver, analysis, lowering, target]),
-  stageOrder: astSemanticStageOrder(),
+  stageOrder: astSemanticStageTopologyAuthority.order(),
   authority: 'ast_semantic_judgment',
   semanticAuthority: astSemanticInterface,
   closure: 'least_fixed_point',

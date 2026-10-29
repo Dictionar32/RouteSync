@@ -1,0 +1,101 @@
+{
+  "phase": 2726,
+  "title": "Semantic Mapping Runtime Ownership",
+  "passed": 11,
+  "total": 11,
+  "checks": [
+    {
+      "name": "semantic mapping implementation is owned by compiler semantic layer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "public derivation contract is interface-first",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "free function derivation is internal rather than exported",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "runtime lowerer calls typed operation object",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "legacy subdomain barrel only re-exports typed semantic operation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "mapper semantics preserve read and write directions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "semantic mapping contract retains closed upstream judgment",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI scan and sync enter through manifest scan operation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "manifest builder preserves complete and blocked judgments",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "relative imports in changed files resolve",
+      "pass": true,
+      "detail": "3 files checked"
+    },
+    {
+      "name": "no replacement relationFoundation created",
+      "pass": true,
+      "detail": "legacy import references are reported separately, not hidden"
+    }
+  ],
+  "changedFiles": [
+    "packages/core/src/compiler/semantic/request-type-derivation/semanticMappingContractDerivation.ts",
+    "packages/core/src/compiler/passes/lowerers/requestTypesLowerers.ts",
+    "packages/core/src/compiler/scanner/subscanners/request-deriver/index.ts"
+  ],
+  "unresolvedRelativeImports": [],
+  "relationFoundationReferenceFiles": 28,
+  "relationFoundationReferenceOccurrences": 37,
+  "relationFoundationReferenceFileList": [
+    "packages/core/src/compiler/analysis/SymbolAnalysis.ts",
+    "packages/core/src/compiler/analysis/dominator/dominanceFrontier.ts",
+    "packages/core/src/compiler/analysis/dominator/dominatorTree.ts",
+    "packages/core/src/compiler/analysis/loop/loopDetector.ts",
+    "packages/core/src/compiler/analysis/loop/loopNormalizer.ts",
+    "packages/core/src/compiler/analysis/ssa/renamer/blockInstructionRenamer.ts",
+    "packages/core/src/compiler/analysis/ssa/renamer/variableVersionScope.ts",
+    "packages/core/src/compiler/analysis/ssa/ssaBuilder.ts",
+    "packages/core/src/compiler/analysis/ssa/ssaRenamer.ts",
+    "packages/core/src/compiler/analysis/symbol/symbolGraph.ts",
+    "packages/core/src/compiler/analysis/symbol/symbolHierarchy.ts",
+    "packages/core/src/compiler/optimization/LICM.ts",
+    "packages/core/src/compiler/query/TypedCache.ts",
+    "packages/core/src/compiler/query/cache/queryKey.ts",
+    "packages/core/src/compiler/query/cache/storage.ts",
+    "packages/core/src/compiler/query/salsa/queryExecutor.ts",
+    "packages/core/src/compiler/query/salsa/queryGraphManager.ts",
+    "packages/core/src/compiler/query/salsa/salsaTypes.ts",
+    "packages/core/src/compiler/utils/cfg/basicBlock.ts",
+    "packages/core/src/compiler/verification/CFGVerifier.ts",
+    "packages/core/src/graph/service/graphAssembler.ts",
+    "packages/core/src/graph/service/manifestGraphCompiler.ts",
+    "packages/core/src/semantic/relations/relationMembership.ts",
+    "packages/core/src/semantic/relations/relationalSequence.ts",
+    "packages/core/src/semantic/relations/semanticRelationalCollections.ts",
+    "packages/core/src/semantic/relations/semanticRelations.ts",
+    "packages/core/src/types/upstream/__test__/routeDomainAuthority.phase1551.test.ts",
+    "packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts"
+  ]
+}

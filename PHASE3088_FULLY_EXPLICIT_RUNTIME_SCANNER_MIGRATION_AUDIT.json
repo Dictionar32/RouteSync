@@ -1,0 +1,95 @@
+{
+  "phase": 3088,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations \u2014 repository-wide migration frontier",
+  "status": "AUDIT_PASS_WITH_MIGRATION_OPEN",
+  "sourceArchive": "RouteSync-Phase3087-Fully-Explicit-Runtime-Scanner-Audit.zip",
+  "runtimePath": [
+    "packages/cli/src/commands/scan.ts and sync.ts",
+    "packages/cli/src/manifestScanOperationInterface.ts: routeSyncCliManifestScanOperationFactory.scan",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts: ControllerInvocationManifestCompositionAuthority.compose",
+    "packages/core/src/types/upstream/sourceProjectIdentity.ts: canonical source-project identity ADT",
+    "packages/core/src/types/upstream/phpSourceFrontendInterface.ts: source read settlement and batch ADTs",
+    "packages/core/src/types/upstream/phpSourceDocumentIdentityBindingBatchAuthority.ts: source identity binding batch",
+    "invocation semantic pipeline and judgment inventory",
+    "ManifestBuilderJudgment and controller invocation manifest terminal operations",
+    "manifest projection, validation, CLI output/persistence"
+  ],
+  "confirmed": [
+    "CLI scan and sync both consume the typed manifest scan operation.",
+    "The manifest scan operation delegates to the existing composition authority.",
+    "Project canonicalization occurs before controller source discovery.",
+    "Source-read rejection evidence is accumulated at the source-read boundary and preserved into the manifest terminal.",
+    "Source-read batch traversal uses ordered sequence iteration rather than exposed index arithmetic.",
+    "The Phase 3086 factory migration remains interface-first and its focused smoke checks pass.",
+    "The protected collections.ts invariant remains exactly one newline byte.",
+    "Deleted relation foundation modules remain absent."
+  ],
+  "openFrontiers": [
+    {
+      "owner": "packages/core/src/types/upstream/sourceProjectIdentity.ts and packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts",
+      "issue": "Canonicalization composition still uses a continuation bundle and a switch over the closed result ADT.",
+      "required": "Define a source-project-owned operation that preserves canonical identity, query-policy intent, filesystem failure code/location and normalized failure evidence without importing CLI manifest types into core."
+    },
+    {
+      "owner": "packages/core/src/types/upstream/phpSourceFrontendInterface.ts",
+      "issue": "PhpSourceDocumentReadOperationBatchJudgment still exposes generic continueWith<Result> handlers.",
+      "required": "Replace only after specifying a source-read-owned, manifest-neutral next-domain operation and migrating all consumers together."
+    },
+    {
+      "owner": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts",
+      "issue": "Source-discovery blocker variants still carry raw unknown failure payloads.",
+      "required": "Normalize host filesystem rejection evidence at the CLI adapter boundary and preserve code, location, name and message as typed evidence."
+    },
+    {
+      "owner": "packages/**",
+      "issue": "Repository-wide export conversion is incomplete.",
+      "required": "Migrate by dependency-aware domain waves, not syntax-only rewriting."
+    },
+    {
+      "owner": "end-to-end verification",
+      "issue": "Strict whole-workspace typecheck, full tests and PHP fixture \u2192 CLI \u2192 canonical manifest \u2192 generator run have not been verified in this extracted workspace.",
+      "required": "Install/restore workspace dependencies, run strict typecheck and test suite, then exercise a real Laravel fixture through the CLI output path."
+    }
+  ],
+  "migrationInventory": {
+    "typescriptFilesScanned": 2382,
+    "candidateFiles": 334,
+    "exportFunction": 520,
+    "exportArrowConst": 335,
+    "remainingCandidates": 855,
+    "status": "INVENTORY_ONLY_NOT_CONVERTED"
+  },
+  "constraints": [
+    "Do not restore packages/core/src/semantic/relations/relationMembership.ts, relationalSequence.ts or semanticRelations.ts.",
+    "Do not create a generic replacement relation foundation or kernel re-exports.",
+    "Preserve source identity, provenance, source order, rejection evidence, blocker outcomes and manifest data.",
+    "Do not mechanically delete primitives or parser control flow where doing so would erase type information or syntax-recognition mechanics.",
+    "Keep packages/core/src/types/upstream/collections.ts exactly one newline byte."
+  ],
+  "verification": {
+    "phase3079StructuralTrace": "PASS 11/11",
+    "phase3086FactoryWave": "PASS 9/9",
+    "phase3073CanonicalizationTrace": "13/14; one stale/failed assertion remains and generic continuation is still open",
+    "wholeWorkspaceStrictTypeScript": "NOT RUN \u2014 dependencies absent in extracted workspace",
+    "fullTestSuite": "NOT RUN",
+    "phpCliManifestGeneratorEndToEnd": "NOT RUN"
+  },
+  "references": [
+    {
+      "topic": "PHP object interfaces",
+      "url": "https://www.php.net/manual/en/language.oop5.interfaces.php"
+    },
+    {
+      "topic": "PHP type declarations",
+      "url": "https://www.php.net/manual/en/language.types.declarations.php"
+    },
+    {
+      "topic": "Laravel controllers",
+      "url": "https://laravel.com/docs/12.x/controllers"
+    },
+    {
+      "topic": "TypeScript object types and interfaces",
+      "url": "https://www.typescriptlang.org/docs/handbook/2/objects.html"
+    }
+  ]
+}

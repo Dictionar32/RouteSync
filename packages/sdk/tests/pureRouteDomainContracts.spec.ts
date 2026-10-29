@@ -1,4 +1,5 @@
-import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
+import { routeRequestSchemaEvidenceFactory } from '@routesync/core';
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory'
 import { createMiddlewareName } from '../../core/src/types/upstream/names';
 import type { RouteMiddleware } from '../../core/src/types/upstream/route';
 import type { RouteMiddlewares, Sequence } from '../../core/src/types/upstream/collections';
@@ -160,6 +161,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
         })
       }),
       schema: { rules: [], messages: [], attributes: [] },
+      schemaEvidence: routeRequestSchemaEvidenceFactory.unavailable('non_controller_route_target'),
       response: new ResourceResponseDescriptor({ resourceName: "ProductResource", shape: "collection" }),
       request: Object.freeze({ kind: "no_request" }),
       runtimeReturn: Object.freeze({ kind: "none" }),
@@ -350,6 +352,7 @@ describe("Holistic Route Domain Contracts (Point A & B SSOT Suite)", () => {
       response: VoidResponseDescriptor.create(),
       errorResponses: [],
       schema: { rules: [], messages: [], attributes: [] },
+      schemaEvidence: routeRequestSchemaEvidenceFactory.unavailable('non_controller_route_target'),
       binding: {
         operation: {
           controllerName: SemanticValueFactory.controllerName("ArticleController"),

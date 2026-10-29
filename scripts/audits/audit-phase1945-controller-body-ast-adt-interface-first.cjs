@@ -5,13 +5,13 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
-const astTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
-const controllerAstTypes = read('packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts');
+const astTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
+const controllerAstTypes = read('packages/core/src/compiler/frontend/php/controllerAstTypes.ts');
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
-const index = read('packages/core/src/compiler/scanner/lexer/index.ts');
+const index = read('packages/core/src/compiler/frontend/php/index.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 check('body AST is an explicit discriminated union rather than a conditional dataflow field',

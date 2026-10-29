@@ -1,0 +1,14 @@
+{
+  "phase": 3017,
+  "files": [
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowRouteProjection.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowInputFactory.ts",
+      "diagnostics": []
+    }
+  ],
+  "diagnosticCount": 0
+}

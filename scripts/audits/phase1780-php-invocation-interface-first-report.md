@@ -17,7 +17,7 @@ This phase evolves the existing upstream contracts before Laravel scanner wiring
 ## Trace findings that remain open
 
 - `packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts` still sends raw `FunctionName` evidence to the old call boundary. It must be migrated to provide parser-owned name syntax evidence, a complete/incomplete resolution environment judgment, and the closed invocation judgment.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` still calls integrated composition with only `knowledge`. It must supply the completed PHP invocation judgment batch from the upstream source traversal. An empty fabricated batch is not acceptable.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` still calls integrated composition with only `knowledge`. It must supply the completed PHP invocation judgment batch from the upstream source traversal. An empty fabricated batch is not acceptable.
 - `PhpFunctionNameResolutionAuthorityInterface` exists, but a production resolver implementation was not found in the traced source. It must be implemented before scanner wiring can create valid judgments.
 - The PHP builtin ADT and the old catalog currently mix PHP builtins with Laravel helpers. After resolution is implemented, builtin classification must be based on canonical global function identity; Laravel helpers must have their own semantic ownership rather than being treated as PHP builtins.
 - Subscanner deletion remains gated on migrating all consumers and proving there are no references left.

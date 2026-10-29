@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/semanticDataflowInterface.ts');
 const executor = read('packages/core/src/types/upstream/semanticDataflowRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const adapter = read('packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/semanticDataflowRuntimeBinding.ts');
 const checks = [

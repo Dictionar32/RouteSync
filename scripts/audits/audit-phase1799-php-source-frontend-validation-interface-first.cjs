@@ -6,7 +6,7 @@ const contract = read('packages/core/src/types/upstream/phpSourceFrontendValidat
 const authority = read('packages/core/src/types/upstream/phpSourceFrontendExtractionValidationAuthority.ts');
 const frontend = read('packages/core/src/types/upstream/phpSourceFrontendInterface.ts');
 const batch = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const checks = [
   ['validation is an explicit upstream authority interface', /interface PhpSourceFrontendExtractionValidationAuthorityInterface/.test(contract)],

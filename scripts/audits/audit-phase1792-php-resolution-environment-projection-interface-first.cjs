@@ -9,7 +9,7 @@ const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const nameAuthority = read('packages/core/src/types/upstream/phpFunctionNameResolutionAuthority.ts');
 const invocation = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const checks = [
   ['environment projection is defined in the existing PHP name-resolution contract module', contract.includes('PhpFunctionResolutionEnvironmentProjectionInterface') && contract.includes('PhpFunctionResolutionEnvironmentProjectionInput')],

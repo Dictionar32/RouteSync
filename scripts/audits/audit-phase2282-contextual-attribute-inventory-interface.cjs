@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const controller = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const attribute = read('packages/core/src/types/upstream/laravelAttributeScannerInterface.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts');
 const checks = [
   ['controller input consumes closed inventory, not a primitive name list', /contextualAttributeInventory:\s*LaravelContextualAttributeInventory/.test(controller) && !/contextualAttributeNames:\s*readonly/.test(controller)],
   ['inventory declares explicit complete discriminant and closed marker', /kind: 'laravel_contextual_attribute_inventory_complete'/.test(attribute) && /readonly closed: true/.test(attribute)],

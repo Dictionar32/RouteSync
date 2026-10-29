@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const knowledge = path.join(root, 'packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts');
-const resolver = path.join(root, 'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts');
+const knowledge = path.join(root, 'packages/core/src/compiler/scanner/operations/resource/resourceModelKnowledgeDataFlow.ts');
+const resolver = path.join(root, 'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts');
 
 const knowledgeText = fs.readFileSync(knowledge, 'utf8');
 const resolverText = fs.readFileSync(resolver, 'utf8');

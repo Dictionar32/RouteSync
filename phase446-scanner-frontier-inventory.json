@@ -8,7 +8,7 @@
     ],
     [
       231,
-      "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase167.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase167.test.ts"
     ],
     [
       155,
@@ -16,7 +16,7 @@
     ],
     [
       139,
-      "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts"
+      "packages/core/src/compiler/frontend/php/astClassifierEvidence.ts"
     ],
     [
       133,
@@ -52,7 +52,7 @@
     ],
     [
       68,
-      "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionContract.ts"
     ],
     [
       67,
@@ -64,15 +64,15 @@
     ],
     [
       63,
-      "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts"
+      "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts"
     ],
     [
       54,
-      "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts"
     ],
     [
       54,
-      "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts"
     ],
     [
       53,
@@ -88,7 +88,7 @@
     ],
     [
       50,
-      "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts"
     ],
     [
       49,
@@ -120,7 +120,7 @@
     ],
     [
       43,
-      "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts"
     ],
     [
       41,
@@ -140,7 +140,7 @@
     ],
     [
       36,
-      "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts"
+      "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts"
     ],
     [
       35,
@@ -152,7 +152,7 @@
     ],
     [
       34,
-      "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase162.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase162.test.ts"
     ],
     [
       32,
@@ -168,7 +168,7 @@
     ],
     [
       29,
-      "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts"
+      "packages/core/src/compiler/frontend/php/controllerMethodParser.ts"
     ],
     [
       27,
@@ -180,11 +180,11 @@
     ],
     [
       26,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts"
     ],
     [
       26,
-      "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts"
     ],
     [
       24,
@@ -212,7 +212,7 @@
     ],
     [
       21,
-      "packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts"
     ],
     [
       19,
@@ -224,19 +224,19 @@
     ],
     [
       19,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts"
     ],
     [
       19,
-      "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationParser.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/routeResourceDeclarationParser.ts"
     ],
     [
       19,
-      "packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts"
+      "packages/core/src/compiler/frontend/php/controllerReturnParser.ts"
     ],
     [
       19,
-      "packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/route/routeSecurity.ts"
     ],
     [
       18,
@@ -248,19 +248,19 @@
     ],
     [
       18,
-      "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts"
     ],
     [
       18,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructBoundary.phase290.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticConstructBoundary.phase290.test.ts"
     ],
     [
       17,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructBoundary.phase289.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticConstructBoundary.phase289.test.ts"
     ],
     [
       17,
-      "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts"
+      "packages/core/src/compiler/frontend/php/phpMethodParser.ts"
     ],
     [
       17,
@@ -276,11 +276,11 @@
     ],
     [
       16,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalOntology.phase277.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalOntology.phase277.test.ts"
     ],
     [
       16,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts"
     ],
     [
       15,
@@ -292,11 +292,11 @@
     ],
     [
       14,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase297.test.ts"
     ],
     [
       14,
-      "packages/core/src/compiler/scanner/descriptors/model/entity/modelEntityFactory.ts"
+      "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelEntityFactory.ts"
     ],
     [
       14,
@@ -312,11 +312,11 @@
     ],
     [
       13,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase304.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBoundary.phase304.test.ts"
     ],
     [
       13,
-      "packages/core/src/compiler/scanner/lexer/routeAst/semanticAdapterConstructFree.phase273.test.ts"
+      "packages/core/src/compiler/frontend/php/routeAst/semanticAdapterConstructFree.phase273.test.ts"
     ],
     [
       12,

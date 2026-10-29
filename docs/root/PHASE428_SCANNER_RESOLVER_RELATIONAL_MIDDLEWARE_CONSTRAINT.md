@@ -4,8 +4,8 @@
 Continue the semantic-authority cutover from imperative collection/control constructs to declarative semantic relations and relation-driven resolution.
 
 ## Changed authority files
-- `packages/core/src/compiler/scanner/descriptors/route/routeMiddlewareResolver.ts`
-- `packages/core/src/compiler/scanner/descriptors/route/routeConstraintAstAdapter.ts`
+- `packages/core/src/compiler/scanner/operations/domain-model/route/routeMiddlewareResolver.ts`
+- `packages/core/src/compiler/scanner/operations/domain-model/route/routeConstraintAstAdapter.ts`
 
 ## Cutovers
 - middleware assembly: relation projection instead of imperative loops/push

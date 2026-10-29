@@ -1,0 +1,53 @@
+{
+  "phase": 3052,
+  "title": "Semantic Knowledge Validation Domain Operations",
+  "status": "passed_with_remaining_runtime_blockers",
+  "migration": {
+    "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts",
+    "summary": "Validation no longer delegates fact identity, endpoint, guard, or derived-edge checks to the deleted relation foundation or the upstream typed-relation facade. Checks are performed at the scanner semantic-validation boundary.",
+    "preservedInvariants": [
+      "fact identity uniqueness",
+      "data-flow endpoints must reference known semantic facts",
+      "data-flow facts cannot self-reference",
+      "guard predicates must reference known semantic facts",
+      "derived relation edges must be backed by canonical data-flow facts"
+    ]
+  },
+  "remainingRuntimeImports": [
+    {
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "line": "import { relationFirstOption, relationOptionFold, type RelationOption } from '../../../../semantic/relations/relationalSequence';"
+    },
+    {
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "line": "import { relationEqual, relationNotEqual } from '../../../../semantic/relations/semanticRelations';"
+    },
+    {
+      "file": "packages/core/src/compiler/relational/sequence.ts",
+      "line": "import { relationFirstOption, relationOptionFold, relationEqual } from '../../semantic/relations/relationalSequence';"
+    },
+    {
+      "file": "packages/core/src/compiler/relational/sequence.ts",
+      "line": "} from '../../semantic/relations/relationalSequence';"
+    }
+  ],
+  "remainingRuntimeImportCount": 4,
+  "checks": {
+    "validatorHasNamedInterfaceObject": true,
+    "validatorNoLongerImportsDeletedRelationModules": true,
+    "validatorNoLongerUsesTypedRelationFacade": true,
+    "duplicateIdentityInvariantPreserved": true,
+    "unknownFlowEndpointInvariantPreserved": true,
+    "guardAndDerivedRelationInvariantsPreserved": true,
+    "deletedFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 8,
+  "total": 8,
+  "verificationBoundary": {
+    "strictTypeScript": "blocked by broader transitive imports into deleted semantic/relations modules in upstream semantic closure/rewrite/constraint files; validator source itself was not reported with a local diagnostic in the captured typecheck output",
+    "cliToManifestE2E": "not run; runtime path still has deleted-foundation imports in the adapter and compiler sequence facade"
+  },
+  "blocker": "This phase migrates the semantic validator only. It does not claim the entire upstream → CLI → manifest path is build-clean, and does not restore or recreate a generic relation foundation.",
+  "failedChecks": []
+}

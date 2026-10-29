@@ -22,7 +22,7 @@ const checks = {
   scanCliGatesBlockedJudgment: /scannedManifest\.kind === 'manifest_builder_blocked'/.test(cliScan),
   syncCliGatesBlockedJudgment: /scannedManifest\.kind === 'manifest_builder_blocked'/.test(cliSync),
   driftCliGatesBlockedJudgment: /freshManifest\.kind === 'manifest_builder_blocked'/.test(cliDrift),
-  coreOrchestratorPropagatesBlockedJudgment: /judgment\.kind === 'manifest_builder_blocked'[\s\S]*?\? judgment/.test(orchestration),
+  coreOrchestratorPropagatesBlockedJudgment: /if \(judgment\.kind === 'manifest_builder_blocked'\) return judgment/.test(orchestration),
   noFoundationOrRelationsImportInChangedExecutor: !/semantic\/(foundation|relations)/.test(changedExecutor),
 };
 const failed = Object.entries(checks).filter(([, passed]) => !passed);

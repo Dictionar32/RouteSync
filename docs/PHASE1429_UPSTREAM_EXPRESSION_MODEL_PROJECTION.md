@@ -14,7 +14,7 @@ The domain `Expression` ADT and token-level `ExpressionStructure` are not interc
 
 ## Change
 
-Added `compiler/scanner/lexer/phpExpressionStructureProjector.ts` as a projection-only adapter. It consumes the existing closed `ExpressionStructure` ADT and maps its variants into the existing PHP AST factory vocabulary. It does not select candidates, inspect precedence, resolve ternary boundaries, or decide associativity.
+Added `compiler/frontend/php/phpExpressionStructureProjector.ts` as a projection-only adapter. It consumes the existing closed `ExpressionStructure` ADT and maps its variants into the existing PHP AST factory vocabulary. It does not select candidates, inspect precedence, resolve ternary boundaries, or decide associativity.
 
 `astClassifierRuntime.ts` still owns token-evidence acquisition and calls the existing structural algebra. Once that algebra returns a structure, runtime delegates projection to `projectPhpExpressionStructure`. This phase does not claim that all token-shape reasoning has migrated out of runtime; candidate providers and some syntax recognition remain there and are the next migration frontier.
 

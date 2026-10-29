@@ -17,7 +17,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/patternCompiler.ts",
       "counts": {
         "ternary": 1,
         "===": 1,
@@ -25,51 +25,51 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts",
       "counts": {
         "ternary": 1,
         "===": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionTypes.ts",
       "counts": {
         "ternary": 1,
         "===": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts",
       "counts": {
         "switch": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts",
       "counts": {
         "map": 2
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts",
       "counts": {
         "if": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureRouteFactory.ts",
       "counts": {
         "??": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerActionRouteFactory.ts",
       "counts": {
         "switch": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerReferenceRouteFactory.ts",
       "counts": {
         "ternary": 1,
         "===": 1,
@@ -77,13 +77,13 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/syntheticRouteFactory.ts",
       "counts": {
         "??": 4
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeDeclarations.ts",
       "counts": {
         "ternary": 1,
         "===": 2,
@@ -91,31 +91,31 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts",
       "counts": {
         "!==": 2
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts",
       "counts": {
         "void 0": 2
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts",
       "counts": {
         "??": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
       "counts": {
         "void 0": 5
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts",
       "counts": {
         "void 0": 1
       }
@@ -238,16 +238,16 @@
     "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts": [
       44
     ],
-    "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts": [
+    "packages/core/src/compiler/scanner/operations/domain-model/route/routeMethods.ts": [
       39
     ],
-    "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts": [
+    "packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts": [
       16
     ],
-    "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts": [
+    "packages/core/src/compiler/frontend/php/phpAstFactory.ts": [
       10
     ],
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts": [
+    "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts": [
       32,
       62
     ]

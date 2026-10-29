@@ -2,7 +2,7 @@
 
 ## Evidence path
 
-1. `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts` already derived `resourceResponse` as `ControllerResponse`.
+1. `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts` already derived `resourceResponse` as `ControllerResponse`.
 2. The same value was passed into return-semantic derivation and controller dataflow creation.
 3. Phase 2120's `laravelControllerExecutionDependencies.ts` rebuilt a new `response_present` object from `responseTypeName()`, which erased the `response_absent` branch and duplicated classification.
 4. `LaravelControllerActionSemanticJudgment` already owns `response: ControllerResponse`.

@@ -36,4 +36,4 @@ The next compiler work should continue the same direction:
 
 `Laravel source evidence -> closed semantic AST/ADT -> relational facts -> resolver graph -> fixed-point/rewrite closure -> diagnostic gate -> target semantic projection -> Next.js`
 
-Priority remains scanner/lexer semanticization, resolver graph closure, AST/upstream mapping, analysis interfaces, semantic type lowering, and diagnostic judgment without reintroducing host-language fallback semantics.
+Priority remains frontend/php semanticization, resolver graph closure, AST/upstream mapping, analysis interfaces, semantic type lowering, and diagnostic judgment without reintroducing host-language fallback semantics.

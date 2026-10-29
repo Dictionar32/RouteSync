@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createSourceFile } from '../names';
-import { laravelControllerInvocationSemanticJudgmentAuthority } from '../laravelControllerInvocationSemanticJudgmentAuthority';
+import { sourceFileIdentityFactory, stringValue } from '../names';
+import { laravelControllerInvocationSemanticJudgmentAuthority, laravelControllerInvocationSemanticInputFactory } from '../laravelControllerInvocationSemanticJudgmentAuthority';
 import { laravelControllerAstProjectionSemanticAuthority } from '../laravelControllerAstProjectionSemanticAuthority';
 
 describe('Laravel controller AST projection semantic authority interface-first', () => {
@@ -15,10 +15,7 @@ describe('Laravel controller AST projection semantic authority interface-first',
   });
 
   it('preserves the exact canonical invocation judgment in semantic projection', () => {
-    const invocationJudgment = laravelControllerInvocationSemanticJudgmentAuthority.judge({
-      kind: 'controller_invocation_pipeline_not_provided',
-      sourceFile: createSourceFile('app/Http/Controllers/ExampleController.php'),
-    });
+    const invocationJudgment = laravelControllerInvocationSemanticJudgmentAuthority.judge(laravelControllerInvocationSemanticInputFactory.withoutPipeline(sourceFileIdentityFactory.create(stringValue.create('app/Http/Controllers/ExampleController.php'))));
     const result = laravelControllerAstProjectionSemanticAuthority.judge({
       kind: 'invocation_semantic_judgment',
       judgment: invocationJudgment,
@@ -34,10 +31,7 @@ describe('Laravel controller AST projection semantic authority interface-first',
 
 
   it('preserves the exact integrated response judgment when the closed pair is supplied', () => {
-    const invocationJudgment = laravelControllerInvocationSemanticJudgmentAuthority.judge({
-      kind: 'controller_invocation_pipeline_not_provided',
-      sourceFile: createSourceFile('app/Http/Controllers/IntegratedController.php'),
-    });
+    const invocationJudgment = laravelControllerInvocationSemanticJudgmentAuthority.judge(laravelControllerInvocationSemanticInputFactory.withoutPipeline(sourceFileIdentityFactory.create(stringValue.create('app/Http/Controllers/IntegratedController.php'))));
     if (invocationJudgment.response.kind !== 'php_source_invocation_integration_not_connected') {
       throw new Error('Expected the explicit not-connected invocation outcome');
     }

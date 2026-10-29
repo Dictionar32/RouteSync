@@ -10,7 +10,7 @@ const contract = read('packages/core/src/types/upstream/laravelRouteScannerInter
 
 const checks = [
   ['active route scanner has no direct relations/foundation imports', !/from\s+['"][^'"]*semantic\/(?:relations|foundation)/.test(scanner)],
-  ['active route scanner no longer imports routeProducerRelations/route-scanner/scannerUtils', !/from\s+['"][^'"]*subscanners\/(?:routeProducerRelations|route-scanner|scannerUtils)/.test(scanner)],
+  ['active route scanner no longer imports routeProducerRelations/route-scanner/scannerUtils', !/from\s+['"][^'"]*operations\/(?:routeProducerRelations|route-scanner|scannerUtils)/.test(scanner)],
   ['route composition implementation has no direct relations/foundation imports', !/from\s+['"][^'"]*semantic\/(?:relations|foundation)/.test(composition)],
   ['route boundary emitter has no direct relations/foundation imports', !/from\s+['"][^'"]*semantic\/(?:relations|foundation)/.test(emitter)],
   ['upstream contract explicitly models route composition, policy, source selection, and final outcome', /interface LaravelRouteDeclarationCompositionAuthorityInterface/.test(contract) && /catalogFromControllerScan/.test(contract) && /policyForBinding/.test(contract) && /resolveSourceFiles/.test(contract) && /observeSourceFiles/.test(contract) && /outcomeFromScan/.test(contract)],
@@ -26,8 +26,8 @@ for (const [label, passed] of checks) {
 }
 
 const knownGaps = [
-  ['closure return semantic producer still imports the legacy controller AST subscanner', /from '\.\.\/subscanners\/controller\/controllerAstCanonical'/.test(composition)],
-  ['legacy route producer/emitter subscanner files are retired', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/route-scanner'))],
+  ['closure return semantic producer still imports the legacy controller AST subscanner', /from '\.\.\/operations\/controller\/controllerAstCanonical'/.test(composition)],
+  ['legacy route producer/emitter subscanner files are retired', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/route-scanner'))],
 ];
 for (const [label, state] of knownGaps) {
   const passed = label.startsWith('legacy route') ? state : !state;

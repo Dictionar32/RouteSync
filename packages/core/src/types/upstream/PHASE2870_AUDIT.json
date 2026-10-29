@@ -1,0 +1,36 @@
+{
+  "phase": 2870,
+  "title": "Fully Typed Runtime Scanner Operations — CLI Manifest Trace",
+  "scope": [
+    "CLI scan boundary",
+    "composition authority",
+    "source identity/discovery/read",
+    "invocation pipeline",
+    "inventory closure",
+    "manifest builder judgment",
+    "terminal continuation"
+  ],
+  "checks": {
+    "cliFactoryHasNamedInterfaceFirstExport": true,
+    "cliScanDelegatesToCompositionAuthority": true,
+    "compositionFactoryHasNamedInterfaceFirstExport": true,
+    "manifestBuilderEntryHasNamedInterfaceFirstExport": true,
+    "compositionInjectsExistingDependencies": true,
+    "manifestBuilderOutcomesExposeContinuation": true,
+    "astFailureRemainsBlockedEvidence": true,
+    "cliTerminalOutcomesHaveDomainContinuation": true,
+    "phase2869SemanticOperationsRemainInterfaceFirst": true,
+    "collectionsRemainEmpty": true,
+    "traceDocumentExists": true,
+    "compositionControlFlowDebtDisclosed": true
+  },
+  "passedChecks": 12,
+  "totalChecks": 12,
+  "knownLimitations": [
+    "Regex-based structural audit, not TypeScript AST analysis.",
+    "Does not claim every upstream export is interface-first.",
+    "Does not prove typecheck, build, or end-to-end tests pass.",
+    "Composition still has local control-flow decisions that require domain-contract evolution."
+  ],
+  "collectionsBytes": 0
+}

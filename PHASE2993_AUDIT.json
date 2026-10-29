@@ -1,0 +1,124 @@
+{
+  "phase": 2993,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations: upstream → CLI → manifest trace",
+  "checkCount": 22,
+  "passed": 22,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "CLI command factory is interface-typed runtime object",
+      "pass": true,
+      "evidence": "commands/scan.ts"
+    },
+    {
+      "name": "CLI manifest scan operation factory is interface-typed runtime object",
+      "pass": true,
+      "evidence": "manifestScanOperationInterface.ts"
+    },
+    {
+      "name": "CLI builder is interface-typed runtime object",
+      "pass": true,
+      "evidence": "controllerInvocationManifestComposition.ts"
+    },
+    {
+      "name": "CLI builder delegates to typed scan operation",
+      "pass": true,
+      "evidence": "builder -> scan operation"
+    },
+    {
+      "name": "Manifest ADT exposes domain-owned terminal continuation",
+      "pass": true,
+      "evidence": "composition ADT -> CLI handlers"
+    },
+    {
+      "name": "Source body judgment owns inline schema evidence",
+      "pass": true,
+      "evidence": "body authority -> execution wiring"
+    },
+    {
+      "name": "Schema authority consumes source-owned evidence",
+      "pass": true,
+      "evidence": "schema interface -> authority"
+    },
+    {
+      "name": "Controller contract publishes schema from schema judgment",
+      "pass": true,
+      "evidence": "schema judgment -> controller contract"
+    },
+    {
+      "name": "Controller execution publishes semantic schema",
+      "pass": true,
+      "evidence": "schema judgment -> semantic publication"
+    },
+    {
+      "name": "Manifest serializer preserves request body schema",
+      "pass": true,
+      "evidence": "route contract serialization"
+    },
+    {
+      "name": "IR projection consumes closed dataflow authority interface",
+      "pass": true,
+      "evidence": "dataflow interface -> IR projection"
+    },
+    {
+      "name": "Known schema-to-route-manifest bridge remains explicitly unproven",
+      "pass": true,
+      "evidence": "No field-by-field source edge asserted by this audit; see report"
+    },
+    {
+      "name": "packages/cli/src/commands/scan.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/cli/src/manifestScanOperationInterface.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/cli/src/generators/ManifestSerializer.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/core/src/types/upstream/controllerActionSchemaSemanticJudgmentAuthority.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/core/src/types/upstream/controllerActionSchemaSemanticJudgmentInterface.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    },
+    {
+      "name": "packages/core/src/compiler/ir/SemanticDataflowIRProjection.ts: no exported function declaration",
+      "pass": true,
+      "evidence": "runtime-path export style"
+    }
+  ],
+  "limitations": [
+    "This is a structural source audit, not a full TypeScript typecheck or runtime integration test.",
+    "Controller schema provenance into RouteManifest.request.body.schema remains unproven field-by-field.",
+    "The audit does not claim that every exported helper in core/src/types/upstream is on the runtime path."
+  ]
+}

@@ -63,8 +63,8 @@ const pipelineText = fs.readFileSync(path.join(ROOT, boundary[1]), 'utf8');
 const transitionText = fs.readFileSync(path.join(ROOT, boundary[0]), 'utf8');
 const cfgText = fs.readFileSync(path.join(ROOT, 'packages/core/src/compiler/utils/cfg/instructions.ts'), 'utf8');
 const routeCrudAdapter = fs.readFileSync(path.join(ROOT, 'packages/core/src/compiler/scanner/resolvers/RouteCrudClassifier.ts'), 'utf8');
-const solverEmpty = fs.statSync(path.join(ROOT, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts')).size === 0;
-const syntaxEmpty = fs.statSync(path.join(ROOT, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts')).size === 0;
+const solverEmpty = fs.statSync(path.join(ROOT, 'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts')).size === 0;
+const syntaxEmpty = fs.statSync(path.join(ROOT, 'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts')).size === 0;
 const transitionKinds = [
   'scanner_to_mapping_transition',
   'mapping_to_resolver_transition',

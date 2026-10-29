@@ -6,7 +6,7 @@ const contract = read('packages/core/src/types/upstream/phpFunctionNameResolutio
 const authority = read('packages/core/src/types/upstream/phpFunctionNameResolutionAuthority.ts');
 const invocation = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const checks = [
   ['name-resolution contract interface and value advance together to version 8', contract.includes('readonly version: 8;') && contract.includes('version: 8,')],

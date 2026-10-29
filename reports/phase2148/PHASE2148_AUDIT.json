@@ -57,7 +57,7 @@
       "passed": true
     },
     {
-      "name": "syntax transpilation: packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "name": "syntax transpilation: packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts",
       "passed": true
     },
     {

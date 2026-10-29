@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { hasExplicitValidationType } from '../../core/src/compiler/scanner/subscanners/validationRuleChecker';
-import { ValidationRuleFieldLowerer } from '../../core/src/compiler/scanner/subscanners/ValidationRuleFieldLowerer';
-import { detectActionError } from '../../core/src/compiler/scanner/subscanners/controller/controllerErrorDetector';
+import { hasExplicitValidationType } from '../../core/src/compiler/scanner/operations/validationRuleChecker';
+import { ValidationRuleFieldLowerer } from '../../core/src/compiler/scanner/operations/ValidationRuleFieldLowerer';
+import { detectActionError } from '../../core/src/compiler/scanner/operations/controller/controllerErrorDetector';
 import { RouteSecurityResolver } from '../../core/src/compiler/scanner/resolvers/RouteSecurityResolver';
 import { createMiddlewareName } from '../../core/src/types/upstream/names';
 import type { RouteMiddleware } from '../../core/src/types/upstream/route';
 import type { RouteMiddlewares, Sequence } from '../../core/src/types/upstream/collections';
-import { buildRouteCapabilityContract } from '../../core/src/compiler/scanner/resolvers/boundary/capabilityBuilder';
-import { IntermediateRouteBoundaryBasics } from '../../core/src/compiler/scanner/resolvers/boundary/boundaryBasics';
+import { buildRouteCapabilityContract } from '../../core/src/compiler/semantic/route-boundary/capabilityBuilder';
+import { IntermediateRouteBoundaryBasics } from '../../core/src/compiler/semantic/route-boundary/boundaryBasics';
 import { LaravelSourceLexer } from '../../core/src/compiler/scanner/LaravelSourceLexer';
 import {
     HttpMethod,

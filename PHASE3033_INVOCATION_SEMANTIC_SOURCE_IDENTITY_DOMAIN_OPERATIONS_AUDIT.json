@@ -1,0 +1,36 @@
+{
+  "phase": 3033,
+  "title": "Invocation Semantic Source Identity — Interface-Backed Domain Operations",
+  "scope": "Static contract audit for replacing serialized SemanticSource and invocation-shape keys with explicit upstream identity judgments. A focused Vitest file was added; execution depends on project dependencies being installed.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "Invocation semantic judgment authority validates source provenance and invocation shape",
+    "semanticSource.same compares source path, source offsets, and evidence provider as a typed judgment",
+    "invocationSemanticIdentityOperations.sameShape compares invocation identity, receiver disposition, operation, ordered arguments, and source provenance",
+    "Validated judgments retain existing proof traces, unresolved obligations, and rejection behavior"
+  ],
+  "checks": {
+    "semanticSourceHasClosedEqualityJudgment": true,
+    "semanticSourceOperationsAreInterfaceBacked": true,
+    "sourceEqualityPreservesPathSpanAndProvider": true,
+    "invocationIdentityOperationsAreInterfaceBacked": true,
+    "invocationShapeRetainsReceiverOperationOrderedArgumentsAndSource": true,
+    "serializedSourceAndInvocationShapeKeysRemoved": true,
+    "sourceProvenanceChecksUseDomainEquality": true,
+    "focusedBehavioralTestsCoverProviderAndShapeIdentity": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionRemainsInRuntimeTrace": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 12,
+  "total": 12,
+  "remainingDebt": [
+    "KnowledgeId comparison still uses the existing derived knowledgeIdKey representation; this phase does not replace that separate identity contract.",
+    "Parser-facing source paths and offsets remain primitive boundary inputs.",
+    "The focused Vitest test was added but cannot be claimed as executed unless dependencies are available.",
+    "Full TypeScript typecheck, full Vitest, and CLI-to-manifest end-to-end execution remain unverified.",
+    "This is a scoped migration; repository-wide primitive/control-flow elimination is not claimed."
+  ]
+}

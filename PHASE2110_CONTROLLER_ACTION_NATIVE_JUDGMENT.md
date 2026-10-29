@@ -4,7 +4,7 @@ This phase stays on the Laravel controller scanner path.
 
 ## Implemented
 
-- Removed direct `semantic/relations` imports and relation-algebra calls from `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts`.
+- Removed direct `semantic/relations` imports and relation-algebra calls from `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts`.
 - Replaced `RelationIndex` and `RelationMembership` names at this resolver boundary with the immutable tuple/list shapes already supplied by the scanner.
 - Added discriminated judgment types for parameter class-name interpretation and contextual-attribute interpretation.
 - Preserved the canonical `ControllerActionContract` and existing judgment/executor interfaces.

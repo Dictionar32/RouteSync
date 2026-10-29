@@ -12,7 +12,7 @@ export interface ResourceAstExpressionMappingInput<SyntaxValue> {
  * SyntaxValue is supplied by the syntax owner so upstream does not import scanner-owned AST types.
  */
 export interface ResourceAstExpressionMappingOperationInterface<SyntaxValue> {
-  (input: ResourceAstExpressionMappingInput<SyntaxValue>): ResourceExpressionModel;
+  readonly map: (input: ResourceAstExpressionMappingInput<SyntaxValue>) => ResourceExpressionModel;
 }
 
 

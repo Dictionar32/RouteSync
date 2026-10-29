@@ -1,0 +1,20 @@
+{
+  "phase": 2828,
+  "title": "Route Dataflow Domain Operations and Manifest Trace",
+  "migratedOperations": [
+    "routeDeclarationSemanticKindOperation.resolve",
+    "routeMethodSemanticKindOperation.resolve",
+    "routeSourceFileContextKnowledgeOperation.resolve"
+  ],
+  "runtimeConsumerUpdated": "packages/core/src/compiler/scanner/upstream/routeDeclarationComposition.ts",
+  "manifestContractsReused": [
+    "RouteSyncCliManifestScanOperationInterface",
+    "RouteSyncCliUpstreamCompositionInterface",
+    "ControllerInvocationManifestCompositionAuthorityInterface",
+    "LaravelSourceAstPipelineInterface",
+    "ManifestBuilderJudgment",
+    "SemanticDataflowManifestSurfaceInterface"
+  ],
+  "collectionsTsBytes": 0,
+  "verification": "structural audit only; full typecheck and end-to-end runtime are not claimed"
+}

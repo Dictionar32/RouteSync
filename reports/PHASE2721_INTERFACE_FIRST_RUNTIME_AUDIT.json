@@ -1,0 +1,105 @@
+{
+  "phase": 2721,
+  "title": "Interface-first route boundary runtime operation migration",
+  "checks": [
+    {
+      "name": "identityBuilder.ts: typed immutable operation object",
+      "pass": true,
+      "detail": "routeIdentityContractBuilder: RouteIdentityContractBuilderInterface"
+    },
+    {
+      "name": "identityBuilder.ts: legacy free-function export removed",
+      "pass": true,
+      "detail": "buildRouteIdentityContract is internal implementation only"
+    },
+    {
+      "name": "bindingBuilder.ts: typed immutable operation object",
+      "pass": true,
+      "detail": "routeBindingContractBuilder: RouteBindingContractBuilderInterface"
+    },
+    {
+      "name": "bindingBuilder.ts: legacy free-function export removed",
+      "pass": true,
+      "detail": "buildRouteBindingContract is internal implementation only"
+    },
+    {
+      "name": "capabilityBuilder.ts: typed immutable operation object",
+      "pass": true,
+      "detail": "routeCapabilityContractBuilder: RouteCapabilityContractBuilderInterface"
+    },
+    {
+      "name": "capabilityBuilder.ts: legacy free-function export removed",
+      "pass": true,
+      "detail": "buildRouteCapabilityContract is internal implementation only"
+    },
+    {
+      "name": "provenanceBuilder.ts: typed immutable operation object",
+      "pass": true,
+      "detail": "routeProvenanceContractBuilder: RouteProvenanceContractBuilderInterface"
+    },
+    {
+      "name": "provenanceBuilder.ts: legacy free-function export removed",
+      "pass": true,
+      "detail": "buildRouteProvenanceContract is internal implementation only"
+    },
+    {
+      "name": "boundary contract factory consumes four operation objects",
+      "pass": true,
+      "detail": "all canonical subcontract builders called through typed operation objects"
+    },
+    {
+      "name": "boundary input uses provenance operation object",
+      "pass": true,
+      "detail": "runtime consumer no longer imports a free builder function"
+    },
+    {
+      "name": "manifest builder remains interface-first",
+      "pass": true,
+      "detail": "manifestBuilderOperationPreparation uses upstream contract"
+    },
+    {
+      "name": "CLI composition authority remains interface-first",
+      "pass": true,
+      "detail": "factory operation object is the production runtime entry"
+    },
+    {
+      "name": "manifest rejection ADT preserved fail-closed",
+      "pass": true,
+      "detail": "inventory rejection and manifest-builder blocked judgments remain distinct"
+    },
+    {
+      "name": "no relationFoundation implementation reintroduced",
+      "pass": true,
+      "detail": "no relationFoundation.ts under packages"
+    },
+    {
+      "name": "legacy relationFoundation imports are visible",
+      "pass": true,
+      "detail": "37 import declarations still reference deleted module; no replacement was added"
+    },
+    {
+      "name": "CLI scan/sync -> composition -> manifest trace anchors",
+      "pass": true,
+      "detail": "actual CLI entry points and manifest builder dependency are connected"
+    },
+    {
+      "name": "scanner wiring-only state reported honestly",
+      "pass": true,
+      "detail": "9 implementation directories remain: binders, descriptors, operations, orchestrator, resolvers, semantic, subscanners, symbols, upstream"
+    }
+  ],
+  "passed": 17,
+  "total": 17,
+  "legacyRelationFoundationImports": 37,
+  "scannerImplementationDirectoriesRemaining": [
+    "binders",
+    "descriptors",
+    "operations",
+    "orchestrator",
+    "resolvers",
+    "semantic",
+    "subscanners",
+    "symbols",
+    "upstream"
+  ]
+}

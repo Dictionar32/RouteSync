@@ -17,7 +17,7 @@ Core berisi 996 TypeScript files. Audit menemukan pola runtime/lookup/absence di
 
 - `client/*`: runtime HTTP boundary, bukan compiler upstream semantic model.
 - `compiler/cache/*`, queue, memoization: absence cache dapat legitimate.
-- `compiler/scanner/lexer/*`: parser rejection/partial token classification dapat legitimate dan perlu ADT tersendiri, bukan dipaksa menjadi semantic success.
+- `compiler/frontend/php/*`: parser rejection/partial token classification dapat legitimate dan perlu ADT tersendiri, bukan dipaksa menjadi semantic success.
 - `compiler/analysis/*`: dataflow algorithms dapat legitimate memiliki missing state.
 
 ## Next semantic roots

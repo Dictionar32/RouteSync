@@ -9,7 +9,7 @@ This phase evolves upstream contracts before wiring. It does not implement the i
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts` already modeled an integrated response as analysis plus publication outcome.
 - The previous type allowed a validated publication to be paired with an independently supplied analysis without a distinct authority interface for validating that cross-result binding.
 - A publication receipt can be valid for its own inventory and still not prove that it corresponds to the exact analysis carried by an integrated response.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` continues to delegate whole-knowledge analysis through `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)`.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` continues to delegate whole-knowledge analysis through `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)`.
 
 ## Interface changes
 

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const contract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const start = wiring.indexOf('const createActionJudgmentAuthority = (');
 const end = wiring.indexOf('const bodySemanticJudgmentAuthority =', start);
 const authorityFactory = wiring.slice(start, end);

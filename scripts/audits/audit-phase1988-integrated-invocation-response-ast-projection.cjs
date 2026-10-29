@@ -6,11 +6,11 @@ const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 const contract = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const authority = read('packages/core/src/types/upstream/laravelControllerAstProjectionSemanticAuthority.ts');
-const bodyTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const bodyParser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const bodyTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const bodyParser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const test = read('packages/core/src/types/upstream/__test__/laravelControllerAstProjectionSemanticAuthority.phase1952.test.ts');
 const publicIndex = read('packages/core/src/index.ts');
-const controllerScannerRoot = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller');
+const controllerScannerRoot = path.join(root, 'packages/core/src/compiler/scanner/operations/controller');
 const files = [];
 const walk = (directory) => {
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {

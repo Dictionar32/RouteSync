@@ -14,10 +14,10 @@ const checks = [
   ['CLI scan command uses invocation composition', cli.includes('buildManifestWithInvocationPipeline')],
   ['composition closes inventory before manifest build', composition.includes('laravelControllerInvocationSemanticJudgmentInventoryAuthority.close') && composition.includes('manifestBuilder.build(terminalOutcome.result.receipt)')],
   ['manifest builder enters source AST scanner', builder.includes('laravelSourceAstScanner.scan(invocationInventoryReceipt)')],
-  ['AST pipeline still imports subscanners', pipeline.includes('../subscanners')],
+  ['AST pipeline still imports operations', pipeline.includes('../operations')],
   ['AST pipeline still imports semantic relations', pipeline.includes('semantic/relations/')],
   ['controller scanner still calls scanControllerAction', controller.includes('scanControllerAction(')],
-  ['route scanner still imports subscanner route producer/emitter', routes.includes('../subscanners/routeProducer') && routes.includes('../subscanners/route-scanner')],
+  ['route scanner still imports subscanner route producer/emitter', routes.includes('../operations/routeProducer') && routes.includes('../operations/route-scanner')],
   ['report explicitly includes CLI relation helper consumers', report.includes('packages/cli/src/parsers/php/boundaryAdapter.ts')],
   ['report explicitly states foundation deletion is not proven', report.toLowerCase().includes('does not prove that `semantic/foundation` is safe to delete')],
 ];

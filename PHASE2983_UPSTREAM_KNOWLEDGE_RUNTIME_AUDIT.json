@@ -1,0 +1,29 @@
+{
+  "phase": 2983,
+  "title": "Upstream Semantic Knowledge Runtime Operations Audit",
+  "scope": [
+    "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "upstream-to-CLI-to-manifest/IR trace documentation",
+    "deleted relation foundation import boundary"
+  ],
+  "principle": "Naikkan pengetahuan menjadi data model; jangan menurunkan pengetahuan menjadi control flow.",
+  "changes": [
+    "Removed direct imports from deleted relationMembership and relationalSequence foundations in semanticDataflowKnowledge.ts.",
+    "Introduced a private SemanticKnowledgeSelectionOperationsInterface and a frozen typed operation object owned by the semantic knowledge domain.",
+    "Moved assignment-effect, assignment-reference, parser-evidence, data-flow-role, and optional-guard resolution behind domain-owned operations.",
+    "Preserved SemanticPresence as a continuation-bearing ADT with continueWith handlers.",
+    "Kept packages/core/src/types/upstream/collections.ts empty and did not recreate generic relation foundation modules."
+  ],
+  "known_remaining_findings": [
+    "This is a focused upstream migration, not a full migration of all upstream, CLI, manifest, and IR consumers.",
+    "The private domain lookup still uses host-language array lookup and closed-union assumptions internally; a future model pass can replace those implementation details with explicit typed lookup judgments without introducing a generic collection foundation.",
+    "The wider workspace build is not asserted as passing: the existing build.log records 230 unresolved imports from an older build snapshot and there are no local node_modules in this workspace."
+  ],
+  "verification": {
+    "audit_script": "scripts/audits/audit-phase2983-upstream-knowledge-runtime.cjs",
+    "expected_checks": 9,
+    "full_build": "not_run",
+    "full_test_suite": "not_run",
+    "audit_result": "9/9 structural checks passed"
+  }
+}

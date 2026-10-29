@@ -1,0 +1,24 @@
+{
+  "phase": 2892,
+  "title": "Source Read Batch Boundary Audit",
+  "checks": {
+    "compositionUsesExistingReadBatchFactory": true,
+    "batchCompleteAndBlockedVariantsAreExplicit": true,
+    "batchJudgmentOwnsContinuation": true,
+    "batchFactoryUsesInterfaceFirstRuntimeExport": true,
+    "unexpectedPromiseRejectionCanEscapeBatchBoundary": true,
+    "discoveryContractAlreadyExists": true,
+    "compositionHasTypedReaderDependency": true,
+    "compositionHasNoExportFunction": true,
+    "upstreamCollectionsRemainEmpty": true
+  },
+  "passed": 9,
+  "total": 9,
+  "findings": [
+    "An unexpected rejected promise from sourceDocumentReader.read can escape Promise.all before the source-read batch ADT receives results. This is a risk to verify/fix, not a proven production failure.",
+    "Do not coerce unexpected operation failures into ordinary filesystem blocked evidence; keep the failure domain distinct.",
+    "Reuse PhpSourceDocumentReadBatchJudgment and phpSourceDocumentReadBatchFactory; no duplicate batch contract is needed.",
+    "No runtime source was modified in this audit-only phase. Typecheck, build, unit tests, and CLI E2E were not run."
+  ],
+  "typecheckBuildTestsE2e": "not-run"
+}

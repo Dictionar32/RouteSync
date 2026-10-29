@@ -2,10 +2,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const actionScanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
-const tests = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts');
+const actionScanner = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
+const tests = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.phase10.test.ts');
 const checks = [
   ['resolver imports schema authority contract only', resolver.includes("import type { ControllerActionSchemaSemanticJudgmentAuthorityInterface } from '../../../../types/upstream/controllerActionSchemaSemanticJudgmentInterface'") && !resolver.includes("import { controllerActionSchemaSemanticJudgmentAuthority } from '../../../../types/upstream/controllerActionSchemaSemanticJudgmentAuthority'")],
   ['resolver context owns injected schema authority', resolver.includes('readonly schemaSemanticJudgmentAuthority: ControllerActionSchemaSemanticJudgmentAuthorityInterface<SourceFile>')],

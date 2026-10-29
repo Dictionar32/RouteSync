@@ -6,12 +6,12 @@ const existsNonEmpty = p => fs.existsSync(path.join(root, p)) && fs.statSync(pat
 const cap = read('packages/core/src/compiler/scanner/resolvers/boundary/capabilityBuilder.ts');
 const input = read('packages/core/src/compiler/scanner/resolvers/boundary/boundaryInputResolution.ts');
 const security = read('packages/core/src/compiler/scanner/resolvers/RouteSecurityResolver.ts');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
 const capability = read('packages/core/src/compiler/scanner/resolvers/boundary/capabilityResolution.ts');
 const auth = read('packages/core/src/types/domain/authAndPolicy.ts');
 const emptyLegacy = [
-  'packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/routeSecurity.ts',
   'packages/core/src/types/domain/modelEntityDescriptor.ts',
   'packages/core/src/types/domain/routeEntityDescriptor.ts',
   'packages/core/src/types/domain/resourceAggregateResolver.ts',

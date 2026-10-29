@@ -27,12 +27,12 @@ export const compilerPassFailureOf = (error: unknown): CompilerPassFailure =>
     ? Object.freeze({
         kind: 'compiler_pass_error' as const,
         name: createExceptionName(error.name),
-        message: stringValue(error.message),
+        message: stringValue.create(error.message),
       })
     : Object.freeze({
         kind: 'compiler_pass_non_error' as const,
         name: createExceptionName('NonErrorThrownValue'),
-        message: stringValue('Compiler pass failed with a non-Error thrown value.'),
+        message: stringValue.create('Compiler pass failed with a non-Error thrown value.'),
       });
 
 export const compilerPassFailureMessage = (failure: CompilerPassFailure): string =>

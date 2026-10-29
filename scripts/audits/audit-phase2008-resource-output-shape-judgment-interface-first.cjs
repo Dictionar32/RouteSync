@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
-const responseScanner = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
+const responseScanner = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
 const sourcePipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2008_RESOURCE_OUTPUT_SHAPE_JUDGMENT_INTERFACE_FIRST.md');
 const checks = [
@@ -63,7 +63,7 @@ const checks = [
     assert.doesNotMatch(responseScanner, /controllerReturnSemanticFromMethod/);
   }],
   ['no new relation/foundation subscanner is introduced', () => {
-    assert.doesNotMatch(responseScanner, /subscanners\/(relation|foundation)/);
+    assert.doesNotMatch(responseScanner, /operations\/(relation|foundation)/);
     assert.match(docs, /No `relation` or `foundation` subscanner was added/);
   }],
   ['pagination limitation and no-build claim are explicit', () => {

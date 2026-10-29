@@ -55,7 +55,7 @@ Historical documentation may still mention these names; those mentions are archi
 
 The newly cut semantic-lowering frontier files have zero occurrences of the banned host constructs audited by the project: `if`, `while`, `for`, `switch`, `.map`, `.filter`, `.reduce`, `.flatMap`, `undefined`, `null`, `??`, `===`, `!==`, `as unknown`, `Set`, `Map`, `any`, `new`, and ternary expressions.
 
-The repository as a whole is **not yet zero**. The remaining concentration is still in broader IR orchestration, scanner/lexer descendants, resolver plugins, AST/upstream adapters, and older generator/contract surfaces. Those remain explicit next cutover targets rather than being hidden by the audit.
+The repository as a whole is **not yet zero**. The remaining concentration is still in broader IR orchestration, frontend/php descendants, resolver plugins, AST/upstream adapters, and older generator/contract surfaces. Those remain explicit next cutover targets rather than being hidden by the audit.
 
 ## Validation
 

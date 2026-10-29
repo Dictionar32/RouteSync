@@ -85,9 +85,13 @@ import { buildClassifiedDomainGraph } from './classifier/domainGraphBuilder';
  * Semantic capability meaning is already resolved upstream; this is naming
  * compatibility for existing generator contracts, not semantic classification.
  */
-export function projectDomainGraph(manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute> {
-  return buildClassifiedDomainGraph(manifest);
+export interface ProjectDomainGraphOperation {
+  (manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute>;
 }
+
+export const projectDomainGraph: ProjectDomainGraphOperation = Object.freeze((manifest: RouteManifest): ClassifiedDomainGraph<ClassifiedRoute> => {
+  return buildClassifiedDomainGraph(manifest);
+});
 
 /** @deprecated Compatibility alias; production consumers must use projectDomainGraph. */
 export const classifyDomainGraph = projectDomainGraph;

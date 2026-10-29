@@ -1,5 +1,5 @@
-import type { PhpSourceDocumentIdentityBindingContract, PhpSourceDocumentIdentityBindingInput, PhpSourceDocumentIdentityBindingInterface, PhpSourceDocumentIdentityBindingJudgment } from './phpSourceDocumentIdentityBindingInterface';
-import type { PhpSourceDocumentReadResult } from './phpSourceFrontendInterface';
+import type { PhpSourceDocumentIdentityBindingContract, PhpSourceDocumentIdentityBindingInput, PhpSourceDocumentIdentityBindingInterface, PhpSourceDocumentIdentityBindingJudgment, PhpSourceDocumentIdentityBoundEvidence, PhpSourceDocumentIdentityRejectedEvidence, PhpSourceDocumentIdentityBindingBatchAccumulator } from './phpSourceDocumentIdentityBindingInterface';
+import { phpSourceDocumentReadResultFactory, type PhpSourceDocumentReadResult, type PhpSourceDocumentReadCompleteEvidence, type PhpSourceDocumentReadBlockedEvidence } from './phpSourceFrontendInterface';
 import type { SourceFile } from './names';
 
 export const PHP_SOURCE_DOCUMENT_IDENTITY_BINDING_CONTRACT: PhpSourceDocumentIdentityBindingContract = Object.freeze({
@@ -15,33 +15,35 @@ const sourceFileIdentityMatches = (left: SourceFile, right: SourceFile): boolean
 const bound = (
   requestedSourceFile: SourceFile,
   result: PhpSourceDocumentReadResult,
-): PhpSourceDocumentIdentityBindingJudgment => Object.freeze({
-  kind: 'php_source_document_identity_bound',
-  requestedSourceFile,
-  result,
-});
+): PhpSourceDocumentIdentityBindingJudgment => {
+  const evidence: PhpSourceDocumentIdentityBoundEvidence = Object.freeze({
+    kind: 'php_source_document_identity_bound', requestedSourceFile, result,
+  });
+  return Object.freeze({ ...evidence, contributeToBatch: (accumulator: PhpSourceDocumentIdentityBindingBatchAccumulator): PhpSourceDocumentIdentityBindingBatchAccumulator => accumulator.includeBound(evidence) });
+};
 
 const rejected = (
   requestedSourceFile: SourceFile,
   observedSourceFile: SourceFile,
   result: PhpSourceDocumentReadResult,
-): PhpSourceDocumentIdentityBindingJudgment => Object.freeze({
-  kind: 'php_source_document_identity_rejected',
-  requestedSourceFile,
-  observedSourceFile,
-  result,
-});
+): PhpSourceDocumentIdentityBindingJudgment => {
+  const evidence: PhpSourceDocumentIdentityRejectedEvidence = Object.freeze({
+    kind: 'php_source_document_identity_rejected', requestedSourceFile, observedSourceFile, result,
+  });
+  return Object.freeze({ ...evidence, contributeToBatch: (accumulator: PhpSourceDocumentIdentityBindingBatchAccumulator): PhpSourceDocumentIdentityBindingBatchAccumulator => accumulator.includeRejected(evidence) });
+};
 
 const bindComplete = (
   requestedSourceFile: SourceFile,
-  result: Extract<PhpSourceDocumentReadResult, { readonly kind: 'php_source_document_read_complete' }>,
+  evidence: PhpSourceDocumentReadCompleteEvidence,
 ): PhpSourceDocumentIdentityBindingJudgment => {
-  const matches = sourceFileIdentityMatches(requestedSourceFile, result.document.sourceFile);
+  const result = phpSourceDocumentReadResultFactory.complete(evidence.document);
+  const matches = sourceFileIdentityMatches(requestedSourceFile, evidence.document.sourceFile);
   switch (matches) {
     case true:
       return bound(requestedSourceFile, result);
     case false:
-      return rejected(requestedSourceFile, result.document.sourceFile, result);
+      return rejected(requestedSourceFile, evidence.document.sourceFile, result);
     default: {
       const exhaustive: never = matches;
       return exhaustive;
@@ -51,10 +53,11 @@ const bindComplete = (
 
 const bindBlocked = (
   requestedSourceFile: SourceFile,
-  result: Extract<PhpSourceDocumentReadResult, { readonly kind: 'php_source_document_read_blocked' }>,
+  evidence: PhpSourceDocumentReadBlockedEvidence,
 ): PhpSourceDocumentIdentityBindingJudgment => {
-  const resultIdentityMatches = sourceFileIdentityMatches(requestedSourceFile, result.sourceFile);
-  const blockerIdentityMatches = sourceFileIdentityMatches(requestedSourceFile, result.blocker.sourceFile);
+  const result = phpSourceDocumentReadResultFactory.blocked(evidence.sourceFile, evidence.blocker);
+  const resultIdentityMatches = sourceFileIdentityMatches(requestedSourceFile, evidence.sourceFile);
+  const blockerIdentityMatches = sourceFileIdentityMatches(requestedSourceFile, evidence.blocker.sourceFile);
   const bothIdentitiesMatch = resultIdentityMatches && blockerIdentityMatches;
   switch (bothIdentitiesMatch) {
     case true:
@@ -62,9 +65,9 @@ const bindBlocked = (
     case false:
       switch (resultIdentityMatches) {
         case true:
-          return rejected(requestedSourceFile, result.blocker.sourceFile, result);
+          return rejected(requestedSourceFile, evidence.blocker.sourceFile, result);
         case false:
-          return rejected(requestedSourceFile, result.sourceFile, result);
+          return rejected(requestedSourceFile, evidence.sourceFile, result);
         default: {
           const exhaustive: never = resultIdentityMatches;
           return exhaustive;
@@ -80,16 +83,8 @@ const bindBlocked = (
 export const phpSourceDocumentIdentityBinding: PhpSourceDocumentIdentityBindingInterface = Object.freeze({
   kind: 'php_source_document_identity_binding',
   contract: PHP_SOURCE_DOCUMENT_IDENTITY_BINDING_CONTRACT,
-  bind: (input: PhpSourceDocumentIdentityBindingInput): PhpSourceDocumentIdentityBindingJudgment => {
-    switch (input.result.kind) {
-      case 'php_source_document_read_complete':
-        return bindComplete(input.requestedSourceFile, input.result);
-      case 'php_source_document_read_blocked':
-        return bindBlocked(input.requestedSourceFile, input.result);
-      default: {
-        const exhaustive: never = input.result;
-        return exhaustive;
-      }
-    }
-  },
+  bindCompleteResult: (requestedSourceFile, result): PhpSourceDocumentIdentityBindingJudgment => bindComplete(requestedSourceFile, result),
+  bindBlockedResult: (requestedSourceFile, result): PhpSourceDocumentIdentityBindingJudgment => bindBlocked(requestedSourceFile, result),
+  bind: (input: PhpSourceDocumentIdentityBindingInput): PhpSourceDocumentIdentityBindingJudgment =>
+    input.result.bindIdentity(input.requestedSourceFile, phpSourceDocumentIdentityBinding),
 });

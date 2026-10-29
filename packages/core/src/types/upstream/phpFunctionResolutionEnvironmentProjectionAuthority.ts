@@ -9,16 +9,15 @@ import type {
 } from './phpFunctionNameResolutionInterface';
 import { PHP_FUNCTION_RESOLUTION_ENVIRONMENT_PROJECTION_CONTRACT } from './phpFunctionNameResolutionInterface';
 import type { SourceFile } from './names';
-import type { SourceSpan } from './provenance';
+import { sourceSpanOperations, type SourceSpan } from './provenance';
 
 const sameFile = (left: SourceFile, right: SourceFile): boolean => left.value.value === right.value.value;
-const validSpan = (span: SourceSpan): boolean => span.start.value >= 0 && span.end.value > span.start.value;
+const validSpan = (span: SourceSpan): boolean =>
+  sourceSpanOperations.validateNonEmpty(span).kind === 'source_span_ordered';
 const spanWithin = (span: SourceSpan, outer: SourceSpan): boolean =>
-  sameFile(span.file, outer.file)
-  && validSpan(span)
+  validSpan(span)
   && validSpan(outer)
-  && span.start.value >= outer.start.value
-  && span.end.value <= outer.end.value;
+  && sourceSpanOperations.contains(outer, span).kind === 'source_span_contained';
 
 const scopeOf = (region: PhpNamespaceRegionInventory): PhpFunctionResolutionScope => {
   switch (region.region.kind) {

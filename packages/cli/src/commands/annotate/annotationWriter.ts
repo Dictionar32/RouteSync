@@ -10,7 +10,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import type { AnnotationResult } from './types';
 
-export function ensureResponseAttributeClass(projectRoot: string, dryRun: boolean): void {
+function ensureResponseAttributeClass(projectRoot: string, dryRun: boolean): void {
     const attrPath = path.join(projectRoot, 'app', 'Attributes', 'Response.php');
     const attrExists = fs.existsSync(attrPath);
 
@@ -39,7 +39,7 @@ class Response
     }
 }
 
-export function applyAnnotationsToFile(
+function applyAnnotationsToFile(
     ctrlFile: string,
     annotations: readonly AnnotationResult[],
     dryRun: boolean
@@ -81,3 +81,13 @@ export function applyAnnotationsToFile(
 
     return annotatedCount;
 }
+
+export interface AnnotationWriterOperationsInterface {
+  readonly ensureResponseAttributeClass: (projectRoot: string, dryRun: boolean) => void;
+  readonly applyAnnotationsToFile: (ctrlFile: string, annotations: readonly AnnotationResult[], dryRun: boolean) => number;
+}
+
+export const annotationWriterOperations: AnnotationWriterOperationsInterface = Object.freeze({
+  ensureResponseAttributeClass,
+  applyAnnotationsToFile,
+});

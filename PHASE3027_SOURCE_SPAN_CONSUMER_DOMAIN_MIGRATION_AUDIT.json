@@ -1,0 +1,24 @@
+{
+  "phase": 3027,
+  "title": "SourceSpan Consumer Domain Migration — Runtime Evidence Trace",
+  "scope": "Static contract audit; it verifies selected runtime consumers delegate source-span equality, containment, and overlap semantics to upstream domain operations.",
+  "checks": {
+    "overlapIsExplicitDomainJudgment": true,
+    "regionOverlapDelegatesToSourceSpanOperations": true,
+    "environmentProjectionUsesNonEmptySpanAndContainmentOperations": true,
+    "sourceOccurrenceMembershipUsesCanonicalSpanEquality": true,
+    "effectivePolicySourceEqualityUsesDomainOperation": true,
+    "overlapCasesCoveredByTests": true,
+    "removedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 8,
+  "total": 8,
+  "remainingDebt": [
+    "SourceSpan still stores NumberValue offsets as parser-boundary representation; this phase centralizes selected consumer semantics but does not eliminate numeric representation.",
+    "Some producers and consumers outside the selected scope still construct or compare source coordinates directly.",
+    "Raw PHP parser offsets remain primitive at the parser boundary by design; semantic operations should not re-derive source-span meaning downstream.",
+    "String/number/undefined/null/boolean elimination, reduce/empty-array/nullish/ternary cleanup, and all exported-function conversion remain repository-wide work.",
+    "Full typecheck, test suite, and CLI-to-manifest end-to-end validation are not claimed by this static audit."
+  ]
+}

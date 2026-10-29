@@ -1,0 +1,1 @@
+The SHA-256 digest of the delivered ZIP is reported in the handoff message. Embedding the ZIP's own digest inside the archive would change the digest and is therefore not used.

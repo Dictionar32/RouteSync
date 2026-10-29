@@ -33,7 +33,7 @@ No parallel semantic authority should be introduced for these responsibilities.
 
 ## Verified open edges
 
-1. `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts` imports and calls `createControllerDataflowContract` from `subscanners/controller/controllerDataflowContract.ts`.
+1. `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts` imports and calls `createControllerDataflowContract` from `subscanners/controller/controllerDataflowContract.ts`.
 2. `controllerDataflowContract.ts` still performs recursive AST traversal to create resource candidates and imports `semantic/relations` helpers.
 3. `controllerDataflowSemanticJudgmentAuthority.ts` also imports `semantic/relations`; deleting the subscanner import alone cannot close the dependency.
 4. `laravelControllerExecutionDependencies.ts` still imports controller producer / AST canonicalization from `subscanners/controller`.

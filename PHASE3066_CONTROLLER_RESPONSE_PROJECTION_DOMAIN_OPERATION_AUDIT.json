@@ -1,0 +1,48 @@
+{
+  "phase": 3066,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — controller response projection domain operation",
+  "status": "PASS",
+  "passed": 17,
+  "total": 17,
+  "checks": {
+    "responseProjectionHandlerIsDomainNamed": true,
+    "completeJudgmentExposesResponseProjectionOperation": true,
+    "blockedJudgmentExposesResponseProjectionOperation": true,
+    "completeConstructorDispatchesToCompleteHandler": true,
+    "blockedConstructorDispatchesToBlockedHandler": true,
+    "matchedRouteSelectionUsesResponseProjectionOperation": true,
+    "matchedRouteSelectionDoesNotInspectControllerScanKind": true,
+    "blockedControllerScanRemainsExplicitlyBlocked": true,
+    "completeControllerScanPreservesControllerIdentityCorrelation": true,
+    "unmatchedAmbiguousAndInvalidActionJudgmentsRemainDistinct": true,
+    "routePolicyCatalogOperationRemainsOnControllerAdt": true,
+    "sourceAstContinuationRemainsOnControllerAdt": true,
+    "cliScanBlockedGatePrecedesOutputWrites": true,
+    "cliSyncBlockedGatePrecedesOutputWrites": true,
+    "noDeletedRelationFoundationRestoration": true,
+    "protectedCollectionsInvariantStillOneNewlineByte": true,
+    "phase3065SchemaEvidenceRegressionPasses": true
+  },
+  "runtimeTrace": [
+    "PHP controller source → LaravelControllerScanJudgment complete/blocked ADT",
+    "Route declaration composition correlates a matched action publication with controller identity",
+    "LaravelControllerScanJudgment.continueToResponseProjection(handlers) selects the exact scanner-owned continuation",
+    "Complete outcome projects the response product; blocked outcome preserves an explicit unavailable response projection",
+    "Route boundary retains response projection outcome before upstream manifest construction",
+    "CLI scan/sync manifest-blocked gates remain before output writes"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "priorPhase3065SchemaEvidenceAudit": "PASS — 14/14",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "changedFilesSyntaxTranspile": "PASS for schema interface, schema authority, route composition, and controller scanner interface",
+    "strictTypeScript": "BLOCKED by missing ambient type definitions: chai, deep-eql, estree, fs-extra, jsonfile, node, react",
+    "globalPrimitiveElimination": "NOT_CLAIMED"
+  },
+  "remainingRisks": [
+    "The new continuation removes the controllerScan.kind decision from one matched-action response projection path only; other primitive decisions remain in route and parser domains.",
+    "Controller identity matching and candidate cardinality handling remain local operations because they concern route-publication correlation, not scanner judgment dispatch.",
+    "Structural assertions do not prove an executed PHP → CLI → manifest/IR runtime.",
+    "Strict TypeScript validation is blocked by missing ambient type definitions; syntax transpilation passed for the changed TypeScript files."
+  ]
+}

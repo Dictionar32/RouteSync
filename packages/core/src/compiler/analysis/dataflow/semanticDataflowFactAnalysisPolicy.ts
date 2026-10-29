@@ -9,7 +9,7 @@ import type {
   SemanticDataflowIdentity,
   SemanticDataflowJudgment,
 } from '../../../types/upstream/semanticDataflow';
-import { semanticDataflowIdentityEqual } from '../../../types/upstream/semanticDataflow';
+import { semanticDataflowIdentityOperations } from '../../../types/upstream/semanticDataflow';
 import { decodeSemanticDataflowQueryPolicyContract, semanticDataflowFactContractKey, type SemanticDataflowQueryPolicyContract } from '../../../types/upstream/semanticDataflowQueryPolicy';
 import type { DataFlowConfigInterface } from './dataFlowConfigInterface';
 import type { DataFlowFactPolicyInterface } from './dataFlowFactPolicyInterface';
@@ -29,7 +29,7 @@ const factContains = (
   identity: SemanticDataflowIdentity,
 ): boolean => facts.some(fact => {
   if (fact.kind === 'reaches' || fact.lineage === undefined) return false;
-  return semanticDataflowIdentityEqual(fact.lineage.identity, identity);
+  return semanticDataflowIdentityOperations.equal(fact.lineage.identity, identity);
 });
 
 /** Execute an upstream-materialized policy; never infer producer domains here. */
@@ -37,13 +37,13 @@ export const createSemanticDataflowAnalysisPolicy = (
   dataflow: DataFlowAuthorityInterface<SemanticDataflowJudgment, SemanticDataflowJudgment, SemanticDataflowIdentity>,
   candidate: unknown,
 ): SemanticDataflowAnalysisPolicy => {
-  const validatedContract = decodeSemanticDataflowQueryPolicyContract(candidate, dataflow.state);
+  const validatedContract = decodeSemanticDataflowQueryPolicyContract.decode(candidate, dataflow.state);
   if (validatedContract === undefined) {
     throw new Error('Semantic dataflow query-policy contract is invalid for the closed runtime judgment');
   }
   const factPolicy: DataFlowFactPolicyInterface<SemanticDataflowFact, SemanticDataflowQueryPolicyContract> = Object.freeze({
     select: (fact: SemanticDataflowFact, policyContract: SemanticDataflowQueryPolicyContract) =>
-      policyContract.selectedFacts.some(selected => semanticDataflowFactContractKey(selected) === semanticDataflowFactContractKey(fact)),
+      policyContract.selectedFacts.some(selected => semanticDataflowFactContractKey.key(selected) === semanticDataflowFactContractKey.key(fact)),
   });
   const selectedFacts = validatedContract.selectedFacts;
   const contributor: DataFlowConfigContributorInterface<SemanticDataflowIdentity, {
@@ -57,9 +57,9 @@ export const createSemanticDataflowAnalysisPolicy = (
       isSource: (node: SemanticDataflowIdentity) => factContains(contributionContext.sourceFacts, node),
       isSink: (node: SemanticDataflowIdentity) => factContains(contributionContext.sinkFacts, node),
       isAdditionalFlowStep: (source: SemanticDataflowIdentity, target: SemanticDataflowIdentity) =>
-        validatedContract.additionalFlowSteps.some(step => semanticDataflowIdentityEqual(step.source, source) && semanticDataflowIdentityEqual(step.target, target)),
+        validatedContract.additionalFlowSteps.some(step => semanticDataflowIdentityOperations.equal(step.source, source) && semanticDataflowIdentityOperations.equal(step.target, target)),
       isBarrier: (node: SemanticDataflowIdentity) =>
-        validatedContract.barrierNodes.some(barrier => semanticDataflowIdentityEqual(barrier, node)),
+        validatedContract.barrierNodes.some(barrier => semanticDataflowIdentityOperations.equal(barrier, node)),
     }),
   });
   const config = composeDataFlowConfigContributors([contributor], {

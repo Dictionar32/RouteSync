@@ -27,27 +27,27 @@
   },
   "directSolverCalls": [
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase231.test.ts",
       "line": 15,
       "text": "const solved = solveSemanticRelations(seed, rules);"
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase236.test.ts",
       "line": 12,
       "text": "const result = solveSemanticRelationsDetailed("
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
       "line": 65,
       "text": "const solved = solveSemanticRelationsDetailed("
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
       "line": 20,
       "text": "const solved = solveSemanticRelationsDetailed(["
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
       "line": 34,
       "text": "const solved = solveSemanticRelationsDetailed(["
     }
@@ -1348,7 +1348,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/channel/channelDescriptorClass.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/channel/channelDescriptorClass.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1357,7 +1357,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/channel/channelFactories.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/channel/channelFactories.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1378,7 +1378,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/channel/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/channel/index.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1396,7 +1396,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/channel/patternCompiler.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1418,7 +1418,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/channelDescriptors.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/channelDescriptors.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1436,7 +1436,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/index.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1454,7 +1454,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/manifest/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/manifest/index.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1463,7 +1463,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1472,7 +1472,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/manifest/routeManifestDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1481,7 +1481,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/manifestDescriptors.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/manifestDescriptors.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1490,7 +1490,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/entity/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/index.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1499,7 +1499,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1508,7 +1508,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/entity/modelEntityFactory.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelEntityFactory.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1517,7 +1517,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/entity/types.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/types.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1526,7 +1526,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/modelAccessorDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1535,7 +1535,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1544,7 +1544,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/modelColumnDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/modelColumnDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1553,7 +1553,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/modelEntityDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/modelEntityDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1562,7 +1562,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/modelRelationDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/modelRelationDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1571,7 +1571,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/relation/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/index.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1580,7 +1580,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1589,7 +1589,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1598,7 +1598,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/model/relation/types.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/types.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1607,7 +1607,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1616,7 +1616,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.phase10.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -1656,7 +1656,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -1779,7 +1779,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1790,7 +1790,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.phase50.test.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionTypes.phase50.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -1803,7 +1803,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionTypes.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1826,7 +1826,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -1858,7 +1858,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionContract.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1867,7 +1867,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/formActionDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1876,7 +1876,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/formFieldDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1889,7 +1889,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/index.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1907,7 +1907,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/requestTypeDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1916,7 +1916,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -1940,7 +1940,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/resource/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/resource/index.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1949,7 +1949,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1958,7 +1958,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1967,7 +1967,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceFieldDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1976,7 +1976,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/resourceDescriptors.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1985,7 +1985,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -1994,7 +1994,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/ScannedRouteDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/ScannedRouteDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2003,7 +2003,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-group-semantic-phase55.test.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-group-semantic-phase55.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -2043,7 +2043,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-group-semantic-phase69.test.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-group-semantic-phase69.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -2076,7 +2076,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/__tests__/upstream-interface-elevation.phase53.test.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/upstream-interface-elevation.phase53.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -2107,7 +2107,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2116,7 +2116,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/error-response/errorFactories.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/errorFactories.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2125,7 +2125,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/error-response/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/index.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2134,7 +2134,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/error-response/types.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/types.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2143,7 +2143,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/actionRouteFactories.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2152,7 +2152,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureRouteFactory.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2161,7 +2161,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureSyntheticFactories.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2170,7 +2170,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/contractRouteFactories.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/contractRouteFactories.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2179,7 +2179,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerActionRouteFactory.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2188,7 +2188,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerReferenceRouteFactory.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2197,7 +2197,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/index.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2206,7 +2206,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/routeMutations.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/routeMutations.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2215,7 +2215,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/syntheticRouteFactory.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2224,7 +2224,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/index.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2242,7 +2242,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/params/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/params/index.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2251,7 +2251,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.phase6.test.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.phase6.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -2260,7 +2260,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2269,7 +2269,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/params/routeQueryParameterDescriptorClass.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeQueryParameterDescriptorClass.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2278,7 +2278,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/params/types.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/params/types.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2291,7 +2291,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeContracts.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeContracts.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2311,7 +2311,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeDeclarations.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2320,7 +2320,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupAstAdapter.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2344,7 +2344,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupContextResolver.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -2392,7 +2392,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeGroupSemanticResolver.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupSemanticResolver.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -2410,7 +2410,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMethods.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2419,7 +2419,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeMutations.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMutations.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2428,7 +2428,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeParameters.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeParameters.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2437,7 +2437,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routePropertyAssigner.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routePropertyAssigner.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2446,7 +2446,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2455,7 +2455,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeSecurity.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2464,7 +2464,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/route/routeSemanticFactories.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/route/routeSemanticFactories.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2473,7 +2473,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2491,7 +2491,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/types.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/types.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2515,7 +2515,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/fieldNodes.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/fieldNodes.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2524,7 +2524,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/index.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/index.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2542,7 +2542,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/schemaPayload.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/schemaPayload.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2551,7 +2551,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -2614,7 +2614,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2638,7 +2638,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/validationTreeBuilder.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationTreeBuilder.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -2647,7 +2647,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/descriptors/validationDescriptors.ts",
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validationDescriptors.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2665,7 +2665,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/PhpAst.ts",
+      "path": "packages/core/src/compiler/frontend/php/PhpAst.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2676,14 +2676,14 @@
         "evidence_collection_or_adaptation": [
           {
             "line": 7,
-            "text": "* @module core/compiler/scanner/lexer/PhpAst"
+            "text": "* @module core/compiler/frontend/php/PhpAst"
           }
         ]
       },
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/SourceStream.ts",
+      "path": "packages/core/src/compiler/frontend/php/SourceStream.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -2704,7 +2704,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/arrayParser.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -2748,7 +2748,7 @@
         "evidence_collection_or_adaptation": [
           {
             "line": 6,
-            "text": "* @module core/compiler/scanner/lexer/arrayParser"
+            "text": "* @module core/compiler/frontend/php/arrayParser"
           },
           {
             "line": 23,
@@ -2886,7 +2886,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/astClassifier.ts",
+      "path": "packages/core/src/compiler/frontend/php/astClassifier.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -2938,7 +2938,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "path": "packages/core/src/compiler/frontend/php/astClassifierEvidence.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -3033,7 +3033,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+      "path": "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -4304,7 +4304,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/controllerAstTypes.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -4340,7 +4340,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -4361,7 +4361,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/controllerBodyParser.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -4488,7 +4488,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+      "path": "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -4535,7 +4535,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -4628,7 +4628,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -4950,7 +4950,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/controllerReturnParser.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5021,7 +5021,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/index.ts",
+      "path": "packages/core/src/compiler/frontend/php/index.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5050,7 +5050,7 @@
         "evidence_collection_or_adaptation": [
           {
             "line": 7,
-            "text": "* @module core/compiler/scanner/lexer"
+            "text": "* @module core/compiler/frontend/php"
           },
           {
             "line": 46,
@@ -5077,7 +5077,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/modelAstTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/modelAstTypes.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -5086,7 +5086,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5178,7 +5178,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstAlgebra.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5210,7 +5210,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstCoreTypes.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -5230,7 +5230,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstDeclarationTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstDeclarationTypes.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -5242,7 +5242,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5260,7 +5260,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstFactory.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5287,7 +5287,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstStatementKinds.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -5305,7 +5305,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstStatementTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstStatementTypes.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -5314,7 +5314,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpAstTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpAstTypes.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -5332,7 +5332,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpControlEvidence.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -5362,7 +5362,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpExpressionOperatorContract.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpExpressionOperatorContract.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5514,7 +5514,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5638,7 +5638,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpExpressionStructureProjector.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpExpressionStructureProjector.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5728,7 +5728,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpLexicalSymbols.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpLexicalSymbols.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -5737,7 +5737,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpMethodAstTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpMethodAstTypes.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -5746,7 +5746,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/phpMethodParser.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -5977,7 +5977,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/responseDtoAstTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/responseDtoAstTypes.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -6001,7 +6001,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/responseDtoDeclarationParser.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -6036,7 +6036,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/delimiterNavigation.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -6093,7 +6093,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/index.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/index.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -6111,7 +6111,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase162.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase162.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6147,7 +6147,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase167.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase167.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6406,7 +6406,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase212.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase212.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6424,7 +6424,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase214.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase214.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6442,7 +6442,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -6487,7 +6487,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -6519,7 +6519,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -6555,7 +6555,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -6640,7 +6640,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeBindingDeclarationAst.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -6660,7 +6660,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -6675,7 +6675,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -6693,7 +6693,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -6776,7 +6776,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -6785,7 +6785,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeResourceDeclarationAst.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -6797,7 +6797,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -6829,7 +6829,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticAdapterConstructFree.phase273.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticAdapterConstructFree.phase273.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6859,7 +6859,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticAdapterRelationalBoundary.phase274.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticAdapterRelationalBoundary.phase274.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6892,7 +6892,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.phase269.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.phase269.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6914,7 +6914,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -6932,7 +6932,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.phase270.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticClosureEngine.phase270.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -6992,7 +6992,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticClosureEngine.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7001,7 +7001,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.phase271.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.phase271.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7023,7 +7023,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7059,7 +7059,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.phase266.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.phase266.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7096,7 +7096,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7121,7 +7121,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7130,7 +7130,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7236,7 +7236,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructFreeControl.phase272.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticConstructFreeControl.phase272.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7245,7 +7245,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.phase215.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.phase215.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7279,7 +7279,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.phase908.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.phase908.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7309,7 +7309,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7359,7 +7359,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.phase287.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.phase287.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7385,7 +7385,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7418,7 +7418,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7427,7 +7427,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7460,7 +7460,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -7490,7 +7490,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7526,7 +7526,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -7552,7 +7552,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.phase225.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentity.phase225.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7561,7 +7561,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -7622,7 +7622,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.phase239.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.phase239.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7631,7 +7631,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7640,7 +7640,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase231.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7674,7 +7674,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase236.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7716,7 +7716,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7725,7 +7725,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationStore.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7737,7 +7737,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.phase268.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.phase268.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7746,7 +7746,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7755,7 +7755,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalAlgebra.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7764,7 +7764,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAuthority.phase286.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalAuthority.phase286.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7789,7 +7789,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7798,7 +7798,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.phase267.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.phase267.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7823,7 +7823,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7832,7 +7832,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase302.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBoundary.phase302.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7854,7 +7854,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase304.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBoundary.phase304.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7863,7 +7863,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalCollections.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -7872,7 +7872,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase291.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase291.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7881,7 +7881,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase292.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase292.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7899,7 +7899,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase293.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase293.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -7908,7 +7908,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7954,7 +7954,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -7984,7 +7984,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -8014,7 +8014,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8023,7 +8023,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalOntology.phase277.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalOntology.phase277.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -8034,14 +8034,14 @@
         "evidence_collection_or_adaptation": [
           {
             "line": 5,
-            "text": "const root = join(cwd(), 'packages/core/src/compiler/scanner/lexer/routeAst');"
+            "text": "const root = join(cwd(), 'packages/core/src/compiler/frontend/php/routeAst');"
           }
         ]
       },
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalProgram.phase279.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalProgram.phase279.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -8066,7 +8066,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.phase266.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.phase266.test.ts",
       "test": true,
       "role": "test",
       "categories": [
@@ -8092,7 +8092,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8101,7 +8101,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8114,7 +8114,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -8247,7 +8247,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.phase216.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.phase216.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -8256,7 +8256,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8268,7 +8268,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticTypedRelation.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8279,7 +8279,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlow.phase218.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlow.phase218.test.ts",
       "test": true,
       "role": "test",
       "categories": [],
@@ -8288,7 +8288,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8299,7 +8299,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8308,7 +8308,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -8370,7 +8370,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -8439,7 +8439,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8448,7 +8448,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -8479,7 +8479,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -8625,7 +8625,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/serviceAstTypes.ts",
+      "path": "packages/core/src/compiler/frontend/php/serviceAstTypes.ts",
       "test": false,
       "role": "other",
       "categories": [],
@@ -8634,7 +8634,7 @@
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/tokenEvidence.ts",
+      "path": "packages/core/src/compiler/frontend/php/tokenEvidence.ts",
       "test": false,
       "role": "evidence-or-adapter-candidate",
       "categories": [
@@ -8683,7 +8683,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts",
+      "path": "packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -8704,7 +8704,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts",
+      "path": "packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -8736,7 +8736,7 @@
       ]
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/tokenize/index.ts",
+      "path": "packages/core/src/compiler/frontend/php/tokenize/index.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [
@@ -8754,14 +8754,14 @@
         "evidence_collection_or_adaptation": [
           {
             "line": 6,
-            "text": "* @module core/compiler/scanner/lexer/tokenize"
+            "text": "* @module core/compiler/frontend/php/tokenize"
           }
         ]
       },
       "relevantImports": []
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "path": "packages/core/src/compiler/frontend/php/tokenizer.ts",
       "test": false,
       "role": "semantic-reasoning-candidate",
       "categories": [

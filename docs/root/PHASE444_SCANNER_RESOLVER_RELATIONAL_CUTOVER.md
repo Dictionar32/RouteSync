@@ -2,7 +2,7 @@
 
 ## Objective
 
-Close the remaining scanner/lexer and resolver control-flow leaks identified after
+Close the remaining frontend/php and resolver control-flow leaks identified after
 Phase 443. Source-language operators remain lexical data; host-language branching
 used to interpret that data is moved into relation catalogs, relation gates,
 recursive closure, and ADT-style presence.
@@ -11,20 +11,20 @@ recursive closure, and ADT-style presence.
 
 ### Scanner / lexer
 
-- `packages/core/src/compiler/scanner/lexer/tokenizer.ts`
+- `packages/core/src/compiler/frontend/php/tokenizer.ts`
   - removed the imperative `while` + `switch` scanner driver;
   - introduced a declarative lexical rule catalog;
   - dispatch is `relationFirstOption` + relation selection;
   - traversal is recursive relation closure;
   - EOF is an explicit lexical fact.
-- `packages/core/src/compiler/scanner/lexer/SourceStream.ts`
+- `packages/core/src/compiler/frontend/php/SourceStream.ts`
   - comment/string traversal remains recursive;
   - conjunction/disjunction selection is expressed with `relationAll`/`relationAny`;
   - direct `.slice()` authority is delegated to `relationTextSlice`.
-- `packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts`
+- `packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts`
   - character classification is relation-based;
   - keyword resolution uses a tuple catalog rather than object-membership branching.
-- `packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts`
+- `packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts`
   - transition dispatch uses relation predicates;
   - direct operator lookup is a relational catalog;
   - lexical `&&` and `||` remain immutable source-token vocabulary, not host control flow.

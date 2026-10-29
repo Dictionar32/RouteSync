@@ -6,7 +6,7 @@ const interfaceSource = read('packages/core/src/types/upstream/scannerTokenStruc
 const structureAlgebra = read('packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts');
 const targetInterface = read('packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts');
 const targetAlgebra = read('packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const tests = read('packages/core/src/types/upstream/__test__/scannerTokenStructureInterface.phase1440.test.ts');
 const checks = [
   ['token structure interface exposes typed partition judgment', /TokenPartitionJudgment/.test(interfaceSource) && /partitionTopLevel/.test(interfaceSource)],

@@ -1,0 +1,20 @@
+{
+  "phase": 3112,
+  "scope": "retire the unused generic continuation visitor from the Laravel controller discovery ADT while retaining explicit domain operations",
+  "discoveryADTNoLongerPublishesGenericContinuationHandlers": true,
+  "completeAndBlockedVariantsRetainFixedDomainOperations": true,
+  "runtimeUsesFixedManifestProjection": true,
+  "regressionAssertsGenericContinuationIsAbsent": true,
+  "noDeletedRelationFoundationRestored": true,
+  "astInventory": {
+    "typescriptFiles": 2245,
+    "exportedFunctionDeclarations": 520,
+    "exportedArrowOrFunctionExpressionVariables": 459,
+    "genericContinueWithArrowImplementations": 49
+  },
+  "globalExportMigrationComplete": false,
+  "globalPrimitiveAndControlFlowErasureComplete": false,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

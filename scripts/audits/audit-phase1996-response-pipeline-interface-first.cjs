@@ -15,12 +15,12 @@ const checks = [
   ['existing identity authority remains owner', response.includes("readonly identityOwner: 'LaravelSourceIdentitySemanticsInterface';")],
   ['source correlation order is closed and explicit', response.includes('invocation-judgment-and-declaration-source-to-identity-judgment-to-success-correlation-receipt-before-evidence-production')],
   ['rejected source binding cannot become complete', response.includes('rejected-source-binding-cannot-be-converted-to-a-complete-response-judgment')],
-  ['no replacement subscanner layer is permitted', response.includes('without-adding-relation-or-foundation-subscanners-or-a-parallel-semantic-authority')],
+  ['no replacement subscanner layer is permitted', response.includes('without-adding-relation-or-foundation-operations-or-a-parallel-semantic-authority')],
   ['scanner interface requires pipeline dependency', scanner.includes('readonly responseSemanticPipeline: LaravelControllerResponseSemanticPipelineInterface;')],
   ['scanner interface version advanced', scanner.includes('readonly contractVersion: 20;')],
   ['pipeline interface publicly exported', index.includes('LaravelControllerResponseSemanticPipelineInterface') && index.includes('LaravelControllerResponseSemanticPipelineContract')],
   ['runtime wiring remains honestly marked as not integrated', !wiring.includes('responseSemanticPipeline') && wiring.includes('responseJudgment') === false],
-  ['no new relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/responseSemanticPipeline.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/responseSemanticAuthority.ts'))],
+  ['no new relation/foundation subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller/responseSemanticPipeline.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/controller/responseSemanticAuthority.ts'))],
 ];
 for (const [label, pass] of checks) process.stdout.write(`${pass ? 'PASS' : 'FAIL'} ${label}\n`);
 const failed = checks.filter(([, pass]) => !pass);

@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const canonical = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts');
-const legacy = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.ts');
+const canonical = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts');
+const legacy = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentity.ts');
 const central = [
   path.join(root, 'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts'),
-  path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts'),
-  path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts'),
+  path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts'),
+  path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts'),
   path.join(root, 'packages/core/src/semantic/plugins/expression/ternaryHandler.ts'),
 ];
 const patterns = [

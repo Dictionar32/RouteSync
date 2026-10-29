@@ -1,0 +1,9 @@
+{
+  "phase": 2846,
+  "name": "route-binding-domain-operations",
+  "contract": "RouteBindingInterface",
+  "factory": "routeBindingInterfaceFactory",
+  "domainOperations": ["containsParameter", "isBound"],
+  "collectionsFileMustRemainEmpty": true,
+  "verification": "structural-audit"
+}

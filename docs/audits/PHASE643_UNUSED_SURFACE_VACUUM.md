@@ -17,7 +17,7 @@ Conservative dead-surface vacuum after Phase 642.
 Both paths were preserved and truncated to 0 bytes. No file was deleted.
 
 ## Non-candidates
-Active scanner/lexer, AST/upstream, graph resolver, semantic analysis, and type-lowering files were not vacuumed merely because they contain host-language constructs or names such as `legacy`.
+Active frontend/php, AST/upstream, graph resolver, semantic analysis, and type-lowering files were not vacuumed merely because they contain host-language constructs or names such as `legacy`.
 
 Source-language evidence such as PHP/Laravel `null`, `??`, ternary, or route `any` remains representational evidence until a semantic relation replaces its authority.
 

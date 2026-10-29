@@ -16,7 +16,7 @@ import {
     relationNotEqual,
     relationOptionFold,
     relationResolve,
-} from '../../semantic/relations/relationFoundation';
+} from '../../semantic/relations/semanticRelations';
 import { relationContains } from '../../semantic/relations/relationMembership';
 import { basicBlockLookup } from '../utils/ControlFlowGraph';
 

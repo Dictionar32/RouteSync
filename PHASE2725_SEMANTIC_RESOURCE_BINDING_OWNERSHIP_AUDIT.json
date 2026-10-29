@@ -1,0 +1,113 @@
+{
+  "phase": 2725,
+  "title": "Semantic Resource Binding Ownership",
+  "passed": 13,
+  "total": 13,
+  "checks": [
+    {
+      "name": "resource binding ADT is owned by compiler semantic layer",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "binding ADT retains mono/poly/unbacked DTO discriminants",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "public matcher is interface-first frozen object",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "matcher free function is not exported",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "factory is interface-first frozen object rather than exported class",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "resolver uses semantic factory and matcher operations",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "resource binder consumes semantic matcher operation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "scanner compatibility barrel only re-exports semantic-owned contract",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "SDK regression test uses typed operation objects",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI scan and sync enter via manifest scan operation",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "manifest builder preserves complete and blocked judgments",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no source import refers to deleted resourceBindingTypes module",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "relative imports in changed files resolve",
+      "pass": true,
+      "detail": "6 files checked"
+    }
+  ],
+  "changedFiles": [
+    "packages/core/src/compiler/semantic/resource-model/resourceModelBinding.ts",
+    "packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts",
+    "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+    "packages/core/src/compiler/scanner/symbols/resource/index.ts",
+    "packages/core/src/index.ts",
+    "packages/sdk/tests/semanticAstDataflowAndRelationPropagation.spec.ts"
+  ],
+  "unresolvedRelativeImports": [],
+  "manifestTraceAudit": {
+    "script": "audit:phase2686-upstream-cli-manifest-builder-runtime-trace",
+    "passed": 12,
+    "total": 12
+  },
+  "regressionAudits": [
+    {
+      "script": "audit:phase2724-semantic-resource-matcher-ownership",
+      "passed": 16,
+      "total": 16
+    },
+    {
+      "script": "audit:phase2723-resource-model-runtime-interface",
+      "passed": 14,
+      "total": 14
+    },
+    {
+      "script": "audit:phase2722-typed-resource-runtime-semantic-ownership",
+      "passed": 16,
+      "total": 16
+    }
+  ],
+  "remainingRelationFoundation": {
+    "files": 28,
+    "occurrences": 37,
+    "replacementCreated": false
+  },
+  "validationLimitations": [
+    "No node_modules in workspace",
+    "Project typecheck, unit tests, build and CLI end-to-end not verified"
+  ]
+}

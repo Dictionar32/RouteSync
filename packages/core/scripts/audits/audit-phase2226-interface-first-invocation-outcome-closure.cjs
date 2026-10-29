@@ -7,8 +7,8 @@ const invocationInterface = read('src/types/upstream/laravelControllerInvocation
 const invocationAuthority = read('src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts');
 const responseInterface = read('src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const scanner = read('src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const actionScanner = read('src/compiler/scanner/subscanners/controller/actionScanner.ts');
-const actionContract = read('src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionScanner = read('src/compiler/scanner/operations/controller/actionScanner.ts');
+const actionContract = read('src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 
 const checks = [
   ['contract version advanced to 14', /readonly version: 14/.test(invocationInterface) && /version: 14/.test(invocationAuthority)],

@@ -37,7 +37,7 @@ Inactive-file vacuum audits did not provide a verified candidate to empty in thi
 ## Next frontier
 
 1. eliminate active `ParsedField` as a public semantic carrier by introducing a canonical source/evidence AST carrier;
-2. migrate scanner/lexer evidence to typed AST judgments;
+2. migrate frontend/php evidence to typed AST judgments;
 3. migrate resolver graph to relation facts + fixed-point closure;
 4. migrate analysis to proof-carrying semantic judgments;
 5. migrate semantic type lowering to relation/rewrite rules;

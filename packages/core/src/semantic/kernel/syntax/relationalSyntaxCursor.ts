@@ -1,12 +1,12 @@
 /** Canonical syntax navigation: relations, presence witnesses, and recursive closure. */
-import type { TokenDescriptor } from '../../../compiler/scanner/lexer/phpAstTypes';
-import { SYNTAX_KIND_GROUPS, tokenHasKind, tokenSyntaxFact, type SyntaxTokenFact } from '../../../compiler/scanner/lexer/routeAst/syntaxValue';
+import type { TokenDescriptor } from '../../../compiler/frontend/php/phpAstTypes';
+import { SYNTAX_KIND_GROUPS, syntaxValueOperations, type SyntaxTokenFact } from '../../../compiler/frontend/php/routeAst/syntaxValue';
 import {
   closesCurrentDelimiter,
   delimiterTransition,
   isTopLevelDelimiter,
   emptyDelimiterState,
-} from '../../../compiler/scanner/lexer/routeAst/delimiterNavigation';
+} from '../../../compiler/frontend/php/routeAst/delimiterNavigation';
 import { relationGate, relationFirstOption, relationOptionFold, relationSelect, relationResolve, relationRange, relationNone, relationSome, type RelationOption } from '../relationalSequence';
 import { presenceOf, presenceFold, type Presence } from '../../../types/upstream/presence';
 import { relationAll, relationAny } from '../semanticRelations';
@@ -26,10 +26,10 @@ const delimiterInput = (value: TokenDescriptor | void): RelationOption<string> =
   presenceValue(fromCursorValue(value), () => relationNone<string>(), token => relationSome(token.value));
 
 const tokenHasKindAt = (value: TokenDescriptor | void, kinds: readonly SyntaxTokenFact['kind'][]): boolean =>
-  presenceValue(fromCursorValue(value), () => false, token => tokenHasKind(token, kinds));
+  presenceValue(fromCursorValue(value), () => false, token => syntaxValueOperations.tokenHasKind(token, kinds));
 
 const tokenSyntaxFactAt = (value: TokenDescriptor | void): RelationOption<SyntaxTokenFact> =>
-  presenceValue(fromCursorValue(value), () => relationNone<SyntaxTokenFact>(), token => tokenSyntaxFact(token));
+  presenceValue(fromCursorValue(value), () => relationNone<SyntaxTokenFact>(), token => syntaxValueOperations.tokenSyntaxFact(token));
 
 const predicateAt = (value: TokenDescriptor | void, cursor: TokenCursor, predicate: (token: TokenDescriptor, cursor: TokenCursor) => boolean): boolean =>
   presenceValue(fromCursorValue(value), () => false, token => predicate(token, cursor));
@@ -105,7 +105,7 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
   const afterNextPresence = (): CursorPresence<TokenDescriptor> => tokenPresence(tokens, position + 2);
   const terminalPresence = (): CursorPresence<TokenDescriptor> => tokenPresence(tokens, tokens.length - 1);
   const atEnd = (): boolean => position >= tokens.length;
-  const callOpen = (): TokenDescriptor | void => presenceValue(nextPresence(), () => {}, token => relationGate(tokenHasKind(token, SYNTAX_KIND_GROUPS.openParens), () => token, () => {}));
+  const callOpen = (): TokenDescriptor | void => presenceValue(nextPresence(), () => {}, token => relationGate(syntaxValueOperations.tokenHasKind(token, SYNTAX_KIND_GROUPS.openParens), () => token, () => {}));
   const callArgument = (): TokenDescriptor | void => presenceValue(fromCursorValue(callOpen()), () => {}, () => afterNext());
   const callArgumentCursor = (): TokenCursor => afterNextCursor();
   const secondCallArgumentCursor = (): TokenCursor | void => {
@@ -184,7 +184,7 @@ const createTokenCursor = (tokens: readonly TokenDescriptor[], position: number)
     const visit = (cursor: TokenCursor, output: readonly { readonly key: string; readonly value: string }[]): readonly { readonly key: string; readonly value: string }[] => {
       const tokens = [cursor.current, cursor.next, cursor.afterNext];
       const presentTokens = relationSelect(tokens, (entry): entry is TokenDescriptor => Boolean(entry));
-      const matches = relationAll([Object.is(presentTokens.length, 3), tokenHasKind(presentTokens[0], SYNTAX_KIND_GROUPS.strings), tokenHasKind(presentTokens[1], SYNTAX_KIND_GROUPS.arrows), tokenHasKind(presentTokens[2], SYNTAX_KIND_GROUPS.strings)]);
+      const matches = relationAll([Object.is(presentTokens.length, 3), syntaxValueOperations.tokenHasKind(presentTokens[0], SYNTAX_KIND_GROUPS.strings), syntaxValueOperations.tokenHasKind(presentTokens[1], SYNTAX_KIND_GROUPS.arrows), syntaxValueOperations.tokenHasKind(presentTokens[2], SYNTAX_KIND_GROUPS.strings)]);
       return relationGate(cursor.atEnd, () => output, () => relationGate(matches, () => visit(cursor.afterNextCursor.nextCursor, Object.freeze([...output, Object.freeze({ key: presentTokens[0].value, value: presentTokens[2].value })])), () => visit(cursor.nextCursor, output)));
     };
     return Object.freeze(visit(cursor, Object.freeze([])));

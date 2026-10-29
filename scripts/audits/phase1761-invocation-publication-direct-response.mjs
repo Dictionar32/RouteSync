@@ -4,8 +4,8 @@ import { resolve } from 'node:path';
 const read = path => readFileSync(resolve(process.cwd(), path), 'utf8');
 const contract = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const scannerTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const scannerTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
 const scannerBoundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const regression = read('packages/core/src/compiler/scanner/__test__/ecommerceShopDataflowPhase104.spec.ts');
 

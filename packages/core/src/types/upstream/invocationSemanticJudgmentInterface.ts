@@ -414,13 +414,18 @@ export interface InvocationSemanticRulePolicy {
   readonly outcome: 'derive-or-obligate' | 'closure';
 }
 
-export const invocationSemanticRulePolicy = (
-  ruleId: InvocationSemanticRulePolicy['ruleId'],
-): InvocationSemanticRulePolicy => {
-  const policy = INVOCATION_SEMANTIC_RULE_POLICIES.find(candidate => candidate.ruleId === ruleId);
-  if (!policy) throw new Error(`Missing invocation semantic rule policy: ${ruleId}`);
-  return policy;
-};
+export interface InvocationSemanticRulePolicyResolutionOperationsInterface {
+  readonly resolve: (ruleId: InvocationSemanticRulePolicy['ruleId']) => InvocationSemanticRulePolicy;
+}
+
+/** Interface-first semantic policy lookup; callers name the domain operation explicitly. */
+export const invocationSemanticRulePolicy: InvocationSemanticRulePolicyResolutionOperationsInterface = Object.freeze({
+  resolve: (ruleId: InvocationSemanticRulePolicy['ruleId']): InvocationSemanticRulePolicy => {
+    const policy = INVOCATION_SEMANTIC_RULE_POLICIES.find(candidate => candidate.ruleId === ruleId);
+    if (!policy) throw new Error(`Missing invocation semantic rule policy: ${ruleId}`);
+    return policy;
+  },
+});
 
 export const INVOCATION_SEMANTIC_EXECUTION_RULE_IDS: readonly InvocationSemanticExecutionRuleId[] = Object.freeze([
   'invocation-evidence-presence',
@@ -1017,22 +1022,31 @@ export type InvocationSemanticDerivationWitness =
       readonly evidence: readonly SemanticSource[];
     }>;
 
-export const invocationWitnessOwnerRuleId = (
-  witness: InvocationSemanticDerivationWitness,
-): InvocationSemanticExecutionRuleId | 'invocation-judgment-closure' => {
-  switch (witness.kind) {
-    case 'invocation-presence': return 'invocation-evidence-presence';
-    case 'target-resolution': return 'invocation-target-resolution';
-    case 'target-ambiguity': return 'invocation-target-ambiguity';
-    case 'argument-binding': return 'invocation-positional-argument-binding';
-    case 'unmatched-argument': return 'invocation-argument-parameter-unresolved';
-    case 'effect-projection': return witness.effect === 'result'
-      ? 'invocation-result-emission'
-      : 'invocation-exception-emission';
-    case 'unresolved-target': return 'invocation-unresolved-target-obligation';
-    case 'judgment-closure': return 'invocation-judgment-closure';
-  }
-};
+export interface InvocationSemanticWitnessOwnershipOperationsInterface {
+  readonly ownerOf: (
+    witness: InvocationSemanticDerivationWitness,
+  ) => InvocationSemanticExecutionRuleId | 'invocation-judgment-closure';
+}
+
+/** Domain operation maps a typed derivation witness to its owning semantic rule. */
+export const invocationSemanticWitnessOwnership: InvocationSemanticWitnessOwnershipOperationsInterface = Object.freeze({
+  ownerOf: (
+    witness: InvocationSemanticDerivationWitness,
+  ): InvocationSemanticExecutionRuleId | 'invocation-judgment-closure' => {
+    switch (witness.kind) {
+      case 'invocation-presence': return 'invocation-evidence-presence';
+      case 'target-resolution': return 'invocation-target-resolution';
+      case 'target-ambiguity': return 'invocation-target-ambiguity';
+      case 'argument-binding': return 'invocation-positional-argument-binding';
+      case 'unmatched-argument': return 'invocation-argument-parameter-unresolved';
+      case 'effect-projection': return witness.effect === 'result'
+        ? 'invocation-result-emission'
+        : 'invocation-exception-emission';
+      case 'unresolved-target': return 'invocation-unresolved-target-obligation';
+      case 'judgment-closure': return 'invocation-judgment-closure';
+    }
+  },
+});
 
 /**
  * Rule-to-witness ownership is encoded in the type, not left solely to a
@@ -1484,6 +1498,15 @@ export interface InvocationSemanticInput {
   readonly positionalEvidence: InvocationPositionalEvidenceInput;
 }
 
+/** Shared domain operations for validating invocation input and its resulting judgment. */
+export interface InvocationSemanticContractOperationsInterface {
+  readonly validateInput: (input: InvocationSemanticInput) => InvocationSemanticInput;
+  readonly validateJudgment: (
+    input: InvocationSemanticInput,
+    judgment: InvocationSemanticJudgment,
+  ) => InvocationSemanticJudgment;
+}
+
 export interface InvocationSemanticAuthorityInterface {
   readonly kind: 'invocation_semantic_authority';
   /** The exact semantic contract implemented by this authority. */
@@ -1521,6 +1544,19 @@ export interface InvocationSemanticRuntimeExecutorInterface {
    * Preserve each invocation's validated judgment, proof trace, and obligations.
    */
   readonly executeAll: (knowledge: SemanticKnowledgeDataFlow) => InvocationSemanticAnalysis;
+}
+
+/**
+ * Domain factory for assembling the invocation runtime boundary from the exact authorities
+ * that own single-invocation and whole-knowledge judgments. Construction is an operation
+ * on an explicit interface, not an exported parameterized function.
+ */
+export interface InvocationSemanticRuntimeExecutorFactoryInterface {
+  readonly kind: 'invocation_semantic_runtime_executor_factory';
+  readonly create: (
+    authority: InvocationSemanticAuthorityInterface,
+    batchAuthority: SemanticInterproceduralDataFlowAuthorityInterface,
+  ) => InvocationSemanticRuntimeExecutorInterface;
 }
 
 /** Legacy batch interface retained separately from the canonical one-in/one-judgment authority. */

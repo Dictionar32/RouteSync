@@ -26,9 +26,9 @@ assert('binder consumes upstream operation contract', /types\/upstream\/resource
 assert('upstream barrel exports binding contract', /export \* from '\.\/resourceDefinitionBindingInterface';/u.test(upstreamBarrel));
 assert('Resource knowledge payload has an upstream-owned contract', /interface ResourceModelKnowledgeDataFlow/u.test(knowledgeContract));
 assert('knowledge operations are owned by compiler semantic authority', /resourceModelKnowledgeDataFlowOperations:\s*ResourceModelKnowledgeDataFlowOperationsInterface/u.test(knowledgeImplementation));
-assert('binder no longer imports its knowledge payload from subscanners', !/import\(["']\.\.\/subscanners\//u.test(binder));
+assert('binder no longer imports its knowledge payload from operations', !/import\(["']\.\.\/operations\//u.test(binder));
 assert('public core index exports binding contract', /resourceDefinitionBindingInterface/u.test(publicIndex));
-assert('remaining relation/subscanner ownership is explicitly documented', /still imports `semantic\/relations` and the legacy `subscanners\/resourceProducer`/u.test(docs));
+assert('remaining relation/subscanner ownership is explicitly documented', /still imports `semantic\/relations` and the legacy `operations\/resourceProducer`/u.test(docs));
 assert('phase does not falsely claim scanner retirement', /does \*\*not\*\* complete Laravel scanner retirement/u.test(docs));
 for (const check of checks) console.log(`${check.passed ? 'PASS' : 'FAIL'} ${check.name}`);
 console.log(`\nResult: ${checks.filter((check) => check.passed).length}/${checks.length} assertions passed`);

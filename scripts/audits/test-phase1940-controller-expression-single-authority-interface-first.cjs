@@ -6,10 +6,10 @@ const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
 const model = read('packages/core/src/types/upstream/controller.ts');
-const projection = read('packages/core/src/compiler/scanner/lexer/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
+const projection = read('packages/core/src/compiler/frontend/php/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
 const compositionInterface = read('packages/core/src/types/upstream/controllerSemanticVariableFlowCompositionInterface.ts');
 const compositionAuthority = read('packages/core/src/types/upstream/controllerSemanticVariableFlowCompositionAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const requestProjection = read('packages/core/src/types/upstream/semanticDataflowRequestProjection.ts');
 const integratedModel = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');

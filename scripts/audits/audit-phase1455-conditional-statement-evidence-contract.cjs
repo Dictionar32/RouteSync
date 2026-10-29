@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerConditionalStatementInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerConditionalStatementAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE1455_CONDITIONAL_STATEMENT_EVIDENCE_CONTRACT.md');
 const conditionalParser = runtime.slice(runtime.indexOf('function parseConditionalStatement('), runtime.indexOf('function parseCollectionIterationStatement('));

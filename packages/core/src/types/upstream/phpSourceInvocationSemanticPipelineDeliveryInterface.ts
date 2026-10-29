@@ -42,7 +42,16 @@ export const phpSourceInvocationSemanticPipelineDelivery: PhpSourceInvocationSem
   }),
 });
 
-/** Compatibility entry point delegates to the explicitly modelled upstream operation. */
-export const phpSourceInvocationSemanticPipelineDeliveryBatchFromResults = (
-  entries: readonly PhpSourceInvocationSemanticPipelineResult[],
-): PhpSourceInvocationSemanticPipelineDeliveryBatch => phpSourceInvocationSemanticPipelineDelivery.deliver(entries);
+/** Named, interface-first batch factory for callers that need a delivery batch from results. */
+export interface PhpSourceInvocationSemanticPipelineDeliveryBatchFactoryInterface {
+  readonly kind: 'php_source_invocation_semantic_pipeline_delivery_batch_factory';
+  readonly fromResults: (
+    entries: readonly PhpSourceInvocationSemanticPipelineResult[],
+  ) => PhpSourceInvocationSemanticPipelineDeliveryBatch;
+}
+
+export const phpSourceInvocationSemanticPipelineDeliveryBatchFromResults: PhpSourceInvocationSemanticPipelineDeliveryBatchFactoryInterface = Object.freeze({
+  kind: 'php_source_invocation_semantic_pipeline_delivery_batch_factory',
+  fromResults: (entries: readonly PhpSourceInvocationSemanticPipelineResult[]): PhpSourceInvocationSemanticPipelineDeliveryBatch =>
+    phpSourceInvocationSemanticPipelineDelivery.deliver(entries),
+});

@@ -12,11 +12,6 @@ export {
     type AnnotateOptions
 } from "./types";
 
-export {
-    buildPhpDiscoveryScript
-} from "./scriptTemplate";
+export { phpDiscoveryTemplateOperations } from "./scriptTemplate";
 
-export {
-    ensureResponseAttributeClass,
-    applyAnnotationsToFile
-} from "./annotationWriter";
+export { annotationWriterOperations } from "./annotationWriter";

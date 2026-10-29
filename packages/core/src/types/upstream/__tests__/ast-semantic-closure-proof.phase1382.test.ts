@@ -26,7 +26,7 @@ describe('Phase 1382 AST semantic closure proof', () => {
     );
     const rule: AstSemanticRule = Object.freeze({
       kind: 'ast_semantic_rule',
-      name: Object.freeze({ kind: 'ast_rule', value: stringValue('map-route-declaration') }),
+      name: Object.freeze({ kind: 'ast_rule', value: stringValue.create('map-route-declaration') }),
       stage: 'upstream_mapping',
       premises: Object.freeze([premise]),
       conclusions: Object.freeze([conclusion]),
@@ -77,7 +77,7 @@ describe('Phase 1382 AST semantic closure proof', () => {
       ...closure,
       factSetIdentity: Object.freeze({
         kind: 'ast_semantic_fact_set_identity' as const,
-        canonicalForm: stringValue('forged-fact-set'),
+        canonicalForm: stringValue.create('forged-fact-set'),
       }),
     });
     expect(astSemanticInterface.verifyClosure(request, forged)).toMatchObject({
@@ -103,7 +103,7 @@ describe('Phase 1382 AST semantic closure proof', () => {
     );
     const rule: AstSemanticRule = Object.freeze({
       kind: 'ast_semantic_rule',
-      name: Object.freeze({ kind: 'ast_rule', value: stringValue('map-route') }),
+      name: Object.freeze({ kind: 'ast_rule', value: stringValue.create('map-route') }),
       stage: 'upstream_mapping',
       premises: Object.freeze([premise]),
       conclusions: Object.freeze([conclusion]),
@@ -119,7 +119,7 @@ describe('Phase 1382 AST semantic closure proof', () => {
     if (valid.status !== 'closed') throw new Error('expected closed fixture');
     const emptyLedgerIdentity = Object.freeze({
       kind: 'ast_semantic_derivation_ledger_identity' as const,
-      canonicalForm: stringValue(JSON.stringify([])),
+      canonicalForm: stringValue.create(JSON.stringify([])),
     });
     const forged = Object.freeze({
       ...valid,
@@ -178,7 +178,7 @@ describe('Phase 1382 AST semantic closure proof', () => {
     );
     const unmatchedRule: AstSemanticRule = Object.freeze({
       kind: 'ast_semantic_rule',
-      name: Object.freeze({ kind: 'ast_rule', value: stringValue('unmatched-rule') }),
+      name: Object.freeze({ kind: 'ast_rule', value: stringValue.create('unmatched-rule') }),
       stage: 'upstream_mapping',
       premises: Object.freeze([astSemanticFact(
         'scanner_evidence',
@@ -243,14 +243,14 @@ describe('Phase 1382 AST semantic closure proof', () => {
     const rules: readonly AstSemanticRule[] = [
       Object.freeze({
         kind: 'ast_semantic_rule',
-        name: Object.freeze({ kind: 'ast_rule', value: stringValue('map-route') }),
+        name: Object.freeze({ kind: 'ast_rule', value: stringValue.create('map-route') }),
         stage: 'upstream_mapping',
         premises: Object.freeze([first]),
         conclusions: Object.freeze([second]),
       }),
       Object.freeze({
         kind: 'ast_semantic_rule',
-        name: Object.freeze({ kind: 'ast_rule', value: stringValue('resolve-route') }),
+        name: Object.freeze({ kind: 'ast_rule', value: stringValue.create('resolve-route') }),
         stage: 'resolver_graph',
         premises: Object.freeze([second]),
         conclusions: Object.freeze([third]),

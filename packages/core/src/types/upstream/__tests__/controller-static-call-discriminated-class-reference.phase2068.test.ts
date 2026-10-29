@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { controllerStaticCallOriginAuthority } from '../controllerStaticCallOriginAuthority';
 import type { ControllerStaticCallOriginInput } from '../controllerStaticCallOriginInterface';
 import { createClassName, createMethodName, createModelName } from '../names';
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 
 const availableInput: ControllerStaticCallOriginInput = Object.freeze({
   kind: 'controller_static_call_origin_input',
@@ -11,11 +11,11 @@ const availableInput: ControllerStaticCallOriginInput = Object.freeze({
     kind: 'available',
     context: Object.freeze({
       kind: 'php_class_name_resolution_context',
-      namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'),
+      namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'),
       classImports: Object.freeze([Object.freeze({
         kind: 'php_class_import_binding',
         alias: createClassName('User'),
-        target: createPhpQualifiedClassName('App\\Models\\User'),
+        target: phpQualifiedClassNameFactory.create('App\\Models\\User'),
       })]),
       importInventory: 'complete',
     }),
@@ -26,7 +26,7 @@ const availableInput: ControllerStaticCallOriginInput = Object.freeze({
     kind: 'controller_static_call_model_class_identity',
     className: createClassName('User'),
     modelName: createModelName('App\\Models\\User'),
-    qualifiedName: createPhpQualifiedClassName('App\\Models\\User'),
+    qualifiedName: phpQualifiedClassNameFactory.create('App\\Models\\User'),
   })]),
 });
 

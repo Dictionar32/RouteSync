@@ -3,8 +3,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const model = read('packages/core/src/types/upstream/controllerDataflowBindingPayloadCorrespondenceInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const astTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const astTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const checks = [
   ['closed matched/missing/ambiguous upstream judgment exists', ['binding_payload_correspondence_matched', 'binding_payload_correspondence_missing', 'binding_payload_correspondence_ambiguous'].every((kind) => model.includes(kind))],

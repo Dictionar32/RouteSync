@@ -11,6 +11,6 @@ generated.
 RouteSync therefore treats scanner/resolver code as a relation-producing front-end, not as the
 place where semantic decisions are encoded through host-language control flow.
 
-The immediate frontier is scanner/lexer and resolver code, with `queryEvidenceProducer` and
+The immediate frontier is frontend/php and resolver code, with `queryEvidenceProducer` and
 `astClassifierEvidence` receiving the next complete Option/presence migration. The migration
 must preserve typed witnesses and evidence traces rather than merely changing surface syntax.

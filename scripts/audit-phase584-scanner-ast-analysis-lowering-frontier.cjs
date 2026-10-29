@@ -3,7 +3,7 @@ const path = require('path');
 const ts = require('typescript');
 
 const roots = [
-  'packages/core/src/compiler/scanner/lexer',
+  'packages/core/src/compiler/frontend/php',
   'packages/core/src/compiler/scanner/resolvers',
   'packages/core/src/compiler/scanner/semantic',
   'packages/core/src/compiler/scanner/upstream',
@@ -75,7 +75,7 @@ const bySurface = roots.map(root => {
 
 console.log(JSON.stringify({
   phase: 584,
-  frontier: ['scanner/lexer', 'resolver graph', 'AST/upstream mapping', 'analysis', 'semantic type lowering'],
+  frontier: ['frontend/php', 'resolver graph', 'AST/upstream mapping', 'analysis', 'semantic type lowering'],
   scannedFiles: files.length,
   aggregate,
   bySurface,

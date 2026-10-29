@@ -1,0 +1,68 @@
+{
+  "phase": 2730,
+  "audit": "controller-dataflow-contract-ownership",
+  "passed": 12,
+  "total": 12,
+  "checks": [
+    {
+      "name": "controller dataflow contract is owned by compiler semantic layer",
+      "passed": true,
+      "detail": "Implementation moved out of scanner subscanners."
+    },
+    {
+      "name": "runtime API uses a named explicit interface",
+      "passed": true,
+      "detail": "Public runtime entrypoint is one typed immutable operations object."
+    },
+    {
+      "name": "semantic implementation does not export free-function entrypoints",
+      "passed": true,
+      "detail": "Construction and lookup implementations remain internal."
+    },
+    {
+      "name": "public operations are simple and explicit without generic methods",
+      "passed": true,
+      "detail": "The operation contract exposes concrete input and output types."
+    },
+    {
+      "name": "production AST projection calls the semantic operations object",
+      "passed": true,
+      "detail": "Production caller no longer imports individual constructor functions."
+    },
+    {
+      "name": "semantic judgment selection test uses the operations object",
+      "passed": true,
+      "detail": "Regression test exercises the same runtime API as production."
+    },
+    {
+      "name": "scanner facade only re-exports semantic-owned types",
+      "passed": true,
+      "detail": "Scanner facade does not own the semantic implementation."
+    },
+    {
+      "name": "resource aggregation imports binding type from semantic owner",
+      "passed": true,
+      "detail": "Downstream consumer uses the new owner path."
+    },
+    {
+      "name": "specialized AST sequence conversion avoids generic sequence helper",
+      "passed": true,
+      "detail": "Internal sequence conversion is explicit for the two concrete AST types."
+    },
+    {
+      "name": "CLI scan and sync retain the manifest scan operation",
+      "passed": true,
+      "detail": "Semantic ownership migration does not bypass the upstream CLI path."
+    },
+    {
+      "name": "manifest builder preserves complete and blocked ADT variants",
+      "passed": true,
+      "detail": "Manifest completion and blocking remain distinguishable."
+    },
+    {
+      "name": "no relationFoundation replacement was introduced",
+      "passed": true,
+      "detail": "No original or replacement foundation was added."
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "phase": 2849,
+  "title": "Manifest Serialization Continuations",
+  "runtimePath": [
+    "manifestGeneratorOperations.save",
+    "manifestContractValidationOperations.validate(...).continueWith",
+    "manifestSerializationOperations.serialize",
+    "ManifestSerializationJudgment.continueWith",
+    "persistence or explicit serialization rejection"
+  ],
+  "contract": "interface-first runtime operations and explicit terminal ADT continuations",
+  "audit": "audit:phase2849-manifest-serialization-continuations",
+  "verificationScope": "structural source audit only"
+}

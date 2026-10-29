@@ -9,7 +9,7 @@
   "all_known_emptied_files_zero_bytes": true,
   "known_emptied_file_count": 10,
   "architectural_frontier": [
-    "scanner/lexer",
+    "frontend/php",
     "graph resolver",
     "AST/upstream mapping",
     "analysis",

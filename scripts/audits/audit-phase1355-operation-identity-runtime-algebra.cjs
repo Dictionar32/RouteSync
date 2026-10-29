@@ -25,7 +25,7 @@ forbidText('packages/core/src/types/upstream/operationIdentityCapabilityAuthorit
 requireText('packages/core/src/types/upstream/index.ts', "export * from './operationIdentityCapabilityAlgebra'", 'upstream barrel exposes canonical materializer');
 requireText('packages/core/src/index.ts', "export { operationIdentityCapabilityAlgebra } from './types/upstream/operationIdentityCapabilityAlgebra'", 'core public barrel exposes runtime algebra');
 requireText('packages/core/src/index.ts', 'OperationIdentityCapabilityContractMaterializerInterface', 'core public barrel exposes the materializer contract type');
-requireText('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts', 'operationIdentityCapabilityFromRoute(boundary.capability)', 'route producer continues to enter through the upstream authority');
+requireText('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts', 'operationIdentityCapabilityFromRoute(boundary.capability)', 'route producer continues to enter through the upstream authority');
 requireText('packages/cli/src/generators/sdk/apiObjectEmitter.ts', 'operationIdentityReferenceFromCapability(route.raw.operationIdentityCapability)', 'CLI remains a projection-only consumer');
 
 const result = { phase: 1355, audit: 'operation-identity-runtime-algebra', passed: failures.length === 0, passedChecks: passed.length, failures };

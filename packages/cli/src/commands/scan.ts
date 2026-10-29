@@ -1,11 +1,13 @@
+import { controllerInvocationManifestCompositionInputFactory } from '../parsers/php/controllerInvocationManifestCompositionInterface'
 import { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { ManifestGenerator } from '../generators/ManifestGenerator'
-import { validateManifestContract } from '../generators/ManifestContractValidator'
-import { createLaravelSourceProjectIdentity, createSourceFile, laravelRouteSourceSelectionAuthority, routeSyncManifestFlowProjection, routeSyncManifestDataflowSurfaceFromFlow, routeSyncManifestGraphSurfaceFromFlow, routeManifestProjectionCompositionFactory, routeManifestRequestResolutionPreflight, IRNodeRegistry, analyzeRouteSyncManifestDataflow, projectSemanticDataflowToIR, createServiceGraphBuilder } from '@routesync/core'
+import { manifestGeneratorOperations } from '../generators/ManifestGenerator'
+import { manifestContractValidationOperations } from '../generators/ManifestContractValidator'
+import { createLaravelSourceProjectIdentity, sourceFileIdentityFactory, sourceFileInventoryFactory, laravelRouteSourceSelectionAuthority, routeSyncManifestFlowProjection, routeSyncManifestDataflowProjection, routeSyncManifestGraphProjection, routeManifestProjectionCompositionFactory, routeManifestRequestResolutionPreflight, IRNodeRegistry, routeSyncManifestDataflowAnalysisOperations, semanticDataflowIRProjection, serviceGraphBuilderFactory, stringValue } from '@routesync/core'
 import { cliSemanticDataflowRuntimeBoundary } from '../dataflow/semanticDataflowRuntimeBoundary'
 import type { RouteSyncCliUpstreamCompositionInterface } from '../upstreamCompositionInterface'
+import type { RouteSyncCliManifestScanOperationInterface } from '../manifestScanOperationInterface'
 
 export interface ScanCommandFactoryInterface {
   readonly create: (composition: RouteSyncCliUpstreamCompositionInterface) => Command;
@@ -30,48 +32,21 @@ export const createScanCommand: ScanCommandFactoryInterface = Object.freeze({
       // The composition root already assembled and validated the canonical upstream pipeline.
       // Commands consume that exact pipeline; they must not run a second semantic-resolution path.
       const requestTypeDerivationPipeline = composition.requestTypeDerivationPipeline
-      const manifestScanOperation = composition.manifestScanOperation
+      const manifestScanOperation: RouteSyncCliManifestScanOperationInterface = composition.manifestScanOperation
       // Validate the complete upstream authority bundle before canonicalizing project identity or selecting source files.
-      const sourceProject = createLaravelSourceProjectIdentity(targetDir)
+      const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create(targetDir)))
       const selectedRouteFile = path.resolve(targetDir, options.input)
-      const routeSourceSelection = laravelRouteSourceSelectionAuthority.explicitFiles([createSourceFile(selectedRouteFile)])
-      const scannedManifest = await manifestScanOperation.scan(Object.freeze({
-        kind: 'controller_invocation_manifest_composition_input',
+      const routeSourceSelection = laravelRouteSourceSelectionAuthority.explicitFiles(sourceFileInventoryFactory.empty().include(sourceFileIdentityFactory.create(stringValue.create(selectedRouteFile))))
+      const scannedManifest = await manifestScanOperation.scan(controllerInvocationManifestCompositionInputFactory.create(
         sourceProject,
-        routeSelection: Object.freeze({ kind: 'laravel_route_source_selection_explicit', selection: routeSourceSelection }),
-      }))
-      if (scannedManifest.kind === 'controller_invocation_manifest_source_project_identity_blocked') {
-        spinner.fail(chalk.red(`Scan blocked: project-root identity could not be canonicalized: ${scannedManifest.identity.requested.root.value.value}`))
-        process.exit(1)
-      }
-      if (scannedManifest.kind === 'controller_invocation_manifest_source_document_identity_rejected') {
-        spinner.fail(chalk.red(`Scan blocked by source-document identity binding: ${JSON.stringify(scannedManifest.rejections)}`))
-        process.exit(1)
-      }
-      if (scannedManifest.kind === 'controller_invocation_manifest_source_documents_blocked') {
-        const blockedSources = scannedManifest.blockedReads.map(read => read.blocker.kind + ': ' + read.sourceFile.value.value);
-        console.error('Controller source document acquisition blocked:', blockedSources.join(', '));
-        process.exitCode = 1;
-        return;
-      }
-      if (scannedManifest.kind === 'controller_invocation_manifest_source_discovery_blocked') {
-        spinner.fail(chalk.red(`Scan blocked by controller-source discovery: ${JSON.stringify(scannedManifest.discovery.blocker)}`))
-        process.exit(1)
-      }
-      if (scannedManifest.kind === 'controller_invocation_manifest_inventory_rejected') {
-        spinner.fail(chalk.red(`Scan blocked by controller-inventory judgment: ${JSON.stringify(scannedManifest.inventory.rejections)}`))
-        process.exit(1)
-      }
-      if (scannedManifest.kind === 'manifest_builder_blocked') {
-        spinner.fail(chalk.red(`Scan blocked by upstream manifest judgment: ${JSON.stringify(scannedManifest)}`))
-        process.exit(1)
-      }
-      const completeManifest = scannedManifest.manifest
+        laravelRouteSourceSelectionAuthority.explicitIntent(routeSourceSelection),
+      ))
+      const completeManifest = scannedManifest.requireCompleteManifest()
       const manifestFlow = routeSyncManifestFlowProjection.project(completeManifest)
       // Preserve the upstream invocation judgment and exact integrated-response ADT at the CLI boundary.
       require('fs').writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.invocations.json'), JSON.stringify(manifestFlow.invocationSemanticJudgments, null, 2))
-      const dataflowSurface = routeSyncManifestDataflowSurfaceFromFlow(manifestFlow)
-      const graphSurface = routeSyncManifestGraphSurfaceFromFlow(manifestFlow)
+      const dataflowSurface = routeSyncManifestDataflowProjection.project(manifestFlow)
+      const graphSurface = routeSyncManifestGraphProjection.project(manifestFlow)
       // Resolve source bindings before invoking the authority-backed semantic projection. No legacy RequestType[] fallback is permitted.
       const requestResolutionPreflight = routeManifestRequestResolutionPreflight.evaluate(completeManifest)
       require('fs').writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.request-type-source-evidence.json'), JSON.stringify(requestResolutionPreflight.sourceEvidence, null, 2))
@@ -86,32 +61,52 @@ export const createScanCommand: ScanCommandFactoryInterface = Object.freeze({
         options.baseURL,
         '6.0.0',
       )
-      switch (routeManifestProjection.kind) {
-        case 'manifest_projected':
-          break
-        case 'manifest_projection_blocked':
-          spinner.fail(chalk.red(`Scan blocked by upstream RequestType semantic judgment: ${JSON.stringify(routeManifestProjection.derivation)}`))
+      const resolvedManifest = routeManifestProjection.continue({
+        manifest_projected: (outcome) => outcome.manifest,
+        manifest_projection_blocked: (outcome) => {
+          spinner.fail(chalk.red(`Scan blocked by upstream RequestType semantic judgment: ${JSON.stringify(outcome.derivation)}`))
           process.exit(1)
-        default: {
-          const exhaustive: never = routeManifestProjection
-          return exhaustive
-        }
-      }
-      const resolvedManifest = routeManifestProjection.manifest
+        },
+      })
       const routes = resolvedManifest.routes
       const models = resolvedManifest.models
       const resources = resolvedManifest.resources
       const irRegistry = new IRNodeRegistry()
 
-      validateManifestContract(resolvedManifest)
-      await ManifestGenerator.save(resolvedManifest, outputPath)
+      manifestContractValidationOperations.validate(resolvedManifest).continueWith({
+        onValidated: () => undefined,
+        onRejected: judgment => {
+          spinner.fail(chalk.red(`Scan blocked by manifest contract validation: ${JSON.stringify(judgment.violations)}`))
+          process.exit(1)
+        },
+      })
+      const persistenceJudgment = await manifestGeneratorOperations.save(resolvedManifest, outputPath)
+      const persistenceContinues = persistenceJudgment.continueWith({
+        onComplete: () => true,
+        onContractRejected: judgment => {
+          spinner.fail(chalk.red(`Scan blocked by manifest contract validation: ${JSON.stringify(judgment.violations)}`))
+          process.exitCode = 1
+          return false
+        },
+        onSerializationRejected: judgment => {
+          spinner.fail(chalk.red(`Scan blocked by manifest serialization: ${judgment.message}`))
+          process.exitCode = 1
+          return false
+        },
+        onWriteRejected: judgment => {
+          spinner.fail(chalk.red(`Scan blocked while writing manifest ${judgment.outputPath}: ${judgment.message}`))
+          process.exitCode = 1
+          return false
+        },
+      })
+      if (!persistenceContinues) return
       const fs = require('fs')
-      const graphBuilder = createServiceGraphBuilder()
+      const graphBuilder = serviceGraphBuilderFactory.createBuilder()
       const serviceGraph = graphBuilder.project(graphSurface)
       fs.writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.graph.json'), JSON.stringify(serviceGraph, null, 2))
-      const dataflowAnalysis = analyzeRouteSyncManifestDataflow(dataflowSurface, cliSemanticDataflowRuntimeBoundary)
+      const dataflowAnalysis = routeSyncManifestDataflowAnalysisOperations.analyze(dataflowSurface, cliSemanticDataflowRuntimeBoundary)
       fs.writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.dataflow.json'), JSON.stringify(dataflowAnalysis, null, 2))
-      const dataflowIR = dataflowAnalysis.map(result => projectSemanticDataflowToIR(result.analysis.interface))
+      const dataflowIR = dataflowAnalysis.map(result => semanticDataflowIRProjection.project(result.analysis.interface))
       fs.writeFileSync(path.resolve(path.dirname(outputPath), 'routesync.dataflow.ir.json'), JSON.stringify(dataflowIR, null, 2))
 
       // Stage 2 (IR v3) output — additive, does not change manifest/graph output above.

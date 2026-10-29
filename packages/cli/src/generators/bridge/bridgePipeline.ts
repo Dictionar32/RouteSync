@@ -30,7 +30,11 @@ import { DEFAULT_CLIENT_EMITTERS } from './clientEmitters'
  * Pure Compilation Pipeline: RouteManifest → CompiledContractsBundle
  * 0 new, 0 class, 0 IIFE. Direct function composition.
  */
-export function compileManifest(manifest: RouteManifest): CompiledContractsBundle {
+export interface CompileManifestOperation {
+  (manifest: RouteManifest): CompiledContractsBundle;
+}
+
+export const compileManifest: CompileManifestOperation = Object.freeze((manifest: RouteManifest): CompiledContractsBundle => {
     console.log('[CompilerBridge] Executing unified compiler pipeline...')
 
     const semanticArtifact = manifestToSemanticTypes(manifest)
@@ -56,19 +60,17 @@ export function compileManifest(manifest: RouteManifest): CompiledContractsBundl
         apiFields,
         mappers
     })
-}
+});
 
 /**
  * Pure Dataflow Pipeline:
  * manifest → CompiledContractsBundle → { coreEmitter, clientEmitters } → { writtenPaths, clientArtifacts }
  */
-export async function emitFullBundle(
-    manifest: RouteManifest,
-    outputDir: string,
-    coreEmitter: CompilerEmitter = CoreFilesEmitter,
-    clientEmitters: readonly CompilerEmitter[] = DEFAULT_CLIENT_EMITTERS,
-    options: CompilerBundleOptions = {}
-): Promise<FullBundleEmittedArtifacts> {
+export interface EmitFullBundleOperation {
+  (manifest: RouteManifest, outputDir: string, coreEmitter: CompilerEmitter = CoreFilesEmitter, clientEmitters: readonly CompilerEmitter[] = DEFAULT_CLIENT_EMITTERS, options: CompilerBundleOptions = {}): Promise<FullBundleEmittedArtifacts>;
+}
+
+export const emitFullBundle: EmitFullBundleOperation = Object.freeze(async (manifest: RouteManifest, outputDir: string, coreEmitter: CompilerEmitter = CoreFilesEmitter, clientEmitters: readonly CompilerEmitter[] = DEFAULT_CLIENT_EMITTERS, options: CompilerBundleOptions = {}): Promise<FullBundleEmittedArtifacts> => {
     console.log('[CompilerBridge] Emitting full CDA contract & client bundle...')
 
     const contractsBundle = compileManifest(manifest)
@@ -101,14 +103,15 @@ export async function emitFullBundle(
         clientArtifacts,
         allWrittenPaths
     })
-}
+});
 
 /**
  * Convenience alias: emitFullBundle with only CoreFilesEmitter, 0 client emitters.
  */
-export function emitCoreArtifacts(
-    manifest: RouteManifest,
-    outputDir: string
-): Promise<FullBundleEmittedArtifacts> {
-    return emitFullBundle(manifest, outputDir, CoreFilesEmitter, [])
+export interface EmitCoreArtifactsOperation {
+  (manifest: RouteManifest, outputDir: string): Promise<FullBundleEmittedArtifacts>;
 }
+
+export const emitCoreArtifacts: EmitCoreArtifactsOperation = Object.freeze((manifest: RouteManifest, outputDir: string): Promise<FullBundleEmittedArtifacts> => {
+    return emitFullBundle(manifest, outputDir, CoreFilesEmitter, [])
+});

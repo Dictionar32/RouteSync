@@ -1,5 +1,3 @@
-/**
- * Historical wiring path. Semantic authority remains upstream.
- * Consumers should import resolveRouteMiddlewareFlow from the upstream lane.
- */
-export { resolveRouteMiddlewareFlow } from '../../upstream/route/routeMiddlewareFlowResolver';
+/** Compatibility wiring only: semantic implementation lives outside scanner. */
+export { routeMiddlewareFlowResolver } from '../../../semantic/routeMiddlewareFlowResolver';
+export type { RouteMiddlewareFlowResolverInterface } from '../../../semantic/routeMiddlewareFlowResolver';

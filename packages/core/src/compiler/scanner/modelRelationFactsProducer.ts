@@ -6,9 +6,9 @@ import { createClassName, createColumnName, createModelName, createRelationName,
 import type { ModelName } from '../../types/upstream/names';
 import type { SourceSpan } from '../../types/upstream/provenance';
 import type { EloquentRelationKeyArgumentEvidence, EloquentRelationKeyArgumentsEvidence, EloquentRelationKeyArgumentName } from '../../types/upstream/eloquentRelationFactsAuthorityInterface';
-import type { ModelDeclarationAst } from './lexer';
-import type { PhpArgument } from './lexer/phpAstExpressionTypes';
-import { expressionFromPhpAst } from './operations/expressionProducer';
+import type { ModelDeclarationAst } from '../frontend/php';
+import type { PhpArgument } from '../frontend/php/phpAstExpressionTypes';
+import { expressionFromPhpAst } from '../semantic/expressionProducer';
 import { extractClassBasename } from '../../utils/resource-naming';
 
 export interface ModelRelationFactsProducerInterface {
@@ -19,7 +19,7 @@ export interface ModelRelationFactsProducerInterface {
 
 const methodName = (value: string): EloquentRelationMethodName => ({
   kind: 'eloquent_relation_method_name',
-  value: stringValue(value),
+  value: stringValue.create(value),
 });
 
 const namedArgumentName = (name: string): EloquentRelationKeyArgumentName =>

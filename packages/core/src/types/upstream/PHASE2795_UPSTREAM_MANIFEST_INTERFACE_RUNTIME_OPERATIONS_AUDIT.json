@@ -1,0 +1,28 @@
+{
+  "phase": 2795,
+  "title": "Upstream Manifest Interface-First Runtime Operations",
+  "scope": "CLI-to-upstream-manifest runtime surface",
+  "contractFirst": true,
+  "newUpstreamInterfaces": 0,
+  "newAdts": 0,
+  "removedExports": [
+    "createSemanticDataflowManifestSurface",
+    "semanticDataflowInputsFromSourceModel",
+    "semanticDataflowJudgmentsFromInputs"
+  ],
+  "canonicalOperation": "semanticDataflowManifestSurface: SemanticDataflowManifestSurfaceInterface = Object.freeze(...) ",
+  "existingJudgmentsPreserved": [
+    "LaravelSourceAstProjectionJudgment",
+    "ManifestBuilderJudgment",
+    "RouteSyncManifestFlowScanJudgment"
+  ],
+  "collectionsFileBytes": 0,
+  "verification": {
+    "structuralAudit": "15/15 passed",
+    "typecheck": "not run",
+    "build": "not run",
+    "fullTests": "not run",
+    "cliEndToEnd": "not run",
+    "syntaxOnlyTranspile": "11 changed/relevant TypeScript files; 0 syntax errors"
+  }
+}

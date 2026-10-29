@@ -1,0 +1,93 @@
+{
+  "phase": 2715,
+  "title": "Fully Typed AST ADT Runtime Scanner Operations",
+  "checksPassed": 13,
+  "checksTotal": 13,
+  "checks": [
+    {
+      "name": "syntax parser owned by frontend/php",
+      "pass": true,
+      "detail": "implementation exists only at compiler/frontend/php/sourceAstSyntaxParser.ts"
+    },
+    {
+      "name": "syntax parser has no scanner dependency",
+      "pass": true,
+      "detail": "frontend parser imports phpSourceTokenizer and phpMethodParser directly"
+    },
+    {
+      "name": "tokenization owned by frontend PHP",
+      "pass": true,
+      "detail": "the parser no longer calls the scanner facade"
+    },
+    {
+      "name": "runtime operation is interface-typed object",
+      "pass": true,
+      "detail": "export const sourceAstSyntaxParser: SourceAstSyntaxParserInterface = Object.freeze({...})"
+    },
+    {
+      "name": "AST parse results have discriminants",
+      "pass": true,
+      "detail": "parsed file and parse contract use explicit kind tags"
+    },
+    {
+      "name": "AST parse results remain closed",
+      "pass": true,
+      "detail": "parse contracts state closed: true"
+    },
+    {
+      "name": "AST ADT regression test exists",
+      "pass": true,
+      "detail": "tests tagged parse/file variants and property syntax through the runtime object"
+    },
+    {
+      "name": "frontend barrel exports parser and contract",
+      "pass": true,
+      "detail": "explicit named exports, no wildcard export added"
+    },
+    {
+      "name": "semantic producer uses frontend owner",
+      "pass": true,
+      "detail": "semantic production consumes syntax parser without owning its implementation"
+    },
+    {
+      "name": "CLI composition remains typed and fail-closed",
+      "pass": true,
+      "detail": "composition assembly uses discriminated union and exhaustive rejection"
+    },
+    {
+      "name": "CLI manifest scan operation remains typed",
+      "pass": true,
+      "detail": "CLI operation is exported as interface-typed object"
+    },
+    {
+      "name": "manifest authority consumes builder preparation",
+      "pass": true,
+      "detail": "composition binds existing manifest builder preparation"
+    },
+    {
+      "name": "scanner migration status is reported, not hidden",
+      "pass": true,
+      "detail": "remaining directories: __test__, audit, binders, descriptors, operations, orchestrator, resolvers, semantic, subscanners, symbols, upstream, wiring"
+    }
+  ],
+  "scannerInventory": {
+    "typescriptFiles": 342,
+    "exportedFunctionDeclarations": 88,
+    "exportedConstArrowDeclarations": 37,
+    "topLevelDirectories": [
+      "__test__",
+      "audit",
+      "binders",
+      "descriptors",
+      "operations",
+      "orchestrator",
+      "resolvers",
+      "semantic",
+      "subscanners",
+      "symbols",
+      "upstream",
+      "wiring"
+    ]
+  },
+  "validationScope": "Static source audit only; TypeScript typecheck, unit tests, build, and CLI end-to-end were not run by this audit."
+}

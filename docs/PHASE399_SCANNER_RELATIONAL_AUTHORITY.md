@@ -1,6 +1,6 @@
 # Phase 399 — Scanner Relational Authority
 
-Phase 399 continues the scanner/lexer/resolver migration from Phase 398.
+Phase 399 continues the frontend/php/resolver migration from Phase 398.
 
 ## Research basis
 

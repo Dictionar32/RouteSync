@@ -1,0 +1,30 @@
+{
+  "phase": 3097,
+  "scope": "audit the next generic source-document read-batch continuation and its upstream-to-CLI ownership boundary",
+  "checks": {
+    "sourceReadBatchStillHasGenericContinuation": true,
+    "cliConsumesSourceReadBatchContinuation": true,
+    "completeAndBlockedOutcomesRemainDistinct": true,
+    "identityBatchAlreadyUsesNamedDomainOperations": true,
+    "cliManifestTerminalContractIsCliOwned": true,
+    "noCoreImportOfCliManifestContract": true
+  },
+  "migrationDecision": {
+    "sourceRuntimeCodeChanged": false,
+    "reason": "The read-batch continuation currently returns a caller-selected generic Result, while the terminal ControllerInvocationManifest contract is CLI-owned. Replacing the generic result with a CLI manifest type in core would invert package ownership. A safe migration first needs a named shared terminal-outcome contract or a domain-specific operation boundary that preserves the core-to-CLI dependency direction.",
+    "requiredNextDesignStep": "Model the source-read batch terminal outcome as an explicit shared domain contract, or establish a CLI-owned continuation adapter that consumes variant-specific core operations without adding a reverse dependency."
+  },
+  "preservedSemantics": [
+    "Complete documents remain distinct from blocked reads.",
+    "Partial documents and every blocker must remain available on blocked batches.",
+    "The CLI manifest terminal contract remains owned by the CLI package.",
+    "Identity-bound and identity-rejected batch evidence remains distinct."
+  ],
+  "notVerified": [
+    "TypeScript typecheck",
+    "Full test suite",
+    "PHP source to CLI manifest to generator end-to-end execution",
+    "Repository-wide export-interface migration",
+    "Repository-wide removal of requested primitives"
+  ]
+}

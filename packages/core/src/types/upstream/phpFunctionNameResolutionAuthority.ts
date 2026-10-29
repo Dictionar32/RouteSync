@@ -11,7 +11,7 @@ import type {
 } from './phpFunctionNameResolutionInterface';
 import { PHP_FUNCTION_NAME_RESOLUTION_CONTRACT } from './phpFunctionNameResolutionInterface';
 import type { FunctionName, SourceFile } from './names';
-import type { SourceSpan } from './provenance';
+import { sourceSpanOperations, type SourceSpan } from './provenance';
 import { stringValue } from './valueObjects';
 
 const builtinNames: readonly (readonly [string, PhpBuiltinFunction])[] = Object.freeze([
@@ -36,13 +36,15 @@ const builtinNames: readonly (readonly [string, PhpBuiltinFunction])[] = Object.
 ]);
 
 const normalized = (value: string): string => value.replace(/^\\+/, '').toLocaleLowerCase('en-US');
-const qualified = (value: string): PhpQualifiedFunctionName => Object.freeze({ kind: 'php_qualified_function_name', value: stringValue(value.replace(/^\\+/, '')) });
-const functionName = (value: string): FunctionName => Object.freeze({ kind: 'function_name', value: stringValue(value.split('\\').at(-1) ?? value) });
+const qualified = (value: string): PhpQualifiedFunctionName => Object.freeze({ kind: 'php_qualified_function_name', value: stringValue.create(value.replace(/^\\+/, '')) });
+const functionName = (value: string): FunctionName => Object.freeze({ kind: 'function_name', value: stringValue.create(value.split('\\').at(-1) ?? value) });
 const sameFile = (left: SourceFile, right: SourceFile): boolean => left.value.value === right.value.value;
-const sameSpan = (left: SourceSpan, right: SourceSpan): boolean => sameFile(left.file, right.file) && left.start.value === right.start.value && left.end.value === right.end.value;
+const sameSpan = (left: SourceSpan, right: SourceSpan): boolean => sourceSpanOperations.same(left, right).kind === 'same_source_span';
 const sameSpanFile = (span: SourceSpan, file: SourceFile): boolean => sameFile(span.file, file);
-const validSpan = (span: SourceSpan): boolean => span.start.value >= 0 && span.end.value > span.start.value;
-const spanWithin = (span: SourceSpan, region: SourceSpan): boolean => sameSpanFile(span, region.file) && validSpan(span) && validSpan(region) && span.start.value >= region.start.value && span.end.value <= region.end.value;
+const validSpan = (span: SourceSpan): boolean => sourceSpanOperations.validateNonEmpty(span).kind === 'source_span_ordered';
+const spanWithin = (span: SourceSpan, region: SourceSpan): boolean => validSpan(span)
+  && validSpan(region)
+  && sourceSpanOperations.contains(region, span).kind === 'source_span_contained';
 const sameRegion = (left: PhpNamespaceRegionIdentity, right: PhpNamespaceRegionIdentity): boolean => {
   if (left.kind !== right.kind || !sameFile(left.sourceFile, right.sourceFile) || !sameSpan(left.source, right.source)) return false;
   if (left.kind === 'global_php_namespace_region' && right.kind === 'global_php_namespace_region') return true;

@@ -8,7 +8,7 @@ const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControlle
 const cli = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');
 const response = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const executor = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const returnInterface = read('packages/core/src/types/upstream/controllerReturnSemanticProductionInterface.ts');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });

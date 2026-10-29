@@ -16,7 +16,7 @@ const composition = read('src/compiler/analysis/semanticDataflowRuntimeCompositi
 const checks = {
   projectionHasNoTypeDeriver: !projection.includes('TypeDeriver'),
   explicitTypeLoweringBoundary: boundary.includes('InterfaceDependencyBoundary<RouteSyncManifest, RouteManifestTypeLowering>'),
-  typeDeriverOwnedByLoweringAdapter: lowering.includes("from '../subscanners/TypeDeriver'") && lowering.includes('TypeDeriver.deriveRequestTypes') && lowering.includes('TypeDeriver.deriveSemanticTypes'),
+  typeDeriverOwnedByLoweringAdapter: lowering.includes("from '../operations/TypeDeriver'") && lowering.includes('TypeDeriver.deriveRequestTypes') && lowering.includes('TypeDeriver.deriveSemanticTypes'),
   genericDataFlow: dataflow.includes('DataFlowInterface<Input, State, Node>') && !dataflow.includes('Laravel'),
   directionalDependencyBoundary: dependency.includes('project: (upstream: Upstream) => Downstream'),
   upstreamDoesNotExportCompilerFailure: !upstreamIndex.includes("export * from './compilerPassFailure';"),

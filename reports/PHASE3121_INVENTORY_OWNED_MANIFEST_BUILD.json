@@ -1,0 +1,55 @@
+{
+  "phase": 3121,
+  "title": "Inventory-Owned Manifest Build Operation Migration",
+  "runtimePath": "controller source discovery -> source document semantic judgments -> inventory closure -> receipt-owned manifest build -> CLI manifest terminal",
+  "migratedDomain": "LaravelControllerInvocationSemanticJudgmentInventoryResult",
+  "checks": [
+    {
+      "name": "validated inventory owns typed buildManifest operation",
+      "passed": true
+    },
+    {
+      "name": "manifest build input carries route selection and manifest preparation",
+      "passed": true
+    },
+    {
+      "name": "rejected inventory owns explicit identity-preserving operation",
+      "passed": true
+    },
+    {
+      "name": "validated authority builds from the original receipt",
+      "passed": true
+    },
+    {
+      "name": "generic inventory result visitor is retired from contract and producer",
+      "passed": true
+    },
+    {
+      "name": "CLI consumes validated domain operation rather than visitor",
+      "passed": true
+    },
+    {
+      "name": "CLI preserves rejected inventory through the domain operation",
+      "passed": true
+    },
+    {
+      "name": "new public input contract is exported through core barrel",
+      "passed": true
+    },
+    {
+      "name": "legacy inventory test uses owned operations",
+      "passed": true
+    },
+    {
+      "name": "all touched TypeScript files parse",
+      "passed": true,
+      "evidence": []
+    }
+  ],
+  "failed": [],
+  "selectedRuntimeSliceMigrationComplete": true,
+  "repositoryWideExportInterfaceMigrationComplete": false,
+  "globalPrimitiveEliminationComplete": false,
+  "fullTypecheck": "not run; extracted workspace dependencies are not installed",
+  "endToEndRuntimeTest": "not run; this CJS gate checks source contracts and AST parseability"
+}

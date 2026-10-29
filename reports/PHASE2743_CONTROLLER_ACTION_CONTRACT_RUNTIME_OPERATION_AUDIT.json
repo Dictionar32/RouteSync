@@ -1,0 +1,84 @@
+{
+  "phase": 2743,
+  "title": "Interface-first controller action contract runtime operation",
+  "passed": true,
+  "checksPassed": 15,
+  "checksTotal": 15,
+  "checks": [
+    {
+      "name": "controller action contract exports no free functions",
+      "passed": true,
+      "detail": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts"
+    },
+    {
+      "name": "implementation functions are internal",
+      "passed": true,
+      "detail": "4 internal implementations"
+    },
+    {
+      "name": "public operation interface has explicit typed signatures",
+      "passed": true,
+      "detail": "4 typed operation members"
+    },
+    {
+      "name": "public API is interface-typed frozen operation object",
+      "passed": true,
+      "detail": "interface-typed Object.freeze"
+    },
+    {
+      "name": "production wiring imports operation object rather than free functions",
+      "passed": true,
+      "detail": "production imports operation object"
+    },
+    {
+      "name": "request evidence production path uses operation object",
+      "passed": true,
+      "detail": "request evidence -> operation"
+    },
+    {
+      "name": "action contract production path uses operation object",
+      "passed": true,
+      "detail": "action contract -> operation"
+    },
+    {
+      "name": "schema evidence production path uses operation object",
+      "passed": true,
+      "detail": "schema evidence -> operation"
+    },
+    {
+      "name": "tests use operation object for all migrated entrypoints",
+      "passed": true,
+      "detail": "tests migrated"
+    },
+    {
+      "name": "subscanners directory remains erased",
+      "passed": true,
+      "detail": "no legacy directory"
+    },
+    {
+      "name": "semantic/relations remains empty",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "semantic/foundation remains empty",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "no relationFoundation references remain in core source",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "CLI scan still enters shared manifest scan and projection composition",
+      "passed": true,
+      "detail": "CLI scan -> manifest operation -> projection composition"
+    },
+    {
+      "name": "CLI sync still enters shared manifest scan and projection composition",
+      "passed": true,
+      "detail": "CLI sync -> manifest operation -> projection composition"
+    }
+  ]
+}

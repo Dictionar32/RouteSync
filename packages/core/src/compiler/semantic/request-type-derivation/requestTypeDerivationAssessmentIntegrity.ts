@@ -9,6 +9,8 @@ import type {
   RequestTypeDerivationSemanticAuthorityAssessment,
   RequestTypeDerivationSemanticAssessmentIntegrityResult,
   RequestTypeAuthorityDecisionProof,
+  RequestTypeDerivationSemanticAuthorityAssessmentFor,
+  RequestTypeDerivationSemanticInferenceFor,
 } from '../../../types/upstream/requestTypeDerivationInterface';
 
 const coverageContractMatches = (
@@ -45,10 +47,25 @@ const authorityReasonMatchesDecision = (
  * This validates that the returned proof is internally coherent; it does not
  * derive request meaning or repair a malformed judgment.
  */
-export const validateRequestTypeDerivationSemanticAssessment = (
-  assessment: RequestTypeDerivationSemanticAuthorityAssessment,
-  contract: RequestTypeDerivationContract,
-): RequestTypeDerivationSemanticAssessmentIntegrityResult => {
+export interface RequestTypeDerivationSemanticAssessmentIntegrityOperationInterface {
+  readonly validate: <
+    TContract extends RequestTypeDerivationContract,
+    TInference extends RequestTypeDerivationSemanticInferenceFor<TContract>,
+  >(
+    assessment: RequestTypeDerivationSemanticAuthorityAssessmentFor<TContract, TInference>,
+    contract: TContract,
+  ) => RequestTypeDerivationSemanticAssessmentIntegrityResult;
+}
+
+export const requestTypeDerivationSemanticAssessmentIntegrityOperation:
+  RequestTypeDerivationSemanticAssessmentIntegrityOperationInterface = Object.freeze({
+  validate: <
+    TContract extends RequestTypeDerivationContract,
+    TInference extends RequestTypeDerivationSemanticInferenceFor<TContract>,
+  >(
+    assessment: RequestTypeDerivationSemanticAuthorityAssessmentFor<TContract, TInference>,
+    contract: TContract,
+  ): RequestTypeDerivationSemanticAssessmentIntegrityResult => {
   const decision = assessment.decision;
   if (decision.conclusion !== assessment.kind) return { kind: 'assessment_integrity_invalid', reason: 'assessment_conclusion_mismatch' };
 
@@ -97,12 +114,22 @@ export const validateRequestTypeDerivationSemanticAssessment = (
       return exhaustive;
     }
   }
-};
+  },
+});
 
+export interface RequestTypeDerivationSemanticAssessmentValidatorFactoryInterface {
+  readonly create: (
+    contract: RequestTypeDerivationContract,
+  ) => (assessment: RequestTypeDerivationSemanticAuthorityAssessment) => RequestTypeDerivationSemanticAssessmentIntegrityResult;
+}
 
 /** Bind the validator to the exact policy value exposed by a semantic pipeline. */
-export const createRequestTypeDerivationSemanticAssessmentValidator = (
-  contract: RequestTypeDerivationContract,
-): ((assessment: RequestTypeDerivationSemanticAuthorityAssessment) => RequestTypeDerivationSemanticAssessmentIntegrityResult) => (
-  assessment: RequestTypeDerivationSemanticAuthorityAssessment,
-): RequestTypeDerivationSemanticAssessmentIntegrityResult => validateRequestTypeDerivationSemanticAssessment(assessment, contract);
+export const requestTypeDerivationSemanticAssessmentValidatorFactory:
+  RequestTypeDerivationSemanticAssessmentValidatorFactoryInterface = Object.freeze({
+  create: (
+    contract: RequestTypeDerivationContract,
+  ): ((assessment: RequestTypeDerivationSemanticAuthorityAssessment) => RequestTypeDerivationSemanticAssessmentIntegrityResult) => (
+    assessment: RequestTypeDerivationSemanticAuthorityAssessment,
+  ): RequestTypeDerivationSemanticAssessmentIntegrityResult =>
+    requestTypeDerivationSemanticAssessmentIntegrityOperation.validate(assessment, contract),
+});

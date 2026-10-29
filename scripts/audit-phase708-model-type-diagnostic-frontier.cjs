@@ -4,7 +4,7 @@ const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/
 
 const root = path.resolve(__dirname, '..');
 const core = path.join(root, 'packages/core/src');
-const model = path.join(core, 'compiler/scanner/subscanners/semantic/modelTypeDeriver.ts');
+const model = path.join(core, 'compiler/scanner/operations/semantic/modelTypeDeriver.ts');
 const request = path.join(core, 'types/domain/request.ts');
 const semanticValues = path.join(core, 'types/domain/semanticValues.ts');
 const sequence = path.join(core, 'types/upstream/collections.ts');

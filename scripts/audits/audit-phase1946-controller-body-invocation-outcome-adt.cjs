@@ -5,13 +5,13 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 const modelAuthority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const resolver = read('packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/controller/controllerBodyResolver.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 check('body AST variants distinguish syntax-only absence from semantic judgment presence',

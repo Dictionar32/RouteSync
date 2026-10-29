@@ -1,0 +1,37 @@
+{
+  "phase": 3040,
+  "title": "Mod/Ref — Source-Backed Unresolved Blocker Coverage",
+  "scope": "Make mod/ref incompleteness actionable by retaining the identity and source provenance of assignment, invocation, access, and unset facts whose domain rules are not yet implemented. This phase does not claim to derive mod/ref relations.",
+  "runtimePath": [
+    "CLI manifest scan operation interface",
+    "Controller invocation manifest composition",
+    "invocation semantic pipeline supplies canonical SemanticKnowledgeDataFlow",
+    "semanticObjectIdentityAuthority.analyze(model)",
+    "semanticObjectIdentityOperations.modRefEvidence(model) consumes source-emitted model.modRefFacts",
+    "typed blocker ADTs retain KnowledgeId and SemanticSource provenance in integrated object identity response"
+  ],
+  "checks": {
+    "modRefBlockersAreClosedTypedEvidence": false,
+    "blockerCarriesKnowledgeIdentityAndSource": true,
+    "modRefOperationConsumesCanonicalKnowledge": true,
+    "unresolvedStatusIsNotMisrepresentedAsComplete": true,
+    "candidateKindsRetainSourceBackedBlockers": false,
+    "regressionCoversBlockerIdentityAndProvenance": false,
+    "canonicalKnowledgeGraphStillFeedsRuntime": true,
+    "cliManifestTraceStillInterfaceBacked": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 7,
+  "total": 10,
+  "remainingDebt": [
+    "Actual mod/ref derivation rules and callable effect summaries remain unimplemented; blockers are surfaced honestly rather than converted into fabricated relations.",
+    "This audit is static and does not replace full typecheck, behavior tests, or CLI-to-manifest end-to-end execution.",
+    "Repository-wide elimination of primitive representations and control-flow constructs remains out of scope for this focused domain migration."
+  ],
+  "failedChecks": [
+    "modRefBlockersAreClosedTypedEvidence",
+    "candidateKindsRetainSourceBackedBlockers",
+    "regressionCoversBlockerIdentityAndProvenance"
+  ]
+}

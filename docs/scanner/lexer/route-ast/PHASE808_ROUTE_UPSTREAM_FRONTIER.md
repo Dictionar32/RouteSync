@@ -15,7 +15,7 @@ The local DTS build frontier after Phase 807 was confined to `semanticRouteSynta
 
 ## Architectural intent
 
-The scanner/lexer remains evidence production. The semantic relation layer consumes the existing upstream route-constraint algebra and presence algebra. No `Parsed*Descriptor` ontology is added.
+The frontend/php remains evidence production. The semantic relation layer consumes the existing upstream route-constraint algebra and presence algebra. No `Parsed*Descriptor` ontology is added.
 
 ## Validation
 

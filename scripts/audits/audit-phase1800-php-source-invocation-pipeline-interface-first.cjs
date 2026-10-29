@@ -7,7 +7,7 @@ const frontend = read('packages/core/src/types/upstream/phpSourceFrontendInterfa
 const validation = read('packages/core/src/types/upstream/phpSourceFrontendValidationAuthorityInterface.ts');
 const inventory = read('packages/core/src/types/upstream/phpFunctionNameResolutionInterface.ts');
 const invocation = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const checks = [
   ['pipeline interface is an upstream contract', /interface PhpSourceInvocationSemanticPipelineInterface/.test(pipeline)],

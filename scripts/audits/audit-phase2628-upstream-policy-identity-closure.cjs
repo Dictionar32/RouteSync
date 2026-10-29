@@ -24,7 +24,7 @@ check('controller policy relations preserve blocked judgments as explicit relati
 check('route policy projection preserves blocked judgments as explicit relations', /route_action_policy_blocked/.test(routeRelations));
 check('source model uses a closed complete-or-blocked ADT', /export type CompleteSourceModelBuildResult\s*=\s*\n\s*\| CompleteSourceModelBuildCompleteResult\s*\n\s*\| CompleteSourceModelBuildBlockedResult/.test(source));
 check('manifest builder returns source-model blockers before dataflow projection', manifest.indexOf("kind === 'source_model_build_blocked'") >= 0 && manifest.indexOf("kind === 'source_model_build_blocked'") < manifest.indexOf('inputsFromSourceModel'));
-check('manifest contract has a distinct source-model blocked judgment', /stage: 'source_model'[\s\S]{0,300}sourceModel: CompleteSourceModelBuildBlockedResult/.test(manifestContract));
+check('manifest contract has a distinct source-model blocked judgment', /stage: 'source_model'[\s\S]{0,300}blocker: ManifestBuilderSourceModelBlocker/.test(manifestContract) && /kind: 'manifest_builder_source_model_blocked'[\s\S]{0,200}sourceModel: CompleteSourceModelBuildBlockedResult/.test(manifestContract));
 check('all three CLI entry points stop on upstream manifest blockers', cli.every(file => /kind === 'manifest_builder_blocked'/.test(file) && /process\.exit\(1\)/.test(file)));
 check('source-model and manifest path avoids semantic foundation imports', !/semantic\/foundation/.test(source + manifest + manifestContract));
 const failed = checks.filter(result => !result.passed);

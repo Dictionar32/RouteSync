@@ -2,7 +2,7 @@
 
 ## Scope
 
-Audit continued from Phase 126 over `packages/core/src/compiler/scanner/lexer/routeAst` with the explicit targets:
+Audit continued from Phase 126 over `packages/core/src/compiler/frontend/php/routeAst` with the explicit targets:
 
 - `??`, ternary, `if`, `switch`, `while`
 - positional arithmetic such as `i + 1`, `i + 2`, `i + 123`

@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+'use strict';
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.cwd();
+const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const vocabularyPath = 'packages/core/src/types/upstream/routeExecutionVocabulary.ts';
+const authorityPath = 'packages/core/src/types/upstream/routeCapabilitySemanticAuthority.ts';
+const vocabulary = read(vocabularyPath);
+const authority = read(authorityPath);
+const checks = [];
+const check = (name, pass) => { checks.push(Boolean(pass)); console.log(`${pass ? 'PASS' : 'FAIL'} ${name}`); };
+check('payload placement policy is declared through a named operation interface', /export interface RoutePayloadLocationOperationsInterface/.test(vocabulary));
+check('runtime operation is explicitly interface-typed and frozen', /export const routePayloadLocationOperations:\s*RoutePayloadLocationOperationsInterface\s*=\s*Object\.freeze\(\{/.test(vocabulary));
+check('method fallback policy remains GET/HEAD query and other methods body', /fromMethod:\s*\(method: HttpMethod\): RoutePayloadLocation\s*=>[\s\S]*?method === HttpMethod\.GET \|\| method === HttpMethod\.HEAD[\s\S]*?RoutePayloadLocation\.Query[\s\S]*?RoutePayloadLocation\.Body/.test(vocabulary));
+check('semantic authority calls the typed operation object', /routePayloadLocationOperations\.fromMethod\(input\.method\)/.test(authority));
+check('legacy exported free function is absent from the runtime source', !/export\s+function\s+routePayloadLocationFromMethod/.test(vocabulary));
+check('legacy call name is absent from packages', (() => { const { execFileSync } = require('node:child_process'); try { execFileSync('rg', ['-n', 'routePayloadLocationFromMethod', 'packages'], { cwd: root, stdio: 'pipe' }); return false; } catch (error) { return error.status === 1; } })());
+const failed = checks.filter(pass => !pass).length;
+console.log(`\nPhase 2752 route payload interface-operation audit: ${checks.length - failed}/${checks.length} assertions passed.`);
+console.log('SCOPE: targeted runtime boundary; not a repository-wide migration or semantic typecheck.');
+if (failed) process.exitCode = 1;

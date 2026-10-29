@@ -1,0 +1,89 @@
+{
+  "phase": 3013,
+  "title": "Explicit Invocation Semantic Runtime Operations",
+  "total": 16,
+  "passed": 16,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "explicit operations interface exists",
+      "passed": true,
+      "evidence": "InvocationSemanticKnowledgeAlgebraOperationsInterface"
+    },
+    {
+      "name": "interface defines whole-knowledge analyze operation",
+      "passed": true,
+      "evidence": "analyze(knowledge)"
+    },
+    {
+      "name": "interface defines single-invocation operation",
+      "passed": true,
+      "evidence": "analyzeOne(knowledge, invocation, positionalEvidence)"
+    },
+    {
+      "name": "interface defines call-target projection operation",
+      "passed": true,
+      "evidence": "callTargetsFor(analysis, invocation)"
+    },
+    {
+      "name": "interface defines parameter-flow projection operation",
+      "passed": true,
+      "evidence": "parameterFlowsFor(analysis, invocation)"
+    },
+    {
+      "name": "runtime operation object has explicit interface annotation and freeze",
+      "passed": true,
+      "evidence": "typed frozen operation object"
+    },
+    {
+      "name": "operation object delegates to named domain operations",
+      "passed": true,
+      "evidence": "analyze and analyzeOne are object operations"
+    },
+    {
+      "name": "old bare analyze exports are absent",
+      "passed": true,
+      "evidence": "legacy callable exports removed"
+    },
+    {
+      "name": "old bare projection exports are absent",
+      "passed": true,
+      "evidence": "legacy projection callable exports removed"
+    },
+    {
+      "name": "authority delegates through the typed algebra object",
+      "passed": true,
+      "evidence": "authority calls interface operations"
+    },
+    {
+      "name": "batch authority itself is explicitly interface typed",
+      "passed": true,
+      "evidence": "typed batch authority object"
+    },
+    {
+      "name": "scanner facade exports operations, not legacy callable aliases",
+      "passed": true,
+      "evidence": "scanner-facing explicit operation object"
+    },
+    {
+      "name": "route AST consumer tests call authority operations",
+      "passed": true,
+      "evidence": "consumer tests migrated to named operations"
+    },
+    {
+      "name": "algebra tests call authority operation",
+      "passed": true,
+      "evidence": "single-invocation tests migrated"
+    },
+    {
+      "name": "collections.ts remains whitespace-only",
+      "passed": true,
+      "evidence": "preserved workspace constraint"
+    },
+    {
+      "name": "deleted relation foundation modules remain absent",
+      "passed": true,
+      "evidence": "no relation foundation restored"
+    }
+  ]
+}

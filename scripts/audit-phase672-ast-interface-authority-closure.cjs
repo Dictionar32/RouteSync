@@ -7,10 +7,10 @@ const root = path.resolve(__dirname, '..');
 const files = [
   'packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts',
   'packages/core/src/compiler/analysis/astAnalysisInterface.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts',
-  'packages/core/src/compiler/scanner/subscanners/expressionAstCanonical.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts',
+  'packages/core/src/compiler/scanner/operations/expressionAstCanonical.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts',
 ];
 
 const scan = (relative) => {
@@ -64,8 +64,8 @@ const failures = Object.entries(report).flatMap(([file, counts]) => Object.entri
 
 const inactive = JSON.parse(execFileSync(process.execPath, [path.join(root, 'scripts/audit-phase525-inactive-file-vacuum.cjs')], { encoding: 'utf8' }));
 const legacy = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 ].every(file => fs.statSync(path.join(root, file)).size === 0);
 
 const result = {

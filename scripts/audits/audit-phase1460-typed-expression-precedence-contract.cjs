@@ -6,7 +6,7 @@ const checks = [];
 const check = (name, condition, detail) => checks.push({ name, passed: Boolean(condition), detail });
 const iface = read('packages/core/src/types/upstream/scannerExpressionOperatorInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerExpressionOperatorAlgebra.ts');
-const adapter = read('packages/core/src/compiler/scanner/lexer/phpExpressionOperatorContract.ts');
+const adapter = read('packages/core/src/compiler/frontend/php/phpExpressionOperatorContract.ts');
 const test = read('packages/core/src/types/upstream/__test__/scannerExpressionOperatorAlgebra.phase1421.test.ts');
 check('interface-first typed tier identity', /ExpressionPrecedenceRelation/.test(iface) && /unique symbol/.test(iface) && /readonly tier: Tier/.test(iface), 'Precedence tier and judgment tags use unique-symbol identities.');
 check('no numeric precedence field', !/precedence:\s*number/.test(iface + algebra + adapter) && !/precedence:\s*\d+/.test(adapter), 'Operator root selection no longer uses numeric precedence tiers.');

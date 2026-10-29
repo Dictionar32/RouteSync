@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const controller = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const pkg = JSON.parse(read('package.json'));
 const memberEvidence = runtime.slice(runtime.indexOf('function classifyMemberAssignmentEvidence('), runtime.indexOf('\nfunction classifyStaticPropertyAssignmentEvidence', runtime.indexOf('function classifyMemberAssignmentEvidence(')));
@@ -24,7 +24,7 @@ const checks = [
   ['member evidence no longer gets flattened at the assignment-target wiring site', !runtime.slice(runtime.indexOf('function classifyAssignmentTarget('), runtime.indexOf('function classifyStaticPropertyTarget(')).includes('classifyMember: source => relationOptionFold')],
   ['static-property evidence no longer gets flattened at the assignment-target wiring site', !runtime.slice(runtime.indexOf('function classifyAssignmentTarget('), runtime.indexOf('function classifyStaticPropertyTarget(')).includes('classifyStaticProperty: source => relationOptionFold')],
   ['Laravel invocation judgment and integrated response remain wired', controller.includes('invocationJudgment') && controller.includes('responseJudgment')],
-  ['no relation/foundation subscanner was added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['Phase 2040 audit is registered', typeof pkg.scripts['audit:phase2040-assignment-member-static-property-malformed-judgment-interface-first'] === 'string'],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);

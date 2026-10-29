@@ -421,7 +421,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/channelDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/channelDescriptorClass.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -444,7 +444,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/channelFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/channelFactories.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -467,7 +467,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -490,7 +490,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/patternCompiler.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -513,7 +513,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channelDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channelDescriptors.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -536,7 +536,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -559,7 +559,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifest/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifest/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -582,7 +582,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -605,7 +605,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifest/routeManifestDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -628,7 +628,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifestDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifestDescriptors.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -651,7 +651,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -674,7 +674,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -697,7 +697,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/modelEntityFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelEntityFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -720,7 +720,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/types.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -743,7 +743,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelAccessorDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -766,7 +766,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -789,7 +789,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelColumnDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelColumnDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -812,7 +812,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelEntityDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelEntityDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -835,7 +835,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelRelationDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelRelationDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -858,7 +858,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -881,7 +881,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -904,7 +904,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -927,7 +927,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/types.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -950,7 +950,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -973,7 +973,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -996,7 +996,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1019,7 +1019,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1042,7 +1042,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1065,7 +1065,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionContract.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1088,7 +1088,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/formActionDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1111,7 +1111,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/formFieldDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1134,7 +1134,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1157,7 +1157,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/requestTypeDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1180,7 +1180,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1203,7 +1203,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1226,7 +1226,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1249,7 +1249,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1272,7 +1272,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceFieldDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1295,7 +1295,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resourceDescriptors.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1318,7 +1318,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1341,7 +1341,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/ScannedRouteDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/ScannedRouteDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1364,7 +1364,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1387,7 +1387,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/errorFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/errorFactories.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1410,7 +1410,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1433,7 +1433,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/types.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1456,7 +1456,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/actionRouteFactories.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1479,7 +1479,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureRouteFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1502,7 +1502,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureSyntheticFactories.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1525,7 +1525,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/contractRouteFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/contractRouteFactories.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1548,7 +1548,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerActionRouteFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1571,7 +1571,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerReferenceRouteFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1594,7 +1594,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1617,7 +1617,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/syntheticRouteFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1640,7 +1640,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1663,7 +1663,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1686,7 +1686,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1709,7 +1709,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeQueryParameterDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeQueryParameterDescriptorClass.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1732,7 +1732,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/types.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1755,7 +1755,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeContracts.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeContracts.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1778,7 +1778,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeDeclarations.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1801,7 +1801,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupAstAdapter.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1824,7 +1824,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupContextResolver.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1847,7 +1847,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupSemanticResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupSemanticResolver.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1870,7 +1870,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMethods.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1893,7 +1893,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMutations.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMutations.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1916,7 +1916,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeParameters.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeParameters.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1939,7 +1939,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routePropertyAssigner.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routePropertyAssigner.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1962,7 +1962,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -1985,7 +1985,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeSecurity.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2008,7 +2008,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSemanticFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeSemanticFactories.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2031,7 +2031,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2054,7 +2054,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/types.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2077,7 +2077,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/fieldNodes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/fieldNodes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2100,7 +2100,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2123,7 +2123,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/schemaPayload.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/schemaPayload.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2146,7 +2146,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2169,7 +2169,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2192,7 +2192,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationTreeBuilder.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationTreeBuilder.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2215,7 +2215,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validationDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validationDescriptors.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2238,7 +2238,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/PhpAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/PhpAst.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2261,7 +2261,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/SourceStream.ts",
+      "file": "packages/core/src/compiler/frontend/php/SourceStream.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2284,7 +2284,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/arrayParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2307,7 +2307,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/astClassifier.ts",
+      "file": "packages/core/src/compiler/frontend/php/astClassifier.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2330,7 +2330,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "file": "packages/core/src/compiler/frontend/php/astClassifierEvidence.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2353,7 +2353,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerAstTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2376,7 +2376,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2399,7 +2399,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerBodyParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2422,7 +2422,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2445,7 +2445,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2468,7 +2468,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2491,7 +2491,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerReturnParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2514,7 +2514,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/index.ts",
+      "file": "packages/core/src/compiler/frontend/php/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2537,7 +2537,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/modelAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/modelAstTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2560,7 +2560,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2583,7 +2583,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstAlgebra.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2606,7 +2606,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstCoreTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2629,7 +2629,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstDeclarationTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstDeclarationTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2652,7 +2652,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2675,7 +2675,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstFactory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2698,7 +2698,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstStatementKinds.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2721,7 +2721,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstStatementTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstStatementTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2744,7 +2744,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2767,7 +2767,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpControlEvidence.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2790,7 +2790,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpLexicalSymbols.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpLexicalSymbols.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2813,7 +2813,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpMethodAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpMethodAstTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2836,7 +2836,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpMethodParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2859,7 +2859,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/responseDtoAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/responseDtoAstTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2882,7 +2882,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/responseDtoDeclarationParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2905,7 +2905,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/delimiterNavigation.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2928,7 +2928,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/index.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2951,7 +2951,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2974,7 +2974,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -2997,7 +2997,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3020,7 +3020,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeBindingDeclarationAst.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3043,7 +3043,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3066,7 +3066,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3089,7 +3089,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3112,7 +3112,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3135,7 +3135,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeResourceDeclarationAst.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3158,7 +3158,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3181,7 +3181,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3204,7 +3204,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticClosureEngine.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3227,7 +3227,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3250,7 +3250,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3273,7 +3273,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3296,7 +3296,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3319,7 +3319,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3342,7 +3342,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3365,7 +3365,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3388,7 +3388,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3411,7 +3411,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3434,7 +3434,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3457,7 +3457,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3480,7 +3480,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3503,7 +3503,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationStore.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3526,7 +3526,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3549,7 +3549,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalAlgebra.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3572,7 +3572,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3595,7 +3595,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3618,7 +3618,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalCollections.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3641,7 +3641,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3664,7 +3664,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3687,7 +3687,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3710,7 +3710,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3733,7 +3733,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3756,7 +3756,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticTypedRelation.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3779,7 +3779,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3802,7 +3802,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3825,7 +3825,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxJudgmentRewriteEngine.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxJudgmentRewriteEngine.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3848,7 +3848,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3871,7 +3871,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3894,7 +3894,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3917,7 +3917,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3940,7 +3940,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/serviceAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/serviceAstTypes.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3963,7 +3963,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenEvidence.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenEvidence.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -3986,7 +3986,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -4009,7 +4009,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -4032,7 +4032,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenize/index.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenize/index.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -4055,7 +4055,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenizer.ts",
       "counts": {
         "if": 0,
         "for": 0,

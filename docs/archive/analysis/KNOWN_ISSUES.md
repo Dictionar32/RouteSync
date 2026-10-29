@@ -61,7 +61,7 @@
 
 ### Issue 42: Upstream Lexer Micro-AST Catamorphism & Level 7 Frozen ADT Descriptors with Branded Nominal Types
 **Symptom** → Upstream lexer micro-AST (`PhpAst.ts`) was monolithic (>100 lines) with plain unfrozen object factories, naked numbers/strings, and lack of catamorphic algebra, forcing downstream binders (`fieldBinder.ts`, `resourceAstExpressionMapper.ts`) to use cascading `if` and `switch` statements. In addition, `RouteDef`, `ModelDef`, and `ResourceDef` lacked Level 7 frozen constructors with branded nominal atoms (`RoutePath`, `HttpVerb`, `HttpStatus`), leaving perimeter entities dependent on naked strings and property bags.
-**Where** → `packages/core/src/compiler/scanner/lexer/`, `packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts`, `packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts`, `packages/core/src/types/domain/`.
+**Where** → `packages/core/src/compiler/frontend/php/`, `packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts`, `packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts`, `packages/core/src/types/domain/`.
 **Root cause** → Porous upstream models without branded nominal atoms, unfrozen micro-AST factory nodes, and lack of table-driven catamorphism pattern matchers at the lexer boundary.
 **Fix** → 
 1. Modularized `PhpAst.ts` into 3 single-responsibility files strictly $\le 100$ lines: `phpAstTypes.ts` (branded types `SourceOffset`, `SourceLineNumber`, `AstIdentifier`), `phpAstFactory.ts` (frozen constructors with `Object.freeze`), and `phpAstAlgebra.ts` (constant-time $O(1)$ table-driven catamorphic projector `matchPhpAstValue`).
@@ -106,7 +106,7 @@
 
 ### Issue 39: Porous Route Parameter Bag (SparseRouteParams IPS 137%) & Procedural String Hacking in Route Boundary
 **Symptom** → `SparseRouteParams` interface contained 28 optional fields out of 30 and 13 `any` types (IPS 137%, worst in codebase), triggering defensive parameter guessing and procedural string hacking (`if (action.includes('@'))`) at the route boundary.
-**Where** → `packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts`, `packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts`, `packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts`.
+**Where** → `packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts`, `packages/core/src/compiler/scanner/operations/domain-model/route/factories/actionRouteFactories.ts`, `packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureSyntheticFactories.ts`.
 **Root cause** → Perimeter route parameter bags allowed untyped dictionaries and porous optional bags without complete closed contracts, leading to downstream re-inferencing of controller/action and weak type safety.
 **Fix** → Introduced `RouteBoundaryContract` with 0 optional fields and 0 `any` (IPS 0%), eliminated all 13 `any` in `SparseRouteParams`, decomposed oversized factory files (`actionRouteFactories.ts`, `closureSyntheticFactories.ts`) into focused single-responsibility files under 100 lines (`controllerActionRouteFactory.ts`, `controllerReferenceRouteFactory.ts`, `closureRouteFactory.ts`, `syntheticRouteFactory.ts`), and streamlined `boundaryBasics.ts` from 119 to 79 lines.
 **Regression test** → `packages/sdk/tests/routeBoundaryContractSSOT.spec.ts` › `Route Boundary Contract & Factories SSOT Suite`

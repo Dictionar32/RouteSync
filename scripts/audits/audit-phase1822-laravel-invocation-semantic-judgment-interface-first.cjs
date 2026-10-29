@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const authority = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts');
 const coreExports = read('packages/core/src/index.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/ControllerScanner.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [

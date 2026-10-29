@@ -5,7 +5,7 @@ const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts');
-const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const test = read('packages/core/src/types/upstream/__tests__/controller-static-call-single-class-judgment.phase2065.test.ts');
 const phpNames = read('packages/core/src/types/upstream/phpClassNameResolutionInterface.ts');
 const invocation = read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts');

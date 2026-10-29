@@ -25,10 +25,33 @@ export interface RouteParameterCapabilityReference {
   readonly targetScope: 'collection' | 'member';
 }
 
-export function routeParameterCapabilityFromRoute(
+/** Closed operation surface consumed by route projection and CLI SDK generation. */
+export interface RouteParameterCapabilityOperationsInterface {
+  readonly kind: 'route_parameter_capability_operations';
+  readonly contractVersion: 1;
+  readonly fromRoute: (
+    parameter: RouteParameter,
+    targetScope: 'collection' | 'member',
+  ) => RouteParameterCapabilityContract;
+  readonly referenceFromCapability: (
+    capability: RouteParameterCapabilityContract,
+  ) => RouteParameterCapabilityReference;
+  readonly referencesFromRoute: (
+    route: RouteSemanticFlow,
+  ) => readonly RouteParameterCapabilityReference[];
+  readonly referenceFromRoute: (
+    route: RouteSemanticFlow,
+  ) => RouteParameterCapabilityReference | undefined;
+  readonly targetScopeFromRoute: (route: RouteSemanticFlow) => 'collection' | 'member';
+}
+
+const routeTargetScopeFromRouteImpl = (route: RouteSemanticFlow): 'collection' | 'member' =>
+  route.identity.parameters.path.length > 0 ? 'member' : 'collection';
+
+const routeParameterCapabilityFromRouteImpl = (
   parameter: RouteParameter,
   targetScope: 'collection' | 'member',
-): RouteParameterCapabilityContract {
+): RouteParameterCapabilityContract => {
   const name = parameter.name.value.value;
   return Object.freeze({
     kind: 'route_parameter_capability' as const,
@@ -54,38 +77,40 @@ export function routeParameterCapabilityFromRoute(
     reasoning: semanticReasoningContract('evidence_resolution'),
     closed: true as const,
   });
-}
+};
 
-export function routeParameterCapabilityReferenceFromCapability(
+const routeParameterCapabilityReferenceFromCapabilityImpl = (
   capability: RouteParameterCapabilityContract,
-): RouteParameterCapabilityReference {
-  return Object.freeze({
-    kind: 'route_parameter_capability_reference' as const,
-    name: capability.parameter.name.value.value,
-    targetScope: capability.targetScope,
-  });
-}
+): RouteParameterCapabilityReference => Object.freeze({
+  kind: 'route_parameter_capability_reference',
+  name: capability.parameter.name.value.value,
+  targetScope: capability.targetScope,
+});
 
-
-/** Projection helper: resolve the canonical path parameter once upstream. */
-export function routeParameterCapabilityReferencesFromRoute(
+/** Resolve canonical path-parameter capability references once at the upstream boundary. */
+const routeParameterCapabilityReferencesFromRouteImpl = (
   route: RouteSemanticFlow,
-): readonly RouteParameterCapabilityReference[] {
-  const targetScope = routeTargetScopeFromRoute(route);
-  return route.identity.parameters.path.map((parameter) =>
-    routeParameterCapabilityReferenceFromCapability(
-      routeParameterCapabilityFromRoute(parameter, targetScope),
+): readonly RouteParameterCapabilityReference[] => {
+  const targetScope = routeTargetScopeFromRouteImpl(route);
+  return Object.freeze(route.identity.parameters.path.map((parameter) =>
+    routeParameterCapabilityReferenceFromCapabilityImpl(
+      routeParameterCapabilityFromRouteImpl(parameter, targetScope),
     ),
-  );
-}
+  ));
+};
 
-export function routeParameterCapabilityReferenceFromRoute(
+const routeParameterCapabilityReferenceFromRouteImpl = (
   route: RouteSemanticFlow,
-): RouteParameterCapabilityReference | undefined {
-  return routeParameterCapabilityReferencesFromRoute(route)[0];
-}
+): RouteParameterCapabilityReference | undefined =>
+  routeParameterCapabilityReferencesFromRouteImpl(route)[0];
 
-
-export function routeTargetScopeFromRoute(route: RouteSemanticFlow): 'collection' | 'member' {
-  return route.identity.parameters.path.length > 0 ? 'member' : 'collection';
-}
+/** Runtime operation object is the only exported value-level authority for this contract. */
+export const routeParameterCapabilityOperations: RouteParameterCapabilityOperationsInterface = Object.freeze({
+  kind: 'route_parameter_capability_operations',
+  contractVersion: 1,
+  fromRoute: routeParameterCapabilityFromRouteImpl,
+  referenceFromCapability: routeParameterCapabilityReferenceFromCapabilityImpl,
+  referencesFromRoute: routeParameterCapabilityReferencesFromRouteImpl,
+  referenceFromRoute: routeParameterCapabilityReferenceFromRouteImpl,
+  targetScopeFromRoute: routeTargetScopeFromRouteImpl,
+});

@@ -3,11 +3,11 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const relations = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts');
-const state = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts');
-const adapter = read('packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts');
-const evidence = read('packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts');
-const controller = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const relations = read('packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts');
+const state = read('packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts');
+const adapter = read('packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts');
+const evidence = read('packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts');
+const controller = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const packageJson = JSON.parse(read('package.json'));
 
 const checks = {

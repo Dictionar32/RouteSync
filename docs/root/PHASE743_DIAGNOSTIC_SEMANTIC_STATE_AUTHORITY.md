@@ -4,7 +4,7 @@
 
 The authoritative local build reported DTS failures in:
 
-`packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts`
+`packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts`
 
 Missing canonical symbols:
 - `SemanticAccessMember`
@@ -44,10 +44,10 @@ The audit confirms the following source files are already empty and have no prod
 
 - `packages/core/src/compiler/analysis/legacyFlow.ts`
 - `packages/core/src/compiler/contracts.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts`
 - `packages/core/src/compiler/scanner/scannerLegacyDelegates.ts`
 - `packages/core/src/types/domain/resourceAggregateResolver.ts`
 - `packages/core/src/types/domain/resourceCollectionGroupModel.ts`

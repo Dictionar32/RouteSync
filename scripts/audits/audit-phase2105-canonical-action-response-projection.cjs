@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const boundary = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const actionExecutionContract = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
-const actionScanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const actionScanner = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const response = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const lattice = read('packages/core/src/semantic/relations/relationalSequence.ts');
@@ -17,7 +17,7 @@ const checks = [
   ['invocation judgment owns source identity and an outcome-indexed integrated response', invocation.includes('readonly sourceFile: SourceFile') && invocation.includes('readonly response: Extract<PhpSourceInvocationSemanticPipelineIntegrationResult')],
   ['AST response projection is indexed by the exact invocation judgment', invocation.includes('LaravelControllerAstProjectionResponseJudgment<InvocationJudgment>')],
   ['response semantics have a separate canonical product ADT', response.includes('export type LaravelControllerResponseSemanticProduct =') && response.includes("readonly kind: 'object_response'")],
-  ['controller scanner does not import relations, foundation, or subscanners directly', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('subscanners/')],
+  ['controller scanner does not import relations, foundation, or operations directly', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('operations/')],
   ['fixed-point result distinguishes convergence from round-limit exhaustion', lattice.includes("kind: 'fixed_point_converged'") && lattice.includes("kind: 'fixed_point_round_limit_reached'")],
   ['fixed-point result counts actual transfer applications', lattice.includes('const rounds = completedRounds + 1')],
   ['fixed-point cap is represented as non-converged rather than closed', lattice.includes('converged: false, limit: maxRounds')],

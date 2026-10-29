@@ -1,0 +1,90 @@
+{
+  "phase": 2718,
+  "title": "Fully Typed AST ADT Runtime Scanner Operations — Request AST Ownership",
+  "checksPassed": 9,
+  "checksTotal": 9,
+  "checks": [
+    {
+      "name": "request AST canonicalization has one semantic owner",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "canonicalization uses the upstream interface and immutable object",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "canonicalization module exports no functions",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "duplicate field-conversion implementation removed",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "operations request producer uses semantic owner",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "subscanner request producer uses semantic owner",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "deleted relationFoundation implementation file stays absent",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "CLI scan/sync and manifest composition trace anchors exist",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "legacy consumers of removed relationFoundation are explicitly counted (not hidden)",
+      "pass": true,
+      "detail": "28 source files still import the removed module; build/typecheck is expected to fail until each consumer is migrated"
+    }
+  ],
+  "unresolvedFoundationImportFiles": 28,
+  "unresolvedFoundationImportPaths": [
+    "packages/core/src/compiler/analysis/SymbolAnalysis.ts",
+    "packages/core/src/compiler/analysis/dominator/dominanceFrontier.ts",
+    "packages/core/src/compiler/analysis/dominator/dominatorTree.ts",
+    "packages/core/src/compiler/analysis/loop/loopDetector.ts",
+    "packages/core/src/compiler/analysis/loop/loopNormalizer.ts",
+    "packages/core/src/compiler/analysis/ssa/renamer/blockInstructionRenamer.ts",
+    "packages/core/src/compiler/analysis/ssa/renamer/variableVersionScope.ts",
+    "packages/core/src/compiler/analysis/ssa/ssaBuilder.ts",
+    "packages/core/src/compiler/analysis/ssa/ssaRenamer.ts",
+    "packages/core/src/compiler/analysis/symbol/symbolGraph.ts",
+    "packages/core/src/compiler/analysis/symbol/symbolHierarchy.ts",
+    "packages/core/src/compiler/optimization/LICM.ts",
+    "packages/core/src/compiler/query/TypedCache.ts",
+    "packages/core/src/compiler/query/cache/queryKey.ts",
+    "packages/core/src/compiler/query/cache/storage.ts",
+    "packages/core/src/compiler/query/salsa/queryExecutor.ts",
+    "packages/core/src/compiler/query/salsa/queryGraphManager.ts",
+    "packages/core/src/compiler/query/salsa/salsaTypes.ts",
+    "packages/core/src/compiler/utils/cfg/basicBlock.ts",
+    "packages/core/src/compiler/verification/CFGVerifier.ts",
+    "packages/core/src/graph/service/graphAssembler.ts",
+    "packages/core/src/graph/service/manifestGraphCompiler.ts",
+    "packages/core/src/semantic/relations/relationMembership.ts",
+    "packages/core/src/semantic/relations/relationalSequence.ts",
+    "packages/core/src/semantic/relations/semanticRelationalCollections.ts",
+    "packages/core/src/semantic/relations/semanticRelations.ts",
+    "packages/core/src/types/upstream/__test__/routeDomainAuthority.phase1551.test.ts",
+    "packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts"
+  ],
+  "validation": {
+    "staticAudit": "PASS",
+    "typecheck": "NOT_RUN",
+    "unitTests": "NOT_RUN",
+    "cliEndToEnd": "NOT_RUN"
+  }
+}

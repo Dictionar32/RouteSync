@@ -1,0 +1,38 @@
+{
+  "phase": 3038,
+  "title": "Object Identity — Explicit Membership and Proof-Premise Domain Operations",
+  "scope": "Move identity membership, alias-pair matching, and identity-link premise selection behind explicit upstream domain operations and remove collection lookup combinators from the object identity runtime authority.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "Invocation semantic pipeline reuses canonical SemanticKnowledgeDataFlow",
+    "semanticObjectIdentityAuthority analyzes canonical knowledge and publishes objectIdentity",
+    "semanticObjectIdentityOperations owns KnowledgeId membership, unordered alias-pair membership, and proof-premise selection",
+    "Alias evidence and proof derivations remain attached to the typed analysis result"
+  ],
+  "checks": {
+    "knowledgeIdMembershipIsClosedTypedJudgment": true,
+    "aliasPairMembershipIsClosedTypedJudgment": true,
+    "proofPremiseSelectionIsDomainOperation": true,
+    "identityDedupUsesTypedMembershipOperation": true,
+    "aliasDedupPreservesAllEvidence": true,
+    "noCollectionLookupCombinatorsInAuthority": true,
+    "noTernaryOrSwitchInAuthority": true,
+    "noStrictEqualityOperatorInDomainAuthority": true,
+    "exportedOperationsRemainInterfaceBacked": true,
+    "aliasLookupIsDomainOwned": true,
+    "regressionCoversMembershipAndProofEvidence": true,
+    "runtimePipelineStillExecutesObjectIdentity": true,
+    "cliManifestTraceRemainsInterfaceBacked": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 15,
+  "total": 15,
+  "remainingDebt": [
+    "The TypeScript type predicate isAssignmentFact remains at the discriminated-fact boundary to preserve safe narrowing without an unsafe assertion.",
+    "The migration is scoped to the object-identity authority; it does not claim repository-wide elimination of primitive types or all control constructs.",
+    "Typecheck, Vitest, and CLI-to-manifest end-to-end execution remain unverified because project dependencies are unavailable."
+  ],
+  "failedChecks": []
+}

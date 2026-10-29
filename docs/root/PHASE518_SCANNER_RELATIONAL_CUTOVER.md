@@ -5,7 +5,7 @@
 This phase closes two remaining imperative scanner surfaces:
 
 - `packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts`
-- `packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts`
+- `packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts`
 
 The migration keeps scanner syntax as evidence and moves selection, presence, traversal, aggregation, and canonical construction into the relational kernel.
 

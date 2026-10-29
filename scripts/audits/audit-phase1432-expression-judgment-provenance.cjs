@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const candidate = read('packages/core/src/types/upstream/scannerExpressionCandidateAlgebra.ts');
 const structure = read('packages/core/src/types/upstream/scannerExpressionStructure.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const judgmentAuthority = read('packages/core/src/types/upstream/scannerExpressionStructure.ts');
 const checks = [

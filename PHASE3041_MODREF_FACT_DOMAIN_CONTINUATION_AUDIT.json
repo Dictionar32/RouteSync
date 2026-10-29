@@ -1,0 +1,37 @@
+{
+  "phase": 3041,
+  "title": "Mod/Ref Fact Domain Continuation — Superseded by Concrete Phase 3043 Contract",
+  "scope": "Historical checkpoint updated to verify the Phase 3043 correction: generic continuation is retired, concrete mod/ref assessments are consumed by a domain aggregation operation, and no mod/ref inference is fabricated.",
+  "runtimePath": [
+    "CLI manifest scan operation interface",
+    "controller invocation manifest composition",
+    "invocation semantic pipeline provides canonical SemanticKnowledgeDataFlow",
+    "semanticObjectIdentityAuthority.analyze(model)",
+    "semanticObjectIdentityOperations.modRefEvidence(model)",
+    "canonical producer emits typed modRefFacts beside SemanticFact",
+    "semanticModRefFactOperations.blockers(facts) aggregates source-backed blockers"
+  ],
+  "checks": {
+    "sourceFactAssessmentHasClosedBlockerAdt": false,
+    "genericContinuationRetiredByPhase3043": true,
+    "identityContractDelegatesFactClassification": true,
+    "sourceIdentityAndProvenanceArePreserved": true,
+    "canonicalModelStillFeedsModRefOperation": true,
+    "regressionExercisesConcreteAssessment": false,
+    "runtimePipelineStillUsesCanonicalKnowledge": true,
+    "cliManifestOperationRemainsInterfaceBacked": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 8,
+  "total": 10,
+  "remainingDebt": [
+    "Phase 3044 supersedes the consumer-side classifier by emitting effect evidence at canonical fact construction sites.",
+    "Mod/ref inference rules and callable effect summaries remain unimplemented; source-backed blockers remain explicit.",
+    "Static audit does not replace full typecheck, Vitest, or CLI-to-manifest end-to-end verification."
+  ],
+  "failedChecks": [
+    "sourceFactAssessmentHasClosedBlockerAdt",
+    "regressionExercisesConcreteAssessment"
+  ]
+}

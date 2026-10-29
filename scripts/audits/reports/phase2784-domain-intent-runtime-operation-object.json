@@ -1,0 +1,14 @@
+{
+  "phase": 2784,
+  "title": "Domain Intent Runtime Operation Object Closure",
+  "passed": true,
+  "checks": 15,
+  "passedChecks": 15,
+  "failedChecks": [],
+  "limits": [
+    "Structural source audit only; no full TypeScript build, complete test suite, or CLI end-to-end run is claimed.",
+    "The public function exports were replaced with domainIntentCapabilityRuntimeOperations; consumers must use its named properties.",
+    "The existing semantic reasoning contract remains required by the current domain capability contract; no new reasoning primitive was introduced.",
+    "collections.ts remains intentionally empty and legacy imports elsewhere are not resolved by this phase."
+  ]
+}

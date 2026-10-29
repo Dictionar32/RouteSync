@@ -1,0 +1,33 @@
+{
+  "phase": 2941,
+  "title": "Upstream CLI Manifest Trace and ADT Operation Gap Audit",
+  "scope": "Trace the canonical CLI manifest runtime path and document the remaining route-scan ADT continuation gap without claiming it is already fixed.",
+  "trace": [
+    "CLI scan/sync commands",
+    "upstreamCompositionFactory",
+    "routeSyncCliManifestScanOperationFactory",
+    "controllerInvocationManifestCompositionAuthority",
+    "LaravelSourceAstPipelineInterface.execute",
+    "LaravelRouteScannerInterface.prepare/execute",
+    "PhpSourceDocumentReaderInterface.read",
+    "PhpSourceDocumentReadBatchJudgment.continueWith",
+    "LaravelSourceAstProjectionJudgment",
+    "ManifestBuilderJudgment",
+    "CLI continueForDriftAudit"
+  ],
+  "remainingDownstreamRouteKindDispatches": 4,
+  "remainingDispatchKinds": [
+    "laravel_route_scan_blocked",
+    "laravel_route_scan_source_read_blocked",
+    "laravel_route_scan_response_blocked",
+    "laravel_route_scan_policy_blocked"
+  ],
+  "collectionsTsEmpty": true,
+  "fullTypecheck": "not verified",
+  "unitTests": "not verified",
+  "build": "not verified",
+  "cliEndToEnd": "not verified",
+  "status": "audit and root-cause implementation plan; downstream route-scan dispatch not yet removed",
+  "currentExportFunctionDeclarationCount": 478,
+  "exportFunctionMigrationStatus": "not complete; count is a text scan, not a compiler-aware inventory"
+}

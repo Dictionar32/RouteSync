@@ -1,0 +1,17 @@
+{
+  "phase": 3123,
+  "subject": "Explicit typed AST domain sequences; generic sequence factory retired",
+  "checksPassed": 9,
+  "checksFailed": 0,
+  "checks": [
+    "generic AstSequence<T> is retired",
+    "sequence payloads have explicit domain types",
+    "domain sequence operations have an explicit interface",
+    "relation facts use their own typed sequence",
+    "proof premises and evidence facts retain typed payloads",
+    "AST construction calls explicit domain operations without generic arguments",
+    "semantic bridge is specialized to relation facts",
+    "deleted relation foundation modules are not recreated by this migration",
+    "existing AST derivation operation remains interface-owned"
+  ]
+}

@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const producerRelations = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts'), 'utf8');
+const producerRelations = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts'), 'utf8');
 const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts'), 'utf8');
 const assertions = [
   ['producer input composer no longer accepts concrete RouteDeclarationAst', /routeProducerInputFromRouteBoundary\s*=\s*\(\s*route:[\s\S]*?declarationEvidence:\s*RouteDeclarationEvidence,\s*source:/.test(producerRelations) && !/routeProducerInputFromRouteBoundary\s*=\s*\([\s\S]{0,300}declaration:\s*RouteDeclarationAst/.test(producerRelations)],

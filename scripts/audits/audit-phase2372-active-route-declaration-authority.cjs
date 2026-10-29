@@ -6,7 +6,7 @@ const scannerPath = 'packages/core/src/compiler/scanner/wiring/laravelRouteScann
 const scanner = read(scannerPath);
 const contract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const evidence = read('packages/core/src/types/upstream/routeDeclarationEvidence.ts');
-const producerRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const producerRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const checks = {
   activeScannerIsWiredIntoSourceAstPipeline: /import \{ laravelRouteScanner \} from '\.\/laravelRouteScanner'/.test(read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts')),
   scannerContractInjectsExistingMethodAuthority: /declarationMethodAuthority: LaravelRouteDeclarationMethodJudgmentAuthority/.test(contract),

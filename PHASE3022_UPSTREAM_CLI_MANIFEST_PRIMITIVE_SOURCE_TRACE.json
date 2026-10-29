@@ -1,0 +1,32 @@
+{
+  "phase": 3022,
+  "title": "Upstream CLI Manifest Primitive Source Trace",
+  "scope": "Fix duplicate stringValue constructor ownership and document runtime conversion frontier",
+  "changes": [
+    "names.ts exports the canonical interface-backed StringValue factory",
+    "duplicate stringValue function constructor removed",
+    "routeDataFlow.ts invokes stringValue.create at text-ingestion projection"
+  ],
+  "runtimeTrace": [
+    "CLI manifest scan operation",
+    "controller invocation manifest composition",
+    "source project identity canonicalization",
+    "controller source discovery",
+    "source document read and identity binding",
+    "source invocation semantic pipeline and judgment authority",
+    "inventory validation and manifest preparation",
+    "manifest judgment adapted to executable CLI terminal ADT"
+  ],
+  "remaining": [
+    "domain name factories still accept raw string",
+    "numberValue still accepts number and remains a function export",
+    "truthValue still accepts boolean and remains a function export",
+    "semantic vocabulary/reference helpers require domain ownership trace",
+    "queryEvidenceProducer relation-foundation imports require separate migration without restoring deleted modules"
+  ],
+  "verification": {
+    "fullTypecheck": "not_run",
+    "tests": "not_run",
+    "primitiveElimination": "incomplete"
+  }
+}

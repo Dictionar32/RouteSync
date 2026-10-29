@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
-const canonicalPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const canonicalPath = path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const scannerPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const upstreamPath = path.join(root, 'packages/core/src/types/upstream/controller.ts');
 const canonical = fs.readFileSync(canonicalPath, 'utf8');
@@ -19,7 +19,7 @@ const checks = [
   ['method attributes are projected once before policy derivation', canonical.includes('const attributes = controllerMethodAttributesFromMethod(method, [...controllerInheritedAttributes, ...controllerAttributes], file);') && canonical.includes('controllerPolicyRelationsFromAttributes(attributes,')],
   ['no parallel invocation or response authority is introduced', !canonical.includes('InvocationSemanticAuthorityInterface') && !canonical.includes('ControllerResponseSemanticAuthority')],
   ['existing invocation judgment and integrated response wiring remains present', scanner.includes('controllerProducer.produce({ declaration: declarationEvidence, invocationJudgment })') && scanner.includes('responseJudgmentFor(invocationJudgment, declarationEvidence, responseSemanticPipeline)')],
-  ['no relation/foundation subscanner is introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation'))],
+  ['no relation/foundation subscanner is introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation'))],
   ['AST/ADT action semantic remains typed as ControllerSemanticDataflow', upstream.includes('readonly semantic: ControllerSemanticDataflow;') && upstream.includes('readonly kind: \'controller_action\';')],
 ];
 let passed = 0;

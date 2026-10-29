@@ -5,7 +5,7 @@ const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const digest = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const producer = read('packages/core/src/types/upstream/controllerProducerInterface.ts');
 const pkg = JSON.parse(read('package.json'));

@@ -3,7 +3,7 @@ const path = require('path');
 const ts = require('typescript');
 
 const roots = [
-  'packages/core/src/compiler/scanner/lexer',
+  'packages/core/src/compiler/frontend/php',
   'packages/core/src/compiler/scanner/semantic',
   'packages/core/src/semantic/plugins',
   'packages/cli/src/resolvers',

@@ -43,21 +43,21 @@ const cliFactoryImplementation = fs.existsSync(path.join(root, cliFactoryFile))
   ? read(path.join(root, cliFactoryFile))
   : null;
 
-const canonicalProducer = path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducer.ts');
-const canonicalRelations = path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const canonicalProducer = path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducer.ts');
+const canonicalRelations = path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const canonicalProducerText = read(canonicalProducer);
 const canonicalRelationsText = read(canonicalRelations);
 
 const preservedLegacyFactoryFiles = [
-  'packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/index.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/contractRouteFactories.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/factories/routeMutations.ts'
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/syntheticRouteFactory.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/index.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/contractRouteFactories.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureRouteFactory.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerActionRouteFactory.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureSyntheticFactories.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerReferenceRouteFactory.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/actionRouteFactories.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/factories/routeMutations.ts'
 ];
 
 const preservedLegacyStatus = preservedLegacyFactoryFiles.map(file => {

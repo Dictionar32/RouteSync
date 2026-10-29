@@ -4,8 +4,8 @@ const root = path.resolve('packages/core/src');
 const targets = [
   'semantic/kernel/syntax/parserAdapterRelations.ts',
   'compiler/constraints/solver/declarativeConstraintRelations.ts',
-  'compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'semantic/plugins/expression/ternaryHandler.ts',
 ];
 const patterns = {

@@ -69,11 +69,11 @@ const activeParsedReferences = tsFiles.filter(file => !file.includes(`${path.sep
   return legacyParsedFiles.filter(name => source.includes(path.basename(name, '.ts'))).map(name => ({ file: relative(file), reference: name }));
 }).filter(item => !legacyParsedFiles.includes(item.file));
 
-const arrayParser = read(path.join(root, 'packages/core/src/compiler/scanner/lexer/arrayParser.ts'));
-const routeAstIndex = read(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/index.ts'));
-const calculus = read(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts'));
-const rewriteInterface = read(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts'));
-const syntaxRelationProgram = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts');
+const arrayParser = read(path.join(root, 'packages/core/src/compiler/frontend/php/arrayParser.ts'));
+const routeAstIndex = read(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/index.ts'));
+const calculus = read(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts'));
+const rewriteInterface = read(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts'));
+const syntaxRelationProgram = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts');
 const astInterface = read(path.join(root, 'packages/core/src/types/upstream/astSemanticInterface.ts'));
 const diagnostic = read(path.join(root, 'packages/core/src/compiler/diagnostics/Diagnostic.ts'));
 const diagnosticBag = read(path.join(root, 'packages/core/src/compiler/diagnostics/DiagnosticBag.ts'));

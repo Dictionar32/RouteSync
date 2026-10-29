@@ -2,7 +2,7 @@
 
 ## Scope
 
-This phase continues the semantic-authority migration from Phase 491 at the scanner/lexer and resolver frontier.
+This phase continues the semantic-authority migration from Phase 491 at the frontend/php and resolver frontier.
 
 The rule is: source-language vocabulary remains data, while host TypeScript control/absence/casting constructs are not allowed to become semantic authority.
 
@@ -53,4 +53,4 @@ A repository-wide `tsc --noEmit` remains blocked by the existing environment dep
 
 ## Remaining frontier
 
-The next scanner/lexer authority hotspot is `astClassifierEvidence.ts`, where host ternary expressions and legacy absence values still remain. Those must be converted to candidate/guard/option relations rather than mechanically renamed helpers.
+The next frontend/php authority hotspot is `astClassifierEvidence.ts`, where host ternary expressions and legacy absence values still remain. Those must be converted to candidate/guard/option relations rather than mechanically renamed helpers.

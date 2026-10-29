@@ -6,7 +6,7 @@ const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipeli
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const publicIndex = read('packages/core/src/index.ts');
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
-const producer = read('packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts');
+const producer = read('packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 

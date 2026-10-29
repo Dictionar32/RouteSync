@@ -6,7 +6,7 @@ const judgment = read('packages/core/src/types/upstream/laravelControllerActionS
 const dependencies = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
-const resourceDerivation = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const resourceDerivation = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const response = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const checks = [
   ['canonical action semantic knowledge reuses the existing ControllerResourceBinding domain type', /readonly resourceBindings: readonly ControllerResourceBinding\[\]/.test(judgment)],

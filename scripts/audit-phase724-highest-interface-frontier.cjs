@@ -42,11 +42,11 @@ const laravelEvidence = [
 ].every(fs.existsSync);
 
 const legacyResourceDescriptorFiles = [
-  'compiler/scanner/descriptors/resource/index.ts',
-  'compiler/scanner/descriptors/resource/resourceDescriptorClass.ts',
-  'compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts',
-  'compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts',
-  'compiler/scanner/descriptors/resourceDescriptors.ts',
+  'compiler/scanner/operations/domain-model/resource/index.ts',
+  'compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts',
+  'compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts',
+  'compiler/scanner/operations/domain-model/resource/resourceFieldDescriptor.ts',
+  'compiler/scanner/operations/domain-model/resourceDescriptors.ts',
 ].map(part => path.join(core, part));
 const legacyResourceDescriptorFilesEmpty = legacyResourceDescriptorFiles.every(file => fs.existsSync(file) && fs.statSync(file).size === 0);
 
@@ -61,7 +61,7 @@ const result = {
   },
   nextFrontier: [
     'replace ResourceFieldDescriptor production consumers with upstream ResourceField plus semantic witness/bound binding',
-    'cut scanner/lexer and resolver control constructs over to declarative relation programs',
+    'cut frontend/php and resolver control constructs over to declarative relation programs',
     'cut analysis and semantic type lowering over to closed ADTs and fixed-point solver/rewrite engine',
     'empty only legacy files proven unreachable by exact import audit',
   ],

@@ -15,7 +15,7 @@ Phase 397 continues the architecture established by declarative rewrite and rela
 
 ## Implemented
 
-`packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts`
+`packages/core/src/compiler/frontend/php/modelDeclarationParser.ts`
 
 - `for` traversal replaced with recursive relation closure.
 - `if` branches replaced with `relationGate`/relation selection.

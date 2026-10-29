@@ -3,8 +3,8 @@ const path = require('path');
 const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/lib/typescript.js');
 const root = path.resolve(__dirname, '..');
 const files = [
-  'packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/requestTypeDescriptor.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts',
   'packages/core/src/compiler/projectors/FormModelProjector.ts',
   'packages/core/src/types/domain/request.ts',

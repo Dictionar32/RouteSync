@@ -2,7 +2,7 @@
 
 ## Scope
 
-Audit lanjutan memeriksa boundary `phase93/packages/core/src/compiler/scanner/lexer/routeAst` untuk memastikan positional arithmetic (`i + N`, `index + N`, `tokens[index ± N]`) tidak menjadi tempat penyimpanan pengetahuan syntax.
+Audit lanjutan memeriksa boundary `phase93/packages/core/src/compiler/frontend/php/routeAst` untuk memastikan positional arithmetic (`i + N`, `index + N`, `tokens[index ± N]`) tidak menjadi tempat penyimpanan pengetahuan syntax.
 
 ## Result
 

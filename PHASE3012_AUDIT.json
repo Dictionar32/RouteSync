@@ -1,0 +1,72 @@
+{
+  "phase": 3012,
+  "title": "Preparation Input Operational ADT",
+  "checks": [
+    {
+      "name": "preparation input owns continueToPreparation operation",
+      "passed": true
+    },
+    {
+      "name": "input factory has explicit interface annotation and frozen object",
+      "passed": true
+    },
+    {
+      "name": "input factory constructs canonical frozen input",
+      "passed": true
+    },
+    {
+      "name": "runtime composition constructs input through canonical factory",
+      "passed": true
+    },
+    {
+      "name": "runtime composition continues via ADT-owned domain operation",
+      "passed": true
+    },
+    {
+      "name": "runtime composition no longer calls preparation factory directly",
+      "passed": true
+    },
+    {
+      "name": "input factory exported from upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "legacy preparation operation remains available for compatible callers",
+      "passed": true
+    },
+    {
+      "name": "pipeline authority factory is an explicitly typed frozen interface object",
+      "passed": true
+    },
+    {
+      "name": "pipeline authority factory exposes a named create operation",
+      "passed": true
+    },
+    {
+      "name": "CLI runtime calls the typed factory create operation",
+      "passed": true
+    },
+    {
+      "name": "old callable pipeline factory export removed from source barrels",
+      "passed": true
+    },
+    {
+      "name": "collections.ts remains whitespace-only",
+      "passed": true
+    },
+    {
+      "name": "deleted relationMembership foundation remains absent",
+      "passed": true
+    },
+    {
+      "name": "deleted relationalSequence foundation remains absent",
+      "passed": true
+    },
+    {
+      "name": "deleted semanticRelations foundation remains absent",
+      "passed": true
+    }
+  ],
+  "passed": 16,
+  "total": 16
+}

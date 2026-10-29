@@ -1,243 +1,116 @@
 import type { ArtifactKey } from '../../artifacts/types';
 import type { ExecutablePass } from '../ExecutablePass';
-import {
-  relationContains,
-  relationIndexAdd,
-  relationIndexLookup,
-  type RelationIndex,
-} from '../../../semantic/relations/relationMembership';
-import {
-  relationAny,
-  relationEqual,
-  relationFirstOption,
-  relationOptionFold,
-  relationProject,
-  relationResolve,
-} from '../../../semantic/relations/relationalSequence';
 
-export type PassRelationIndex = RelationIndex<string, ExecutablePass>;
-export type ProducerRelationIndex = RelationIndex<ArtifactKey, ExecutablePass>;
-export type AdjacencyRelation = RelationIndex<ArtifactKey, readonly ExecutablePass[]>;
-
-export interface GraphAnalysis {
-  readonly producers: ProducerRelationIndex;
-  readonly nodes: PassRelationIndex;
-  readonly adjacency: AdjacencyRelation;
+export interface PassGraphAnalysisInterface {
+  readonly producers: readonly Readonly<{ artifact: ArtifactKey; pass: ExecutablePass }>[];
+  readonly nodes: readonly Readonly<{ name: string; pass: ExecutablePass }>[];
+  readonly adjacency: readonly Readonly<{ artifact: ArtifactKey; passes: readonly ExecutablePass[] }>[];
+  readonly producerOf: (artifact: ArtifactKey) => ExecutablePass | undefined;
+  readonly containsRemainingProducer: (artifact: ArtifactKey, remaining: readonly ExecutablePass[]) => boolean;
+  readonly dependentsOf: (artifact: ArtifactKey) => readonly ExecutablePass[];
 }
 
-const relationUniqueArtifacts = (
-  values: readonly ArtifactKey[],
-  index = 0,
-  output: readonly ArtifactKey[] = [],
-): readonly ArtifactKey[] => relationResolve(
-  relationEqual(index, values.length),
-  () => output,
-  () => relationUniqueArtifacts(
-    values,
-    index + 1,
-    relationResolve(
-      relationContains(output, values[index]),
-      () => output,
-      () => [...output, values[index]],
-    ),
-  ),
-);
+export interface PassGraphAnalysisOperationsInterface {
+  readonly buildAdjacency: (passes: readonly ExecutablePass[]) => PassGraphAnalysisInterface['adjacency'];
+  readonly analyze: (passes: readonly ExecutablePass[], externalInputs?: readonly ArtifactKey[]) => PassGraphAnalysisInterface;
+}
 
-const appendDependent = (
-  adjacency: AdjacencyRelation,
-  artifact: ArtifactKey,
-  pass: ExecutablePass,
-): AdjacencyRelation => relationIndexAdd(
-  adjacency,
-  artifact,
-  [
-    ...relationOptionFold(
-      relationIndexLookup(adjacency, artifact),
-      () => [] as readonly ExecutablePass[],
-      value => value,
-    ),
-    pass,
-  ],
-);
+const sameArtifact = (left: ArtifactKey, right: ArtifactKey): boolean => left === right;
+const samePass = (left: ExecutablePass, right: ExecutablePass): boolean => left.name === right.name;
 
-const buildAdjacencyArtifacts = (
-  passes: readonly ExecutablePass[],
-  passIndex: number,
-  artifacts: readonly ArtifactKey[],
-  artifactIndex: number,
-  adjacency: AdjacencyRelation,
-): AdjacencyRelation => relationResolve(
-  relationEqual(artifactIndex, artifacts.length),
-  () => buildAdjacencyAt(passes, passIndex + 1, adjacency),
-  () => buildAdjacencyArtifacts(
-    passes,
-    passIndex,
-    artifacts,
-    artifactIndex + 1,
-    appendDependent(adjacency, artifacts[artifactIndex], passes[passIndex]),
-  ),
-);
+const uniqueArtifacts = (values: readonly ArtifactKey[]): readonly ArtifactKey[] => {
+  const unique: ArtifactKey[] = [];
+  for (const value of values) {
+    if (!unique.some((candidate) => sameArtifact(candidate, value))) unique.push(value);
+  }
+  return unique;
+};
 
-const buildAdjacencyAt = (
-  passes: readonly ExecutablePass[],
-  passIndex: number,
-  adjacency: AdjacencyRelation,
-): AdjacencyRelation => relationResolve(
-  relationEqual(passIndex, passes.length),
-  () => adjacency,
-  () => buildAdjacencyArtifacts(
-    passes,
-    passIndex,
-    passes[passIndex].descriptor.consumes,
-    0,
-    adjacency,
-  ),
-);
+const buildAdjacency = (passes: readonly ExecutablePass[]): PassGraphAnalysisInterface['adjacency'] => {
+  const adjacency: { artifact: ArtifactKey; passes: ExecutablePass[] }[] = [];
+  for (const pass of passes) {
+    for (const artifact of pass.descriptor.consumes) {
+      const existing = adjacency.find((entry) => sameArtifact(entry.artifact, artifact));
+      if (existing) existing.passes.push(pass);
+      else adjacency.push({ artifact, passes: [pass] });
+    }
+  }
+  return Object.freeze(adjacency.map((entry) => Object.freeze({
+    artifact: entry.artifact,
+    passes: Object.freeze([...entry.passes]),
+  })));
+};
 
-export const buildAdjacency = (passes: readonly ExecutablePass[]): AdjacencyRelation =>
-  buildAdjacencyAt(passes, 0, []);
-
-const validatePassNames = (
-  passes: readonly ExecutablePass[],
-  index: number,
-  nodes: PassRelationIndex,
-): PassRelationIndex => relationResolve(
-  relationEqual(index, passes.length),
-  () => nodes,
-  () => {
-    const pass = passes[index];
-    return relationResolve(
-      relationEqual(pass.name, ''),
-      () => { throw Error('Compiler pass requires a name'); },
-      () => relationOptionFold(
-        relationIndexLookup(nodes, pass.name),
-        () => validatePassNames(passes, index + 1, relationIndexAdd(nodes, pass.name, pass)),
-        () => { throw Error(`Duplicate compiler pass name: ${pass.name}`); },
-      ),
-    );
-  },
-);
-
-const validateProducedArtifacts = (
-  pass: ExecutablePass,
-  artifacts: readonly ArtifactKey[],
-  index: number,
-  seen: readonly ArtifactKey[],
-  producers: ProducerRelationIndex,
-  external: readonly ArtifactKey[],
-): ProducerRelationIndex => relationResolve(
-  relationEqual(index, artifacts.length),
-  () => producers,
-  () => {
-    const artifact = artifacts[index];
-    return relationResolve(
-      relationContains(seen, artifact),
-      () => { throw Error(`Pass ${pass.name} declares duplicate output artifact: ${artifact}`); },
-      () => relationResolve(
-        relationContains(external, artifact),
-        () => { throw Error(`Artifact ${artifact} cannot be both external input and pass output`); },
-        () => relationOptionFold(
-          relationIndexLookup(producers, artifact),
-          () => validateProducedArtifacts(
-            pass,
-            artifacts,
-            index + 1,
-            [...seen, artifact],
-            relationIndexAdd(producers, artifact, pass),
-            external,
-          ),
-          () => { throw Error(`Multiple producers detected at artifact: ${artifact}`); },
-        ),
-      ),
-    );
-  },
-);
-
-const validatePasses = (
-  passes: readonly ExecutablePass[],
-  index: number,
-  producers: ProducerRelationIndex,
-  external: readonly ArtifactKey[],
-): ProducerRelationIndex => relationResolve(
-  relationEqual(index, passes.length),
-  () => producers,
-  () => {
-    const pass = passes[index];
-    const consumes = relationUniqueArtifacts(pass.descriptor.consumes);
-    const overlap = relationAny(relationProject(
-      consumes,
-      artifact => relationContains(pass.descriptor.produces, artifact),
-    ));
-    return relationResolve(
-      overlap,
-      () => { throw Error(`Pass ${pass.name} both consumes and produces an artifact`); },
-      () => validatePasses(
-        passes,
-        index + 1,
-        validateProducedArtifacts(pass, pass.descriptor.produces, 0, [], producers, external),
-        external,
-      ),
-    );
-  },
-);
-
-const validateDependencies = (
-  pass: ExecutablePass,
-  artifacts: readonly ArtifactKey[],
-  index: number,
-  producers: ProducerRelationIndex,
-  external: readonly ArtifactKey[],
-): void => relationResolve(
-  relationEqual(index, artifacts.length),
-  () => {},
-  () => {
-    const artifact = artifacts[index];
-    relationOptionFold(
-      relationIndexLookup(producers, artifact),
-      () => relationResolve(
-        relationContains(external, artifact),
-        () => validateDependencies(pass, artifacts, index + 1, producers, external),
-        () => { throw Error(`Missing provider at artifact: ${artifact} consumed by ${pass.name}`); },
-      ),
-      candidate => {
-        const dependency = relationFirstOption(pass.requires, item => relationEqual(item.artifact, artifact));
-        return relationOptionFold(
-          dependency,
-          () => validateDependencies(pass, artifacts, index + 1, producers, external),
-          requirement => relationResolve(
-            relationAny([
-              relationEqual(requirement.producer, ''),
-              relationEqual(requirement.producer, candidate.name),
-            ]),
-            () => validateDependencies(pass, artifacts, index + 1, producers, external),
-            () => { throw Error(`Producer mismatch at artifact ${artifact} consumed by ${pass.name}`); },
-          ),
-        );
-      },
-    );
-  },
-);
-
-const validateAllDependencies = (
-  passes: readonly ExecutablePass[],
-  index: number,
-  producers: ProducerRelationIndex,
-  external: readonly ArtifactKey[],
-): void => relationResolve(
-  relationEqual(index, passes.length),
-  () => {},
-  () => {
-    validateDependencies(passes[index], passes[index].descriptor.consumes, 0, producers, external);
-    validateAllDependencies(passes, index + 1, producers, external);
-  },
-);
-
-export function analyzePassGraph(
+const analyze = (
   passes: readonly ExecutablePass[],
   externalInputs: readonly ArtifactKey[] = [],
-): GraphAnalysis {
-  const nodes = validatePassNames(passes, 0, []);
-  const producers = validatePasses(passes, 0, [], externalInputs);
-  validateAllDependencies(passes, 0, producers, externalInputs);
-  return Object.freeze({ nodes, producers, adjacency: buildAdjacency(passes) });
-}
+): PassGraphAnalysisInterface => {
+  const nodes: { name: string; pass: ExecutablePass }[] = [];
+  const producers: { artifact: ArtifactKey; pass: ExecutablePass }[] = [];
+  const external = uniqueArtifacts(externalInputs);
+
+  for (const pass of passes) {
+    if (pass.name.length === 0) throw Error('Compiler pass requires a name');
+    if (nodes.some((node) => node.name === pass.name)) throw Error(`Duplicate compiler pass name: ${pass.name}`);
+    nodes.push({ name: pass.name, pass });
+  }
+
+  for (const pass of passes) {
+    const consumes = uniqueArtifacts(pass.descriptor.consumes);
+    if (consumes.some((artifact) => pass.descriptor.produces.some((produced) => sameArtifact(artifact, produced)))) {
+      throw Error(`Pass ${pass.name} both consumes and produces an artifact`);
+    }
+
+    const seen: ArtifactKey[] = [];
+    for (const artifact of pass.descriptor.produces) {
+      if (seen.some((candidate) => sameArtifact(candidate, artifact))) {
+        throw Error(`Pass ${pass.name} declares duplicate output artifact: ${artifact}`);
+      }
+      seen.push(artifact);
+      if (external.some((candidate) => sameArtifact(candidate, artifact))) {
+        throw Error(`Artifact ${artifact} cannot be both external input and pass output`);
+      }
+      if (producers.some((entry) => sameArtifact(entry.artifact, artifact))) {
+        throw Error(`Multiple producers detected at artifact: ${artifact}`);
+      }
+      producers.push({ artifact, pass });
+    }
+  }
+
+  const producerOf = (artifact: ArtifactKey): ExecutablePass | undefined =>
+    producers.find((entry) => sameArtifact(entry.artifact, artifact))?.pass;
+
+  for (const pass of passes) {
+    for (const artifact of uniqueArtifacts(pass.descriptor.consumes)) {
+      const producer = producerOf(artifact);
+      if (!producer) {
+        if (external.some((candidate) => sameArtifact(candidate, artifact))) continue;
+        throw Error(`Missing provider for artifact: ${artifact}`);
+      }
+      const requirement = pass.requires.find((candidate) => candidate.artifact === artifact);
+      if (requirement && requirement.producer !== undefined && requirement.producer !== '' && requirement.producer !== producer.name) {
+        throw Error(`Producer mismatch at artifact ${artifact} consumed by ${pass.name}`);
+      }
+    }
+  }
+
+  const frozenNodes = Object.freeze(nodes.map((node) => Object.freeze(node)));
+  const frozenProducers = Object.freeze(producers.map((entry) => Object.freeze(entry)));
+  const adjacency = buildAdjacency(passes);
+  return Object.freeze({
+    nodes: frozenNodes,
+    producers: frozenProducers,
+    adjacency,
+    producerOf,
+    containsRemainingProducer: (artifact, remaining) => {
+      const producer = producerOf(artifact);
+      return producer !== undefined && remaining.some((candidate) => samePass(candidate, producer));
+    },
+    dependentsOf: (artifact) => adjacency.find((entry) => sameArtifact(entry.artifact, artifact))?.passes ?? [],
+  });
+};
+
+export const passGraphAnalysisOperations: PassGraphAnalysisOperationsInterface = Object.freeze({
+  buildAdjacency,
+  analyze,
+});

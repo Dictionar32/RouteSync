@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const request = read('packages/core/src/types/upstream/controllerVariableSemanticInterface.ts');
 const adapterInterface = read('packages/core/src/types/upstream/controllerVariableSemanticResolutionInputAdapterInterface.ts');
 const adapter = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticResolutionInputAdapter.ts');
-const projection = read('packages/core/src/compiler/scanner/lexer/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
+const projection = read('packages/core/src/compiler/frontend/php/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
 const semanticAuthority = read('packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts');
 const runtimeExecutor = read('packages/core/src/types/upstream/controllerVariableSemanticRuntimeExecutor.ts');
 const dataflowAuthorityInterface = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts');
@@ -23,7 +23,7 @@ const checks = [
   ['runtime executor forwards the existing judgment without rebuilding expression provenance', /sourceExpressionContract: 'every-closed-judgment-retains-the-exact-canonical-sourceExpression-reference-from-its-request'/.test(runtimeExecutor) && /authority\.resolve\(request\)/.test(runtimeExecutor)],
   ['controller dataflow authority contract declares expression-evidence binding', /readonly contractVersion: 13/.test(dataflowAuthorityInterface) && /semanticResolutionExpressionBinding/.test(dataflowAuthorityInterface) && /same-matched-payload-that-produced-syntax-neutral-evidence/.test(dataflowAuthorityInterface)],
   ['semantic model contract records expression judgment correlation', /readonly version: 11/.test(model) && /semanticResolutionExpressionBinding/.test(model)],
-  ['Laravel scanner boundary documents upstream ownership without scanner-side reasoning', /readonly version: 101/.test(scanner) && /judgment-also-retains-the-exact-canonical-Expression/.test(scanner) && !/sourceExpression: expression/.test(read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts'))],
+  ['Laravel scanner boundary documents upstream ownership without scanner-side reasoning', /readonly version: 101/.test(scanner) && /judgment-also-retains-the-exact-canonical-Expression/.test(scanner) && !/sourceExpression: expression/.test(read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts'))],
   ['focused semantic tests supply canonical expression and verify executor delegation', /const sourceExpression: Expression/.test(tests) && /sourceExpression,\s*evidence:/.test(tests) && /expect\(calls\)\.toEqual\(\[input\]\)/.test(tests)],
   ['audit command is registered and no new foundation dependency is introduced', Boolean(packageJson.scripts['audit:phase1938-controller-semantic-expression-evidence-binding-interface-first']) && !/semantic\/foundation/.test(request + adapterInterface + adapter + projection + semanticAuthority + dataflowAuthorityInterface + model + scanner)],
 ];

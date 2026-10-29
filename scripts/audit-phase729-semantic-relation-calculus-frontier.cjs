@@ -4,13 +4,13 @@ const path = require('node:path');
 const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const files = {
-  algebra: read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts'),
-  rewrite: read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts'),
-  store: read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts'),
-  theory: read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts'),
-  program: read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts'),
-  constraint: read('packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts'),
-  behavior: read('packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts'),
+  algebra: read('packages/core/src/compiler/frontend/php/routeAst/semanticRelationalAlgebra.ts'),
+  rewrite: read('packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts'),
+  store: read('packages/core/src/compiler/frontend/php/routeAst/semanticRelationStore.ts'),
+  theory: read('packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.ts'),
+  program: read('packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts'),
+  constraint: read('packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts'),
+  behavior: read('packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts'),
 };
 
 const checks = {

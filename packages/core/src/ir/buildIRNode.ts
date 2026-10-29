@@ -1,6 +1,5 @@
 import { createHash } from 'crypto'
 import { type SemanticIRNode, type SourceRef, type IRRawNode, type SemanticNode, type IRContext, IRHintsFactory } from '../types/semantic'
-import { relationProject } from '../semantic/relations/semanticRelations'
 import { matchSemanticNode } from '../types/semantic/semanticTypes'
 import type { PhpAstNode } from '../types/domain/phpAst'
 import { isObject, hasProperty, isString } from '../utils/type-guards'
@@ -34,7 +33,11 @@ import { isObject, hasProperty, isString } from '../utils/type-guards'
  * only a change to the code or to what it resolves to should invalidate it.
  * This is the same property `ZeroBoilerplate.md` §6 asks for.
  */
-export function computeStableHash(rawCode: string, semantic: SemanticNode): string {
+export interface ComputeStableHashInterface {
+  (rawCode: string, semantic: SemanticNode): string;
+}
+
+export const computeStableHash: ComputeStableHashInterface = (rawCode, semantic) => {
   const canonical = JSON.stringify({
     code: rawCode,
     kind: semantic.kind,
@@ -43,8 +46,8 @@ export function computeStableHash(rawCode: string, semantic: SemanticNode): stri
       scalar: value => ({ semanticType: value.semanticType }),
       model: value => ({ model: value.model, cardinality: value.cardinality }),
       resource: value => ({ resource: value.resource, cardinality: value.cardinality }),
-      object: value => ({ fields: relationProject(value.fields.entries, field => field.name) }),
-      query_projection: value => ({ fields: relationProject(value.fields.entries, field => field.name) }),
+      object: value => ({ fields: value.fields.names() }),
+      query_projection: value => ({ fields: value.fields.names() }),
       indeterminate: () => ({}),
     }),
   })
@@ -64,7 +67,11 @@ export interface BuildIRNodeInput {
   context?: IRContext
 }
 
-export function buildSemanticIRNode(input: BuildIRNodeInput): SemanticIRNode {
+export interface BuildSemanticIRNodeInterface {
+  (input: BuildIRNodeInput): SemanticIRNode;
+}
+
+export const buildSemanticIRNode: BuildSemanticIRNodeInterface = (input) => {
   const node: IRRawNode = {
     kind: 'raw_code',
     code: input.rawCode,

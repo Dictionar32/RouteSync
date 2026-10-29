@@ -8,6 +8,6 @@
     "types": []
   },
   "include": [
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticDemandDrivenDataFlow.ts"
+    "packages/core/src/compiler/frontend/php/routeAst/semanticDemandDrivenDataFlow.ts"
   ]
 }

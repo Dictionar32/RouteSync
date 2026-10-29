@@ -12,7 +12,7 @@
   "repairs": {
     "compilerCompatibilityBoundary": "packages/core/src/compiler.ts -> re-export packages/core/src/compiler/index",
     "canonicalSemanticKernel": "packages/core/src/semantic/kernel",
-    "canonicalPhpAstStatementKinds": "packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts",
+    "canonicalPhpAstStatementKinds": "packages/core/src/compiler/frontend/php/phpAstStatementKinds.ts",
     "duplicateArrayArgumentValues": "collapsed-to-one",
     "duplicateQueryColumnHelpers": "collapsed-to-one-coherent-set"
   },

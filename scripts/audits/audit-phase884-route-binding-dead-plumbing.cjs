@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '../..');
-const routeScanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/RouteScanner.ts'), 'utf8');
-const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts'), 'utf8');
+const routeScanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/RouteScanner.ts'), 'utf8');
+const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts'), 'utf8');
 const sourceScanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts'), 'utf8');
 
 const assertions = {

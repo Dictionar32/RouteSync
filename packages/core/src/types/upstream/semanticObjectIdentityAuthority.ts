@@ -1,196 +1,221 @@
-/** Upstream implementation of the semantic object-identity authority. */
-import { relationAll, relationEqual, relationFirstOption, relationOptionFold, relationResolve } from '../../compiler/relational/sequence';
-import type { SemanticRelation, SemanticRelationAtom } from '../../semantic/relations/semanticRewriteEngine';
-import { semanticRewriteAuthority } from './semanticRewriteAuthority';
-import type {
-  KnowledgeId,
-  SemanticAssignment,
-  SemanticKnowledgeDataFlow,
-  SemanticPresence,
-} from './semanticDataflowKnowledge';
+/** Upstream domain authority for PHP object identity; no generic relation solver or string identity key. */
 import {
-  knowledgeIdKey,
   semanticAbsent,
+  semanticKnowledgeIdOperations,
+  semanticAssignmentReferenceFactOperations,
   semanticPresent,
+  type KnowledgeId,
+  type SemanticAssignment,
+  type SemanticAssignmentReferenceIdentityBinding,
+  type SemanticKnowledgeDataFlow,
+  type SemanticPresence,
 } from './semanticDataflowKnowledge';
 import type {
   SemanticAliasAssessment,
   SemanticAliasKind,
   SemanticAliasRelation,
-  SemanticIdentityRelation,
   SemanticObjectIdentity,
   SemanticObjectIdentityAnalysis,
+  SemanticObjectIdentityAnalysisOperationInterface,
   SemanticObjectIdentityAuthorityInterface,
+  SemanticObjectIdentityProof,
+  SemanticObjectIdentityProofDerivation,
+  SemanticObjectIdentityProofFact,
+  SemanticObjectIdentityRuleId,
+  SemanticAliasAssessmentOperationInterface,
+  SemanticKnowledgeIdPair,
 } from './semanticObjectIdentityInterface';
-import { SEMANTIC_OBJECT_IDENTITY_RULES } from './semanticObjectIdentityInterface';
-import { typedDistinct, typedExpand, typedProject, typedRelation, typedSelect } from './semanticTypedRelation';
+import { semanticObjectIdentityOperations } from './semanticObjectIdentityInterface';
 
-type AssignmentFact = Extract<SemanticKnowledgeDataFlow['facts'][number], { readonly kind: 'assignment' }>;
-type PresentKnowledgeId = Extract<SemanticPresence<KnowledgeId>, { readonly kind: 'present' }>;
+type AssignmentReferenceFact = Extract<SemanticObjectIdentityProofFact, { readonly kind: 'assignment_reference' }>;
+type MayAliasFact = Extract<SemanticObjectIdentityProofFact, { readonly kind: 'may_alias' }>;
+type IdentityLinkFact = Extract<SemanticObjectIdentityProofFact, { readonly kind: 'identity_link' }>;
+type SameIdentityFact = Extract<SemanticObjectIdentityProofFact, { readonly kind: 'same_identity' }>;
+type AliasAnswerFact = Extract<SemanticObjectIdentityProofFact, { readonly kind: 'alias_answer' }>;
 
-const isAssignmentFact = (fact: SemanticKnowledgeDataFlow['facts'][number]): fact is AssignmentFact => relationEqual(fact.kind, 'assignment');
-const isPresentKnowledgeId = (value: SemanticPresence<KnowledgeId>): value is PresentKnowledgeId => relationEqual(value.kind, 'present');
-const pair = <A, B>(left: A, right: B): readonly [A, B] => [left, right];
+const isIdentityLinkFact = (fact: SemanticObjectIdentityProofFact): fact is IdentityLinkFact => Object.is(fact.kind, 'identity_link');
+const samePair = (left: SemanticKnowledgeIdPair, right: SemanticKnowledgeIdPair): boolean =>
+  Object.is(semanticObjectIdentityOperations.sameUnorderedPair(left, right).kind, 'same_semantic_object_pair');
 
-const pairKey = (left: KnowledgeId, right: KnowledgeId): string => {
-  const leftKey = knowledgeIdKey(left);
-  const rightKey = knowledgeIdKey(right);
-  return relationResolve(leftKey <= rightKey, () => `${leftKey}::${rightKey}`, () => `${rightKey}::${leftKey}`);
+const assignmentReferenceFact = (binding: SemanticAssignmentReferenceIdentityBinding): AssignmentReferenceFact => Object.freeze({
+  kind: 'assignment_reference',
+  assignment: binding.assignment,
+  left: binding.left,
+  right: binding.right,
+  source: binding.source,
+});
+
+const mayAliasFact = (left: KnowledgeId, right: KnowledgeId, evidence: readonly KnowledgeId[]): MayAliasFact => Object.freeze({
+  kind: 'may_alias',
+  left,
+  right,
+  evidence: Object.freeze([...evidence]),
+});
+
+const identityLinkFact = (left: KnowledgeId, right: KnowledgeId, evidence: readonly KnowledgeId[]): IdentityLinkFact => Object.freeze({
+  kind: 'identity_link',
+  left,
+  right,
+  evidence: Object.freeze([...evidence]),
+});
+
+const sameIdentityFact = (left: KnowledgeId, right: KnowledgeId): SameIdentityFact => Object.freeze({ kind: 'same_identity', left, right });
+
+const aliasAnswerFact = (left: KnowledgeId, right: KnowledgeId, value: Exclude<SemanticAliasKind, 'no-alias'>): AliasAnswerFact => Object.freeze({
+  kind: 'alias_answer',
+  left,
+  right,
+  value,
+});
+
+const derivation = (
+  ruleId: SemanticObjectIdentityRuleId,
+  premises: readonly SemanticObjectIdentityProofFact[],
+  conclusion: SemanticObjectIdentityProofFact,
+): SemanticObjectIdentityProofDerivation => Object.freeze({
+  ruleId,
+  premises: Object.freeze([...premises]),
+  conclusion,
+});
+
+const distinctKnowledgeIds = (values: readonly KnowledgeId[]): readonly KnowledgeId[] => {
+  const output: KnowledgeId[] = [];
+  values.forEach(candidate => Object.is(semanticObjectIdentityOperations.membership(output, candidate).kind, 'knowledge_id_absent') && output.push(candidate));
+  return Object.freeze(output);
 };
 
-const identityRelation = (
-  relation: SemanticIdentityRelation,
-  arguments_: readonly SemanticRelationAtom[],
-): SemanticRelation<SemanticIdentityRelation> => Object.freeze({ relation, arguments: Object.freeze(arguments_) });
-
-const emptyTuple: readonly [] = [];
-
-const assignmentFacts = (model: SemanticKnowledgeDataFlow): readonly AssignmentFact[] =>
-  typedSelect(typedRelation(model.facts), isAssignmentFact).tuples;
-
-const assignmentRelations = (assignments: readonly SemanticAssignment[]): readonly SemanticRelation<SemanticIdentityRelation>[] =>
-  typedProject(
-    typedRelation(assignments),
-    assignment => identityRelation(
-      'assignment-reference',
-      [knowledgeIdKey(assignment.target), knowledgeIdKey(assignment.value), assignment.reference.code],
-    ),
-  ).tuples;
-
-const solvedIdentityRelations = (seeds: readonly SemanticRelation<SemanticIdentityRelation>[]) =>
-  semanticRewriteAuthority.resolveRelations({
-    kind: 'semantic_relation_execution_request',
-    seeds,
-    rules: SEMANTIC_OBJECT_IDENTITY_RULES,
-    maxRounds: 1024,
+const distinctAliasRelations = (relations: readonly SemanticAliasRelation[]): readonly SemanticAliasRelation[] => {
+  const output: SemanticAliasRelation[] = [];
+  relations.forEach(candidate => {
+    let matched = false;
+    const next: SemanticAliasRelation[] = [];
+    output.forEach(existing => {
+      const sameAliasPair = samePair([existing.left, existing.right], [candidate.left, candidate.right]);
+      Object.is(sameAliasPair, true) && (matched = true) && next.push(Object.freeze({
+        ...existing,
+        evidence: Object.freeze([...existing.evidence, ...candidate.evidence]),
+      }));
+      Object.is(sameAliasPair, false) && next.push(existing);
+    });
+    Object.is(matched, false) && next.push(candidate);
+    output.splice(0, output.length, ...next);
   });
-
-const objectForKey = (objects: readonly KnowledgeId[], key: string): SemanticPresence<KnowledgeId> => {
-  const candidates = typedSelect(typedRelation(objects), object => relationEqual(knowledgeIdKey(object), key)).tuples;
-  return relationOptionFold(relationFirstOption(candidates, () => true), () => semanticAbsent('not_provided'), candidate => semanticPresent(candidate));
+  return Object.freeze(output);
 };
 
-export const analyzeSemanticObjectIdentity = (model: SemanticKnowledgeDataFlow): SemanticObjectIdentityAnalysis => {
-  const assignments = typedProject(typedRelation(assignmentFacts(model)), fact => fact.value).tuples;
-  const initial = solvedIdentityRelations(assignmentRelations(assignments));
-  if (initial.status === 'incomplete') {
-    return Object.freeze({ status: 'incomplete', identities: emptyTuple, aliases: emptyTuple, modRefs: emptyTuple, proof: initial });
-  }
+const proofFromReferenceBindings = (bindings: readonly SemanticAssignmentReferenceIdentityBinding[]): SemanticObjectIdentityProof => {
+  const facts: SemanticObjectIdentityProofFact[] = [];
+  const derivations: SemanticObjectIdentityProofDerivation[] = [];
+  bindings.forEach(binding => {
+    const reference = assignmentReferenceFact(binding);
+    const mayAlias = mayAliasFact(binding.left, binding.right, [binding.assignment]);
+    const forward = identityLinkFact(binding.left, binding.right, [binding.assignment]);
+    const reverse = identityLinkFact(binding.right, binding.left, [binding.assignment]);
+    facts.push(reference, mayAlias, forward, reverse);
+    derivations.push(
+      derivation('assignment-reference:by-reference', [reference], mayAlias),
+      derivation('may-alias:symmetric-left', [mayAlias], forward),
+      derivation('may-alias:symmetric-right', [mayAlias], reverse),
+      derivation('identity-link:may-alias', [forward], aliasAnswerFact(binding.left, binding.right, 'may-alias')),
+      derivation('identity-link:may-alias', [reverse], aliasAnswerFact(binding.right, binding.left, 'may-alias')),
+    );
+  });
+  return Object.freeze({
+    kind: 'semantic_object_identity_proof',
+    status: 'closed',
+    closure: 'finite_domain_evidence',
+    facts: Object.freeze(facts),
+    derivations: Object.freeze(derivations),
+  });
+};
 
-  const aliasPairs = typedProject(
-    typedSelect(typedRelation(initial.facts), fact => relationAll([
-      relationEqual(fact.relation, 'may-alias'),
-      relationEqual(fact.arguments.length, 2),
-    ])),
-    fact => `${String(fact.arguments[0])}::${String(fact.arguments[1])}`,
-  ).tuples;
-  const aliasAssignments = typedSelect(
-    typedRelation(assignments),
-    assignment => aliasPairs.includes(`${knowledgeIdKey(assignment.target)}::${knowledgeIdKey(assignment.value)}`),
-  ).tuples;
-  const objects = typedExpand(
-    typedRelation(aliasAssignments),
-    assignment => typedRelation([assignment.target, assignment.value]),
-  ).tuples;
-  const links = typedSelect(
-    typedRelation(initial.facts),
-    fact => relationAll([relationEqual(fact.relation, 'identity-link'), relationEqual(fact.arguments.length, 2)]),
-  ).tuples;
-  const resolvedLinks = typedProject(
-    typedRelation(links),
-    fact => ({
-      fact,
-      left: objectForKey(objects, String(fact.arguments[0])),
-      right: objectForKey(objects, String(fact.arguments[1])),
-    }),
-  );
-  const presentLinks = typedSelect(
-    resolvedLinks,
-    (entry): entry is { readonly fact: SemanticRelation<SemanticIdentityRelation>; readonly left: PresentKnowledgeId; readonly right: PresentKnowledgeId } =>
-      relationAll([isPresentKnowledgeId(entry.left), isPresentKnowledgeId(entry.right)]),
-  );
-  const aliasEntries: readonly (readonly [string, SemanticAliasRelation])[] = typedProject(
-    presentLinks,
-    entry => {
-      const left = entry.left.value;
-      const right = entry.right.value;
-      const evidence = Object.freeze(typedProject(
-        typedSelect(typedRelation(aliasAssignments), assignment => relationEqual(pairKey(assignment.target, assignment.value), pairKey(left, right))),
-        assignment => assignment.id,
-      ).tuples);
-      return pair(pairKey(left, right), { left, right, kind: 'may-alias', evidence } satisfies SemanticAliasRelation);
-    },
-  ).tuples;
-  const aliases = typedProject(typedDistinct(typedRelation(aliasEntries), entry => entry[0]), entry => entry[1]).tuples;
-  const identities = typedProject(
-    typedRelation(objects),
-    object => Object.freeze({
-      object,
-      aliases: Object.freeze(typedProject(
-        typedSelect(
-          typedProject(
-            typedSelect(typedRelation(links), fact => relationEqual(fact.arguments[0], knowledgeIdKey(object))),
-            fact => objectForKey(objects, String(fact.arguments[1])),
-          ),
-          isPresentKnowledgeId,
-        ),
-        entry => entry.value,
-      ).tuples),
-    } satisfies SemanticObjectIdentity),
-  ).tuples;
+const aliasesFromReferenceBindings = (bindings: readonly SemanticAssignmentReferenceIdentityBinding[]): readonly SemanticAliasRelation[] => {
+  const candidates: SemanticAliasRelation[] = [];
+  bindings.forEach(binding => candidates.push(Object.freeze({
+    left: binding.left,
+    right: binding.right,
+    kind: 'may-alias',
+    evidence: Object.freeze([binding.assignment]),
+  })));
+  return distinctAliasRelations(candidates);
+};
 
+const identitiesFromAliases = (aliases: readonly SemanticAliasRelation[]): readonly SemanticObjectIdentity[] => {
+  const objectCandidates: KnowledgeId[] = [];
+  aliases.forEach(alias => objectCandidates.push(alias.left, alias.right));
+  const objects = distinctKnowledgeIds(objectCandidates);
+  const identities: SemanticObjectIdentity[] = [];
+  objects.forEach(object => {
+    const aliasCandidates: KnowledgeId[] = [];
+    aliases.forEach(alias => {
+      const leftMatches = Object.is(semanticKnowledgeIdOperations.same(alias.left, object).kind, 'same_knowledge_id');
+      const rightMatches = Object.is(semanticKnowledgeIdOperations.same(alias.right, object).kind, 'same_knowledge_id');
+      leftMatches && aliasCandidates.push(alias.right);
+      rightMatches && aliasCandidates.push(alias.left);
+    });
+    identities.push(Object.freeze({ object, aliases: distinctKnowledgeIds(aliasCandidates) }));
+  });
+  return Object.freeze(identities);
+};
+
+const analyze: SemanticObjectIdentityAnalysisOperationInterface['execute'] = (model: SemanticKnowledgeDataFlow): SemanticObjectIdentityAnalysis => {
+  const bindings = semanticAssignmentReferenceFactOperations.identityBindings(model.facts);
+  const aliases = aliasesFromReferenceBindings(bindings);
   return Object.freeze({
     status: 'closed',
-    identities: Object.freeze(identities),
-    aliases: Object.freeze(typedProject(typedRelation(aliases), relation => Object.freeze(relation)).tuples),
-    modRefs: Object.freeze([]),
-    proof: initial,
+    identities: identitiesFromAliases(aliases),
+    aliases,
+    modRefs: semanticObjectIdentityOperations.modRefEvidence(model),
+    proof: proofFromReferenceBindings(bindings),
   });
 };
 
-export const semanticAlias = (
+const proofWithAnswer = (
+  proof: SemanticObjectIdentityProof,
+  left: KnowledgeId,
+  right: KnowledgeId,
+  value: Exclude<SemanticAliasKind, 'no-alias'>,
+): SemanticObjectIdentityProof => {
+  const answer = aliasAnswerFact(left, right, value);
+  const sameIdentity = sameIdentityFact(left, right);
+  let premises: readonly SemanticObjectIdentityProofFact[] = semanticObjectIdentityOperations.identityLinkPremises(proof, [left, right]);
+  let ruleId: SemanticObjectIdentityRuleId = 'identity-link:may-alias';
+  const facts = [...proof.facts];
+  Object.is(value, 'must-alias') && (premises = Object.freeze([sameIdentity]));
+  Object.is(value, 'must-alias') && (ruleId = 'same-identity:must-alias');
+  Object.is(value, 'must-alias') && facts.push(sameIdentity);
+  facts.push(answer);
+  return Object.freeze({
+    ...proof,
+    facts: Object.freeze(facts),
+    derivations: Object.freeze([...proof.derivations, derivation(ruleId, premises, answer)]),
+  });
+};
+
+const alias: SemanticAliasAssessmentOperationInterface['execute'] = (
   analysis: SemanticObjectIdentityAnalysis,
   left: KnowledgeId,
   right: KnowledgeId,
 ): SemanticAliasAssessment => {
-  if (analysis.status === 'incomplete') return Object.freeze({ status: 'incomplete', proof: analysis.proof });
-  const leftKey = knowledgeIdKey(left);
-  const rightKey = knowledgeIdKey(right);
-  const sameIdentitySeed = relationResolve(
-    relationEqual(leftKey, rightKey),
-    () => [identityRelation('same-identity', [leftKey, rightKey])],
-    () => [],
-  );
-  const querySeeds: readonly SemanticRelation<SemanticIdentityRelation>[] = [
-    ...sameIdentitySeed,
-    ...typedProject(typedRelation(analysis.aliases), relation => identityRelation('may-alias', [knowledgeIdKey(relation.left), knowledgeIdKey(relation.right)])).tuples,
-  ];
-  const solved = solvedIdentityRelations(querySeeds);
-  if (solved.status === 'incomplete') return Object.freeze({ status: 'incomplete', proof: solved });
-  const answers = typedSelect(
-    typedRelation(solved.facts),
-    fact => relationAll([
-      relationEqual(fact.relation, 'alias-answer'),
-      relationEqual(fact.arguments[0], knowledgeIdKey(left)),
-      relationEqual(fact.arguments[1], knowledgeIdKey(right)),
-    ]),
-  ).tuples;
-  const answer = answers[0];
-  const answerKind = answer?.arguments[2];
-  const value = relationResolve(
-    answerKind !== undefined,
-    () => relationResolve(
-      relationEqual(answerKind, 'must-alias'),
-      () => semanticPresent<SemanticAliasKind>('must-alias'),
-      () => semanticPresent<SemanticAliasKind>('may-alias'),
-    ),
-    () => semanticAbsent<SemanticAliasKind>('not_provided'),
-  );
-  return Object.freeze({ status: 'resolved', value, proof: solved });
+  const sameIdentity = semanticKnowledgeIdOperations.same(left, right);
+  const matchingAlias = semanticObjectIdentityOperations.aliasPairMembership(analysis.aliases, [left, right]);
+  let value: SemanticPresence<Exclude<SemanticAliasKind, 'no-alias'>> = semanticAbsent<Exclude<SemanticAliasKind, 'no-alias'>>('not_provided');
+  Object.is(matchingAlias.kind, 'semantic_alias_pair_present') &&
+    (value = semanticPresent<Exclude<SemanticAliasKind, 'no-alias'>>('may-alias'));
+  Object.is(sameIdentity.kind, 'same_knowledge_id') &&
+    (value = semanticPresent<Exclude<SemanticAliasKind, 'no-alias'>>('must-alias'));
+  const proof = value.continueWith({
+    present: answer => proofWithAnswer(analysis.proof, left, right, answer),
+    absent: () => analysis.proof,
+  });
+  return Object.freeze({ status: 'resolved', value, proof });
 };
+
+export const analyzeSemanticObjectIdentityOperation: SemanticObjectIdentityAnalysisOperationInterface = Object.freeze({ execute: analyze });
+export const semanticAliasAssessmentOperation: SemanticAliasAssessmentOperationInterface = Object.freeze({ execute: alias });
 
 export const semanticObjectIdentityAuthority: SemanticObjectIdentityAuthorityInterface = Object.freeze({
   kind: 'semantic_object_identity_authority',
-  analyze: analyzeSemanticObjectIdentity,
-  alias: semanticAlias,
+  analyze: analyzeSemanticObjectIdentityOperation.execute,
+  alias: semanticAliasAssessmentOperation.execute,
 });

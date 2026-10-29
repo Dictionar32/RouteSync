@@ -9,7 +9,7 @@ const resolution = read('packages/core/src/types/upstream/phpFunctionNameResolut
 const invocation = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
 const composition = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const runtime = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 
 check('name-resolution contract advanced to v3', /kind: 'php_function_name_resolution_contract';\s*readonly version: 3/.test(resolution) && /version: 3/.test(resolution));
 check('resolution requires source/environment file identity', /require-source-file-and-environment-file-identity/.test(resolution) && /sourceFileBinding: 'resolution-source-file-must-match-the-environment-source-file-and-completeness-witness'/.test(resolution));

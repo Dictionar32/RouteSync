@@ -12,7 +12,11 @@ import {
   getRouteContract
 } from '@routesync/core';
 
-export function buildRoutesLines(manifest: RouteManifest): string[] {
+export interface BuildRoutesLinesOperation {
+  (manifest: RouteManifest): string[];
+}
+
+export const buildRoutesLines: BuildRoutesLinesOperation = Object.freeze((manifest: RouteManifest): string[] => {
   const lines: string[] = [];
 
   lines.push(`export const ROUTES = {`);
@@ -61,4 +65,4 @@ export function buildRoutesLines(manifest: RouteManifest): string[] {
   lines.push(``);
 
   return lines;
-}
+});

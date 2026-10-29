@@ -33,9 +33,9 @@ AST-level control construct audit:
 
 | File | if | for | while | switch |
 |---|---:|---:|---:|---:|
-| `compiler/scanner/lexer/astClassifier.ts` | 0 | 0 | 0 | 0 |
+| `compiler/frontend/php/astClassifier.ts` | 0 | 0 | 0 | 0 |
 | `compiler/scanner/subscanners/queryProducer.ts` | 0 | 0 | 0 | 0 |
-| `compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts` | 0 | 0 | 0 | 0 |
+| `compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts` | 0 | 0 | 0 | 0 |
 | `compiler/constraints/ConstraintSolver.ts` | 0 | 0 | 0 | 0 |
 | `compiler/constraints/solver/constraintStep.ts` | 0 | 0 | 0 | 0 |
 | `semantic/plugins/expression/ternaryHandler.ts` | 0 | 0 | 0 | 0 |

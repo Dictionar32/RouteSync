@@ -1,0 +1,33 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, condition) => checks.push({ name, pass: Boolean(condition) });
+const pipelinePath = 'packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts';
+const pipeline = read(pipelinePath);
+const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
+const coreIndex = read('packages/core/src/index.ts');
+const test = read('packages/core/src/types/upstream/__tests__/laravel-dto-response-contract-projection-authority.phase2190.test.ts');
+const collections = read('packages/core/src/types/upstream/collections.ts');
+const packageJson = JSON.parse(read('package.json'));
+
+check('collections.ts remains empty', collections.length === 0);
+check('runtime operations interface exists', /export interface LaravelControllerResponseSemanticRuntimeOperationsInterface\s*\{/.test(pipeline));
+check('runtime operations export is interface typed and frozen', /export const laravelControllerResponseSemanticRuntimeOperations:\s*LaravelControllerResponseSemanticRuntimeOperationsInterface\s*=\s*Object\.freeze\(/.test(pipeline));
+check('method response projection factory is private const implementation', /const createLaravelControllerMethodResponseAstProjectionImpl\s*=/.test(pipeline) && !/^export function createLaravelControllerMethodResponseAstProjection/m.test(pipeline));
+check('response judgment authority factory is private const implementation', /const createLaravelControllerResponseSemanticJudgmentAuthorityImpl\s*=/.test(pipeline) && !/^export function createLaravelControllerResponseSemanticJudgmentAuthority/m.test(pipeline));
+check('runtime executor factory is private const implementation', /const createLaravelControllerResponseSemanticRuntimeExecutorImpl\s*=/.test(pipeline) && !/^export function createLaravelControllerResponseSemanticRuntimeExecutor/m.test(pipeline));
+check('pipeline factory is private const implementation', /const createLaravelControllerResponseSemanticPipelineImpl\s*=/.test(pipeline) && !/^export const createLaravelControllerResponseSemanticPipeline\s*=/.test(pipeline));
+check('all four operations are exposed through runtime object', ['createMethodResponseAstProjection:', 'createSemanticJudgmentAuthority:', 'createRuntimeExecutor:', 'createPipeline:'].every((needle) => pipeline.includes(needle)));
+check('default pipeline uses runtime operation object', /laravelControllerResponseSemanticRuntimeOperations\.createPipeline\(/.test(pipeline));
+check('pipeline executor preserves exact supplied authority', /createLaravelControllerResponseSemanticRuntimeExecutorImpl\(dependencies\.responseSemanticAuthority\)/.test(pipeline));
+check('upstream barrel exports operation object, not legacy factories', upstreamIndex.includes('laravelControllerResponseSemanticRuntimeOperations') && !upstreamIndex.includes('createLaravelControllerResponseSemanticJudgmentAuthority'));
+check('core public barrel exports operation object and interface', coreIndex.includes('laravelControllerResponseSemanticRuntimeOperations') && coreIndex.includes('LaravelControllerResponseSemanticRuntimeOperationsInterface'));
+check('existing dependency-injection test uses operation object', test.includes('laravelControllerResponseSemanticRuntimeOperations.createPipeline('));
+check('audit command is registered', packageJson.scripts?.['audit:phase2787-response-semantic-runtime-operations'] === 'node scripts/audits/audit-phase2787-response-semantic-runtime-operations.cjs');
+check('no new reasoning primitive introduced in runtime operation contract', !/reasoningPrimitive|newReasoningPrimitive/i.test(pipeline.slice(pipeline.indexOf('export interface LaravelControllerResponseSemanticRuntimeOperationsInterface'))));
+
+for (const item of checks) console.log(`${item.pass ? 'PASS' : 'FAIL'} ${item.name}`);
+console.log(`\n${checks.filter((item) => item.pass).length}/${checks.length} checks passed`);
+if (checks.some((item) => !item.pass)) process.exitCode = 1;

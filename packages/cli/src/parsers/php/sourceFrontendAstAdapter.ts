@@ -30,7 +30,7 @@ import type {
   SourceSpan,
   FunctionName,
 } from '@routesync/core';
-import { PHP_SOURCE_FRONTEND_CONTRACT, numberValue, stringValue } from '@routesync/core';
+import { PHP_SOURCE_FRONTEND_CONTRACT, numberValue, sourceSpanFactory, stringValue } from '@routesync/core';
 
 type AstObject = Readonly<Record<string, unknown>>;
 type LocatedAstObject = AstObject & Readonly<{ readonly loc: AstObject }>;
@@ -90,18 +90,17 @@ const offset = (node: LocatedAstObject, side: 'start' | 'end'): number | undefin
   const value = position === undefined ? undefined : field(position, 'offset');
   return typeof value === 'number' && Number.isInteger(value) ? value : undefined;
 };
-const span = (file: SourceFile, start: number, end: number): SourceSpan => Object.freeze({
-  kind: 'source_span', file, start: numberValue(start), end: numberValue(end),
-});
+const span = (file: SourceFile, start: number, end: number): SourceSpan =>
+  sourceSpanFactory.create(file, numberValue(start), numberValue(end));
 const nodeSpan = (node: AstObject, file: SourceFile): SourceSpan | undefined => {
   const located = location(node);
   const start = located === undefined ? undefined : offset(located, 'start');
   const end = located === undefined ? undefined : offset(located, 'end');
   return start === undefined || end === undefined || end < start ? undefined : span(file, start, end);
 };
-const functionName = (value: string): FunctionName => Object.freeze({ kind: 'function_name', value: stringValue(value) });
-const namespaceName = (value: string): PhpNamespaceName => Object.freeze({ kind: 'php_namespace_name', value: stringValue(value.replace(/^\\+/, '').replace(/\\+$/, '')) });
-const qualifiedFunctionName = (value: string): PhpQualifiedFunctionName => Object.freeze({ kind: 'php_qualified_function_name', value: stringValue(value.replace(/^\\+/, '')) });
+const functionName = (value: string): FunctionName => Object.freeze({ kind: 'function_name', value: stringValue.create(value) });
+const namespaceName = (value: string): PhpNamespaceName => Object.freeze({ kind: 'php_namespace_name', value: stringValue.create(value.replace(/^\\+/, '').replace(/\\+$/, '')) });
+const qualifiedFunctionName = (value: string): PhpQualifiedFunctionName => Object.freeze({ kind: 'php_qualified_function_name', value: stringValue.create(value.replace(/^\\+/, '')) });
 const stringNodeValue = (value: unknown): string | undefined => {
   if (typeof value === 'string') return value;
   if (!isObject(value)) return undefined;
@@ -139,7 +138,7 @@ const parserFailureDiagnostic = (error: unknown): PhpSourceFrontendParserFailure
       && typeof column === 'number' && Number.isInteger(column) && column > 0
       ? Object.freeze({ kind: 'php_source_frontend_parser_location_available', line: numberValue(line), column: numberValue(column) })
       : Object.freeze({ kind: 'php_source_frontend_parser_location_unavailable' });
-  return Object.freeze({ kind: 'php_source_frontend_parser_error_diagnostic', message: stringValue(error.message), location });
+  return Object.freeze({ kind: 'php_source_frontend_parser_error_diagnostic', message: stringValue.create(error.message), location });
 };
 
 const incompleteExtraction = (document: PhpSourceDocument, diagnostic: PhpSourceFrontendParserFailureDiagnostic): PhpSourceFrontendExtraction => {
@@ -219,7 +218,7 @@ const argumentList = (call: AstObject, file: SourceFile): ExpressionArguments | 
     if (named) {
       const name = stringNodeValue(field(item, 'name'));
       if (name === undefined) return undefined;
-      items.push(Object.freeze({ kind: 'named', name: Object.freeze({ kind: 'expression_argument_name', value: stringValue(name) }), value: expression }));
+      items.push(Object.freeze({ kind: 'named', name: Object.freeze({ kind: 'expression_argument_name', value: stringValue.create(name) }), value: expression }));
     } else {
       items.push(Object.freeze({ kind: unpacked ? 'unpacked' : 'positional', value: expression }));
     }

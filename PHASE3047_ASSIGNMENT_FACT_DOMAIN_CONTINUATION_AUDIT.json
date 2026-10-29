@@ -1,0 +1,33 @@
+{
+  "phase": 3047,
+  "title": "Assignment Fact Domain Continuation — Derive Effects from One Canonical Assignment",
+  "runtimeTrace": [
+    "PHP AST assignment expression/statement enters the syntax evidence producer",
+    "the producer resolves one canonical assignment operator and constructs one SemanticAssignment value",
+    "the exact SemanticAssignment value is emitted as the canonical assignment fact",
+    "semanticModRefEffectFactory.assignmentEffects delegates to the effect projection owned by the same SemanticAssignment operator definition",
+    "SemanticKnowledgeDataFlow preserves the resulting mod/ref relation for semanticObjectIdentityOperations.modRefEvidence",
+    "the integrated semantic response continues through the interface-backed CLI manifest scan and controller-invocation composition path"
+  ],
+  "checks": {
+    "effectOperationAcceptsCanonicalAssignment": true,
+    "effectProjectsIdentityTargetKindAndProvenanceFromOneObject": true,
+    "expressionProducerCreatesOneCanonicalAssignmentObject": true,
+    "statementProducerCreatesOneCanonicalAssignmentObject": true,
+    "noSeparateAssignmentTargetEffectArgumentsRemain": true,
+    "plainAndCompoundEffectsRemainExplicit": true,
+    "effectRetainsExactAssignmentAndTargetIdentity": true,
+    "previousModRefRegressionUsesDomainOperation": true,
+    "cliManifestRuntimeStillUsesExplicitInterfaces": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 11,
+  "total": 11,
+  "remainingDebt": [
+    "Parser-boundary assignment operator resolution still maps a closed syntax operator code to its canonical semantic definition; this phase removes duplicate resolution and mismatched effect arguments, not every boundary mapping.",
+    "Compound assignment now emits separate ref and mod relations; PHP by-reference aliasing, heap locations, evaluation-order fidelity, and callable summaries remain to be modeled.",
+    "Full repository typecheck, full Vitest, and end-to-end CLI-to-manifest execution remain unverified."
+  ],
+  "failedChecks": []
+}

@@ -19,7 +19,7 @@ check('blocked projection preserves partial AST and typed completeness judgment'
 check('generic completeness validator preserves exact AST subtype', /validateCompleteSourceAst = <Ast extends SourceAst>/.test(completeness) && /CompleteSourceAst & \{ readonly ast: Ast \}/.test(completeness));
 check('manifest builder consumes complete projection instead of revalidating SourceAsts', /projection\.kind === 'laravel_source_ast_projection_complete'/.test(manifestBuilder) && !/validateCompleteSourceAst/.test(manifestBuilder));
 check('canonical SourceAsts continues to retain invocation receipt', /controllerInvocationSemanticInventory/.test(collections));
-check('no relation/foundation subscanner was added by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('no relation/foundation subscanner was added by this phase', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 const passed = checks.filter(item => item.passed).length;
 const result = { phase: 2014, audit: 'source-ast-projection-executor-interface-first', passed, total: checks.length, checks };
 fs.writeFileSync(path.join(root, 'PHASE2014_AUDIT.json'), `${JSON.stringify(result, null, 2)}\n`);

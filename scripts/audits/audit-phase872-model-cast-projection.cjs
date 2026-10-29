@@ -6,7 +6,7 @@ const graphTypes = read('packages/core/src/types/semantic/modelGraphTypes.ts');
 const index = read('packages/core/src/index.ts');
 const normalizer = read('packages/cli/src/generators/normalizer/entities/modelNormalizer.ts');
 const semanticDefinition = read('packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts');
-const columnOrigin = read('packages/core/src/compiler/scanner/subscanners/model/modelColumnOrigin.ts');
+const columnOrigin = read('packages/core/src/compiler/scanner/operations/model/modelColumnOrigin.ts');
 const testA = read('packages/sdk/tests/pureCoreTypeContracts.spec.ts');
 const testB = read('packages/sdk/tests/semanticTypeHardeningSSOT.spec.ts');
 

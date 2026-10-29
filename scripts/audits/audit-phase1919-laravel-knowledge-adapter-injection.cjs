@@ -2,11 +2,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const contract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const adapterInterface = read('packages/core/src/types/upstream/semanticKnowledgeEvidenceAdapterInterface.ts');
-const producer = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts');
+const producer = read('packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts');
 const checks = [
   ['upstream SemanticKnowledgeEvidenceAdapter contract exists', /export interface SemanticKnowledgeEvidenceAdapter<TEvidence>/.test(adapterInterface)],
   ['analyzer declares adapter as a required typed dependency', /semanticKnowledgeEvidenceAdapter: SemanticKnowledgeEvidenceAdapter<PhpBlock>/.test(analyzer)],

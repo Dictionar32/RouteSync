@@ -5,7 +5,7 @@
   "source": "RouteSync Phase 1455",
   "interface": "packages/core/src/types/upstream/scannerCastExpressionInterface.ts",
   "algebra": "packages/core/src/types/upstream/scannerCastExpressionAlgebra.ts",
-  "wiring": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+  "wiring": "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
   "results": {
     "phase1456Audit": "14/14 passed",
     "phase1455Audit": "14/14 passed",

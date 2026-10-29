@@ -3,14 +3,14 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const root = path.resolve(__dirname, '../..');
 const contractPath = path.join(root, 'packages/core/src/types/upstream/requestTypeDerivationInterface.ts');
-const scannerPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts');
-const aggregatorPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts');
+const scannerPath = path.join(root, 'packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts');
+const aggregatorPath = path.join(root, 'packages/core/src/compiler/scanner/operations/request-deriver/groupAggregator.ts');
 const source = fs.readFileSync(contractPath, 'utf8');
 const scanner = fs.readFileSync(scannerPath, 'utf8');
 const aggregator = fs.readFileSync(aggregatorPath, 'utf8');
 const untouched = [
-  ['packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts', '79ee5322bd073312ba955edd5908f3532c57cc16b0c1a13a9ffd96c50d37e608'],
-  ['packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts', '12c285dffa60562c1114cd610fd3bc7251ac0c95099cf22222c51fa8a2e5a6ee'],
+  ['packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts', '79ee5322bd073312ba955edd5908f3532c57cc16b0c1a13a9ffd96c50d37e608'],
+  ['packages/core/src/compiler/scanner/operations/request-deriver/groupAggregator.ts', '12c285dffa60562c1114cd610fd3bc7251ac0c95099cf22222c51fa8a2e5a6ee'],
   ['packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationAuthority.ts', '4f1a27f390bb0be30d1ecf6c4a78547163470612d6b8cb1dfa92911d0916f02d'],
   ['packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts', '1d65161d82d8cb358dc0e032bf62d6deaa23dba568ccdbf93177a07bb8c97b21'],
 ];

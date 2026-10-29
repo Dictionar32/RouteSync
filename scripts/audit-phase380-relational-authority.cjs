@@ -2,12 +2,12 @@ const fs = require('fs');
 const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/lib/typescript.js');
 const root = '/tmp/rs380';
 const files = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
   'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts',
   'packages/core/src/compiler/scanner/semantic/route/routeBindingAstAdapter.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts',
 ];
 const forbidden = new Map([
   ['if', n => ts.isIfStatement(n)],

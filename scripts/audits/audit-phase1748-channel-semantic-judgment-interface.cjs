@@ -7,7 +7,7 @@ const check = (name, passed, finding = '') => checks.push({ name, passed: Boolea
 
 const judgmentPath = 'packages/core/src/types/upstream/laravelScannerSemanticJudgment.ts';
 const scannerInterfacePath = 'packages/core/src/types/upstream/laravelChannelScannerInterface.ts';
-const scannerPath = 'packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts';
+const scannerPath = 'packages/core/src/compiler/scanner/operations/ChannelScanner.ts';
 const indexPath = 'packages/core/src/index.ts';
 const judgment = read(judgmentPath);
 const contract = read(scannerInterfacePath);

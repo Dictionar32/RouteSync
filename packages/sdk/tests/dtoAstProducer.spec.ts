@@ -2,12 +2,13 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { LaravelSourceLexer } from '../../core/src/compiler/scanner/LaravelSourceLexer';
-import { createAstIdentifier } from '../../core/src/compiler/scanner/lexer/phpAstTypes';
-import { parseResponseDtoDeclaration } from '../../core/src/compiler/scanner/lexer/responseDtoDeclarationParser';
-import { dtoProducer } from '../../core/src/compiler/scanner/subscanners/dtoProducer';
-import { scanDtoAsts } from '../../core/src/compiler/scanner/subscanners/dtoAstCanonical';
+import { createAstIdentifier } from '../../core/src/compiler/frontend/php/phpAstTypes';
+import { parseResponseDtoDeclaration } from '../../core/src/compiler/frontend/php/responseDtoDeclarationParser';
+import { dtoProducer } from '../../core/src/compiler/scanner/operations/dtoProducer';
+import { dtoDeclarationInventoryScanningOperation } from '../../core/src/compiler/scanner/operations/dtoAstCanonical';
 import type { Sequence } from '../../core/src/types/upstream/collections';
 import type { SourceProjectIdentity } from '../../core/src/types/upstream/highLevelSourceModel';
+import { semanticDataflowQueryPolicySelectionFactory } from '../../core/src/types/upstream/semanticDataflowQueryPolicy';
 import type { SourceSpan } from '../../core/src/types/upstream/provenance';
 
 const fixtureRoot = path.resolve(__dirname, 'fixtures/ecommerce-shop-source');
@@ -34,6 +35,7 @@ const project = (root: string): SourceProjectIdentity => ({
   kind: 'laravel_project',
   root: source(root, 1).file,
   source: source(root, 1),
+  queryPolicySelection: semanticDataflowQueryPolicySelectionFactory.defaultSelection,
 });
 
 describe('DtoAst producer', () => {
@@ -70,7 +72,7 @@ describe('DtoAst producer', () => {
   });
 
   it('routes discovered DTO syntax through dtoProducer into SourceAsts-compatible DtoAst values', async () => {
-    const dtos = await scanDtoAsts(project(fixtureRoot));
+    const dtos = await dtoDeclarationInventoryScanningOperation.scanAsts(project(fixtureRoot));
 
     expect(dtos).toHaveLength(1);
     expect(dtos[0]).toMatchObject({

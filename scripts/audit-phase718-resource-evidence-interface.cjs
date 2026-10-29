@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const root = process.cwd();
-const scanner = fs.readFileSync(`${root}/packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts`, 'utf8');
+const scanner = fs.readFileSync(`${root}/packages/core/src/compiler/scanner/operations/ResourceScanner.ts`, 'utf8');
 const barrel = fs.readFileSync(`${root}/packages/core/src/compiler/scanner/symbols/resource/index.ts`, 'utf8');
 const checks = {
   closedResourceScanEvidence: /interface ResourceScanEvidence\s*\{[\s\S]*kind: 'resource_scan_evidence'/.test(scanner),

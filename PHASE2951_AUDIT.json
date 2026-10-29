@@ -1,0 +1,25 @@
+{
+  "phase": 2951,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations — Upstream Canonicalization Contract Ownership",
+  "scope": "CLI PHP controller-invocation manifest composition; canonicalization contract placement and explicit upstream exports",
+  "changes": [
+    "Moved canonicalization input, interface, judgments, result, handlers, and continuation operation contracts into existing packages/core/src/types/upstream/sourceProjectIdentity.ts",
+    "Kept CLI Node fs.realpath implementation interface-first and retained original failure evidence with existing filesystem failure code/location ADTs",
+    "Removed duplicate canonicalization contract declarations from the CLI composition interface",
+    "Explicitly exported upstream canonicalization types from packages/core/src/index.ts",
+    "Updated Phase2950 structural audit to follow the canonical contract after ownership moved upstream",
+    "Kept packages/core/src/types/upstream/collections.ts empty"
+  ],
+  "verification": {
+    "phase2950StructuralAudit": "13/13 passed",
+    "phase2951StructuralAudit": "11/11 passed",
+    "typescriptSyntaxTranspile": "4/4 changed TypeScript files; zero syntax error diagnostics",
+    "packageJsonParse": "passed",
+    "collectionsFileBytes": 0,
+    "zipIntegrity": "passed",
+    "fullTypecheck": "not run",
+    "unitTests": "not run",
+    "build": "not run",
+    "cliEndToEnd": "not run"
+  }
+}

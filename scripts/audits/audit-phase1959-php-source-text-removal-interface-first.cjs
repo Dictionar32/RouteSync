@@ -3,8 +3,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/astClassifierEvidenceContract.ts');
-const facade = read('packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts');
-const tokenizer = read('packages/core/src/compiler/scanner/lexer/tokenizer.ts');
+const facade = read('packages/core/src/compiler/frontend/php/astClassifierEvidence.ts');
+const tokenizer = read('packages/core/src/compiler/frontend/php/tokenizer.ts');
 const barrel = read('packages/core/src/index.ts');
 const producer = read('packages/core/src/types/upstream/astSemanticEvidenceProducer.ts');
 const checks = [

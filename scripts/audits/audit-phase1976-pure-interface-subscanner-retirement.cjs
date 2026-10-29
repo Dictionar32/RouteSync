@@ -13,7 +13,7 @@ const checks = [
   ['runtime registry is removed from the module', !source.includes('LARAVEL_SUBSCANNER_RETIREMENT_CONTRACT')],
   ['runtime registry is not re-exported by package barrel', !barrel.includes("export { LARAVEL_SUBSCANNER_RETIREMENT_CONTRACT } from './types/upstream/laravelSubscannerRetirementInterface';")],
   ['existing type contract remains exported', barrel.includes("export type { LaravelSubscannerRetirementDomain, LaravelSubscannerRetirementInterface } from './types/upstream/laravelSubscannerRetirementInterface';")],
-  ['no relation/foundation subscanner path introduced', !source.includes('subscanners/relation') && !source.includes('subscanners/foundation')],
+  ['no relation/foundation subscanner path introduced', !source.includes('operations/relation') && !source.includes('operations/foundation')],
 ];
 const report = {
   phase: 1976,

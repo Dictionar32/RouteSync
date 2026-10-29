@@ -1,0 +1,49 @@
+{
+  "phase": 2972,
+  "name": "Source Presence Judgment ADT",
+  "status": "bounded_domain_adt_migration_with_repository_blocker",
+  "implementation": {
+    "presenceBooleanReplacedByJudgment": true,
+    "presenceVariants": ["laravel_route_source_present", "laravel_route_source_absent"],
+    "sourceSelectionUsesDomainContinuation": true,
+    "explicitMissingInventoryUsesInventoryADT": true,
+    "runtimeExportsInterfaceTyped": true,
+    "deletedRelationFoundationRestored": false,
+    "kernelReExportStubsEmptied": [
+      "packages/core/src/semantic/kernel/relationMembership.ts",
+      "packages/core/src/semantic/kernel/relationalSequence.ts"
+    ],
+    "upstreamCollectionsFileRemainsEmpty": true
+  },
+  "structuralAudit": {
+    "passed": 15,
+    "total": 15,
+    "script": "scripts/audits/audit-phase2972-source-presence-judgment-adt.cjs"
+  },
+  "runtimeTrace": {
+    "entrypoints": [
+      "packages/cli/src/index.ts",
+      "packages/core/src/index.ts",
+      "packages/core/src/upstream.ts"
+    ],
+    "reachableSourceFilesVisited": 1237,
+    "reachableFilesWithDeletedFoundationImports": 256,
+    "repoWideStaleImportLines": 517,
+    "repoWideFilesWithStaleImports": 274
+  },
+  "verification": {
+    "auditScripts": "passed",
+    "editedFileSyntaxTranspile": "passed",
+    "fullBuild": "blocked_not_verified",
+    "fullTypecheck": "not_run",
+    "unitTests": "not_run",
+    "reason": "node_modules absent; global TypeScript does not support the project's es2025 target; unresolved imports to deleted relation foundation remain"
+  },
+  "invariants": {
+    "missingExplicitSourcesRemainBlocked": true,
+    "optionalDefaultAbsenceRemainsDistinct": true,
+    "sourceReadFailureRemainsDistinct": true,
+    "relationFoundationNotRecreated": true,
+    "genericReplacementFoundationNotIntroduced": true
+  }
+}

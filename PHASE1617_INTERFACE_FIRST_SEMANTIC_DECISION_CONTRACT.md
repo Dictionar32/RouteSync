@@ -7,7 +7,7 @@ This phase improves the existing upstream semantic decision interface model only
 ## Trace findings
 
 - `packages/core/src/types/upstream/semanticDecisionInterface.ts` previously exposed a callback-bound `SemanticDecisionRule` (`applies` / `derive`) as the principal contract. That means rule meaning was represented partly as executable behavior rather than declarative semantic data.
-- `packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts` constructs those callback rules through `expressionRule(...)`. This is a downstream migration target, not changed in this interface-only phase.
+- `packages/core/src/compiler/frontend/php/astClassifierRuntime.ts` constructs those callback rules through `expressionRule(...)`. This is a downstream migration target, not changed in this interface-only phase.
 - `packages/core/src/types/upstream/semanticDecisionAlgebra.ts` consumes the callback contract today. Its executable solver remains unchanged; changing that solver or scanner wiring before the declarative model is settled would violate the requested sequence.
 - `packages/core/src/types/upstream/astSemanticInterface.ts` still owns closure implementation and uses a minimal fixed-point certificate. That is a separate unresolved contract gap and is intentionally not claimed as fixed by this phase.
 

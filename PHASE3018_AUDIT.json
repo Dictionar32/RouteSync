@@ -1,0 +1,88 @@
+{
+  "phase": 3018,
+  "audit": "explicit-cli-manifest-runtime-trace",
+  "passed": 16,
+  "total": 16,
+  "checks": [
+    {
+      "name": "scan command explicitly consumes the runtime operation interface",
+      "passed": true,
+      "evidence": "commands/scan.ts"
+    },
+    {
+      "name": "sync command explicitly consumes the runtime operation interface",
+      "passed": true,
+      "evidence": "commands/sync.ts"
+    },
+    {
+      "name": "both runtime commands call scan(input) through the interface",
+      "passed": true,
+      "evidence": "scan.ts + sync.ts"
+    },
+    {
+      "name": "runtime operation is an explicit typed interface with canonical input/output",
+      "passed": true,
+      "evidence": "manifestScanOperationInterface.ts"
+    },
+    {
+      "name": "operation factory object delegates to the supplied authority without duplicating semantic work",
+      "passed": true,
+      "evidence": "manifestScanOperationInterface.ts"
+    },
+    {
+      "name": "upstream composition exposes the exact operation consumed by CLI",
+      "passed": true,
+      "evidence": "upstreamCompositionInterface.ts"
+    },
+    {
+      "name": "composition root binds operation to the same manifest authority",
+      "passed": true,
+      "evidence": "upstreamCompositionFactory.ts"
+    },
+    {
+      "name": "manifest composition canonicalizes project identity before canonical project composition",
+      "passed": true,
+      "evidence": "controllerInvocationManifestComposition.ts"
+    },
+    {
+      "name": "source discovery is represented as an ADT continuation rather than CLI-side discovery",
+      "passed": true,
+      "evidence": "controllerInvocationManifestComposition.ts"
+    },
+    {
+      "name": "terminal manifest result preserves executable domain continuation",
+      "passed": true,
+      "evidence": "terminal result ADT"
+    },
+    {
+      "name": "scan path continues from terminal judgment into manifest-flow projection",
+      "passed": true,
+      "evidence": "commands/scan.ts"
+    },
+    {
+      "name": "scan path gates RequestType manifest projection through the assembled pipeline",
+      "passed": true,
+      "evidence": "commands/scan.ts"
+    },
+    {
+      "name": "scan path validates and saves the projected manifest through explicit operations",
+      "passed": true,
+      "evidence": "commands/scan.ts"
+    },
+    {
+      "name": "sync path also validates and saves the projected manifest",
+      "passed": true,
+      "evidence": "commands/sync.ts"
+    },
+    {
+      "name": "removed relation-foundation files remain absent",
+      "passed": true,
+      "evidence": "relation foundation remains removed"
+    },
+    {
+      "name": "collections.ts remains exactly one newline byte",
+      "passed": true,
+      "evidence": "core/src/types/upstream/collections.ts"
+    }
+  ]
+}

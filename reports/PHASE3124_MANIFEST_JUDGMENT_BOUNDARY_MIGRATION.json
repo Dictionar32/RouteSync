@@ -1,0 +1,14 @@
+{
+  "phase": 3124,
+  "subject": "CLI manifest builder judgment boundary migration",
+  "checksPassed": 6,
+  "checksFailed": 0,
+  "checks": [
+    "CLI manifest boundary no longer calls unsupported generic continueWith visitor",
+    "complete judgment preserves the original manifest terminal",
+    "blocked judgment preserves the original blocker terminal",
+    "upstream manifest contract remains the source of complete and blocked judgments",
+    "CLI boundary contract describes the actual closed-ADT adaptation",
+    "deleted relation foundation remains absent"
+  ]
+}

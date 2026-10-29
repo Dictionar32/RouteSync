@@ -1,0 +1,79 @@
+{
+  "phase": 2744,
+  "title": "Controller action type runtime operation and relation-call-site reduction",
+  "passed": true,
+  "checksPassed": 14,
+  "checksTotal": 14,
+  "checks": [
+    {
+      "name": "route handler is no longer an exported free function",
+      "passed": true,
+      "detail": "buildRouteHandlerImplementation is internal"
+    },
+    {
+      "name": "route handler implementation remains internal and explicit",
+      "passed": true,
+      "detail": "internal implementation present"
+    },
+    {
+      "name": "operation interface has explicit parameter and output types",
+      "passed": true,
+      "detail": "ControllerName + ActionName -> RouteHandlerDescriptor"
+    },
+    {
+      "name": "public operation object is interface-typed and frozen",
+      "passed": true,
+      "detail": "interface-first Object.freeze"
+    },
+    {
+      "name": "controller action descriptor uses operation object",
+      "passed": true,
+      "detail": "both descriptor construction paths migrated"
+    },
+    {
+      "name": "upstream route composition uses operation object",
+      "passed": true,
+      "detail": "route declaration composition migrated"
+    },
+    {
+      "name": "local relation imports erased from controller action type runtime",
+      "passed": true,
+      "detail": "direct discriminant branch; no relation combinator dependency"
+    },
+    {
+      "name": "invokable and named-action ADT branches covered by tests",
+      "passed": true,
+      "detail": "both runtime branches covered"
+    },
+    {
+      "name": "legacy subscanners directory remains absent",
+      "passed": true,
+      "detail": "no subscanners directory"
+    },
+    {
+      "name": "semantic/relations remains empty",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "semantic/foundation remains empty",
+      "passed": true,
+      "detail": "0 files"
+    },
+    {
+      "name": "CLI scan retains shared manifest scan operation",
+      "passed": true,
+      "detail": "CLI scan -> manifest scan operation"
+    },
+    {
+      "name": "CLI sync retains shared manifest scan operation",
+      "passed": true,
+      "detail": "CLI sync -> manifest scan operation"
+    },
+    {
+      "name": "manifest complete/blocked ADTs remain represented",
+      "passed": true,
+      "detail": "manifest builder complete | blocked"
+    }
+  ]
+}

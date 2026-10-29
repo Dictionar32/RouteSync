@@ -1,0 +1,58 @@
+{
+  "phase": 3020,
+  "title": "Explicit Factory Conversion — DescriptionText",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "DescriptionTextFactoryInterface declared",
+      "status": "passed",
+      "detail": "Factory contract is explicit and typed."
+    },
+    {
+      "name": "descriptionText exported as interface-backed object",
+      "status": "passed",
+      "detail": "Callable function export converted to an explicitly typed object."
+    },
+    {
+      "name": "old callable factory removed",
+      "status": "passed",
+      "detail": "No callable descriptionText factory remains."
+    },
+    {
+      "name": "upstream consumer migrated",
+      "status": "passed",
+      "detail": "Query semantic diagnostic uses the object operation."
+    },
+    {
+      "name": "compiler runtime consumer migrated",
+      "status": "passed",
+      "detail": "Query evidence producer uses the object operation."
+    },
+    {
+      "name": "no stale direct calls in packages",
+      "status": "passed",
+      "detail": "All call sites use descriptionText.create(...)."
+    },
+    {
+      "name": "collections.ts preserved as one-byte newline",
+      "status": "passed",
+      "detail": "size=1"
+    },
+    {
+      "name": "removed foundation stays absent: relationMembership.ts",
+      "status": "passed",
+      "detail": "packages/core/src/semantic/relations/relationMembership.ts"
+    },
+    {
+      "name": "removed foundation stays absent: relationalSequence.ts",
+      "status": "passed",
+      "detail": "packages/core/src/semantic/relations/relationalSequence.ts"
+    },
+    {
+      "name": "removed foundation stays absent: semanticRelations.ts",
+      "status": "passed",
+      "detail": "packages/core/src/semantic/relations/semanticRelations.ts"
+    }
+  ]
+}

@@ -22,7 +22,7 @@ export type AstAnalysisFact =
    * numbers.
    */
   | { readonly kind: 'dataflow_fact'; readonly value: AstDataflowFact }
-  | { readonly kind: 'resolver_domain'; readonly value: ResolverGraphSemanticJudgment['domain']['result'] }
+  | { readonly kind: 'resolver_domain'; readonly value: ResolverGraphSemanticJudgment['domain']['result']; readonly outcome: ResolverGraphSemanticJudgment['domainOutcome'] }
   | { readonly kind: 'resolver_security'; readonly value: ResolverGraphSemanticJudgment['security']['security'] }
   | { readonly kind: 'resolver_crud'; readonly value: ResolverGraphSemanticJudgment['crudRole'] }
   | { readonly kind: 'mapping_refinement'; readonly value: ResolverGraphSemanticJudgment['mapping'] }
@@ -80,13 +80,17 @@ export type AstAnalysisInput = Readonly<{
 
 export const astAnalysisJudgment = (input: AstAnalysisInput): AstAnalysisJudgment => {
   const resolver = input.resolver;
+  const resolverDomainFact = resolver.continueWith<Extract<AstAnalysisFact, { readonly kind: 'resolver_domain' }>>({
+    candidate_selected: judgment => Object.freeze({ kind: 'resolver_domain' as const, value: judgment.domain.result, outcome: judgment.domainOutcome }),
+    default_applied: judgment => Object.freeze({ kind: 'resolver_domain' as const, value: judgment.domain.result, outcome: judgment.domainOutcome }),
+  });
   const facts: readonly AstAnalysisFact[] = Object.freeze([
-    Object.freeze({ kind: 'resolver_domain' as const, value: resolver.domain.result }),
+    resolverDomainFact,
     Object.freeze({ kind: 'resolver_security' as const, value: resolver.security.security }),
     Object.freeze({ kind: 'resolver_crud' as const, value: resolver.crudRole }),
     Object.freeze({ kind: 'mapping_refinement' as const, value: resolver.mapping }),
     Object.freeze({ kind: 'semantic_type' as const, value: input.semanticType }),
-    ...relationProject(input.dataflow.state.closure, fact => Object.freeze({ kind: 'dataflow_fact' as const, value: fact })),
+    ...input.dataflow.state.closure.map(fact => Object.freeze({ kind: 'dataflow_fact' as const, value: fact })),
     Object.freeze({ kind: 'dataflow_closure' as const, value: input.dataflow.state.closure }),
   ]);
   return Object.freeze({

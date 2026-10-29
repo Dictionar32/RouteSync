@@ -6,7 +6,7 @@
 
 `packages/core/src/types/upstream/astClassifierRuleAlgebra.ts` no longer imports `RelationOption` or any `semantic/relations` helper. Its existing rule contract now returns closed ADTs for applicability and resolution, and `resolveFirst` returns a closed classification judgment with ordered attempts and a selected-rule proof. The same existing algebra now verifies the proof and checks policy ordering against upstream precedence.
 
-`packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts` now uses `AST_CLASSIFICATION_RULES` and the existing rule algebra for expression arbitration. It no longer uses `SemanticDecisionContract`, `semanticDecisionAlgebra.resolve`, or the old semantic-decision proof adapter for that policy. Structured-statement and simple-statement rule selection also consume the new judgment ADT.
+`packages/core/src/compiler/frontend/php/astClassifierRuntime.ts` now uses `AST_CLASSIFICATION_RULES` and the existing rule algebra for expression arbitration. It no longer uses `SemanticDecisionContract`, `semanticDecisionAlgebra.resolve`, or the old semantic-decision proof adapter for that policy. Structured-statement and simple-statement rule selection also consume the new judgment ADT.
 
 ### Explicit remaining migration boundary
 

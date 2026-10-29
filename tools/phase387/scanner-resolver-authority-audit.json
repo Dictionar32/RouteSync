@@ -95,975 +95,975 @@
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/channelDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/channelDescriptorClass.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/channelFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/channelFactories.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/index.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channel/patternCompiler.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channel/patternCompiler.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/channelDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/channelDescriptors.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/index.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifest/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifest/index.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts",
       "violations": 48
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifest/routeManifestDescriptor.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/manifestDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/manifestDescriptors.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts",
       "violations": 20
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/modelEntityFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelEntityFactory.ts",
       "violations": 12
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/entity/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/entity/types.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelAccessorDescriptor.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts",
       "violations": 3
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelColumnDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelColumnDescriptor.ts",
       "violations": 3
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelEntityDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelEntityDescriptor.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/modelRelationDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/modelRelationDescriptor.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/model/relation/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/model/relation/types.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.phase10.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.phase10.test.ts",
       "violations": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts",
       "violations": 52
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionDescriptor.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionTypes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionTypes.ts",
       "violations": 8
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionAlgebra.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionContract.ts",
       "violations": 68
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/formActionDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/formActionDescriptor.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/formFieldDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/formFieldDescriptor.ts",
       "violations": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/index.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/requestTypeDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/requestTypeDescriptor.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/requestDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts",
       "violations": 3
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resource/resourceFieldDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resource/resourceFieldDescriptor.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/resourceDescriptors.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-ast-adt-phase70.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-binding-ast-adt-phase70.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-contract-phase56.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-binding-contract-phase56.test.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-explicit-phase58.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-binding-explicit-phase58.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-identity-catalog-phase90.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-binding-identity-catalog-phase90.test.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-resolution-phase57.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-binding-resolution-phase57.test.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-scoping-phase64.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-binding-scoping-phase64.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-binding-with-trashed-phase75.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-binding-with-trashed-phase75.test.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-constraint-phase67.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-constraint-phase67.test.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-constraint-where-in-phase73.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-constraint-where-in-phase73.test.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-group-semantic-phase55.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-group-semantic-phase55.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-group-semantic-phase69.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-group-semantic-phase69.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-middleware-phase59.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-middleware-phase59.test.ts",
       "violations": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-middleware-phase61.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-middleware-phase61.test.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-middleware-phase62.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-middleware-phase62.test.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-missing-ast-adt-phase71.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-missing-ast-adt-phase71.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-missing-behavior-phase65.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-missing-behavior-phase65.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-resource-capability-catalog-phase91.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-resource-capability-catalog-phase91.test.ts",
       "violations": 8
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-resource-phase77.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-resource-phase77.test.ts",
       "violations": 30
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/route-semantic-flow-phase60.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/route-semantic-flow-phase60.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/__tests__/syntax-navigation-data-loss-phase103.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/__tests__/syntax-navigation-data-loss-phase103.test.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/ScannedHttpErrorResponseDescriptor.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/errorFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/errorFactories.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/error-response/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/error-response/types.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/actionRouteFactories.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureRouteFactory.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureSyntheticFactories.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/contractRouteFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/contractRouteFactories.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerActionRouteFactory.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerReferenceRouteFactory.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/factories/syntheticRouteFactory.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.phase6.test.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.phase6.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeParameterDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeParameterDescriptorClass.ts",
       "violations": 25
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/routeQueryParameterDescriptorClass.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/routeQueryParameterDescriptorClass.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/params/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/params/types.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingAstAdapter.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeBindingAstAdapter.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingContractResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeBindingContractResolver.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingResolutionResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeBindingResolutionResolver.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeBindingSemanticResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeBindingSemanticResolver.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeConstraintAstAdapter.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeConstraintAstAdapter.ts",
       "violations": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeConstraintFlowResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeConstraintFlowResolver.ts",
       "violations": 11
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeContracts.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeContracts.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeDeclarations.ts",
       "violations": 3
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupAstAdapter.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupAstAdapter.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupContextResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupContextResolver.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeGroupSemanticResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeGroupSemanticResolver.ts",
       "violations": 12
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMethods.ts",
       "violations": 3
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMiddlewareAstAdapter.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMiddlewareAstAdapter.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMiddlewareResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMiddlewareResolver.ts",
       "violations": 31
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMissingAstAdapter.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMissingAstAdapter.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMissingBehaviorResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMissingBehaviorResolver.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMissingSemanticResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMissingSemanticResolver.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeMutations.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeMutations.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeParameters.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeParameters.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routePropertyAssigner.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routePropertyAssigner.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResourceAstAdapter.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeResourceAstAdapter.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResourceCapabilityCatalog.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeResourceCapabilityCatalog.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResourceSemanticResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeResourceSemanticResolver.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSecurity.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeSecurity.ts",
       "violations": 20
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSemanticFactories.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeSemanticFactories.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/route/routeSemanticFlowResolver.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/route/routeSemanticFlowResolver.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/types.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/types.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/fieldNodes.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/fieldNodes.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/index.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/index.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/schemaPayload.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/schemaPayload.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts",
       "violations": 44
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts",
       "violations": 43
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validation/validationTreeBuilder.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationTreeBuilder.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/validationDescriptors.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/validationDescriptors.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/PhpAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/PhpAst.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/SourceStream.ts",
+      "file": "packages/core/src/compiler/frontend/php/SourceStream.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/arrayParser.ts",
       "violations": 51
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/astClassifier.ts",
+      "file": "packages/core/src/compiler/frontend/php/astClassifier.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "file": "packages/core/src/compiler/frontend/php/astClassifierEvidence.ts",
       "violations": 357
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerAstTypes.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerBodyParser.ts",
       "violations": 52
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts",
       "violations": 56
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
       "violations": 136
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerReturnParser.ts",
       "violations": 15
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/index.ts",
+      "file": "packages/core/src/compiler/frontend/php/index.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/modelAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/modelAstTypes.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts",
       "violations": 68
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstAlgebra.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstCoreTypes.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstDeclarationTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstDeclarationTypes.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstFactory.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstFactory.ts",
       "violations": 4
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstStatementKinds.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstStatementKinds.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstStatementTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstStatementTypes.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstTypes.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpLexicalSymbols.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpLexicalSymbols.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpMethodAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpMethodAstTypes.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpMethodParser.ts",
       "violations": 63
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/responseDtoAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/responseDtoAstTypes.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/responseDtoDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/responseDtoDeclarationParser.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/delimiterNavigation.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/index.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/index.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase162.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase162.test.ts",
       "violations": 35
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase167.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase167.test.ts",
       "violations": 234
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase212.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase212.test.ts",
       "violations": 3
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase214.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase214.test.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataModel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataModel.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts",
       "violations": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSyntaxEvidenceRelationProgram.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/phpAstSyntaxEvidenceRelationProgram.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeBindingDeclarationAst.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts",
       "violations": 9
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationAst.ts",
       "violations": 3
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationAst.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeResourceDeclarationAst.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeResourceDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeResourceDeclarationParser.ts",
       "violations": 16
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxModel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeSyntaxModel.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticAdapterConstructFree.phase273.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticAdapterConstructFree.phase273.test.ts",
       "violations": 12
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticAdapterRelationalBoundary.phase274.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticAdapterRelationalBoundary.phase274.test.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.phase269.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.phase269.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.phase270.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticClosureEngine.phase270.test.ts",
       "violations": 10
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticClosureEngine.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticClosureEngine.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.phase271.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.phase271.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticCompilationArtifact.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticCompilationArtifact.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.phase266.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.phase266.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructBoundary.phase289.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstructBoundary.phase289.test.ts",
       "violations": 16
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructBoundary.phase290.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstructBoundary.phase290.test.ts",
       "violations": 18
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstructFreeControl.phase272.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticConstructFreeControl.phase272.test.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.phase215.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.phase215.test.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticDeclarativeSyntax.phase300.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticDeclarativeSyntax.phase300.test.ts",
       "violations": 12
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.phase287.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.phase287.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticEvidenceRelationCompiler.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts",
       "violations": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowModel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowModel.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.phase225.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentity.phase225.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentity.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.phase239.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.phase239.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationProgram.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationProgram.ts",
       "violations": 13
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase231.test.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase236.test.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationStore.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.phase268.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.phase268.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationTheory.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationTheory.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalAlgebra.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAuthority.phase286.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalAuthority.phase286.test.ts",
       "violations": 10
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorCatalog.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorCatalog.ts",
       "violations": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.phase267.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.phase267.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase302.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBoundary.phase302.test.ts",
       "violations": 11
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase304.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBoundary.phase304.test.ts",
       "violations": 12
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalBoundaryManifest.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalBoundaryManifest.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalCollections.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase291.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase291.test.ts",
       "violations": 7
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase292.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase292.test.ts",
       "violations": 14
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase293.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase293.test.ts",
       "violations": 11
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
       "violations": 28
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
       "violations": 9
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
       "violations": 16
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.ts",
       "violations": 26
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalOntology.phase277.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalOntology.phase277.test.ts",
       "violations": 14
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalProgram.phase279.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalProgram.phase279.test.ts",
       "violations": 10
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.phase266.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.phase266.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.phase216.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.phase216.test.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticStateDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticStateDataFlow.ts",
       "violations": 9
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticTypedRelation.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlow.phase218.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlow.phase218.test.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlow.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxCursorWitness.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxCursorWitness.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxGrammar.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxGrammar.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxNavigation.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxNavigation.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.phase301.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.phase301.test.ts",
       "violations": 6
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts",
       "violations": 18
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/tokenCursor.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/tokenCursor.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/tokenCursorAuthority.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/tokenCursorAuthority.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/serviceAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/serviceAstTypes.ts",
       "violations": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenize/characterPredicates.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenize/characterPredicates.ts",
       "violations": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts",
       "violations": 52
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenize/index.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenize/index.ts",
       "violations": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenizer.ts",
       "violations": 5
     },
     {

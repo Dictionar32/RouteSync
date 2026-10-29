@@ -4,7 +4,7 @@
 
 Phase 583 closed the selected scanner/resolver/dataflow surfaces with relation-backed indexes and fixed-point state. Phase 584 widens the audit boundary to the layers that still sit *around* that closed core:
 
-1. scanner/lexer construction adapters,
+1. frontend/php construction adapters,
 2. resolver graph construction,
 3. AST/upstream mapping,
 4. verification/analysis passes,
@@ -35,7 +35,7 @@ The new TypeScript AST audit scans 317 active production files across the widene
 
 | Surface | if | for | while | switch | ternary | map/filter/reduce/flatMap | undefined | ?? | ===/!== | new | Set/Map |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| scanner/lexer | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 10 | 0/1 |
+| frontend/php | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 10 | 0/1 |
 | scanner/resolvers | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0/0 |
 | scanner/semantic | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0/0 |
 | scanner/upstream | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 0/0 |

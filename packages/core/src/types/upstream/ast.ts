@@ -69,14 +69,47 @@ export type ExpressionSurface =
  * semantic meaning, provenance, constraints, dependencies, and proof of
  * derivation are all first-class parts of the node contract.
  */
-export type AstSequence<T> =
+export type AstEvidenceFactSequence =
   | { readonly kind: 'ast_sequence_empty' }
-  | { readonly kind: 'ast_sequence_cons'; readonly head: T; readonly tail: AstSequence<T> };
+  | { readonly kind: 'ast_sequence_cons'; readonly head: AstEvidenceFact; readonly tail: AstEvidenceFactSequence };
+
+export type AstConstraintSequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: AstConstraint; readonly tail: AstConstraintSequence };
+
+export type AstDependencySequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: AstDependency; readonly tail: AstDependencySequence };
+
+export type AstWitnessNameSequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: AstWitnessName; readonly tail: AstWitnessNameSequence };
+
+export type AstStringValueSequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: StringValue; readonly tail: AstStringValueSequence };
+
+export type AstDiagnosticSequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: AstDiagnostic; readonly tail: AstDiagnosticSequence };
+
+export type AstProofPremiseSequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: AstProofPremise; readonly tail: AstProofPremiseSequence };
+
+export type AstRelationFactSequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: AstRelationFact; readonly tail: AstRelationFactSequence };
+
+export type ControllerMethodSequence =
+  | { readonly kind: 'ast_sequence_empty' }
+  | { readonly kind: 'ast_sequence_cons'; readonly head: ControllerMethod; readonly tail: ControllerMethodSequence };
+
 
 export type AstEvidence<Surface> = {
   readonly kind: 'source_evidence';
   readonly surface: Surface;
-  readonly facts: AstSequence<AstEvidenceFact>;
+  readonly facts: AstEvidenceFactSequence;
 };
 
 export type AstEvidenceFact = {
@@ -134,7 +167,7 @@ export type AstConstraint =
 
 export type AstConstraints = {
   readonly kind: 'ast_constraints';
-  readonly items: AstSequence<AstConstraint>;
+  readonly items: AstConstraintSequence;
 };
 
 /** Dependency edges make semantic dataflow explicit instead of hiding it in traversal order. */
@@ -146,26 +179,26 @@ export type AstDependency = {
 
 export type AstDependencies = {
   readonly kind: 'ast_dependencies';
-  readonly items: AstSequence<AstDependency>;
+  readonly items: AstDependencySequence;
 };
 
 /** Resolution state is an ADT; host-language absence is outside this contract. */
 export type AstResolutionStatus =
   | { readonly kind: 'ast_candidate' }
   | { readonly kind: 'ast_resolved' }
-  | { readonly kind: 'ast_ambiguous'; readonly alternatives: AstSequence<AstWitnessName> }
+  | { readonly kind: 'ast_ambiguous'; readonly alternatives: AstWitnessNameSequence }
   | { readonly kind: 'ast_rejected'; readonly reason: AstRuleName };
 
 /** Diagnostics are semantic evidence, never host-language exceptions. */
 export type AstDiagnostic =
-  | { readonly kind: 'ast_syntax_error'; readonly source: SourceSpan; readonly expected: AstSequence<StringValue> }
+  | { readonly kind: 'ast_syntax_error'; readonly source: SourceSpan; readonly expected: AstStringValueSequence }
   | { readonly kind: 'ast_unsupported_surface'; readonly source: SourceSpan; readonly surface: AstDomainSurface }
   | { readonly kind: 'ast_unresolved_semantics'; readonly source: SourceSpan; readonly rule: AstRuleName }
-  | { readonly kind: 'ast_ambiguous_semantics'; readonly source: SourceSpan; readonly witnesses: AstSequence<AstWitnessName> };
+  | { readonly kind: 'ast_ambiguous_semantics'; readonly source: SourceSpan; readonly witnesses: AstWitnessNameSequence };
 
 export type AstDiagnostics = {
   readonly kind: 'ast_diagnostics';
-  readonly items: AstSequence<AstDiagnostic>;
+  readonly items: AstDiagnosticSequence;
 };
 
 /**
@@ -182,7 +215,7 @@ export type AstDerivationStep = {
   readonly conclusion: AstNodeIdentity;
   readonly rule: AstRuleName;
   readonly witness: AstWitnessName;
-  readonly premises: AstSequence<AstProofPremise>;
+  readonly premises: AstProofPremiseSequence;
   readonly round: NumberValue;
 };
 
@@ -195,33 +228,101 @@ export type AstDerivation = {
   readonly trace: AstDerivationTrace;
 };
 
-export const emptyAstSequence = <T>(): AstSequence<T> => ({ kind: 'ast_sequence_empty' });
+export interface AstSequenceOperationsInterface {
+  readonly emptyEvidenceFacts: () => AstEvidenceFactSequence;
+  readonly consEvidenceFact: (head: AstEvidenceFact, tail: AstEvidenceFactSequence) => AstEvidenceFactSequence;
+  readonly consEvidenceFactWithEmptyTail: (head: AstEvidenceFact) => AstEvidenceFactSequence;
+  readonly emptyConstraints: () => AstConstraintSequence;
+  readonly consConstraint: (head: AstConstraint, tail: AstConstraintSequence) => AstConstraintSequence;
+  readonly consConstraintWithEmptyTail: (head: AstConstraint) => AstConstraintSequence;
+  readonly emptyDependencies: () => AstDependencySequence;
+  readonly consDependency: (head: AstDependency, tail: AstDependencySequence) => AstDependencySequence;
+  readonly consDependencyWithEmptyTail: (head: AstDependency) => AstDependencySequence;
+  readonly emptyWitnessNames: () => AstWitnessNameSequence;
+  readonly consWitnessName: (head: AstWitnessName, tail: AstWitnessNameSequence) => AstWitnessNameSequence;
+  readonly consWitnessNameWithEmptyTail: (head: AstWitnessName) => AstWitnessNameSequence;
+  readonly emptyStringValues: () => AstStringValueSequence;
+  readonly consStringValue: (head: StringValue, tail: AstStringValueSequence) => AstStringValueSequence;
+  readonly consStringValueWithEmptyTail: (head: StringValue) => AstStringValueSequence;
+  readonly emptyDiagnostics: () => AstDiagnosticSequence;
+  readonly consDiagnostic: (head: AstDiagnostic, tail: AstDiagnosticSequence) => AstDiagnosticSequence;
+  readonly consDiagnosticWithEmptyTail: (head: AstDiagnostic) => AstDiagnosticSequence;
+  readonly emptyProofPremises: () => AstProofPremiseSequence;
+  readonly consProofPremise: (head: AstProofPremise, tail: AstProofPremiseSequence) => AstProofPremiseSequence;
+  readonly consProofPremiseWithEmptyTail: (head: AstProofPremise) => AstProofPremiseSequence;
+  readonly emptyRelationFacts: () => AstRelationFactSequence;
+  readonly consRelationFact: (head: AstRelationFact, tail: AstRelationFactSequence) => AstRelationFactSequence;
+  readonly consRelationFactWithEmptyTail: (head: AstRelationFact) => AstRelationFactSequence;
+  readonly emptyControllerMethods: () => ControllerMethodSequence;
+  readonly consControllerMethod: (head: ControllerMethod, tail: ControllerMethodSequence) => ControllerMethodSequence;
+  readonly consControllerMethodWithEmptyTail: (head: ControllerMethod) => ControllerMethodSequence;
+}
 
-export const astSequenceCons = <T>(head: T, tail: AstSequence<T> = emptyAstSequence<T>()): AstSequence<T> => ({
-  kind: 'ast_sequence_cons',
-  head,
-  tail,
+export const astSequenceOperations: AstSequenceOperationsInterface = Object.freeze({
+  emptyEvidenceFacts: (): AstEvidenceFactSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consEvidenceFact: (head: AstEvidenceFact, tail: AstEvidenceFactSequence): AstEvidenceFactSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consEvidenceFactWithEmptyTail: (head: AstEvidenceFact): AstEvidenceFactSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyConstraints: (): AstConstraintSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consConstraint: (head: AstConstraint, tail: AstConstraintSequence): AstConstraintSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consConstraintWithEmptyTail: (head: AstConstraint): AstConstraintSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyDependencies: (): AstDependencySequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consDependency: (head: AstDependency, tail: AstDependencySequence): AstDependencySequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consDependencyWithEmptyTail: (head: AstDependency): AstDependencySequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyWitnessNames: (): AstWitnessNameSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consWitnessName: (head: AstWitnessName, tail: AstWitnessNameSequence): AstWitnessNameSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consWitnessNameWithEmptyTail: (head: AstWitnessName): AstWitnessNameSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyStringValues: (): AstStringValueSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consStringValue: (head: StringValue, tail: AstStringValueSequence): AstStringValueSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consStringValueWithEmptyTail: (head: StringValue): AstStringValueSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyDiagnostics: (): AstDiagnosticSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consDiagnostic: (head: AstDiagnostic, tail: AstDiagnosticSequence): AstDiagnosticSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consDiagnosticWithEmptyTail: (head: AstDiagnostic): AstDiagnosticSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyProofPremises: (): AstProofPremiseSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consProofPremise: (head: AstProofPremise, tail: AstProofPremiseSequence): AstProofPremiseSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consProofPremiseWithEmptyTail: (head: AstProofPremise): AstProofPremiseSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyRelationFacts: (): AstRelationFactSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consRelationFact: (head: AstRelationFact, tail: AstRelationFactSequence): AstRelationFactSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consRelationFactWithEmptyTail: (head: AstRelationFact): AstRelationFactSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
+  emptyControllerMethods: (): ControllerMethodSequence => Object.freeze({ kind: 'ast_sequence_empty' }),
+  consControllerMethod: (head: ControllerMethod, tail: ControllerMethodSequence): ControllerMethodSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail }),
+  consControllerMethodWithEmptyTail: (head: ControllerMethod): ControllerMethodSequence => Object.freeze({ kind: 'ast_sequence_cons', head, tail: Object.freeze({ kind: 'ast_sequence_empty' }) }),
 });
 
-export const emptyAstDerivation = (): AstDerivation => ({
-  kind: 'ast_derivation',
-  trace: { kind: 'ast_derivation_empty' },
-});
+export interface AstDerivationStepInput {
+  readonly rule: AstRuleName;
+  readonly conclusion: AstNodeIdentity;
+  readonly witness: AstWitnessName;
+  readonly premises: AstProofPremiseSequence;
+  readonly round: NumberValue;
+  readonly tail: AstDerivationTrace;
+}
 
-export const astDerivationStep = (
-  rule: AstRuleName,
-  conclusion: AstNodeIdentity,
-  witness: AstWitnessName,
-  premises: AstSequence<AstProofPremise> = emptyAstSequence(),
-  round: NumberValue = { kind: 'number_value', value: 0 },
-  tail: AstDerivationTrace = { kind: 'ast_derivation_empty' },
-): AstDerivation => ({
-  kind: 'ast_derivation',
-  trace: {
-    kind: 'ast_derivation_cons',
-    head: { kind: 'ast_derivation_step', conclusion, rule, witness, premises, round },
-    tail,
-  },
+export interface AstDerivationFactoryInterface {
+  readonly empty: () => AstDerivation;
+  readonly step: (input: AstDerivationStepInput) => AstDerivation;
+}
+
+/** Derivation construction is explicit: all proof inputs are part of the call-site datum. */
+export const astDerivationFactory: AstDerivationFactoryInterface = Object.freeze({
+  empty: (): AstDerivation => Object.freeze({
+    kind: 'ast_derivation',
+    trace: Object.freeze({ kind: 'ast_derivation_empty' }),
+  }),
+  step: (input: AstDerivationStepInput): AstDerivation => Object.freeze({
+    kind: 'ast_derivation',
+    trace: Object.freeze({
+      kind: 'ast_derivation_cons',
+      head: Object.freeze({
+        kind: 'ast_derivation_step',
+        conclusion: input.conclusion,
+        rule: input.rule,
+        witness: input.witness,
+        premises: input.premises,
+        round: input.round,
+      }),
+      tail: input.tail,
+    }),
+  }),
 });
 
 /**
@@ -271,7 +372,7 @@ export type AstRelationFact = {
 
 export type AstRelationFacts = {
   readonly kind: 'ast_relation_facts';
-  readonly items: AstSequence<AstRelationFact>;
+  readonly items: AstRelationFactSequence;
 };
 
 export const astRelationNode = (value: AstNodeIdentity): AstRelationTerm => ({ kind: 'ast_term_node', value });
@@ -288,7 +389,7 @@ export const astRelationFact = (
 
 export const emptyAstRelationFacts = (): AstRelationFacts => ({
   kind: 'ast_relation_facts',
-  items: emptyAstSequence<AstRelationFact>(),
+  items: astSequenceOperations.emptyRelationFacts(),
 });
 
 export type AstNodeSchema = {
@@ -301,7 +402,7 @@ export type AstNodeSchema = {
   readonly resource_ast: { readonly semantic: ResourceDefinition; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
   readonly request_ast: { readonly semantic: RequestDefinition; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
   readonly route_ast: { readonly semantic: RouteAstSemantic; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
-  readonly controller_ast: { readonly semantic: AstSequence<ControllerMethod>; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
+  readonly controller_ast: { readonly semantic: ControllerMethodSequence; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
   readonly response_ast: { readonly semantic: ResponseDefinition; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
   readonly service_ast: { readonly semantic: ServiceDefinition; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
   readonly migration_ast: { readonly semantic: MigrationDefinition; readonly surface: AstDomainSurface; readonly origin: AstDomainOrigin };
@@ -441,7 +542,7 @@ const astProjection = <Kind extends AstSemanticSchemaKind>(input: AstProjectionI
     resource_ast: () => ({ definition: semantic as ResourceDefinition, source }),
     request_ast: () => ({ definition: semantic as RequestDefinition, source }),
     route_ast: () => { const route = semantic as RouteAstSemantic; return { definition: route.definition, declaration: route.declaration, source }; },
-    controller_ast: () => ({ methods: semantic as AstSequence<ControllerMethod>, source }),
+    controller_ast: () => ({ methods: semantic as ControllerMethodSequence, source }),
     response_ast: () => ({ definition: semantic as ResponseDefinition, source }),
     service_ast: () => ({ definition: semantic as ServiceDefinition, source }),
     migration_ast: () => ({ definition: semantic as MigrationDefinition, source }),
@@ -494,15 +595,15 @@ export const createAstJudgment = <Kind extends AstSemanticSchemaKind>(input: Ast
   const evidence: AstEvidence<AstNodeSchema[AstSemanticSchemaKind]['surface']> = {
     kind: 'source_evidence',
     surface: input.surface as AstNodeSchema[AstSemanticSchemaKind]['surface'],
-    facts: astSequenceCons({ kind: 'ast_evidence_fact', predicate: 'source_span', value: input.source }),
+    facts: astSequenceOperations.consEvidenceFactWithEmptyTail({ kind: 'ast_evidence_fact', predicate: 'source_span', value: input.source }),
   };
   const relations: AstRelationFacts = {
     kind: 'ast_relation_facts',
-    items: astSequenceCons(
+    items: astSequenceOperations.consRelationFact(
       astRelationFact('ast_syntax_surface', astRelationNode(identity), astRelationSurface(semanticSurface)),
-      astSequenceCons(
+      astSequenceOperations.consRelationFact(
         astRelationFact('ast_derives', astRelationNode(identity), astRelationRule(input.rule)),
-        astSequenceCons(astRelationFact('ast_witnesses', astRelationRule(input.rule), astRelationWitness(input.witness))),
+        astSequenceOperations.consRelationFactWithEmptyTail(astRelationFact('ast_witnesses', astRelationRule(input.rule), astRelationWitness(input.witness))),
       ),
     ),
   };
@@ -512,12 +613,12 @@ export const createAstJudgment = <Kind extends AstSemanticSchemaKind>(input: Ast
     semantic: input.semantic,
     evidence,
     provenance: { kind: 'ast_provenance' as const, origin: input.origin, source: input.source },
-    constraints: { kind: 'ast_constraints' as const, items: emptyAstSequence<AstConstraint>() },
-    dependencies: { kind: 'ast_dependencies' as const, items: emptyAstSequence<AstDependency>() },
+    constraints: { kind: 'ast_constraints' as const, items: astSequenceOperations.emptyConstraints() },
+    dependencies: { kind: 'ast_dependencies' as const, items: astSequenceOperations.emptyDependencies() },
     relations,
-    derivation: astDerivationStep(input.rule, identity, input.witness, astSequenceCons({ kind: 'ast_evidence_premise', source: input.source, predicate: 'source_span' })),
+    derivation: astDerivationFactory.step({ rule: input.rule, conclusion: identity, witness: input.witness, premises: astSequenceOperations.consProofPremiseWithEmptyTail({ kind: 'ast_evidence_premise', source: input.source, predicate: 'source_span' }), round: { kind: 'number_value', value: 0 }, tail: { kind: 'ast_derivation_empty' } }),
     status: { kind: 'ast_resolved' as const },
-    diagnostics: { kind: 'ast_diagnostics' as const, items: emptyAstSequence<AstDiagnostic>() },
+    diagnostics: { kind: 'ast_diagnostics' as const, items: astSequenceOperations.emptyDiagnostics() },
     ...astProjection(input),
   };
   return Object.freeze(judgment) as AstJudgmentContract<Kind>;
@@ -569,6 +670,5 @@ export {
   astSemanticFactFromRelation,
   astSemanticFactsFromRelations,
   emptyAstSemanticFacts,
-  emptyAstSemanticSequence,
-  astSemanticSequenceCons,
+  astSemanticRelationSequenceFactory,
 } from './astSemanticInterface';

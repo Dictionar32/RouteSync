@@ -44,8 +44,8 @@
       "ok": true
     },
     {
-      "name": "Manifest construction validates source AST before source-model building",
-      "ok": false
+      "name": "Scanner pipeline validates AST and manifest builder blocks incomplete projections before source-model building",
+      "ok": true
     },
     {
       "name": "DataFlowInterface remains an explicit downstream consumer boundary",
@@ -64,7 +64,7 @@
       "ok": true
     }
   ],
-  "passedChecks": 14,
+  "passedChecks": 15,
   "totalChecks": 15,
   "decision": {
     "canonicalOwner": "hasCanonicalRequestFields in routeCapabilitySemanticAuthority, defined solely from RouteSchemaPayload.fields",

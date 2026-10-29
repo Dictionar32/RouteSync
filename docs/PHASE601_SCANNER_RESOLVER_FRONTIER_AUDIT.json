@@ -45,7 +45,7 @@
     "ternary": 5
   },
   "modified": [
-    "compiler/scanner/lexer/phpAstFactory.ts",
+    "compiler/frontend/php/phpAstFactory.ts",
     "compiler/compatibility/ContractInputBoundary.ts"
   ],
   "deleted": [

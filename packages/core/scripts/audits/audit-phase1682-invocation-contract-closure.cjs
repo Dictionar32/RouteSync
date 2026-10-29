@@ -8,7 +8,7 @@ const judgment = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const packageIndex = read('packages/core/src/index.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const stagedAlgebra = read('packages/core/src/types/upstream/invocationSemanticAlgebraInterface.ts');
 const checks = [
   ['pipeline contract composes the exact canonical judgment contract', /readonly judgmentContract:\s*InvocationSemanticContract/.test(pipeline) && /judgmentContract:\s*INVOCATION_SEMANTIC_CONTRACT/.test(pipeline)],

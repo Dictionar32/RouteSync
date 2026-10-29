@@ -1,0 +1,29 @@
+{
+  "phase": 2967,
+  "title": "Fully Explicit Typed Runtime Scanner Upstream CLI Manifest Trace",
+  "scope": [
+    "packages/cli/src/upstreamCompositionFactory.ts",
+    "packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts",
+    "packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts",
+    "packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts",
+    "packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts",
+    "packages/core/src/types/upstream/laravelRouteSourceSelection.ts",
+    "packages/core/src/types/upstream/laravelRouteScannerInterface.ts",
+    "packages/core/src/types/upstream/names.ts"
+  ],
+  "structuralAudit": "10/10 passed",
+  "runtimeMigration": "No domain runtime migration claimed in this phase; the artifact traces existing interface-first runtime exports and records remaining source-observation/source-inventory gaps.",
+  "remainingP1": [
+    "LaravelRouteSourceObservationJudgment still delegates ready/blocked follow-up to consumer-supplied handlers.",
+    "SourceFileInventory retains callback traversal and array materialization surfaces."
+  ],
+  "remainingP2": [
+    "ManifestBuilderJudgment uses the shared continueToFlow projection shape for complete and blocked judgments.",
+    "Repository-wide export-function migration remains unverified and incomplete."
+  ],
+  "collectionsFileBytes": 0,
+  "fullTypecheck": "not run; Phase2966 environment limitations remain",
+  "unitTests": "not run",
+  "build": "not run",
+  "cliE2E": "not run"
+}

@@ -1,0 +1,32 @@
+{
+  "phase": 2791,
+  "title": "Fully Typed Runtime Scanner Operations — PHP AST Projection Object",
+  "scope": "Upstream CLI manifest source AST projection operations",
+  "structuralAudit": {
+    "checks": 10,
+    "passed": 10,
+    "failed": 0,
+    "command": "npm run audit:phase2791-php-ast-projection-runtime-operations"
+  },
+  "implemented": [
+    "Removed export function declarations for projectPhpAstExpressionToUpstream and projectPhpStatementsToSourceStatements.",
+    "Introduced PhpAstExpressionProjectionOperationsInterface and frozen phpAstExpressionProjectionOperations object.",
+    "Migrated direct runtime consumers to projectExpression/projectStatements object operations.",
+    "Preserved the existing upstream semantic authority and complete/blocked manifest ADTs.",
+    "Preserved packages/core/src/types/upstream/collections.ts as a zero-byte file."
+  ],
+  "verification": {
+    "targetedTranspileSyntax": "14 files checked, 0 syntax errors",
+    "phase2783ManifestRuntimeAudit": "12/12 passed",
+    "phase2791ProjectionRuntimeAudit": "10/10 passed",
+    "fullTypecheck": "not completed: global TypeScript 5.8.3 is missing project dependencies/type definitions and does not support the repository's configured ES2025 target/lib",
+    "build": "not run",
+    "tests": "not run",
+    "cliEndToEnd": "not run"
+  },
+  "domainConstraints": [
+    "Do not delete meaningful domain relation ADTs such as SemanticDataFlowRelation.",
+    "Do not reintroduce Sequence or a generic collection wrapper.",
+    "Do not claim structural audits prove full type safety or CLI end-to-end behavior."
+  ]
+}

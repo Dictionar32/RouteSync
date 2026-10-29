@@ -1,18 +1,10 @@
-/**
- * index.ts
- *
- * Sub-domain exports for compiler pass graph analyzer and sorter.
- *
- * @module core/compiler/passes/graph
- */
-
+/** Domain operations for compiler pass dependency graphs. */
 export {
-  type GraphAnalysis,
-  type AdjacencyRelation,
-  buildAdjacency,
-  analyzePassGraph
+  type PassGraphAnalysisInterface,
+  type PassGraphAnalysisOperationsInterface,
+  passGraphAnalysisOperations,
 } from './graphAnalyzer';
 export {
-  resolveTopologicalOrder,
-  resolveParallelLayers
+  type PassGraphOrderingOperationsInterface,
+  passGraphOrderingOperations,
 } from './topologicalSorter';

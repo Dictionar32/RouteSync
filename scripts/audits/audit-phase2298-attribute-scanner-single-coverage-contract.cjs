@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/types/upstream/laravelAttributeScannerInterface.ts');
 const producerContract = read('packages/core/src/compiler/scanner/attributeProducerInterface.ts');
-const producerImpl = read('packages/core/src/compiler/scanner/subscanners/attributeProducer.ts');
-const scannerImpl = read('packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts');
+const producerImpl = read('packages/core/src/compiler/scanner/operations/attributeProducer.ts');
+const scannerImpl = read('packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts');
 const pipelineContract = read('packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts');
 const pipelineImpl = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const trace = read('reports/phase2298/TRACE.md');
@@ -19,7 +19,7 @@ const checks = [
   ['blocked outcome remains a recursive non-empty failure ADT', /export type LaravelAttributeScanFailureSequence\s*=/.test(scanner) && /blockers: LaravelAttributeScanFailureSequence/.test(scanner)],
   ['producer contract still explicitly models complete or blocked outcomes', /export type AttributeProducerJudgment\s*=/.test(producerContract) && /attribute_producer_complete/.test(producerContract) && /attribute_producer_blocked/.test(producerContract)],
   ['existing upstream pipeline contract remains single and unchanged', /interface LaravelSourceAstPipelineInterface\s*\{[^}]*contractVersion: 9/s.test(pipelineContract) && !/LaravelSourceAstPipelineInterfaceV2/.test(pipelineContract)],
-  ['current subscanner import is recorded as migration debt rather than target ownership', /from '\.\.\/subscanners\/attributeAstCanonical'/.test(pipelineImpl) && /migration debt, not the desired ownership boundary/.test(trace)],
+  ['current subscanner import is recorded as migration debt rather than target ownership', /from '\.\.\/operations\/attributeAstCanonical'/.test(pipelineImpl) && /migration debt, not the desired ownership boundary/.test(trace)],
   ['producer and pipeline incompatibilities are explicitly recorded', /return createDomainAstJudgment/.test(producerImpl) && /attributeScan\.attributes/.test(pipelineImpl) && /still reads `attributeScan\.attributes`/.test(trace)],
   ['upstream scanner interface imports neither forbidden semantic module', !/semantic\/(?:foundation|relations)/.test(scanner)],
   ['no typecheck/build claim is made', /TypeScript typecheck\/build: not run/.test(trace) && /`npm run build`: not run/.test(trace)],

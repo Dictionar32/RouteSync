@@ -3,7 +3,7 @@ import type { ControlFlowGraph, BasicBlock, Instruction, BasicBlockRelation } fr
 import { basicBlockLookup, basicBlockReplace, basicBlockIds, createControlFlowGraph } from '../../utils/ControlFlowGraph';
 import { relationContains } from '../../../semantic/relations/relationMembership';
 import { relationFold, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../../semantic/relations/relationFoundation';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 
 export interface LoopNormalizer {
     readonly ensurePreHeader: (cfg: ControlFlowGraph, loopBlocks: readonly number[], headerId: number) => { readonly cfg: ControlFlowGraph; readonly preHeaderId: number };

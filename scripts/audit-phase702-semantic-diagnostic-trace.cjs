@@ -12,13 +12,13 @@ const production = files.map(f => ({ file: rel(f), source: fs.readFileSync(f, 'u
 const sourceText = production.map(x => x.source).join('\n');
 const symbolReferences = names => production.flatMap(x => names.filter(n => new RegExp(`\\b${n}\\b`).test(x.source)).map(n => ({ file: x.file, name: n })));
 const emptyLegacyFiles = [
-  'packages/core/src/compiler/scanner/descriptors/model/modelColumnDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelCastDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/modelRelationDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/index.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/modelRelationDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/relationFactories.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/relation/types.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelColumnDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelCastDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelRelationDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/index.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/modelRelationDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/relationFactories.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/relation/types.ts',
 ];
 const legacyDescriptorReferences = symbolReferences([
   'ScannedModelColumnDescriptor','ScannedModelCastDescriptor','ScannedModelRelationDescriptor',
@@ -26,15 +26,15 @@ const legacyDescriptorReferences = symbolReferences([
   'createScannedColumn','createScannedCast','createScannedRelation'
 ]);
 const relationSequence = read('packages/core/src/semantic/kernel/relationalSequence.ts');
-const modelParser = read('packages/core/src/compiler/scanner/subscanners/model/modelParser.ts');
-const modelBuilder = read('packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts');
+const modelParser = read('packages/core/src/compiler/scanner/operations/model/modelParser.ts');
+const modelBuilder = read('packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts');
 const transpileDiagnostics = [];
 for (const file of [
   'packages/core/src/semantic/kernel/relationFoundation.ts',
   'packages/core/src/semantic/kernel/relationalSequence.ts',
-  'packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelParser.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelParser.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts',
 ]) {
   const result = ts.transpileModule(read(file), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, strict: true }, reportDiagnostics: true, fileName: file });
   for (const d of result.diagnostics || []) transpileDiagnostics.push({ file, code: d.code, message: ts.flattenDiagnosticMessageText(d.messageText, '\n') });

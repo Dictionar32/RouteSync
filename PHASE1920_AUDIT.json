@@ -3,10 +3,10 @@
   "title": "Semantic Knowledge Projection Contract",
   "scope": [
     "packages/core/src/types/upstream/semanticKnowledgeEvidenceAdapterInterface.ts",
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeEvidenceAdapter.ts",
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowProducer.ts",
-    "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
-    "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+    "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeEvidenceAdapter.ts",
+    "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowProducer.ts",
+    "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts",
+    "packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts",
     "packages/core/src/types/upstream/laravelControllerScannerInterface.ts"
   ],
   "static_audit": {

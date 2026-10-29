@@ -1,0 +1,310 @@
+{
+  "phase": 2869,
+  "title": "Semantic Data-Flow Interface-First Domain Operations",
+  "upstreamTypeScriptFileCount": 356,
+  "exportedFunctionDeclarationCount": 0,
+  "exportedFunctionDeclarationSample": [],
+  "directArrowExportCount": 193,
+  "untypedDirectArrowExportCount": 185,
+  "directArrowExportSample": [
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstDerivation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationNode"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationRule"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationWitness"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSource"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSurface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstRelationFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+      "name": "astMappingInterface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityStage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "createAstSemanticAuthorityPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRequestIdentity"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRoundLimit"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "createAstSemanticJudgment"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticNodeTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSourceTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRuleTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticWitnessTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticStageTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticTextTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSyntaxTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactFromRelation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactsFromRelations"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "emptyAstSemanticFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticStageContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticStageFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAstSemanticStagePort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createScannerEvidencePort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createUpstreamMappingPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createResolverGraphPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAnalysisPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createSemanticTypeLoweringPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createTargetProjectionPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAstSemanticBoundary"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAstSemanticPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "appendAstSemanticPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "pipelineFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "stageFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticFactAtStage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticJudgmentPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticStageInterface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticStageInterfaceOf"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticStageInterfaceAt"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticPipelineInterfaces"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticInterfaceFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticInterfaceProofs"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "preservationContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "stagePreservationFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/compilerPassFailure.ts",
+      "name": "compilerPassFailureOf"
+    },
+    {
+      "file": "packages/core/src/types/upstream/compilerPassFailure.ts",
+      "name": "compilerPassFailureMessage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/controllerActionPolicyRelations.ts",
+      "name": "controllerActionPolicyRelationsFromEvidence"
+    },
+    {
+      "file": "packages/core/src/types/upstream/controllerActionPolicyRelations.ts",
+      "name": "controllerActionPolicyRelations"
+    },
+    {
+      "file": "packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts",
+      "name": "createControllerDataflowSemanticJudgmentAuthority"
+    },
+    {
+      "file": "packages/core/src/types/upstream/eloquent.ts",
+      "name": "eloquentRelationAstFromDescriptor"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "invocationPositionalEvidenceUnproven"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "analyzeInvocationSemanticAlgebra"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "analyzeInvocationJudgmentAlgebra"
+    }
+  ],
+  "explicitlyTypedDirectArrowExportCount": 8,
+  "explicitlyTypedDirectArrowExportSample": [
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "modelSemanticPropertyIndexFrom"
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "modelSemanticPropertyLookup"
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "modelSemanticPropertyHas"
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "modelSemanticRelationIndexFrom"
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "modelSemanticRelationLookup"
+    },
+    {
+      "file": "packages/core/src/types/upstream/modelPrimaryKey.ts",
+      "name": "reconcileModelPrimaryKey"
+    },
+    {
+      "file": "packages/core/src/types/upstream/modelRelation.ts",
+      "name": "modelRelationInterfaceFrom"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReconciliationAuthority.ts",
+      "name": "reconcileSemanticRelation"
+    }
+  ],
+  "migratedDomainOperations": [
+    "semanticDependency.create",
+    "semanticValueFlow.create",
+    "semanticEdge.create",
+    "semanticIdentifier.create",
+    "semanticOperation.create"
+  ],
+  "checks": {
+    "dependencyOperationHasNamedInterface": true,
+    "valueFlowOperationHasNamedInterface": true,
+    "edgeOperationHasNamedInterface": true,
+    "identifierOperationHasNamedInterface": true,
+    "semanticOperationHasNamedInterface": true,
+    "dependencyCallSitesUseCreate": true,
+    "valueFlowCallSitesUseCreate": true,
+    "edgeCallSitesUseCreate": true,
+    "identifierCallSitesUseCreate": true,
+    "semanticOperationCallSitesUseCreate": true,
+    "semanticRelationshipKeepsExplicitCodeAndEndpoints": true,
+    "collectionsRemainEmpty": true
+  },
+  "passedChecks": 12,
+  "totalChecks": 12,
+  "collectionsBytes": 0
+}

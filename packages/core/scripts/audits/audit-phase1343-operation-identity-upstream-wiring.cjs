@@ -14,8 +14,8 @@ const lacks = (file, pattern, label) => {
 };
 
 has('packages/core/src/types/domain/routes.ts', /readonly operationIdentityCapability:\s*OperationIdentityCapabilityContract/, 'RouteSemanticFlow carries the closed operation identity capability');
-has('packages/core/src/compiler/scanner/descriptors/route/routeDeclarations.ts', /operationIdentityCapability:\s*operationIdentityCapabilityFromRoute\(capability\)/, 'canonical route semantic producer creates identity capability upstream');
-has('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts', /operationIdentityCapability:\s*operationIdentityCapabilityFromRoute\(boundary\.capability\)/, 'route boundary producer preserves identity capability in semantic flow');
+has('packages/core/src/compiler/scanner/operations/domain-model/route/routeDeclarations.ts', /operationIdentityCapability:\s*operationIdentityCapabilityFromRoute\(capability\)/, 'canonical route semantic producer creates identity capability upstream');
+has('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts', /operationIdentityCapability:\s*operationIdentityCapabilityFromRoute\(boundary\.capability\)/, 'route boundary producer preserves identity capability in semantic flow');
 has('packages/cli/src/generators/sdk/apiObjectEmitter.ts', /operationIdentityReferenceFromCapability\(route\.raw\.operationIdentityCapability\)/, 'CLI emitter projects the already-closed capability');
 has('packages/core/src/compiler/scanner/wiring/operationIdentityProjection.ts', /UpstreamWiringInterface|OperationIdentityProjectionInterface/, 'identity projection remains an explicit wiring interface');
 has('packages/sdk/src/defineApi.ts', /missing the upstream operation identity projection/, 'SDK fails closed when projected identity is absent');

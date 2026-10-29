@@ -65,7 +65,7 @@
       "note": "Action/response/group assembly still mixes domain derivation and descriptor construction."
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+      "path": "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
       "owner": "AST syntax/semantic boundary",
       "status": "mixed",
       "note": "Syntax-to-AST construction is expected; domain inference/classification ownership still needs rule-by-rule trace."
@@ -85,27 +85,27 @@
   ],
   "directSolverCallSites": [
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase231.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase231.test.ts",
       "line": 15,
       "test": true
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.phase236.test.ts",
       "line": 12,
       "test": true
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
       "line": 65,
       "test": true
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
       "line": 20,
       "test": true
     },
     {
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
       "line": 34,
       "test": true
     }

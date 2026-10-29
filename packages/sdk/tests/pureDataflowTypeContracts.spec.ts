@@ -1,4 +1,4 @@
-import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory'
 /**
  * pureDataflowTypeContracts.spec.ts
  *

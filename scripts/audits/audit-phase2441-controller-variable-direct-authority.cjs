@@ -6,13 +6,13 @@ const exists = relative => fs.existsSync(path.join(root, relative));
 const checks = [];
 const assert = (name, condition) => checks.push({ name, passed: Boolean(condition) });
 
-const projection = read('packages/core/src/compiler/scanner/lexer/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
+const projection = read('packages/core/src/compiler/frontend/php/routeAst/phpControllerDataflowDefinitionProjectionAuthority.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const contract = read('packages/core/src/types/upstream/controllerVariableSemanticInterface.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const packageJson = JSON.parse(read('package.json'));
 const authority = read('packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts');
-const typeDeriver = read('packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts');
+const typeDeriver = read('packages/core/src/compiler/scanner/operations/SemanticTypeDeriver.ts');
 const typeAuthority = read('packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationAuthority.ts');
 const typeIndex = read('packages/core/src/compiler/semantic/type-derivation/index.ts');
 const typeContract = read('packages/core/src/types/upstream/semanticTypeDerivationInterface.ts');

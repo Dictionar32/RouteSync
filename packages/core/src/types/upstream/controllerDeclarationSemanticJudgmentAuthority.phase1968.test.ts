@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { controllerDeclarationSemanticJudgmentAuthority } from './controllerDeclarationSemanticJudgmentAuthority';
 import type { ControllerDeclarationSemanticCandidate } from './controllerDeclarationSemanticJudgmentInterface';
-import { createActionName, createClassName, createControllerName, createSourceFile } from './names';
-import { createPhpQualifiedClassName } from './phpClassNameResolutionInterface';
+import { createActionName, createClassName, createControllerName, sourceFileIdentityFactory, stringValue } from './names';
+import { phpQualifiedClassNameFactory } from './phpClassNameResolutionInterface';
 
 type MethodEvidence = Readonly<{
   readonly name: string;
@@ -22,8 +22,8 @@ const candidate = (
   parent: ControllerDeclarationSemanticCandidate<MethodEvidence, AttributeEvidence>['parent'],
   methods: readonly MethodEvidence[],
 ): ControllerDeclarationSemanticCandidate<MethodEvidence, AttributeEvidence> => Object.freeze({
-  sourceFile: createSourceFile(`/src/${controller}.php`),
-  classIdentity: createPhpQualifiedClassName(controller),
+  sourceFile: sourceFileIdentityFactory.create(stringValue.create(`/src/${controller}.php`)),
+  classIdentity: phpQualifiedClassNameFactory.create(controller),
   controller: createControllerName(controller),
   parent,
   interfaces: Object.freeze([]),
@@ -103,9 +103,9 @@ describe('Phase 1968 controller declaration judgment closure', () => {
     const source = candidate('OrderController', Object.freeze({ kind: 'no_parent' }), Object.freeze([]));
     const candidateWithDifferentIdentity = Object.freeze({
       ...source,
-      sourceFile: createSourceFile('/src/OtherController.php'),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create('/src/OtherController.php')),
     });
-    const sourceIdentity = createSourceFile('/src/OrderController.php');
+    const sourceIdentity = sourceFileIdentityFactory.create(stringValue.create('/src/OrderController.php'));
     const correspondences = controllerDeclarationSemanticJudgmentAuthority.correspondences(Object.freeze([
       Object.freeze({ source, sourceIdentity, candidate: candidateWithDifferentIdentity }),
     ]));
@@ -119,7 +119,7 @@ describe('Phase 1968 controller declaration judgment closure', () => {
 
   it('preserves exact source identity in each semantic selection', () => {
     const first = candidate('OrderController', Object.freeze({ kind: 'no_parent' }), Object.freeze([]));
-    const second = Object.freeze({ ...candidate('OrderController', Object.freeze({ kind: 'no_parent' }), Object.freeze([])), sourceFile: createSourceFile('/src/Admin/OrderController.php') });
+    const second = Object.freeze({ ...candidate('OrderController', Object.freeze({ kind: 'no_parent' }), Object.freeze([])), sourceFile: sourceFileIdentityFactory.create(stringValue.create('/src/Admin/OrderController.php')) });
     const selections = judgments(Object.freeze([first, second]));
     expect(selections.map(selection => selection.sourceFile.value.value)).toEqual(['/src/OrderController.php', '/src/Admin/OrderController.php']);
   });
@@ -127,13 +127,13 @@ describe('Phase 1968 controller declaration judgment closure', () => {
   it('blocks parent resolution when short class names are ambiguous in the inventory', () => {
     const firstParent = Object.freeze({
       ...candidate('BaseController', Object.freeze({ kind: 'no_parent' }), Object.freeze([])),
-      sourceFile: createSourceFile('/src/Admin/BaseController.php'),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create('/src/Admin/BaseController.php')),
     });
     const secondParent = Object.freeze({
       ...candidate('BaseController', Object.freeze({ kind: 'no_parent' }), Object.freeze([])),
-      sourceFile: createSourceFile('/src/Store/BaseController.php'),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create('/src/Store/BaseController.php')),
     });
-    const child = candidate('OrderController', Object.freeze({ kind: 'parent_declared', parent: createControllerName('BaseController'), identity: Object.freeze({ kind: 'php_class_name_resolved' as const, sourceName: createClassName('BaseController'), qualifiedName: createPhpQualifiedClassName('BaseController'), rule: 'current_namespace' as const }) }), Object.freeze([]));
+    const child = candidate('OrderController', Object.freeze({ kind: 'parent_declared', parent: createControllerName('BaseController'), identity: Object.freeze({ kind: 'php_class_name_resolved' as const, sourceName: createClassName('BaseController'), qualifiedName: phpQualifiedClassNameFactory.create('BaseController'), rule: 'current_namespace' as const }) }), Object.freeze([]));
     const selections = judgments(Object.freeze([firstParent, secondParent, child]));
     const childSelection = selections.find(selection => selection.sourceFile.value.value === '/src/OrderController.php');
     expect(childSelection?.kind).toBe('controller_declaration_selection_blocked');
@@ -151,13 +151,13 @@ describe('Phase 1968 controller declaration judgment closure', () => {
   it('resolves a duplicate short parent name by canonical PHP class identity', () => {
     const adminParent = Object.freeze({
       ...candidate('BaseController', Object.freeze({ kind: 'no_parent' }), Object.freeze([])),
-      sourceFile: createSourceFile('/src/Admin/BaseController.php'),
-      classIdentity: createPhpQualifiedClassName('Admin\\BaseController'),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create('/src/Admin/BaseController.php')),
+      classIdentity: phpQualifiedClassNameFactory.create('Admin\\BaseController'),
     });
     const storeParent = Object.freeze({
       ...candidate('BaseController', Object.freeze({ kind: 'no_parent' }), Object.freeze([])),
-      sourceFile: createSourceFile('/src/Store/BaseController.php'),
-      classIdentity: createPhpQualifiedClassName('Store\\BaseController'),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create('/src/Store/BaseController.php')),
+      classIdentity: phpQualifiedClassNameFactory.create('Store\\BaseController'),
     });
     const child = Object.freeze({
       ...candidate('OrderController', Object.freeze({
@@ -166,11 +166,11 @@ describe('Phase 1968 controller declaration judgment closure', () => {
         identity: Object.freeze({
           kind: 'php_class_name_resolved' as const,
           sourceName: createClassName('ParentController'),
-          qualifiedName: createPhpQualifiedClassName('Admin\\BaseController'),
+          qualifiedName: phpQualifiedClassNameFactory.create('Admin\\BaseController'),
           rule: 'class_import' as const,
         }),
       }), Object.freeze([])),
-      classIdentity: createPhpQualifiedClassName('Store\\OrderController'),
+      classIdentity: phpQualifiedClassNameFactory.create('Store\\OrderController'),
     });
     const selections = judgments(Object.freeze([adminParent, storeParent, child]));
     const childSelection = selections.find(selection => selection.sourceFile.value.value === '/src/OrderController.php');
@@ -212,8 +212,8 @@ describe('Phase 1968 controller declaration judgment closure', () => {
           reason: 'class_import_inventory_incomplete' as const,
         }),
       }), Object.freeze([])),
-      sourceFile: createSourceFile('/src/Framework/KnownBaseController.php'),
-      classIdentity: createPhpQualifiedClassName('Framework\\KnownBaseController'),
+      sourceFile: sourceFileIdentityFactory.create(stringValue.create('/src/Framework/KnownBaseController.php')),
+      classIdentity: phpQualifiedClassNameFactory.create('Framework\\KnownBaseController'),
     });
     const child = Object.freeze({
       ...candidate('OrderController', Object.freeze({
@@ -222,11 +222,11 @@ describe('Phase 1968 controller declaration judgment closure', () => {
         identity: Object.freeze({
           kind: 'php_class_name_resolved' as const,
           sourceName: createClassName('KnownBaseController'),
-          qualifiedName: createPhpQualifiedClassName('Framework\\KnownBaseController'),
+          qualifiedName: phpQualifiedClassNameFactory.create('Framework\\KnownBaseController'),
           rule: 'class_import' as const,
         }),
       }), Object.freeze([])),
-      classIdentity: createPhpQualifiedClassName('App\\OrderController'),
+      classIdentity: phpQualifiedClassNameFactory.create('App\\OrderController'),
     });
     const selection = judgments(Object.freeze([knownParent, child]))
       .find(value => value.sourceFile.value.value === '/src/OrderController.php');
@@ -272,8 +272,8 @@ describe('Phase 1968 controller declaration judgment closure', () => {
   });
 
   it('closes a cyclic ancestry without repeating the controller in inherited names', () => {
-    const first = candidate('FirstController', Object.freeze({ kind: 'parent_declared', parent: createControllerName('SecondController'), identity: Object.freeze({ kind: 'php_class_name_resolved' as const, sourceName: createClassName('SecondController'), qualifiedName: createPhpQualifiedClassName('SecondController'), rule: 'current_namespace' as const }) }), Object.freeze([]));
-    const second = candidate('SecondController', Object.freeze({ kind: 'parent_declared', parent: createControllerName('FirstController'), identity: Object.freeze({ kind: 'php_class_name_resolved' as const, sourceName: createClassName('FirstController'), qualifiedName: createPhpQualifiedClassName('FirstController'), rule: 'current_namespace' as const }) }), Object.freeze([]));
+    const first = candidate('FirstController', Object.freeze({ kind: 'parent_declared', parent: createControllerName('SecondController'), identity: Object.freeze({ kind: 'php_class_name_resolved' as const, sourceName: createClassName('SecondController'), qualifiedName: phpQualifiedClassNameFactory.create('SecondController'), rule: 'current_namespace' as const }) }), Object.freeze([]));
+    const second = candidate('SecondController', Object.freeze({ kind: 'parent_declared', parent: createControllerName('FirstController'), identity: Object.freeze({ kind: 'php_class_name_resolved' as const, sourceName: createClassName('FirstController'), qualifiedName: phpQualifiedClassNameFactory.create('FirstController'), rule: 'current_namespace' as const }) }), Object.freeze([]));
     const input = Object.freeze([first, second]);
     const judgment = judgments(input);
     const firstSelection = judgment.find(selection => selection.controller.value.value === 'FirstController');

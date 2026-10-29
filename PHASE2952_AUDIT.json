@@ -1,0 +1,19 @@
+{
+  "phase": 2952,
+  "title": "Source-file identity relation continuation ADT",
+  "scope": [
+    "packages/core/src/types/upstream/sourceProjectIdentity.ts",
+    "packages/core/src/types/upstream/laravelRouteSourceSelection.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "packages/core/src/index.ts"
+  ],
+  "verification": {
+    "structuralAudit": "11/11 passed",
+    "typescriptSyntaxTranspile": "4/4 files, zero syntax diagnostics",
+    "fullTypecheck": "not-run",
+    "fullTests": "not-run",
+    "build": "not-run",
+    "cliEndToEnd": "not-run",
+    "collectionsFileBytes": 0
+  }
+}

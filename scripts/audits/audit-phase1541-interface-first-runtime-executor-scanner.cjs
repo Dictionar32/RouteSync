@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const interfacePath = 'packages/core/src/types/upstream/semanticDataflowInterface.ts';
 const executorPath = 'packages/core/src/types/upstream/semanticDataflowRuntimeExecutor.ts';
-const scannerPath = 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts';
+const scannerPath = 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts';
 const adapterPath = 'packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts';
 const bindingPath = 'packages/core/src/compiler/scanner/wiring/semanticDataflowRuntimeBinding.ts';
 const iface = read(interfacePath);

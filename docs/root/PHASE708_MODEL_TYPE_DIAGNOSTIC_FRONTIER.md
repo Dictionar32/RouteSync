@@ -30,4 +30,4 @@ Phase 707 audit remains green as well.
 
 ## Remaining frontier
 
-The global migration is intentionally not declared complete. Remaining host-construct hotspots outside this focused frontier still require staged conversion in scanner/lexer, resolver graph, upstream mapping, analysis, semantic type lowering, parser/adapter/generic solver, syntax-error/core/ternary, and related surfaces. Existing empty legacy files remain vacuums rather than being reactivated.
+The global migration is intentionally not declared complete. Remaining host-construct hotspots outside this focused frontier still require staged conversion in frontend/php, resolver graph, upstream mapping, analysis, semantic type lowering, parser/adapter/generic solver, syntax-error/core/ternary, and related surfaces. Existing empty legacy files remain vacuums rather than being reactivated.

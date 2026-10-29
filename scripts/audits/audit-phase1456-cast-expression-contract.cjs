@@ -8,7 +8,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 const interfaceSource = read('packages/core/src/types/upstream/scannerCastExpressionInterface.ts');
 const algebraSource = read('packages/core/src/types/upstream/scannerCastExpressionAlgebra.ts');
-const runtimeSource = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtimeSource = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const barrelSource = read('packages/core/src/types/upstream/index.ts');
 const docsSource = read('packages/core/src/types/upstream/docs/PHASE1456_CAST_EXPRESSION_CONTRACT.md');
 

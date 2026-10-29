@@ -9,7 +9,7 @@ const checks = [
   ['pipeline interface returns outcome-indexed judgment with receipt preservation', /Promise<LaravelSourceAstProjectionJudgment<Receipt>>/.test(read('packages/core/src/types/upstream/laravelSourceAstPipelineInterface.ts'))],
   ['scanner interface preserves the same outcome-indexed judgment with receipt preservation', /Promise<LaravelSourceAstProjectionJudgment<Receipt>>/.test(read('packages/core/src/types/upstream/laravelSourceAstScannerInterface.ts'))],
   ['public API exports the judgment type', /export type \{ LaravelSourceAstProjectionJudgment \}/.test(read('packages/core/src/index.ts'))],
-  ['no relation/foundation subscanner folder added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner folder added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['runtime pipeline executes the projection ADT and publishes contract v3', read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts').includes('LaravelSourceAstProjectionJudgment') && /contractVersion: 3/.test(read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts'))],
   ['runtime scanner facade preserves the projection ADT and publishes contract v3', read('packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts').includes('LaravelSourceAstProjectionJudgment') && /contractVersion: 3/.test(read('packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts'))],
 ];

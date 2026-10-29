@@ -7,7 +7,7 @@ Route capability has two semantic responsibilities and therefore two related but
 1. `routeCapabilityAuthorityAlgebra` resolves CRUD role and evidence from typed action/route facts.
 2. `routeCapabilitySemanticAuthorityAlgebra` resolves hook, payload, content type, schema role, error responses, invalidation, and proof-carrying semantic output from typed `RouteCapabilitySemanticEvidence` plus explicit overrides.
 
-The production authority objects are composed through `createRouteCapabilityAuthority(algebra)` and `createRouteCapabilitySemanticAuthority(algebra)`. These wrappers own the `authority: 'upstream'` and `closed: true` markers and delegate to the supplied algebra. They do not repeat classification or construct a second judgment.
+The production authority objects are composed through `routeCapabilityAuthorityFactory.create(algebra)` and `createRouteCapabilitySemanticAuthority(algebra)`. These wrappers own the `authority: 'upstream'` and `closed: true` markers and delegate to the supplied algebra. They do not repeat classification or construct a second judgment.
 
 The route boundary continues to adapt scanner facts into typed evidence and call the semantic authority. `RouteActionKind` remains the canonical ADT for mutability via `ROUTE_ACTION_KIND_REGISTRY`; no independent `isMutating` input is introduced. `RouteSchemaPayload.fields` remains the canonical source of request-field shape.
 

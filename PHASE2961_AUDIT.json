@@ -1,0 +1,18 @@
+{
+  "phase": 2961,
+  "title": "Domain-Specific Source Rejection Operations",
+  "modified": [
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "package.json",
+    "scripts/audits/audit-phase2961-domain-specific-source-rejections.cjs"
+  ],
+  "checks": {
+    "phase2961_structural_audit": "10/10 passed",
+    "phase2960_correspondence_domain_adt_audit": "10/10 passed",
+    "phase2959_domain_rejection_tuple_audit": "11/11 passed",
+    "typescript_syntax_diagnostics_modified_authority": 0,
+    "collections_ts_bytes": 0,
+    "zip_integrity": "pending archive creation"
+  },
+  "not_verified": ["full typecheck", "Vitest", "full build", "CLI end-to-end"]
+}

@@ -6,7 +6,7 @@ const files = [
   'packages/core/src/compiler/types/system/subtypingChecker.ts',
   'packages/core/src/compiler/types/system/assignabilityChecker.ts',
   'packages/core/src/compiler/domain/common/semantic-resolver/compoundHandlers.ts',
-  'packages/core/src/compiler/scanner/subscanners/request-deriver/responseDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/request-deriver/responseDeriver.ts',
 ];
 const text = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contents = files.map(file => ({ file, source: text(file) }));

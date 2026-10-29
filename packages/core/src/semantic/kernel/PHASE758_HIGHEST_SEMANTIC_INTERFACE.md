@@ -59,7 +59,7 @@ The ecommerce application is therefore a semantic workload for the compiler, not
 
 ## Remaining frontier
 
-The strict relational audit still reports broad host-language leakage in scanner/lexer and resolver/analysis code. The next migration should prioritize production authority in this order:
+The strict relational audit still reports broad host-language leakage in frontend/php and resolver/analysis code. The next migration should prioritize production authority in this order:
 
 1. scanner evidence and parser adapters: syntax evidence only;
 2. upstream mapping: closed identity/provenance facts;

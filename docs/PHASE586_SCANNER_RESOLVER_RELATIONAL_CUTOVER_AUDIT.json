@@ -1,10 +1,10 @@
 {
   "phase": 586,
-  "frontier": "scanner/lexer + scanner resolver relation cutover",
+  "frontier": "frontend/php + scanner resolver relation cutover",
   "targets": [
-    "packages/core/src/compiler/scanner/lexer/SourceStream.ts",
-    "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
-    "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+    "packages/core/src/compiler/frontend/php/SourceStream.ts",
+    "packages/core/src/compiler/frontend/php/tokenizer.ts",
+    "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
     "packages/core/src/compiler/scanner/symbols/model/originModelSymbol.ts",
     "packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts",
     "packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts",
@@ -12,7 +12,7 @@
     "packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts",
     "packages/core/src/compiler/scanner/subscanners/RouteScanner.ts",
     "packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts",
-    "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts",
     "packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts",
     "packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts"
   ],
@@ -41,7 +41,7 @@
   },
   "files": [
     {
-      "file": "packages/core/src/compiler/scanner/lexer/SourceStream.ts",
+      "file": "packages/core/src/compiler/frontend/php/SourceStream.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -67,7 +67,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenizer.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -93,7 +93,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
       "counts": {
         "if": 0,
         "for": 0,
@@ -301,7 +301,7 @@
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts",
+      "file": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts",
       "counts": {
         "if": 0,
         "for": 0,

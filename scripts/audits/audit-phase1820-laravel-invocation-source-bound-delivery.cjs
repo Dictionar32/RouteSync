@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const delivery = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineDeliveryInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/ControllerScanner.ts');
 const cli = read('packages/cli/src/parsers/php/sourceInvocationPipeline.ts');
 const composition = read('packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts');
 const integration = read('packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts');

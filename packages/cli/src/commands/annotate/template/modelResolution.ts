@@ -6,7 +6,7 @@
  * @module cli/commands/annotate/template
  */
 
-export function buildModelResolutionSnippet(): string {
+function buildModelResolutionSnippet(): string {
     return `        // Resolve model from Resource @mixin docblock or from manifest
         $modelClass = null;
         if ($resourceName) {
@@ -54,3 +54,11 @@ export function buildModelResolutionSnippet(): string {
 echo json_encode($result);
 `;
 }
+
+export interface ModelResolutionTemplateOperationsInterface {
+  readonly build: () => string;
+}
+
+export const modelResolutionTemplateOperations: ModelResolutionTemplateOperationsInterface = Object.freeze({
+  build: buildModelResolutionSnippet,
+});

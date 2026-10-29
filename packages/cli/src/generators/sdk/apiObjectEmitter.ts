@@ -6,7 +6,7 @@
  * @module cli/generators/sdk
  */
 
-import { hasCanonicalRequestFields, operationIdentityReferenceFromCapability, routeParameterCapabilityReferenceFromRoute, routeParameterCapabilityReferencesFromRoute, routeTargetScopeFromRoute } from '@routesync/core';
+import { hasCanonicalRequestFields, operationIdentityReferenceFromCapability, routeParameterCapabilityOperations } from '@routesync/core';
 import type { ClassifiedRoute } from '../route-capability-projection';
 import { ConstantsGenerator } from '../ConstantsGenerator';
 import { resolveEndpointResponseInfo } from './endpointResolver';
@@ -18,10 +18,11 @@ export interface ApiObjectEmitterContext {
   readonly usedMappers: Set<string>;
 }
 
-export function emitApiObjectLines(
-  grouped: Record<string, ClassifiedRoute[]>,
-  ctx: ApiObjectEmitterContext
-): string[] {
+export interface EmitApiObjectLinesOperation {
+  (grouped: Record<string, ClassifiedRoute[]>, ctx: ApiObjectEmitterContext): string[];
+}
+
+export const emitApiObjectLines: EmitApiObjectLinesOperation = Object.freeze((grouped: Record<string, ClassifiedRoute[]>, ctx: ApiObjectEmitterContext): string[] => {
   const apiBodyLines: string[] = [];
   apiBodyLines.push('export const api = defineApi({');
 
@@ -53,9 +54,9 @@ export function emitApiObjectLines(
       apiBodyLines.push(`      payloadLocation: '${route.raw.capability.payloadLocation}',`);
       apiBodyLines.push(`      schemaRole: '${route.raw.capability.schemaRole}',`);
       apiBodyLines.push(`      crudRole: '${route.raw.capability.crudRole}',`);
-      apiBodyLines.push(`      targetScope: '${routeTargetScopeFromRoute(route.raw)}',`);
-      const routeParameter = routeParameterCapabilityReferenceFromRoute(route.raw);
-      const routeParameters = routeParameterCapabilityReferencesFromRoute(route.raw);
+      apiBodyLines.push(`      targetScope: '${routeParameterCapabilityOperations.targetScopeFromRoute(route.raw)}',`);
+      const routeParameter = routeParameterCapabilityOperations.referenceFromRoute(route.raw);
+      const routeParameters = routeParameterCapabilityOperations.referencesFromRoute(route.raw);
       if (routeParameter) {
         apiBodyLines.push(`      routeParameter: ${JSON.stringify(routeParameter)},`);
       }
@@ -113,4 +114,4 @@ export function emitApiObjectLines(
 
   apiBodyLines.push('})');
   return apiBodyLines;
-}
+});

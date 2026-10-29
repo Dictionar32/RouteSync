@@ -3,7 +3,7 @@
 ## Decision
 
 Generic semantic relation rewrite execution is owned by `semantic/foundation`, not by
-`compiler/scanner/lexer/routeAst`.
+`compiler/frontend/php/routeAst`.
 
 Foundation owns:
 

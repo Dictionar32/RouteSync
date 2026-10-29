@@ -2,7 +2,7 @@
 
 ## Direction
 
-The scanner/lexer/resolver boundary is pushed toward the same semantic architecture used by declarative syntax and rewrite systems: source characters and tokens remain evidence; dispatch, validation, candidate selection, and state transitions are represented through relations and relation gates.
+The frontend/php/resolver boundary is pushed toward the same semantic architecture used by declarative syntax and rewrite systems: source characters and tokens remain evidence; dispatch, validation, candidate selection, and state transitions are represented through relations and relation gates.
 
 External research confirms the useful split:
 
@@ -21,7 +21,7 @@ External research confirms the useful split:
 - Removed host `undefined` from semantic expression-evidence callbacks by returning relation/semantic witnesses.
 - Converted semantic state merge selector absence to explicit `Presence<KnowledgeId>`.
 - Removed the remaining resolver strict inequality from `RouteSecurityResolver`.
-- Extended Phase 548 audit to structurally inspect production scanner/lexer/resolver TypeScript AST, rather than relying on lexical grep that confuses language operator strings with host control flow.
+- Extended Phase 548 audit to structurally inspect production frontend/php/resolver TypeScript AST, rather than relying on lexical grep that confuses language operator strings with host control flow.
 
 ## Audit
 
@@ -31,7 +31,7 @@ External research confirms the useful split:
 
 Phase 548 audit scope:
 
-- production `scanner/lexer`
+- production `frontend/php`
 - production `scanner/resolvers`
 - excludes tests/spec fixtures
 - detects executable `if`, loops, `switch`, conditional expressions, host collection combinators, `trim`, `slice`, strict equality, logical operators, and `undefined` identifiers

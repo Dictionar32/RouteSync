@@ -6,7 +6,7 @@ import type { LaravelRouteSourceSelectionIntent } from './laravelRouteSourceSele
 import type { LaravelResponseScannerInterface } from './laravelResponseScannerInterface';
 import type { LaravelControllerScannerInterface } from './laravelControllerScannerInterface';
 import type { LaravelResourceScannerInterface, LaravelResourceSourceEvidence, ResourceSourceEvidenceScannerInterface } from './laravelResourceScannerInterface';
-import type { LaravelRouteScannerInterface } from './laravelRouteScannerInterface';
+import type { LaravelRouteScannerInterface, LaravelRouteScanSourceReadBlockedJudgment } from './laravelRouteScannerInterface';
 import type { LaravelModelScannerInterface } from './laravelModelScannerInterface';
 import type { LaravelFormRequestScannerInterface } from './laravelFormRequestScannerInterface';
 import type { SchemaProducer } from './schema';
@@ -19,6 +19,7 @@ import type { LaravelQueryProducerInterface } from './laravelQueryProducerInterf
 import type { LaravelServiceScannerInterface } from './laravelServiceScannerInterface';
 import type { LaravelMiddlewareScannerInterface } from './laravelMiddlewareScannerInterface';
 import type { LaravelProviderScannerInterface } from './laravelProviderScannerInterface';
+import type { ManifestBuilderJudgment } from './manifestBuilderInterface';
 
 /**
  * Outcome-indexed response of the existing Laravel source-AST pipeline.
@@ -36,7 +37,7 @@ import type { LaravelProviderScannerInterface } from './laravelProviderScannerIn
  * judgments, including the enriched method product and its DTO provenance, so
  * CLI consumers do not have to reconstruct those links from ResponseAst values.
  */
-export type LaravelSourceAstProjectionJudgment<
+export type LaravelSourceAstProjectionJudgmentData<
   Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt = LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt,
 > =
   | Readonly<{
@@ -77,14 +78,21 @@ export type LaravelSourceAstProjectionJudgment<
       readonly kind: 'laravel_source_ast_projection_route_scan_blocked';
       readonly sourceProject: import('./highLevelSourceModel').SourceProjectIdentity;
       readonly invocationInventoryReceipt: Receipt;
-      /** Explicitly requested source files are required inputs; preserve the exact missing-file blocker. */
+      /** Explicitly selected missing files stop route projection; preserve the exact scan judgment. */
       readonly scan: import('./laravelRouteScannerInterface').LaravelRouteScanBlockedJudgment;
+    }>
+  | Readonly<{
+      readonly kind: 'laravel_source_ast_projection_route_source_read_blocked';
+      readonly sourceProject: import('./highLevelSourceModel').SourceProjectIdentity;
+      readonly invocationInventoryReceipt: Receipt;
+      /** Preserve read blockers and partial source-read evidence; no empty route AST is emitted. */
+      readonly scan: LaravelRouteScanSourceReadBlockedJudgment;
     }>
   | Readonly<{
       readonly kind: 'laravel_source_ast_projection_route_policy_blocked';
       readonly sourceProject: import('./highLevelSourceModel').SourceProjectIdentity;
       readonly invocationInventoryReceipt: Receipt;
-      /** Preserve the scanner's exact blocked policies and complete route evidence. */
+      /** Preserve the exact blocked policies and complete route evidence. */
       readonly scan: import('./laravelRouteScannerInterface').LaravelRouteScanPolicyBlockedJudgment;
     }>
   | Readonly<{
@@ -99,9 +107,66 @@ export type LaravelSourceAstProjectionJudgment<
       readonly sourceProject: import('./highLevelSourceModel').SourceProjectIdentity;
       readonly invocationInventoryReceipt: Receipt;
       /** Controller declaration/constructor blockers stop all downstream AST projections. */
-      readonly scan: Extract<import('./laravelControllerScannerInterface').LaravelControllerScanJudgment, { readonly kind: 'laravel_controller_scan_blocked' }>;
+      readonly scan: Exclude<import('./laravelControllerScannerInterface').LaravelControllerScanJudgment, { readonly kind: 'laravel_controller_scan_complete' }>;
     }>;
 
+export type LaravelSourceAstProjectionCompleteJudgment<
+  Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt = LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt,
+> = Extract<LaravelSourceAstProjectionJudgmentData<Receipt>, { readonly kind: 'laravel_source_ast_projection_complete' }>;
+
+export type LaravelSourceAstProjectionBlockedJudgment<
+  Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt = LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt,
+> = Exclude<LaravelSourceAstProjectionJudgmentData<Receipt>, { readonly kind: 'laravel_source_ast_projection_complete' }>;
+
+/** The terminal result itself owns the next domain action. */
+/**
+ * The AST projection has one domain-owned consumer in this pipeline: manifest
+ * construction. Both terminal arms therefore return the existing manifest
+ * judgment instead of allowing callers to invent an arbitrary generic result.
+ */
+export interface LaravelSourceAstProjectionManifestBuildContinuationInterface<
+  Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt,
+> {
+  readonly onComplete: (judgment: LaravelSourceAstProjectionCompleteJudgment<Receipt>) => Promise<ManifestBuilderJudgment>;
+  readonly onBlocked: (judgment: LaravelSourceAstProjectionBlockedJudgment<Receipt>) => Promise<ManifestBuilderJudgment>;
+}
+
+export type LaravelSourceAstProjectionJudgment<
+  Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt = LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt,
+> = LaravelSourceAstProjectionJudgmentData<Receipt> & Readonly<{
+  readonly continueToManifestBuild: (
+    continuation: LaravelSourceAstProjectionManifestBuildContinuationInterface<Receipt>,
+  ) => Promise<ManifestBuilderJudgment>;
+}>;
+
+/** Producer-side constructors bind the operation to the exact source-AST terminal. */
+export interface LaravelSourceAstProjectionOperationsInterface {
+  readonly complete: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(
+    judgment: LaravelSourceAstProjectionCompleteJudgment<Receipt>,
+  ) => LaravelSourceAstProjectionJudgment<Receipt>;
+  readonly blocked: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(
+    judgment: LaravelSourceAstProjectionBlockedJudgment<Receipt>,
+  ) => LaravelSourceAstProjectionJudgment<Receipt>;
+}
+
+export const laravelSourceAstProjectionOperations: LaravelSourceAstProjectionOperationsInterface = Object.freeze({
+  complete: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(
+    judgment: LaravelSourceAstProjectionCompleteJudgment<Receipt>,
+  ): LaravelSourceAstProjectionJudgment<Receipt> => Object.freeze({
+    ...judgment,
+    continueToManifestBuild: (
+      continuation: LaravelSourceAstProjectionManifestBuildContinuationInterface<Receipt>,
+    ): Promise<ManifestBuilderJudgment> => continuation.onComplete(judgment),
+  }),
+  blocked: <Receipt extends LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt>(
+    judgment: LaravelSourceAstProjectionBlockedJudgment<Receipt>,
+  ): LaravelSourceAstProjectionJudgment<Receipt> => Object.freeze({
+    ...judgment,
+    continueToManifestBuild: (
+      continuation: LaravelSourceAstProjectionManifestBuildContinuationInterface<Receipt>,
+    ): Promise<ManifestBuilderJudgment> => continuation.onBlocked(judgment),
+  }),
+});
 
 
 /** Complete runtime-executor input: receipt and route-selection intent are never split across optional arguments. */
@@ -138,7 +203,7 @@ export interface LaravelSourceAstPipelineInterface<
 > {
   readonly kind: 'laravel_source_ast_pipeline';
   readonly closed: true;
-  readonly contractVersion: 17;
+  readonly contractVersion: 20;
   /** Exact source receipt and selection intent are explicit operation data. */
   readonly input: LaravelSourceAstPipelineExecutionInput<Receipt>;
   /** Exact producer/scanner authorities used by the operation are visible in the contract. */

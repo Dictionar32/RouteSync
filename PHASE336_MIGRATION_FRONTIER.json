@@ -36,7 +36,7 @@
       "asAssertion": 129
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/astClassifier.ts",
+      "file": "packages/core/src/compiler/frontend/php/astClassifier.ts",
       "score": 342,
       "if": 0,
       "for": 0,
@@ -53,7 +53,7 @@
       "asAssertion": 36
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase167.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase167.test.ts",
       "score": 212,
       "if": 14,
       "for": 0,
@@ -104,7 +104,7 @@
       "asAssertion": 19
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
       "score": 135,
       "if": 46,
       "for": 11,
@@ -308,7 +308,7 @@
       "asAssertion": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts",
       "score": 72,
       "if": 23,
       "for": 6,
@@ -325,7 +325,7 @@
       "asAssertion": 5
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/tokenCursor.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/tokenCursor.ts",
       "score": 65,
       "if": 0,
       "for": 0,
@@ -342,7 +342,7 @@
       "asAssertion": 33
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpMethodParser.ts",
       "score": 62,
       "if": 24,
       "for": 6,
@@ -410,7 +410,7 @@
       "asAssertion": 10
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts",
       "score": 57,
       "if": 17,
       "for": 3,
@@ -461,7 +461,7 @@
       "asAssertion": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowModel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowModel.ts",
       "score": 55,
       "if": 0,
       "for": 0,
@@ -529,7 +529,7 @@
       "asAssertion": 1
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenize/compoundScanners.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenize/compoundScanners.ts",
       "score": 51,
       "if": 17,
       "for": 0,
@@ -546,7 +546,7 @@
       "asAssertion": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/arrayParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/arrayParser.ts",
       "score": 50,
       "if": 14,
       "for": 0,
@@ -563,7 +563,7 @@
       "asAssertion": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerBodyParser.ts",
       "score": 48,
       "if": 12,
       "for": 2,
@@ -597,7 +597,7 @@
       "asAssertion": 39
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxModel.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeSyntaxModel.ts",
       "score": 43,
       "if": 0,
       "for": 0,
@@ -665,7 +665,7 @@
       "asAssertion": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentity.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentity.ts",
       "score": 39,
       "if": 0,
       "for": 0,
@@ -801,7 +801,7 @@
       "asAssertion": 2
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts",
       "score": 32,
       "if": 0,
       "for": 0,
@@ -852,7 +852,7 @@
       "asAssertion": 9
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticTypedRelation.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticTypedRelation.ts",
       "score": 29,
       "if": 0,
       "for": 0,
@@ -971,7 +971,7 @@
       "asAssertion": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.ts",
       "score": 24,
       "if": 0,
       "for": 0,
@@ -1022,7 +1022,7 @@
       "asAssertion": 0
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase162.test.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase162.test.ts",
       "score": 23,
       "if": 2,
       "for": 0,

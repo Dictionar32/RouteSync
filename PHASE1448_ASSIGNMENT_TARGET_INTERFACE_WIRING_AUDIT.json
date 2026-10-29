@@ -2,7 +2,7 @@
   "phase": 1448,
   "title": "Assignment Target Interface Wiring",
   "scope": [
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
     "packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts",
     "packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts"
   ],

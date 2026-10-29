@@ -21,7 +21,7 @@ check('Phase 1721 through 1741 audit reports all exist', phases.length === 21 &&
 check('all recorded direct-audit reports pass', phases.length === 21 && phases.every(phase => phase.failed === 0 && phase.passed === phase.total));
 check('aggregate recorded direct-audit reports contain no failures', passed === total && failed === 0);
 check('Phase 1741 composition encapsulation audit passes all checks', latest.name === 'composition-encapsulation-interface' && latest.total === 17 && latest.passed === 17 && latest.failed === 0);
-check('composition interface regression does not modify scanner runtime', !fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts'), 'utf8').includes('InvocationSemanticIntegratedResponseCompositionInterface'));
+check('composition interface regression does not modify scanner runtime', !fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts'), 'utf8').includes('InvocationSemanticIntegratedResponseCompositionInterface'));
 const failedChecks = checks.filter(item => !item.passed);
 for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
 process.stdout.write(`\n${checks.length - failedChecks.length}/${checks.length} Phase 1741 regression checks passed.\n`);

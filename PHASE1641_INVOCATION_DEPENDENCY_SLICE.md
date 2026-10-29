@@ -13,7 +13,7 @@ The interface contract is version 3 and explicitly declares the dependency slice
 
 ## Execution boundary
 
-`core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts` remains a facade. The scanner exposes the runtime executor and compatibility exports, but does not own the inference, relation rewrite, obligation resolution, proof construction, or closure policy.
+`core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts` remains a facade. The scanner exposes the runtime executor and compatibility exports, but does not own the inference, relation rewrite, obligation resolution, proof construction, or closure policy.
 
 ## Direct judgment path
 

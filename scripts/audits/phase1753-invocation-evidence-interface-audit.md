@@ -10,7 +10,7 @@ Interface-first review of invocation positional-argument evidence and the Larave
 2. `types/upstream/invocationSemanticAlgebraInterface.ts` repeated the nullable representation as `InvocationArgumentFormEvidence`.
 3. `types/upstream/invocationSemanticJudgmentAuthority.ts` normalized input with `?? null`, hiding whether callers had supplied a semantically meaningful state.
 4. The static invocation contract in `invocationSemanticPipelineInterface.ts` also used `null` for no-evidence outcomes despite already having a typed positional-evidence result model.
-5. `compiler/scanner/lexer/controllerDataflowAnalyzer.ts` already receives the integrated response from the upstream composition and projects its analysis while retaining the original response. That path remains wiring/projection; it is not the right owner for evidence classification.
+5. `compiler/frontend/php/controllerDataflowAnalyzer.ts` already receives the integrated response from the upstream composition and projects its analysis while retaining the original response. That path remains wiring/projection; it is not the right owner for evidence classification.
 6. Scanner retirement is not complete: a source scan still finds 53 references/import lines containing `subscanners` under `core/src/compiler/scanner`. The Resource subscanner import in `controllerDataflowAnalyzer.ts` remains a migration dependency and must be removed only after its upstream-owned contract/adapter is in place.
 
 ## Contract changes

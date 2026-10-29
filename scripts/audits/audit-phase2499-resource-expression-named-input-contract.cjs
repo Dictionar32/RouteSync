@@ -8,7 +8,7 @@ const barrel = read('packages/core/src/index.ts');
 const consumers = [
   'packages/core/src/compiler/scanner/operations/resourceProducer.ts',
   'packages/core/src/compiler/scanner/operations/resourceFieldProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts',
+  'packages/core/src/compiler/scanner/operations/controller/responseDetector.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
   'packages/core/src/compiler/scanner/binders/resource/propertyPathResolution.ts',
   'packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts',
@@ -23,7 +23,7 @@ const checks = [
   ['old positional operation name is no longer referenced in production source', !fs.readdirSync(path.join(root, 'packages/core/src'), { recursive: true }).filter(name => String(name).endsWith('.ts')).some(name => read(path.join('packages/core/src', String(name))).includes('resolveAstValueToExpression'))],
   ['upstream contract imports no scanner or relation/foundation modules', !/compiler\/scanner|semantic\/(relations|foundation)/.test(contract)],
   ['input contract is publicly exported', barrel.includes('ResourceAstExpressionMappingInput, ResourceAstExpressionMappingOperationInterface')],
-  ['relation dependency is disclosed at the upstream authority boundary', /semantic\/relations/.test(read('packages/core/src/compiler/scanner/lexer/routeAst/resourceExpressionSemanticAuthority.ts')) && !/semantic\/relations/.test(mapper)],
+  ['relation dependency is disclosed at the upstream authority boundary', /semantic\/relations/.test(read('packages/core/src/compiler/frontend/php/routeAst/resourceExpressionSemanticAuthority.ts')) && !/semantic\/relations/.test(mapper)],
 ];
 let failed = 0;
 for (const [label, passed] of checks) { console.log(`${passed ? 'PASS' : 'FAIL'} ${label}`); failed += Number(!passed); }

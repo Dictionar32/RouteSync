@@ -4,20 +4,20 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const exists = relative => fs.existsSync(path.join(root, relative));
 const operationPath = 'packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts';
-const authorityPath = 'packages/core/src/compiler/scanner/lexer/routeAst/resourceExpressionSemanticAuthority.ts';
+const authorityPath = 'packages/core/src/compiler/frontend/php/routeAst/resourceExpressionSemanticAuthority.ts';
 const contractPath = 'packages/core/src/types/upstream/resourceAstExpressionMappingInterface.ts';
 const operation = read(operationPath);
 const authority = read(authorityPath);
 const contract = read(contractPath);
 const publicIndex = read('packages/core/src/index.ts');
-const astAlgebra = read('packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts');
+const astAlgebra = read('packages/core/src/compiler/frontend/php/phpAstAlgebra.ts');
 const binaryContract = read('packages/core/src/types/upstream/resourceBinaryOperatorInterface.ts');
 const binaryAuthority = read('packages/core/src/compiler/semantic/resourceBinaryOperatorAuthority.ts');
 const checks = [
   ['existing mapping operation interface remains the runtime operation contract', /export interface ResourceAstExpressionMappingOperationInterface<SyntaxValue>/.test(contract)],
   ['upstream now defines a distinct semantic-authority contract because the owner was missing', /export interface ResourceAstExpressionMappingAuthorityInterface<SyntaxValue>/.test(contract)],
   ['authority contract accepts the existing named input and returns ResourceExpressionModel', /map:\s*\(input: ResourceAstExpressionMappingInput<SyntaxValue>\) => ResourceExpressionModel/.test(contract)],
-  ['authority implementation is owned by the PHP route-AST frontend, not operations or subscanners', exists(authorityPath) && !exists('packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts')],
+  ['authority implementation is owned by the PHP route-AST frontend, not operations or operations', exists(authorityPath) && !exists('packages/core/src/compiler/scanner/operations/resource/resourceAstExpressionMapper.ts')],
   ['authority implementation is typed by the upstream authority interface', /resourceAstExpressionMappingAuthority:\s*ResourceAstExpressionMappingAuthorityInterface<PhpAstValue>/.test(authority)],
   ['runtime-facing operation is export const typed by the existing operation interface', /export const mapResourceAstExpression:\s*ResourceAstExpressionMappingOperationInterface<PhpAstValue>/.test(operation)],
   ['runtime-facing operation only delegates and contains no semantic relation/foundation imports', /resourceAstExpressionMappingAuthority\.map\(input\)/.test(operation) && !/semantic\/(?:relations|foundation)/.test(operation)],

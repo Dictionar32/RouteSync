@@ -17,7 +17,7 @@ These references support the RouteSync direction: scanner/resolver authority sho
 
 ### Lexer authority
 
-`packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts`
+`packages/core/src/compiler/frontend/php/astClassifierEvidence.ts`
 
 - Replaced the single-token `ReadonlyMap` authority (`has/get`) with an immutable relational tuple catalog.
 - Single-token classification now resolves through `relationLookup` + `relationOptionFold`.
@@ -46,7 +46,7 @@ The PHP token strings `===`, `&&`, `||`, and `??` remain as lexical vocabulary w
 
 ### Syntax error core
 
-`packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts` remains relation-rule based with no forbidden authority constructs detected in the targeted audit.
+`packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts` remains relation-rule based with no forbidden authority constructs detected in the targeted audit.
 
 ## Validation
 

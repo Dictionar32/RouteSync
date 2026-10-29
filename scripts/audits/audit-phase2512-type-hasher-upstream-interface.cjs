@@ -34,7 +34,7 @@ const result = {
     'requestAstCanonical.ts still imports semantic/relations directly.',
     'operations/form-request/canonicalValidationRuleEntry.ts and ruleCollector.ts still import semantic/relations directly.',
     'TypeInterner relation-free status is only direct-import clean; transitive closure requires tracing all reachable dependencies.',
-    'The Laravel pipeline still imports legacy subscanners for response, schema, migration, DTO, query, service, middleware, and provider.',
+    'The Laravel pipeline still imports legacy operations for response, schema, migration, DTO, query, service, middleware, and provider.',
     'Full project typecheck, package build, Vitest, and CLI end-to-end have not passed in this environment.'
   ]
 };

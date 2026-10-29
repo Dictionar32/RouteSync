@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerLoopStatementInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerLoopStatementAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const checks = [
@@ -19,7 +19,7 @@ const checks = [
   ['runtime no longer revalidates optional resolved loop evidence', !runtime.includes('resolved judgment lacks iterable or target evidence') && !runtime.includes('resolved judgment lacks clause evidence')],
   ['all three parser entry points preserve original malformed loop judgments', runtime.includes("control: 'collection_iteration', judgment") && runtime.includes("control: 'pretest_iteration', judgment") && runtime.includes("control: 'counted_iteration', judgment")],
   ['Laravel invocation and integrated response remain forwarded through the existing interface', invocation.includes('php_source_invocation_integration_not_connected') && wiring.includes('invocationJudgment') && wiring.includes('responseJudgment') && wiring.includes('astProjection.judge')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);
 console.log(`\n${checks.filter(([, passed]) => passed).length}/${checks.length} checks passed`);

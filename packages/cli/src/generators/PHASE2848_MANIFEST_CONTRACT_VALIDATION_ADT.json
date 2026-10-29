@@ -1,0 +1,20 @@
+{
+  "phase": 2848,
+  "title": "Manifest Contract Validation ADT Operations",
+  "runtimeTrace": [
+    "CLI scan",
+    "route manifest projection",
+    "manifestContractValidationOperations.validate(manifest)",
+    "ManifestContractValidatedJudgment | ManifestContractRejectedJudgment",
+    "continueWith(handlers)",
+    "persist or preserve explicit rejection"
+  ],
+  "changes": [
+    "Added typed continuation operations to both validation ADT arms.",
+    "Bound continuations at the producer boundary.",
+    "Migrated scan and persistence consumers away from kind-based switch dispatch."
+  ],
+  "audit": "audit:phase2848-manifest-contract-validation-adt",
+  "scope": "structural source assertions; not full typecheck or end-to-end validation",
+  "upstreamCollectionsBytes": 0
+}

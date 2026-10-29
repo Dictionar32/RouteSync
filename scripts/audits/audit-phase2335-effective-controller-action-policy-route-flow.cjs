@@ -6,7 +6,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [
   ['route semantic flow already exposes the existing effective policy ADT', () => read('packages/core/src/types/domain/routes.ts').includes('readonly controllerActionPolicy: Presence<EffectiveControllerActionPolicy>')],
   ['route flow builder requires and preserves the effective policy ADT', () => {
-    const source = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+    const source = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
     return source.includes('controllerActionPolicy: import(\'../../../types/upstream/presence\').Presence<') && source.includes('    controllerActionPolicy,');
   }],
   ['canonical scanner resolves binding before effective policy', () => {
@@ -34,7 +34,7 @@ const checks = [
     return files.every(file => !/semantic\/(relations|foundation)/.test(read(file)));
   }],
   ['route scanner interface and runtime use contract version 11', () => read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts').includes('readonly contractVersion: 11;') && read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts').includes("kind: 'laravel_route_scan_judgment', contractVersion: 11")],
-  ['legacy route scanner explicitly represents policy absence instead of fabricating a result', () => read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts').includes("routeSemanticFlowFromRouteBoundary(boundary, { kind: 'absent' })")],
+  ['legacy route scanner explicitly represents policy absence instead of fabricating a result', () => read('packages/core/src/compiler/scanner/operations/RouteScanner.ts').includes("routeSemanticFlowFromRouteBoundary(boundary, { kind: 'absent' })")],
   ['no duplicate V2 policy interface was introduced', () => !/EffectiveControllerActionPolicyV2|RouteSemanticFlowV2|LaravelRouteScannerInterfaceV2/.test([
     read('packages/core/src/types/upstream/effectiveControllerActionPolicy.ts'),
     read('packages/core/src/types/domain/routes.ts'),

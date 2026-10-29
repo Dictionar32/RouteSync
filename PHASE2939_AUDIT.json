@@ -1,0 +1,19 @@
+{
+  "phase": 2939,
+  "title": "Fully Explicit Typed Runtime Scanner Operations",
+  "mode": "audit-and-model",
+  "source_code_modified": false,
+  "findings": {
+    "existing_source_read_adt": true,
+    "route_scanner_uses_existing_source_read_adt": false,
+    "route_scanner_calls_fs_promises_readFile_directly": true,
+    "route_scan_outcome_has_explicit_read_blocker": false,
+    "ast_projection_preserves_explicit_route_read_blocker": false,
+    "upstream_collections_file_empty": true
+  },
+  "status": "integration-gap-confirmed",
+  "typecheck": "not-run",
+  "unit_tests": "not-run",
+  "build": "not-run",
+  "cli_e2e": "not-run"
+}

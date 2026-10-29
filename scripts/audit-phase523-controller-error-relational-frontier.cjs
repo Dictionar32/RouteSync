@@ -4,7 +4,7 @@ const ts = require('typescript');
 
 const root = path.resolve(__dirname, '..');
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/controller/controllerErrorDetector.ts',
+  'packages/core/src/compiler/scanner/operations/controller/controllerErrorDetector.ts',
 ];
 const forbidden = {
   if: /\bif\b/g,

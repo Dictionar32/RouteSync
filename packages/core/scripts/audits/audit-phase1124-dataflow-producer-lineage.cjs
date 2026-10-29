@@ -3,8 +3,8 @@ const path = require('path');
 
 const core = path.resolve(__dirname, '../..');
 const adapter = fs.readFileSync(path.join(core, 'src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts'), 'utf8');
-const controller = fs.readFileSync(path.join(core, 'src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts'), 'utf8');
-const route = fs.readFileSync(path.join(core, 'src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts'), 'utf8');
+const controller = fs.readFileSync(path.join(core, 'src/compiler/scanner/operations/controller/controllerAstCanonical.ts'), 'utf8');
+const route = fs.readFileSync(path.join(core, 'src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts'), 'utf8');
 const dataflow = fs.readFileSync(path.join(core, 'src/types/upstream/semanticDataflow.ts'), 'utf8');
 
 const checks = {

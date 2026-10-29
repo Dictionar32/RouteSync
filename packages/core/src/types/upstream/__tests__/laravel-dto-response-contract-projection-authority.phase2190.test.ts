@@ -2,15 +2,15 @@ import { afterEach, describe, expect, it } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { scanDtoDeclarationInventory } from '../../../compiler/scanner/subscanners/dtoAstCanonical';
-import { createClassName, createSourceFile } from '../names';
+import { dtoDeclarationInventoryScanningOperation } from '../../../compiler/scanner/operations/dtoAstCanonical';
+import { createClassName, sourceFileIdentityFactory, stringValue } from '../names';
 import { createLaravelSourceProjectIdentity } from '../sourceProjectIdentity';
 import { phpClassNameResolutionAuthority } from '../phpClassNameResolutionAuthority';
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import { laravelControllerResponseDtoDeclarationResolutionAuthority } from '../laravelControllerResponseDtoDeclarationResolutionAuthority';
 import { createLaravelDtoResponseContractProjectionAuthority, laravelDtoResponseContractProjectionAuthority } from '../laravelDtoResponseContractProjectionAuthority';
 import { laravelDtoResponseValueProjectionAuthority } from '../laravelDtoResponseValueProjectionAuthority';
-import { createLaravelControllerResponseSemanticPipeline, laravelControllerResponseSemanticPipeline, laravelControllerResponseSemanticPipelineDependencies } from '../laravelControllerResponseSemanticPipeline';
+import { laravelControllerResponseSemanticRuntimeOperations, laravelControllerResponseSemanticPipeline, laravelControllerResponseSemanticPipelineDependencies } from '../laravelControllerResponseSemanticPipeline';
 
 const roots: string[] = [];
 
@@ -20,7 +20,7 @@ afterEach(async () => {
 
 const sourceSpan = (file: string) => Object.freeze({
   kind: 'source_span' as const,
-  file: createSourceFile(file),
+  file: sourceFileIdentityFactory.create(stringValue.create(file)),
   start: Object.freeze({ kind: 'number_value' as const, value: 1 }),
   end: Object.freeze({ kind: 'number_value' as const, value: 1 }),
 });
@@ -31,8 +31,8 @@ const createFixture = async (body: string) => {
   const dtoDirectory = path.join(root, 'app', 'Http', 'DTOs');
   await fs.mkdir(dtoDirectory, { recursive: true });
   await fs.writeFile(path.join(dtoDirectory, 'UserDto.php'), `<?php\nnamespace App\\Http\\DTOs;\nclass UserDto { ${body} }\n`);
-  const sourceProject = createLaravelSourceProjectIdentity(root);
-  const inventory = await scanDtoDeclarationInventory(sourceProject);
+  const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create(root)));
+  const inventory = await dtoDeclarationInventoryScanningOperation.scanInventory(sourceProject);
   if (inventory.kind === 'laravel_project_dto_declaration_inventory_incomplete') {
     throw new Error('DTO fixture inventory should be complete');
   }
@@ -41,11 +41,11 @@ const createFixture = async (body: string) => {
     sourceName: createClassName('UserDto'),
     context: Object.freeze({
       kind: 'php_class_name_resolution_context',
-      namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'),
+      namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'),
       classImports: Object.freeze([Object.freeze({
         kind: 'php_class_import_binding' as const,
         alias: createClassName('UserDto'),
-        target: createPhpQualifiedClassName('App\\Http\\DTOs\\UserDto'),
+        target: phpQualifiedClassNameFactory.create('App\\Http\\DTOs\\UserDto'),
       })]),
       importInventory: 'complete' as const,
     }),
@@ -80,7 +80,7 @@ describe('Laravel DTO response contract projection authority', () => {
       },
     });
     const contractAuthority = createLaravelDtoResponseContractProjectionAuthority(valueAuthority);
-    const pipeline = createLaravelControllerResponseSemanticPipeline(Object.freeze({ ...laravelControllerResponseSemanticPipelineDependencies, dtoResponseContractProjectionAuthority: contractAuthority }));
+    const pipeline = laravelControllerResponseSemanticRuntimeOperations.createPipeline(Object.freeze({ ...laravelControllerResponseSemanticPipelineDependencies, dtoResponseContractProjectionAuthority: contractAuthority }));
     const { declarationJudgment } = await createFixture('public int $id; public string $name;');
     const judgment = pipeline.dtoResponseContractProjection.project(Object.freeze({
       kind: 'laravel_dto_response_contract_projection_input',

@@ -6,7 +6,7 @@ Trace `packages/core/src/types/upstream` and `packages/core/src/compiler/scanner
 
 ## Trace finding
 
-`scanner/lexer/controllerDataflowAnalyzer.ts` contained `solveSemanticCandidate()` and locally selected among `parameter`, `DB::table`, and `external` candidates. That meant the scanner still owned a semantic decision even though the wider architecture had upstream semantic decision algebra and runtime interfaces.
+`frontend/php/controllerDataflowAnalyzer.ts` contained `solveSemanticCandidate()` and locally selected among `parameter`, `DB::table`, and `external` candidates. That meant the scanner still owned a semantic decision even though the wider architecture had upstream semantic decision algebra and runtime interfaces.
 
 ## Contract-first changes
 

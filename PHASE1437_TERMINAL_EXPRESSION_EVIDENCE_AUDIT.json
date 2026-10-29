@@ -3,8 +3,8 @@
   "title": "Terminal Expression Evidence Contract",
   "date": "2026-10-09",
   "scope": [
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
-    "packages/core/src/compiler/scanner/lexer/phpExpressionStructureEvidenceProvider.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts",
     "packages/core/src/types/upstream/scannerExpressionCandidateAlgebra.ts",
     "packages/core/src/types/upstream/scannerExpressionStructure.ts"
   ],

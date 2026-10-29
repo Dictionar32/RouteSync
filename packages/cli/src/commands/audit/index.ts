@@ -3,5 +3,6 @@
  * Conforms to Rule 14: Zero wildcard re-exports (0 `export * from`).
  */
 
-export { auditManifestDrift } from './driftAuditor';
-export { auditSemanticCoverage, type SemanticAuditOptions } from './semanticAuditor';
+export { manifestDriftAuditOperations } from './driftAuditor';
+export type { ManifestDriftAuditOperationsInterface } from './driftAuditor';
+export { semanticCoverageAuditOperations, type SemanticAuditOptions, type SemanticCoverageAuditOperationsInterface } from './semanticAuditor';

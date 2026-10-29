@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const iface = read('packages/core/src/types/upstream/queryProducerSemanticInterface.ts');
 const reasoning = read('packages/core/src/types/upstream/queryProducerSemanticReasoning.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts');
 const index = read('packages/core/src/index.ts');
 const tests = read('packages/core/src/types/upstream/__test__/queryProducerSemanticAlgebra.phase1487.test.ts');
 const checks = [

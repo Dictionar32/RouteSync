@@ -1,0 +1,58 @@
+{
+  "phase": 2729,
+  "audit": "semantic-query-ownership",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "semantic evidence relation bridge is owned by compiler semantic layer",
+      "passed": true,
+      "detail": "Semantic relation bridge no longer lives under scanner."
+    },
+    {
+      "name": "query evidence producer is owned by compiler semantic layer",
+      "passed": true,
+      "detail": "Query semantic evidence implementation no longer lives under scanner subscanners."
+    },
+    {
+      "name": "semantic relation public API is interface-first frozen object",
+      "passed": true,
+      "detail": "Public operations use a typed immutable object."
+    },
+    {
+      "name": "relation bridge no longer exports free function entrypoints",
+      "passed": true,
+      "detail": "Relation implementations remain private behind the operation object."
+    },
+    {
+      "name": "query evidence producer is a frozen interface-typed runtime object",
+      "passed": true,
+      "detail": "Semantic producer has an explicit operation contract and immutable runtime value."
+    },
+    {
+      "name": "scanner query producer is wiring-only for relation bridge",
+      "passed": true,
+      "detail": "Scanner facade composes semantic operation instead of importing semantic implementation."
+    },
+    {
+      "name": "no code imports query producer from former scanner path",
+      "passed": true,
+      "detail": "Production code no longer depends on the retired source path."
+    },
+    {
+      "name": "CLI scan and sync retain canonical manifest scan operation",
+      "passed": true,
+      "detail": "Query ownership migration does not bypass upstream CLI manifest authority."
+    },
+    {
+      "name": "manifest builder retains complete and blocked ADT variants",
+      "passed": true,
+      "detail": "Manifest success and blocked outcomes remain distinct."
+    },
+    {
+      "name": "relationFoundation files remain absent",
+      "passed": true,
+      "detail": "No foundation or renamed replacement was introduced."
+    }
+  ]
+}

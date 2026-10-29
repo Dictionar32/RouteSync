@@ -27,11 +27,11 @@ import { toCamelCase, toPascalCase } from "../../../../utils/resource-naming";
 import type { RawScannedRouteParameterInput, ScannedRouteParameterParams } from "./types";
 
 const stringValue = (value: string) => Object.freeze({ kind: 'string_value' as const, value });
-const routeParameterName = (value: string): RouteParameterName => Object.freeze({ kind: 'route_parameter_name' as const, value: stringValue(value) });
-const propertyName = (value: string): PropertyName => Object.freeze({ kind: 'property_name' as const, value: stringValue(value) });
+const routeParameterName = (value: string): RouteParameterName => Object.freeze({ kind: 'route_parameter_name' as const, value: stringValue.create(value) });
+const propertyName = (value: string): PropertyName => Object.freeze({ kind: 'property_name' as const, value: stringValue.create(value) });
 const modelReference = (value: string): ModelReference => Object.freeze({
     kind: 'model_reference' as const,
-    name: Object.freeze({ kind: 'model_name' as const, value: stringValue(value) })
+    name: Object.freeze({ kind: 'model_name' as const, value: stringValue.create(value) })
 });
 
 const relationValueOption = <T>(value?: T): RelationOption<T> =>

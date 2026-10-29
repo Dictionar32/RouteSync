@@ -24,9 +24,9 @@ relational navigation runtime
 The following infrastructure now uses recursive relational sequence primitives rather than host collection traversal or imperative control constructs:
 
 - `packages/core/src/compiler/relational/sequence.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/tokenCursor.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/tokenCursor.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts`
 - `packages/core/src/compiler/diagnostics/DiagnosticBag.ts`
 
 The semantic adapter, semantic solver, rewrite engine, closure engine, and canonical semantic production surface retain the Phase 297 relational boundary.

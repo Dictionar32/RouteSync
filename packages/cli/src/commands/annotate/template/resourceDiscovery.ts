@@ -6,7 +6,7 @@
  * @module cli/commands/annotate/template
  */
 
-export function buildResourceDiscoverySnippet(): string {
+function buildResourceDiscoverySnippet(): string {
     return `        // Resource discovery is downstream projection only.
         // The manifest is the materialized upstream semantic contract; source
         // regexes must not reconstruct Resource/Response meaning in the CLI.
@@ -38,3 +38,11 @@ export function buildResourceDiscoverySnippet(): string {
         if (!$resourceName && !$modelFromManifest) continue;
 `;
 }
+
+export interface ResourceDiscoveryTemplateOperationsInterface {
+  readonly build: () => string;
+}
+
+export const resourceDiscoveryTemplateOperations: ResourceDiscoveryTemplateOperationsInterface = Object.freeze({
+  build: buildResourceDiscoverySnippet,
+});

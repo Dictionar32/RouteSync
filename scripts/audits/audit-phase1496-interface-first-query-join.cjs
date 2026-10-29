@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/queryProducerSemanticInterface.ts');
 const algebra = read('packages/core/src/types/upstream/queryProducerSemanticAlgebra.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts');
 const checks = [
   ['interface declares closed join operation resolver', /resolveQueryJoinOperation:\s*\(methodName: string, arguments_: readonly Expression\[\]\) => QueryProducerSemanticJudgment<QueryOperationAst>/.test(contract)],
   ['algebra owns join name to canonical operation mapping', /const resolveQueryJoinOperation\s*=/.test(algebra) && /\['leftJoinLateral', 'left_join_lateral'\]/.test(algebra)],

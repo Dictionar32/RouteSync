@@ -3,8 +3,8 @@ const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/
 const root = process.cwd();
 const files = [
   'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts',
+  'packages/core/src/compiler/scanner/operations/controller/resourceDataflowAggregator.ts',
+  'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts',
 ];
 const forbidden = new Map([
   ['if', n => ts.isIfStatement(n)],

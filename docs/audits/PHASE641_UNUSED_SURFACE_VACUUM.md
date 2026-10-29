@@ -27,7 +27,7 @@ The remaining high-value work is semantic-authority migration rather than token-
 
 syntax evidence → upstream facts → semantic relations → constraints → recursive/SCC closure → witness/provenance → declarative rewrite → canonical Route IR → target dialect lowering.
 
-The scanner/lexer is treated as evidence production; source-language vocabulary such as Laravel/PHP `null`, `??`, ternary, and route `any` is not deleted merely because the spelling matches a host-language prohibition.
+The frontend/php is treated as evidence production; source-language vocabulary such as Laravel/PHP `null`, `??`, ternary, and route `any` is not deleted merely because the spelling matches a host-language prohibition.
 
 ## Research basis
 

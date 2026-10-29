@@ -15,7 +15,7 @@ import { semanticDataflowControllerQueryProjectionAuthority, type SemanticDatafl
 import { semanticDataflowRequestProjectionAuthority, type SemanticDataflowRequestProjectionAuthorityInterface } from './semanticDataflowRequestProjection';
 import type { Sequence } from './collections';
 import type { SourceSpan } from './provenance';
-import { semanticDataflowFactWithLineage } from './semanticDataflow';
+import { semanticDataflowFactLineageOperations } from './semanticDataflow';
 
 export type SemanticDataflowInputEvidenceFact = Readonly<{
   readonly kind: 'dependency' | 'value_flow';
@@ -64,7 +64,7 @@ const sequenceItems = <T>(items: Sequence<T>, output: readonly T[] = []): readon
 const canonicalFact = (
   fact: SemanticDataflowInputEvidenceFact,
   producer: SemanticDataflowEvidenceProducer,
-): Exclude<SemanticDataflowFact, { readonly kind: 'reaches' }> => semanticDataflowFactWithLineage(
+): Exclude<SemanticDataflowFact, { readonly kind: 'reaches' }> => semanticDataflowFactLineageOperations.withLineage(
   Object.freeze({
     kind: fact.kind,
     source: fact.source,
@@ -102,31 +102,33 @@ const controllerSeed = (
   sourceModel: CompleteLaravelSourceModel,
   controller: ControllerActionFlowContract,
   projections: SemanticDataflowProjectionAuthoritySetInterface,
-): SemanticDataflowInput => Object.freeze({
-  ...controller.semantic.dataflow,
-  facts: Object.freeze([
-    ...controller.semantic.dataflow.facts,
-    ...projections.route.project(sourceModel, controller),
-    ...projections.controller.project(controller),
-    ...projections.controllerQuery.project(controller),
-    ...projections.request.project(sourceModel, controller),
-  ]),
-});
+): SemanticDataflowInput => {
+  const routeEnrichedSeed = projections.route
+    .project(sourceModel, controller)
+    .appendToControllerSeed(controller.semantic.dataflow);
+  return Object.freeze({
+    ...routeEnrichedSeed,
+    facts: Object.freeze([
+      ...routeEnrichedSeed.facts,
+      ...projections.controller.project(controller),
+      ...projections.controllerQuery.project(controller),
+      ...projections.request.project(sourceModel, controller),
+    ]),
+  });
+};
 
-export const createSemanticDataflowInputProducer = (
-  projections: SemanticDataflowProjectionAuthoritySetInterface,
-): SemanticDataflowSeedProducerInterface => Object.freeze({
-  create,
-  controllerSeed: (sourceModel: CompleteLaravelSourceModel, controller: ControllerActionFlowContract) =>
-    controllerSeed(sourceModel, controller, projections),
-  sourceModelSeeds: (sourceModel: CompleteLaravelSourceModel) => sequence(
-    sequenceItems(sourceModel.contracts.controllers).map(controller => controllerSeed(sourceModel, controller, projections)),
-  ),
-});
-
-export const semanticDataflowInputProducer: SemanticDataflowSeedProducerInterface = createSemanticDataflowInputProducer(Object.freeze({
+const semanticDataflowProjectionAuthorities: SemanticDataflowProjectionAuthoritySetInterface = Object.freeze({
   route: semanticDataflowRouteProjectionAuthority,
   controller: semanticDataflowControllerProjectionAuthority,
   controllerQuery: semanticDataflowControllerQueryProjectionAuthority,
   request: semanticDataflowRequestProjectionAuthority,
-}));
+});
+
+export const semanticDataflowInputProducer: SemanticDataflowSeedProducerInterface = Object.freeze({
+  create,
+  controllerSeed: (sourceModel: CompleteLaravelSourceModel, controller: ControllerActionFlowContract) =>
+    controllerSeed(sourceModel, controller, semanticDataflowProjectionAuthorities),
+  sourceModelSeeds: (sourceModel: CompleteLaravelSourceModel) => sequence(
+    sequenceItems(sourceModel.contracts.controllers).map(controller => controllerSeed(sourceModel, controller, semanticDataflowProjectionAuthorities)),
+  ),
+});

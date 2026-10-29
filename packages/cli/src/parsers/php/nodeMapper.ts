@@ -14,7 +14,7 @@ import { phpAstBoundaryAdapter } from './boundaryAdapter';
 
 const mapPhpAstNodeImplementation = (grammarNode: PhpGrammarNode, source: string): PhpAstNode => {
     const originalCode = phpNodeSourceSliceOperation.slice(grammarNode, source);
-    return phpAstBoundaryAdapter.adaptJudgment(grammarNode, originalCode).ast;
+    return phpAstBoundaryAdapter.adapt(grammarNode, originalCode);
 }
 
 

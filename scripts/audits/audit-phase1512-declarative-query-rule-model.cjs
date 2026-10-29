@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticInterface.ts'), 'utf8');
 const reasoning = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticReasoning.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts'), 'utf8');
 const checks = [
   ['upstream contract models premises, constraints, evidence and conclusion', /QueryOperationSemanticRuleDeclaration/.test(contract) && /readonly premises: readonly \[/.test(contract) && /readonly constraints: readonly \[/.test(contract) && /QueryOperationSemanticRuleDeclarationFor/.test(contract) && /readonly conclusion: Readonly/.test(contract)],
   ['rule catalog is constructed from semantic declarations', /declareQueryOperationRule/.test(reasoning) && /const declaration: QueryOperationSemanticRuleDeclarationFor<Rule> = Object\.freeze/.test(reasoning) && /declaration\.methods\.map/.test(reasoning)],

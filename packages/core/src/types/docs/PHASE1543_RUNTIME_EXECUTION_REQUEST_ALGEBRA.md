@@ -8,7 +8,7 @@ This phase continues the Phase 1542 interface-first dataflow route across:
 - `types/upstream/semanticDataflowInterface.ts` — runtime request/result contract and admission boundary;
 - `types/upstream/semanticDataflowRuntimeExecutor.ts` — the sole composition of authority, admission, and protocol dispatch;
 - `compiler/scanner/wiring/semanticDataflowInputAdapter.ts` — scanner evidence to canonical input;
-- `compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` — consumer wiring and compatibility projection.
+- `compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` — consumer wiring and compatibility projection.
 
 ## Model-level change
 

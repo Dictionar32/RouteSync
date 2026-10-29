@@ -4,7 +4,7 @@ const root = process.cwd();
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const controllerAnalyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const controllerAnalyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 const pipelineContract = pipeline.slice(pipeline.indexOf('export interface InvocationSemanticPipelineContract'), pipeline.indexOf('export const INVOCATION_SEMANTIC_PIPELINE_CONTRACT'));

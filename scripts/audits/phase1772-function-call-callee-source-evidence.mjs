@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const root = resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/lexer');
+const root = resolve(import.meta.dirname, '../../packages/core/src/compiler/frontend/php');
 const ast = readFileSync(resolve(root, 'phpAstExpressionTypes.ts'), 'utf8');
 const factory = readFileSync(resolve(root, 'phpAstFactory.ts'), 'utf8');
 const projector = readFileSync(resolve(root, 'phpExpressionStructureProjector.ts'), 'utf8');

@@ -19,7 +19,7 @@ import type {
 } from '../../../types/upstream/requestTypeDerivationInterface';
 import { createRequestTypeDerivationAuthorityCoverage } from './requestTypeDerivationCoverage';
 import { createSourceOccurrenceGuardedRequestTypeDerivationProofVerifier } from './requestTypeDerivationSourceOccurrenceVerification';
-import { createRequestTypeDerivationSemanticAssessmentValidator } from './requestTypeDerivationAssessmentIntegrity';
+import { requestTypeDerivationSemanticAssessmentValidatorFactory } from './requestTypeDerivationAssessmentIntegrity';
 import { createRequestTypeDerivationAuthorityIntegrityGate } from './requestTypeDerivationAuthorityIntegrityGate';
 
 const mismatch = (
@@ -59,7 +59,7 @@ const assemblePipeline = <
   const coverage = createRequestTypeDerivationAuthorityCoverage(composition.contract);
   const verifier = createSourceOccurrenceGuardedRequestTypeDerivationProofVerifier(composition.verifier);
   const authorityIntegrityGate = createRequestTypeDerivationAuthorityIntegrityGate(composition.authority, composition.integrity);
-  const validateAssessment = createRequestTypeDerivationSemanticAssessmentValidator(composition.contract);
+  const validateAssessment = requestTypeDerivationSemanticAssessmentValidatorFactory.create(composition.contract);
 
   return Object.freeze({
     contract: composition.contract,
@@ -105,7 +105,20 @@ export const createRequestTypeDerivationSemanticPipelineAssembler =
       composition: RequestTypeDerivationSemanticPipelineCompositionInterface<TContract, TInference>,
     ): RequestTypeDerivationSemanticPipelineAssemblyResult<TContract, TInference> => {
       const mismatches = contractMismatches(composition);
-      if (mismatches !== undefined) return Object.freeze({ kind: 'rejected', mismatches });
-      return Object.freeze({ kind: 'assembled', pipeline: assemblePipeline(composition) });
+      if (mismatches !== undefined) {
+        const result: Extract<RequestTypeDerivationSemanticPipelineAssemblyResult<TContract, TInference>, { readonly kind: 'rejected' }> = Object.freeze({
+          kind: 'rejected' as const,
+          mismatches,
+          continueWith: <TResult>(handlers: import('../../../types/upstream/requestTypeDerivationInterface').RequestTypeDerivationSemanticPipelineAssemblyHandlers<TResult, TContract, TInference>): TResult => handlers.rejected(result),
+        });
+        return result;
+      }
+      const pipeline = assemblePipeline(composition);
+      const result: Extract<RequestTypeDerivationSemanticPipelineAssemblyResult<TContract, TInference>, { readonly kind: 'assembled' }> = Object.freeze({
+        kind: 'assembled' as const,
+        pipeline,
+        continueWith: <TResult>(handlers: import('../../../types/upstream/requestTypeDerivationInterface').RequestTypeDerivationSemanticPipelineAssemblyHandlers<TResult, TContract, TInference>): TResult => handlers.assembled(pipeline),
+      });
+      return result;
     },
   });

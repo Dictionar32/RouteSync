@@ -8,7 +8,7 @@ const checks = [
   ['algebra records skipped, failed and selected rules', ['not_applicable', 'no_result', 'selected'].every((value) => read('packages/core/src/types/upstream/semanticDecisionAlgebra.ts').includes(value))],
   ['algebra rejects unknown selection policy', read('packages/core/src/types/upstream/semanticDecisionAlgebra.ts').includes('unsupported_selection_policy')],
   ['AST precedence policy is upstream-owned', read('packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts').includes('SCANNER_AST_EXPRESSION_PRECEDENCE')],
-  ['scanner consumes upstream precedence instead of constructing rule order', read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts').includes('precedence: SCANNER_AST_EXPRESSION_PRECEDENCE') && !read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts').includes('const astRuleOrder')],
+  ['scanner consumes upstream precedence instead of constructing rule order', read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts').includes('precedence: SCANNER_AST_EXPRESSION_PRECEDENCE') && !read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts').includes('const astRuleOrder')],
   ['existing controller semantic authority declares the policy', read('packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts').includes("selection: 'first_proven_by_precedence'")],
   ['regression tests cover proof-bearing judgments', read('packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1427.test.ts').includes('semantic_decision_proof') && read('packages/core/src/types/upstream/__test__/semanticDecisionAlgebra.phase1457.test.ts').includes('termination: \'exhausted\'')],
 ];

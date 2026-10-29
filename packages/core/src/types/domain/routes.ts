@@ -27,6 +27,8 @@ import type { OperationIdentityCapabilityContract } from "../upstream/operationI
 import type { LaravelRouteAuthorizationSemanticJudgment } from '../upstream/routeAuthorizationSemanticJudgmentInterface';
 import type { Presence } from '../upstream/presence';
 import type { EffectiveControllerActionPolicy } from '../upstream/effectiveControllerActionPolicy';
+import type { RouteRequestSchemaEvidence } from '../upstream/controllerActionSchemaSemanticJudgmentInterface';
+import type { SourceFile } from '../upstream/names';
 
 /**
  * Route Parameter Specification Contract.
@@ -83,6 +85,8 @@ import type { ControllerReturnSemantic } from '../upstream/controller';
 export interface RouteBindingContract {
   readonly operation: RouteOperationBinding;
   readonly schema: RouteSchemaPayload;
+  /** Provenance-bearing schema ADT survives route-manifest serialization beside its payload projection. */
+  readonly schemaEvidence: RouteRequestSchemaEvidence<SourceFile>;
   readonly response: ResponseDescriptor;
   /** Method-correlated Integrated Response product or an explicit closed projection blocker. */
   readonly responseProjection: import('../upstream/endpointBindings').EndpointResponseBinding;

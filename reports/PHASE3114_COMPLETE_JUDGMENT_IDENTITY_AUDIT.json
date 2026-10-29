@@ -1,0 +1,28 @@
+{
+  "phase": 3114,
+  "scope": "verify complete discovery projection preserves the exact original upstream judgment identity through the CLI manifest boundary",
+  "upstreamContractOwnsDomainOperations": true,
+  "completeProjectionPreservesSourceProjectRootAndSources": true,
+  "blockedProjectionPreservesPartialSourcesBlockerAndOriginalJudgment": true,
+  "cliConsumesProjectionProducedByRuntimeDiscovery": true,
+  "blockedProjectionSettlesAsTerminalManifest": true,
+  "completeProjectionContinuesIntoSourceReadAndManifestPipeline": true,
+  "regressionCoversCompleteAndBlockedProjection": true,
+  "completeProjectionPreservesOriginalJudgmentIdentity": true,
+  "noDeletedRelationFoundationRestored": true,
+  "astInventory": {
+    "typescriptFiles": 2245,
+    "exportedFunctionDeclarations": 520,
+    "exportedArrowOrFunctionExpressionVariables": 459,
+    "genericContinueWithArrowImplementations": 49,
+    "ifStatements": 2225,
+    "switchStatements": 571,
+    "conditionalExpressions": 1232,
+    "nullishCoalescingExpressions": 228
+  },
+  "globalExportInterfaceMigrationComplete": false,
+  "globalPrimitiveAndControlFlowErasureComplete": false,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

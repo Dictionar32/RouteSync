@@ -32,7 +32,7 @@ This keeps statement meaning intact from the AST through the binding requirement
 
 ### 2. Match arm dispatch elevated to AST algebra
 
-`packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts`
+`packages/core/src/compiler/frontend/php/phpAstAlgebra.ts`
 
 Added `PhpMatchArmVisitor` and `matchPhpMatchArm()`.
 

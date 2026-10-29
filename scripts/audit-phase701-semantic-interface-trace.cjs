@@ -13,10 +13,10 @@ const sourceText = production.map(x => x.source).join('\n');
 const symbolReferences = names => production.flatMap(x => names.filter(n => new RegExp(`\\b${n}\\b`).test(x.source)).map(n => ({ file: x.file, name: n })));
 const eloquent = read('packages/core/src/types/domain/eloquentTypes.ts');
 const vocabulary = read('packages/core/src/types/upstream/modelVocabulary.ts');
-const mapper = read('packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts');
-const legacyAccessor = read('packages/core/src/compiler/scanner/descriptors/model/modelAccessorDescriptor.ts');
-const descriptorBarrel = read('packages/core/src/compiler/scanner/descriptors/index.ts');
+const mapper = read('packages/core/src/compiler/scanner/operations/model/modelAccessorExpressionMapper.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/model/modelAccessorCanonical.ts');
+const legacyAccessor = read('packages/core/src/compiler/scanner/operations/domain-model/model/modelAccessorDescriptor.ts');
+const descriptorBarrel = read('packages/core/src/compiler/scanner/operations/domain-model/index.ts');
 const compilerBarrel = read('packages/core/src/compiler/index.ts');
 const publicBarrel = read('packages/core/src/index.ts');
 const legacyAccessorReferences = symbolReferences(['ScannedModelAccessorDescriptor','ScannedModelAccessorParams','createScannedAccessor','ModelAccessorExpression','ModelAccessorMatchArm']);
@@ -24,9 +24,9 @@ const transpileDiagnostics = [];
 for (const file of [
   'packages/core/src/types/domain/eloquentTypes.ts',
   'packages/core/src/types/upstream/modelVocabulary.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelAccessorCanonical.ts',
-  'packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelAccessorExpressionMapper.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelAccessorCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts',
 ]) {
   const result = ts.transpileModule(read(file), { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.ESNext, strict: true }, reportDiagnostics: true, fileName: file });
   for (const d of result.diagnostics || []) transpileDiagnostics.push({ file, code: d.code, message: ts.flattenDiagnosticMessageText(d.messageText, '\n') });

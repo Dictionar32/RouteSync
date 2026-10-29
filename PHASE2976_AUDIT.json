@@ -1,0 +1,53 @@
+{
+  "phase": 2976,
+  "title": "Runtime IR Domain Ownership",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "IR lowering owns typed rule model",
+      "passed": true
+    },
+    {
+      "name": "IR lowering lookup is explicit judgment ADT",
+      "passed": true
+    },
+    {
+      "name": "IR lowering runtime entry is interface-typed object export",
+      "passed": true
+    },
+    {
+      "name": "IR lowering has no deleted relation foundation imports",
+      "passed": true
+    },
+    {
+      "name": "IR node projection delegates to semantic field-set operation",
+      "passed": true
+    },
+    {
+      "name": "IR node runtime constructors use explicit callable interfaces",
+      "passed": true
+    },
+    {
+      "name": "resolved semantic factory has explicit interface",
+      "passed": true
+    },
+    {
+      "name": "response cardinality continuation is domain-owned",
+      "passed": true
+    },
+    {
+      "name": "IR lowering consumers call domain operations",
+      "passed": true
+    },
+    {
+      "name": "obsolete collection interface file remains empty",
+      "passed": true
+    }
+  ],
+  "remainingDeletedFoundationImports": {
+    "importLines": 499,
+    "files": 268
+  },
+  "knownScopeLimit": "This audit covers the IR lowering and adjacent IR construction slice, not the complete upstream/CLI/manifest import graph."
+}

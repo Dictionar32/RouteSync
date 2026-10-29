@@ -1,0 +1,29 @@
+{
+  "phase": 2818,
+  "title": "Route Path Policy Direct ADT Audit",
+  "scope": "route-path fact construction and acceptance path",
+  "rootCause": "The previous phase still routed route-path policy selection through generic catalog and relation utilities.",
+  "change": [
+    "Remove RoutePathTokenPolicy and ROUTE_PATH_TOKEN_POLICIES.",
+    "Select expectation with a route-path-specific closed switch over the existing LaravelRouteMethod contract.",
+    "Keep domain acceptance on RoutePathTokenFact.continueForAcceptance.",
+    "Keep runtime exports interface-first and frozen.",
+    "Reuse existing upstream route-method contract; add no parallel contract."
+  ],
+  "runtimeTrace": [
+    "CLI scan/sync",
+    "RouteSyncCliManifestScanOperationInterface.scan",
+    "controller manifest composition",
+    "LaravelSourceAstPipelineInterface.execute",
+    "route declaration parser",
+    "routePathTokenAcceptanceOperation.accepts",
+    "routePathTokenFactFactory.create",
+    "routePathTokenExpectation closed switch",
+    "RoutePathTokenFact.continueForAcceptance",
+    "route AST and semantic projection",
+    "manifest projection"
+  ],
+  "globalRelationUtilityRemoval": false,
+  "collectionsFileBytes": 0,
+  "unverified": ["full typecheck", "production build", "full test suite", "CLI scan/sync end-to-end"]
+}

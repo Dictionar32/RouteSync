@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/memberPropertiesParser.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceBindingTraversalBuilder.ts',
+  'packages/core/src/compiler/scanner/operations/model/memberPropertiesParser.ts',
 ];
 
 const patterns = {

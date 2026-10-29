@@ -4,10 +4,10 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const semanticBoundary = [
   'packages/core/src/semantic/kernel/semanticDecisionRewriteEngine.ts',
-  'packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenEvidence.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts',
+  'packages/core/src/compiler/frontend/php/phpAstAlgebra.ts',
+  'packages/core/src/compiler/frontend/php/tokenEvidence.ts',
+  'packages/core/src/compiler/scanner/operations/controller/responseDetector.ts',
+  'packages/core/src/compiler/scanner/operations/controller/resourceInvocationDetector.ts',
   'packages/core/src/types/upstream/astSemanticStageInterface.ts',
   'packages/core/src/types/upstream/astSemanticStageProof.ts',
   'packages/core/src/types/upstream/astSemanticStagePreservation.ts',
@@ -22,11 +22,11 @@ const requiredFields = ['requirements: readonly Requirement[]', 'exclusions: rea
 const solverClosed = requiredFields.every(value => solver.includes(value)) && /optionalRelations\(candidate\.exclusions\)/.test(solver) && /optionalRelations\(candidate\.dependencies\)/.test(solver) && /relationOptionalFold/.test(solver);
 const astCastsRemoved = !/as Extract/.test(algebra);
 const tokenInterface = /export type TokenEvidence/.test(tokenEvidence) && /export const tokenAt/.test(tokenEvidence);
-const responseClean = !/\?\.|\.value!/.test(read('packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts'));
-const invocationClean = !/\?\.|\.value!/.test(read('packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts'));
+const responseClean = !/\?\.|\.value!/.test(read('packages/core/src/compiler/scanner/operations/controller/responseDetector.ts'));
+const invocationClean = !/\?\.|\.value!/.test(read('packages/core/src/compiler/scanner/operations/controller/resourceInvocationDetector.ts'));
 const legacy = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 ].every(file => fs.statSync(path.join(root, file)).size === 0);
 const result = {
   phase: 665,

@@ -8,8 +8,8 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 const model = read('packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const authorityInterface = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthorityInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const dataflowContract = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const dataflowContract = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const integrated = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 

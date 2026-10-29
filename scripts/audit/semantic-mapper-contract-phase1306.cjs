@@ -9,7 +9,7 @@ must('packages/core/src/types/upstream/semanticMapping.ts', 'SemanticMappingCont
 must('packages/core/src/types/upstream/semanticMapping.ts', 'MapperWiringInterface', 'mapper upstream wiring interface');
 must('packages/core/src/types/interfaces/mapperProjectionInterface.ts', 'MapperProjectionInterface', 'mapper projection interface');
 must('packages/core/src/types/upstream/semanticMapping.ts', 'SemanticReasoningContract', 'mapper carries reasoning proof');
-must('packages/core/src/compiler/scanner/subscanners/request-deriver/semanticMappingDeriver.ts', 'deriveSemanticMappingContract', 'single upstream mapping producer');
+must('packages/core/src/compiler/scanner/operations/request-deriver/semanticMappingDeriver.ts', 'deriveSemanticMappingContract', 'single upstream mapping producer');
 must('packages/core/src/compiler/artifacts/ResourceMappersArtifact.ts', 'MapperProjectionTarget', 'closed mapper artifact wiring target');
 must('packages/core/src/compiler/passes/MapperGeneratorPass.ts', "ResourceMappers", 'mapper pass consumes semantic mapping artifact');
 must('packages/core/src/compiler/passes/mapper/mapperAssembler.ts', "dependencies: ['ResourceMappers']", 'generated mapper lineage points to semantic mapping artifact');

@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const pkg = JSON.parse(read('package.json'));
-const parser = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts');
 const contract = read('packages/core/src/types/upstream/routeConstraints.ts');
 const build = read('tsdown.config.ts');
 const tsconfig = read('tsconfig.json');

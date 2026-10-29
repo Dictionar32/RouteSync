@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/compiler/scanner/laravelModelScanner.ts');
 const contract = read('packages/core/src/types/upstream/modelProducerInterface.ts');
 const packageJson = JSON.parse(read('package.json'));
-const oldProducer = path.join(root, 'packages/core/src/compiler/scanner/subscanners/modelProducer.ts');
+const oldProducer = path.join(root, 'packages/core/src/compiler/scanner/operations/modelProducer.ts');
 const checks = [
   ['Phase2480 supersedes the subscanner producer implementation', !fs.existsSync(oldProducer)],
   ['scanner producer is an interface-typed exported const', /export const modelProducer:\s*ModelProducerInterface<ModelDeclarationAst, PhpClassPropertyAst>\s*= Object\.freeze/.test(scanner)],

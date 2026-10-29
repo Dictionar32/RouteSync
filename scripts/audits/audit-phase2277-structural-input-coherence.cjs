@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const algebra = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts'), 'utf8');
 const authority = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/resourceSemanticMappingInterface.ts'), 'utf8');
-const mapper = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionMappings.ts'), 'utf8');
+const mapper = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionMappings.ts'), 'utf8');
 const test = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/__test__/resourceSemanticMappingAuthority.phase1635.test.ts'), 'utf8');
 
 const checks = [

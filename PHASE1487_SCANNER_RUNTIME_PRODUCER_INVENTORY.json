@@ -12,7 +12,7 @@
     {
       "declarations": 208,
       "lines": 1142,
-      "path": "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts"
+      "path": "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts"
     },
     {
       "declarations": 138,
@@ -22,12 +22,12 @@
     {
       "declarations": 104,
       "lines": 424,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts"
     },
     {
       "declarations": 99,
       "lines": 240,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts"
     },
     {
       "declarations": 97,
@@ -37,7 +37,7 @@
     {
       "declarations": 97,
       "lines": 462,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts"
     },
     {
       "declarations": 95,
@@ -47,7 +47,7 @@
     {
       "declarations": 95,
       "lines": 309,
-      "path": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts"
+      "path": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts"
     },
     {
       "declarations": 82,
@@ -82,12 +82,12 @@
     {
       "declarations": 60,
       "lines": 233,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts"
     },
     {
       "declarations": 58,
       "lines": 227,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/phpAstStatementSyntaxEvidenceRegistry.ts"
     },
     {
       "declarations": 57,
@@ -107,7 +107,7 @@
     {
       "declarations": 51,
       "lines": 228,
-      "path": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts"
+      "path": "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts"
     },
     {
       "declarations": 50,
@@ -117,7 +117,7 @@
     {
       "declarations": 49,
       "lines": 268,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts"
     },
     {
       "declarations": 48,
@@ -137,7 +137,7 @@
     {
       "declarations": 44,
       "lines": 332,
-      "path": "packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts"
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts"
     },
     {
       "declarations": 43,
@@ -152,7 +152,7 @@
     {
       "declarations": 41,
       "lines": 198,
-      "path": "packages/core/src/compiler/scanner/lexer/arrayParser.ts"
+      "path": "packages/core/src/compiler/frontend/php/arrayParser.ts"
     },
     {
       "declarations": 41,
@@ -167,7 +167,7 @@
     {
       "declarations": 39,
       "lines": 160,
-      "path": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts"
+      "path": "packages/core/src/compiler/frontend/php/phpMethodParser.ts"
     },
     {
       "declarations": 37,
@@ -177,12 +177,12 @@
     {
       "declarations": 36,
       "lines": 203,
-      "path": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts"
+      "path": "packages/core/src/compiler/frontend/php/controllerBodyParser.ts"
     },
     {
       "declarations": 35,
       "lines": 264,
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleEntry.ts"
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleEntry.ts"
     },
     {
       "declarations": 35,
@@ -192,7 +192,7 @@
     {
       "declarations": 34,
       "lines": 267,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts"
     },
     {
       "declarations": 34,
@@ -202,17 +202,17 @@
     {
       "declarations": 33,
       "lines": 225,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts"
     },
     {
       "declarations": 33,
       "lines": 415,
-      "path": "packages/core/src/compiler/scanner/descriptors/validation/validationRuleSet.ts"
+      "path": "packages/core/src/compiler/scanner/operations/domain-model/validation/validationRuleSet.ts"
     },
     {
       "declarations": 31,
       "lines": 191,
-      "path": "packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts"
+      "path": "packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts"
     },
     {
       "declarations": 31,
@@ -227,12 +227,12 @@
     {
       "declarations": 29,
       "lines": 167,
-      "path": "packages/core/src/compiler/scanner/lexer/tokenizer.ts"
+      "path": "packages/core/src/compiler/frontend/php/tokenizer.ts"
     },
     {
       "declarations": 29,
       "lines": 195,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/syntaxValue.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts"
     },
     {
       "declarations": 28,
@@ -247,7 +247,7 @@
     {
       "declarations": 27,
       "lines": 163,
-      "path": "packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.ts"
+      "path": "packages/core/src/compiler/frontend/php/routeAst/semanticConstraintHandlingRules.ts"
     },
     {
       "declarations": 27,

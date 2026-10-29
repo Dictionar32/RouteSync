@@ -104,7 +104,7 @@
     },
     "top": [
       {
-        "file": "compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase167.test.ts",
+        "file": "compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase167.test.ts",
         "counts": {
           "if": 14,
           "while": 0,
@@ -128,7 +128,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/knowledgeDataFlowModel.phase162.test.ts",
+        "file": "compiler/frontend/php/routeAst/knowledgeDataFlowModel.phase162.test.ts",
         "counts": {
           "if": 2,
           "while": 0,
@@ -151,7 +151,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalExecutionBoundary.phase294.test.ts",
         "counts": {
           "if": 6,
           "while": 0,
@@ -175,7 +175,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase297.test.ts",
         "counts": {
           "if": 6,
           "while": 0,
@@ -198,7 +198,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalOntology.phase277.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalOntology.phase277.test.ts",
         "counts": {
           "if": 6,
           "while": 0,
@@ -222,7 +222,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticAdapterConstructFree.phase273.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticAdapterConstructFree.phase273.test.ts",
         "counts": {
           "if": 4,
           "while": 0,
@@ -245,7 +245,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticClosureEngine.phase270.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticClosureEngine.phase270.test.ts",
         "counts": {
           "if": 7,
           "while": 0,
@@ -291,7 +291,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalAuthority.phase286.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalAuthority.phase286.test.ts",
         "counts": {
           "if": 5,
           "while": 0,
@@ -314,7 +314,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalBehaviorKernel.phase267.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalBehaviorKernel.phase267.test.ts",
         "counts": {
           "if": 5,
           "while": 0,
@@ -337,7 +337,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalProgram.phase279.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalProgram.phase279.test.ts",
         "counts": {
           "if": 5,
           "while": 0,
@@ -383,7 +383,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase302.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalBoundary.phase302.test.ts",
         "counts": {
           "if": 5,
           "while": 0,
@@ -407,7 +407,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalBoundary.phase304.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalBoundary.phase304.test.ts",
         "counts": {
           "if": 6,
           "while": 0,
@@ -430,7 +430,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticConstraintHandlingRules.phase303.test.ts",
         "counts": {
           "if": 5,
           "while": 0,
@@ -453,7 +453,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationalExecutionPlan.phase296.test.ts",
         "counts": {
           "if": 3,
           "while": 0,
@@ -476,7 +476,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticConstructFreeControl.phase272.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticConstructFreeControl.phase272.test.ts",
         "counts": {
           "if": 4,
           "while": 0,
@@ -499,7 +499,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticRelationSolver.phase236.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticRelationSolver.phase236.test.ts",
         "counts": {
           "if": 4,
           "while": 0,
@@ -546,7 +546,7 @@
         }
       },
       {
-        "file": "compiler/scanner/lexer/routeAst/semanticCanonicalRelationProjection.phase269.test.ts",
+        "file": "compiler/frontend/php/routeAst/semanticCanonicalRelationProjection.phase269.test.ts",
         "counts": {
           "if": 3,
           "while": 0,
@@ -608,11 +608,11 @@
       "compiler/scanner/descriptors/route/routeSecurity.ts",
       "compiler/scanner/descriptors/validation/fieldNodes.ts",
       "compiler/scanner/descriptors/validation/schemaPayload.ts",
-      "compiler/scanner/lexer/phpLexicalSymbols.ts",
-      "compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
-      "compiler/scanner/lexer/routeAst/semanticRelationSolver.ts",
-      "compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts",
-      "compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts",
+      "compiler/frontend/php/phpLexicalSymbols.ts",
+      "compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts",
+      "compiler/frontend/php/routeAst/semanticRelationSolver.ts",
+      "compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts",
+      "compiler/frontend/php/routeAst/syntaxRelationProgram.ts",
       "compiler/scanner/orchestrator/pipelineScanner.ts",
       "compiler/scanner/scannerLegacyDelegates.ts",
       "compiler/scanner/semantic/resourceFieldSemanticBinding.ts",

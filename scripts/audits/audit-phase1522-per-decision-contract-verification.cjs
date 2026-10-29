@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticInterface.ts'), 'utf8');
 const reasoning = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/queryProducerSemanticReasoning.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts'), 'utf8');
 const checks = [
   ['existing interface exposes per-decision integrity validation', /export const validateQueryOperationSemanticDecision\s*=/.test(contract)],
   ['decision validator binds rule, contract, and derivation identity', /contract_rule_mismatch/.test(contract) && /derivation_rule_mismatch/.test(contract) && /conclusion_mismatch/.test(contract)],

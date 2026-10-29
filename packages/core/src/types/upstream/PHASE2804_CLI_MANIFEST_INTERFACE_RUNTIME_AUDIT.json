@@ -1,0 +1,33 @@
+{
+  "phase": 2804,
+  "title": "CLI Manifest Interface-First Runtime Audit",
+  "scope": "CLI scan/sync runtime path that builds and publishes the canonical upstream manifest",
+  "existingContractsReused": [
+    "RouteSyncCliManifestScanOperationInterface",
+    "ControllerInvocationManifestCompositionAuthorityInterface",
+    "ManifestBuilderInterface",
+    "ManifestBuilderJudgment",
+    "LaravelSourceAstPipelineInterface",
+    "LaravelControllerInvocationSemanticJudgmentInventoryAuthorityInterface"
+  ],
+  "newUpstreamContracts": [],
+  "collectionsFileBytes": 0,
+  "runtimeTrace": [
+    "CLI scan/sync command",
+    "composition.manifestScanOperation.scan(input)",
+    "ControllerInvocationManifestCompositionAuthorityInterface.compose(input)",
+    "source identity, discovery, read, identity binding, invocation analysis and inventory closure",
+    "ManifestBuilderOperationPreparationInterface.prepare(input)",
+    "ManifestBuilderInterface.build()",
+    "LaravelSourceAstPipelineInterface.execute()",
+    "source-model semantic build",
+    "SemanticDataflowManifestSurfaceInterface",
+    "ManifestBuilderJudgment complete|blocked",
+    "CLI projection and request-type semantic projection",
+    "manifest contract validation and persistence"
+  ],
+  "preservesClosedAdts": true,
+  "genericReasoningPrimitiveAdded": false,
+  "bundledCjsArtifactRebuilt": false,
+  "fullTypecheckBuildTestsE2eVerified": false
+}

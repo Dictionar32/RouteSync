@@ -6,7 +6,7 @@ Interface-first contract refinement. No publication authority implementation or 
 ## Trace findings
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts`: `InvocationSemanticCoveragePublicationCorrespondence` previously accepted an unrestricted inventory-entry type and an unrestricted publication-entry type. This allowed an ordinary inventory entry to be paired with a static publication entry at the type level.
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts`: the scanner boundary already prohibited semantic repair, but did not state that it must preserve a source-form-specific correspondence pair.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`: invocation analysis already delegates to `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)`; this delegation remains unchanged.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`: invocation analysis already delegates to `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)`; this delegation remains unchanged.
 
 ## Interface changes
 - Replaced the broad correspondence interface with a discriminated union:

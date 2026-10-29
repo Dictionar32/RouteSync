@@ -7,8 +7,8 @@ const core=path.join(root,'packages/core/src');
 const factoryRefs=refs(path.join(root,'packages'),'RouteSemanticFlowFactory');
 const productionFactoryConsumers=factoryRefs.filter(f=>f.startsWith('packages/core/src/')&&!f.endsWith('RouteSemanticFlowFactory.ts')&&!f.includes('/descriptors/route/'));
 const cliOwnFactoryImplementations=factoryRefs.filter(f=>f.startsWith('packages/cli/src/'));
-const factorySource=fs.readFileSync(path.join(core,'compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts'),'utf8');
-const publicExports=['packages/core/src/index.ts','packages/core/src/compiler/index.ts','packages/core/src/compiler/scanner/scannerExports.ts','packages/core/src/compiler/scanner/descriptors/index.ts','packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts'];
+const factorySource=fs.readFileSync(path.join(core,'compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts'),'utf8');
+const publicExports=['packages/core/src/index.ts','packages/core/src/compiler/index.ts','packages/core/src/compiler/scanner/scannerExports.ts','packages/core/src/compiler/scanner/operations/domain-model/index.ts','packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts'];
 console.log(JSON.stringify({
  phase:821,
  deletedDescriptorHelper:!fs.existsSync(path.join(core,'compiler/scanner/descriptors/route/routeMethods.ts')),

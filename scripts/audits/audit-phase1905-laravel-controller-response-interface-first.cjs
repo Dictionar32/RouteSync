@@ -7,7 +7,7 @@ const check = (name, condition) => checks.push({ name, passed: Boolean(condition
 
 const compositionInterface = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const wiring = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const compositionRuntime = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
 

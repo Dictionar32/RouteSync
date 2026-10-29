@@ -1,0 +1,8 @@
+{
+  "phase": 2843,
+  "title": "CLI Manifest Runtime Operations Audit",
+  "audit": "scripts/audits/audit-phase2843-cli-manifest-runtime-operations.cjs",
+  "runtimeTrace": ["CLI scan/sync", "typed CLI manifest scan operation", "controller invocation manifest composition authority", "source AST pipeline", "manifest builder complete|blocked ADT", "request type semantic projection"],
+  "constraints": ["reuse existing upstream contracts", "interface-first runtime exports", "terminal ADTs expose domain operations", "no primitive reasoning tag when typed evidence or operations already express the domain", "collections.ts remains empty"],
+  "verificationScope": "structural source assertions only; no full typecheck or CLI E2E claim"
+}

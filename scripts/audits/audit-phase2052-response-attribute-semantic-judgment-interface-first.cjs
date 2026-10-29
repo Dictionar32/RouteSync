@@ -5,7 +5,7 @@ const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/responseAttributeValueSemanticJudgmentInterface.ts');
 const authority = read('packages/core/src/types/upstream/responseAttributeValueSemanticAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts');
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const test = read('packages/core/src/types/upstream/__tests__/response-attribute-value-semantic-authority.phase2052.test.ts');
 const report = read('packages/core/src/types/upstream/docs/PHASE2052_RESPONSE_ATTRIBUTE_SEMANTIC_JUDGMENT_INTERFACE_FIRST.md');
@@ -62,7 +62,7 @@ check('migration status distinguishes removed semantic logic from retained adapt
   assert.match(migrationStatus, /resolveObservedFields,remaining_semantic_candidate/);
   assert.match(migrationStatus, /astClassifierRuntime\.ts,legacy_adapter rules,remaining_semantic_candidate/);
 });
-check('report identifies next semantic runtime candidates and excludes subscanners', () => {
+check('report identifies next semantic runtime candidates and excludes operations', () => {
   assert.match(report, /responseAttributeScanner\.ts/);
   assert.match(report, /controllerDataflowContract\.ts/);
   assert.match(report, /astClassifierRuntime\.ts/);

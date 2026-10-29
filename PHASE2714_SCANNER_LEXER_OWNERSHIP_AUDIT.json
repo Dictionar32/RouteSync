@@ -1,0 +1,44 @@
+{
+  "phase": 2714,
+  "audit": "scanner-lexer-ownership-migration",
+  "checks": {
+    "oldScannerLexerDirectoryRemoved": true,
+    "phpFrontendOwnerExists": true,
+    "noLegacyLexerPathReferencesInRuntimeSource": true,
+    "cliManifestTraceFilesPresent": true,
+    "routeParserUsesInterfaceTypedObject": true,
+    "routeParserNoLongerExportsFunction": true
+  },
+  "metrics": {
+    "filesMovedToFrontendPhp": 210,
+    "runtimeSourceFilesScanned": 2193,
+    "legacyLexerPathReferenceFiles": [],
+    "missingCliTraceFiles": [],
+    "frontendPhpRelativeImportsChecked": 870,
+    "frontendPhpRelativeImportsUnresolved": 0,
+    "scannerExportedFunctionDeclarations": 88,
+    "scannerExportedTypedArrowDeclarations": 37
+  },
+  "trace": [
+    "CLI scan/sync command",
+    "routeSyncCliManifestScanOperationFactory",
+    "upstream composition factory",
+    "controllerInvocationManifestCompositionAuthority",
+    "source discovery/acquisition and canonical source identity",
+    "PHP frontend AST/syntax extraction and invocation semantic judgment",
+    "inventory receipt closure and validation",
+    "manifestBuilderOperationPreparation",
+    "manifest judgment/projection (accepted or blocked)"
+  ],
+  "limitations": [
+    "This migration removes compiler/scanner/lexer and moves its 210 files into compiler/frontend/php.",
+    "Other implementation folders still remain under compiler/scanner; scanner is not yet wiring-only.",
+    "Typecheck, unit tests, and CLI end-to-end tests were not run in this dependency-free workspace."
+  ],
+  "validation": {
+    "staticAudit": "passed 6/6",
+    "typecheck": "not run: dependencies/toolchain absent",
+    "unitTests": "not run",
+    "cliEndToEnd": "not run"
+  }
+}

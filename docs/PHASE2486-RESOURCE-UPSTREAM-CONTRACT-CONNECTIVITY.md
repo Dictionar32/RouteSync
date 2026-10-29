@@ -21,7 +21,7 @@ This phase traces whether existing upstream Resource operation contracts are act
 
 - `resourceProducer.ts` remains under `scanner/subscanners` and still imports `semantic/relations`.
 - `resourceFieldProducer.ts`, `resourceAstExpressionMapper.ts`, `resourceExpressionOperator.ts`, `twoPassRelationResolver.ts`, and `resourceBinder.ts` still use `semantic/relations`.
-- `resourceSourceEvidence.ts` remains under `scanner/lexer` and still imports `semantic/relations`.
+- `resourceSourceEvidence.ts` remains under `frontend/php` and still imports `semantic/relations`.
 - `ResourceDefinitionBindingOperationInterface` remains a legacy binder path that is not used by the canonical scanner.
 - Full typecheck, build, Vitest, and CLI end-to-end are not verified by this phase.
 

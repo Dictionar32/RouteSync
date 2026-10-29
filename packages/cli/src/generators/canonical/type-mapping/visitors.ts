@@ -70,7 +70,11 @@ function parseEnumMapping(sqlType: string): SqlTypeMapping {
         : STRING_MAPPING;
 }
 
-export function createSqlTypeVisitor(rawSqlType: string): DatabaseColumnKindVisitor<SqlTypeMapping> {
+export interface CreateSqlTypeVisitorOperation {
+  (rawSqlType: string): DatabaseColumnKindVisitor<SqlTypeMapping>;
+}
+
+export const createSqlTypeVisitor: CreateSqlTypeVisitorOperation = Object.freeze((rawSqlType: string): DatabaseColumnKindVisitor<SqlTypeMapping> => {
     const rawLower = (rawSqlType || '').trim().toLowerCase();
     const isTinyInt1 = rawLower === 'tinyint(1)' || rawLower.startsWith('tinyint(1)');
 
@@ -98,7 +102,7 @@ export function createSqlTypeVisitor(rawSqlType: string): DatabaseColumnKindVisi
         [DatabaseColumnKind.Ulid]: () => STRING_MAPPING,
         [DatabaseColumnKind.Unknown]: () => UNKNOWN_SQL_TYPE_MAPPING,
     };
-}
+});
 
 export const CAST_TYPE_VISITOR: EloquentCastKindVisitor<SqlTypeMapping> = Object.freeze({
     [EloquentCastKind.Integer]: () => NUMBER_MAPPING,

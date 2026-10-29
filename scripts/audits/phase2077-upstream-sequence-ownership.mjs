@@ -13,5 +13,5 @@ assert.match(relations, /export type \{ Sequence \} from '\.\.\/\.\.\/types\/ups
 assert.match(collections, /import type \{ Sequence \} from '\.\/sequence'/);
 assert.match(scanner, /import type \{ Sequence \} from '\.\.\/\.\.\/\.\.\/types\/upstream\/sequence'/);
 assert.match(scanner, /semantic\/relations/); // explicitly guards against falsely claiming full migration
-assert.match(scanner, /subscanners\/controller/); // explicitly guards against falsely claiming executor-only status
+assert.match(scanner, /operations\/controller/); // explicitly guards against falsely claiming executor-only status
 process.stdout.write('Phase 2077 static contract audit: 8 assertions passed; remaining relation/subscanner dependencies are intentionally reported.\n');

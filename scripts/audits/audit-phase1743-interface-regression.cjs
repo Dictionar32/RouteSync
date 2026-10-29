@@ -21,7 +21,7 @@ check('Phase 1721 through 1743 audit reports all exist', phases.length === 23 &&
 check('all recorded phase audit reports contain no failed checks', phases.every(phase => phase.failed === 0 && phase.passed === phase.total));
 check('aggregate recorded audit reports contain no failures', passed === total && failed === 0);
 check('Phase 1743 interface audit passes all 19 checks', latest.name === 'composition-migration-gate-interface' && latest.total === 19 && latest.passed === 19 && latest.failed === 0);
-check('Laravel scanner runtime remains unwired to composition until the gate is met', !fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts'), 'utf8').includes('InvocationSemanticIntegratedResponseCompositionInterface'));
+check('Laravel scanner runtime remains unwired to composition until the gate is met', !fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts'), 'utf8').includes('InvocationSemanticIntegratedResponseCompositionInterface'));
 for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
 process.stdout.write(`\n${checks.filter(item => item.passed).length}/${checks.length} Phase 1743 regression checks passed.\n`);
 process.stdout.write(`Recorded audit checks: ${passed}/${total}; failures=${failed}.\n`);

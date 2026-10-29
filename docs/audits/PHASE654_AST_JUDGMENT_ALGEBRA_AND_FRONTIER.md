@@ -35,4 +35,4 @@ The machine report records both referenced and unreferenced zero-byte production
 
 ## Remaining frontier
 
-The largest non-test lexical surfaces are scanner/lexer, resource binding, graph resolver, AST/upstream mapping, analysis, and TypeScript semantic lowering. These are migration targets, not automatically semantic leaks: source evidence and projection code can legitimately contain target/source vocabulary.
+The largest non-test lexical surfaces are frontend/php, resource binding, graph resolver, AST/upstream mapping, analysis, and TypeScript semantic lowering. These are migration targets, not automatically semantic leaks: source evidence and projection code can legitimately contain target/source vocabulary.

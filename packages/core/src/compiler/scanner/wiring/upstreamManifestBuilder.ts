@@ -1,14 +1,14 @@
 import { laravelSourceAstPipelineFactory } from './laravelSourceAstPipeline';
 import { laravelSourceAstPipelineDependencies } from './laravelSourceAstPipelineDependencies';
 import { semanticDataflowManifestSurface } from '../../../types/upstream/semanticDataflowManifestSurface';
-import { resourceGroupCapabilityAuthority } from '../../../types/upstream/resourceGroupCapability';
+import { resourceGroupCapabilityAuthority } from '../../../types/upstream/resourceGroupCapabilityAuthority';
 import type { LaravelSourceAstPipelineInterface } from '../../../types/upstream/laravelSourceAstPipelineInterface';
 import { completeLaravelSourceModelBuilder, type SemanticContractSeeds, type SourceProjectIdentity } from '../../../types/upstream/highLevelSourceModel';
 import type { NumberValue } from '../../../types/upstream/valueObjects';
 import type { SemanticDataflowManifestSurfaceInterface } from '../../../types/upstream/semanticDataflowManifestSurface';
 import type { ResourceGroupCapabilityAlgebraInterface } from '../../../types/upstream/resourceGroupCapability';
 import type { CompleteLaravelSourceModelBuilderInterface } from '../../../types/upstream/highLevelSourceModel';
-import type { ManifestBuilderInput, ManifestBuilderInterface, ManifestBuilderJudgment, ManifestBuilderOperationPreparationInterface } from '../../../types/upstream/manifestBuilderInterface';
+import { ManifestBuilderBlockedError, type ManifestBuilderInput, type ManifestBuilderInterface, type ManifestBuilderJudgment, type ManifestBuilderBlockedJudgment, type ManifestBuilderCompleteJudgment, type ManifestBuilderOperationPreparationInterface } from '../../../types/upstream/manifestBuilderInterface';
 
 const manifestVersion = Object.freeze({
   kind: 'manifest_version' as const,
@@ -40,74 +40,99 @@ export const manifestBuilderOperationPreparation: ManifestBuilderOperationPrepar
   return Object.freeze({
     kind: 'manifest_builder',
     closed: true,
-    contractVersion: 8,
+    contractVersion: 10,
     input,
     sourceAstPipeline: sourceAstPipeline satisfies LaravelSourceAstPipelineInterface,
     dataflowManifestSurface,
     resourceGroupCapabilityAlgebra: resourceGroupCapabilitiesAlgebra,
     sourceModelBuilder,
-    async build(): Promise<ManifestBuilderJudgment> {
+    build: async (): Promise<ManifestBuilderJudgment> => {
       const invocationInventoryReceipt = input.invocationInventoryReceipt;
       const sourceProject: SourceProjectIdentity = invocationInventoryReceipt.sourceInventory.sourceProject;
       const projection = await sourceAstPipeline.execute();
-      if (projection.kind !== 'laravel_source_ast_projection_complete') {
-        return Object.freeze({
-          kind: 'manifest_builder_blocked',
-          stage: 'source_ast',
-          sourceProject,
-          projection,
-        });
-      }
-      const completeAst = projection.completion;
-      const scanned = completeAst.ast;
-      const seeds: SemanticContractSeeds = {
-        models: scanned.modelDefinitions,
-        resources: scanned.resourceDefinitions,
-        requests: scanned.requestDefinitions,
-        providers: scanned.providerDefinitions,
-        services: scanned.serviceDefinitions,
-        responses: scanned.responseDefinitions,
-      };
-      const completeLaravelSourceModelBuildResult = sourceModelBuilder.build(Object.freeze({
-        kind: 'complete_laravel_source_model_build_input',
-        ast: completeAst,
-        identity: sourceProject,
-        seeds,
-      }));
-      if (completeLaravelSourceModelBuildResult.kind === 'source_model_build_blocked') {
-        return Object.freeze({
-          kind: 'manifest_builder_blocked',
-          stage: 'source_model',
-          sourceProject,
-          sourceModel: completeLaravelSourceModelBuildResult,
-        });
-      }
+      return await projection.continueToManifestBuild({
+        onBlocked: blockedProjection => {
+          const blockedJudgment: ManifestBuilderBlockedJudgment = Object.freeze({
+            kind: 'manifest_builder_blocked',
+            stage: 'source_ast',
+            blocker: Object.freeze({
+              kind: 'manifest_builder_source_ast_blocked',
+              sourceProject,
+              projection: blockedProjection,
+            }),
+            requireCompleteManifest: () => { throw new ManifestBuilderBlockedError(blockedJudgment); },
+            continueToFlow: () => blockedJudgment,
+          });
+          return Promise.resolve(blockedJudgment);
+        },
+        onComplete: async completeProjection => {
+          const completeAst = completeProjection.completion;
+          const scanned = completeAst.ast;
+          const seeds: SemanticContractSeeds = {
+            models: scanned.modelDefinitions,
+            resources: scanned.resourceDefinitions,
+            requests: scanned.requestDefinitions,
+            providers: scanned.providerDefinitions,
+            services: scanned.serviceDefinitions,
+            responses: scanned.responseDefinitions,
+          };
+          const completeLaravelSourceModelBuildResult = sourceModelBuilder.build(Object.freeze({
+            kind: 'complete_laravel_source_model_build_input',
+            ast: completeAst,
+            identity: sourceProject,
+            seeds,
+          }));
+          return await completeLaravelSourceModelBuildResult.continueToManifestBuild({
+            onBlocked: async blockedSourceModel => {
+              const blockedJudgment: ManifestBuilderBlockedJudgment = Object.freeze({
+                kind: 'manifest_builder_blocked',
+                stage: 'source_model',
+                blocker: Object.freeze({
+                  kind: 'manifest_builder_source_model_blocked',
+                  sourceProject,
+                  sourceModel: blockedSourceModel,
+                }),
+                requireCompleteManifest: () => { throw new ManifestBuilderBlockedError(blockedJudgment); },
+                continueToFlow: () => blockedJudgment,
+              });
+              return blockedJudgment;
+            },
+            onComplete: async completeSourceModel => {
+              const dataflowInputs = dataflowManifestSurface.inputsFromSourceModel(completeSourceModel.value);
+              const dataflowJudgments = dataflowManifestSurface.judgmentsFromInputs(dataflowInputs);
+              const dataflowQueryPolicyContracts = dataflowManifestSurface.queryPolicyContractsFromJudgments(
+                dataflowJudgments,
+                sourceProject.queryPolicySelection,
+              );
 
-      const dataflowInputs = dataflowManifestSurface.inputsFromSourceModel(completeLaravelSourceModelBuildResult.value);
-      const dataflowJudgments = dataflowManifestSurface.judgmentsFromInputs(dataflowInputs);
-      const dataflowQueryPolicyContracts = dataflowManifestSurface.queryPolicyContractsFromJudgments(
-        dataflowJudgments,
-        sourceProject.dataflowQueryPolicyIntent,
-      );
-
-      return Object.freeze({
-        kind: 'manifest_builder_complete',
-        manifest: Object.freeze({
-          kind: 'route_sync_manifest' as const,
-          version: manifestVersion,
-          source: {
-            kind: 'laravel_application' as const,
-            root: sourceProject.root,
-            source: sourceProject.source,
-          },
-          ast: completeAst,
-          sourceModel: completeLaravelSourceModelBuildResult.value,
-          dataflowInputs,
-          dataflowJudgments,
-          dataflowQueryPolicyContracts,
-          resourceGroupCapabilities: resourceGroupCapabilitiesAlgebra.compose(completeAst.ast.routeFlows),
-          invocationSemanticJudgments: invocationInventoryReceipt.correspondences,
-        }),
+              const completeJudgment: ManifestBuilderCompleteJudgment = Object.freeze({
+                kind: 'manifest_builder_complete',
+                manifest: Object.freeze({
+                  kind: 'route_sync_manifest' as const,
+                  version: manifestVersion,
+                  source: {
+                    kind: 'laravel_application' as const,
+                    root: sourceProject.root,
+                    source: sourceProject.source,
+                  },
+                  ast: completeAst,
+                  sourceModel: completeSourceModel.value,
+                  dataflowInputs,
+                  dataflowJudgments,
+                  dataflowQueryPolicyContracts,
+                  resourceGroupCapabilities: resourceGroupCapabilitiesAlgebra.compose(completeAst.ast.routeFlows),
+                  invocationSemanticJudgments: invocationInventoryReceipt.correspondences,
+                }),
+                requireCompleteManifest: () => completeJudgment.manifest,
+                continueToFlow: (projection) => Object.freeze({
+                  kind: 'route_sync_manifest_flow_complete' as const,
+                  flow: projection.project(completeJudgment.manifest),
+                }),
+              });
+              return completeJudgment;
+            },
+          });
+        },
       });
     },
   });

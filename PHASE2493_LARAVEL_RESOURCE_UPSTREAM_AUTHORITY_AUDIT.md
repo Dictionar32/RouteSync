@@ -12,7 +12,7 @@ The canonical scanner wiring in `compiler/scanner/wiring/laravelResourceScanner.
 
 ## Trace of semantic ownership
 
-1. `compiler/scanner/lexer/resourceSourceEvidence.ts` collects and constructs syntax/evidence. It still imports `semantic/relations` helpers.
+1. `compiler/frontend/php/resourceSourceEvidence.ts` collects and constructs syntax/evidence. It still imports `semantic/relations` helpers.
 2. `types/upstream/laravelResourceScannerInterface.ts` already defines `LaravelResourceSourceEvidence`, `ResourceSourceEvidenceScannerInterface`, `LaravelResourceScannerInterface`, and closed resolved/rejected scan outcomes. These contracts cover source evidence and model binding, **not the full Resource field/framework semantic judgment**.
 3. `types/upstream/resourceProducerInterface.ts` defines `ResourceProducerInput`, `ResourceFieldProducerInput`, `ResourceProducerResult`, `ResourceFieldProductionOperationInterface`, and `ResourceProducerInterface`. The producer input still contains raw PHP syntax types at the scanner boundary and does not carry a completed semantic judgment.
 4. `compiler/scanner/subscanners/resourceProducer.ts` classifies keyed entries, base-class representation, framework features, method presence, fields, operations, and properties. This is semantic reasoning in the producer implementation.
@@ -28,7 +28,7 @@ The following production files import `semantic/relations`:
 - `packages/core/src/compiler/scanner/subscanners/resource/resourceFieldProducer.ts`
 - `packages/core/src/compiler/scanner/subscanners/resource/resourceAstExpressionMapper.ts`
 - `packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts`
-- `packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts`
+- `packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts`
 
 The target files do not show `semantic/foundation` imports in this baseline search, but that does **not** prove the broader scanner is foundation-free. The complete import graph must be audited after each cutover.
 
@@ -56,7 +56,7 @@ Use existing ADTs in `types/upstream/resource.ts` where sufficient. Add a new AD
 
 ### P1 — Establish a typed upstream authority operation
 
-Introduce the authority operation at the correct upstream owner, with evidence as input and a closed Resource judgment as output. Keep PHP parser/lexer types at the compiler boundary: the upstream contract must not import from `compiler/scanner/lexer` or `compiler/scanner/subscanners`.
+Introduce the authority operation at the correct upstream owner, with evidence as input and a closed Resource judgment as output. Keep PHP parser/lexer types at the compiler boundary: the upstream contract must not import from `compiler/frontend/php` or `compiler/scanner/subscanners`.
 
 Do not merely relocate the current producer implementation into `types/upstream`; that would preserve the same coupling and only disguise the ownership problem.
 

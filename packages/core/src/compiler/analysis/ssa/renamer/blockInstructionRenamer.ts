@@ -3,7 +3,7 @@ import { basicBlockLookup, basicBlockReplace, type Instruction, type Operand, ty
 import type { CallInstruction } from '../../../utils/cfg/instructions';
 import type { VariableVersionScope } from './variableVersionScope';
 import { relationAll, relationRefine, relationOptionFold, relationResolve, relationProject, relationVariantValue } from '../../../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../../../semantic/relations/relationFoundation';
+import { relationEqual } from '../../../../semantic/relations/semanticRelations';
 
 export interface RenamedBlockInstructions {
     readonly instructions: readonly (Expression | Instruction)[];

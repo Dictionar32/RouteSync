@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { projectStructuralSemanticRelationToGraphEdge } from './structuralSemanticRelationProjection';
+import { structuralSemanticRelationProjectionOperations } from './structuralSemanticRelationProjection';
 import type { StructuralSemanticRelation } from '../../types/upstream/semanticReferences';
 import type { ModelSemanticRelation } from '../../types/upstream/model';
 
@@ -64,7 +64,7 @@ describe('phase 925 structural semantic relation graph projection', () => {
       { kind: 'model_relation', model: model('Order'), target: model('OrderItem'), relation: semanticRelation('Order', 'OrderItem') },
     ];
 
-    const projections = relations.map(projectStructuralSemanticRelationToGraphEdge);
+    const projections = relations.map(structuralSemanticRelationProjectionOperations.project);
     expect(projections.every(value => value.kind === 'projected')).toBe(true);
     expect(projections.map(value => value.kind === 'projected' ? value.relation.origin : undefined)).toEqual([
       'controller_dependency',
@@ -83,7 +83,7 @@ describe('phase 925 structural semantic relation graph projection', () => {
       route: { kind: 'route_reference', name: { kind: 'route_name', value: { kind: 'string_value', value: 'orders.store' } } },
       controller,
     };
-    expect(projectStructuralSemanticRelationToGraphEdge(relation)).toEqual({
+    expect(structuralSemanticRelationProjectionOperations.project(relation)).toEqual({
       kind: 'not_projectable',
       sourceKind: 'route_controller',
     });
@@ -95,7 +95,7 @@ describe('phase 925 structural semantic relation graph projection', () => {
       controller,
       model: { kind: 'table', name: { kind: 'table_name', value: { kind: 'string_value', value: 'orders' } } },
     };
-    expect(projectStructuralSemanticRelationToGraphEdge(relation)).toEqual({
+    expect(structuralSemanticRelationProjectionOperations.project(relation)).toEqual({
       kind: 'not_projectable',
       sourceKind: 'controller_model',
     });

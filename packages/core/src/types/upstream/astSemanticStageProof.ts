@@ -1,14 +1,11 @@
 /**
- * Phase 664 — closed cross-stage refinement proof interface.
+ * Phase 2862 — closed cross-stage refinement proof ADT.
  *
- * A stage judgment is not considered complete merely because it has facts and
- * derivation witnesses. Every stage transition also declares the semantic
- * obligations that the next stage must preserve. The obligations are data in
- * the AST semantic algebra and are consumed by the relation rewrite engine.
+ * Proof resolution is owned by upstream stage contracts. Each result exposes
+ * a domain continuation so consumers can proceed without decoding a generic
+ * option or treating the judgment as passive data.
  */
 import type { AstSemanticPreservationRelation, AstSemanticStage, AstSemanticStageContract } from './astSemanticStageInterface';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
-import { relationResolve, relationGate, relationRefine, relationOptionFold } from '../../semantic/relations/relationalSequence';
 
 export type AstSemanticProofStatus = 'obligation' | 'discharged';
 
@@ -19,55 +16,94 @@ export type AstSemanticStageProof =
   | Readonly<{ kind: 'analysis_to_lowering_proof'; from: 'analysis'; to: 'semantic_type_lowering'; preservation: readonly AstSemanticPreservationRelation[]; status: AstSemanticProofStatus }>
   | Readonly<{ kind: 'lowering_to_target_proof'; from: 'semantic_type_lowering'; to: 'target_projection'; preservation: readonly AstSemanticPreservationRelation[]; status: AstSemanticProofStatus }>;
 
-const nextStage = (stage: AstSemanticStage): AstSemanticStage | 'source_syntax' => relationResolve(
-  relationEqual(stage, 'scanner_evidence'), () => 'source_syntax',
-  () => relationResolve(
-    relationEqual(stage, 'upstream_mapping'), () => 'scanner_evidence',
-    () => relationResolve(
-      relationEqual(stage, 'resolver_graph'), () => 'upstream_mapping',
-      () => relationResolve(
-        relationEqual(stage, 'analysis'), () => 'resolver_graph',
-        () => relationResolve(
-          relationEqual(stage, 'semantic_type_lowering'), () => 'analysis',
-          () => 'semantic_type_lowering',
-        ),
-      ),
-    ),
-  ),
-);
+export type AstSemanticProofResultHandlers<Result> = Readonly<{
+  readonly onProof: (proof: AstSemanticStageProof) => Result;
+  readonly onTerminal: () => Result;
+}>;
 
-export interface AstSemanticProofResult { readonly kind: 'proof'; readonly proof: AstSemanticStageProof }
-export interface AstSemanticTerminalResult { readonly kind: 'terminal' }
+export type AstSemanticProofResult = Readonly<{
+  readonly kind: 'proof';
+  readonly proof: AstSemanticStageProof;
+  readonly continueWith: <Result>(handlers: AstSemanticProofResultHandlers<Result>) => Result;
+}>;
+
+export type AstSemanticTerminalResult = Readonly<{
+  readonly kind: 'terminal';
+  readonly continueWith: <Result>(handlers: AstSemanticProofResultHandlers<Result>) => Result;
+}>;
+
 export type AstSemanticStageProofResult = AstSemanticProofResult | AstSemanticTerminalResult;
 
-export const stageProof = (stage: AstSemanticStage, contract: AstSemanticStageContract): AstSemanticStageProofResult => relationResolve(
-  relationEqual(stage, 'scanner_evidence'),
-  () => ({ kind: 'proof', proof: { kind: 'scanner_to_mapping_proof', from: 'scanner_evidence', to: 'upstream_mapping', preservation: contract.preservation, status: 'obligation' } }),
-  () => relationResolve(
-    relationEqual(stage, 'upstream_mapping'),
-    () => ({ kind: 'proof', proof: { kind: 'mapping_to_resolver_proof', from: 'upstream_mapping', to: 'resolver_graph', preservation: contract.preservation, status: 'obligation' } }),
-    () => relationResolve(
-      relationEqual(stage, 'resolver_graph'),
-      () => ({ kind: 'proof', proof: { kind: 'resolver_to_analysis_proof', from: 'resolver_graph', to: 'analysis', preservation: contract.preservation, status: 'obligation' } }),
-      () => relationResolve(
-        relationEqual(stage, 'analysis'),
-        () => ({ kind: 'proof', proof: { kind: 'analysis_to_lowering_proof', from: 'analysis', to: 'semantic_type_lowering', preservation: contract.preservation, status: 'obligation' } }),
-        () => relationResolve(
-          relationEqual(stage, 'semantic_type_lowering'),
-          () => ({ kind: 'proof', proof: { kind: 'lowering_to_target_proof', from: 'semantic_type_lowering', to: 'target_projection', preservation: contract.preservation, status: 'obligation' } }),
-          () => ({ kind: 'terminal' }),
-        ),
-      ),
-    ),
-  ),
-);
+const proofResult = (proof: AstSemanticStageProof): AstSemanticProofResult => Object.freeze({
+  kind: 'proof',
+  proof,
+  continueWith: <Result>(handlers: AstSemanticProofResultHandlers<Result>): Result => handlers.onProof(proof),
+});
 
-const isProofResult = (value: AstSemanticStageProofResult): value is AstSemanticProofResult => relationEqual(value.kind, 'proof');
+const terminalResult = (): AstSemanticTerminalResult => Object.freeze({
+  kind: 'terminal',
+  continueWith: <Result>(handlers: AstSemanticProofResultHandlers<Result>): Result => handlers.onTerminal(),
+});
 
-export const stageProofObligations = (stage: AstSemanticStage, contract: AstSemanticStageContract): readonly AstSemanticStageProof[] => relationOptionFold(
-  relationRefine(stageProof(stage, contract), isProofResult),
-  () => Object.freeze([]),
-  value => Object.freeze([value.proof]),
-);
+const nextStageImplementation = (stage: AstSemanticStage): AstSemanticStage | 'source_syntax' => {
+  switch (stage) {
+    case 'scanner_evidence': return 'source_syntax';
+    case 'upstream_mapping': return 'scanner_evidence';
+    case 'resolver_graph': return 'upstream_mapping';
+    case 'analysis': return 'resolver_graph';
+    case 'semantic_type_lowering': return 'analysis';
+    case 'target_projection': return 'semantic_type_lowering';
+  }
+};
 
-export const stageProofInput = nextStage;
+const resolveStageProofImplementation = (stage: AstSemanticStage, contract: AstSemanticStageContract): AstSemanticStageProofResult => {
+  switch (stage) {
+    case 'scanner_evidence':
+      return proofResult({ kind: 'scanner_to_mapping_proof', from: 'scanner_evidence', to: 'upstream_mapping', preservation: contract.preservation, status: 'obligation' });
+    case 'upstream_mapping':
+      return proofResult({ kind: 'mapping_to_resolver_proof', from: 'upstream_mapping', to: 'resolver_graph', preservation: contract.preservation, status: 'obligation' });
+    case 'resolver_graph':
+      return proofResult({ kind: 'resolver_to_analysis_proof', from: 'resolver_graph', to: 'analysis', preservation: contract.preservation, status: 'obligation' });
+    case 'analysis':
+      return proofResult({ kind: 'analysis_to_lowering_proof', from: 'analysis', to: 'semantic_type_lowering', preservation: contract.preservation, status: 'obligation' });
+    case 'semantic_type_lowering':
+      return proofResult({ kind: 'lowering_to_target_proof', from: 'semantic_type_lowering', to: 'target_projection', preservation: contract.preservation, status: 'obligation' });
+    case 'target_projection':
+      return terminalResult();
+  }
+};
+
+const resolveStageProofObligationsImplementation = (stage: AstSemanticStage, contract: AstSemanticStageContract): readonly AstSemanticStageProof[] =>
+  resolveStageProofImplementation(stage, contract).continueWith({
+    onProof: proof => Object.freeze([proof]),
+    onTerminal: () => Object.freeze([]),
+  });
+
+export interface AstSemanticStageProofOperationsInterface {
+  readonly kind: 'ast_semantic_stage_proof_operations';
+  readonly resolve: (stage: AstSemanticStage, contract: AstSemanticStageContract) => AstSemanticStageProofResult;
+  readonly obligations: (stage: AstSemanticStage, contract: AstSemanticStageContract) => readonly AstSemanticStageProof[];
+  readonly nextStage: (stage: AstSemanticStage) => AstSemanticStage | 'source_syntax';
+  readonly continueFrom: (stage: AstSemanticStage, contract: AstSemanticStageContract) => Readonly<{
+    result: AstSemanticStageProofResult;
+    obligations: readonly AstSemanticStageProof[];
+    next: AstSemanticStage | 'source_syntax';
+    continueWith: <Result>(handlers: AstSemanticProofResultHandlers<Result>) => Result;
+  }>;
+}
+
+export const astSemanticStageProofOperations: AstSemanticStageProofOperationsInterface = Object.freeze({
+  kind: 'ast_semantic_stage_proof_operations',
+  resolve: resolveStageProofImplementation,
+  obligations: resolveStageProofObligationsImplementation,
+  nextStage: nextStageImplementation,
+  continueFrom: (stage: AstSemanticStage, contract: AstSemanticStageContract) => {
+    const result = resolveStageProofImplementation(stage, contract);
+    return Object.freeze({
+      result,
+      obligations: resolveStageProofObligationsImplementation(stage, contract),
+      next: nextStageImplementation(stage),
+      continueWith: <Result>(handlers: AstSemanticProofResultHandlers<Result>): Result => result.continueWith(handlers),
+    });
+  },
+});

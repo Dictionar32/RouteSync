@@ -9,8 +9,8 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const checks = [
   ['new scanner owner exists', fs.existsSync(path.join(root, scanner))],
   ['wiring selects new scanner owner', read(wiring).includes('from "../laravelFormRequestScanner"') && read(wiring).includes('formRequestScanner: laravelFormRequestScanner') && read(scanner).includes('export const laravelFormRequestScanner: LaravelFormRequestScannerInterface')],
-  ['active wiring does not import legacy FormRequestScanner barrel', !read(wiring).includes('from "../subscanners"')],
-  ['producer implementation is outside subscanners', fs.existsSync(path.join(root, producer))],
+  ['active wiring does not import legacy FormRequestScanner barrel', !read(wiring).includes('from "../operations"')],
+  ['producer implementation is outside operations', fs.existsSync(path.join(root, producer))],
   ['producer uses upstream producer interface', read(producer).includes('RequestProducerInterface') && read(producer).includes('RequestProducerInput')],
   ['upstream scanner contract remains authoritative', read(upstream).includes('interface LaravelFormRequestScannerInterface') && read(upstream).includes('LaravelFormRequestScanInput')],
   ['migrated scanner has no direct semantic/foundation import', !read(scanner).includes('semantic/foundation')],

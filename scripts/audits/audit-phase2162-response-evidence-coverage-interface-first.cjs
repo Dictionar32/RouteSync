@@ -6,7 +6,7 @@ const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 const contract = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const implementation = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
-const action = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const action = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2159-CLI-RESPONSE-OWNERSHIP-TRACE-INTERFACE-FIRST.md');
 const inventoryContract = contract.slice(contract.indexOf('export type LaravelControllerResponseEvidenceProductionInventory'), contract.indexOf('/**\n * Declaration-level source correlation'));

@@ -1,0 +1,27 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '../..');
+const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
+const checks = [];
+const check = (name, predicate) => {
+  const passed = Boolean(typeof predicate === 'function' ? predicate() : predicate);
+  checks.push({ name, passed });
+  process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);
+};
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
+const structureProvider = read('packages/core/src/compiler/frontend/php/phpExpressionStructureEvidenceProvider.ts');
+const operatorProvider = read('packages/core/src/compiler/frontend/php/phpExpressionOperatorContract.ts');
+const wiring = read('packages/core/src/compiler/frontend/php/astClassifierEvidence.ts');
+const judgmentInterface = read('packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts');
+const judgmentAlgebra = read('packages/core/src/types/upstream/scannerAstExpressionCandidateAlgebra.ts');
+const collections = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/collections.ts'));
+check('AST runtime exports typed frozen operation object instead of exported function declarations', !/^export\s+function\s+/m.test(runtime) && /export const phpAstClassificationRuntime:\s*PhpAstClassificationRuntimeInterface\s*=\s*Object\.freeze\(/.test(runtime));
+check('Expression structure evidence provider uses interface-first frozen operation object', !/^export\s+function\s+/m.test(structureProvider) && /export const phpExpressionStructureEvidenceProvider:\s*PhpExpressionStructureEvidenceProviderInterface\s*=\s*Object\.freeze\(/.test(structureProvider));
+check('PHP root operator resolver uses interface-first frozen operation object', !/^export\s+function\s+/m.test(operatorProvider) && /export const phpExpressionRootOperatorResolver:\s*PhpExpressionRootOperatorResolverInterface\s*=\s*Object\.freeze\(/.test(operatorProvider));
+check('AST evidence adapter consumes operation object, not legacy runtime function exports', wiring.includes('phpAstClassificationRuntime.classifyTokens(tokens)') && wiring.includes('phpAstClassificationRuntime.classifyBlock(tokens)'));
+check('Upstream expression candidate ADT retains domain continuation operation', judgmentInterface.includes('continueForAstClassification') && judgmentAlgebra.includes('continueForAstClassification'));
+check('upstream collections.ts remains exactly empty', collections.length === 0);
+check('Runtime trace still delegates through the existing AST evidence adapter', wiring.includes('astClassifierEvidenceInterface') && wiring.includes('produceAstSemanticEvidence'));
+const failed = checks.filter((entry) => !entry.passed);
+process.stdout.write(`\n${checks.length - failed.length}/${checks.length} checks passed\n`);
+if (failed.length) process.exitCode = 1;

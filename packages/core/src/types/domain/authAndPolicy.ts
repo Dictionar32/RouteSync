@@ -116,17 +116,17 @@ export const ROUTE_POLICY_REGISTRY: RoutePolicyKindRegistry = Object.freeze({
   [RoutePolicyKind.AbilityModel]: {
     kind: RoutePolicyKind.AbilityModel,
     requiresModel: truthValue(true),
-    description: stringValue('Laravel Model Policy checking ability against a model parameter')
+    description: stringValue.create('Laravel Model Policy checking ability against a model parameter')
   },
   [RoutePolicyKind.Gate]: {
     kind: RoutePolicyKind.Gate,
     requiresModel: truthValue(false),
-    description: stringValue('Laravel Gate authorization checking ability without model parameter')
+    description: stringValue.create('Laravel Gate authorization checking ability without model parameter')
   },
   [RoutePolicyKind.Custom]: {
     kind: RoutePolicyKind.Custom,
     requiresModel: truthValue(false),
-    description: stringValue('Custom authorization policy or middleware rule')
+    description: stringValue.create('Custom authorization policy or middleware rule')
   }
 });
 

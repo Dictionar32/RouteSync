@@ -6,9 +6,9 @@ const files = [
   'packages/core/src/semantic/kernel/syntax/presenceRelations.ts',
   'packages/core/src/semantic/kernel/syntax/relationalCursorAuthority.ts',
   'packages/core/src/compiler/constraints/solver/declarativeConstraintProgram.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/parserAdapterRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/parserAdapterRelations.ts',
 ];
 const bad = /\b(if|while|for|switch|undefined|null)\b|\.map\(|\.filter\(|\.reduce\(|\.flatMap\(|\?\?|===|!==|\bas\b/g;
 const violations = [];

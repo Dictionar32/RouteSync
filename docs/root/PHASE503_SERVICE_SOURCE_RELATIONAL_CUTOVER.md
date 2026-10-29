@@ -38,7 +38,7 @@ Reworked the boundary to use:
 
 ## Closed-surface audit
 
-The Phase 503 scanner/lexer audit closes:
+The Phase 503 frontend/php audit closes:
 
 `subscanners/serviceSourceStatements.ts`
 
@@ -67,7 +67,7 @@ The target file also passes TypeScript syntax transpilation with zero diagnostic
 
 ## Next frontier
 
-The largest remaining scanner/lexer/resolver surfaces after this cutover are:
+The largest remaining frontend/php/resolver surfaces after this cutover are:
 
 1. `subscanners/form-request/canonicalValidationRuleEntry.ts`
 2. `subscanners/form-request/validationFieldAssembler.ts`

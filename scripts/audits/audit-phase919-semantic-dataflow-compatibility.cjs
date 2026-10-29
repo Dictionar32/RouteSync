@@ -3,7 +3,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '../..');
 const upstream = path.join(root, 'packages/core/src/types/upstream');
-const analyzer = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const analyzer = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const iface = path.join(upstream, 'semanticDataflowInterface.ts');
 
 const read = file => fs.readFileSync(file, 'utf8');

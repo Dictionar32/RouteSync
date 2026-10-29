@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const attributeContract = read('packages/core/src/types/upstream/laravelAttributeScannerInterface.ts');
 const controllerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const producer = read('packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts');
 const checks = [
   ['existing attribute scanner contract has advanced to version 7', /interface LaravelAttributeScannerInterface[\s\S]*?contractVersion: 7/.test(attributeContract)],
   ['proof retains successful PHP class-name resolution specialized to canonical identity', /resolution: LaravelContextualAttributeContractResolution/.test(attributeContract) && /readonly value: 'Illuminate\\\\Contracts\\\\Container\\\\ContextualAttribute';/.test(attributeContract)],

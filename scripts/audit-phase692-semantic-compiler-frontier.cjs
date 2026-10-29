@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '..');
 const frontier = [
   'packages/core/src/compiler/domain/common/ZodSchemaLowerer.ts',
   'packages/core/src/compiler/domain/common/ResolvedSemanticType.ts',
-  'packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts',
+  'packages/core/src/compiler/scanner/operations/ResourceScanner.ts',
   'packages/core/src/compiler/scanner/binders/SemanticResourceBinder.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
   'packages/core/src/compiler/analysis/astAnalysisInterface.ts',
@@ -23,12 +23,12 @@ const zod = fs.readFileSync(path.join(root, frontier[0]), 'utf8');
 const scanner = fs.readFileSync(path.join(root, frontier[2]), 'utf8');
 const binder = fs.readFileSync(path.join(root, frontier[3]), 'utf8');
 const legacyDescriptorRefs = [];
-for (const rel of ['packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorClass.ts','packages/core/src/compiler/scanner/descriptors/resource/resourceDescriptorTypes.ts']) {
+for (const rel of ['packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorClass.ts','packages/core/src/compiler/scanner/operations/domain-model/resource/resourceDescriptorTypes.ts']) {
   const text = fs.readFileSync(path.join(root, rel), 'utf8').trim();
   if (text) legacyDescriptorRefs.push({ file: rel, state: 'non_empty' });
 }
-const resourceSource = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts'), 'utf8');
-if (/ScannedResourceDescriptor|ScannedResourceParams/.test(resourceSource)) legacyDescriptorRefs.push({ file: 'packages/core/src/compiler/scanner/descriptors/resourceDescriptors.ts', state: 'exported' });
+const resourceSource = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/resourceDescriptors.ts'), 'utf8');
+if (/ScannedResourceDescriptor|ScannedResourceParams/.test(resourceSource)) legacyDescriptorRefs.push({ file: 'packages/core/src/compiler/scanner/operations/domain-model/resourceDescriptors.ts', state: 'exported' });
 const productionCore = [];
 function walk(dir) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -40,7 +40,7 @@ function walk(dir) {
 walk(path.join(root, 'packages/core/src'));
 const parsedResourceRefs = productionCore.filter(p => /ParsedResource/.test(fs.readFileSync(p, 'utf8'))).map(p => path.relative(root,p));
 const forbidden = ['if\\s*\\(', 'while\\s*\\(', 'for\\s*\\(', 'switch\\s*\\(', '\\.map\\s*\\(', '\\.filter\\s*\\(', '\\.reduce\\s*\\(', '\\.flatMap\\s*\\(', '\\?\\?', '===', 'as unknown', '\\bnew\\s+'];
-const hotspotDirs = ['packages/core/src/compiler/scanner/lexer','packages/core/src/compiler/scanner/binders','packages/core/src/compiler/analysis','packages/core/src/compiler/domain/common'];
+const hotspotDirs = ['packages/core/src/compiler/frontend/php','packages/core/src/compiler/scanner/binders','packages/core/src/compiler/analysis','packages/core/src/compiler/domain/common'];
 const leakage = {};
 for (const dir of hotspotDirs) {
   const counts = Object.fromEntries(forbidden.map(p => [p, 0]));

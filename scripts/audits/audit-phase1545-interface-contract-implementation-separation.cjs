@@ -7,7 +7,7 @@ const check = (name, condition) => checks.push({ name, pass: Boolean(condition) 
 const contract = read('packages/core/src/types/upstream/semanticDataflowInterface.ts');
 const admission = read('packages/core/src/types/upstream/semanticDataflowAdmission.ts');
 const executor = read('packages/core/src/types/upstream/semanticDataflowRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const scannerBinding = read('packages/core/src/compiler/scanner/wiring/semanticDataflowRuntimeBinding.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');
 check('interface declares runtime executor contract', /interface SemanticDataflowRuntimeExecutorInterface/.test(contract));

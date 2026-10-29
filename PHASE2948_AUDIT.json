@@ -1,0 +1,25 @@
+{
+  "phase": 2948,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations — Discovery Blocker Rejection Evidence",
+  "scope": "Upstream CLI manifest filesystem discovery rejection path",
+  "changes": [
+    "Extended existing filesystem-derived LaravelControllerSourceDiscoveryBlocker ADT variants to retain the original rejection value as failure: unknown",
+    "Evolved existing blocker factory contracts and implementations to attach the exact failure value while preserving each variant's continueWith domain operation",
+    "Forwarded raw lstat and readdir rejection values into the existing blocker construction operation alongside normalized FilesystemFailureCode",
+    "Bumped the existing source-discovery contract version from 3 to 4 in the upstream contract and runtime producer",
+    "Updated focused blocker tests to assert original failure identity preservation",
+    "Kept packages/core/src/types/upstream/collections.ts empty; introduced no generic result or collection abstraction"
+  ],
+  "verification": {
+    "phase2947StructuralAudit": "10/10 passed",
+    "phase2948StructuralAudit": "10/10 passed",
+    "typescriptSyntaxTranspile": "3/3 changed TypeScript files passed with 0 syntax diagnostics",
+    "packageJsonParse": "passed",
+    "collectionsTs": "empty (0 bytes)",
+    "focusedVitest": "not run; workspace node_modules/.bin/vitest is unavailable",
+    "fullTypecheck": "not run",
+    "unitTests": "not run",
+    "build": "not run",
+    "cliEndToEnd": "not run"
+  }
+}

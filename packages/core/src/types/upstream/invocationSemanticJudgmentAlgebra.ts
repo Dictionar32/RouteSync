@@ -11,7 +11,7 @@ import type {
   SemanticKnowledgeDataFlow,
   SemanticSource,
 } from './semanticDataflowKnowledge';
-import { knowledgeIdKey } from './semanticDataflowKnowledge';
+import { semanticKnowledgeIdOperations } from './semanticDataflowKnowledge';
 import type {
   InvocationArgumentBindingClaim,
   InvocationArgumentBindingJudgment,
@@ -40,7 +40,6 @@ import type {
 import {
   INVOCATION_SEMANTIC_CONTRACT,
   invocationSemanticRulePolicy,
-  invocationWitnessOwnerRuleId,
 } from './invocationSemanticJudgmentInterface';
 import type {
   InvocationArgumentBindingAlgebraInput,
@@ -48,11 +47,13 @@ import type {
   InvocationEffectProjectionJudgment,
   InvocationJudgmentClosureAlgebraInput,
   InvocationSemanticAlgebraInterface,
+  InvocationSemanticKnowledgeAlgebraOperationsInterface,
   InvocationTargetResolutionAlgebraInput,
 } from './invocationSemanticAlgebraInterface';
 import { INVOCATION_SEMANTIC_ALGEBRA_CONTRACT } from './invocationSemanticAlgebraInterface';
 
-const key = (id: KnowledgeId): string => knowledgeIdKey(id);
+const sameKnowledgeId = (left: KnowledgeId, right: KnowledgeId): boolean =>
+  Object.is(semanticKnowledgeIdOperations.same(left, right).kind, 'same_knowledge_id');
 const hasArguments = (invocation: SemanticInvocation): invocation is SemanticInvocation & { readonly arguments: readonly [KnowledgeId, ...KnowledgeId[]] } => invocation.arguments.length > 0;
 const isNonEmpty = <T>(items: readonly T[]): items is readonly [T, ...T[]] => items.length > 0;
 const emptyObligations: readonly [] = Object.freeze([]);
@@ -92,19 +93,25 @@ const emissionsFrom = (knowledge: SemanticKnowledgeDataFlow): readonly SemanticE
   knowledge.facts.flatMap(fact => fact.kind === 'emission' ? [fact.value] : []);
 
 const invocationPresent = (knowledge: SemanticKnowledgeDataFlow, invocation: SemanticInvocation): boolean =>
-  invocationsFrom(knowledge).some(candidate => key(candidate.id) === key(invocation.id));
+  invocationsFrom(knowledge).some(candidate => sameKnowledgeId(candidate.id, invocation.id));
 
 const candidateCallablesFor = (
   knowledge: SemanticKnowledgeDataFlow,
   invocation: SemanticInvocation,
 ): readonly SemanticCallable[] => {
-  const targetIds = new Set(knowledge.dataFlow
-    .filter(flow => key(flow.source) === key(invocation.id) && flow.role.code === INVOCATION_SEMANTIC_CONTRACT.meaning.identity.targetEvidenceRole)
-    .map(flow => key(flow.target)));
-  return uniqueByIdentity(
-    callablesFrom(knowledge).filter(callable => targetIds.has(key(callable.id))),
-    callable => key(callable.id),
-  );
+  const targetIds: KnowledgeId[] = [];
+  for (const flow of knowledge.dataFlow) {
+    if (sameKnowledgeId(flow.source, invocation.id) && Object.is(flow.role.code, INVOCATION_SEMANTIC_CONTRACT.meaning.identity.targetEvidenceRole)) {
+      targetIds.push(flow.target);
+    }
+  }
+  const candidates = callablesFrom(knowledge).filter(callable =>
+    targetIds.some(targetId => sameKnowledgeId(targetId, callable.id)));
+  const distinct: SemanticCallable[] = [];
+  for (const candidate of candidates) {
+    if (!distinct.some(existing => sameKnowledgeId(existing.id, candidate.id))) distinct.push(candidate);
+  }
+  return Object.freeze(distinct);
 };
 
 const targetSources = (
@@ -118,11 +125,11 @@ const parameterSource = (parameter: KnowledgeId): SemanticSource => parameter.id
 const positionalEvidenceMatches = (
   invocation: SemanticInvocation,
   positionalEvidence: InvocationPositionalArgumentEvidence,
-): boolean => key(positionalEvidence.invocation) === key(invocation.id) &&
+): boolean => sameKnowledgeId(positionalEvidence.invocation, invocation.id) &&
   positionalEvidence.normalizedArguments.length === invocation.arguments.length &&
   positionalEvidence.normalizedArguments.every((argument, index) => {
     const expected = invocation.arguments[index];
-    return expected !== undefined && key(argument) === key(expected);
+    return expected !== undefined && sameKnowledgeId(argument, expected);
   });
 
 
@@ -161,7 +168,7 @@ const argumentFormObligation = (invocation: SemanticInvocation): Extract<Semanti
     invocation,
   });
 
-export const invocationPositionalEvidenceUnproven = (invocation: SemanticInvocation): InvocationPositionalEvidenceInput =>
+const unprovenPositionalEvidenceFor = (invocation: SemanticInvocation): InvocationPositionalEvidenceInput =>
   Object.freeze({ kind: 'positional-evidence-unproven', obligation: argumentFormObligation(invocation) });
 
 const deriveTargetResolution = (input: InvocationTargetResolutionAlgebraInput): InvocationTargetResolutionJudgment => {
@@ -204,7 +211,7 @@ const deriveArgumentBinding = (input: InvocationArgumentBindingAlgebraInput): In
   const { invocation, targetResolution } = input;
   const positionalEvidenceInput = input.positionalEvidence;
   const positionalEvidenceEstablished = positionalEvidenceInput.kind === 'positional-evidence-established';
-  if (key(targetResolution.invocation.id) !== key(invocation.id)) {
+  if (!sameKnowledgeId(targetResolution.invocation.id, invocation.id)) {
     throw new Error('Argument binding cannot consume a target judgment for another invocation');
   }
   if (targetResolution.kind === 'unresolved') {
@@ -345,7 +352,7 @@ const flowForEmission = (
 
 const deriveEffectProjection = (input: InvocationEffectProjectionAlgebraInput): InvocationEffectProjectionJudgment => {
   const { invocation, targetResolution, knowledge } = input;
-  if (key(targetResolution.invocation.id) !== key(invocation.id)) {
+  if (!sameKnowledgeId(targetResolution.invocation.id, invocation.id)) {
     throw new Error('Effect projection cannot consume a target judgment for another invocation');
   }
   if (targetResolution.kind === 'unresolved') {
@@ -358,8 +365,8 @@ const deriveEffectProjection = (input: InvocationEffectProjectionAlgebraInput): 
   }
 
   const callable = targetResolution.target;
-  const declaredEmissionIds = new Set(callable.emissions.map(key));
-  const declaredEmissions = emissionsFrom(knowledge).filter(emission => declaredEmissionIds.has(key(emission.id)));
+  const declaredEmissions = emissionsFrom(knowledge).filter(emission =>
+    callable.emissions.some(declared => sameKnowledgeId(declared, emission.id)));
   const flows = declaredEmissions.map(emission => flowForEmission(invocation, callable, emission));
   const resultFlows: readonly InvocationResultEmissionFlow[] = Object.freeze(flows.filter(
     (flow): flow is InvocationResultEmissionFlow => flow.kind === 'result-emission-flow',
@@ -401,8 +408,8 @@ const allObligations = (
   }));
   if (targetResolution.kind === 'unresolved' || targetResolution.kind === 'ambiguous') obligations.push(targetResolution.obligation);
   for (const obligation of obligationsForBinding(binding)) {
-    if (!obligations.some(existing => existing.kind === obligation.kind && key(existing.invocation.id) === key(obligation.invocation.id) &&
-      (existing.kind !== 'argument_parameter_unresolved' || obligation.kind !== 'argument_parameter_unresolved' || key(existing.argument) === key(obligation.argument)))) {
+    if (!obligations.some(existing => Object.is(existing.kind, obligation.kind) && sameKnowledgeId(existing.invocation.id, obligation.invocation.id) &&
+      (existing.kind !== 'argument_parameter_unresolved' || obligation.kind !== 'argument_parameter_unresolved' || sameKnowledgeId(existing.argument, obligation.argument)))) {
       obligations.push(obligation);
     }
   }
@@ -498,7 +505,7 @@ const traceForPhases = (
   witnesses: readonly InvocationSemanticDerivationWitness[],
 ): readonly InvocationSemanticRuleTraceEntry[] => Object.freeze(
   INVOCATION_SEMANTIC_CONTRACT.executableRuleIds.map(ruleId => {
-    const policy = invocationSemanticRulePolicy(ruleId);
+    const policy = invocationSemanticRulePolicy.resolve(ruleId);
     const ruleObligations = Object.freeze(obligations.filter(obligation => policy.obligations.includes(obligation.kind)));
     const common = {
       subjectInvocation: invocation.id,
@@ -559,7 +566,7 @@ const closeJudgment = (input: InvocationJudgmentClosureAlgebraInput): Invocation
     new Set(actualPhaseRuleIds).size !== actualPhaseRuleIds.length) {
     throw new Error('Judgment closure requires one trace entry for every executable semantic rule');
   }
-  if (input.ruleTrace.some(entry => key(entry.subjectInvocation) !== key(input.invocation.id))) {
+  if (input.ruleTrace.some(entry => !sameKnowledgeId(entry.subjectInvocation, input.invocation.id))) {
     throw new Error('Judgment closure cannot consume a phase trace for another invocation');
   }
   const closureEvidence = input.evidence;
@@ -705,9 +712,9 @@ const deriveInvocationJudgment = (
   });
 };
 
-export const analyzeInvocationSemanticAlgebra = (knowledge: SemanticKnowledgeDataFlow): InvocationSemanticAnalysis => {
+const analyzeInvocationSemanticKnowledge = (knowledge: SemanticKnowledgeDataFlow): InvocationSemanticAnalysis => {
   const judgments = Object.freeze(invocationsFrom(knowledge).map(invocation => deriveInvocationJudgment(
-    knowledge, invocation, invocationPositionalEvidenceUnproven(invocation),
+    knowledge, invocation, unprovenPositionalEvidenceFor(invocation),
   )));
   const callTargets: readonly SemanticCallTarget[] = Object.freeze(judgments.flatMap(judgment =>
     judgment.targetResolution.kind === 'resolved' ? [Object.freeze({ invocation: judgment.invocation, callable: judgment.targetResolution.target })] : [],
@@ -741,26 +748,35 @@ export const analyzeInvocationSemanticAlgebra = (knowledge: SemanticKnowledgeDat
   });
 };
 
-export const analyzeInvocationJudgmentAlgebra = (
+const analyzeOneInvocationSemanticJudgment = (
   knowledge: SemanticKnowledgeDataFlow,
   requestedInvocation: SemanticInvocation,
   positionalEvidence: InvocationPositionalEvidenceInput,
 ): InvocationSemanticJudgment => deriveInvocationJudgment(knowledge, requestedInvocation, positionalEvidence);
 
-export const callTargetForInvocation = (
+const callTargetsForInvocation = (
   analysis: InvocationSemanticAnalysis,
   invocation: KnowledgeId,
 ): readonly SemanticCallable[] => Object.freeze(analysis.callTargets
-  .filter(target => key(target.invocation.id) === key(invocation))
+  .filter(target => sameKnowledgeId(target.invocation.id, invocation))
   .map(target => target.callable));
 
-export const parameterFlowsForInvocation = (
+const parameterFlowsForInvocation = (
   analysis: InvocationSemanticAnalysis,
   invocation: KnowledgeId,
 ): readonly SemanticArgumentParameterFlow[] => Object.freeze(analysis.judgments
-  .filter(judgment => key(judgment.invocation.id) === key(invocation))
+  .filter(judgment => sameKnowledgeId(judgment.invocation.id, invocation))
   .flatMap(judgment => judgment.argumentBinding.kind === 'established' || judgment.argumentBinding.kind === 'incomplete'
     ? judgment.argumentBinding.argumentDispositions.flatMap(disposition => disposition.kind === 'bound-argument' ? [disposition.relation] : [])
     : []));
+
+export const invocationSemanticKnowledgeAlgebraOperations: InvocationSemanticKnowledgeAlgebraOperationsInterface = Object.freeze({
+  kind: 'invocation_semantic_knowledge_algebra_operations',
+  analyze: analyzeInvocationSemanticKnowledge,
+  analyzeOne: analyzeOneInvocationSemanticJudgment,
+  callTargetsFor: callTargetsForInvocation,
+  parameterFlowsFor: parameterFlowsForInvocation,
+  unprovenPositionalEvidenceFor,
+});
 
 export const invocationSemanticAlgebraHelpers = Object.freeze({ witnessInvocationId });

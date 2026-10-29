@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/queryProducerSemanticInterface.ts');
 const reasoning = read('packages/core/src/types/upstream/queryProducerSemanticReasoning.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts');
 const checks = [
   ['claimed result excludes not-applicable decision', contract.includes("readonly ownership: 'claimed'") && contract.includes("Exclude<QueryOperationSemanticDecision, { readonly kind: 'not_applicable' }>")],
   ['unclaimed result is limited to not-applicable decision', contract.includes("readonly ownership: 'unclaimed'") && contract.includes("Extract<QueryOperationSemanticDecision, { readonly kind: 'not_applicable' }>")],

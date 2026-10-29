@@ -2,7 +2,7 @@
 
 ## Contract change
 
-`packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteInterface.ts` is a consumer-facing compatibility facade. It exports the upstream semantic protocol and `solveClosedSemanticRelations`, but no longer re-exports the concrete `semanticRewriteAuthority` or `createSemanticRewriteRuntimeExecutor` factory.
+`packages/core/src/compiler/frontend/php/routeAst/semanticRewriteInterface.ts` is a consumer-facing compatibility facade. It exports the upstream semantic protocol and `solveClosedSemanticRelations`, but no longer re-exports the concrete `semanticRewriteAuthority` or `createSemanticRewriteRuntimeExecutor` factory.
 
 ## Why
 

@@ -1,6 +1,6 @@
 # Phase 607 — Scanner Descriptor Relational Cutover
 
-Phase 607 continues the scanner/lexer constructor-authority removal from Phase 606.
+Phase 607 continues the frontend/php constructor-authority removal from Phase 606.
 
 ## Scope
 

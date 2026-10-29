@@ -12,7 +12,7 @@ The implementation uses the existing relation substrate (`relationResolve`, `rel
 
 ## Cutover
 
-- scanner/lexer source frontier re-audited as one closed surface;
+- frontend/php source frontier re-audited as one closed surface;
 - `resourceModelMethodResolverOperation` converted from imperative array traversal/absence checks to relation fold/project/option resolution;
 - `resourceModelMethodResolver` converted to relation-gated semantic dispatch;
 - `resourceModelMethodResolverProjection` converted to relation-gated member and handler resolution;

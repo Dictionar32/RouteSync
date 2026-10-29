@@ -2,7 +2,7 @@ import { describe, expectTypeOf, it } from 'vitest';
 import type { RouteHighLevelContract, RouteSemanticSurface } from '../highLevelContracts';
 import type { RouteDefinition, RouteParameterBinding } from '../route';
 import type { RouteSyncManifestFlow } from '../manifest';
-import type { ControllerActionInfo } from '../../../compiler/scanner/descriptors/request/controllerActionTypes';
+import type { ControllerActionInfo } from '../../../compiler/scanner/operations/domain-model/request/controllerActionTypes';
 
 /** Phase 50: route meaning is resolved upstream; the public flow stays AST-free. */
 describe('upstream interface elevation phase 50', () => {

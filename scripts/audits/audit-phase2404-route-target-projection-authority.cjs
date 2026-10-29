@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const routeEmitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
+const routeEmitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
 const controllerInterface = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const routeInterface = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const manifest = read('packages/core/src/types/upstream/manifest.ts');
@@ -16,8 +16,8 @@ const checks = [
   ['resource emitter has retired the unreachable legacy ControllerActionInfo map', !routeEmitter.includes('controllerMap: RelationOption<RelationIndex<string, RelationIndex<string, ControllerActionInfo>>>') && routeEmitter.includes("kind: 'controller_reference' as const")],
   ['active scanner no longer passes absent controller map to resource emitter', !scanner.includes('relationNone(),\n        unresolvedResponse,')],
   ['route correlation authority is called after target selection, not as target projection', scanner.includes('actionJudgmentForTarget(target, publications, correlationAuthority)')],
-  ['active scanner still imports the route emitter from subscanners', scanner.includes("from '../subscanners/route-scanner'")],
-  ['active scanner still imports route producer composition from subscanners', scanner.includes("from '../subscanners/routeProducerRelations'")],
+  ['active scanner still imports the route emitter from operations', scanner.includes("from '../operations/route-scanner'")],
+  ['active scanner still imports route producer composition from operations', scanner.includes("from '../operations/routeProducerRelations'")],
   ['route scanner interface exposes producer composition but no route-boundary projection operation', routeInterface.includes('readonly routeProducerInputComposition: RouteProducerInputComposition;') && !routeInterface.includes('routeBoundaryProjection')],
   ['existing integrated HTTP response authority remains explicit', responsePipeline.includes('judgeIntegratedResponse')],
   ['concrete manifest owns invocation semantic judgments', manifest.includes('readonly invocationSemanticJudgments: readonly LaravelControllerInvocationSemanticJudgmentInterface[];')],

@@ -7,9 +7,9 @@
  * @module core/types/domain/schemaMorphism
  */
 
-import { PrimitiveKind } from '.././semanticType';
+import { PrimitiveKind } from '../semanticType';
 import type { TypeWrapper } from './wrappers';
-import type { ModelName, ResourceName } from '../../../types/upstream/names';
+import type { ModelName, ResourceName } from '../../upstream/names';
 
 export const DomainCarrierKind = Object.freeze({
     Scalar: 'scalar',

@@ -21,7 +21,7 @@ projects the judgment back to the old index shape. It contains no delimiter scan
 
 ## Deliberately not migrated in this phase
 
-`scannerStatementSequenceAlgebra.ts` and `compiler/scanner/lexer/astClassifierRuntime.ts`
+`scannerStatementSequenceAlgebra.ts` and `compiler/frontend/php/astClassifierRuntime.ts`
 remain unchanged. The next phase should migrate sequence wiring to consume partition
 judgments directly. Only after that wiring is verified should runtime call sites be
 simplified and downstream AST output verified.

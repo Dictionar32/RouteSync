@@ -1,0 +1,20 @@
+{
+  "phase": 2966,
+  "title": "Assembly ADT Domain Continuation",
+  "scope": [
+    "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+    "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationSemanticPipelineAssembler.ts",
+    "packages/cli/src/upstreamCompositionFactory.ts"
+  ],
+  "structuralAudit": "10/10 passed",
+  "typescriptTranspileSyntaxDiagnostics": 0,
+  "collectionsFileBytes": 0,
+  "fullTypecheck": {
+    "status": "blocked",
+    "reason": "The workspace does not include node/vitest type definitions and its globally installed TypeScript version does not support target/lib ES2025 configured by this project."
+  },
+  "unitTests": "not run",
+  "build": "not run",
+  "cliE2E": "not run",
+  "claims": "No full typecheck, test-suite, build, or CLI E2E success is claimed."
+}

@@ -1,0 +1,77 @@
+{
+  "phase": 2977,
+  "title": "Runtime Scanner Operations — Upstream → CLI → Manifest Trace",
+  "passed": 13,
+  "total": 13,
+  "checks": [
+    {
+      "name": "scanner algebra runtime export is interface-typed",
+      "passed": true
+    },
+    {
+      "name": "scanner consumer facade runtime export is interface-typed",
+      "passed": true
+    },
+    {
+      "name": "scanner public outcomes are explicit discriminated ADTs",
+      "passed": true
+    },
+    {
+      "name": "source presence ADT owns continuation operation",
+      "passed": true
+    },
+    {
+      "name": "route scan outcomes own source-AST continuation",
+      "passed": true
+    },
+    {
+      "name": "CLI composition factory uses explicit runtime interface",
+      "passed": true
+    },
+    {
+      "name": "CLI composition rejection/acceptance is domain-dispatched",
+      "passed": true
+    },
+    {
+      "name": "CLI manifest scan factory is interface-typed",
+      "passed": true
+    },
+    {
+      "name": "manifest scan operation factory is interface-typed",
+      "passed": true
+    },
+    {
+      "name": "manifest scanner runtime facade is interface-typed",
+      "passed": true
+    },
+    {
+      "name": "manifest builder preparation is interface-typed",
+      "passed": true
+    },
+    {
+      "name": "manifest graph compiler runtime operation is interface-typed",
+      "passed": true
+    },
+    {
+      "name": "upstream collection foundation remains absent/empty",
+      "passed": true
+    }
+  ],
+  "runtimePath": [
+    "scannerTokenStructureInterface / scannerTokenStructureAlgebra",
+    "Laravel route source selection and source-document read continuation",
+    "Laravel route scan outcome → source AST projection",
+    "request-type semantic pipeline assembly",
+    "CLI upstream composition → CLI manifest scan operation",
+    "manifest scan operation → manifest scanner → manifest builder",
+    "manifest graph compilation operation"
+  ],
+  "remainingDeletedRelationFoundationImports": {
+    "allCoreAndCli": 479,
+    "upstreamTypeDirectory": 64,
+    "upstreamFiles": 36,
+    "cliDirect": 0,
+    "note": "These counts include imports of the three intentionally deleted modules. They are blockers to migrate by consumer domain; do not restore or recreate the deleted foundation."
+  },
+  "knownLimit": "Structural/runtime-surface audit only. It does not claim full migration or a passing TypeScript build. Scanner token judgments currently expose discriminants and evidence, but unlike source-presence and route-scan outcomes, the scanner token judgments do not yet consistently own continueWith operations."
+}

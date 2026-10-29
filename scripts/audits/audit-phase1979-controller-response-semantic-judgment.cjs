@@ -22,7 +22,7 @@ const checks = [
   ['retirement map points response modules at response judgment', ['response-attribute-evidence', 'response-shape-evidence', 'response-dto-evidence'].every(kind => retirement.includes(`kind: '${kind}'`) && retirement.includes("targetContract: 'LaravelControllerResponseSemanticJudgment'"))],
   ['public barrel exports the type-only response contract', barrel.includes("export type { LaravelControllerResponseSemanticBlocker, LaravelControllerResponseSemanticEvidence, LaravelControllerResponseSemanticJudgment, LaravelControllerResponseSemanticJudgmentContract, LaravelControllerResponseSemanticProduct } from './types/upstream/laravelControllerResponseSemanticJudgmentInterface';")],
   ['scanner contract still accepts the authority-closed inventory', scanner.includes('LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt')],
-  ['no relation/foundation replacement layer is introduced', !judgment.includes('semantic/relations') && !judgment.includes('semantic/foundation') && !judgment.includes('subscanners/relation') && !judgment.includes('subscanners/foundation')],
+  ['no relation/foundation replacement layer is introduced', !judgment.includes('semantic/relations') && !judgment.includes('semantic/foundation') && !judgment.includes('operations/relation') && !judgment.includes('operations/foundation')],
 ];
 const report = {
   phase: 1979,

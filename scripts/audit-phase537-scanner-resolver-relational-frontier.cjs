@@ -3,10 +3,10 @@ const path = require('path');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/memberAccessorsParser.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelAccessorExpressionMapper.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRelationProgram.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/model/memberAccessorsParser.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelAccessorExpressionMapper.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxRelationProgram.ts',
 ];
 const forbidden = {
   if: /\bif\b/g, for: /\bfor\b/g, while: /\bwhile\b/g, switch: /\bswitch\b/g,

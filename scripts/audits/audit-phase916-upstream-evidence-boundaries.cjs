@@ -4,8 +4,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const upstream = path.join(root, 'packages/core/src/types/upstream');
 const producers = {
-  controller: path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts'),
-  provider: path.join(root, 'packages/core/src/compiler/scanner/subscanners/providerProducer.ts'),
+  controller: path.join(root, 'packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts'),
+  provider: path.join(root, 'packages/core/src/compiler/scanner/operations/providerProducer.ts'),
 };
 
 const forbiddenCompilerImport = /(?:from\s+['"][^'"]*compiler\/|import\s*\(\s*['"][^'"]*compiler\/)/;

@@ -11,7 +11,7 @@ Strengthen the upstream interface contract before changing Laravel scanner wirin
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts`: pipeline contract version bumped v40 → v41 to inherit the strengthened authority boundary.
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts`: scanner boundary version bumped v19 → v20 and explicitly forbids reconstructing judgments or repairing authority failures.
 - `packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts`: existing runtime executor delegates `execute(input)` to `authority.analyze(input)`.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`: existing scanner calls `invocationSemanticPipeline.analyzeKnowledge(...)`.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`: existing scanner calls `invocationSemanticPipeline.analyzeKnowledge(...)`.
 
 ## Changes
 

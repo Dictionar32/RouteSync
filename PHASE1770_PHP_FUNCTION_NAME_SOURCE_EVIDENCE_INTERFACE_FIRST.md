@@ -28,7 +28,7 @@ References:
 
 ## Remaining blockers
 
-- `packages/core/src/compiler/scanner/lexer/phpAstExpressionTypes.ts` still represents `function_call.functionName` as one `AstIdentifier`.
+- `packages/core/src/compiler/frontend/php/phpAstExpressionTypes.ts` still represents `function_call.functionName` as one `AstIdentifier`.
 - `phpExpressionStructureProjector.ts` still projects only `structure.callee[0]` into that identifier.
 - `resourceUpstreamExpressionCanonical.ts` still invokes `phpFunctionCallSemanticAuthority` with the raw short name.
 - No implementation of `PhpFunctionNameResolutionAuthorityInterface` is connected to the frontend.

@@ -79,11 +79,16 @@ export type RoutePayloadLocationDecision =
       readonly closed: true;
     };
 
-export function routePayloadLocationFromMethod(method: HttpMethod): RoutePayloadLocation {
-  return method === HttpMethod.GET || method === HttpMethod.HEAD
-    ? RoutePayloadLocation.Query
-    : RoutePayloadLocation.Body;
+export interface RoutePayloadLocationOperationsInterface {
+  readonly fromMethod: (method: HttpMethod) => RoutePayloadLocation;
 }
+
+export const routePayloadLocationOperations: RoutePayloadLocationOperationsInterface = Object.freeze({
+  fromMethod: (method: HttpMethod): RoutePayloadLocation =>
+    method === HttpMethod.GET || method === HttpMethod.HEAD
+      ? RoutePayloadLocation.Query
+      : RoutePayloadLocation.Body,
+});
 
 export interface NoPayloadExecutionSignature {
   readonly payloadMode: 'none';

@@ -2,7 +2,7 @@
 
 ## Trace
 
-`semanticDataflowAuthority.ts` computes fact reachability and path closure. The resulting `SemanticDataflowJudgment` crossed `semanticDataflowJudgmentBoundary` in `semanticDataflowInterface.ts`, then the compatibility scanner projected it in `compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts`.
+`semanticDataflowAuthority.ts` computes fact reachability and path closure. The resulting `SemanticDataflowJudgment` crossed `semanticDataflowJudgmentBoundary` in `semanticDataflowInterface.ts`, then the compatibility scanner projected it in `compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts`.
 
 The previous judgment claimed `fixedPoint: 'least_fixed_point'` and `closed: true`, while the closure algorithms had a 128-round escape that could return a partial result without exposing whether the cap, rather than convergence, stopped the computation. The interface could check internal references but had no closure certificate to distinguish a converged result.
 

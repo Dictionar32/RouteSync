@@ -8,7 +8,7 @@ Raise the scanner/request frontier from implementation-oriented dispatch to a cl
 
 ### 1. Closed Route Syntax Semantic Interface
 
-Added `packages/core/src/compiler/scanner/lexer/routeAst/routeSyntaxSemanticInterface.ts`.
+Added `packages/core/src/compiler/frontend/php/routeAst/routeSyntaxSemanticInterface.ts`.
 
 The interface now carries:
 

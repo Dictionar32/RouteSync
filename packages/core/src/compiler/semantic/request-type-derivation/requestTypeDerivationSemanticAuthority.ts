@@ -11,7 +11,7 @@ import {
   type RequestTypeDerivationSemanticInferenceFor,
   type RequestTypeAuthorityDecisionRuleCoverage,
 } from '../../../types/upstream/requestTypeDerivationInterface';
-import { validateRequestTypeDerivationSemanticAssessment } from './requestTypeDerivationAssessmentIntegrity';
+import { requestTypeDerivationSemanticAssessmentIntegrityOperation } from './requestTypeDerivationAssessmentIntegrity';
 
 const decisionRules = Object.freeze(Object.fromEntries(
   REQUEST_TYPE_AUTHORITY_DECISION_RULE_IDS.map(ruleId => [ruleId, 'required']),
@@ -36,8 +36,8 @@ export const createRequestTypeDerivationSemanticAuthority = <
     }
 
     const assessment = Object.freeze({ kind: proof.conclusion, decision: proof }) as RequestTypeDerivationSemanticAuthorityAssessmentFor<TContract, TInference>;
-    const coherence = validateRequestTypeDerivationSemanticAssessment(
-      assessment as never,
+    const coherence = requestTypeDerivationSemanticAssessmentIntegrityOperation.validate(
+      assessment,
       contract,
     );
     if (coherence.kind !== 'assessment_integrity_valid') {

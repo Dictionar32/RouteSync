@@ -31,6 +31,7 @@ import type {
   RequestTypeSourceOccurrenceLocation,
 } from '../../../types/upstream/requestTypeDerivationInterface';
 import { requestTypeDerivationSourceEvidenceInventory } from './requestTypeDerivationSourceEvidenceInventory';
+import { sourceSpanOperations } from '../../../types/upstream/provenance';
 
 const SOURCE_OCCURRENCE_LAWS: readonly RequestTypeDerivationLawId[] = Object.freeze([
   'evidence_key_matches_source_domain',
@@ -123,9 +124,7 @@ const sourceOccurrenceInputMembership = (
           && requestTypeDerivationSourceEvidenceInventory.relateCanonicalRouteIdentity(identity, expectedIdentity).kind === 'canonical_route_identity_equivalent'
           && candidate.provenance.sourceFile.value.value === sourceFile
           && candidate.provenance.sourceLine.value === sourceLine
-          && span.file.value.value === sourceSpan.file.value.value
-          && span.start.value === sourceSpan.start.value
-          && span.end.value === sourceSpan.end.value;
+          && sourceSpanOperations.same(span, sourceSpan).kind === 'same_source_span';
       });
       return route === undefined
         ? Object.freeze({ kind: 'source_occurrence_not_in_input', candidateLocations: inputCandidateLocations(input, source) })
@@ -146,9 +145,7 @@ const sourceOccurrenceInputMembership = (
         const identity = requestTypeDerivationSourceEvidenceInventory.canonicalResourceIdentity(candidate.definition.name);
         return expectedIdentity.kind === 'canonical_resource_identity'
           && requestTypeDerivationSourceEvidenceInventory.relateCanonicalResourceIdentity(identity, expectedIdentity).kind === 'canonical_resource_identity_equivalent'
-          && candidate.source.file.value.value === sourceSpan.file.value.value
-          && candidate.source.start.value === sourceSpan.start.value
-          && candidate.source.end.value === sourceSpan.end.value;
+          && sourceSpanOperations.same(candidate.source, sourceSpan).kind === 'same_source_span';
       });
       return resource === undefined
         ? Object.freeze({ kind: 'source_occurrence_not_in_input', candidateLocations: inputCandidateLocations(input, source) })
@@ -161,9 +158,7 @@ const sourceOccurrenceInputMembership = (
         const identity = requestTypeDerivationSourceEvidenceInventory.canonicalRequestIdentity(candidate.definition.identity);
         return expectedIdentity.kind === 'canonical_request_identity'
           && requestTypeDerivationSourceEvidenceInventory.relateCanonicalRequestIdentity(identity, expectedIdentity).kind === 'canonical_request_identity_equivalent'
-          && candidate.source.file.value.value === sourceSpan.file.value.value
-          && candidate.source.start.value === sourceSpan.start.value
-          && candidate.source.end.value === sourceSpan.end.value;
+          && sourceSpanOperations.same(candidate.source, sourceSpan).kind === 'same_source_span';
       });
       return request === undefined
         ? Object.freeze({ kind: 'source_occurrence_not_in_input', candidateLocations: inputCandidateLocations(input, source) })
@@ -222,14 +217,10 @@ const sameLocation = (
   if (first.kind === 'route_declaration_location' && second.kind === 'route_declaration_location') {
     return first.file.value.value === second.file.value.value
       && first.line.value === second.line.value
-      && first.span.file.value.value === second.span.file.value.value
-      && first.span.start.value === second.span.start.value
-      && first.span.end.value === second.span.end.value;
+      && sourceSpanOperations.same(first.span, second.span).kind === 'same_source_span';
   }
   if (first.kind === 'source_span_location' && second.kind === 'source_span_location') {
-    return first.span.file.value.value === second.span.file.value.value
-      && first.span.start.value === second.span.start.value
-      && first.span.end.value === second.span.end.value;
+    return sourceSpanOperations.same(first.span, second.span).kind === 'same_source_span';
   }
   return false;
 };

@@ -14,7 +14,7 @@ const manifestBuilder = read('packages/core/src/compiler/scanner/wiring/upstream
 const upstreamTypes = read('packages/core/src/types/upstream/index.ts');
 
 check('scanner facade delegates through pipeline contract while preserving receipt ADT', facade.includes('laravelSourceAstPipeline.execute(invocationInventoryReceipt)') && facade.includes('LaravelSourceAstProjectionJudgment<Receipt>'));
-check('scanner facade does not import subscanners', !facade.includes('subscanners'));
+check('scanner facade does not import operations', !facade.includes('operations'));
 check('scanner facade does not import semantic relation operators', !facade.includes('/semantic/relations/'));
 check('scanner facade owns no source scan function body', !facade.includes('async function scanLaravelSourceAsts'));
 check('pipeline implements a closed typed interface', pipeline.includes('LaravelSourceAstPipelineInterface') && pipeline.includes("closed: true"));

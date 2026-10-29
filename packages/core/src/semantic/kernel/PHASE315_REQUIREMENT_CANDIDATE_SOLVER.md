@@ -21,7 +21,7 @@ The model is now used by:
 
 - `semantic/plugins/frameworkRuleSelection.ts`
 - `semantic/plugins/expression/ternaryHandler.ts`
-- `compiler/scanner/lexer/astClassifier.ts`
+- `compiler/frontend/php/astClassifier.ts`
   - cast classification
   - compound-expression precedence dispatch
   - function/callable dispatch

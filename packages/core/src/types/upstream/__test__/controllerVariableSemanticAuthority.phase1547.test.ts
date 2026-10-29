@@ -6,7 +6,7 @@ import type { Expression } from '../expression';
 
 const noBindings = Object.freeze([]);
 const unsupportedExpressionReason: Extract<Expression, { readonly kind: 'unsupported_expression' }>['reason'] = { kind: 'unsupported_syntax' };
-const sourceExpression: Expression = Object.freeze({ kind: 'unsupported_expression', reason: unsupportedExpressionReason, source: Object.freeze({ kind: 'source_span', file: Object.freeze({ kind: 'source_file', value: stringValue('Controller.php') }), start: numberValue(0), end: numberValue(1) }) });
+const sourceExpression: Expression = Object.freeze({ kind: 'unsupported_expression', reason: unsupportedExpressionReason, source: Object.freeze({ kind: 'source_span', file: Object.freeze({ kind: 'source_file', value: stringValue.create('Controller.php') }), start: numberValue(0), end: numberValue(1) }) });
 const request = (evidence: ControllerVariableSemanticResolutionRequest['evidence']): ControllerVariableSemanticResolutionRequest => ({ sourceExpression, evidence, parameterBindings: noBindings });
 
 describe('controller variable semantic interface-first authority', () => {

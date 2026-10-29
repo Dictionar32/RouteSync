@@ -4,8 +4,8 @@ const ts = require('typescript');
 
 const root = path.resolve(__dirname, '..');
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts',
 ];
 const forbidden = {
   if: /\bif\s*\(/g,

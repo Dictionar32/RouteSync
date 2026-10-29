@@ -1,0 +1,22 @@
+{
+  "phase": 2947,
+  "title": "Fully Explicit Filesystem Rejection Evidence",
+  "scope": "CLI manifest canonicalization and filesystem discovery rejection boundaries",
+  "changes": [
+    "Canonicalization blocked judgment retains the original Promise rejection value as failure: unknown",
+    "Node filesystem failure observation accepts unknown and safely checks whether a code property exists",
+    "Removed synthetic Error construction that discarded non-Error rejection evidence",
+    "lstat and readdir rejection values are passed unchanged to filesystem failure observation",
+    "Kept interface-first runtime composition and upstream collections.ts empty"
+  ],
+  "verification": {
+    "structuralAudit": "10/10 passed",
+    "typescriptSyntaxTranspile": "2/2 changed TypeScript files passed with 0 syntax diagnostics",
+    "packageJsonParse": "passed",
+    "collectionsTs": "empty (0 bytes)",
+    "fullTypecheck": "not run",
+    "unitTests": "not run",
+    "build": "not run",
+    "cliEndToEnd": "not run"
+  }
+}

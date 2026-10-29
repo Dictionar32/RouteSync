@@ -1,0 +1,53 @@
+{
+  "files": [
+    {
+      "file": "packages/core/src/types/upstream/requestTypeDerivationInterface.ts",
+      "kind": "typescript-transpile",
+      "diagnostics": 0,
+      "details": []
+    },
+    {
+      "file": "packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationOperationPreparation.ts",
+      "kind": "typescript-transpile",
+      "diagnostics": 0,
+      "details": []
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/wiring/routeManifestTypeLoweringAuthority.ts",
+      "kind": "typescript-transpile",
+      "diagnostics": 0,
+      "details": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowRouteProjection.ts",
+      "kind": "typescript-transpile",
+      "diagnostics": 0,
+      "details": []
+    },
+    {
+      "file": "packages/core/src/index.ts",
+      "kind": "typescript-transpile",
+      "diagnostics": 0,
+      "details": []
+    },
+    {
+      "file": "scripts/audits/audit-phase2811-upstream-domain-operated-derivation.cjs",
+      "kind": "javascript-syntax",
+      "diagnostics": 0,
+      "details": []
+    },
+    {
+      "file": "scripts/audits/audit-phase2812-interface-first-semantic-runtime-operations.cjs",
+      "kind": "javascript-syntax",
+      "diagnostics": 0,
+      "details": []
+    },
+    {
+      "file": "scripts/audits/audit-phase3019-upstream-manifest-domain-operation.cjs",
+      "kind": "javascript-syntax",
+      "diagnostics": 0,
+      "details": []
+    }
+  ],
+  "totalDiagnostics": 0
+}

@@ -17,10 +17,10 @@ const forbidden = source => ({
 const files = [
   'packages/core/src/types/upstream/astSemanticInterface.ts',
   'packages/core/src/types/upstream/astSemanticStageInterface.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts',
 ];
-const oldSolver = 'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts';
+const oldSolver = 'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts';
 const source = executable(read(files[1]));
 const oldImports = fs.readdirSync(core, { recursive: true })
   .filter(file => typeof file === 'string' && file.endsWith('.ts'))
@@ -34,14 +34,14 @@ const result = {
     .every(stage => source.includes(`'${stage}'`)),
   pipeline: ['AstSemanticPipeline', 'AstSemanticBoundary', 'createAstSemanticStagePort', 'stageFacts', 'pipelineFacts']
     .every(symbol => source.includes(symbol)),
-  rewriteEngine: exists('packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts'),
+  rewriteEngine: exists('packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts'),
   legacySolverEmpty: empty(oldSolver),
   legacySolverImports: oldImports.map(file => path.relative(root, file)),
   intentionallyInactiveFilesEmpty: [
-    'packages/core/src/compiler/scanner/descriptors/validation/fieldNodes.ts',
-    'packages/core/src/compiler/scanner/subscanners/resource/resourceBindingPathBuilder.ts',
-    'packages/core/src/compiler/scanner/subscanners/resource/resourceBindingSemanticInterface.ts',
-    'packages/core/src/compiler/scanner/subscanners/validationRuleChecker.ts',
+    'packages/core/src/compiler/scanner/operations/domain-model/validation/fieldNodes.ts',
+    'packages/core/src/compiler/scanner/operations/resource/resourceBindingPathBuilder.ts',
+    'packages/core/src/compiler/scanner/operations/resource/resourceBindingSemanticInterface.ts',
+    'packages/core/src/compiler/scanner/operations/validationRuleChecker.ts',
   ].every(empty),
   forbiddenBoundary: Object.fromEntries(files.map(file => [file, forbidden(executable(read(file))) ])),
 };

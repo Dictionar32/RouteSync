@@ -6,7 +6,7 @@
  * @module cli/commands/annotate/template
  */
 
-export function buildRoutePreamble(forceStr: string): string {
+function buildRoutePreamble(forceStr: string): string {
     return `<?php
 require __DIR__.'/vendor/autoload.php';
 $app = require_once __DIR__.'/bootstrap/app.php';
@@ -63,3 +63,11 @@ foreach ($routes as $route) {
         }
 `;
 }
+
+export interface RoutePreambleTemplateOperationsInterface {
+  readonly build: (forceStr: string) => string;
+}
+
+export const routePreambleTemplateOperations: RoutePreambleTemplateOperationsInterface = Object.freeze({
+  build: buildRoutePreamble,
+});

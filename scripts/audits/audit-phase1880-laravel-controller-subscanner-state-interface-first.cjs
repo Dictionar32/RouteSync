@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
-const controllerDirectory = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDirectory = 'packages/core/src/compiler/scanner/operations/controller';
 const retirement = read('packages/core/src/types/upstream/laravelSubscannerRetirementInterface.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const packageJson = JSON.parse(read('package.json'));
@@ -24,7 +24,7 @@ const checks = [
   ['scanner boundary v109 forbids equating retired entry with empty directory', /readonly version: 109/.test(scannerContract) && /subscannerDirectoryRealityBoundary/.test(scannerContract) && /does-not-imply-the-controller-subscanner-directory-is-empty/.test(scannerContract)],
   ['controller producer contract remains upstream-owned', /ControllerProducer/.test(read('packages/core/src/types/upstream/controllerProducerInterface.ts')) && /controllerProducerOwnershipBoundary/.test(scannerContract)],
   ['invocation judgment remains one source-correlated integrated response value', /readonly sourceFile: SourceFile/.test(read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts')) && /readonly response: Extract<PhpSourceInvocationSemanticPipelineIntegrationResult/.test(read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts'))],
-  ['parser receives the full invocation judgment', /parseControllerDeclarationFromInvocationJudgment/.test(read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts'))],
+  ['parser receives the full invocation judgment', /parseControllerDeclarationFromInvocationJudgment/.test(read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts'))],
   ['no semantic foundation dependency introduced', !/semantic\/foundation/.test(retirement + scannerContract)],
   ['audit command is registered', packageJson.scripts?.['audit:phase1880-laravel-controller-subscanner-state-interface-first'] === 'node scripts/audits/audit-phase1880-laravel-controller-subscanner-state-interface-first.cjs'],
 ];

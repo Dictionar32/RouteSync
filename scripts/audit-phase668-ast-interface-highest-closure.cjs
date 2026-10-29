@@ -7,20 +7,20 @@ const forbidden = /\b(if|while|for|switch)\s*\(|\.(map|filter|reduce|flatMap)\s*
 const files = [
   'packages/core/src/semantic/foundation/relationalSequence.ts',
   'packages/core/src/types/upstream/presence.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenEvidence.ts',
+  'packages/core/src/compiler/frontend/php/tokenEvidence.ts',
   'packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts',
   'packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasics.ts',
-  'packages/core/src/compiler/scanner/descriptors/route/routeMethods.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/route/routeMethods.ts',
 ];
 const counts = Object.fromEntries(files.map(file => [file, [...read(file).matchAll(new RegExp(forbidden.source, 'g'))].length]));
 const relation = read('packages/core/src/semantic/foundation/relationalSequence.ts');
 const presence = read('packages/core/src/types/upstream/presence.ts');
 const domain = read('packages/core/src/types/upstream/routeDomainAuthority.ts');
 const domainAdapter = read('packages/core/src/compiler/scanner/resolvers/RouteDomainResolver.ts');
-const token = read('packages/core/src/compiler/scanner/lexer/tokenEvidence.ts');
+const token = read('packages/core/src/compiler/frontend/php/tokenEvidence.ts');
 const legacy = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 ].every(file => size(file) === 0);
 const inactive = JSON.parse(require('child_process').execFileSync(process.execPath, [path.join(root, 'scripts/audit-phase525-inactive-file-vacuum.cjs')], { encoding: 'utf8' }));
 const relationVariantClosed = ['RelationVariant', 'relationVariant'].every(term => relation.includes(term));

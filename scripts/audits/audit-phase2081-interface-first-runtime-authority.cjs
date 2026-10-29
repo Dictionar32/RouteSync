@@ -6,8 +6,8 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const declarationInterface = read('packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentInterface.ts');
 const declarationAuthority = read('packages/core/src/types/upstream/controllerDeclarationSemanticJudgmentAuthority.ts');
-const actionScanner = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionScanner = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const checks = [
   ['invocation judgment remains discriminated union', read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts').includes('kind:')],

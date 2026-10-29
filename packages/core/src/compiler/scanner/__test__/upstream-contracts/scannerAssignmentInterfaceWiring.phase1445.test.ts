@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { LaravelSourceLexer } from '../../LaravelSourceLexer';
-import { classifyPhpBlock } from '../../lexer/astClassifier';
-import { phpSourceTokenizer } from '../../lexer/tokenizer';
+import { classifyPhpBlock } from '../../../frontend/php/astClassifier';
+import { phpSourceTokenizer } from '../../../frontend/php/tokenizer';
 
 describe('scanner assignment interface wiring phase 1445', () => {
   test('projects compound assignment through the upstream assignment contract', () => {

@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2011_FRAMEWORK_VERSION_COMPATIBILITY_INTERFACE_FIRST.md');
 const checks = [
   ['framework version compatibility is an explicit closed ADT', () => {
@@ -56,7 +56,7 @@ const checks = [
   ['existing canonical response product flow remains; no new semantic authority', () => {
     assert.match(scanner, /controller_response_method_products_complete/);
     assert.doesNotMatch(scanner, /controllerReturnSemanticFromMethod/);
-    assert.doesNotMatch(scanner, /subscanners\/(relation|foundation)/);
+    assert.doesNotMatch(scanner, /operations\/(relation|foundation)/);
   }],
   ['documentation records conservative behavior and no full build claim', () => {
     assert.match(docs, /Other major versions remain unresolved/);

@@ -13,7 +13,7 @@
 
 ## Trace findings
 
-- Consumers are in `compiler/scanner/lexer/routeAst/phpAstExpressionMappings.ts`: arguments, member/method access, array entries/keys, assignment targets, destructuring entries, and static property owners.
+- Consumers are in `compiler/frontend/php/routeAst/phpAstExpressionMappings.ts`: arguments, member/method access, array entries/keys, assignment targets, destructuring entries, and static property owners.
 - `resourceSemanticMappingAuthority.ts` wires the existing upstream authority into the exported consumer functions.
 - CLI transitive closure is not proven by this bounded change; follow imports from CLI scanner entrypoints and verify the same authority is used end-to-end.
 

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Continue the scanner/lexer and resolver eradication boundary using a higher semantic model: declarative relations, candidate requirements, relation options, recursive closure, fixed-point/rewrite-oriented execution, and no imperative parser authority for the closed frontier.
+Continue the frontend/php and resolver eradication boundary using a higher semantic model: declarative relations, candidate requirements, relation options, recursive closure, fixed-point/rewrite-oriented execution, and no imperative parser authority for the closed frontier.
 
 ## Research synthesis
 
@@ -17,13 +17,13 @@ The design is informed by several families of systems:
 
 ## Phase 498 change
 
-`packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts` was moved further behind the relational absence boundary:
+`packages/core/src/compiler/frontend/php/astClassifierEvidence.ts` was moved further behind the relational absence boundary:
 
 - explicit `undefined` parser absence was replaced by `RELATION_NONE` / `RelationMaybe`.
 - parser absence is now a relation witness rather than a JavaScript absence sentinel.
 - structured statement parsers use relational presence/absence predicates.
 - switch-case and try/catch parser results participate in the same relation option boundary.
-- the AST classifier is now part of the closed scanner/lexer authority surface.
+- the AST classifier is now part of the closed frontend/php authority surface.
 
 This is intentionally semantic rather than textual: no `void 0`, sentinel null, or equivalent lexical dodge is introduced.
 

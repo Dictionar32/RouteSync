@@ -3,13 +3,13 @@ const ts = require('typescript');
 
 const files = [
   'packages/core/src/semantic/kernel/semanticDecisionRewriteEngine.ts',
-  'packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts',
-  'packages/core/src/compiler/scanner/lexer/phpMethodParser.ts',
-  'packages/core/src/compiler/scanner/lexer/phpAstFactory.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticConstraintCalculus.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/routeBindingDeclarationAst.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts',
+  'packages/core/src/compiler/frontend/php/astClassifierEvidence.ts',
+  'packages/core/src/compiler/frontend/php/phpMethodParser.ts',
+  'packages/core/src/compiler/frontend/php/phpAstFactory.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/phpAstExpressionSyntaxEvidenceRegistry.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticConstraintCalculus.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/routeBindingDeclarationAst.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts',
 ];
 
 const diagnostics = files.map((file) => {

@@ -1,7 +1,7 @@
 # Phase 422 — Scanner/Resolver Relational Authority
 
 ## Objective
-Continue moving scanner/lexer and resolver authority away from imperative traversal and collection APIs toward declarative semantic relations, relation folds, lookup witnesses, and solver/rewrite boundaries.
+Continue moving frontend/php and resolver authority away from imperative traversal and collection APIs toward declarative semantic relations, relation folds, lookup witnesses, and solver/rewrite boundaries.
 
 ## Changes
 - `sourceAstScanner.ts`

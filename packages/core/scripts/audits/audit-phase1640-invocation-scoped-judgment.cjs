@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const algebra = read('src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const executor = read('src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts');
+const scanner = read('src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts');
 const checks = [
   ['Interface declares scoped semantic execution policy', /readonly execution: Readonly<\{\s*readonly scope: 'requested-invocation-and-semantic-dependencies';\s*readonly unrelatedInvocations: 'excluded-before-rewrite';/m.test(contract)],
   ['Single judgment resolves requested invocation directly', /const invocation = invocationFacts\(model\)\.find\(/m.test(algebra) && /const invocation = invocationFacts\(model\)\.find\(/m.test(algebra) && /One-judgment path:[\s\S]*slice callable and emission knowledge/.test(algebra)],

@@ -79,20 +79,14 @@ export const routeSyncCliProgramFactory: RouteSyncCliProgramFactoryInterface = O
       controllerInvocationManifestCompositionAuthority,
       semanticComposition,
     );
-    switch (resolution.kind) {
-      case 'routesync_cli_upstream_semantic_assembly_rejected':
-        return resolution;
-      case 'routesync_cli_upstream_composition_available':
-        return Object.freeze({
-          kind: 'routesync_cli_program_available',
-          composition: resolution.composition,
-          program: routeSyncCliProgram.create(resolution.composition),
-        });
-      default: {
-        const exhaustive: never = resolution;
-        return exhaustive;
-      }
-    }
+    return resolution.continueForCliComposition({
+      compositionAvailable: (composition: RouteSyncCliUpstreamCompositionInterface): RouteSyncCliProgramResolution => Object.freeze({
+        kind: 'routesync_cli_program_available',
+        composition,
+        program: routeSyncCliProgram.create(composition),
+      }),
+      semanticAssemblyRejected: (): RouteSyncCliProgramResolution => resolution as Extract<RouteSyncCliProgramResolution, { readonly kind: 'routesync_cli_upstream_semantic_assembly_rejected' }>,
+    });
   },
 });
 
@@ -158,10 +152,62 @@ if (isCliEntry) {
   void routeSyncStandaloneCliOperation.run();
 }
 
+// Public manifest runtime API: expose canonical operation values and their ADT contracts.
+export {
+  manifestContractValidationOperations,
+  manifestSerializationOperations,
+  manifestGeneratorOperations,
+} from './generators';
+export type {
+  ManifestContractViolation,
+  ManifestContractValidationHandlers,
+  ManifestContractValidatedJudgment,
+  ManifestContractRejectedJudgment,
+  ManifestContractValidationJudgment,
+  ManifestContractValidationOperationsInterface,
+  SerializableManifestRoute,
+  SerializableManifestContract,
+  SerializableManifest,
+  ManifestSerializationJudgment,
+  ManifestSerializationCompleteJudgment,
+  ManifestSerializationRejectedJudgment,
+  ManifestSerializationHandlers,
+  ManifestSerializationOperationsInterface,
+  ManifestGeneratorOptions,
+  ManifestGenerationJudgment,
+  ManifestPersistenceJudgment,
+  ManifestPersistenceHandlers,
+  ManifestPersistenceCompleteJudgment,
+  ManifestPersistenceContractRejectedJudgment,
+  ManifestPersistenceSerializationRejectedJudgment,
+  ManifestPersistenceWriteRejectedJudgment,
+  ManifestGeneratorOperationsInterface,
+} from './generators';
+
 export type { RouteSyncCliUpstreamCompositionInterface } from './upstreamCompositionInterface';
 export type { RouteSyncCliManifestScanOperationInterface } from './manifestScanOperationInterface';
-export { controllerInvocationManifestBuilder, controllerInvocationManifestCompositionAuthorityFactory, controllerInvocationManifestCompositionAuthority } from './parsers/php/controllerInvocationManifestComposition';
-export type { ControllerInvocationManifestBuilderInterface, ControllerInvocationManifestCompositionAuthorityFactoryInterface } from './parsers/php/controllerInvocationManifestCompositionInterface';
+export { phpAstBoundaryOperations } from './parsers/php/astBoundarySemanticInterface';
+export type { PhpAstBoundaryOperationsInterface, PhpAstBoundaryJudgment, PhpAstBoundaryJudgmentHandlers, PhpAstBoundaryFact, PhpAstBoundaryRelation } from './parsers/php/astBoundarySemanticInterface';
+export { controllerInvocationManifestBuilder, controllerInvocationManifestTerminalOperationsFactory, controllerInvocationManifestCompositionAuthorityFactory, controllerInvocationManifestCompositionAuthority } from './parsers/php/controllerInvocationManifestComposition';
+export type {
+  ControllerInvocationManifestBuilderInterface,
+  ControllerInvocationManifestCompositionInput,
+  ControllerInvocationManifestCompositionAuthorityInterface,
+  ControllerInvocationManifestCompositionDependencies,
+  ControllerInvocationManifestCompositionAuthorityFactoryInterface,
+  ControllerInvocationManifestTerminalOperationInterface,
+  ControllerInvocationManifestTerminalFailure,
+  ControllerInvocationManifestTerminalFailureEvidence,
+  ControllerInvocationManifestTerminalOperationsFactoryInterface,
+  ControllerInvocationManifest,
+  ControllerInvocationManifestCompleteJudgment,
+  ControllerInvocationManifestBlockedJudgment,
+  ControllerInvocationManifestInventoryRejectedTerminal,
+  ControllerInvocationManifestSourceDiscoveryBlockedTerminal,
+  ControllerInvocationManifestSourceProjectIdentityBlockedTerminal,
+  ControllerInvocationManifestSourceDocumentsBlockedTerminal,
+  ControllerInvocationManifestSourceDocumentIdentityRejectedTerminal,
+} from './parsers/php/controllerInvocationManifestCompositionInterface';
 export { routeSyncCliManifestScanOperationFactory } from './manifestScanOperationInterface';
 export type { RouteSyncCliManifestScanOperationFactoryInterface, RouteSyncCliManifestScanOperationInterface } from './manifestScanOperationInterface';
 export type { RouteSyncCliUpstreamCompositionResolution } from './upstreamCompositionFactory';
@@ -190,7 +236,7 @@ export {
 } from './utils/incremental';
 
 export { routeSyncCliUpstreamCompositionFactory } from './upstreamCompositionFactory';
-export type { RouteSyncCliUpstreamCompositionFactoryInterface, RouteSyncCliUpstreamCompositionResolution } from './upstreamCompositionFactory';
+export type { RouteSyncCliUpstreamCompositionFactoryInterface, RouteSyncCliUpstreamCompositionResolution, RouteSyncCliUpstreamCompositionResolutionHandlers } from './upstreamCompositionFactory';
 
 export {
   routeSyncStandaloneCompositionModuleSourceFactory,

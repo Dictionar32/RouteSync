@@ -22,7 +22,7 @@ The fixes are not compatibility casts:
 
 ## Next elevation frontier
 
-The remaining architecture work is deliberately not a cast-removal campaign. The next scanner/lexer frontier is to lift:
+The remaining architecture work is deliberately not a cast-removal campaign. The next frontend/php frontier is to lift:
 
 `source evidence -> closed AST judgment -> canonical semantic relation -> constraint program -> indexed fixed point -> derivation witness -> rewrite -> target projection`.
 

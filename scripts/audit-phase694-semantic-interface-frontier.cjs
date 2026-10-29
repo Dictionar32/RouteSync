@@ -82,8 +82,8 @@ const result = {
   duplicateValidationAuthority: { productionReferences: duplicateAuthority, canonicalFile: 'packages/core/src/types/domain/validationRules.ts' },
   hostFrontier,
   retiredManifestDescriptors: [
-    'packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts',
-    'packages/core/src/compiler/scanner/descriptors/manifest/routeManifestDescriptor.ts'
+    'packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts',
+    'packages/core/src/compiler/scanner/operations/domain-model/manifest/routeManifestDescriptor.ts'
   ],
   inactiveVacuum: vacuum,
   status: diagnostics.length === 0 && kinds.length === registryKeys && registryKeys === handlerKeys && parsedResourceRefs.length === 0 && vacuum.allCandidatesEmpty ? 'PASS' : 'REVIEW'

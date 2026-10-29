@@ -1,0 +1,56 @@
+{
+  "phase": 2937,
+  "title": "Source-model to manifest domain continuation closure",
+  "checks": [
+    {
+      "name": "source-model result has fixed-domain continuation interface",
+      "passed": true
+    },
+    {
+      "name": "complete source-model judgment owns continueToManifestBuild",
+      "passed": true
+    },
+    {
+      "name": "blocked source-model judgment owns continueToManifestBuild",
+      "passed": true
+    },
+    {
+      "name": "complete source-model operation dispatches to onComplete",
+      "passed": true
+    },
+    {
+      "name": "blocked source-model operation dispatches to onBlocked",
+      "passed": true
+    },
+    {
+      "name": "manifest builder consumes source-model continuation",
+      "passed": true
+    },
+    {
+      "name": "manifest builder no longer branches on source-model discriminator",
+      "passed": true
+    },
+    {
+      "name": "source-model builder contract version is 2",
+      "passed": true
+    },
+    {
+      "name": "manifest builder contract version is 10",
+      "passed": true
+    },
+    {
+      "name": "high-level source model is exported by upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "collections.ts remains empty",
+      "passed": true
+    }
+  ],
+  "passed": 11,
+  "total": 11,
+  "collectionsBytes": 0,
+  "runtimeTestStatus": "not-run",
+  "typecheckStatus": "not-run",
+  "syntaxTranspileStatus": "passed for 4 changed/critical TypeScript files using TypeScript 5.8.3 transpileModule"
+}

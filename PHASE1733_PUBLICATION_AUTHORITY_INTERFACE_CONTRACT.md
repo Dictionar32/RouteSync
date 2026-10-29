@@ -8,7 +8,7 @@ This phase strengthens upstream interfaces only. It does not implement publicati
 
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts`: defines inventory subjects, typed publication violations, validated/rejected publication results, and the publication interface.
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts`: states that scanner consumes only authority-validated receipts and preserves typed rejection ledgers without repair.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`: still delegates ordinary invocation analysis through `invocationSemanticPipeline.analyzeKnowledge(...)`.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`: still delegates ordinary invocation analysis through `invocationSemanticPipeline.analyzeKnowledge(...)`.
 
 ## Interface changes
 

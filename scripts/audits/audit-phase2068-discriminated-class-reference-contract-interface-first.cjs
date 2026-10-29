@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/controllerStaticCallOriginInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerStaticCallOriginAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const regression = read('packages/core/src/types/upstream/__tests__/controller-static-call-discriminated-class-reference.phase2068.test.ts');
 const checks = [
   ['origin input has a single discriminated class-reference source', contract.includes('export interface ControllerStaticCallOriginInput') && /export interface ControllerStaticCallOriginInput \{[\s\S]*?readonly classReference: ControllerStaticCallClassReferenceEvidence[\s\S]*?readonly classNameResolutionContext:/.test(contract) && !/export interface ControllerStaticCallOriginInput \{[\s\S]*?readonly className: ClassName;/.test(contract)],

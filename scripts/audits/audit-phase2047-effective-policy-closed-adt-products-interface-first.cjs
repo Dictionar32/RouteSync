@@ -23,7 +23,7 @@ const checks = [
   ['blocked regression verifies products are absent and only blocked relation is projected', regression.includes("expect('middleware' in policy).toBe(false)") && regression.includes("expect('authorization' in policy).toBe(false)") && regression.includes("'controller_action_policy_blocked'")],
   ['complete regression verifies usable products remain available', regression.includes("expect(policy.judgment.kind).toBe('complete')") && regression.includes('expect(policy.middleware).toHaveLength(1)')],
   ['invocation judgment and existing integrated response path remain present', invocationPath && fs.readFileSync(invocationPath, 'utf8').includes('controllerProducer.produce({ declaration: declarationEvidence, invocationJudgment })')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['audit is registered in package scripts', fs.readFileSync(path.join(root, 'package.json'), 'utf8').includes('audit:phase2047-effective-policy-closed-adt-products-interface-first')],
 ];
 let passed = 0;

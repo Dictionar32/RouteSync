@@ -24,7 +24,7 @@ const checks = [
   ['invocation runtime executor remains an authority delegate', invocationExecutor.includes('execute: (input: InvocationSemanticInput): InvocationSemanticJudgment => authority.analyze(input)')],
   ['response executor remains an authority delegate', responseInterface.includes("readonly execute: Authority['judge'];")],
   ['response judgment contract version matches implementation', responseInterface.includes('readonly contractVersion: 9;') && responsePipeline.includes('contractVersion: 9,')],
-  ['no new response subscanner or authority introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/responseDtoInventoryScanner.ts')) && !responseInterface.includes('LaravelControllerResponseDtoInventoryAuthorityInterface')],
+  ['no new response subscanner or authority introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/responseDtoInventoryScanner.ts')) && !responseInterface.includes('LaravelControllerResponseDtoInventoryAuthorityInterface')],
 ];
 let failed = 0;
 for (const [name, pass] of checks) {

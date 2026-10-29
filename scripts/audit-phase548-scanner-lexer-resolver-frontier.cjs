@@ -3,7 +3,7 @@ const path = require('path');
 const ts = require('typescript');
 const root = path.resolve(__dirname, '..');
 const roots = [
-  'packages/core/src/compiler/scanner/lexer',
+  'packages/core/src/compiler/frontend/php',
   'packages/core/src/compiler/scanner/resolvers',
 ];
 const files = [];
@@ -44,7 +44,7 @@ const executableLeaks = results.filter(result => Object.entries(result.counts).s
 const undefinedLeaks = results.filter(result => result.counts.undefinedIdentifier > 0);
 const output = {
   phase: 548,
-  scope: 'production scanner/lexer + resolver executable semantics',
+  scope: 'production frontend/php + resolver executable semantics',
   files: results,
   executableSurfaceClean: executableLeaks.length === 0,
   undefinedIdentifierLeaks: undefinedLeaks.map(result => ({ file: result.file, count: result.counts.undefinedIdentifier })),

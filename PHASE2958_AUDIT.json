@@ -1,0 +1,16 @@
+{
+  "phase": 2958,
+  "title": "Source Inventory Predicate Retirement",
+  "scope": [
+    "packages/core/src/types/upstream/names.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "packages/core/src/types/upstream/__tests__/source-file-inventory-domain-visitor.phase2921.test.ts"
+  ],
+  "change": "Removed the generic SourceFileInventory filter(predicate) operation; retained domain-specific identityCardinalityAs and duplicateIdentities operations.",
+  "structuralAudit": "scripts/audits/audit-phase2958-source-inventory-predicate-retirement.cjs",
+  "fullTypecheck": "not run",
+  "vitest": "not run",
+  "fullBuild": "not run",
+  "cliEndToEnd": "not run",
+  "collectionsTsBytes": 0
+}

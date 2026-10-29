@@ -1,0 +1,16 @@
+{
+  "phase": 3102,
+  "scope": "close the stale query-policy selection call on the canonical source-project identity path with a selection-owned domain operation",
+  "selectionContractOwnsIdentityCreation": true,
+  "defaultSelectionDelegatesToCanonicalIdentityFactory": true,
+  "explicitSelectionPreservesPolicyIntent": true,
+  "cliCompositionDelegatesToSelectionOperation": true,
+  "staleSelectionContinuationRemovedFromCanonicalization": true,
+  "sourceIdentityFactoryRemainsSingleOwner": true,
+  "queryPolicyManifestMaterializationPreserved": true,
+  "regressionCoverageAdded": true,
+  "noDeletedRelationFoundationRestored": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

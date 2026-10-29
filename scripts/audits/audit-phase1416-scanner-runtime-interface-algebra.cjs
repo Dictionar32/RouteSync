@@ -3,8 +3,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const algebra = read('packages/core/src/types/upstream/astClassifierRuleAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
-const evidence = read('packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
+const evidence = read('packages/core/src/compiler/frontend/php/astClassifierEvidence.ts');
 const pkg = JSON.parse(read('package.json'));
 const trace = read('docs/PHASE1416_SCANNER_RUNTIME_INTERFACE_ALGEBRA_TRACE.md');
 const checks = [

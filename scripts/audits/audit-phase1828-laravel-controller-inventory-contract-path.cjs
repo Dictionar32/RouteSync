@@ -9,8 +9,8 @@ const scanner = read('packages/core/src/types/upstream/laravelControllerScannerI
 const upstreamIndex = read('packages/core/src/types/upstream/index.ts');
 const packageRoot = read('packages/core/src/index.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
-const routeScanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
-const resourceScanner = read('packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts');
+const routeScanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
+const resourceScanner = read('packages/core/src/compiler/scanner/operations/ResourceScanner.ts');
 const scripts = JSON.parse(read('package.json')).scripts;
 const checks = [
   ['inventory contract has an explicit ordered closure protocol', /readonly closureOrder: readonly \[[\s\S]*?validate-source-inventory-completeness-and-project-binding[\s\S]*?validate-canonical-source-identity-uniqueness[\s\S]*?validate-exactly-one-judgment-per-controller-source[\s\S]*?reject-judgments-outside-the-controller-source-inventory[\s\S]*?publish-only-a-receipt-bearing-validated-result/.test(inventory)],

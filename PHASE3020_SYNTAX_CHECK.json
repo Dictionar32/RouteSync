@@ -1,0 +1,21 @@
+{
+  "checkedFiles": 3,
+  "diagnosticCount": 0,
+  "files": [
+    {
+      "file": "packages/core/src/types/upstream/valueObjects.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/queryProducerSemanticReasoning.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/compiler/semantic/query/queryEvidenceProducer.ts",
+      "diagnosticCount": 0,
+      "diagnostics": []
+    }
+  ]
+}

@@ -6,8 +6,8 @@ const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControlle
 const boundary = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const actionExecutionContract = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');
 const actionJudgmentContract = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
-const adapter = read('packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const adapter = read('packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const invocation = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const lattice = read('packages/core/src/semantic/relations/relationalSequence.ts');
 const checks = [
@@ -20,7 +20,7 @@ const checks = [
   ['declaration closure gate precedes action execution', scanner.indexOf('if (declarationBlockers.length > 0)') < scanner.indexOf('this.executionDependencies.actionExecution.execute(')],
   ['scanner executes through the interface and not the legacy function', scanner.includes('this.executionDependencies.actionExecution.execute(') && !scanner.includes('scanControllerAction(')],
   ['response projection still correlates invocation and integrated response judgments', scanner.includes('judgment: invocationJudgment,\n                responseJudgment') && invocation.includes('LaravelControllerAstProjectionResponseJudgment<InvocationJudgment>')],
-  ['controller scanner has no direct relation/foundation/subscanner imports', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('subscanners/')],
+  ['controller scanner has no direct relation/foundation/subscanner imports', !scanner.includes('semantic/relations') && !scanner.includes('semantic/foundation') && !scanner.includes('operations/')],
   ['fixed-point result is a discriminated union for convergence versus round-limit', lattice.includes("kind: 'fixed_point_converged'") && lattice.includes("kind: 'fixed_point_round_limit_reached'")],
   ['fixed-point rounds count evaluated transfer applications', lattice.includes('const rounds = completedRounds + 1') && lattice.includes('Number of transfer applications actually evaluated')],
   ['zero or exhausted round limit returns without claiming convergence', lattice.includes('if (completedRounds >= maxRounds)') && lattice.includes('converged: false, limit: maxRounds')],

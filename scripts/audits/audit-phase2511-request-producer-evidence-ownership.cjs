@@ -8,7 +8,7 @@ const check = (name, condition, evidence) => checks.push({ name, passed: Boolean
 
 const contractPath = 'packages/core/src/types/upstream/requestProducerInterface.ts';
 const activePath = 'packages/core/src/compiler/scanner/operations/requestProducer.ts';
-const legacyPath = 'packages/core/src/compiler/scanner/subscanners/requestProducer.ts';
+const legacyPath = 'packages/core/src/compiler/scanner/operations/requestProducer.ts';
 const scannerPath = 'packages/core/src/compiler/scanner/laravelFormRequestScanner.ts';
 const contract = read(contractPath);
 const active = read(activePath);
@@ -30,9 +30,9 @@ check('Active producer binds evidence types at its implementation boundary',
   /RequestProducerInterface<readonly PhpArrayEntry\[\], PhpMethodAst, PhpClassPropertyAst>/.test(active), activePath);
 check('Active producer has no direct relations/foundation imports',
   !/semantic\/(?:relations|foundation)\//.test(active), activePath);
-check('Active scanner remains interface-first and outside subscanners',
+check('Active scanner remains interface-first and outside operations',
   /export const laravelFormRequestScanner:\s*LaravelFormRequestScannerInterface/.test(scanner) &&
-  !/from ['"][^'"]*subscanners\//.test(scanner), scannerPath);
+  !/from ['"][^'"]*operations\//.test(scanner), scannerPath);
 check('Legacy producer receives only a type-level generic specialization',
   /RequestProducerInterface<readonly PhpArrayEntry\[\], PhpMethodAst, PhpClassPropertyAst>/.test(legacy), legacyPath);
 check('Existing TypeInterner contract remains upstream-owned',
@@ -46,7 +46,7 @@ const report = { phase: 2511, scope: 'RequestProducer evidence ownership boundar
   unresolved: [
     'requestAstCanonical.ts and operations/form-request/* still directly import semantic/relations.',
     'TypeHasher.ts still imports semantic/relations; TypeInterner transitive relation closure is not proven.',
-    'The active Laravel pipeline still imports legacy subscanners for response, schema, migration, DTO, query, service, middleware, and provider.',
+    'The active Laravel pipeline still imports legacy operations for response, schema, migration, DTO, query, service, middleware, and provider.',
     'Full TypeScript typecheck, package build, Vitest, and CLI end-to-end remain unverified in this environment.'
   ] };
 fs.writeFileSync(path.join(root, 'PHASE2511_REQUEST_PRODUCER_EVIDENCE_OWNERSHIP_AUDIT.json'), JSON.stringify(report, null, 2) + '\n');

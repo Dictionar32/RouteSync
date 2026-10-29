@@ -12,15 +12,15 @@ const acquisition = read(sourceFile);
 const consumers = [
   'packages/core/src/compiler/semantic/sourceAstEvidenceAcquisition.ts',
   'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts',
-  'packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts',
-  'packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/responseScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts',
+  'packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts',
+  'packages/core/src/compiler/scanner/operations/controller/responseDtoReader.ts',
+  'packages/core/src/compiler/scanner/operations/ChannelScanner.ts',
+  'packages/core/src/compiler/scanner/operations/responseScanner.ts',
+  'packages/core/src/compiler/scanner/operations/providerAstCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/FormRequestScanner.ts',
+  'packages/core/src/compiler/scanner/operations/migrationAstCanonical.ts',
   'packages/core/src/compiler/scanner/__test__/createNotConnectedControllerInventoryReceipt.ts',
   'packages/core/src/compiler/scanner/laravelFormRequestScanner.ts',
   'packages/core/src/compiler/scanner/laravelModelScanner.ts',
@@ -34,7 +34,7 @@ check('PHP collection behavior preserves missing-root empty result and immutable
 check('async and sync source reads remain explicit typed operations', /readSourceText: async \(file: string\): Promise<string> => fs\.promises\.readFile\(file, 'utf-8'\)/.test(acquisition) && /readSourceTextSync: \(file: string\): string => fs\.readFileSync\(file, 'utf-8'\)/.test(acquisition));
 check('all live scanner consumers import the interface object', consumerSources.every(source => /import \{ sourceFileAcquisition \} from ['"][^'"]*sourceFiles['"]/.test(source)));
 check('all scanner call sites use explicit object methods', consumerSources.every(source => !/(^|[^.\w])(?:collectPhpFiles|readSourceTextSync|readSourceText)\(/m.test(source)));
-check('semantic source AST evidence now uses the canonical scanner acquisition object', /sourceFileAcquisition\.collectPhpFiles\(/.test(consumerSources[0]) && /sourceFileAcquisition\.readSourceText\(/.test(consumerSources[0]) && !/scanner\/subscanners\/scannerUtils/.test(consumerSources[0]));
+check('semantic source AST evidence now uses the canonical scanner acquisition object', /sourceFileAcquisition\.collectPhpFiles\(/.test(consumerSources[0]) && /sourceFileAcquisition\.readSourceText\(/.test(consumerSources[0]) && !/scanner\/operations\/scannerUtils/.test(consumerSources[0]));
 check('controller execution dependencies inject the object method, not a free function', /readSourceText:\s*sourceFileAcquisition\.readSourceText/.test(consumerSources[1]));
 check('no direct sourceFiles imports retain legacy function names', consumers.every(file => !/import\s*\{[^}]*\b(?:collectPhpFiles|readSourceTextSync|readSourceText)\b[^}]*\}\s*from\s*['"][^'"]*sourceFiles/.test(read(file))));
 const syntaxFiles = [sourceFile, ...consumers];

@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const compilerEntry = fs.readFileSync(path.join(root, 'packages/core/src/compiler/index.ts'), 'utf8');
 const requestArtifact = fs.readFileSync(path.join(root, 'packages/core/src/compiler/artifacts/RequestTypesArtifact.ts'), 'utf8');
-const requestConsumer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts'), 'utf8');
+const requestConsumer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts'), 'utf8');
 const checks = [
   ['RequestType is declared as an interface in domain contract', /export interface RequestType\b/.test(fs.readFileSync(path.join(root, 'packages/core/src/types/domain/request.ts'), 'utf8'))],
   ['RequestTypesArtifact re-exports RequestType as a type', /export type \{[\s\S]*?RequestType[\s\S]*?\} from '\.\.\/\.\.\/types\/domain\/request';/.test(requestArtifact)],

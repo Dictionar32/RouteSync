@@ -5,7 +5,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const evidence = read('packages/core/src/types/upstream/routeDeclarationEvidence.ts');
 const authority = read('packages/core/src/types/upstream/routeResourceFlow.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const producerRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const producerRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const publicApi = read('packages/core/src/index.ts');
 const checks = [
   ['resource authority consumes the existing canonical declaration evidence', /declaration: RouteDeclarationEvidence/.test(authority)],

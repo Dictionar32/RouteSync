@@ -1,7 +1,7 @@
 const fs = require('fs');
 const files = [
-  'packages/core/src/compiler/scanner/lexer/astClassifier.ts',
-  'packages/core/src/compiler/scanner/subscanners/queryProducer.ts',
+  'packages/core/src/compiler/frontend/php/astClassifier.ts',
+  'packages/core/src/compiler/scanner/operations/queryProducer.ts',
 ];
 const patterns = {
   hostIf: /\bif\s*\(/,

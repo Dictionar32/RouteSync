@@ -9,8 +9,8 @@ const files = [
   'packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts',
   'packages/core/src/compiler/analysis/astAnalysisInterface.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
-  'packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts',
-  'packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts',
+  'packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts',
+  'packages/core/src/compiler/frontend/php/astClassifierEvidence.ts',
 ];
 const inspect = file => {
   const source = fs.readFileSync(path.join(ROOT, file), 'utf8');

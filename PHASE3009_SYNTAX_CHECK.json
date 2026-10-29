@@ -1,0 +1,27 @@
+{
+  "phase": 3009,
+  "tool": "TypeScript transpileModule",
+  "files": [
+    {
+      "file": "packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/cli/src/commands/scan.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/cli/src/commands/sync.ts",
+      "syntaxDiagnostics": 0
+    },
+    {
+      "file": "packages/cli/src/commands/audit/driftAuditor.ts",
+      "syntaxDiagnostics": 0
+    }
+  ],
+  "totalSyntaxDiagnostics": 0
+}

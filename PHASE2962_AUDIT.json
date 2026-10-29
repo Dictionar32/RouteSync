@@ -1,0 +1,24 @@
+{
+  "phase": 2962,
+  "title": "Explicit Correspondence Traversal",
+  "modified": [
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "package.json",
+    "scripts/audits/audit-phase2962-correspondence-explicit-traversal.cjs",
+    "PHASE2962_EXPLICIT_CORRESPONDENCE_TRAVERSAL.md"
+  ],
+  "checks": {
+    "structural_audit": "10/10 passed",
+    "phase2961_domain_specific_source_rejections_audit": "10/10 passed",
+    "phase2960_correspondence_domain_adt_audit": "10/10 passed",
+    "typescript_syntax_diagnostics_modified_authority": 0,
+    "collections_ts_bytes": 0,
+    "zip_integrity": "pending archive creation"
+  },
+  "not_verified": [
+    "full typecheck",
+    "Vitest",
+    "full build",
+    "CLI end-to-end"
+  ]
+}

@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { invocationSemanticAuthority, semanticInterproceduralDataFlowAuthority } from '../invocationSemanticJudgmentAuthority';
-import { createInvocationSemanticRuntimeExecutor } from '../invocationSemanticRuntimeExecutor';
+import { invocationSemanticRuntimeExecutorFactory } from '../invocationSemanticRuntimeExecutor';
 import { INVOCATION_SEMANTIC_CONTRACT } from '../invocationSemanticJudgmentInterface';
 import { LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_CONTRACT } from '../laravelControllerInvocationSemanticJudgmentAuthority';
 import { LARAVEL_CHANNEL_SCANNER_MIGRATION_CONTRACT } from '../laravelChannelScannerInterface';
 
 describe('authority interface-first model phase 2209', () => {
   it('publishes the individual and batch contracts separately while preserving the shared contract identity', () => {
-    const executor = createInvocationSemanticRuntimeExecutor(
+    const executor = invocationSemanticRuntimeExecutorFactory.create(
       invocationSemanticAuthority,
       semanticInterproceduralDataFlowAuthority,
     );

@@ -1,3 +1,4 @@
+import { routeRequestSchemaEvidenceFactory } from '@routesync/core';
 import { describe, it, expect } from 'vitest';
 import {
     HttpMethod,
@@ -29,6 +30,7 @@ const boundaryOptions = (overrides: Partial<RouteBoundaryOptions>): RouteBoundar
     response: VoidResponseDescriptor.create(),
     errorResponses: [],
     schema: emptyRouteSchemaPayload(),
+  schemaEvidence: routeRequestSchemaEvidenceFactory.unavailable('non_controller_route_target'),
     binding: {
         operation: {
             controllerName: SemanticValueFactory.controllerName('ArticleController'),

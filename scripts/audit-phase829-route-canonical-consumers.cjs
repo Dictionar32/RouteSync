@@ -5,15 +5,15 @@ const walk = dir => fs.readdirSync(dir, {withFileTypes:true}).flatMap(e => e.isD
 const production = walk(path.join(root,'packages')).filter(f => /\.(ts|tsx)$/.test(f) && !f.includes(`${path.sep}tests${path.sep}`) && !f.includes(`${path.sep}__tests__${path.sep}`));
 const sdkTests = walk(path.join(root,'packages/sdk/tests')).filter(f => f.endsWith('.ts'));
 const legacyFiles = [
-'packages/core/src/compiler/scanner/descriptors/route/factories/syntheticRouteFactory.ts',
-'packages/core/src/compiler/scanner/descriptors/route/factories/index.ts',
-'packages/core/src/compiler/scanner/descriptors/route/factories/contractRouteFactories.ts',
-'packages/core/src/compiler/scanner/descriptors/route/factories/closureRouteFactory.ts',
-'packages/core/src/compiler/scanner/descriptors/route/factories/controllerActionRouteFactory.ts',
-'packages/core/src/compiler/scanner/descriptors/route/factories/closureSyntheticFactories.ts',
-'packages/core/src/compiler/scanner/descriptors/route/factories/controllerReferenceRouteFactory.ts',
-'packages/core/src/compiler/scanner/descriptors/route/factories/actionRouteFactories.ts',
-'packages/core/src/compiler/scanner/descriptors/route/routeMutations.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/syntheticRouteFactory.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/index.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/contractRouteFactories.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureRouteFactory.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerActionRouteFactory.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/closureSyntheticFactories.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/controllerReferenceRouteFactory.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/factories/actionRouteFactories.ts',
+'packages/core/src/compiler/scanner/operations/domain-model/route/routeMutations.ts',
 ];
 const read = f => fs.readFileSync(f,'utf8');
 const refs = (files, pattern) => files.filter(f => pattern.test(read(f))).map(f => path.relative(root,f));

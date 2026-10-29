@@ -1,5 +1,5 @@
-import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
-import { resolveRouteInvalidations } from '../../core/src/compiler/scanner/subscanners/InvalidationResolver'
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory'
+import { InvalidationResolver } from '../../core/src/compiler/scanner/operations/InvalidationResolver';
 import { describe, it, expect } from 'vitest'
 import {
   RouteHookKind,
@@ -215,7 +215,7 @@ describe('Downstream Explicit Models & Origin Boundary SSOT', () => {
       ScannedResourceRouteGroupDescriptor.create({ resourceName: 'OrderDetail', routes: [] })
     ]
 
-    const resolvedRoutes = resolveRouteInvalidations(routes, models, routeGroups)
+    const resolvedRoutes = InvalidationResolver.resolveRouteInvalidations(routes, models, routeGroups)
     const [resolvedOrderStore, resolvedLogout, resolvedProtectedProfile] = resolvedRoutes
 
     // orderStoreRoute should have: selfList('orderDetail') + parentList('Order') + parentDetail('Order')

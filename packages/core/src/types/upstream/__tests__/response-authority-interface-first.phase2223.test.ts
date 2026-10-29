@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 const root = resolve(__dirname, '../../../../../..');
 const responseInterface = readFileSync(resolve(root, 'packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts'), 'utf8');
-const responseScanner = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/subscanners/responseScanner.ts'), 'utf8');
+const responseScanner = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/operations/responseScanner.ts'), 'utf8');
 const scannerExecutor = readFileSync(resolve(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts'), 'utf8');
 
 describe('Phase 2223 interface-first response authority', () => {

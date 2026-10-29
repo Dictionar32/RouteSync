@@ -1,0 +1,33 @@
+{
+  "phase": 2827,
+  "title": "Delimiter Runtime Operations and Manifest Trace",
+  "runtimeOwner": "packages/core/src/compiler/frontend/php/routeAst/delimiterNavigation.ts",
+  "consumer": "packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts",
+  "migratedOperations": [
+    "emptyDelimiterStateFactory.create",
+    "delimiterTransitionOperation.advance",
+    "isTopLevelDelimiterOperation.test",
+    "isOpeningDelimiterOperation.test",
+    "isClosingDelimiterOperation.test",
+    "closesCurrentDelimiterOperation.test",
+    "delimiterDepthOperation.measure",
+    "matchingDelimiterCloseOperation.resolve"
+  ],
+  "upstreamContractReuse": [
+    "RouteSyncCliManifestScanOperationInterface",
+    "RouteSyncCliUpstreamCompositionInterface",
+    "ControllerInvocationManifestCompositionAuthorityInterface",
+    "LaravelSourceAstPipelineInterface",
+    "ManifestBuilderJudgment",
+    "SemanticDataflowManifestSurfaceInterface"
+  ],
+  "decision": "scannerStatementBoundaryAlgebra was inspected but not substituted: statement partition judgments are distinct from incremental delimiter cursor navigation.",
+  "audit": {
+    "phase2827": "16/16 structural checks passed",
+    "phase2826": "25/25 structural checks passed",
+    "phase2825": "25/25 structural checks passed",
+    "phase2824": "11/11 structural checks passed"
+  },
+  "collectionsBytes": 0,
+  "fullTypecheckBuildRuntimeAndE2EVerified": false
+}

@@ -10,7 +10,7 @@ const pipelineContract = read('packages/core/src/types/upstream/invocationSemant
 const dataflowAuthority = read('packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts');
 const invocationAuthority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const requestProjection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const requestProjection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const actionContract = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const checks = [
   ['single invocation executor delegates directly to upstream authority', /execute: \(input: InvocationSemanticInput\): InvocationSemanticJudgment => authority\.analyze\(input\)/.test(executor)],
@@ -26,7 +26,7 @@ const checks = [
   ['controller dataflow judgment retains both integrated response and exact invocation judgment', /invocationSemanticIntegratedResponse: integratedResponse/.test(dataflowAuthority) && /invocationJudgment: sourceCorrelation\.invocationJudgment/.test(dataflowAuthority)],
   ['Laravel scanner continues to delegate response judgment to existing response pipeline', /this\.responseSemanticPipeline\.judgeIntegratedResponse/.test(scanner)],
   ['typed request projection loss remains explicitly open instead of falsely closed', /typed_request_binding_projection_loss/.test(actionContract) && /canonical-action-request-judgment-is-not-yet-wired-to-route-boundary/.test(actionContract) && /kind: 'unresolved_input'/.test(requestProjection)],
-  ['no relation/foundation or new subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/invocation-semantic'))],
+  ['no relation/foundation or new subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/foundation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/invocation-semantic'))],
 ];
 const syntaxFiles = [
   'packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts',

@@ -2,7 +2,7 @@
 
 ## Objective
 
-Continue the migration of RouteSync scanner/lexer/resolver authority from host-language control-flow and absence sentinels toward declarative semantic relations, relation options, recursive relation closure, and canonical projection.
+Continue the migration of RouteSync frontend/php/resolver authority from host-language control-flow and absence sentinels toward declarative semantic relations, relation options, recursive relation closure, and canonical projection.
 
 ## Research basis
 
@@ -58,7 +58,7 @@ The scanner/resolver audit remains lexical and therefore is treated as a migrati
 
 ## Remaining frontier
 
-The largest remaining scanner/lexer authorities are still:
+The largest remaining frontend/php authorities are still:
 
 - `astClassifierEvidence.ts`
 - `controllerMethodParser.ts`

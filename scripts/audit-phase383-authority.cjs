@@ -1,7 +1,7 @@
 const fs=require('fs');const ts=require('typescript');
 const files=[
-'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts',
 'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
 'packages/core/src/compiler/scanner/semantic/route/routeBindingAstAdapter.ts',
@@ -13,8 +13,8 @@ const files=[
 'packages/core/src/compiler/scanner/semantic/route/routeMiddlewareResolver.ts',
 'packages/core/src/compiler/scanner/semantic/route/routeSemanticFlowResolver.ts',
 'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
-'packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts',
-'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts',
+'packages/core/src/compiler/scanner/operations/controller/resourceDataflowAggregator.ts',
+'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts',
 ];
 const out={phase:382,files:files.length,counts:{if:0,for:0,while:0,switch:0,map:0,filter:0,reduce:0,flatMap:0,undefined:0,qq:0,null:0,eqeqeq:0,neqeq:0,as:0,unknown:0},perFile:{}};
 for(const file of files){const text=fs.readFileSync(file,'utf8');const sf=ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true);const c={if:0,for:0,while:0,switch:0,map:0,filter:0,reduce:0,flatMap:0,undefined:0,qq:0,null:0,eqeqeq:0,neqeq:0,as:0,unknown:0};

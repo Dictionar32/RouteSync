@@ -1,0 +1,294 @@
+{
+  "phase": 2867,
+  "title": "Upstream Manifest Interface-First Authority Contract and Runtime Trace",
+  "runtimeFileCount": 796,
+  "checks": {
+    "existingUpstreamAuthorityInterfaceReused": true,
+    "upstreamAuthorityAcceptsClosedInputAndReturnsJudgment": true,
+    "authorityRoutesAllClosedJudgmentCases": true,
+    "cliManifestFactoryUsesNamedInterface": true,
+    "cliManifestCompositionRemainsCanonical": true,
+    "scanAndSyncConsumeManifestOperation": true,
+    "scanAndSyncUseManifestDomainContinuation": true,
+    "collectionsRemainEmpty": true
+  },
+  "directExportedArrowCount": 197,
+  "directExportedArrowSample": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "name": "buildResourceField"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "name": "requireVariableTargetName"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "name": "requireStringArrayKey"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts",
+      "name": "createModelSymbolTable"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstDerivation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationNode"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationRule"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationWitness"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSource"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSurface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstRelationFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+      "name": "astMappingInterface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityStage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "createAstSemanticAuthorityPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRequestIdentity"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRoundLimit"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "createAstSemanticJudgment"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticNodeTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSourceTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRuleTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticWitnessTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticStageTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticTextTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSyntaxTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactFromRelation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactsFromRelations"
+    }
+  ],
+  "untypedExportedArrowCount": 188,
+  "untypedExportedArrowSample": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "name": "requireVariableTargetName",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "name": "requireStringArrayKey",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts",
+      "name": "createModelSymbolTable",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstDerivation",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationNode",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationRule",
+      "declaration": "export const astRelationRule = (value: AstRuleName): AstRelationTerm => ({ kind: 'ast_term_rule', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationWitness",
+      "declaration": "export const astRelationWitness = (value: AstWitnessName): AstRelationTerm => ({ kind: 'ast_term_witness', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSource",
+      "declaration": "export const astRelationSource = (value: SourceSpan): AstRelationTerm => ({ kind: 'ast_term_source', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSurface",
+      "declaration": "export const astRelationSurface = (value: AstDomainSurface): AstRelationTerm => ({ kind: 'ast_term_surface', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationFact",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstRelationFacts",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+      "name": "astMappingInterface",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityPipeline",
+      "declaration": "export const astSemanticAuthorityPipeline = ("
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityStage",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "createAstSemanticAuthorityPipeline",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRequestIdentity",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRoundLimit",
+      "declaration": "export const astSemanticRoundLimit = (value: number): AstSemanticRoundLimit => Object.freeze({"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFact",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFacts",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "createAstSemanticJudgment",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticNodeTerm",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSourceTerm",
+      "declaration": "export const astSemanticSourceTerm = (value: SourceSpan): AstSemanticTerm => ({ kind: 'source', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRuleTerm",
+      "declaration": "export const astSemanticRuleTerm = (value: AstRuleName): AstSemanticTerm => ({ kind: 'rule', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticWitnessTerm",
+      "declaration": "export const astSemanticWitnessTerm = (value: AstWitnessName): AstSemanticTerm => ({ kind: 'witness', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticStageTerm",
+      "declaration": "export const astSemanticStageTerm = (value: AstSemanticStage): AstSemanticTerm => ({ kind: 'stage', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticTextTerm",
+      "declaration": "export const astSemanticTextTerm = (value: string): AstSemanticTerm => ({ kind: 'text', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSyntaxTerm",
+      "declaration": "export const astSemanticSyntaxTerm = (value: PhpAstExpressionKind): AstSemanticTerm => ({ kind: 'syntax', value });"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactFromRelation",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactsFromRelations",
+      "declaration": ""
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "emptyAstSemanticFacts",
+      "declaration": ""
+    }
+  ],
+  "priorPhase2866RelationImportStatementCount": 173,
+  "priorPhase2866RelationImportFileCount": 86,
+  "collectionsBytes": 0
+}

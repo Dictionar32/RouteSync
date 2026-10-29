@@ -2,11 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const files = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/delimiterNavigation.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxScan.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/delimiterNavigation.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxScan.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts',
   'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
 ];
 const forbidden = ['if','for','while','switch','map','filter','reduce','flatMap','undefined','null','===','!==','as','??'];

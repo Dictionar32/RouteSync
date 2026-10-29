@@ -1,0 +1,917 @@
+{
+  "phase": 2863,
+  "title": "Fully Typed Runtime Scanner Operations — Manifest CLI Trace and Interface-First Export Audit",
+  "runtimeFileCount": 790,
+  "relationImportStatementCount": 175,
+  "relationImportFileCount": 87,
+  "exportedFunctionDeclarations": [],
+  "exportedCallableConstDeclarationsWithoutExplicitType": [
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "name": "requireVariableTargetName"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+      "name": "requireStringArrayKey"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/semantic/route/routeMiddlewareKnowledgeCatalog.ts",
+      "name": "middlewareScopeApplicability"
+    },
+    {
+      "file": "packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts",
+      "name": "createModelSymbolTable"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstDerivation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astDerivationStep"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationNode"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationRule"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationWitness"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSource"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationSurface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "astRelationFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/ast.ts",
+      "name": "emptyAstRelationFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astMappingInterface.ts",
+      "name": "astMappingInterface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "astSemanticAuthorityStage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+      "name": "createAstSemanticAuthorityPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRequestIdentity"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRoundLimit"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "createAstSemanticJudgment"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticNodeTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSourceTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticRuleTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticWitnessTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticStageTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticTextTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticSyntaxTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactFromRelation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "astSemanticFactsFromRelations"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticInterface.ts",
+      "name": "emptyAstSemanticFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticStageContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticStageFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAstSemanticStagePort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createScannerEvidencePort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createUpstreamMappingPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createResolverGraphPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAnalysisPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createSemanticTypeLoweringPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createTargetProjectionPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAstSemanticBoundary"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "createAstSemanticPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "appendAstSemanticPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "pipelineFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "stageFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticFactAtStage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+      "name": "astSemanticJudgmentPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticStageInterface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticStageInterfaceOf"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticStageInterfaceAt"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticPipelineInterfaces"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticInterfaceFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+      "name": "astSemanticInterfaceProofs"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "preservationContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+      "name": "stagePreservationFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/compilerPassFailure.ts",
+      "name": "compilerPassFailureOf"
+    },
+    {
+      "file": "packages/core/src/types/upstream/compilerPassFailure.ts",
+      "name": "compilerPassFailureMessage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/controllerActionPolicyRelations.ts",
+      "name": "controllerActionPolicyRelationsFromEvidence"
+    },
+    {
+      "file": "packages/core/src/types/upstream/controllerActionPolicyRelations.ts",
+      "name": "controllerActionPolicyRelations"
+    },
+    {
+      "file": "packages/core/src/types/upstream/controllerDataflowSemanticJudgmentAuthority.ts",
+      "name": "createControllerDataflowSemanticJudgmentAuthority"
+    },
+    {
+      "file": "packages/core/src/types/upstream/eloquent.ts",
+      "name": "eloquentRelationAstFromDescriptor"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "invocationPositionalEvidenceUnproven"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "analyzeInvocationSemanticAlgebra"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "analyzeInvocationJudgmentAlgebra"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "callTargetForInvocation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
+      "name": "parameterFlowsForInvocation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "name": "assertInvocationSemanticInputContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "name": "assertInvocationSemanticJudgmentContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "name": "analyzeAllInvocationSemantics"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
+      "name": "parameterFlowsFor"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+      "name": "invocationSemanticRulePolicy"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
+      "name": "invocationWitnessOwnerRuleId"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticPipeline.ts",
+      "name": "createInvocationSemanticPipeline"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticPipeline.ts",
+      "name": "createInvocationSemanticIntegratedResponseComposition"
+    },
+    {
+      "file": "packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts",
+      "name": "createInvocationSemanticRuntimeExecutor"
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerResponseDtoDeclarationResolutionAuthority.ts",
+      "name": "createLaravelControllerResponseDtoDeclarationResolutionAuthority"
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelDtoResponseContractProjectionAuthority.ts",
+      "name": "createLaravelDtoResponseContractProjectionAuthority"
+    },
+    {
+      "file": "packages/core/src/types/upstream/migrationInterface.ts",
+      "name": "migrationInterfaceFromDefinition"
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "modelSemanticRelationIdentityOf"
+    },
+    {
+      "file": "packages/core/src/types/upstream/model.ts",
+      "name": "modelSemanticRelationIdentityKey"
+    },
+    {
+      "file": "packages/core/src/types/upstream/modelVocabulary.ts",
+      "name": "eloquentRelationMultiplicity"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createExceptionName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createModelName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createEnumName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createClassName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "classNameEquals"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "variableNameEquals"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "modelNameMatchesClassName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createTableName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createColumnName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "stringValue"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createServiceName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createResourceName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createRouteName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createControllerName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createActionName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createConstantName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createSourceFile"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createChannelName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createMiddlewareName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createMethodName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "methodNameEquals"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createPropertyName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createRelationName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createRequestName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createResponseTypeName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createRoutePath"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createRouteParameterName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createDomainTypeName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createAbilityName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "createHttpErrorName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/names.ts",
+      "name": "deriveRouteConstantKey"
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpClassNameResolutionInterface.ts",
+      "name": "createPhpQualifiedClassName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceFrontendInterface.ts",
+      "name": "phpSourceTextOf"
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineDeliveryInterface.ts",
+      "name": "phpSourceInvocationSemanticPipelineDeliveryBatchFromResults"
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticSourceBindingAuthority.ts",
+      "name": "phpSourceInvocationPipelineEvidenceFromSourceBinding"
+    },
+    {
+      "file": "packages/core/src/types/upstream/presence.ts",
+      "name": "fromBooleanFlag"
+    },
+    {
+      "file": "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+      "name": "validateQueryOperationSemanticRuleCatalog"
+    },
+    {
+      "file": "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+      "name": "validateQueryOperationSemanticEvidenceBoundExecution"
+    },
+    {
+      "file": "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+      "name": "validateQueryOperationSemanticDecision"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceModelKeyCapability.ts",
+      "name": "resourceModelKeyCapabilitiesFromAsts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceModelKeyCapability.ts",
+      "name": "resourceModelKeyCapabilityFor"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceModelReasoning.ts",
+      "name": "reasonResourceModel"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+      "name": "resolveResourceSemanticMappingPort"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+      "name": "resolveResourceStructuralKind"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+      "name": "resolveResourceStaticReceiver"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+      "name": "resolveResourceStaticAction"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+      "name": "resolveResourceAstMappingInterface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+      "name": "resolveResourceSemanticMappingInterface"
+    },
+    {
+      "file": "packages/core/src/types/upstream/resourceVocabulary.ts",
+      "name": "resourceOperationKindForMethod"
+    },
+    {
+      "file": "packages/core/src/types/upstream/route.ts",
+      "name": "createRouteSecurityDescriptor"
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeActionPolicyRelations.ts",
+      "name": "routeActionPolicyRelationsFromEffectivePolicy"
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeActionPolicyRelations.ts",
+      "name": "routeActionPolicyRelations"
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeCapabilitySemanticAuthority.ts",
+      "name": "hasCanonicalRequestFields"
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeMiddleware.ts",
+      "name": "routeMiddlewareIdentity"
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "resolveApiResourceFlowJudgment"
+    },
+    {
+      "file": "packages/core/src/types/upstream/routeResourceFlow.ts",
+      "name": "resolveRouteResourceDeclarationJudgment"
+    },
+    {
+      "file": "packages/core/src/types/upstream/scannerExpressionCandidateAlgebra.ts",
+      "name": "scannerExpressionStructurePriority"
+    },
+    {
+      "file": "packages/core/src/types/upstream/schema.ts",
+      "name": "schemaInterfaceFromDefinition"
+    },
+    {
+      "file": "packages/core/src/types/upstream/schemaRelation.ts",
+      "name": "schemaRelationIndexFrom"
+    },
+    {
+      "file": "packages/core/src/types/upstream/schemaRelation.ts",
+      "name": "schemaForeignKeyEvidence"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticClosureEngine.ts",
+      "name": "closeCanonicalSemanticRelations"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticClosureEngine.ts",
+      "name": "closeCanonicalSemanticTheory"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticClosureEngine.ts",
+      "name": "canonicalSemanticFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflow.ts",
+      "name": "semanticDataflowIdentityKey"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflow.ts",
+      "name": "semanticDataflowIdentityEqual"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflow.ts",
+      "name": "semanticDataflowFactWithLineage"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowControllerProjection.ts",
+      "name": "semanticDataflowControllerFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowControllerQueryProjection.ts",
+      "name": "semanticDataflowControllerQueryFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowInputFactory.ts",
+      "name": "createSemanticDataflowInputProducer"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticAssignmentEffect"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticAssignmentReference"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticText"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticNumber"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticBoolean"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticSourceOffset"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticSourceSpan"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticSource"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "knowledgeId"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "knowledgeIdKey"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticIdentifier"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticOperation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticDataFlowRole"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticDependency"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticValueFlow"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+      "name": "semanticEdge"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+      "name": "semanticDataflowFactContractKey"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+      "name": "materializeSemanticDataflowQueryPolicy"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+      "name": "validateSemanticDataflowQueryPolicyContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+      "name": "decodeSemanticDataflowQueryPolicyContract"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowQueryPolicy.ts",
+      "name": "semanticDataflowQueryPolicyMatches"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowRequestProjection.ts",
+      "name": "semanticDataflowRequestFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticDataflowRouteProjection.ts",
+      "name": "semanticDataflowRouteParameterFacts"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticObjectIdentityAuthority.ts",
+      "name": "analyzeSemanticObjectIdentity"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticObjectIdentityAuthority.ts",
+      "name": "semanticAlias"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "isControllerActionPolicyRelation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "isRouteActionPolicyRelation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "isPolicySemanticRelation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "isStructuralSemanticRelation"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "modelRef"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticReferences.ts",
+      "name": "responseRef"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRelationTheory.ts",
+      "name": "validateSemanticTheoryFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRelationTheory.ts",
+      "name": "assertCanonicalSemanticRelationName"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRelationTheory.ts",
+      "name": "semanticTheoryFact"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRelationalBehaviorKernel.ts",
+      "name": "solveSemanticBehavior"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+      "name": "semanticTextTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+      "name": "semanticOrdinalTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+      "name": "semanticTruthTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+      "name": "semanticAbsenceTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+      "name": "semanticVariableTerm"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticTypeDerivationInterface.ts",
+      "name": "semanticTypeSourceEvidence"
+    },
+    {
+      "file": "packages/core/src/types/upstream/semanticTypeDerivationInterface.ts",
+      "name": "assertSemanticTypeDerivationJudgment"
+    },
+    {
+      "file": "packages/core/src/types/upstream/service.ts",
+      "name": "resolveServiceDependencyTarget"
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceBoundaryAlgebra.ts",
+      "name": "sourceBoundaryInputFromCanonicalNode"
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceBoundaryAlgebra.ts",
+      "name": "sourceBoundaryNodeOf"
+    },
+    {
+      "file": "packages/core/src/types/upstream/sourceProjectIdentity.ts",
+      "name": "createLaravelSourceProjectIdentity"
+    },
+    {
+      "file": "packages/core/src/types/upstream/valueObjects.ts",
+      "name": "stringValue"
+    },
+    {
+      "file": "packages/core/src/types/upstream/valueObjects.ts",
+      "name": "numberValue"
+    },
+    {
+      "file": "packages/core/src/types/upstream/valueObjects.ts",
+      "name": "truthValue"
+    },
+    {
+      "file": "packages/core/src/types/upstream/valueObjects.ts",
+      "name": "descriptionText"
+    }
+  ],
+  "interfaceFirstObjectExports": 409,
+  "collectionsBytes": 0,
+  "checks": {
+    "manifestScanFactoryInterfaceFirst": true,
+    "manifestScanOperationIsConsumedByScanAndSync": true,
+    "manifestOutcomeUsesDomainContinuation": true,
+    "manifestCompositionAuthorityIsCanonical": true,
+    "stageProofIsActionableAdt": true,
+    "stageProofAuthorityInterfaceFirst": true,
+    "noExportFunctionDeclarationsOnProductionRuntimePath": true,
+    "cliHasNoSemanticRelationsImports": true,
+    "collectionsRemainEmpty": true,
+    "noUnannotatedExportedArrowConstOnAuditedRuntimePath": false
+  },
+  "remainingRelationImportFiles": [
+    "packages/core/src/compiler/scanner/binders/resource/composite/collectionArrayBinders.ts",
+    "packages/core/src/compiler/scanner/binders/resource/composite/literalTernaryBinders.ts",
+    "packages/core/src/compiler/scanner/binders/resource/fieldBinder.ts",
+    "packages/core/src/compiler/scanner/binders/resource/propertyAccessBinder.ts",
+    "packages/core/src/compiler/scanner/binders/resource/propertyPathBinder.ts",
+    "packages/core/src/compiler/scanner/binders/resource/propertyPathBindingSupport.ts",
+    "packages/core/src/compiler/scanner/binders/resource/propertyPathResolution.ts",
+    "packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts",
+    "packages/core/src/compiler/scanner/binders/resource/whenLoadedRelationArgument.ts",
+    "packages/core/src/compiler/scanner/operations/ChannelScanner.ts",
+    "packages/core/src/compiler/scanner/operations/FormRequestScanner.ts",
+    "packages/core/src/compiler/scanner/operations/InvalidationResolver.ts",
+    "packages/core/src/compiler/scanner/operations/channelProducer.ts",
+    "packages/core/src/compiler/scanner/operations/controller/actionValidationExtractor.ts",
+    "packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts",
+    "packages/core/src/compiler/scanner/operations/controller/resourceDataflowAggregator.ts",
+    "packages/core/src/compiler/scanner/operations/controller/resourceInvocationDetector.ts",
+    "packages/core/src/compiler/scanner/operations/controller/responseDetector.ts",
+    "packages/core/src/compiler/scanner/operations/controller/responseDtoReader.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionAlgebra.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/request/formFieldDescriptor.ts",
+    "packages/core/src/compiler/scanner/operations/domain-model/requestDescriptors.ts",
+    "packages/core/src/compiler/scanner/operations/dtoProducer.ts",
+    "packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts",
+    "packages/core/src/compiler/scanner/operations/middlewareProducer.ts",
+    "packages/core/src/compiler/scanner/operations/migrationAstCanonical.ts",
+    "packages/core/src/compiler/scanner/operations/migrationProducer.ts",
+    "packages/core/src/compiler/scanner/operations/providerAstCanonical.ts",
+    "packages/core/src/compiler/scanner/operations/responseProducer.ts",
+    "packages/core/src/compiler/scanner/operations/schemaProducer.ts",
+    "packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts",
+    "packages/core/src/compiler/scanner/operations/serviceSourceStatements.ts",
+    "packages/core/src/compiler/scanner/operations/typeDeriverUtils.ts",
+    "packages/core/src/compiler/scanner/resolvers/resolverGraphSemanticInterface.ts",
+    "packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts",
+    "packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts",
+    "packages/core/src/compiler/scanner/semantic/route/routeParameterSemanticFactory.ts",
+    "packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts",
+    "packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts",
+    "packages/core/src/compiler/scanner/wiring/semanticDataflowInputAdapter.ts",
+    "packages/core/src/types/upstream/astSemanticAuthorityPipeline.ts",
+    "packages/core/src/types/upstream/astSemanticInterface.ts",
+    "packages/core/src/types/upstream/astSemanticStageAuthority.ts",
+    "packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts",
+    "packages/core/src/types/upstream/astSemanticStagePreservation.ts",
+    "packages/core/src/types/upstream/compilerPassFailure.ts",
+    "packages/core/src/types/upstream/controllerActionSchemaSemanticJudgmentAuthority.ts",
+    "packages/core/src/types/upstream/laravelDtoResponseValueProjectionAuthority.ts",
+    "packages/core/src/types/upstream/phpTypeExpressionAlgebra.ts",
+    "packages/core/src/types/upstream/queryProducerSemanticInterface.ts",
+    "packages/core/src/types/upstream/queryProducerSemanticReasoning.ts",
+    "packages/core/src/types/upstream/resourceGroupCapabilityAlgebra.ts",
+    "packages/core/src/types/upstream/resourceModelReasoning.ts",
+    "packages/core/src/types/upstream/resourceSemanticMappingAlgebra.ts",
+    "packages/core/src/types/upstream/resourceVocabulary.ts",
+    "packages/core/src/types/upstream/routeCapabilityAuthority.ts",
+    "packages/core/src/types/upstream/routeCapabilitySemanticAuthority.ts",
+    "packages/core/src/types/upstream/routeSecurityAuthority.ts",
+    "packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts",
+    "packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts",
+    "packages/core/src/types/upstream/scannerStatementBoundaryAlgebra.ts",
+    "packages/core/src/types/upstream/scannerStatementControlAlgebra.ts",
+    "packages/core/src/types/upstream/scannerStatementSequenceAlgebra.ts",
+    "packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts",
+    "packages/core/src/types/upstream/semanticClosureEngine.ts",
+    "packages/core/src/types/upstream/semanticConstraintAuthority.ts",
+    "packages/core/src/types/upstream/semanticConstraintHandlingAuthority.ts",
+    "packages/core/src/types/upstream/semanticConstraintHandlingInterface.ts",
+    "packages/core/src/types/upstream/semanticConstraintInterface.ts",
+    "packages/core/src/types/upstream/semanticDataflowAuthority.ts",
+    "packages/core/src/types/upstream/semanticDataflowControllerProjection.ts",
+    "packages/core/src/types/upstream/semanticDataflowKnowledge.ts",
+    "packages/core/src/types/upstream/semanticDataflowRouteProjection.ts",
+    "packages/core/src/types/upstream/semanticDecisionAlgebra.ts",
+    "packages/core/src/types/upstream/semanticDecisionInterface.ts",
+    "packages/core/src/types/upstream/semanticMapping.ts",
+    "packages/core/src/types/upstream/semanticObjectIdentityAuthority.ts",
+    "packages/core/src/types/upstream/semanticObjectIdentityInterface.ts",
+    "packages/core/src/types/upstream/semanticReconciliationAlgebra.ts",
+    "packages/core/src/types/upstream/semanticRelationProgram.ts",
+    "packages/core/src/types/upstream/semanticRelationTheory.ts",
+    "packages/core/src/types/upstream/semanticRelationalBehaviorCatalog.ts",
+    "packages/core/src/types/upstream/semanticRelationalBehaviorKernel.ts",
+    "packages/core/src/types/upstream/semanticRewriteAuthority.ts",
+    "packages/core/src/types/upstream/semanticRewriteInterface.ts",
+    "packages/core/src/types/upstream/semanticTypedRelation.ts",
+    "packages/core/src/types/upstream/service.ts"
+  ]
+}

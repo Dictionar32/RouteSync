@@ -3,8 +3,8 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
 const modelPath = path.join(root, 'packages/core/src/types/upstream/controllerDataflowInvocationSemanticModelInterface.ts');
-const astPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const analyzerPath = path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const astPath = path.join(root, 'packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const analyzerPath = path.join(root, 'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const scannerContractPath = path.join(root, 'packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const model = fs.readFileSync(modelPath, 'utf8');
 const ast = fs.readFileSync(astPath, 'utf8');

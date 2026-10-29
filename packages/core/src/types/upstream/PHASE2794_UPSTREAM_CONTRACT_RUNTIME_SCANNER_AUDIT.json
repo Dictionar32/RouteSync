@@ -1,0 +1,37 @@
+{
+  "phase": 2794,
+  "title": "Upstream-contract-first Fully Typed Runtime Scanner Operations",
+  "audit": "audit:phase2794-upstream-contract-runtime-scanner",
+  "checks_passed": 15,
+  "checks_total": 15,
+  "runtime_changes": [
+    "routeBindingDeclarationParser: RouteBindingDeclarationParserInterface = Object.freeze(...)",
+    "phpStatementSyntaxEvidenceProjection: PhpStatementSyntaxEvidenceProjectionInterface = Object.freeze(...)",
+    "phpAstSemanticKnowledgeDataFlowProductionOperation: PhpAstSemanticKnowledgeDataFlowProductionOperationInterface = Object.freeze(...)",
+    "semanticKnowledgeDataFlowProducer: SemanticKnowledgeDataFlowProducerInterface = Object.freeze(...)",
+    "test and production call sites migrated from former exported free functions to operation objects"
+  ],
+  "existing_upstream_contracts_reviewed": [
+    "PhpAstExpressionSemanticAuthorityInterface",
+    "ExpressionFromPhpAstOperationInterface",
+    "ResourceAstExpressionMappingOperationInterface",
+    "ResourceAstExpressionMappingAuthorityInterface",
+    "ScannerExpressionOperatorInterface",
+    "SemanticKnowledgeEvidenceAdapter",
+    "LaravelSourceAstPipelineInterface",
+    "ManifestBuilderOperationPreparationInterface",
+    "ManifestBuilderInterface"
+  ],
+  "upstream_contracts_or_adts_added": 0,
+  "collections_ts_bytes": 0,
+  "typescript_syntax_check": {
+    "files_inspected": 9,
+    "files_with_syntax_errors": 0
+  },
+  "not_verified": [
+    "full TypeScript typecheck",
+    "build",
+    "complete test suite",
+    "CLI scan/sync end-to-end"
+  ]
+}

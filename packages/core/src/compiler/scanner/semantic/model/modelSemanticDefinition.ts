@@ -156,7 +156,8 @@ function buildModelSurface(
     });
 }
 
-export function buildModelSemanticDefinition(params: {
+export interface BuildModelSemanticDefinitionOperation {
+  (params: {
     readonly inheritance: ModelInheritance;
     readonly capabilities: ModelSourceCapabilities;
     readonly methods: readonly ModelMethod[];
@@ -170,7 +171,24 @@ export function buildModelSemanticDefinition(params: {
     readonly accessors: readonly ModelAccessorFact[];
     readonly relations: readonly EloquentRelationAst[];
     readonly schema: SchemaInterface;
-}): ModelSemanticDefinition {
+}): ModelSemanticDefinition;
+}
+
+export const buildModelSemanticDefinition: BuildModelSemanticDefinitionOperation = Object.freeze((params: {
+    readonly inheritance: ModelInheritance;
+    readonly capabilities: ModelSourceCapabilities;
+    readonly methods: readonly ModelMethod[];
+    readonly constants: readonly ModelConstant[];
+    readonly identity: ModelSemanticDefinition['identity'];
+    readonly key: ModelSemanticDefinition['key'];
+    readonly behavior: ModelSemanticDefinition['behavior'];
+    readonly exposure: ModelSemanticDefinition['exposure'];
+    readonly columnFacts: readonly ModelColumnFact[];
+    readonly casts: readonly ModelCast[];
+    readonly accessors: readonly ModelAccessorFact[];
+    readonly relations: readonly EloquentRelationAst[];
+    readonly schema: SchemaInterface;
+}): ModelSemanticDefinition => {
     const columnFacts = Object.freeze(params.columnFacts);
     const fillable = Object.freeze(params.exposure.fillable);
     const guarded = Object.freeze(params.exposure.guarded);
@@ -203,4 +221,4 @@ export function buildModelSemanticDefinition(params: {
         schema: modelSchema,
         relation: relationInterface
     });
-}
+});

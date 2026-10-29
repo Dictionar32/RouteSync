@@ -1,4 +1,4 @@
-import { scannerSemanticType } from '../../../semanticTypeConstructionRelations';
+import { semanticTypeConstruction } from '../../../../semantic/semanticTypeConstruction';
 /**
  * collectionArrayBinders.ts
  *
@@ -8,7 +8,7 @@ import { scannerSemanticType } from '../../../semanticTypeConstructionRelations'
  */
 
 import type { OriginModelSymbol, ModelSymbolTable } from "../../../symbols/ModelSymbolTable";
-import type { PhpAstValue } from "../../../lexer/PhpAst";
+import type { PhpAstValue } from "../../../../frontend/php/PhpAst";
 import { ResourceFieldExpressionFactory } from "../../../../../types/route";
 import { BoundSemanticFactory } from "../../../../../types/domain/boundAst";
 import { SemanticValueFactory } from "../../../../../types/domain/semanticValues";
@@ -19,16 +19,16 @@ import { toCamelCase } from "../../../../../utils/resource-naming";
 import type { BoundResourceFieldResult } from "../../SemanticResourceBinder";
 import { matchLookup } from "../../../../../types/upstream/collections";
 import { requireResourceFieldType } from "../../../../../types/domain/resourceFieldSemantic";
-import { mapResourceAstExpression } from "../../../operations/resourceAstExpressionMapper";
+import { resourceAstExpressionMapping } from "../../../../semantic/resource-production/resourceAstExpressionMapping";
 import { createRelationName, type SourceFile } from "../../../../../types/upstream/names";
 import { relationEqual } from "../../../../../semantic/relations/semanticRelations";
 import { relationGate, relationFold, relationOptionFold, relationProject, relationSelect, relationSome, relationNone } from "../../../../../semantic/relations/relationalSequence";
 
-export function bindResourceCollectionField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'resource_single' | 'resource_collection' }>,
-    modelSymbol: OriginModelSymbol
-): BoundResourceFieldResult {
+export interface BindResourceCollectionFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'resource_single' | 'resource_collection' }>, modelSymbol: OriginModelSymbol): BoundResourceFieldResult;
+}
+
+export const bindResourceCollectionField: BindResourceCollectionFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'resource_single' | 'resource_collection' }>, modelSymbol: OriginModelSymbol): BoundResourceFieldResult => {
     const isCollection = relationEqual(value.kind, 'resource_collection');
     const rel = matchLookup(modelSymbol.relation(createRelationName(key)), {
         missing: () => relationNone(),
@@ -55,30 +55,32 @@ export function bindResourceCollectionField(
         key,
         expression,
         relationGate(isCollection,
-            () => scannerSemanticType.collection(CollectionKind.ARRAY, scannerSemanticType.resource('', value.resourceName)),
+            () => semanticTypeConstruction.collection(CollectionKind.ARRAY, semanticTypeConstruction.resource('', value.resourceName)),
             () => ReferenceType.resource('', value.resourceName)),
         toCamelCase(key),
         boundAst
     );
 
     return { binding, boundAst };
-}
+});
 
 const EMPTY_RESOURCE_FIELD_BINDINGS: readonly ResourceFieldSemanticBindingType[] = Object.freeze([]);
 
-export function bindNestedArrayField(
-    key: string,
-    value: Extract<PhpAstValue, { kind: 'nested_array' }>,
-    modelSymbol: OriginModelSymbol,
-    modelSymbolTable: ModelSymbolTable,
-    bindFieldFn: (params: {
+export interface BindNestedArrayFieldOperation {
+  (key: string, value: Extract<PhpAstValue, { kind: 'nested_array' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: (params: {
         readonly key: string;
         readonly value: PhpAstValue;
         readonly modelSymbol: OriginModelSymbol;
         readonly modelSymbolTable: ModelSymbolTable;
-    }) => BoundResourceFieldResult,
-    sourceFile: SourceFile,
-): BoundResourceFieldResult {
+    }) => BoundResourceFieldResult, sourceFile: SourceFile): BoundResourceFieldResult;
+}
+
+export const bindNestedArrayField: BindNestedArrayFieldOperation = Object.freeze((key: string, value: Extract<PhpAstValue, { kind: 'nested_array' }>, modelSymbol: OriginModelSymbol, modelSymbolTable: ModelSymbolTable, bindFieldFn: (params: {
+        readonly key: string;
+        readonly value: PhpAstValue;
+        readonly modelSymbol: OriginModelSymbol;
+        readonly modelSymbolTable: ModelSymbolTable;
+    }) => BoundResourceFieldResult, sourceFile: SourceFile): BoundResourceFieldResult => {
     const childFields = relationFold(value.entries, EMPTY_RESOURCE_FIELD_BINDINGS, (fields, childEntry, index) => {
         const childKey = relationGate(relationEqual(childEntry.kind, 'keyed'),
             () => relationGate(relationEqual(childEntry.key.kind, 'string'), () => childEntry.key.value, () => String(index)),
@@ -87,7 +89,7 @@ export function bindNestedArrayField(
         return Object.freeze([...fields, childResult.binding]);
     });
 
-    const resultingType = scannerSemanticType.object({ name: 'InlineObject', baseName: 'InlineObject', properties: [], role: 'plain' });
+    const resultingType = semanticTypeConstruction.object({ name: 'InlineObject', baseName: 'InlineObject', properties: [], role: 'plain' });
     const boundAst = BoundSemanticFactory.propertyChain({
         rootModel: SemanticValueFactory.modelName(modelSymbol.name.value.value),
         steps: [],
@@ -103,7 +105,7 @@ export function bindNestedArrayField(
         return {
             name: SemanticValueFactory.responseFieldName(childKey),
             propertyName: field.propertyName,
-            value: mapResourceAstExpression({ value: entry.value, sourceFile })
+            value: resourceAstExpressionMapping.map({ value: entry.value, sourceFile })
         };
     });
     const expression = ResourceFieldExpressionFactory.object(expressionFields);
@@ -115,10 +117,10 @@ export function bindNestedArrayField(
     const binding = ResourceFieldSemanticBinding.fromExpression(
         key,
         expression,
-        scannerSemanticType.object({ name: "InlineObject", baseName: "InlineObject", properties: objectProperties, role: "plain" }),
+        semanticTypeConstruction.object({ name: "InlineObject", baseName: "InlineObject", properties: objectProperties, role: "plain" }),
         toCamelCase(key),
         boundAst
     );
 
     return { binding, boundAst };
-}
+});

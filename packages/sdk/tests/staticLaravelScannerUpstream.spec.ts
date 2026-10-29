@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ModelScanner } from '../../core/src/compiler/scanner/subscanners/ModelScanner';
+import { ModelScanner } from '../../core/src/compiler/scanner/operations/ModelScanner';
 import {
 
   ValidationRuleParser,

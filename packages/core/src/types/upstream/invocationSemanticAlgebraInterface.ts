@@ -4,12 +4,15 @@
  * callers must use InvocationSemanticAlgebraBoundaryInterface's single derive operation.
  */
 import type {
+  KnowledgeId,
   SemanticCallable,
   SemanticInvocation,
   SemanticKnowledgeDataFlow,
 } from './semanticDataflowKnowledge';
 import type {
   InvocationArgumentBindingJudgment,
+  InvocationSemanticAnalysis,
+  SemanticArgumentParameterFlow,
   InvocationPositionalEvidenceInput,
   InvocationResultEmissionFlow,
   InvocationExceptionEmissionFlow,
@@ -158,3 +161,27 @@ export const INVOCATION_SEMANTIC_ALGEBRA_CONTRACT: InvocationSemanticAlgebraCont
   batchInvariant: 'batch-analysis-preserves-each-invocation-judgment-and-its-own-proof',
 });
 
+
+
+/** Explicit domain operations over individual invocations and whole semantic knowledge. */
+export interface InvocationSemanticKnowledgeAlgebraOperationsInterface {
+  readonly kind: 'invocation_semantic_knowledge_algebra_operations';
+  readonly analyze: (knowledge: SemanticKnowledgeDataFlow) => InvocationSemanticAnalysis;
+  readonly analyzeOne: (
+    knowledge: SemanticKnowledgeDataFlow,
+    invocation: SemanticInvocation,
+    positionalEvidence: InvocationPositionalEvidenceInput,
+  ) => InvocationSemanticJudgment;
+  readonly callTargetsFor: (
+    analysis: InvocationSemanticAnalysis,
+    invocation: KnowledgeId,
+  ) => readonly SemanticCallable[];
+  readonly parameterFlowsFor: (
+    analysis: InvocationSemanticAnalysis,
+    invocation: KnowledgeId,
+  ) => readonly SemanticArgumentParameterFlow[];
+  /** Construct explicit evidence that positional correspondence has not been established. */
+  readonly unprovenPositionalEvidenceFor: (
+    invocation: SemanticInvocation,
+  ) => InvocationPositionalEvidenceInput;
+}

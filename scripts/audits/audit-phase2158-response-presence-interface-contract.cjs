@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 const descriptors = read('packages/core/src/types/domain/responseDescriptors.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const domainIndex = read('packages/core/src/types/domain/index.ts');
 const responseExports = read('packages/core/src/types/domain/responses.ts');
 check('descriptor reference contract is an explicit interface', /interface ResponseDescriptorReferenceContract/.test(descriptors));

@@ -1,0 +1,24 @@
+{
+  "phase": 2891,
+  "title": "Discovery Continuation Ownership Audit",
+  "checks": {
+    "discoveryUsesDomainContinuation": true,
+    "discoveryProducerStillDispatchesOnEvidenceKind": true,
+    "discoveryContinuationUsesGenericResult": true,
+    "existingUpstreamDiscoveryContractReused": true,
+    "sourceIdentityPreservedDuringTraversal": true,
+    "sourceReadBatchUsesPromiseAllMap": true,
+    "compositionRuntimeHasNoExportFunction": true,
+    "upstreamCollectionsRemainEmpty": true,
+    "compositionHasSourceDiscoveryDependency": true
+  },
+  "passed": 9,
+  "total": 9,
+  "findings": [
+    "Producer-side evidence.kind dispatch remains inside discovery result construction; this audit does not claim the decision was removed.",
+    "The continuation callback is generic over its consumer result. Removing this generic safely requires a domain operation that does not make core depend on CLI composition; do not replace it with a duplicate generic helper or a fake fixed result.",
+    "Promise.all(discoveredSources.map(...)) remains as batch scheduling. Its semantics should be modeled at the batch-result boundary before changing the projection.",
+    "No runtime source files were modified in this audit phase; the phase records the next architectural seam rather than presenting an unverified refactor as complete."
+  ],
+  "typecheckBuildTestsE2e": "not-run"
+}

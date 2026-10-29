@@ -17,8 +17,8 @@ check('consumer projection accepts judgment only', /export interface RequestType
 check('legacy low-level authority boundary remains distinct', /export interface RequestTypeDerivationSemanticAuthorityInterface/.test(source), 'candidate adjudication is not confused with the public source-bound pipeline');
 
 const untouched = [
-  'packages/core/src/compiler/scanner/subscanners/RequestTypeDeriver.ts',
-  'packages/core/src/compiler/scanner/subscanners/request-deriver/groupAggregator.ts',
+  'packages/core/src/compiler/scanner/operations/RequestTypeDeriver.ts',
+  'packages/core/src/compiler/scanner/operations/request-deriver/groupAggregator.ts',
   'packages/core/src/compiler/semantic/request-type-derivation/requestTypeDerivationAuthority.ts',
   'packages/core/src/compiler/semantic/type-derivation/semanticTypeDerivationRuntimeExecutor.ts',
   'packages/core/src/compiler/scanner/wiring/routeManifestTypeLowering.ts',

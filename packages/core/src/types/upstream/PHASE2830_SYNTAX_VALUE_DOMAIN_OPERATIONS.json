@@ -1,0 +1,18 @@
+{
+  "phase": 2830,
+  "title": "Syntax Value Domain Operations",
+  "owner": "packages/core/src/compiler/frontend/php/routeAst/syntaxValue.ts",
+  "operationInterface": "SyntaxValueOperationsInterface",
+  "runtimeExport": "syntaxValueOperations",
+  "consumerFiles": [
+    "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
+    "packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts",
+    "packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts",
+    "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParser.ts",
+    "packages/core/src/semantic/kernel/syntax/relationalSyntaxCursor.ts"
+  ],
+  "upstreamContractReuse": ["TokenDescriptor", "SyntaxTokenFact", "RelationOption<T>"],
+  "newUpstreamContractCreated": false,
+  "collectionsTsBytes": 0,
+  "validation": "structural audit only; typecheck/build/e2e not implied"
+}

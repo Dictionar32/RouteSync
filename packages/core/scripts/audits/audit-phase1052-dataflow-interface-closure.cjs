@@ -26,7 +26,7 @@ const authority = read('src/types/upstream/semanticDataflowAuthority.ts');
 const runtimeBoundary = read('src/compiler/analysis/semanticDataflowRuntimeBoundary.ts');
 const runtimeComposition = read('src/compiler/analysis/semanticDataflowRuntimeComposition.ts');
 const runtimeAdapter = read('src/compiler/analysis/semanticDataflowDataFlowAdapter.ts');
-const scannerCompat = read('src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const scannerCompat = read('src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const ir = read('src/compiler/ir/SemanticDataflowIRProjection.ts');
 const irInterface = read('src/compiler/ir/SemanticDataflowIRProjectionInterface.ts');
 const projection = read('src/types/dataflow/dataFlowProjectionInterface.ts');
@@ -57,7 +57,7 @@ const checks = {
   manifestRemainsSeedOnly: /ManifestDataflowSeedSurface/.test(manifest) && !/readonly reaches/.test(manifest) && !/kind:\s*['"]reaches['"]/.test(manifest),
   authorityOwnsClosure: /createSemanticDataflowJudgment/.test(authority) && /reachClosure/.test(authority) && !/DataFlowInterface/.test(authority),
   noSemanticDataflowWrapperAuthority: !/interface\s+SemanticDataflowInterface/.test(read('src/types/upstream/semanticDataflow.ts')) && !/createSemanticDataflowInterface|semanticDataflowInterfaceFromJudgment/.test(authority),
-  noProductionLegacyScannerInterface: !production.some(({ file, text }) => file === 'src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts' && /SemanticDataFlowInterface|analyzeSemanticDataFlowInterface/.test(text)),
+  noProductionLegacyScannerInterface: !production.some(({ file, text }) => file === 'src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts' && /SemanticDataFlowInterface|analyzeSemanticDataFlowInterface/.test(text)),
 };
 
 const result = { checks, passed: Object.values(checks).every(Boolean) };

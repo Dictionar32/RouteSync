@@ -1,0 +1,28 @@
+{
+  "phase": 2801,
+  "title": "Typed Controller Declaration Parser Runtime Audit",
+  "scope": "Replace standalone exported controller declaration parser functions with an interface-first frozen operation object.",
+  "runtimeOperations": [
+    "controllerDeclarationParser.parseSyntaxOnly",
+    "controllerDeclarationParser.parseWithInvocationJudgment"
+  ],
+  "existingContractsReviewed": [
+    "LaravelControllerAstProjectionSemanticAuthorityInterface",
+    "LaravelControllerInvocationSemanticJudgmentInterface",
+    "ControllerDeclarationSemanticJudgmentAuthorityInterface"
+  ],
+  "upstreamContractAdded": false,
+  "adtPreserved": [
+    "syntax_only",
+    "invocation_semantic_judgment",
+    "controller_method_declaration_inventory_complete",
+    "controller_method_declaration_inventory_blocked"
+  ],
+  "collectionsModuleBytes": 0,
+  "verificationLimitations": [
+    "full TypeScript typecheck not run",
+    "full build not run",
+    "complete test suite not run",
+    "CLI scan/sync end-to-end not run"
+  ]
+}

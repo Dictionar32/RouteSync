@@ -1,0 +1,61 @@
+{
+  "phase": 2736,
+  "title": "Middleware AST Runtime Operation and Upstream CLI Manifest Trace",
+  "checks": [
+    {
+      "name": "relations directory exists and remains empty",
+      "passed": true
+    },
+    {
+      "name": "foundation directory exists and remains empty",
+      "passed": true
+    },
+    {
+      "name": "middleware AST scan is not exported as a free function",
+      "passed": true
+    },
+    {
+      "name": "middleware AST scan implementation is internal",
+      "passed": true
+    },
+    {
+      "name": "middleware scan interface explicitly types input and output",
+      "passed": true
+    },
+    {
+      "name": "middleware scan operation is interface-first and frozen",
+      "passed": true
+    },
+    {
+      "name": "production source pipeline consumes operation.scan",
+      "passed": true
+    },
+    {
+      "name": "CLI manifest scan operation remains explicit",
+      "passed": true
+    },
+    {
+      "name": "scan command uses the shared manifest runtime operation",
+      "passed": true
+    },
+    {
+      "name": "sync command uses the shared manifest runtime operation",
+      "passed": true
+    },
+    {
+      "name": "manifest builder preserves complete and blocked ADT outcomes",
+      "passed": true
+    },
+    {
+      "name": "no relationFoundation references remain in core source",
+      "passed": true
+    }
+  ],
+  "passed": 12,
+  "total": 12,
+  "relationFoundationReferencesInCoreSource": 0,
+  "relationDirectoryFileCount": 0,
+  "foundationDirectoryFileCount": 0,
+  "scannerSubscannerTypeScriptFileCount": 78,
+  "verificationScope": "Static source audit only; this script does not claim full project typecheck, unit tests, build, or CLI end-to-end execution. Imports into intentionally empty relations/foundation directories are not repaired or hidden."
+}

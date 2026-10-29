@@ -1,6 +1,6 @@
 import type { RouteGroupContext, RouteProducer, RouteProducerInput } from '../../../../types/upstream/route';
-import type { RouteDeclarationAst } from '../../lexer/routeAst/routeDeclarationAst';
-import { routeGroupContextResolver } from '../../descriptors/route/routeGroupContextResolver';
+import type { RouteDeclarationAst } from '../../../frontend/php/routeAst/routeDeclarationAst';
+import { routeGroupContextResolver } from '../../operations/domain-model/route/routeGroupContextResolver';
 
 const semanticProducer: RouteProducer = {
   produce(input: RouteProducerInput) {

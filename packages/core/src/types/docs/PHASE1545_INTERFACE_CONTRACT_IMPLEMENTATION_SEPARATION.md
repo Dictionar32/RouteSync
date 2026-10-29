@@ -24,7 +24,7 @@ model.
 - Is the single runtime composition point: authority -> admission boundary.
 - Implements the contract declared by `semanticDataflowInterface.ts`.
 
-`core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts`
+`core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts`
 - Consumes `semanticDataflowRuntimeExecutor.execute(...)` only for this path.
 - Does not import the authority or admission implementation directly.
 - Still has a legacy compatibility projection; that is a separate downstream

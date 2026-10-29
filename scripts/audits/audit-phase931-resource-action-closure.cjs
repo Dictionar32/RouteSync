@@ -14,7 +14,7 @@ const clean = {
   regressionTestPresent: test.includes('Phase 931 effective route resource policy'),
   canonicalRulePresent: route.includes("kind: 'route_resource_middleware'"),
   canonicalRulePreservesScope: route.includes('readonly scope: RouteMiddlewareScope'),
-  producerPreservesAllScope: read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts').includes("entry.scope.kind === 'all'") && read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts').includes("scope: resourceScope(entry)"),
+  producerPreservesAllScope: read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts').includes("entry.scope.kind === 'all'") && read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts').includes("scope: resourceScope(entry)"),
   noPolicyDataflowVocabulary: !/dataflow_(middleware|authorization|policy)/.test(highLevel + resolver),
   ecomerceFixtureAbsent: !fs.existsSync(path.join(root, 'examples/ecomerce-shop-source')),
   ecommerceFixtureAbsent: !fs.existsSync(path.join(root, 'examples/ecommerce-shop-source')),

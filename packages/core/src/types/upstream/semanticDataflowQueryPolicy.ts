@@ -11,7 +11,11 @@ import type {
   SemanticDataflowIdentity,
   SemanticDataflowJudgment,
 } from './semanticDataflow';
-import { semanticDataflowIdentityEqual, semanticDataflowIdentityKey } from './semanticDataflow';
+import { semanticDataflowIdentityOperations } from './semanticDataflow';
+import type { Sequence } from './collections';
+import type { SourceFile } from './names';
+import type { SourceProjectIdentity } from './highLevelSourceModel';
+import type { LaravelSourceProjectIdentityFactoryInterface } from './sourceProjectIdentity';
 
 export interface SemanticDataflowQueryPolicyIntent {
   readonly kind: 'semantic_dataflow_query_policy_intent';
@@ -21,6 +25,28 @@ export interface SemanticDataflowQueryPolicyIntent {
   readonly additionalFlowSteps?: readonly Readonly<{ source: SemanticDataflowIdentity; target: SemanticDataflowIdentity }>[];
   readonly barrierNodes?: readonly SemanticDataflowIdentity[];
   readonly closed: true;
+}
+
+export interface SemanticDataflowQueryPolicySelectionOperations {
+  /** Applies this selected policy directly when creating the canonical source-project identity. */
+  readonly createSourceProjectIdentity: (
+    sourceRoot: SourceFile,
+    factory: LaravelSourceProjectIdentityFactoryInterface,
+  ) => SourceProjectIdentity;
+  /** Materializes this selection into the closed policy contracts consumed by manifest construction. */
+  readonly materializeQueryPolicyContracts: (
+    judgments: Sequence<SemanticDataflowJudgment>,
+  ) => readonly SemanticDataflowQueryPolicyContract[];
+}
+
+export type SemanticDataflowQueryPolicySelection =
+  | (Readonly<{ readonly kind: 'semantic_dataflow_query_policy_default_selection' }> & SemanticDataflowQueryPolicySelectionOperations)
+  | (Readonly<{ readonly kind: 'semantic_dataflow_query_policy_explicit_selection'; readonly intent: SemanticDataflowQueryPolicyIntent }> & SemanticDataflowQueryPolicySelectionOperations);
+
+export interface SemanticDataflowQueryPolicySelectionFactoryInterface {
+  readonly kind: 'semantic_dataflow_query_policy_selection_factory';
+  readonly defaultSelection: Extract<SemanticDataflowQueryPolicySelection, { readonly kind: 'semantic_dataflow_query_policy_default_selection' }>;
+  readonly explicit: (intent: SemanticDataflowQueryPolicyIntent) => Extract<SemanticDataflowQueryPolicySelection, { readonly kind: 'semantic_dataflow_query_policy_explicit_selection' }>;
 }
 
 export interface SemanticDataflowQueryPolicyContract {
@@ -44,12 +70,17 @@ const includesProducer = (
   && producers.some(producer => producer === fact.lineage?.producer);
 
 const identityKey = (identity: SemanticDataflowIdentity): string => {
-  const key = semanticDataflowIdentityKey(identity);
+  const key = semanticDataflowIdentityOperations.key(identity);
   return JSON.stringify([key.file.value, key.start, key.end, key.role, key.slot.value]);
 };
 
+export interface SemanticDataflowFactContractKeyInterface {
+  readonly kind: 'semantic_dataflow_fact_contract_key';
+  readonly key: (fact: SemanticDataflowFact) => string;
+}
+
 /** Stable semantic fact key survives JSON serialization/deserialization. */
-export const semanticDataflowFactContractKey = (fact: SemanticDataflowFact): string => {
+const semanticDataflowFactContractKeyValue = (fact: SemanticDataflowFact): string => {
   if (fact.kind === 'reaches') return JSON.stringify(['reaches', identityKey(fact.source), identityKey(fact.target)]);
   return JSON.stringify([
     fact.kind,
@@ -61,18 +92,28 @@ export const semanticDataflowFactContractKey = (fact: SemanticDataflowFact): str
   ]);
 };
 
+export const semanticDataflowFactContractKey: SemanticDataflowFactContractKeyInterface = Object.freeze({
+  kind: 'semantic_dataflow_fact_contract_key',
+  key: semanticDataflowFactContractKeyValue,
+});
+
 const uniqueFacts = (facts: readonly SemanticDataflowFact[]): readonly SemanticDataflowFact[] => {
   const seen = new Set<string>();
   return Object.freeze(facts.filter(fact => {
-    const key = semanticDataflowFactContractKey(fact);
+    const key = semanticDataflowFactContractKey.key(fact);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   }));
 };
 
+export interface SemanticDataflowQueryPolicyMaterializerInterface {
+  readonly kind: 'semantic_dataflow_query_policy_materializer';
+  readonly materialize: (judgment: SemanticDataflowJudgment, intent: SemanticDataflowQueryPolicyIntent) => SemanticDataflowQueryPolicyContract;
+}
+
 /** Upstream materialization: producer policy is resolved once into a closed contract. */
-export const materializeSemanticDataflowQueryPolicy = (
+const materializeSemanticDataflowQueryPolicyValue = (
   judgment: SemanticDataflowJudgment,
   intent: SemanticDataflowQueryPolicyIntent,
 ): SemanticDataflowQueryPolicyContract => {
@@ -90,6 +131,47 @@ export const materializeSemanticDataflowQueryPolicy = (
     closed: true,
   });
 };
+
+export const materializeSemanticDataflowQueryPolicy: SemanticDataflowQueryPolicyMaterializerInterface = Object.freeze({
+  kind: 'semantic_dataflow_query_policy_materializer',
+  materialize: materializeSemanticDataflowQueryPolicyValue,
+});
+
+export const semanticDataflowQueryPolicySelectionFactory: SemanticDataflowQueryPolicySelectionFactoryInterface = Object.freeze({
+  kind: 'semantic_dataflow_query_policy_selection_factory',
+  defaultSelection: (() => {
+    let selection: Extract<SemanticDataflowQueryPolicySelection, { readonly kind: 'semantic_dataflow_query_policy_default_selection' }>;
+    selection = Object.freeze({
+      kind: 'semantic_dataflow_query_policy_default_selection',
+      createSourceProjectIdentity: (sourceRoot: SourceFile, factory: LaravelSourceProjectIdentityFactoryInterface): SourceProjectIdentity => factory.create(sourceRoot),
+      materializeQueryPolicyContracts: (): readonly SemanticDataflowQueryPolicyContract[] => Object.freeze([]),
+    });
+    return selection;
+  })(),
+  explicit: (intent: SemanticDataflowQueryPolicyIntent): Extract<SemanticDataflowQueryPolicySelection, { readonly kind: 'semantic_dataflow_query_policy_explicit_selection' }> => {
+    let selection: Extract<SemanticDataflowQueryPolicySelection, { readonly kind: 'semantic_dataflow_query_policy_explicit_selection' }>;
+    selection = Object.freeze({
+      kind: 'semantic_dataflow_query_policy_explicit_selection',
+      intent,
+      createSourceProjectIdentity: (sourceRoot: SourceFile, factory: LaravelSourceProjectIdentityFactoryInterface): SourceProjectIdentity => factory.createWithPolicy({
+        kind: 'laravel_source_project_identity_with_policy_input',
+        sourceRoot,
+        policyIntent: intent,
+      }),
+      materializeQueryPolicyContracts: (judgments: Sequence<SemanticDataflowJudgment>): readonly SemanticDataflowQueryPolicyContract[] => {
+        const materializeAll = (items: Sequence<SemanticDataflowJudgment>): readonly SemanticDataflowQueryPolicyContract[] =>
+          items.kind === 'empty'
+            ? Object.freeze([])
+            : Object.freeze([
+                materializeSemanticDataflowQueryPolicy.materialize(items.head, intent),
+                ...materializeAll(items.tail),
+              ]);
+        return materializeAll(judgments);
+      },
+    });
+    return selection;
+  },
+});
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -171,23 +253,28 @@ const isContractShape = (value: unknown): value is SemanticDataflowQueryPolicyCo
     isRecord(step) && isIdentityShape(step.source) && isIdentityShape(step.target))
   && isIdentityArray(value.barrierNodes);
 
+export interface SemanticDataflowQueryPolicyContractValidatorInterface {
+  readonly kind: 'semantic_dataflow_query_policy_contract_validator';
+  readonly validate: (candidate: unknown, judgment: SemanticDataflowJudgment) => candidate is SemanticDataflowQueryPolicyContract;
+}
+
 /** Validate actual runtime shape and closed semantic invariants before execution. */
-export const validateSemanticDataflowQueryPolicyContract = (
+const validateSemanticDataflowQueryPolicyContractValue = (
   candidate: unknown,
   judgment: SemanticDataflowJudgment,
 ): candidate is SemanticDataflowQueryPolicyContract => {
   if (!isContractShape(candidate)) return false;
   const contract = candidate;
-  if (!semanticDataflowIdentityEqual(contract.judgmentNode, judgment.node)) return false;
-  const judgmentFacts = new Set(judgment.facts.map(semanticDataflowFactContractKey));
-  const selectedKeys = contract.selectedFacts.map(semanticDataflowFactContractKey);
+  if (!semanticDataflowIdentityOperations.equal(contract.judgmentNode, judgment.node)) return false;
+  const judgmentFacts = new Set(judgment.facts.map(semanticDataflowFactContractKey.key));
+  const selectedKeys = contract.selectedFacts.map(semanticDataflowFactContractKey.key);
   const selected = new Set(selectedKeys);
   if (selected.size !== selectedKeys.length) return false;
-  if (contract.selectedFacts.some(fact => !judgmentFacts.has(semanticDataflowFactContractKey(fact)))) return false;
-  if ([...contract.sourceFacts, ...contract.sinkFacts].some(fact => !judgmentFacts.has(semanticDataflowFactContractKey(fact)))) return false;
+  if (contract.selectedFacts.some(fact => !judgmentFacts.has(semanticDataflowFactContractKey.key(fact)))) return false;
+  if ([...contract.sourceFacts, ...contract.sinkFacts].some(fact => !judgmentFacts.has(semanticDataflowFactContractKey.key(fact)))) return false;
 
-  const sourceKeys = contract.sourceFacts.map(semanticDataflowFactContractKey);
-  const sinkKeys = contract.sinkFacts.map(semanticDataflowFactContractKey);
+  const sourceKeys = contract.sourceFacts.map(semanticDataflowFactContractKey.key);
+  const sinkKeys = contract.sinkFacts.map(semanticDataflowFactContractKey.key);
   if (new Set(sourceKeys).size !== sourceKeys.length || new Set(sinkKeys).size !== sinkKeys.length) return false;
   const expectedSelected = new Set([...sourceKeys, ...sinkKeys]);
   if (expectedSelected.size !== selected.size || [...expectedSelected].some(key => !selected.has(key))) return false;
@@ -263,18 +350,28 @@ const deepFreezeRuntimeValue = (value: unknown): void => {
   Object.freeze(value);
 };
 
+export const validateSemanticDataflowQueryPolicyContract: SemanticDataflowQueryPolicyContractValidatorInterface = Object.freeze({
+  kind: 'semantic_dataflow_query_policy_contract_validator',
+  validate: validateSemanticDataflowQueryPolicyContractValue,
+});
+
+export interface SemanticDataflowQueryPolicyContractDecoderInterface {
+  readonly kind: 'semantic_dataflow_query_policy_contract_decoder';
+  readonly decode: (candidate: unknown, judgment: SemanticDataflowJudgment) => SemanticDataflowQueryPolicyContract | undefined;
+}
+
 /**
  * Decode untrusted serialized/runtime data into an immutable, validated snapshot.
  * The executor receives this snapshot rather than retaining a caller-owned object.
  */
-export const decodeSemanticDataflowQueryPolicyContract = (
+const decodeSemanticDataflowQueryPolicyContractValue = (
   candidate: unknown,
   judgment: SemanticDataflowJudgment,
 ): SemanticDataflowQueryPolicyContract | undefined => {
-  if (!isJsonDataValue(candidate) || !validateSemanticDataflowQueryPolicyContract(candidate, judgment)) return undefined;
+  if (!isJsonDataValue(candidate) || !validateSemanticDataflowQueryPolicyContract.validate(candidate, judgment)) return undefined;
   try {
     const snapshot: unknown = JSON.parse(JSON.stringify(candidate));
-    if (!validateSemanticDataflowQueryPolicyContract(snapshot, judgment)) return undefined;
+    if (!validateSemanticDataflowQueryPolicyContract.validate(snapshot, judgment)) return undefined;
     deepFreezeRuntimeValue(snapshot);
     return snapshot;
   } catch {
@@ -282,9 +379,24 @@ export const decodeSemanticDataflowQueryPolicyContract = (
   }
 };
 
+export const decodeSemanticDataflowQueryPolicyContract: SemanticDataflowQueryPolicyContractDecoderInterface = Object.freeze({
+  kind: 'semantic_dataflow_query_policy_contract_decoder',
+  decode: decodeSemanticDataflowQueryPolicyContractValue,
+});
+
+export interface SemanticDataflowQueryPolicyContractMatcherInterface {
+  readonly kind: 'semantic_dataflow_query_policy_contract_matcher';
+  readonly matches: (candidate: unknown, judgment: SemanticDataflowJudgment) => boolean;
+}
+
 /** Canonical association check; no source/sink classification is performed. */
-export const semanticDataflowQueryPolicyMatches = (
+const semanticDataflowQueryPolicyMatchesValue = (
   candidate: unknown,
   judgment: SemanticDataflowJudgment,
 ): boolean => isJsonDataValue(candidate)
-  && validateSemanticDataflowQueryPolicyContract(candidate, judgment);
+  && validateSemanticDataflowQueryPolicyContract.validate(candidate, judgment);
+
+export const semanticDataflowQueryPolicyMatches: SemanticDataflowQueryPolicyContractMatcherInterface = Object.freeze({
+  kind: 'semantic_dataflow_query_policy_contract_matcher',
+  matches: semanticDataflowQueryPolicyMatchesValue,
+});

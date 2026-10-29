@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '../../packages/core/src/types/upstream');
 const resolution = readFileSync(resolve(root, 'phpFunctionNameResolutionInterface.ts'), 'utf8');
 const invocation = readFileSync(resolve(root, 'phpFunctionInvocationSemanticAuthorityInterface.ts'), 'utf8');
-const scanner = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
+const scanner = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
 const checks = [
   ['source syntax evidence is a distinct ADT', resolution.includes('export type PhpFunctionNameSyntaxEvidence')],
   ['segments preserve lexical identity and provenance', resolution.includes('interface PhpFunctionNameSegment') && resolution.includes('readonly source: SourceSpan')],

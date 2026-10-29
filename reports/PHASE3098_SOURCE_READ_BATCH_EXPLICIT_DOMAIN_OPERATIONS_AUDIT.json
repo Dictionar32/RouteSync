@@ -1,0 +1,46 @@
+{
+  "phase": 3098,
+  "scope": "focused source-read batch ADT migration from generic continuation to variant-specific domain operations",
+  "checks": {
+    "genericReadBatchHandlersRemoved": true,
+    "genericReadBatchContinuationRemoved": true,
+    "completeOutcomeHasNamedDomainOperation": true,
+    "blockedOutcomeHasNamedEvidenceOperation": true,
+    "completeBatchFactoryWiresNamedOperation": true,
+    "blockedBatchFactoryWiresNamedOperation": true,
+    "cliConsumesNamedBatchOperations": true,
+    "cliDoesNotConsumeGenericReadBatchContinuation": true,
+    "regressionTestsExerciseNamedOperations": true,
+    "coreDoesNotImportCliManifest": true
+  },
+  "runtimeTrace": [
+    "CLI scan/sync",
+    "controllerInvocationManifestCompositionAuthority",
+    "discoveredSourcesContinuationOperation",
+    "phpSourceDocumentReadOperationBatchFactory.fromSettlements",
+    "identityBatch.bindIdentityBatch",
+    "identityBatch.toSourceReadBatch(phpSourceDocumentReadBatchFactory)",
+    "complete/blocked source-read batch",
+    "semantic pipeline or CLI blocked-manifest terminal",
+    "manifest builder",
+    "generator"
+  ],
+  "preservedSemantics": [
+    "Complete batches preserve ordered documents.",
+    "Blocked batches preserve partial documents and all blockers.",
+    "Identity-rejected batches remain distinct from read-blocked batches.",
+    "Core does not depend on the CLI-owned manifest contract.",
+    "Deleted relation foundation modules remain deleted."
+  ],
+  "remaining": [
+    "CLI composition still discriminates complete versus blocked outcome.",
+    "Other generic continuations remain elsewhere in the repository.",
+    "Repository-wide export-interface conversion is incomplete.",
+    "Repository-wide requested primitive removal is incomplete."
+  ],
+  "notVerified": [
+    "TypeScript typecheck",
+    "Full test suite",
+    "PHP source to CLI manifest to generator end-to-end execution"
+  ]
+}

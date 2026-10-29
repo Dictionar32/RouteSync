@@ -19,4 +19,4 @@ export { createBasicBlockRelation, basicBlockLookup, basicBlockReplace, basicBlo
 
 export type { SemanticDataflowIRNode, SemanticDataflowIRRelation, SemanticDataflowIRProjection } from './SemanticDataflowIRProjectionTypes';
 export type { SemanticDataflowIRProjectionInterface } from './SemanticDataflowIRProjectionInterface';
-export { projectSemanticDataflowToIR, semanticDataflowIRProjection } from './SemanticDataflowIRProjection';
+export { semanticDataflowIRProjection } from './SemanticDataflowIRProjection';

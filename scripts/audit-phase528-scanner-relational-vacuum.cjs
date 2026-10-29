@@ -4,8 +4,8 @@ const { execFileSync } = require('child_process');
 
 const root = path.join(process.cwd(), 'packages/core/src');
 const targets = [
-  path.join(root, 'compiler/scanner/subscanners/request-deriver/responseDeriver.ts'),
-  path.join(root, 'compiler/scanner/subscanners/request-deriver/groupAggregator.ts'),
+  path.join(root, 'compiler/scanner/operations/request-deriver/responseDeriver.ts'),
+  path.join(root, 'compiler/scanner/operations/request-deriver/groupAggregator.ts'),
 ];
 const checks = {
   if: /\bif\b/g,

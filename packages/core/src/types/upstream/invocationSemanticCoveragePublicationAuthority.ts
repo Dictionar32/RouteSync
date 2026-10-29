@@ -189,7 +189,7 @@ const validateAndPublish = (input: InvocationSemanticCoveragePublicationInput): 
   switch (firstViolation) {
     case undefined: {
       const correspondences = publicationPairs.map(pair => createCorrespondence(pair));
-      return Object.freeze({
+      const validated: import('./invocationSemanticPipelineInterface').InvocationSemanticValidatedPublication = Object.freeze({
         kind: 'validated-publication',
         publication,
         validation: Object.freeze({
@@ -201,10 +201,22 @@ const validateAndPublish = (input: InvocationSemanticCoveragePublicationInput): 
           invariant: 'one-publication-entry-per-inventory-identity-with-matching-form-subject-and-source-evidence-and-each-published-ordinary-judgment-bound-to-the-exact-analysis-judgment',
         }),
       });
+      return Object.freeze({
+        ...validated,
+        continueWith: <Result>(handlers: import('./invocationSemanticPipelineInterface').InvocationSemanticCoveragePublicationResultHandlers<Result>): Result => handlers.onValidated(validated),
+      });
     }
     default: {
       const rejectionLedger: readonly [InvocationSemanticCoveragePublicationViolation, ...InvocationSemanticCoveragePublicationViolation[]] = Object.freeze([firstViolation, ...violations.slice(1)]);
-      return Object.freeze({ kind: 'rejected-publication', analysis: input.analysis, violations: rejectionLedger });
+      const rejected: import('./invocationSemanticPipelineInterface').InvocationSemanticRejectedPublication = Object.freeze({
+        kind: 'rejected-publication',
+        analysis: input.analysis,
+        violations: rejectionLedger,
+      });
+      return Object.freeze({
+        ...rejected,
+        continueWith: <Result>(handlers: import('./invocationSemanticPipelineInterface').InvocationSemanticCoveragePublicationResultHandlers<Result>): Result => handlers.onRejected(rejected),
+      });
     }
   }
 };

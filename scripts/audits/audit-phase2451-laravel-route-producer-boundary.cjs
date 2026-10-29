@@ -8,9 +8,9 @@ const composition = fs.readFileSync(compositionPath, 'utf8');
 const wiring = fs.readFileSync(wiringPath, 'utf8');
 const checks = [
   ['route evidence conversion requires explicit producer input', /function routeDeclarationEvidenceFromAst\([\s\S]*?returnSemanticProduction: ControllerReturnSemanticProductionInterface/.test(composition)],
-  ['route composition no longer imports controller subscanner directly', !/from ['"][^'"]*subscanners\/controller\/controllerAstCanonical['"]/.test(composition)],
+  ['route composition no longer imports controller subscanner directly', !/from ['"][^'"]*operations\/controller\/controllerAstCanonical['"]/.test(composition)],
   ['closure return production is invoked through injected contract', /returnSemanticProduction\.produce\(Object\.freeze\(/.test(composition)],
-  ['active wiring no longer imports the legacy producer', !/from ['"][^'"]*subscanners\/controller\/controllerAstCanonical['"]/.test(wiring)],
+  ['active wiring no longer imports the legacy producer', !/from ['"][^'"]*operations\/controller\/controllerAstCanonical['"]/.test(wiring)],
   ['route scanner injects the upstream producer authority', /routeDeclarationEvidenceFromAst\(declaration, file, controllerReturnSemanticProductionAuthority\)/.test(wiring)],
   ['runtime execute remains parameterless', /async execute\(\)/.test(wiring)],
 ];

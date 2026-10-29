@@ -1,0 +1,20 @@
+{
+  "phase": 2716,
+  "audit": "semantic-operation-ownership",
+  "checks": 21,
+  "migratedOperations": [
+    "compiler/semantic/expressionAstCanonical.ts",
+    "compiler/semantic/expressionProducer.ts",
+    "compiler/semantic/propertyProducer.ts"
+  ],
+  "removedScannerImplementations": [
+    "compiler/scanner/operations/expressionAstCanonical.ts",
+    "compiler/scanner/operations/expressionProducer.ts",
+    "compiler/scanner/operations/propertyProducer.ts"
+  ],
+  "importedFilesChecked": 9,
+  "cliTraceFilesPresent": 6,
+  "forbiddenRelationFoundationIntroduced": false,
+  "result": "PASS",
+  "failures": []
+}

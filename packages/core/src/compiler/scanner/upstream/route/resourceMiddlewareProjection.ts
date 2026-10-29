@@ -1,22 +1,30 @@
 /**
  * Lossless Laravel resource middleware projection.
- *
  * Resource-route syntax is evidence; RouteMiddlewareContract is the canonical
- * policy projection consumed by the AST-free middleware resolver. `middleware`,
- * `middlewareFor`, and `withoutMiddlewareFor` therefore become declarations or
- * exclusions without leaking Laravel parser details downstream.
+ * policy projection consumed by the AST-free middleware resolver.
  */
-import type { RouteResourceDeclarationAst, RouteResourceMiddlewareAst } from '../../lexer/routeAst/routeResourceDeclarationAst';
+import type { RouteResourceDeclarationAst, RouteResourceMiddlewareAst } from '../../../frontend/php/routeAst/routeResourceDeclarationAst';
 import { createActionName, createMiddlewareName } from '../../../../types/upstream/names';
+import type { MiddlewareName } from '../../../../types/upstream/names';
 import type { StringValue } from '../../../../types/upstream/valueObjects';
 import type { RouteMiddlewareContract, RouteMiddlewareExclusionContract, RouteMiddlewareScope } from '../../../../types/upstream/routeMiddleware';
 
-export const routeMiddlewareReference = (raw: string) => {
-  const separator = raw.indexOf(':');
-  const name = separator < 0 ? raw : raw.slice(0, separator);
-  const parameters = separator < 0 ? [] : raw.slice(separator + 1).split(',').filter(value => value.length > 0).map((value): StringValue => ({ kind: 'string_value', value }));
-  return Object.freeze({ name: createMiddlewareName(name), parameters: Object.freeze(parameters) });
-};
+export interface RouteMiddlewareReferenceInterface {
+  readonly name: MiddlewareName;
+  readonly parameters: readonly StringValue[];
+}
+
+export interface RouteResourceMiddlewareProjection {
+  readonly declarations: readonly RouteMiddlewareContract[];
+  readonly exclusions: readonly RouteMiddlewareExclusionContract[];
+}
+
+export interface RouteResourceMiddlewareOperationsInterface {
+  readonly reference: (raw: string) => RouteMiddlewareReferenceInterface;
+  readonly project: (
+    resource: Pick<RouteResourceDeclarationAst, 'middleware' | 'middlewareExclusions'>,
+  ) => RouteResourceMiddlewareProjection;
+}
 
 const scope = (value: RouteResourceMiddlewareAst): RouteMiddlewareScope =>
   value.scope.kind === 'all'
@@ -27,26 +35,32 @@ const scope = (value: RouteResourceMiddlewareAst): RouteMiddlewareScope =>
 
 const declarations = (values: readonly RouteResourceMiddlewareAst[]): readonly RouteMiddlewareContract[] =>
   Object.freeze(values.flatMap(value => value.middleware.map(raw => Object.freeze({
-    middleware: routeMiddlewareReference(raw),
+    middleware: routeResourceMiddlewareOperations.reference(raw),
     source: { kind: 'resource' as const },
     scope: scope(value),
   }))));
 
 const exclusions = (values: readonly RouteResourceMiddlewareAst[]): readonly RouteMiddlewareExclusionContract[] =>
   Object.freeze(values.flatMap(value => value.middleware.map(raw => Object.freeze({
-    middleware: routeMiddlewareReference(raw),
+    middleware: routeResourceMiddlewareOperations.reference(raw),
     source: { kind: 'resource' as const },
     scope: scope(value),
   }))));
 
-export interface RouteResourceMiddlewareProjection {
-  readonly declarations: readonly RouteMiddlewareContract[];
-  readonly exclusions: readonly RouteMiddlewareExclusionContract[];
-}
-
-export const projectRouteResourceMiddleware = (
-  resource: Pick<RouteResourceDeclarationAst, 'middleware' | 'middlewareExclusions'>,
-): RouteResourceMiddlewareProjection => Object.freeze({
-  declarations: declarations(resource.middleware),
-  exclusions: exclusions(resource.middlewareExclusions),
+export const routeResourceMiddlewareOperations: RouteResourceMiddlewareOperationsInterface = Object.freeze({
+  reference: (raw: string): RouteMiddlewareReferenceInterface => {
+    const separator = raw.indexOf(':');
+    const name = separator < 0 ? raw : raw.slice(0, separator);
+    const parameters = separator < 0
+      ? []
+      : raw.slice(separator + 1).split(',').filter(value => value.length > 0)
+        .map((value): StringValue => ({ kind: 'string_value', value }));
+    return Object.freeze({ name: createMiddlewareName(name), parameters: Object.freeze(parameters) });
+  },
+  project: (
+    resource: Pick<RouteResourceDeclarationAst, 'middleware' | 'middlewareExclusions'>,
+  ): RouteResourceMiddlewareProjection => Object.freeze({
+    declarations: declarations(resource.middleware),
+    exclusions: exclusions(resource.middlewareExclusions),
+  }),
 });

@@ -1,7 +1,7 @@
 /** Relation-backed model symbol table. */
 import type { ModelAst } from '../../../../types/upstream/ast';
 import type { ControllerModelOrigin } from '../../../../types/upstream/controller';
-import { createOriginModelSymbol, type OriginModelSymbol } from './originModelSymbol';
+import { createOriginModelSymbol, type OriginModelSymbol } from '../../../semantic/model/originModelSymbol';
 import { ResourceNamingConvention } from '../../../../utils/resource-naming';
 import type { Lookup, Option } from '../../../../types/upstream/collections';
 import { matchLookup } from '../../../../types/upstream/collections';

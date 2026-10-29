@@ -2,7 +2,7 @@
   "phase": 1449,
   "title": "Assignment Target Downstream Contract",
   "scope": [
-    "packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts",
+    "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts",
     "packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts",
     "packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts",
     "packages/core/src/types/upstream/__test__/scannerAssignmentTargetAlgebra.phase1422.test.ts"

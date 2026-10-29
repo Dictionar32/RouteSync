@@ -11,7 +11,7 @@ This phase repairs the build failures present in the supplied build log. No sema
    - `semantic/kernel/relationalSequence`
    - `semantic/kernel/semanticRelations`
    - `semantic/kernel/requirementSolver`
-   - `compiler/scanner/lexer/phpAstStatementKinds`
+   - `compiler/frontend/php/phpAstStatementKinds`
    The affected compiler/scanner files had stale relative paths after the semantic kernel relocation.
 3. `semanticRouteSyntaxRelations.ts` contained two declarations of `arrayArgumentValues`.
 4. `queryEvidenceProducer.ts` contained duplicate declarations of the query-column sequence helpers from an incomplete relational migration merge.

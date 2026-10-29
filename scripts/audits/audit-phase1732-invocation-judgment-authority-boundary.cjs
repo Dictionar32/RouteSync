@@ -7,7 +7,7 @@ const judgment = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const scanner = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const runtime = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scannerRuntime = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scannerRuntime = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const pkg = JSON.parse(read('package.json'));
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });

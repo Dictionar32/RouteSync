@@ -3,9 +3,9 @@ const path = require('path');
 const ts = require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript/lib/typescript.js');
 const root = path.resolve(__dirname, '..');
 const core = path.join(root, 'packages/core/src');
-const resource = path.join(core, 'compiler/scanner/subscanners/semantic/resourceTypeDeriver.ts');
+const resource = path.join(core, 'compiler/scanner/operations/semantic/resourceTypeDeriver.ts');
 const lowering = path.join(core, 'compiler/domain/common/typeExpressionSemanticType.ts');
-const responseReader = path.join(core, 'compiler/scanner/subscanners/controller/responseDtoReader.ts');
+const responseReader = path.join(core, 'compiler/scanner/operations/controller/responseDtoReader.ts');
 
 const read = file => fs.readFileSync(file, 'utf8');
 const parse = file => ts.createSourceFile(file, read(file), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS).parseDiagnostics;

@@ -1,6 +1,6 @@
 # Phase 414 — Scanner/Resolver Catalog Authority → Relations
 
-Phase 414 continues the scanner/lexer and resolver migration toward declarative semantic relations + solver/rewrite dispatch.
+Phase 414 continues the frontend/php and resolver migration toward declarative semantic relations + solver/rewrite dispatch.
 
 ## Research basis
 

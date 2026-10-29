@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const token = read('packages/core/src/types/upstream/scannerTokenStructureAlgebra.ts');
 const expression = read('packages/core/src/types/upstream/scannerExpressionOperatorAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
-const phpContract = read('packages/core/src/compiler/scanner/lexer/phpExpressionOperatorContract.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
+const phpContract = read('packages/core/src/compiler/frontend/php/phpExpressionOperatorContract.ts');
 const pkg = JSON.parse(read('package.json'));
 const binary = phpContract;
 const checks = [

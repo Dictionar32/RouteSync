@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const evidence = read('packages/core/src/types/upstream/routeDeclarationEvidence.ts');
-const projection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const projection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const checks = [
   ['upstream closure target carries existing closed ControllerReturnSemantic ADT', /kind: 'closure'; readonly action: string; readonly returnSemantic: ControllerReturnSemantic/.test(evidence)],

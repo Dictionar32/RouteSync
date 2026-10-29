@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
-const file = path.join(root, 'src/compiler/scanner/subscanners/ResourceScanner.ts');
+const file = path.join(root, 'src/compiler/scanner/operations/ResourceScanner.ts');
 const source = fs.readFileSync(file, 'utf8');
 
 const checks = {

@@ -3,7 +3,7 @@ import type { SchemaInterface } from '../schema';
 import type { RouteParameters } from '../collections';
 import { createTableName } from '../names';
 import { schemaRelationIndexFrom } from '../schemaRelation';
-import { routeBindingInterfaceFrom } from '../routeBinding';
+import { routeBindingInterfaceFactory } from '../routeBinding';
 
 describe('phase974 upstream relation interfaces', () => {
   it('indexes cumulative schema foreign-key evidence without rebuilding migration semantics', () => {
@@ -22,7 +22,7 @@ describe('phase974 upstream relation interfaces', () => {
 
   it('keeps route binding as an explicit route-owned surface', () => {
     const parameters = { kind: 'route_parameters', items: { kind: 'empty' } } as RouteParameters;
-    const binding = routeBindingInterfaceFrom(parameters);
+    const binding = routeBindingInterfaceFactory.fromParameters(parameters);
     expect(binding.parameters).toBe(parameters);
     expect(binding.modelParameters.kind).toBe('empty');
   });

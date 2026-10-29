@@ -6,7 +6,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const files = [
   'packages/core/src/types/upstream/ast.ts',
   'packages/core/src/types/upstream/astSemanticInterface.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceBindingSemanticInterface.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceBindingSemanticInterface.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts',
 ];
 const forbidden = /\b(?:if|while|for|switch|map|filter|reduce|flatMap|undefined|any|new)\b|\?\?|===|!==|as unknown/;

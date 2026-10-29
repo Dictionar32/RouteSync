@@ -36,7 +36,7 @@ No pipeline wiring was changed in this phase.
 
 The file declares authority/runtime interfaces but also includes executable shape validation (`assertSemanticTypeDerivationJudgment`). The type contract distinguishes authority from executor by names, but module responsibility is still mixed. This is recorded as a contract-boundary concern; no runtime was moved.
 
-### 5. `core/src/compiler/scanner/lexer/astClassifierRuntime.ts`
+### 5. `core/src/compiler/frontend/php/astClassifierRuntime.ts`
 
 The scanner builds `SemanticDecisionRule` values using callbacks and hands them to the generic algebra. This confirms that scanner classification semantics are still represented as executable callback rules. The scanner is a consumer/evidence producer and should eventually supply typed evidence to the upstream semantic authority rather than define an independent executable rule catalog.
 

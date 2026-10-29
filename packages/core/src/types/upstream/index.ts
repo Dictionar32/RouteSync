@@ -16,7 +16,8 @@ export { phpFunctionNameResolutionAuthority } from './phpFunctionNameResolutionA
 export { phpFunctionResolutionSourceInventoryAuthority } from './phpFunctionResolutionSourceInventoryAuthority';
 export { phpFunctionResolutionEnvironmentProjectionAuthority } from './phpFunctionResolutionEnvironmentProjectionAuthority';
 export { phpFunctionInvocationSemanticJudgmentBatchClosureAuthority } from './phpFunctionInvocationSemanticJudgmentBatchClosureAuthority';
-export { createPhpSourceInvocationSemanticPipelineAuthority } from './phpSourceInvocationSemanticPipelineAuthority';
+export { phpSourceInvocationSemanticPipelineAuthorityFactory } from './phpSourceInvocationSemanticPipelineAuthority';
+export type { PhpSourceInvocationSemanticPipelineAuthorityFactoryInterface } from './phpSourceInvocationSemanticPipelineAuthority';
 export { phpSourceInvocationSemanticPipelineIntegrationAuthority } from './phpSourceInvocationSemanticPipelineIntegration';
 export { PHP_FUNCTION_INVOCATION_SEMANTIC_INTEGRATION_PENDING } from './phpFunctionInvocationSemanticAuthorityInterface';
 export * from './assignment';
@@ -35,7 +36,8 @@ export * from './controller';
 export * from './controllerDataflowInvocationSemanticModelInterface';
 export * from './controllerDataflowSemanticJudgmentAuthorityInterface';
 export * from './effectiveControllerActionPolicy';
-export { resolveEffectiveControllerActionPolicyUpstream, effectiveControllerActionPolicySemanticAuthority } from './effectiveControllerActionPolicyResolver';
+export { effectiveControllerActionPolicyUpstreamOperations, effectiveControllerActionPolicySemanticAuthority } from './effectiveControllerActionPolicyResolver';
+export type { EffectiveControllerActionPolicyUpstreamOperationsInterface } from './effectiveControllerActionPolicyResolver';
 export { effectiveControllerActionPolicyAlgebra } from './effectiveControllerActionPolicyAlgebra';
 export * from './sourceStatements';
 export * from './ast';
@@ -72,7 +74,8 @@ export * from './endpointBindings';
 
 export type { Option, Lookup } from './collections';
 
-export type { ChannelDefinition, ChannelKind } from './channel';
+export { channelKindFactory } from './channel';
+export type { ChannelDefinition, ChannelKind, ChannelKindFactoryInterface, ChannelKindHandlers, ChannelAuthenticationRequirement, PublicChannelKind, PrivateChannelKind, PresenceChannelKind } from './channel';
 
 export * from './query';
 export * from './eloquent';
@@ -96,6 +99,8 @@ export * from './astSemanticStageTransition';
 export type { SemanticDataflowAlgebraInterface } from './semanticDataflow';
 export * from './semanticDataflow';
 export * from './semanticDataflowKnowledge';
+export * from './semanticDataflowKnowledgeValidation';
+export * from './semanticDataflowKnowledgeContinuation';
 export * from './semanticDataflowManifestSurface';
 export * from './semanticDataflowInputFactory';
 export type { ControllerActionPolicyRelation, ControllerActionPolicyProvenance } from './controllerActionPolicyRelations';
@@ -141,7 +146,8 @@ export type { PhpTypeExpressionInterface, PhpTypeExpressionEvidence, PhpTypeExpr
 export { phpParameterTypeAlgebra } from './phpParameterTypeAlgebra';
 export type { PhpParameterTypeInterface, PhpParameterTypeEvidence, PhpParameterTypeJudgment } from './phpParameterTypeInterface';
 export { scannerTokenStructureAlgebra, scannerTokenStructureInterface } from './scannerTokenStructureAlgebra';
-export type { ScannerTokenStructureInterface, ScannerTokenStructureQuery, TokenOccurrenceEvidence, TokenOccurrenceJudgment, TokenOccurrencesJudgment, DelimitedTokenEvidence, DelimitedTokenJudgment, TokenEvidenceLocation, TokenPartitionJudgment } from './scannerTokenStructureInterface';
+export { scannerJudgmentOperations } from './scannerTokenStructureInterface';
+export type { ScannerTokenStructureInterface, ScannerTokenStructureQuery, ScannerJudgmentOperationsInterface, TokenOccurrenceEvidence, TokenOccurrenceContinuationHandlers, TokenOccurrenceJudgment, TokenOccurrencesContinuationHandlers, TokenOccurrencesJudgment, TokenPartitionContinuationHandlers, TokenPartitionJudgment, DelimitedTokenEvidence, DelimitedTokenContinuationHandlers, DelimitedTokenJudgment, TokenEvidenceLocation } from './scannerTokenStructureInterface';
 export type { ScannerAstSourceFailureInterface, ScannerAstSourceFailureJudgment } from './scannerAstSourceFailureInterface';
 export type { ExpressionStructure, ExpressionStructureJudgment } from './scannerExpressionStructure';
 export type { ExpressionEvidenceLocation, ExpressionStructureJudgmentInterface, ExpressionStructureJudgmentRequest, ExpressionStructureTerminalEvidence, ExpressionStructureContractViolationReason } from './scannerExpressionJudgmentInterface';
@@ -272,6 +278,7 @@ export { laravelControllerInvocationSemanticJudgmentInventoryAuthority } from '.
 export {
   LaravelControllerInvocationSemanticJudgmentAuthority,
   laravelControllerInvocationSemanticJudgmentAuthority,
+  laravelControllerInvocationSemanticInputFactory,
   LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_CONTRACT,
 } from './laravelControllerInvocationSemanticJudgmentAuthority';
 export * from './laravelModelScannerInterface';
@@ -299,7 +306,7 @@ export * from './controllerDataflowBindingPayloadCorrespondenceInterface';
 export { controllerDataflowBindingPayloadCorrespondenceAuthority } from './controllerDataflowBindingPayloadCorrespondenceAuthority';
 
 export * from './controllerDataflowVariableIdentityInterface';
-export { controllerDataflowSemanticJudgmentAuthority } from './controllerDataflowSemanticJudgmentAuthority';
+export { controllerDataflowSemanticJudgmentAuthorityFactory, controllerDataflowSemanticJudgmentAuthority } from './controllerDataflowSemanticJudgmentAuthority';
 export { controllerDataflowVariableIdentityAuthority } from './controllerDataflowVariableIdentityAuthority';
 
 export * from './controllerDataflowSourcePayloadEvidenceAdapterInterface';
@@ -315,7 +322,8 @@ export * from './laravelDtoResponseContractProjectionInterface';
 export { LARAVEL_DTO_RESPONSE_CONTRACT_PROJECTION_CONTRACT, createLaravelDtoResponseContractProjectionAuthority, laravelDtoResponseContractProjectionAuthority, laravelDtoResponseContractProjectionRuntimeExecutor } from './laravelDtoResponseContractProjectionAuthority';
 export * from './laravelControllerResponseSemanticJudgmentInterface';
 
-export { createLaravelControllerResponseSemanticJudgmentAuthority, createLaravelControllerResponseSemanticRuntimeExecutor, createLaravelControllerMethodResponseAstProjection, createLaravelControllerResponseSemanticPipeline, laravelControllerResponseSemanticPipelineDependencies, laravelControllerResponseSemanticPipeline } from './laravelControllerResponseSemanticPipeline';
+export { laravelControllerResponseSemanticRuntimeOperations, laravelControllerResponseSemanticPipelineDependencies, laravelControllerResponseSemanticPipeline } from './laravelControllerResponseSemanticPipeline';
+export type { LaravelControllerResponseSemanticRuntimeOperationsInterface } from './laravelControllerResponseSemanticPipeline';
 
 export * from './responseAttributeValueSemanticJudgmentInterface';
 export { responseAttributeValueSemanticAuthority } from './responseAttributeValueSemanticAuthority';
@@ -328,15 +336,16 @@ export { controllerDeclarationSelectionInventoryClosureAuthority } from './contr
 
 export * from './laravelRouteSourceSelection';
 
-export type { ControllerBodySemanticJudgment, ControllerBodySemanticJudgmentAuthorityInterface } from './controllerBodySemanticJudgmentInterface';
-export type { ControllerActionSchemaRequestEvidence, ControllerActionSchemaDerivation, ControllerActionSchemaSemanticJudgment, ControllerActionSchemaSemanticJudgmentAuthorityInterface } from './controllerActionSchemaSemanticJudgmentInterface';
-export { controllerActionSchemaSemanticJudgmentAuthority } from './controllerActionSchemaSemanticJudgmentAuthority';
+export type { ControllerInlineSchemaEvidence, ControllerBodySemanticJudgment, ControllerBodySemanticJudgmentAuthorityInterface } from './controllerBodySemanticJudgmentInterface';
+export type { ControllerActionSchemaRequestEvidence, ControllerActionSchemaDerivation, ControllerActionSchemaRouteRequestEvidence, RouteRequestSchemaEvidenceUnavailable, RouteRequestSchemaEvidenceHandlers, RouteRequestSchemaEvidence, ControllerActionSchemaSemanticJudgment, ControllerActionSchemaSemanticJudgmentAuthorityInterface } from './controllerActionSchemaSemanticJudgmentInterface';
+export type { RouteRequestSchemaEvidenceFactoryInterface } from './controllerActionSchemaSemanticJudgmentAuthority';
+export { controllerActionSchemaSemanticJudgmentAuthority, routeRequestSchemaEvidenceFactory } from './controllerActionSchemaSemanticJudgmentAuthority';
 export * from './laravelControllerResponseDtoDeclarationResolutionAuthority';
 export * from './laravelDtoResponseValueProjectionInterface';
 export { LARAVEL_DTO_RESPONSE_VALUE_PROJECTION_CONTRACT, laravelDtoResponseValueProjectionAuthority, laravelDtoResponseValueProjectionRuntimeExecutor } from './laravelDtoResponseValueProjectionAuthority';
 export * from './laravelDtoTypeReferenceBindingInterface';
 export { LARAVEL_DTO_PROPERTY_TYPE_REFERENCE_BINDING_EVIDENCE_CONTRACT } from './laravelDtoTypeReferenceBindingInterface';
-export { LARAVEL_DTO_TYPE_REFERENCE_BINDING_CONTRACT, createLaravelDtoTypeReferenceBindingAuthority, laravelDtoTypeReferenceBindingAuthority, laravelDtoTypeReferenceBindingRuntimeExecutor } from './laravelDtoTypeReferenceBindingAuthority';
+export { LARAVEL_DTO_TYPE_REFERENCE_BINDING_CONTRACT, laravelDtoTypeReferenceBindingAuthorityFactory, laravelDtoTypeReferenceBindingAuthority, laravelDtoTypeReferenceBindingRuntimeExecutor } from './laravelDtoTypeReferenceBindingAuthority';
 
 export type { DtoPropertyTypeEvidence, DtoPropertyTypeEvidenceContract } from './dtoPropertyTypeEvidenceInterface';
 export { DTO_PROPERTY_TYPE_EVIDENCE_CONTRACT } from './dtoPropertyTypeEvidenceInterface';
@@ -396,3 +405,88 @@ export * from './typeHasherInterface';
 
 export * from './phpSourceDocumentIdentityBindingInterface';
 export { PHP_SOURCE_DOCUMENT_IDENTITY_BINDING_CONTRACT, phpSourceDocumentIdentityBinding } from './phpSourceDocumentIdentityBindingAuthority';
+export { phpSourceDocumentIdentityBindingBatchFactory } from './phpSourceDocumentIdentityBindingBatchAuthority';
+
+export type { RequestAstCanonicalizationInterface } from './requestAstCanonicalizationInterface';
+
+export * from './semanticTypeConstructionInterface';
+
+export * from './sourceScanJudgment';
+
+// Explicit public contracts used by the CLI manifest/scanner runtime. Keep these
+// named exports visible at the upstream boundary instead of requiring deep imports.
+export { matchRouteConstraintArgument, routeConstraintArgumentAlgebra } from './routeConstraints';
+export type {
+  RouteConstraintSyntaxMethod, RouteConstraintSource, RouteConstraintArgumentVisitor,
+  RouteConstraintArgumentAlgebraInterface, RouteConstraintArgument, RouteConstraintFact,
+  RouteConstraintMatcher, RouteConstraintAllowedValue, RouteConstraintContract, RouteConstraintFlow,
+} from './routeConstraints';
+export type {
+  ControllerDependencyAttributeEvidence, ControllerDependencySemanticInput,
+  ControllerDependencySemanticJudgment, ControllerDependencySemanticRule,
+  ControllerDependencySemanticReasoningContract, ControllerDependencySemanticJudgmentAuthorityInterface,
+} from './controllerDependencySemanticJudgmentInterface';
+export type {
+  ControllerReturnSemanticProductionInput, ControllerReturnSemanticProductionInterface,
+} from './controllerReturnSemanticProductionInterface';
+
+// Explicit contract exports for the controller/request scanner runtime. These
+// are existing upstream declarations; expose their canonical types instead of
+// forcing consumers to depend on deep implementation paths.
+export type {
+  ControllerProducerInput, ControllerMethodEvidenceSyntax,
+  ControllerMethodEvidenceProjectionInput, ControllerProducerResult,
+  ControllerProducerContract, ControllerProducer,
+} from './controllerProducerInterface';
+export type {
+  ControllerRuntimeReturnProjectionInput, ControllerRuntimeReturnProjectionInterface,
+} from './controllerRuntimeReturnProjectionInterface';
+export type {
+  LaravelControllerInvocationResponseWiringResult,
+  LaravelControllerInvocationResponseWiringInterface,
+  LaravelControllerInvocationResponseWiringArtifact,
+} from './laravelControllerInvocationResponseWiringInterface';
+export type {
+  LaravelControllerFormRequestBindingEvidence, LaravelControllerRequestParameterEvidence,
+  LaravelControllerRequestBindingEvidence, LaravelControllerRequestBindingEvidenceProjectionInterface,
+  LaravelControllerRequestSemanticBindingAuthorityInterface,
+} from './laravelControllerRequestSemanticBindingInterface';
+export type {
+  RequestProducerInput, RequestProducerResult, RequestProducerInterface,
+} from './requestProducerInterface';
+export type {
+  SemanticKnowledgeEvidenceProjectionInput, SemanticKnowledgeEvidenceProjection,
+  SemanticKnowledgeEvidenceProductionOutcome, SemanticKnowledgeEvidenceAdapter,
+} from './semanticKnowledgeEvidenceAdapterInterface';
+export type { TypeInternerInterface } from './typeInternerInterface';
+export type {
+  ControllerActionResponseReferenceSourceEvidence,
+  ControllerActionResponseReferenceJudgmentInterface,
+} from './controllerActionResponseReferenceJudgmentInterface';
+
+export * from './laravelControllerInvocationSemanticJudgmentPreparationInterface';
+export { laravelControllerInvocationSemanticJudgmentPreparationFactory, laravelControllerInvocationSemanticJudgmentPreparationInputFactory } from './laravelControllerInvocationSemanticJudgmentPreparationAuthority';
+
+export {
+  semanticDataflowFactContractKey,
+  materializeSemanticDataflowQueryPolicy,
+  semanticDataflowQueryPolicySelectionFactory,
+  validateSemanticDataflowQueryPolicyContract,
+  decodeSemanticDataflowQueryPolicyContract,
+  semanticDataflowQueryPolicyMatches,
+} from './semanticDataflowQueryPolicy';
+export type {
+  SemanticDataflowQueryPolicyIntent,
+  SemanticDataflowQueryPolicySelectionOperations,
+  SemanticDataflowQueryPolicySelection,
+  SemanticDataflowQueryPolicySelectionFactoryInterface,
+  SemanticDataflowQueryPolicyContract,
+  SemanticDataflowFactContractKeyInterface,
+  SemanticDataflowQueryPolicyMaterializerInterface,
+  SemanticDataflowQueryPolicyContractValidatorInterface,
+  SemanticDataflowQueryPolicyContractDecoderInterface,
+  SemanticDataflowQueryPolicyContractMatcherInterface,
+} from './semanticDataflowQueryPolicy';
+export type { InvocationSemanticKnowledgeAlgebraOperationsInterface } from './invocationSemanticAlgebraInterface';
+
+export * from './controllerDataflowAnalysisOutcomeInterface';

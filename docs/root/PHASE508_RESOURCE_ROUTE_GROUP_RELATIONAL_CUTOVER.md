@@ -17,7 +17,7 @@ The resource route group surface now uses:
 - semantic option folding for primary-route and response-type resolution;
 - relation equality predicates for all role/type decisions.
 
-The host-language control constructs targeted by the scanner/lexer authority audit are absent from the closed surface.
+The host-language control constructs targeted by the frontend/php authority audit are absent from the closed surface.
 
 ## Research synthesis
 

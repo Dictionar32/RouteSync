@@ -1,0 +1,20 @@
+{
+  "phase": 2887,
+  "name": "Fully Typed Runtime Scanner Operations — Query Policy Runtime Operation Objects",
+  "scope": "semanticDataflowQueryPolicy exported operations, callers, and upstream barrel",
+  "checks": {
+    "collectionsEmpty": true,
+    "noExportFunctionInPolicy": true,
+    "interfaceFirstOperations": true,
+    "explicitUpstreamBarrelValues": true,
+    "migratedCallSites": true,
+    "noOldCallSyntax": true
+  },
+  "validation": {
+    "targetedAudit": "passed",
+    "typescriptTypecheck": "not verified: workspace dependencies/types absent and global compiler incompatible with configured target/lib",
+    "build": "not run",
+    "tests": "not run",
+    "cliE2E": "not run"
+  }
+}

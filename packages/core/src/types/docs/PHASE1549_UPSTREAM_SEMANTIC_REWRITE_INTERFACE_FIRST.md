@@ -9,7 +9,7 @@ This phase moves the semantic-rewrite contract and its authority implementation 
 - `semanticRewriteInterface.ts` defines tagged terms, relation facts/rules, execution requests, closed/incomplete judgments, and authority/runtime-executor interfaces. It does not import or run a solver.
 - `semanticRewriteAuthority.ts` converts the protocol to the existing semantic foundation representation and asks `solveSemanticRelationsDetailed` for a result.
 - `semanticRewriteRuntimeExecutor.ts` delegates only through `SemanticRewriteAuthorityInterface`.
-- `scanner/lexer/routeAst/semanticRewriteInterface.ts` is now a compatibility facade. It retains the old `solveClosedSemanticRelations` call shape but delegates through the upstream runtime executor.
+- `frontend/php/routeAst/semanticRewriteInterface.ts` is now a compatibility facade. It retains the old `solveClosedSemanticRelations` call shape but delegates through the upstream runtime executor.
 
 ## Semantic model improvement
 

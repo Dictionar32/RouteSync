@@ -6,7 +6,7 @@
  * least-fixed-point reachability closure. No open predicate/subject payload is
  * available to semantic consumers.
  */
-import type { SourceSpan } from './provenance';
+import { sourceSpanOperations, type SourceSpan } from './provenance';
 import type { StringValue } from './valueObjects';
 import type { SemanticReasoningContract, SemanticReasoningEvidence, SemanticReasoningStrategy, SemanticReasoningAuthorityInterface, SemanticReasoningJudgmentInterface } from './semanticReasoning';
 
@@ -54,7 +54,7 @@ export type SemanticDataflowIdentityKey = Readonly<{
   readonly slot: StringValue;
 }>;
 
-export const semanticDataflowIdentityKey = (
+const semanticDataflowIdentityKeyValue = (
   identity: SemanticDataflowIdentity,
 ): SemanticDataflowIdentityKey => Object.freeze({
   kind: 'semantic_dataflow_identity_key',
@@ -65,19 +65,24 @@ export const semanticDataflowIdentityKey = (
   slot: identity.slot,
 });
 
-/** Canonical semantic identity equality for all upstream/downstream consumers. */
-export const semanticDataflowIdentityEqual = (
+const semanticDataflowIdentityEqualValue = (
   left: SemanticDataflowIdentity,
   right: SemanticDataflowIdentity,
-): boolean => {
-  const a = semanticDataflowIdentityKey(left);
-  const b = semanticDataflowIdentityKey(right);
-  return a.file.value === b.file.value
-    && a.start === b.start
-    && a.end === b.end
-    && a.role === b.role
-    && a.slot.value === b.slot.value;
-};
+): boolean =>
+  sourceSpanOperations.same(left.source, right.source).kind === 'same_source_span'
+    && left.role === right.role
+    && left.slot.value === right.slot.value;
+
+/** Identity operations own canonical keying and equality for semantic identities. */
+export interface SemanticDataflowIdentityOperationsInterface {
+  readonly key: (identity: SemanticDataflowIdentity) => SemanticDataflowIdentityKey;
+  readonly equal: (left: SemanticDataflowIdentity, right: SemanticDataflowIdentity) => boolean;
+}
+
+export const semanticDataflowIdentityOperations: SemanticDataflowIdentityOperationsInterface = Object.freeze({
+  key: semanticDataflowIdentityKeyValue,
+  equal: semanticDataflowIdentityEqualValue,
+});
 
 export type SemanticDataflowGuard = Readonly<{
   readonly predicate: SemanticDataflowIdentity;
@@ -123,7 +128,7 @@ export type SemanticDataflowFact =
       readonly target: SemanticDataflowIdentity;
     }>;
 
-export const semanticDataflowFactWithLineage = (
+const semanticDataflowFactWithLineageValue = (
   fact: SemanticDataflowInputFact,
   producer: SemanticDataflowLineage['producer'],
   identity: SemanticDataflowIdentity = fact.source,
@@ -136,6 +141,19 @@ export const semanticDataflowFactWithLineage = (
     source: identity.source,
     closed: true,
   }),
+});
+
+/** Lineage operations attach producer evidence without reconstructing fact meaning downstream. */
+export interface SemanticDataflowFactLineageOperationsInterface {
+  readonly withLineage: (
+    fact: SemanticDataflowInputFact,
+    producer: SemanticDataflowLineage['producer'],
+    identity?: SemanticDataflowIdentity,
+  ) => SemanticDataflowInputFact;
+}
+
+export const semanticDataflowFactLineageOperations: SemanticDataflowFactLineageOperationsInterface = Object.freeze({
+  withLineage: semanticDataflowFactWithLineageValue,
 });
 
 export type SemanticDataflowDerivation = Readonly<{
@@ -173,8 +191,18 @@ export type SemanticDataflowClosureCertificate = Readonly<{
 
 export interface SemanticDataflowJudgmentFixpointInterface {
   readonly fixedPoint: 'least_fixed_point';
-  readonly reasoning: 'declarative_relation_rewrite_fixed_point';
+  /** Typed proof envelope; no parallel primitive `reasoning` label is carried by the judgment. */
   readonly reasoningContract: SemanticReasoningContract;
+}
+
+/** Domain operations carried by each authoritative semantic-dataflow judgment. */
+export interface SemanticDataflowJudgmentOperationsInterface {
+  /** Checks whether a fact is present in the admitted closure. */
+  readonly containsFact: (fact: SemanticDataflowFact) => boolean;
+  /** Queries the closure for a directed reachability relation. */
+  readonly reaches: (source: SemanticDataflowIdentity, target: SemanticDataflowIdentity) => boolean;
+  /** Returns the closed paths matching both semantic endpoints. */
+  readonly pathsBetween: (source: SemanticDataflowIdentity, target: SemanticDataflowIdentity) => readonly SemanticDataflowPath[];
 }
 
 export interface SemanticDataflowJudgmentAuthorityInterface {
@@ -195,6 +223,7 @@ export interface SemanticDataflowJudgmentInterface extends
 export type SemanticDataflowJudgment = SemanticDataflowJudgmentInterface & Readonly<{
   readonly kind: 'semantic_dataflow_judgment';
   readonly origin: SemanticDataflowOrigin;
+  readonly operations: SemanticDataflowJudgmentOperationsInterface;
 }>;
 
 export type SemanticDataflowOrigin = Readonly<{
@@ -264,6 +293,8 @@ export interface SemanticDataflowReasoningAuthorityInterface
   extends SemanticReasoningJudgmentInterface<SemanticDataflowInput, SemanticDataflowJudgment> {
   readonly kind: 'semantic_dataflow_reasoning_authority';
   readonly authority: 'upstream';
+  /** Domain operation that checks derivation premises and conclusions against the closed fact closure. */
+  readonly validateDerivations: (closure: readonly SemanticDataflowFact[], derivations: readonly SemanticDataflowDerivation[]) => boolean;
 }
 
 /** Named upstream contract composed from the semantic dataflow algebra. */
@@ -275,20 +306,27 @@ export interface SemanticDataflowContractInterface<
 /** Concrete closed specialization carried across downstream boundaries. */
 export interface SemanticDataflowInterface extends SemanticDataflowContractInterface {}
 
+/** Interface-first operation for reconnecting an authoritative judgment. */
+export interface SemanticDataflowInterfaceFactoryInterface {
+  readonly kind: 'semantic_dataflow_interface_factory';
+  readonly fromJudgment: (judgment: SemanticDataflowJudgment) => SemanticDataflowInterface;
+}
+
 /** Reconnect an authoritative judgment without re-encoding its semantics. */
-export const semanticDataflowInterfaceFromJudgment = (
-  judgment: SemanticDataflowJudgment,
-): SemanticDataflowInterface => Object.freeze({
-  kind: 'semantic_dataflow_interface',
-  authority: 'semantic_dataflow_judgment',
-  origin: Object.freeze({
-    kind: 'semantic_dataflow_origin',
-    source: 'semantic_dataflow_input',
-    identity: judgment.origin.identity,
+export const semanticDataflowInterfaceFactory: SemanticDataflowInterfaceFactoryInterface = Object.freeze({
+  kind: 'semantic_dataflow_interface_factory',
+  fromJudgment: (judgment: SemanticDataflowJudgment): SemanticDataflowInterface => Object.freeze({
+    kind: 'semantic_dataflow_interface',
+    authority: 'semantic_dataflow_judgment',
+    origin: Object.freeze({
+      kind: 'semantic_dataflow_origin',
+      source: 'semantic_dataflow_input',
+      identity: judgment.origin.identity,
+      closed: true,
+    }),
+    judgment,
+    reasoning: judgment.reasoningContract,
     closed: true,
   }),
-  judgment,
-  reasoning: judgment.reasoningContract,
-  closed: true,
 });
 

@@ -12,16 +12,16 @@ import {
   type SemanticInvocation,
   type SemanticKnowledgeDataFlow,
 } from '../semanticDataflowKnowledge';
-import { analyzeInvocationSemantics } from '../invocationSemanticJudgmentAuthority';
-import { invocationPositionalEvidenceUnproven } from '../invocationSemanticJudgmentAlgebra';
+import { invocationSemanticAuthority } from '../invocationSemanticJudgmentAuthority';
+import { invocationSemanticKnowledgeAlgebraOperations } from '../invocationSemanticJudgmentAlgebra';
 import type { InvocationPositionalArgumentEvidence } from '../invocationSemanticJudgmentInterface';
 
 const invocation = (argumentsList: readonly KnowledgeId[], slot: string): SemanticInvocation => {
-  const source = semanticSource('phase1677.php', 1, 10);
+  const source = semanticSource.create('phase1677.php', 1, 10);
   return Object.freeze({
     id: knowledgeId(source, 'invocation', slot),
     receiver: semanticAbsent<KnowledgeId>('not_applicable'),
-    operation: semanticOperation('work'),
+    operation: semanticOperation.create('work'),
     arguments: argumentsList,
     source,
   });
@@ -32,7 +32,7 @@ const callable = (
   parameters: readonly KnowledgeId[] = [],
   emissions: readonly KnowledgeId[] = [],
 ): SemanticCallable => {
-  const source = semanticSource('phase1677.php', 20, 40);
+  const source = semanticSource.create('phase1677.php', 20, 40);
   return Object.freeze({
     id: knowledgeId(source, 'callable', slot),
     name: semanticAbsent<SemanticIdentifier>('not_provided'),
@@ -48,6 +48,8 @@ const knowledge = (
   targets: readonly SemanticCallable[],
   effects: readonly SemanticEmission[] = [],
 ): SemanticKnowledgeDataFlow => Object.freeze({
+  modRefFacts: [],
+  modRefRelations: [],
   facts: Object.freeze([
     { kind: 'invocation' as const, value: subject },
     ...targets.map(value => ({ kind: 'callable' as const, value })),
@@ -71,19 +73,19 @@ const positionalEvidence = (
   invocation: subject.id,
   normalizedArguments,
   normalization: 'upstream-confirmed-positional-arguments',
-  source: semanticSource('phase1677.php', 10, 13),
+  source: semanticSource.create('phase1677.php', 10, 13),
 });
 
 describe('invocation semantic algebra phase 1677', () => {
   it('projects result and exception effects as separate flows for a resolved target', () => {
     const subject = invocation([], 'no-arguments');
-    const resultSource = semanticSource('phase1677.php', 41, 45);
-    const exceptionSource = semanticSource('phase1677.php', 46, 50);
+    const resultSource = semanticSource.create('phase1677.php', 41, 45);
+    const exceptionSource = semanticSource.create('phase1677.php', 46, 50);
     const resultId = knowledgeId(resultSource, 'emission', 'result');
     const exceptionId = knowledgeId(exceptionSource, 'emission', 'exception');
     const result: SemanticEmission = Object.freeze({ id: resultId, definition: { code: 'result' as const }, value: semanticAbsent<KnowledgeId>('void_emission'), source: resultSource });
     const exception: SemanticEmission = Object.freeze({ id: exceptionId, definition: { code: 'exception' as const }, value: semanticAbsent<KnowledgeId>('not_provided'), source: exceptionSource });
-    const resultJudgment = analyzeInvocationSemantics({ knowledge: knowledge(subject, [callable('target', [], [resultId, exceptionId])], [result, exception]), invocation: subject, positionalEvidence: invocationPositionalEvidenceUnproven(subject) });
+    const resultJudgment = invocationSemanticAuthority.analyze({ knowledge: knowledge(subject, [callable('target', [], [resultId, exceptionId])], [result, exception]), invocation: subject, positionalEvidence: invocationSemanticKnowledgeAlgebraOperations.unprovenPositionalEvidenceFor(subject) });
 
     expect(resultJudgment.status).toBe('closed');
     expect(resultJudgment.targetResolution.kind).toBe('resolved');
@@ -93,36 +95,36 @@ describe('invocation semantic algebra phase 1677', () => {
   });
 
   it('rejects a requested invocation that reuses a knowledge identity with altered semantic shape', () => {
-    const argument = knowledgeId(semanticSource('phase1677.php', 11, 12), 'value', 'shape-argument');
+    const argument = knowledgeId(semanticSource.create('phase1677.php', 11, 12), 'value', 'shape-argument');
     const subject = invocation([argument], 'same-identity-shape');
-    const model = knowledge(subject, [callable('target', [knowledgeId(semanticSource('phase1677.php', 21, 22), 'variable', 'parameter')])]);
+    const model = knowledge(subject, [callable('target', [knowledgeId(semanticSource.create('phase1677.php', 21, 22), 'variable', 'parameter')])]);
     const altered = Object.freeze({ ...subject, arguments: Object.freeze([]) });
 
-    expect(() => analyzeInvocationSemantics({
+    expect(() => invocationSemanticAuthority.analyze({
       knowledge: model,
       invocation: altered,
-      positionalEvidence: invocationPositionalEvidenceUnproven(altered),
+      positionalEvidence: invocationSemanticKnowledgeAlgebraOperations.unprovenPositionalEvidenceFor(altered),
     })).toThrow(/reuses a knowledge identity with different receiver, operation, ordered arguments, or source provenance/);
   });
 
   it('rejects an unproven-evidence obligation whose invocation shape differs despite sharing identity', () => {
-    const argument = knowledgeId(semanticSource('phase1677.php', 11, 12), 'value', 'obligation-argument');
+    const argument = knowledgeId(semanticSource.create('phase1677.php', 11, 12), 'value', 'obligation-argument');
     const subject = invocation([argument], 'same-obligation-identity');
     const altered = Object.freeze({ ...subject, arguments: Object.freeze([]) });
     const model = knowledge(subject, [callable('target')]);
 
-    expect(() => analyzeInvocationSemantics({
+    expect(() => invocationSemanticAuthority.analyze({
       knowledge: model,
       invocation: subject,
-      positionalEvidence: invocationPositionalEvidenceUnproven(altered),
+      positionalEvidence: invocationSemanticKnowledgeAlgebraOperations.unprovenPositionalEvidenceFor(altered),
     })).toThrow(/obligation does not preserve the exact requested invocation/);
   });
 
   it('does not infer positional binding from argument array order alone', () => {
-    const argument = knowledgeId(semanticSource('phase1677.php', 11, 12), 'value', 'argument');
-    const parameter = knowledgeId(semanticSource('phase1677.php', 21, 22), 'variable', 'parameter');
+    const argument = knowledgeId(semanticSource.create('phase1677.php', 11, 12), 'value', 'argument');
+    const parameter = knowledgeId(semanticSource.create('phase1677.php', 21, 22), 'variable', 'parameter');
     const subject = invocation([argument], 'unproven-argument-form');
-    const result = analyzeInvocationSemantics({ knowledge: knowledge(subject, [callable('target', [parameter])]), invocation: subject, positionalEvidence: invocationPositionalEvidenceUnproven(subject) });
+    const result = invocationSemanticAuthority.analyze({ knowledge: knowledge(subject, [callable('target', [parameter])]), invocation: subject, positionalEvidence: invocationSemanticKnowledgeAlgebraOperations.unprovenPositionalEvidenceFor(subject) });
 
     expect(result.status).toBe('incomplete');
     expect(result.argumentBinding.kind).toBe('argument-form-unproven');
@@ -130,13 +132,13 @@ describe('invocation semantic algebra phase 1677', () => {
   });
 
   it('accepts only evidence matching the exact invocation and ordered arguments', () => {
-    const argument = knowledgeId(semanticSource('phase1677.php', 11, 12), 'value', 'argument');
-    const parameter = knowledgeId(semanticSource('phase1677.php', 21, 22), 'variable', 'parameter');
+    const argument = knowledgeId(semanticSource.create('phase1677.php', 11, 12), 'value', 'argument');
+    const parameter = knowledgeId(semanticSource.create('phase1677.php', 21, 22), 'variable', 'parameter');
     const subject = invocation([argument], 'proven-argument-form');
     const model = knowledge(subject, [callable('target', [parameter])]);
-    const result = analyzeInvocationSemantics({ knowledge: model, invocation: subject, positionalEvidence: { kind: 'positional-evidence-established', evidence: positionalEvidence(subject, [argument]) } });
+    const result = invocationSemanticAuthority.analyze({ knowledge: model, invocation: subject, positionalEvidence: { kind: 'positional-evidence-established', evidence: positionalEvidence(subject, [argument]) } });
     const foreign = invocation([argument], 'foreign-invocation');
-    const rejected = analyzeInvocationSemantics({ knowledge: model, invocation: subject, positionalEvidence: { kind: 'positional-evidence-established', evidence: positionalEvidence(foreign, [argument]) } });
+    const rejected = invocationSemanticAuthority.analyze({ knowledge: model, invocation: subject, positionalEvidence: { kind: 'positional-evidence-established', evidence: positionalEvidence(foreign, [argument]) } });
 
     expect(result.status).toBe('closed');
     expect(result.argumentBinding.kind).toBe('established');
@@ -145,11 +147,11 @@ describe('invocation semantic algebra phase 1677', () => {
   });
 
   it('preserves repeated argument identities as distinct ordered parameter bindings', () => {
-    const argument = knowledgeId(semanticSource('phase1677.php', 11, 12), 'value', 'repeated-argument');
-    const firstParameter = knowledgeId(semanticSource('phase1677.php', 21, 22), 'variable', 'first-parameter');
-    const secondParameter = knowledgeId(semanticSource('phase1677.php', 23, 24), 'variable', 'second-parameter');
+    const argument = knowledgeId(semanticSource.create('phase1677.php', 11, 12), 'value', 'repeated-argument');
+    const firstParameter = knowledgeId(semanticSource.create('phase1677.php', 21, 22), 'variable', 'first-parameter');
+    const secondParameter = knowledgeId(semanticSource.create('phase1677.php', 23, 24), 'variable', 'second-parameter');
     const subject = invocation([argument, argument], 'repeated-argument-call');
-    const result = analyzeInvocationSemantics({
+    const result = invocationSemanticAuthority.analyze({
       knowledge: knowledge(subject, [callable('target', [firstParameter, secondParameter])]),
       invocation: subject,
       positionalEvidence: { kind: 'positional-evidence-established', evidence: positionalEvidence(subject, [argument, argument]) },
@@ -166,7 +168,7 @@ describe('invocation semantic algebra phase 1677', () => {
   it('retains an explicit obligation when the requested invocation is absent from knowledge', () => {
     const requested = invocation([], 'absent-request');
     const model = knowledge(invocation([], 'different-request'), []);
-    const result = analyzeInvocationSemantics({ knowledge: model, invocation: requested, positionalEvidence: invocationPositionalEvidenceUnproven(requested) });
+    const result = invocationSemanticAuthority.analyze({ knowledge: model, invocation: requested, positionalEvidence: invocationSemanticKnowledgeAlgebraOperations.unprovenPositionalEvidenceFor(requested) });
 
     expect(result.status).toBe('incomplete');
     expect(result.unresolvedObligations.map(obligation => obligation.kind)).toContain('invocation_evidence_missing');
@@ -174,12 +176,12 @@ describe('invocation semantic algebra phase 1677', () => {
 
   it('retains unresolved and ambiguous target outcomes without projecting effects', () => {
     const unresolvedSubject = invocation([], 'unresolved-target');
-    const unresolved = analyzeInvocationSemantics({ knowledge: knowledge(unresolvedSubject, []), invocation: unresolvedSubject, positionalEvidence: invocationPositionalEvidenceUnproven(unresolvedSubject) });
+    const unresolved = invocationSemanticAuthority.analyze({ knowledge: knowledge(unresolvedSubject, []), invocation: unresolvedSubject, positionalEvidence: invocationSemanticKnowledgeAlgebraOperations.unprovenPositionalEvidenceFor(unresolvedSubject) });
     const ambiguousSubject = invocation([], 'ambiguous-target');
-    const ambiguous = analyzeInvocationSemantics({
+    const ambiguous = invocationSemanticAuthority.analyze({
       knowledge: knowledge(ambiguousSubject, [callable('candidate-a'), callable('candidate-b')]),
       invocation: ambiguousSubject,
-      positionalEvidence: invocationPositionalEvidenceUnproven(ambiguousSubject),
+      positionalEvidence: invocationSemanticKnowledgeAlgebraOperations.unprovenPositionalEvidenceFor(ambiguousSubject),
     });
 
     expect(unresolved.targetResolution.kind).toBe('unresolved');

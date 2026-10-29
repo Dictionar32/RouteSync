@@ -5,8 +5,8 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const judgment = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const dependencies = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
-const astCanonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
-const resolver = read('packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts');
+const astCanonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/controller/controllerBodyResolver.ts');
 const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const index = read('packages/core/src/index.ts');
 const checks = [

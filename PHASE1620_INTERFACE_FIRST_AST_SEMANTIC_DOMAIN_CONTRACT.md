@@ -10,7 +10,7 @@ This phase continues the agreed order: mature `packages/core/src/types/upstream/
 - Scanner consumers located during trace include:
   - `packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts`
   - `packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts`
-  - `packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts`
+  - `packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts`
   The scanned imports use AST semantic terms; they do not currently call the closure request API directly.
 - `packages/core/src/types/upstream/requestTypeDerivationInterface.ts` defines separate inference, authority assessment, proof verification, semantic pipeline, and decision contracts. It remains the next contract frontier after the AST closure boundary is made type-safe.
 - The request-type runtime executor previously traced consumes `RequestTypeDerivationSemanticPipelineInterface`; this phase deliberately does not change it.

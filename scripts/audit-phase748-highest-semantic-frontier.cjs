@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const target = path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst');
+const target = path.join(root, 'packages/core/src/compiler/frontend/php/routeAst');
 const read = file => fs.readFileSync(file, 'utf8');
 const files = fs.readdirSync(target).filter(name => name.endsWith('.ts'));
 const constraint = read(path.join(target, 'semanticConstraintHandlingRules.ts'));

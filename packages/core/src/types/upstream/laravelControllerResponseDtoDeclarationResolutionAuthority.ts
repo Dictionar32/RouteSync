@@ -38,9 +38,16 @@ const unresolved = <Project extends SourceProjectIdentity>(
   reason,
 });
 
-export const createLaravelControllerResponseDtoDeclarationResolutionAuthority = (
-  dependencies: LaravelControllerResponseDtoDeclarationResolutionAuthorityDependenciesInterface,
-): LaravelControllerResponseDtoDeclarationResolutionAuthorityInterface => Object.freeze({
+/** Factory contract keeps authority construction as an explicit runtime operation. */
+export interface LaravelControllerResponseDtoDeclarationResolutionAuthorityFactoryInterface {
+  readonly create: (
+    dependencies: LaravelControllerResponseDtoDeclarationResolutionAuthorityDependenciesInterface,
+  ) => LaravelControllerResponseDtoDeclarationResolutionAuthorityInterface;
+}
+
+/** Interface-first factory: the domain authority is constructed through a typed object capability. */
+export const laravelControllerResponseDtoDeclarationResolutionAuthorityFactory: LaravelControllerResponseDtoDeclarationResolutionAuthorityFactoryInterface = Object.freeze({
+  create: (dependencies: LaravelControllerResponseDtoDeclarationResolutionAuthorityDependenciesInterface): LaravelControllerResponseDtoDeclarationResolutionAuthorityInterface => Object.freeze({
   kind: 'laravel_controller_response_dto_declaration_resolution_authority',
   contract: LARAVEL_CONTROLLER_RESPONSE_DTO_DECLARATION_RESOLUTION_CONTRACT,
   dependencies,
@@ -126,9 +133,10 @@ export const createLaravelControllerResponseDtoDeclarationResolutionAuthority = 
         }
     }
   },
+  }),
 });
 
-export const laravelControllerResponseDtoDeclarationResolutionAuthority = createLaravelControllerResponseDtoDeclarationResolutionAuthority(
+export const laravelControllerResponseDtoDeclarationResolutionAuthority = laravelControllerResponseDtoDeclarationResolutionAuthorityFactory.create(
   Object.freeze({ sourceIdentitySemantics: laravelSourceIdentitySemantics }),
 );
 

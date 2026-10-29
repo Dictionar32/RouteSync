@@ -1,0 +1,54 @@
+{
+  "phase": 3053,
+  "title": "Runtime relation import ownership audit",
+  "passed": 9,
+  "total": 9,
+  "status": "PASS",
+  "results": [
+    {
+      "check": "consumer exists: packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts",
+      "pass": true,
+      "detail": "2 direct import(s) from removed relation namespace"
+    },
+    {
+      "check": "consumer exists: packages/core/src/compiler/frontend/php/routeAst/semanticEvidenceRelationCompiler.ts",
+      "pass": true,
+      "detail": "3 direct import(s) from removed relation namespace"
+    },
+    {
+      "check": "consumer exists: packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts",
+      "pass": true,
+      "detail": "1 direct import(s) from removed relation namespace"
+    },
+    {
+      "check": "consumer exists: packages/core/src/compiler/frontend/php/routeAst/semanticRelationStore.ts",
+      "pass": true,
+      "detail": "2 direct import(s) from removed relation namespace"
+    },
+    {
+      "check": "consumer exists: packages/core/src/compiler/relational/sequence.ts",
+      "pass": true,
+      "detail": "2 direct import(s) from removed relation namespace"
+    },
+    {
+      "check": "removed foundation stays absent: packages/core/src/semantic/relations/relationMembership.ts",
+      "pass": true,
+      "detail": "absent"
+    },
+    {
+      "check": "removed foundation stays absent: packages/core/src/semantic/relations/relationalSequence.ts",
+      "pass": true,
+      "detail": "absent"
+    },
+    {
+      "check": "removed foundation stays absent: packages/core/src/semantic/relations/semanticRelations.ts",
+      "pass": true,
+      "detail": "absent"
+    },
+    {
+      "check": "removed foundation stays absent: packages/core/src/semantic/relations/semanticRelationalCollections.ts",
+      "pass": true,
+      "detail": "absent"
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 ## Scope
 
 This phase continues the RouteSync compiler-style semantic architecture from Phase 633.
-The focus is the remaining frontier identified in the scanner/lexer, graph resolver, AST/upstream mapping boundary, analysis solver, and lowering boundary.
+The focus is the remaining frontier identified in the frontend/php, graph resolver, AST/upstream mapping boundary, analysis solver, and lowering boundary.
 
 ## Research basis
 
@@ -20,7 +20,7 @@ The design follows the same higher-order compiler principles found in:
 
 ### 1. Scanner lexer token accumulation
 
-`packages/core/src/compiler/scanner/lexer/tokenizer.ts`
+`packages/core/src/compiler/frontend/php/tokenizer.ts`
 
 - `ScanAction` now consumes an immutable token relation and returns the next immutable relation.
 - Token actions no longer own a mutable token accumulator.

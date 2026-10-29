@@ -24,7 +24,7 @@ for (const relative of files) {
   const source = fs.readFileSync(absolute, 'utf8');
   for (const match of source.matchAll(dependencyPattern)) {
     const specifier = match[2];
-    if (specifier.includes('semantic/relations') || specifier.includes('semantic/foundation') || specifier.includes('subscanners')) {
+    if (specifier.includes('semantic/relations') || specifier.includes('semantic/foundation') || specifier.includes('operations')) {
       findings.push({ file: relative, kind: 'forbidden_dependency', specifier });
     }
   }
@@ -40,11 +40,11 @@ const report = {
     'resourceModelBindingSemanticInterface owns its closed rule/variable/pattern contract types and no longer imports implementation types from semantic/relations/semanticRewriteEngine',
   ],
   unresolvedBoundaryMigration: [
-    'routeDeclarationComposition still obtains closure return semantics through controllerAstCanonical under subscanners',
+    'routeDeclarationComposition still obtains closure return semantics through controllerAstCanonical under operations',
     'resourceModelBindingAuthority and semanticRewriteAuthority still execute through semantic/relations; the type-only decoupling does not retire that engine',
   ],
   meaning: findings.length === 0
-    ? 'The selected scanner path has no direct imports from relations, foundation, or subscanners; this does not establish repository-wide retirement.'
+    ? 'The selected scanner path has no direct imports from relations, foundation, or operations; this does not establish repository-wide retirement.'
     : 'Migration remains blocked. Do not delete relations/foundation or claim scanner retirement until every listed dependency has an upstream-owned implementation and the full transitive path is verified.',
 };
 

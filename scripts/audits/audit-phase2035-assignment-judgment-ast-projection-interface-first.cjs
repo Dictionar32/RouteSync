@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const contract = read('packages/core/src/types/upstream/scannerAssignmentPartsInterface.ts');
 const sourceFailure = read('packages/core/src/types/upstream/scannerAstSourceFailureInterface.ts');
 const packageJson = JSON.parse(read('package.json'));
@@ -25,7 +25,7 @@ const checks = [
   ['malformed and contract-violation judgments remain preserved at AST boundary', expressionBody.includes("kind: 'malformed_assignment_parts', judgment") && expressionBody.includes("kind: 'assignment_parts_contract_violation', judgment") && statementBody.includes("kind: 'malformed_assignment_parts', judgment") && statementBody.includes("kind: 'assignment_parts_contract_violation', judgment") && sourceFailure.includes("kind: 'malformed_assignment_parts'") && sourceFailure.includes("kind: 'assignment_parts_contract_violation'")],
   ['upstream component contract remains discriminated and explicit', contract.includes('export type AssignmentPartsComponentJudgment<Value>') && contract.includes("readonly kind: 'resolved'") && contract.includes("readonly kind: 'unresolved'")],
   ['no duplicate invocation authority or integrated response path added', runtime.includes('classifyAssignmentExpression') && read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts').includes('invocationJudgment') && read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts').includes('responseJudgment')],
-  ['no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['phase audit is registered in package scripts', typeof packageJson.scripts['audit:phase2035-assignment-judgment-ast-projection-interface-first'] === 'string'],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);

@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const evidenceType = read('packages/core/src/types/upstream/routeDeclarationEvidence.ts');
-const evidenceProducer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const evidenceProducer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const boundaryTypes = read('packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasicsTypes.ts');
 const provenanceBuilder = read('packages/core/src/compiler/scanner/resolvers/boundary/provenanceBuilder.ts');

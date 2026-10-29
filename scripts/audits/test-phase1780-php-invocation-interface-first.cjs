@@ -9,7 +9,7 @@ const invocationInterface = read('packages/core/src/types/upstream/phpFunctionIn
 const invocationAuthority = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthority.ts');
 const resolutionInterface = read('packages/core/src/types/upstream/phpFunctionNameResolutionInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts');
 
 const checks = [
   ['call-interface-consumes-closed-invocation-input', callInterface.includes('export type PhpFunctionCallSemanticInput = PhpFunctionInvocationSemanticInput')],
@@ -21,7 +21,7 @@ const checks = [
   ['integrated-response-contract-requires-php-judgment-batch', pipeline.includes('readonly phpFunctionInvocations: PhpFunctionInvocationSemanticJudgmentBatch')],
   ['integrated-response-composition-preserves-exact-batch', read('packages/core/src/types/upstream/invocationSemanticPipeline.ts').includes('phpFunctionInvocations: input.phpFunctionInvocations')],
   ['scanner-consumer-migration-gap-is-traced', scanner.includes("kind: 'php_function_call_evidence'") && scanner.includes('function: functionName(name)')],
-  ['laravel-integrated-response-callsite-needs-judgment-batch', read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts').includes('invocationSemanticIntegratedResponseComposition.integrate({ knowledge: semanticKnowledgeDataFlow })')],
+  ['laravel-integrated-response-callsite-needs-judgment-batch', read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts').includes('invocationSemanticIntegratedResponseComposition.integrate({ knowledge: semanticKnowledgeDataFlow })')],
   ['no-foundation-or-relations-added-to-call-authority', !callAuthority.includes('semantic/foundation') && !callAuthority.includes('semantic/relations')],
 ];
 

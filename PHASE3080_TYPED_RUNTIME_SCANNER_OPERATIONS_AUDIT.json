@@ -1,0 +1,31 @@
+{
+  "phase": 3080,
+  "title": "Typed Runtime Scanner Operations — next migration boundary",
+  "status": "PASS_WITH_OPEN_FRONTIERS",
+  "checks": {
+    "actualCliCompositionPathTraced": true,
+    "sourceReadBatchOwnsRejectedIdentityInventory": true,
+    "rejectionEvidenceAndOrderPreserved": true,
+    "runtimeFactoryInterfaceFirst": true,
+    "genericBatchContinuationStillOpen": true,
+    "indexBasedSettlementTraversalStillOpen": true,
+    "documentReadBatchContinuationStillOpen": true,
+    "deletedRelationFoundationNotRestored": true,
+    "collectionsOneNewlineByteInvariantPreserved": true,
+    "fullWorkspaceStrictTypeScriptRun": false,
+    "fullTestSuiteRun": false,
+    "phpCliManifestGeneratorEndToEndRun": false
+  },
+  "knownDebt": {
+    "staleRelationFoundationImportLines": 478,
+    "affectedFiles": 251,
+    "source": "existing phase 2973 structural audit output; not re-counted by this phase"
+  },
+  "nextFrontiers": [
+    "Replace source-read batch generic continuation with a source-read-owned, manifest-neutral closed domain operation.",
+    "Replace index-based source settlement traversal with a typed cursor/sequence operation.",
+    "Migrate document-read batch judgment continuation after source-read contract tests.",
+    "Normalize source discovery blocker evidence at the filesystem adapter boundary.",
+    "Audit reachable query-policy and manifest-builder continuation contracts."
+  ]
+}

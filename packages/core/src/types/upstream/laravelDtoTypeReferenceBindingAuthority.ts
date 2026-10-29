@@ -5,6 +5,7 @@ import type { PhpClassNameResolution } from './phpClassNameResolutionInterface';
 import type { LaravelControllerResponseDtoDeclarationResolutionJudgment } from './laravelControllerResponseDtoDeclarationInterface';
 import type {
   LaravelDtoTypeReferenceBindingAuthorityInterface,
+  LaravelDtoTypeReferenceBindingAuthorityFactoryInterface,
   LaravelDtoTypeReferenceBindingAuthorityDependenciesInterface,
   LaravelDtoTypeReferenceBindingContract,
   LaravelDtoTypeReferenceBindingInput,
@@ -39,9 +40,9 @@ const unresolved = <Project extends SourceProjectIdentity>(
   reason,
 });
 
-export const createLaravelDtoTypeReferenceBindingAuthority = (
-  dependencies: LaravelDtoTypeReferenceBindingAuthorityDependenciesInterface,
-): LaravelDtoTypeReferenceBindingAuthorityInterface => Object.freeze({
+const createLaravelDtoTypeReferenceBindingAuthorityImplementation = <Project extends SourceProjectIdentity = SourceProjectIdentity>(
+  dependencies: LaravelDtoTypeReferenceBindingAuthorityDependenciesInterface<Project>,
+): LaravelDtoTypeReferenceBindingAuthorityInterface<Project> => Object.freeze({
   kind: 'laravel_dto_type_reference_binding_authority',
   contract: LARAVEL_DTO_TYPE_REFERENCE_BINDING_CONTRACT,
   dependencies,
@@ -86,7 +87,12 @@ export const createLaravelDtoTypeReferenceBindingAuthority = (
   },
 });
 
-export const laravelDtoTypeReferenceBindingAuthority = createLaravelDtoTypeReferenceBindingAuthority(
+export const laravelDtoTypeReferenceBindingAuthorityFactory: LaravelDtoTypeReferenceBindingAuthorityFactoryInterface = Object.freeze({
+  kind: 'laravel_dto_type_reference_binding_authority_factory',
+  create: createLaravelDtoTypeReferenceBindingAuthorityImplementation,
+});
+
+export const laravelDtoTypeReferenceBindingAuthority = laravelDtoTypeReferenceBindingAuthorityFactory.create(
   Object.freeze({
     classNameResolutionAuthority: phpClassNameResolutionAuthority,
     declarationResolutionAuthority: laravelControllerResponseDtoDeclarationResolutionAuthority,

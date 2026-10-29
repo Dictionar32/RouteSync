@@ -8,7 +8,7 @@ Close the scanner-facing PHP invocation input boundary. The scanner must receive
 
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts`: `InvocationPhpSourcePipelineInput` is narrowed to `PhpSourceInvocationSemanticPipelineIntegrationResult`; composition contract advances to v17 and declares the closed scanner-input boundary.
 - `packages/core/src/types/upstream/invocationSemanticPipeline.ts`: composition forwards `input.phpSourceInvocationPipeline` without branching, projection, or reclassification; integration authority is no longer a composition dependency.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`: analyzer only accepts the closed integrated result and no longer owns source-binding projection.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`: analyzer only accepts the closed integrated result and no longer owns source-binding projection.
 - `packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts`: source-binding evidence is projected by the upstream integration authority at the composition root before entering the scanner analyzer.
 - Scanner parser defaults now preserve an explicit integrated `not_connected` outcome.
 - Historical audits 1806–1808 were aligned with the current v10 integration contract and v17 composition boundary; Phase 1875 audit added.

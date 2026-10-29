@@ -18,7 +18,7 @@ const checks = [
   ['dependency closure test verifies the singleton authority', test.includes('laravelSourceAstPipelineDependencies.routeScanner.bindingAuthority).toBe(routeControllerBindingAuthority)')],
   ['runtime execute remains parameterless and returns prepared outcome', /async execute\(\)\s*\{\s*return outcome;\s*\}/.test(scanner)],
   ['singleton remains const instance while factory is not const-bound function', scanner.includes('export const laravelRouteScanner: LaravelRouteScannerInterface') && scanner.includes('export function createLaravelRouteScanner(') && !scanner.includes('export const createLaravelRouteScanner =')],
-  ['route scanner has no direct legacy relations/foundation/subscanner imports', !/from ['"][^'"]*(?:semantic\/relations|semantic\/foundation|subscanners\/)[^'"]*['"]/.test(scanner)],
+  ['route scanner has no direct legacy relations/foundation/subscanner imports', !/from ['"][^'"]*(?:semantic\/relations|semantic\/foundation|operations\/)[^'"]*['"]/.test(scanner)],
 ];
 let failed = 0;
 for (const [label, passed] of checks) {

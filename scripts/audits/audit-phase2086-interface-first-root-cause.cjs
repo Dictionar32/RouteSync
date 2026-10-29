@@ -23,7 +23,7 @@ check('invocation judgment retains four outcome-correlated response variants', [
 check('invocation authority composes existing binding and integration authorities', invocationAuthority.includes('this.dependencies.sourceBinding.bind') && invocationAuthority.includes('this.dependencies.integration.project'));
 check('scanner artifact remains an outcome-correlated discriminated ADT', scannerInterface.includes('export type LaravelControllerScanArtifact =') && scannerInterface.includes('LaravelControllerInvocationOutcome'));
 check('integrated response and AST projection remain owned by existing pipeline contracts', responseInterface.includes('judgeIntegratedResponse') && responseInterface.includes('astProjection'));
-check('scanner still has relation and subscanner debt and is not falsely marked clean', scanner.includes("../../../semantic/relations/") && scanner.includes("../subscanners/controller") && scanner.includes('scanControllerAction'));
+check('scanner still has relation and subscanner debt and is not falsely marked clean', scanner.includes("../../../semantic/relations/") && scanner.includes("../operations/controller") && scanner.includes('scanControllerAction'));
 check('trace explicitly documents limitations and avoids claiming full migration', trace.includes('Still unresolved (explicitly not claimed as fixed)') && trace.includes('not a claim that the Laravel scanner has been fully migrated'));
 
 for (const result of checks) console.log(`${result.pass ? 'PASS' : 'FAIL'} ${result.label}`);

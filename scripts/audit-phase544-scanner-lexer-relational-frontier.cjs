@@ -2,8 +2,8 @@ const fs = require('fs');
 const ts = require('typescript');
 
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts',
-  'packages/core/src/compiler/scanner/subscanners/scannerUtils.ts',
+  'packages/core/src/compiler/frontend/php/astClassifierEvidence.ts',
+  'packages/core/src/compiler/scanner/operations/scannerUtils.ts',
 ];
 
 function auditFile(file) {

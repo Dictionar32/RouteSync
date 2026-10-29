@@ -1,0 +1,36 @@
+{
+  "phase": 3035,
+  "title": "Invocation Semantic Algebra — Typed KnowledgeId Identity",
+  "scope": "Static contract audit for migrating invocation-semantic-algebra identity matching from derived string keys to upstream KnowledgeId domain operations.",
+  "runtimePath": [
+    "CLI manifest scan operation: packages/cli/src/manifestScanOperationInterface.ts",
+    "Controller invocation manifest composition authority",
+    "Invocation semantic judgment algebra resolves invocation presence, callable targets, positional argument evidence, declared emissions, obligations, and trace subjects",
+    "semanticKnowledgeIdOperations.same compares source provenance, semantic role, and slot",
+    "Existing invocation judgments, evidence, effect flows, and unresolved obligations continue to feed the established manifest composition path"
+  ],
+  "checks": {
+    "invocationAlgebraUsesInterfaceBackedKnowledgeIdOperations": true,
+    "invocationAlgebraNoLongerImportsDerivedStringKey": true,
+    "invocationPresenceUsesTypedIdentity": true,
+    "candidateCallableLookupUsesTypedIdentity": true,
+    "candidateCallablesDeduplicateByDomainIdentity": true,
+    "positionalArgumentEvidenceUsesTypedIdentity": true,
+    "effectProjectionMatchesDeclaredEmissionsByTypedIdentity": true,
+    "obligationDeduplicationUsesTypedIdentity": true,
+    "invocationTraceAndQueriesUseTypedIdentity": true,
+    "sourceKnowledgeIdentityIsInterfaceBacked": true,
+    "cliManifestEntryRemainsInterfaceBacked": true,
+    "manifestCompositionRemainsInRuntimeTrace": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsSentinelRemainsOneNewlineByte": true
+  },
+  "passed": 14,
+  "total": 14,
+  "remainingDebt": [
+    "Other semantic algebra operations still use map/filter/flatMap and branch constructs for projections and closed ADT handling; this phase only removes derived KnowledgeId key use and selected key-backed lookup collections in this consumer.",
+    "semanticObjectIdentityAuthority.ts still adapts KnowledgeId values to the legacy semantic rewrite relation atom format; replacing that boundary requires an explicit typed rewrite-domain migration, not a replacement generic relation foundation.",
+    "Primitive values remain at parser and source-coordinate boundaries; this phase does not claim repository-wide primitive elimination.",
+    "Focused static audit does not establish successful TypeScript typecheck, Vitest execution, or CLI-to-manifest end-to-end behavior."
+  ]
+}

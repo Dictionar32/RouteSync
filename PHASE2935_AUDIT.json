@@ -1,0 +1,17 @@
+{
+  "phase": 2935,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — Source Observation Continuation Closure",
+  "checks": {
+    "scannerDelegatesSourceObservationContinuation": true,
+    "scannerHasNoSourceObservationKindBranch": true,
+    "sourceReadyOwnsContinuationOperation": true,
+    "sourceBlockedOwnsContinuationOperation": true,
+    "continuationIsDomainSpecificNotGeneric": true,
+    "cliManifestOperationIsInterfaceFirst": true,
+    "existingManifestBuilderJudgmentHasContinuation": true,
+    "sourceSelectionExplicitlyExportedFromUpstreamBarrel": true,
+    "noExportFunctionOnCheckedRuntimePath": true,
+    "collectionsRemainEmpty": true
+  },
+  "exportedFunctions": []
+}

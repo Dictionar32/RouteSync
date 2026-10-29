@@ -20,9 +20,9 @@ import type {
   RouteMiddlewareExclusionContract,
   RouteMiddlewareSemanticInput,
 } from '../../../../types/upstream/routeMiddleware';
-import type { SourceSpan } from '../../../../types/upstream/provenance';
-import { buildRouteMiddlewareSemanticInput } from './routeMiddlewareSemanticInputBuilder';
-import { resolveRouteMiddlewareFlow } from './routeMiddlewareFlowResolver';
+import { sourceSpanOperations, type SourceSpan } from '../../../../types/upstream/provenance';
+import { routeMiddlewareSemanticInputOperations } from './routeMiddlewareSemanticInputBuilder';
+import { routeMiddlewareFlowResolver } from '../../../semantic/routeMiddlewareFlowResolver';
 import { effectiveControllerActionPolicyAlgebra } from '../../../../types/upstream/effectiveControllerActionPolicyAlgebra';
 
 const sequenceToArray = <T>(items: import('../../../../types/upstream/collections').Sequence<T>, output: readonly T[] = []): readonly T[] =>
@@ -78,9 +78,7 @@ const inheritedControllers = (
 };
 
 const samePolicySource = (left: ControllerPolicyRelation, right: ControllerPolicyRelation): boolean => {
-  const sameSpan = Object.is(left.source.file.value.value, right.source.file.value.value) &&
-    Object.is(left.source.start.value, right.source.start.value) &&
-    Object.is(left.source.end.value, right.source.end.value);
+  const sameSpan = sourceSpanOperations.same(left.source, right.source).kind === 'same_source_span';
   if (!sameSpan || left.kind !== right.kind) return false;
   switch (left.kind) {
     case 'controller_authorization_relation':
@@ -143,7 +141,7 @@ const middlewareExclusions = (relations: readonly ControllerPolicyRelation[]): r
     })));
 
 /** Resolve one concrete controller action into one closed semantic policy. */
-export const resolveEffectiveControllerActionPolicy = (
+const resolveEffectiveControllerActionPolicy = (
   input: EffectiveControllerActionPolicyInput,
 ): EffectiveControllerActionPolicy => {
   const inherited = input.inheritance ? inheritedControllers(input.controller, input.inheritance) : Object.freeze([] as ControllerName[]);
@@ -165,7 +163,7 @@ export const resolveEffectiveControllerActionPolicy = (
     exclusions: Object.freeze([...input.middleware.exclusions, ...controllerExclusions]),
     action: input.middleware.action,
   };
-  const flow = resolveRouteMiddlewareFlow(middlewareInput);
+  const flow = routeMiddlewareFlowResolver.resolve(middlewareInput);
   const blockedPolicyReasons: readonly ControllerPolicyActionScopeBlockReason[] = Object.freeze(allPolicy.flatMap(relation => {
     switch (relation.kind) {
       case 'controller_authorization_relation':
@@ -231,9 +229,22 @@ export const resolveEffectiveControllerActionPolicy = (
 };
 
 /** Aggregate route/resource evidence and resolve the same closed policy. */
-export const resolveEffectiveControllerActionPolicyFromEvidence = (
+const resolveEffectiveControllerActionPolicyFromEvidence = (
   input: Omit<EffectiveControllerActionPolicyInput, 'middleware'> & { readonly evidence: EffectiveControllerActionPolicyEvidence },
 ): EffectiveControllerActionPolicy => resolveEffectiveControllerActionPolicy({
   ...input,
-  middleware: buildRouteMiddlewareSemanticInput(input.evidence, { kind: 'present', value: input.action }),
+  middleware: routeMiddlewareSemanticInputOperations.build(input.evidence, { kind: 'present', value: input.action }),
+});
+
+
+export interface EffectiveControllerActionPolicyOperationsInterface {
+  readonly resolve: (input: EffectiveControllerActionPolicyInput) => EffectiveControllerActionPolicy;
+  readonly resolveFromEvidence: (
+    input: Omit<EffectiveControllerActionPolicyInput, 'middleware'> & { readonly evidence: EffectiveControllerActionPolicyEvidence },
+  ) => EffectiveControllerActionPolicy;
+}
+
+export const effectiveControllerActionPolicyOperations: EffectiveControllerActionPolicyOperationsInterface = Object.freeze({
+  resolve: resolveEffectiveControllerActionPolicy,
+  resolveFromEvidence: resolveEffectiveControllerActionPolicyFromEvidence,
 });

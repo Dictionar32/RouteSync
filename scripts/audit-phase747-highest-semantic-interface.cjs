@@ -6,18 +6,18 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const size = file => fs.statSync(path.join(root, file)).size;
 const exists = file => fs.existsSync(path.join(root, file));
 const changed = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalAlgebra.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelParser.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationalAlgebra.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRewriteEngine.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelParser.ts',
   'packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts',
 ];
 const forbidden = /\b(?:if|while|for|switch)\b|\.\s*(?:map|filter|reduce|flatMap)\s*\(|\bundefined\b|\?\?|\bnull\b|===|!==|\bas\s+(?:unknown|any)\b|\bnew\s+/g;
 const legacyModel = [
-  'packages/core/src/compiler/scanner/descriptors/model/modelEntityDescriptor.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/entity/modelDescriptorClass.ts',
-  'packages/core/src/compiler/scanner/descriptors/model/entity/index.ts',
-  'packages/core/src/compiler/scanner/descriptors/modelDescriptors.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/modelEntityDescriptor.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/entity/modelDescriptorClass.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/model/entity/index.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/modelDescriptors.ts',
 ];
 const checks = {
   semanticAtomAuthority: /export type SemanticRelationAtom = RelationAtom;/.test(read(changed[0])),

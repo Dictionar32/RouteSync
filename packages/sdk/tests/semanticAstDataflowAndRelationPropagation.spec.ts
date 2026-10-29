@@ -5,10 +5,11 @@ import {
     SemanticResourceBinder,
     OriginModelSymbol,
     ParsedModel,
-    matchResourceModelBinding,
-    ResourceModelBindingFactory
+    resourceModelBindingMatcher,
+    resourceModelBindingFactory,
+    ResourceModelBindingSource
 } from '@routesync/core';
-import { scanControllerAction } from '../../core/src/compiler/scanner/subscanners/controller/actionScanner';
+import { scanControllerAction } from '../../core/src/compiler/scanner/operations/controller/actionScanner';
 import { LaravelSourceLexer } from '../../core/src/compiler/scanner/LaravelSourceLexer';
 
 describe('Semantic AST Dataflow, Relation Propagation & Structural Type Inference', () => {
@@ -262,11 +263,11 @@ describe('Semantic AST Dataflow, Relation Propagation & Structural Type Inferenc
         });
     });
 
-    describe('Catamorphic Eliminator matchResourceModelBinding', () => {
+    describe('Catamorphic Eliminator resourceModelBindingMatcher.match', () => {
         it('folds ADT variants with 0 if/switch', () => {
-            const monoBinding = ResourceModelBindingFactory.mono(table.get('Order')!, 'controller_dataflow');
-            const result = matchResourceModelBinding(monoBinding, {
-                mono: (b) => `MONO:${b.model.shortName}:${b.source}`,
+            const monoBinding = resourceModelBindingFactory.mono(table.get('Order')!, ResourceModelBindingSource.controllerDataflow);
+            const result = resourceModelBindingMatcher.match(monoBinding, {
+                mono: (b) => `MONO:${b.model.shortName}:${b.source.kind}`,
                 poly: (b) => `POLY:${b.models.length}`,
                 unbacked_dto: (b) => `DTO:${b.reason}`
             });

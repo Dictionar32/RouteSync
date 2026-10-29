@@ -1,3 +1,4 @@
+import { routeRequestSchemaEvidenceFactory } from '@routesync/core';
 import { describe, it, expect } from 'vitest';
 import {
   RouteBoundaryContractFactory,
@@ -24,6 +25,7 @@ const minimalBoundary = (method: RouteBoundaryOptions['method'], path: string): 
   response: VoidResponseDescriptor.create(),
   errorResponses: [],
   schema: emptyRouteSchemaPayload(),
+  schemaEvidence: routeRequestSchemaEvidenceFactory.unavailable('non_controller_route_target'),
   binding: {
     operation: {
       controllerName: SemanticValueFactory.controllerName('UserController'),

@@ -21,7 +21,7 @@ check('Phase 1721 through 1742 audit reports all exist', phases.length === 22 &&
 check('all recorded phase audit reports have zero failed checks', phases.every(phase => phase.failed === 0 && phase.passed === phase.total));
 check('aggregate recorded audit report totals contain no failures', passed === total && failed === 0);
 check('Phase 1742 scanner contract truthfulness audit passes 18/18', latest.name === 'scanner-contract-truthfulness' && latest.total === 18 && latest.passed === 18 && latest.failed === 0);
-check('scanner runtime remains unwired to integrated response composition', !fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts'), 'utf8').includes('InvocationSemanticIntegratedResponseCompositionInterface'));
+check('scanner runtime remains unwired to integrated response composition', !fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts'), 'utf8').includes('InvocationSemanticIntegratedResponseCompositionInterface'));
 for (const item of checks) process.stdout.write(`${item.passed ? 'PASS' : 'FAIL'} ${item.name}\n`);
 process.stdout.write(`\n${checks.filter(item => item.passed).length}/${checks.length} Phase 1742 regression checks passed.\n`);
 process.stdout.write(`Recorded audit checks: ${passed}/${total}; failures=${failed}.\n`);

@@ -1,0 +1,20 @@
+{
+  "phase": 2965,
+  "title": "Bulk Domain Rejection Resolution",
+  "scope": "upstream inventory closure rejection result ADT",
+  "changes": [
+    "Replaced per-rejection includeRejection with one withRejections domain operation",
+    "Changed close to resolve all four judgment rejection groups in one call",
+    "Preserved rejection group order",
+    "Kept upstream collections.ts empty"
+  ],
+  "verification": {
+    "structural_audit": "passed 10/10",
+    "typescript_transpile_syntax": "passed; 0 syntax diagnostics in the two changed TypeScript files",
+    "typescript_typecheck": "blocked; repository dependencies/type definitions are not installed (missing global types, @types/node, vitest/globals; installed global TypeScript 5.8.3 also does not recognize project target/lib settings)",
+    "tests": "not_run",
+    "full_build": "not_run",
+    "cli_e2e": "not_run",
+    "zip_integrity": "passed: unzip -t reports no errors"
+  }
+}

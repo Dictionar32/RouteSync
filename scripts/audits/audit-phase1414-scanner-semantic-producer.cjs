@@ -5,11 +5,11 @@ const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const checks = [
   ['syntax contract has no semantic request branch', !read('packages/core/src/types/upstream/astClassifierEvidenceContract.ts').includes("kind: 'semantic'")],
   ['syntax contract has no semantic stage result', !read('packages/core/src/types/upstream/astClassifierEvidenceContract.ts').includes('AstSemanticStageInterface')],
-  ['scanner runtime no longer imports semantic stage authority', !read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts').includes('astSemanticStageAuthority')],
-  ['scanner runtime no longer constructs semantic judgments', !read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts').includes('createScannerEvidencePort')],
+  ['scanner runtime no longer imports semantic stage authority', !read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts').includes('astSemanticStageAuthority')],
+  ['scanner runtime no longer constructs semantic judgments', !read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts').includes('createScannerEvidencePort')],
   ['upstream producer owns stage port construction', read('packages/core/src/types/upstream/astSemanticEvidenceProducer.ts').includes('createScannerEvidencePort')],
   ['upstream producer contract is observation-based', read('packages/core/src/types/upstream/astSemanticEvidenceProducer.ts').includes('AstSemanticEvidenceObservation')],
-  ['scanner adapter forwards syntax observation', read('packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts').includes('produceAstSemanticEvidence')],
+  ['scanner adapter forwards syntax observation', read('packages/core/src/compiler/frontend/php/astClassifierEvidence.ts').includes('produceAstSemanticEvidence')],
   ['package build script preserved', /"build"\s*:\s*"tsdown"/.test(read('package.json'))],
 ];
 const result = { phase: 1414, status: checks.every(([, ok]) => ok) ? 'passed' : 'failed', passed: checks.filter(([, ok]) => ok).length, total: checks.length, checks: checks.map(([name, ok]) => ({ name, status: ok ? 'passed' : 'failed' })) };

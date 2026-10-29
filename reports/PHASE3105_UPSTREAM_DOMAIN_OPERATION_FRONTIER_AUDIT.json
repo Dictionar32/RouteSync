@@ -1,0 +1,39 @@
+{
+  "phase": 3105,
+  "scope": [
+    "packages/core/src",
+    "packages/cli/src",
+    "packages/sdk/src",
+    "packages/react/src"
+  ],
+  "auditMode": "TypeScript compiler AST inventory; counts are structural findings, not an instruction to mechanically delete syntax",
+  "counts": {
+    "typescriptFiles": 2245,
+    "exportedFunctionDeclarations": 520,
+    "exportedArrowVariableDeclarations": 459,
+    "exportedFunctionExpressionVariableDeclarations": 0,
+    "genericContinueWithArrowImplementations": 59,
+    "ifStatements": 2224,
+    "switchStatements": 571,
+    "forStatements": 315,
+    "whileStatements": 33,
+    "conditionalExpressions": 1238,
+    "nullishCoalescingExpressions": 228,
+    "strictEqualityExpressions": 4094,
+    "mapPropertyCalls": 814,
+    "reducePropertyCalls": 18,
+    "lookupIdentifiers": 95,
+    "visitorIdentifiers": 1308,
+    "voidKeywordTypes": 423,
+    "anyKeywordTypes": 92,
+    "unknownKeywordTypes": 913
+  },
+  "crossLayerBoundary": {
+    "remainingDiscoveryContinuation": "controllerInvocationManifestComposition.ts still maps upstream discovery outcomes to a CLI-owned terminal manifest; moving this projection into core would reverse the core-to-CLI dependency direction",
+    "nextMigrationRule": "move the outcome knowledge into upstream/domain operations while keeping CLI manifest construction in CLI; preserve blocked evidence and source provenance"
+  },
+  "noDeletedRelationFoundationRestored": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

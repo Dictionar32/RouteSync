@@ -19,10 +19,10 @@ const filesUnder = directory => {
 const coreTsFiles = filesUnder('packages/core/src');
 const countIdentifier = name => coreTsFiles.reduce((total, file) => total + (read(path.relative(root, file)).match(new RegExp(`\\b${name}\\b`, 'g')) || []).length, 0);
 const declarationOnly = (name, file) => countIdentifier(name) === 1 && read(file).includes(name);
-const routeDataflow = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts');
+const routeDataflow = read('packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts');
 const validationParser = read('packages/core/src/types/domain/validationRules.ts');
-const validationExtractor = read('packages/core/src/compiler/scanner/subscanners/form-request/canonicalValidationRuleEntry.ts');
-const ruleCollector = read('packages/core/src/compiler/scanner/subscanners/form-request/ruleCollector.ts');
+const validationExtractor = read('packages/core/src/compiler/scanner/operations/form-request/canonicalValidationRuleEntry.ts');
+const ruleCollector = read('packages/core/src/compiler/scanner/operations/form-request/ruleCollector.ts');
 const schemaRelation = read('packages/core/src/types/upstream/schemaRelation.ts');
 const modelBuilder = read('packages/core/src/compiler/scanner/semantic/model/modelSemanticDefinition.ts');
 const manifestBuilder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');

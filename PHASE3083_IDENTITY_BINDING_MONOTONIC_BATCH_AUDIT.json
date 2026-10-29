@@ -1,0 +1,53 @@
+{
+  "phase": 3083,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — monotonic source identity binding batch",
+  "status": "PASS_STRUCTURAL",
+  "passed": 17,
+  "total": 17,
+  "checks": {
+    "runtimeScenarioPreservesSuccessfulBindingsAroundRejection": true,
+    "runtimeScenarioRetainsRejectedIdentityEvidence": true,
+    "emptyBatchRemainsAnExplicitBoundOutcome": true,
+    "batchUsesClosedOpenAndRejectedStates": true,
+    "firstRejectionTransitionsOpenToRejected": true,
+    "rejectedStateCannotReturnToOpen": true,
+    "noArrayLengthClassification": true,
+    "rejectedBatchPreservesSuccessfulBindings": true,
+    "rejectedBatchPreservesAllRejectionEvidence": true,
+    "domainJudgmentOwnsAccumulation": true,
+    "upstreamExportIsInterfaceFirst": true,
+    "noExportedFunctionDeclarationInChangedUpstreamFiles": true,
+    "cliStillConsumesDomainBatchAtBoundary": true,
+    "cliManifestAndGeneratorPathStillPresent": true,
+    "changedRuntimeFilesTranspileWithoutSyntaxDiagnostics": true,
+    "collectionsSingleNewlineInvariantPreserved": true,
+    "deletedRelationFoundationNotRestored": true
+  },
+  "syntaxDiagnostics": [],
+  "runtimeBehavior": {
+    "rejectedBatchKeepsSuccessesBeforeAndAfterRejection": true,
+    "rejectedBatchRetainsTheRejection": true,
+    "emptyBatchRemainsBound": true
+  },
+  "runtimeTrace": [
+    "CLI scan/sync → manifest scan operation → Laravel controller source discovery → SourceFileInventory",
+    "source reader → ordered source-read settlements → closed source-read batch state",
+    "fulfilled source-read batch → identity binding operation → ordered identity judgments",
+    "identity judgment contribution → open identity-binding accumulator or monotonic rejected accumulator",
+    "rejected identity batch preserves successful bindings/read results and all rejection evidence; it cannot become a bound batch",
+    "bound identity batch → document read batch → semantic invocation pipeline → canonical manifest composition → contract validation → manifest generator save"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "syntaxTranspile": "PASS",
+    "strictWholeWorkspaceTypecheck": "BLOCKED — focused tsc follows the workspace import graph into pre-existing unresolved deleted-relation imports and the protected collections.ts module invariant; no diagnostics remain in the two changed identity-binding files.",
+    "focusedTests": "NOT_RUN",
+    "phpCliManifestGeneratorEndToEnd": "NOT_RUN",
+    "remainingFrontier": "Generic continuation contracts remain elsewhere in the upstream ADTs; this phase does not claim workspace-wide primitive elimination."
+  },
+  "nextFrontiers": [
+    "Trace field-level source provenance through identity binding, document batches, semantic invocation, manifest projection, and canonical JSON.",
+    "Review generic continuations in upstream ADTs one domain at a time; replace only when an explicit domain operation preserves ownership and type evidence.",
+    "Run strict TypeScript, focused tests, and PHP → CLI → manifest → generator integration in a fully installed workspace."
+  ]
+}

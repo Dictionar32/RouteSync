@@ -16,12 +16,12 @@ const interfacePaths = {
 };
 const sources = Object.fromEntries(Object.entries(interfacePaths).map(([key, file]) => [key, read(file)]));
 const implementationPaths = {
-  route: 'packages/core/src/compiler/scanner/subscanners/RouteScanner.ts',
-  controller: 'packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts',
-  model: 'packages/core/src/compiler/scanner/subscanners/ModelScanner.ts',
-  formRequest: 'packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts',
-  resource: 'packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts',
-  channel: 'packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts',
+  route: 'packages/core/src/compiler/scanner/operations/RouteScanner.ts',
+  controller: 'packages/core/src/compiler/scanner/operations/ControllerScanner.ts',
+  model: 'packages/core/src/compiler/scanner/operations/ModelScanner.ts',
+  formRequest: 'packages/core/src/compiler/scanner/operations/FormRequestScanner.ts',
+  resource: 'packages/core/src/compiler/scanner/operations/ResourceScanner.ts',
+  channel: 'packages/core/src/compiler/scanner/operations/ChannelScanner.ts',
 };
 const implementations = Object.fromEntries(Object.entries(implementationPaths).map(([key, file]) => [key, read(file)]));
 
@@ -32,7 +32,7 @@ for (const [key, file] of Object.entries(interfacePaths)) {
 }
 
 const controller = sources.controller;
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const composition = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const route = implementations.route;

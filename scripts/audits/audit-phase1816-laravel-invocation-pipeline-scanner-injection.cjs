@@ -6,9 +6,9 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const boundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
-const methodParser = read('packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts');
-const declarationParser = read('packages/core/src/compiler/scanner/lexer/controllerDeclarationParser.ts');
-const bodyParser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const methodParser = read('packages/core/src/compiler/frontend/php/controllerMethodParser.ts');
+const declarationParser = read('packages/core/src/compiler/frontend/php/controllerDeclarationParser.ts');
+const bodyParser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const cliPipeline = read('packages/cli/src/parsers/php/sourceInvocationPipeline.ts');
@@ -20,7 +20,7 @@ const checks = [
  ['body parser forwards integrated response to dataflow executor', /analyzeControllerDataflowWithIntegratedResponse\(block, parameters, parameterSemantics, filePath, integratedResponse\)/.test(bodyParser)],
  ['source AST pipeline invokes canonical scanner interface', pipeline.includes('laravelControllerScanner.scan({') && pipeline.includes('invocationInventory: invocationInventoryReceipt')],
  ['CLI supplies authority-produced whole-file pipeline delivery', cliPipeline.includes('phpSourceInvocationSemanticPipelineDeliveryBatchFromResults')],
- ['no old ControllerScanner entry remains in production source', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts'))],
+ ['no old ControllerScanner entry remains in production source', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/ControllerScanner.ts'))],
  ['no semantic foundation dependency introduced', !/semantic\/foundation/.test([scanner, boundary, methodParser, declarationParser, bodyParser, binding].join('\n'))],
 ];
 for (const [name, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);

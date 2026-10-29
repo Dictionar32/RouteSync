@@ -1,0 +1,46 @@
+{
+  "phase": 3087,
+  "title": "Fully Explicit Typed Runtime Scanner Operations Audit",
+  "status": "STRUCTURAL_TRACE_CONFIRMED_WITH_OPEN_FRONTIERS",
+  "sourceArchive": "RouteSync-Phase3086-Repository-Wide-Export-Interface-Migration.zip",
+  "runtimePath": [
+    "CLI scan/sync operation",
+    "ControllerInvocationManifestCompositionAuthority.compose",
+    "source-project identity canonicalization",
+    "LaravelControllerSourceDiscoveryInterface.discover",
+    "discovered source inventory",
+    "discoveredSourceReadSettlementOperation.readAll",
+    "phpSourceDocumentReadOperationBatchFactory.fromSettlements",
+    "source identity binding batch",
+    "phpSourceDocumentReadBatchFactory.fromResults",
+    "controller invocation semantic pipeline",
+    "semantic judgment inventory / manifest-builder preparation",
+    "ManifestBuilderJudgment",
+    "manifest projection and validation",
+    "canonical manifest output",
+    "CLI generator output/persistence"
+  ],
+  "inventory": {
+    "sourceFiles": 2382,
+    "candidateFiles": 334,
+    "exportFunction": 520,
+    "exportArrowConst": 335,
+    "remaining": 855
+  },
+  "checks": {
+    "phase3086": "PASS 9/9",
+    "phase3079": "PASS_WITH_OPEN_FRONTIERS 11/11",
+    "phase3085": "PASS 9/9",
+    "phase3073": "FAIL 13/14; canonicalization unknown failure payload and continuation contract remain open"
+  },
+  "notVerified": [
+    "whole-workspace strict TypeScript typecheck",
+    "full test suite",
+    "PHP fixture to CLI to canonical manifest to generator end-to-end"
+  ],
+  "forbiddenRestoration": [
+    "packages/core/src/semantic/relations/relationMembership.ts",
+    "packages/core/src/semantic/relations/relationalSequence.ts",
+    "packages/core/src/semantic/relations/semanticRelations.ts"
+  ]
+}

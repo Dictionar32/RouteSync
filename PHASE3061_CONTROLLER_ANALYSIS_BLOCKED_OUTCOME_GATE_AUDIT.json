@@ -1,0 +1,61 @@
+{
+  "phase": 3061,
+  "title": "Fully Explicit Typed Runtime Scanner Operations \u2014 controller blocked outcome gate",
+  "audits": {
+    "phase3057": {
+      "passed": 10,
+      "total": 10,
+      "status": "PASS"
+    },
+    "phase3058": {
+      "passed": 11,
+      "total": 11,
+      "status": "PASS"
+    },
+    "phase3059": {
+      "passed": 12,
+      "total": 12,
+      "status": "PASS"
+    },
+    "phase3060": {
+      "passed": 15,
+      "total": 15,
+      "status": "PASS"
+    },
+    "phase3061": {
+      "passed": 12,
+      "total": 12,
+      "status": "PASS"
+    }
+  },
+  "repository_invariants": {
+    "collections_ts_exactly_one_newline_byte": true,
+    "collections_ts_size_bytes": 1,
+    "deleted_relation_foundations_absent": {
+      "relationMembership.ts": true,
+      "relationalSequence.ts": true,
+      "semanticRelations.ts": true
+    }
+  },
+  "strict_typescript": {
+    "status": "BLOCKED_BY_PRE_EXISTING_DELETED_RELATION_FOUNDATION_IMPORTS",
+    "exit_code": 2,
+    "targeted_diagnostics_excerpt": [
+      "packages/core/src/compiler/frontend/php/SourceStream.ts(4,71): error TS2307: Cannot find module '../../../semantic/relations/semanticRelations' or its corresponding type declarations.",
+      "packages/core/src/compiler/frontend/php/SourceStream.ts(5,35): error TS2307: Cannot find module '../../../semantic/relations/relationalSequence' or its corresponding type declarations.",
+      "packages/core/src/compiler/frontend/php/arrayParser.ts(12,117): error TS2307: Cannot find module '../../../semantic/relations/relationalSequence' or its corresponding type declarations.",
+      "packages/core/src/compiler/frontend/php/arrayParser.ts(13,31): error TS2307: Cannot find module '../../../semantic/relations/semanticRelations' or its corresponding type declarations.",
+      "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts(36,34): error TS2307: Cannot find module '../../../semantic/relations/semanticRelations' or its corresponding type declarations.",
+      "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts(46,57): error TS2307: Cannot find module '../../../semantic/relations/semanticRelations' or its corresponding type declarations.",
+      "packages/core/src/compiler/frontend/php/astClassifierRuntime.ts(47,547): error TS2307: Cannot find module '../../../semantic/relations/relationalSequence' or its corresponding type declarations.",
+      "packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts(11,43): error TS2307: Cannot find module '../../../semantic/relations/semanticRelations' or its corresponding type declarations."
+    ],
+    "note": "No claim of successful strict typecheck; missing relation foundation imports cause cascading diagnostics."
+  },
+  "end_to_end_cli_manifest": "NOT_RUN",
+  "open_items": [
+    "CLI/manifest builder does not yet consume controller_body_semantic_blocked as a terminal manifest outcome.",
+    "End-to-end PHP source -> scanner -> controller AST -> CLI manifest fixtures are not run.",
+    "Parser/source boundary still contains primitive types and syntax dispatch; no global elimination is claimed."
+  ]
+}

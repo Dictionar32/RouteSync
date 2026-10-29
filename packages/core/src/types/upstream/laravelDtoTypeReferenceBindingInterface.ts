@@ -69,6 +69,13 @@ export interface LaravelDtoTypeReferenceBindingAuthorityDependenciesInterface<Pr
   readonly declarationResolutionAuthority: import('./laravelControllerResponseDtoDeclarationInterface').LaravelControllerResponseDtoDeclarationResolutionAuthorityInterface<Project>;
 }
 
+export interface LaravelDtoTypeReferenceBindingAuthorityFactoryInterface {
+  readonly kind: 'laravel_dto_type_reference_binding_authority_factory';
+  readonly create: <Project extends SourceProjectIdentity = SourceProjectIdentity>(
+    dependencies: LaravelDtoTypeReferenceBindingAuthorityDependenciesInterface<Project>,
+  ) => LaravelDtoTypeReferenceBindingAuthorityInterface<Project>;
+}
+
 export interface LaravelDtoTypeReferenceBindingAuthorityInterface<Project extends SourceProjectIdentity = SourceProjectIdentity> {
   readonly kind: 'laravel_dto_type_reference_binding_authority';
   readonly contract: LaravelDtoTypeReferenceBindingContract;

@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const root = resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/lexer');
+const root = resolve(import.meta.dirname, '../../packages/core/src/compiler/frontend/php');
 const ast = readFileSync(resolve(root, 'phpAstExpressionTypes.ts'), 'utf8');
 const factory = readFileSync(resolve(root, 'phpAstFactory.ts'), 'utf8');
 const projector = readFileSync(resolve(root, 'phpExpressionStructureProjector.ts'), 'utf8');
 const resolver = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/types/upstream/phpFunctionNameResolutionInterface.ts'), 'utf8');
-const resourceMapper = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
+const resourceMapper = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
 const checks = [
   ['callee evidence has a typed source-range contract', ast.includes('readonly source: SourceRange;') && ast.includes('Span of the callee itself')],
   ['callee evidence retains all source tokens', ast.includes('readonly tokens: readonly TokenDescriptor[];')],

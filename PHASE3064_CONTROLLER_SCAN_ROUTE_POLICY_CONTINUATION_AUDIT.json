@@ -1,0 +1,43 @@
+{
+  "phase": 3064,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — controller scan to route policy catalog continuation",
+  "status": "PASS",
+  "passed": 14,
+  "total": 14,
+  "checks": {
+    "scannerJudgmentDeclaresNamedRoutePolicyContinuation": true,
+    "continuationHandlersKeepCompleteAndBlockedArmsTyped": true,
+    "completeConstructorAttachesDomainContinuation": true,
+    "blockedConstructorAttachesDomainContinuation": true,
+    "routeCatalogConsumerUsesJudgmentOperation": true,
+    "routeCatalogConsumerNoLongerReclassifiesControllerScanKind": true,
+    "completeCatalogRetainsControllerPolicyAndActionPolicyFacts": true,
+    "blockedCatalogRemainsExplicitAndClosed": true,
+    "sourceAstStillUsesScannerOwnedContinuation": true,
+    "manifestBuilderStillPreservesBlockedProjection": true,
+    "cliScanBlockedGatePrecedesWrites": true,
+    "cliSyncBlockedGatePrecedesWrites": true,
+    "noDeletedRelationFoundationRestoration": true,
+    "protectedCollectionsInvariantStillOneNewlineByte": true
+  },
+  "runtimeTrace": [
+    "PHP controller source → ControllerDataflowAnalysisOutcome",
+    "LaravelControllerScannerInterface.scan(input) → LaravelControllerScanJudgment",
+    "LaravelControllerScanJudgment.continueToSourceAstProjection(handlers) → source-AST projection",
+    "LaravelControllerScanJudgment.continueToRoutePolicyCatalog(handlers) → EffectiveControllerActionPolicyCatalogJudgment",
+    "LaravelRouteScannerInterface.prepare(input) → route declaration composition",
+    "ManifestBuilderInterface.build() → complete | blocked manifest judgment",
+    "CLI scan/sync terminal blocked handler → output writes only after complete manifest projection"
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "strictTypeScript": "NOT_RUN_IN_THIS_PHASE; repository has known pre-existing type errors",
+    "globalPrimitiveElimination": "NOT_CLAIMED"
+  },
+  "remainingRisks": [
+    "The blocked route-policy catalog currently preserves the existing empty unavailable-controller list; enriching it with exact blocker controller identities is a separate provenance-preserving migration.",
+    "No executable PHP → CLI → manifest fixture was run; structural source checks do not prove runtime output behavior.",
+    "Other consumers outside catalogFromControllerScan may still inspect controllerScan.kind and require domain-specific continuation migrations."
+  ]
+}

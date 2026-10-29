@@ -1,0 +1,20 @@
+{
+  "phase": 3007,
+  "method": "TypeScript transpileModule syntax check",
+  "files": 3,
+  "diagnosticCount": 0,
+  "results": [
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegrationInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/phpSourceInvocationSemanticPipelineIntegration.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentAuthority.ts",
+      "diagnostics": []
+    }
+  ]
+}

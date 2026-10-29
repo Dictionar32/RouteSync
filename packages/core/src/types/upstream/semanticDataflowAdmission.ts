@@ -6,7 +6,7 @@
  * derive facts, recompute closure, or repair a partial judgment.
  */
 import type { SemanticDataflowIdentity, SemanticDataflowFact } from './semanticDataflow';
-import { semanticDataflowIdentityKey } from './semanticDataflow';
+import { semanticDataflowIdentityOperations } from './semanticDataflow';
 import type {
   AstDataflowJudgment,
   SemanticDataflowBoundaryResult,
@@ -14,7 +14,7 @@ import type {
   SemanticDataflowJudgmentBoundaryInterface,
 } from './semanticDataflowInterface';
 
-const boundaryIdentityKey = (identity: SemanticDataflowIdentity): string => JSON.stringify(semanticDataflowIdentityKey(identity));
+const boundaryIdentityKey = (identity: SemanticDataflowIdentity): string => JSON.stringify(semanticDataflowIdentityOperations.key(identity));
 const boundarySourceKey = (source: SemanticDataflowIdentity['source']): string => JSON.stringify({
   file: source.file.value.value,
   start: source.start.value,
@@ -41,8 +41,7 @@ export const semanticDataflowJudgmentBoundary: SemanticDataflowJudgmentBoundaryI
   admit: (judgment: AstDataflowJudgment): SemanticDataflowBoundaryResult => {
     if (judgment.kind !== 'semantic_dataflow_judgment') return boundaryReject('wrong_judgment_kind');
     if (judgment.closed !== true || judgment.authority !== 'semantic_dataflow_judgment'
-      || judgment.fixedPoint !== 'least_fixed_point'
-      || judgment.reasoning !== 'declarative_relation_rewrite_fixed_point') {
+      || judgment.fixedPoint !== 'least_fixed_point') {
       return boundaryReject('judgment_not_closed');
     }
     const contract = judgment.reasoningContract;
@@ -62,6 +61,12 @@ export const semanticDataflowJudgmentBoundary: SemanticDataflowJudgmentBoundaryI
     if (!Array.isArray(judgment.facts) || !Array.isArray(judgment.closure)
       || !Array.isArray(judgment.derivations) || !Array.isArray(judgment.paths)) {
       return boundaryReject('missing_evidence_collections');
+    }
+    if (judgment.operations === undefined || judgment.operations === null
+      || typeof judgment.operations.containsFact !== 'function'
+      || typeof judgment.operations.reaches !== 'function'
+      || typeof judgment.operations.pathsBetween !== 'function') {
+      return boundaryReject('judgment_operations_missing');
     }
     const certificate = judgment.closureCertificate;
     if (certificate === undefined || certificate === null) return boundaryReject('closure_certificate_missing');

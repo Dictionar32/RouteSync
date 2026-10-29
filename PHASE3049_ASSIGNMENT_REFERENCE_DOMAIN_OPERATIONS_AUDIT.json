@@ -1,0 +1,32 @@
+{
+  "phase": 3049,
+  "title": "Assignment Reference Domain Operations — Source-Emitted Identity Binding",
+  "runtimeTrace": [
+    "PHP syntax evidence resolves reference mode into the canonical SemanticAssignmentReferenceDefinition.",
+    "The reference-mode definition owns an identityProjection operation.",
+    "by_reference emits a source-backed identity binding; by_value emits no binding evidence.",
+    "Semantic object identity analysis consumes projected bindings rather than inspecting reference.code.",
+    "The proof preserves the assignment KnowledgeId, both endpoint KnowledgeIds, and SemanticSource.",
+    "The semantic response continues through the existing interface-backed CLI scan and controller-invocation manifest composition path."
+  ],
+  "checks": {
+    "referenceDefinitionOwnsDomainProjection": true,
+    "byValueDoesNotEmitIdentityBinding": true,
+    "byReferenceEmitsSourceBackedIdentityBinding": true,
+    "identityAuthorityConsumesUpstreamProjectionInsteadOfReferenceCode": true,
+    "aliasProofPreservesBindingProvenance": true,
+    "testCoversBothReferenceModesAndSourceIdentity": true,
+    "cliManifestInterfacePathPreserved": true,
+    "noGenericVisitorAdded": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 10,
+  "total": 10,
+  "remainingDebt": [
+    "The model is scoped to reference-binding identity evidence; full PHP reference semantics, aliasing through heap locations, and callable effect summaries remain incomplete.",
+    "Parser-boundary primitive values and dispatch remain; this phase does not claim global elimination of strings, numbers, booleans, nullish values, conditionals, or collections.",
+    "Full repository typecheck, full Vitest, and end-to-end CLI-to-manifest execution remain unverified."
+  ],
+  "failedChecks": []
+}

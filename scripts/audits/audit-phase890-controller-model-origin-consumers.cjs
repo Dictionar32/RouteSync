@@ -3,12 +3,12 @@ const path = require('node:path');
 
 const root = process.cwd();
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts',
-  'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts',
-  'packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts',
+  'packages/core/src/compiler/frontend/php/controllerMethodParser.ts',
+  'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts',
+  'packages/core/src/compiler/scanner/operations/routeProducerRelations.ts',
+  'packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts',
+  'packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts',
   'packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts',
   'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
 ];

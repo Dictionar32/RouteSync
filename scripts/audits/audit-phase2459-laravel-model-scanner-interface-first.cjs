@@ -3,8 +3,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const scannerPath = path.join(root, 'packages/core/src/compiler/scanner/laravelModelScanner.ts');
 const sourceFilesPath = path.join(root, 'packages/core/src/compiler/scanner/sourceFiles.ts');
-const oldScannerPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/ModelScanner.ts');
-const exportsPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/index.ts');
+const oldScannerPath = path.join(root, 'packages/core/src/compiler/scanner/operations/ModelScanner.ts');
+const exportsPath = path.join(root, 'packages/core/src/compiler/scanner/operations/index.ts');
 const depsPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelSourceAstPipelineDependencies.ts');
 const scanner = fs.readFileSync(scannerPath, 'utf8');
 const sourceFiles = fs.readFileSync(sourceFilesPath, 'utf8');
@@ -12,7 +12,7 @@ const barrel = fs.readFileSync(exportsPath, 'utf8');
 const deps = fs.readFileSync(depsPath, 'utf8');
 const checks = [
   ['scanner implementation has a first-class compiler/scanner owner', fs.existsSync(scannerPath)],
-  ['shared source acquisition is owned by compiler/scanner', fs.existsSync(sourceFilesPath) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/scannerUtils.ts'))],
+  ['shared source acquisition is owned by compiler/scanner', fs.existsSync(sourceFilesPath) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/scannerUtils.ts'))],
   ['source acquisition no longer imports relation/foundation helpers', !/semantic\/relations|semantic\/foundation/.test(sourceFiles)],
   ['subscanner barrel no longer re-exports source acquisition utilities', !/collectPhpFiles.*sourceFiles|scannerUtils/.test(barrel)],
   ['legacy subscanner entrypoint is retired', !fs.existsSync(oldScannerPath)],

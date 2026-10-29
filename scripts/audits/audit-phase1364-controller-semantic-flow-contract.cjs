@@ -3,10 +3,10 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
-const contract = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const upstream = read('packages/core/src/types/upstream/controller.ts');
-const ast = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const ast = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [
   ['upstream ControllerSemanticVariableFlow contract exists', /export interface ControllerSemanticVariableFlow\s*\{\s*readonly variables: Sequence<ControllerVariableBinding>;/s.test(upstream)],

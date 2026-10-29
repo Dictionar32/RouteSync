@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const scannerContract = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const routeScanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const routeProducer = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeProducer = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const actionInterface = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2153-ACTION-JUDGMENT-PUBLICATION-CONTRACT-DESIGN.md');
 const checks = [
@@ -20,7 +20,7 @@ const checks = [
   ['action judgment projection parameter is generic', /interface LaravelControllerActionSemanticJudgmentInterface\s*</.test(actionInterface)],
   ['design forbids casts and duplicate reduced judgment', /Do not hide this issue with `unknown`, a cast, or a second reduced/.test(docs)],
   ['typed request obligation remains open', /typed_request_binding_projection_loss/.test(docs)],
-  ['no relation/foundation or subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/laravelControllerRouteRequestSemanticAuthority.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/actionJudgmentRouteRequest.ts'))],
+  ['no relation/foundation or subscanner added', !fs.existsSync(path.join(root, 'packages/core/src/types/upstream/laravelControllerRouteRequestSemanticAuthority.ts')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/actionJudgmentRouteRequest.ts'))],
 ];
 let failures = 0;
 for (const [name, check] of checks) {

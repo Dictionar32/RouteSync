@@ -1,0 +1,53 @@
+{
+  "phase": 3058,
+  "title": "Typed source production input",
+  "passed": 11,
+  "total": 11,
+  "status": "PASS",
+  "results": [
+    {
+      "name": "production input is a required typed object",
+      "pass": true
+    },
+    {
+      "name": "production input contract contains no optional or raw string parameters",
+      "pass": true
+    },
+    {
+      "name": "adapter operations consume one typed input object",
+      "pass": true
+    },
+    {
+      "name": "runtime producer exposes only typed outcome production",
+      "pass": true
+    },
+    {
+      "name": "legacy convenience API is explicitly isolated",
+      "pass": true
+    },
+    {
+      "name": "typed source identity is used to create source evidence",
+      "pass": true
+    },
+    {
+      "name": "evidence provenance is passed as a typed provider value",
+      "pass": true
+    },
+    {
+      "name": "direct adapter tests use the explicit input object",
+      "pass": true
+    },
+    {
+      "name": "deleted generic relation foundations remain absent",
+      "pass": true
+    },
+    {
+      "name": "collections invariant remains exactly one newline byte",
+      "pass": true
+    },
+    {
+      "name": "audit command is registered",
+      "pass": true
+    }
+  ]
+}

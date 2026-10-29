@@ -6,7 +6,7 @@
     "packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts",
     "packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts",
     "packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts",
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts"
+    "packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts"
   ],
   "invariants": {
     "canonical_interface_is_one_input_one_judgment": true,

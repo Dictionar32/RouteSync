@@ -7,7 +7,7 @@
 - `types/upstream/semanticDataflowInterface.ts` owns the admission contract and proof-envelope checks. Before this phase, the scanner composed the authority and admission boundary directly.
 - `types/upstream/semanticDataflowRuntimeExecutor.ts` now composes the existing authority with the existing admission interface behind one runtime executor contract. It adds no solver, semantic classifier, or second proof model.
 - `compiler/scanner/wiring/semanticDataflowInputAdapter.ts` maps scanner knowledge evidence into canonical upstream input.
-- `compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts` now calls the upstream runtime executor, then projects the accepted canonical judgment to its deprecated legacy return type.
+- `compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts` now calls the upstream runtime executor, then projects the accepted canonical judgment to its deprecated legacy return type.
 - `compiler/scanner/subscanners/queryEvidenceProducer.ts` separately consumes `queryProducerSemanticAlgebra` and its evidence-bound execution validation; its explicit unclaimed-operation compatibility catalog remains a migration frontier.
 
 ## Change

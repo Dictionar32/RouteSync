@@ -1,0 +1,60 @@
+{
+  "phase": 3008,
+  "title": "Operational Invocation Input ADT",
+  "checks": [
+    {
+      "name": "input variants expose continueWith",
+      "passed": true
+    },
+    {
+      "name": "input factory has explicit interface type",
+      "passed": true
+    },
+    {
+      "name": "runtime judge dispatches through input operation",
+      "passed": true
+    },
+    {
+      "name": "runtime judge has no input.kind switch",
+      "passed": true
+    },
+    {
+      "name": "provided pipeline construction uses canonical factory",
+      "passed": true
+    },
+    {
+      "name": "absent pipeline production call uses canonical factory",
+      "passed": true
+    },
+    {
+      "name": "input contract version aligned",
+      "passed": true
+    },
+    {
+      "name": "factory exported from upstream barrel",
+      "passed": true
+    },
+    {
+      "name": "no legacy raw not-provided input callsites remain",
+      "passed": true
+    },
+    {
+      "name": "collections.ts intentionally empty",
+      "passed": true
+    },
+    {
+      "name": "removed relationMembership foundation remains absent",
+      "passed": true
+    },
+    {
+      "name": "removed relationalSequence foundation remains absent",
+      "passed": true
+    },
+    {
+      "name": "removed semanticRelations foundation remains absent",
+      "passed": true
+    }
+  ],
+  "passed": 13,
+  "total": 13
+}

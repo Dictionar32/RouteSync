@@ -72,9 +72,9 @@
       "packages/core/src/compiler/ir/StructuredContractIRBuilder.ts",
       "packages/core/src/compiler/ir/StructuredResponseIRBuilder.ts",
       "packages/core/src/compiler/ir/__tests__/ContractIRTypeBuilder.test.ts",
-      "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
-      "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
-      "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionContract.ts",
+      "packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts",
+      "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts",
       "packages/core/src/compiler/scanner/orchestrator/pipelineScanner.ts",
       "packages/core/src/compiler/scanner/scannerLegacyDelegates.ts",
       "packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts",
@@ -213,9 +213,9 @@
       "packages/core/src/compiler/generators/CompilerBridge.ts",
       "packages/core/src/compiler/ir/ContractIRTypeBuilder.ts",
       "packages/core/src/compiler/ir/__tests__/ContractIRTypeBuilder.test.ts",
-      "packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts",
-      "packages/core/src/compiler/scanner/descriptors/route/routeResponses.ts",
-      "packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts",
+      "packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionContract.ts",
+      "packages/core/src/compiler/scanner/operations/domain-model/route/routeResponses.ts",
+      "packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts",
       "packages/core/src/compiler/scanner/orchestrator/pipelineScanner.ts",
       "packages/core/src/compiler/scanner/scannerLegacyDelegates.ts",
       "packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts",
@@ -316,11 +316,11 @@
       "count": 12
     },
     {
-      "file": "compiler/scanner/lexer/astClassifierEvidence.ts",
+      "file": "compiler/frontend/php/astClassifierEvidence.ts",
       "count": 8
     },
     {
-      "file": "compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "file": "compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
       "count": 8
     },
     {
@@ -340,7 +340,7 @@
       "count": 7
     },
     {
-      "file": "compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts",
+      "file": "compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts",
       "count": 6
     },
     {
@@ -364,7 +364,7 @@
       "count": 4
     },
     {
-      "file": "compiler/scanner/lexer/phpControlEvidence.ts",
+      "file": "compiler/frontend/php/phpControlEvidence.ts",
       "count": 4
     }
   ],

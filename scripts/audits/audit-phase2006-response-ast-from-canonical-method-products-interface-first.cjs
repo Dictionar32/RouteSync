@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
-const responseScanner = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
+const responseScanner = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
 const sourcePipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2006_RESPONSE_AST_FROM_CANONICAL_METHOD_PRODUCTS_INTERFACE.md');
 const checks = [
@@ -55,7 +55,7 @@ const checks = [
   }],
   ['no relation/foundation subscanner was introduced', () => {
     assert.match(docs, /No `relation` or `foundation` subscanner was added/);
-    assert.doesNotMatch(responseScanner, /subscanners\/(relation|foundation)/);
+    assert.doesNotMatch(responseScanner, /operations\/(relation|foundation)/);
   }],
   ['documentation preserves the output-type and typecheck limitations', () => {
     assert.match(docs, /output` remains `mixed`/);

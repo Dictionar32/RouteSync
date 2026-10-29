@@ -2,7 +2,7 @@
 
 ## Scope
 
-This phase closes one specific upstream ownership defect found in Phase2510: `types/upstream/requestProducerInterface.ts` directly imported PHP parser AST types from `compiler/scanner/lexer`. That reversed the dependency direction between the upstream contract and its concrete frontend evidence.
+This phase closes one specific upstream ownership defect found in Phase2510: `types/upstream/requestProducerInterface.ts` directly imported PHP parser AST types from `compiler/frontend/php`. That reversed the dependency direction between the upstream contract and its concrete frontend evidence.
 
 ## Changes
 

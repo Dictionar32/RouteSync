@@ -3,7 +3,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const core = path.join(root, 'packages/core/src');
 const read = p => fs.readFileSync(p, 'utf8');
-const routeProducerRelations = read(path.join(core,'compiler/scanner/subscanners/routeProducerRelations.ts'));
+const routeProducerRelations = read(path.join(core,'compiler/scanner/operations/routeProducerRelations.ts'));
 const boundaryBasics = read(path.join(core,'compiler/scanner/resolvers/boundary/boundaryBasicsTypes.ts'));
 const routeContracts = read(path.join(core,'compiler/scanner/descriptors/route/routeContracts.ts'));
 const contractFactories = read(path.join(core,'compiler/scanner/descriptors/route/factories/contractRouteFactories.ts'));

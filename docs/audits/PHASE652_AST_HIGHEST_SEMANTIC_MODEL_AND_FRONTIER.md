@@ -62,9 +62,9 @@ The existing phase audits were rerun. Important results:
 A broader Phase 652 trace across scanner, graph, analysis, and semantic type lowering identifies the next actual authority leaks. The highest-risk files are:
 
 1. `packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts`
-2. `packages/core/src/compiler/scanner/descriptors/request/controllerExpressionContract.ts`
-3. `packages/core/src/compiler/scanner/descriptors/manifest/resourceRouteGroupDescriptor.ts`
-4. `packages/core/src/compiler/scanner/lexer/routeAst/routeDeclarationParserHelpers.ts`
+2. `packages/core/src/compiler/scanner/operations/domain-model/request/controllerExpressionContract.ts`
+3. `packages/core/src/compiler/scanner/operations/domain-model/manifest/resourceRouteGroupDescriptor.ts`
+4. `packages/core/src/compiler/frontend/php/routeAst/routeDeclarationParserHelpers.ts`
 5. `packages/core/src/compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts`
 6. `packages/core/src/compiler/scanner/subscanners/resource/resourceBindingOriginResolver.ts`
 7. `packages/core/src/compiler/scanner/subscanners/request-deriver/rawTypeConverter.ts`

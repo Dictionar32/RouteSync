@@ -1,4 +1,4 @@
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import { describe, expect, it } from 'vitest';
 import { controllerResourceBindingAuthority } from '../controllerResourceBindingAuthority';
 import { controllerStaticCallOriginAuthority } from '../controllerStaticCallOriginAuthority';
@@ -24,16 +24,16 @@ describe('controller model-origin closed judgment phase 2056', () => {
       input: {
         kind: 'controller_static_call_origin_input',
       classReference: { kind: 'simple_name', name: createClassName('DB') },
-      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
+      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
         methodName: createMethodName('table'),
-        tableArgument: { kind: 'positional_string_literal', value: stringValue('posts') },
+        tableArgument: { kind: 'positional_string_literal', value: stringValue.create('posts') },
         modelClasses: [],
       },
     };
 
     expect(controllerResourceBindingAuthority.judgeModelOrigin(evidence)).toEqual({
       kind: 'resolved',
-      origin: { kind: 'table', name: { kind: 'table_name', value: stringValue('posts') } },
+      origin: { kind: 'table', name: { kind: 'table_name', value: stringValue.create('posts') } },
       closed: true,
     });
   });
@@ -42,7 +42,7 @@ describe('controller model-origin closed judgment phase 2056', () => {
     expect(controllerStaticCallOriginAuthority.judge({
       kind: 'controller_static_call_origin_input',
       classReference: { kind: 'simple_name', name: createClassName('DB') },
-      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
+      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
       methodName: createMethodName('select'),
       tableArgument: { kind: 'unsupported_argument_shape' },
       modelClasses: [],
@@ -52,7 +52,7 @@ describe('controller model-origin closed judgment phase 2056', () => {
       input: {
         kind: 'controller_static_call_origin_input',
       classReference: { kind: 'simple_name', name: createClassName('DB') },
-      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
+      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
         methodName: createMethodName('select'),
         tableArgument: { kind: 'unsupported_argument_shape' },
         modelClasses: [],
@@ -85,7 +85,7 @@ describe('controller model-origin closed judgment phase 2056', () => {
       input: {
         kind: 'controller_static_call_origin_input',
       classReference: { kind: 'simple_name', name: createClassName('DB') },
-      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
+      classNameResolutionContext: { kind: 'available', context: { kind: 'php_class_name_resolution_context', namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'), classImports: [{ kind: 'php_class_import_binding', alias: createClassName('DB'), target: phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB') }], importInventory: 'complete' } },
         methodName: createMethodName('table'),
         tableArgument: { kind: 'absent' },
         modelClasses: [],

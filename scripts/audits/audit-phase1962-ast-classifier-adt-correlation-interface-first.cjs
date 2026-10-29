@@ -3,10 +3,10 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/astClassifierEvidenceContract.ts');
-const facade = read('packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts');
+const facade = read('packages/core/src/compiler/frontend/php/astClassifierEvidence.ts');
 const judgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
 const inventory = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts');
-const test = read('packages/core/src/compiler/scanner/lexer/astClassifierEvidencePort.phase1962.test.ts');
+const test = read('packages/core/src/compiler/frontend/php/astClassifierEvidencePort.phase1962.test.ts');
 const checks = [
   ['one AST classifier port remains', /interface AstClassifierEvidenceInterface/.test(contract) && /readonly classify:/.test(contract)],
   ['expression request maps to expression result in the interface', /AstClassifierExpressionRequest<TToken>\): AstClassifierExpressionResult<TValue>/.test(contract)],

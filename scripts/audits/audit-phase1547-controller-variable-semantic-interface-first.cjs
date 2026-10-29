@@ -7,10 +7,10 @@ const check = (name, passed, detail) => checks.push({ name, passed: Boolean(pass
 const contract = read('packages/core/src/types/upstream/controllerVariableSemanticInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts');
 const executor = read('packages/core/src/types/upstream/controllerVariableSemanticRuntimeExecutor.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const evidenceAdapter = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts');
+const parser = read('packages/core/src/compiler/frontend/php/controllerBodyParser.ts');
 const model = read('packages/core/src/types/upstream/controller.ts');
 check('upstream-contract-defines-typed-evidence-request', /ControllerVariableSemanticEvidence/.test(contract) && /ControllerVariableSemanticResolutionRequest/.test(contract), 'Controller semantic resolution has a parser-neutral evidence/request contract.');
 check('upstream-contract-defines-authority-and-runtime-interfaces', /ControllerVariableSemanticAuthorityInterface/.test(contract) && /ControllerVariableSemanticRuntimeExecutorInterface/.test(contract), 'Authority and runtime executor responsibilities have separate interfaces.');

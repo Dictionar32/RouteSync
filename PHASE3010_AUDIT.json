@@ -1,0 +1,58 @@
+{
+  "phase": 3010,
+  "audit": "upstream-semantic-operation-objects-and-cli-manifest-trace",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "rule policy is interface-first operation object",
+      "pass": true,
+      "detail": "Policy resolution is exported as a typed domain operation object."
+    },
+    {
+      "name": "witness ownership is interface-first operation object",
+      "pass": true,
+      "detail": "Witness ownership is exported as a typed domain operation object."
+    },
+    {
+      "name": "algebra invokes policy operation by domain name",
+      "pass": true,
+      "detail": "Semantic algebra no longer invokes the old bare policy function."
+    },
+    {
+      "name": "authority invokes witness ownership operation",
+      "pass": true,
+      "detail": "Authority validates each witness through the shared ownership operation."
+    },
+    {
+      "name": "legacy bare witness helper removed",
+      "pass": true,
+      "detail": "No remaining use of the old witness-owner helper name in the audited slice."
+    },
+    {
+      "name": "CLI request uses operational composition input factory",
+      "pass": true,
+      "detail": "scan/sync/drift construct the manifest request through the canonical input factory."
+    },
+    {
+      "name": "composition input owns canonicalization continuation",
+      "pass": true,
+      "detail": "Manifest composition dispatches through the request ADT operation."
+    },
+    {
+      "name": "audited runtime files contain no exported function declarations",
+      "pass": true,
+      "detail": "No export function declarations in the scoped runtime slice; this is not a repository-wide claim."
+    },
+    {
+      "name": "collections.ts remains whitespace-only",
+      "pass": true,
+      "detail": "collections.ts bytes=1; unchanged constraint preserved."
+    },
+    {
+      "name": "deleted relation foundation modules remain absent",
+      "pass": true,
+      "detail": "No deleted relation foundation was restored."
+    }
+  ]
+}

@@ -10,9 +10,9 @@ Remove `RouteSemanticFlowFactory` from the public core/compiler/descriptors expo
   - `packages/core/src/index.ts`
   - `packages/core/src/compiler/index.ts`
   - `packages/core/src/compiler/scanner/scannerExports.ts`
-  - `packages/core/src/compiler/scanner/descriptors/index.ts`
-  - `packages/core/src/compiler/scanner/descriptors/routeDescriptors.ts`
-  - `packages/core/src/compiler/scanner/descriptors/route/index.ts`
+  - `packages/core/src/compiler/scanner/operations/domain-model/index.ts`
+  - `packages/core/src/compiler/scanner/operations/domain-model/routeDescriptors.ts`
+  - `packages/core/src/compiler/scanner/operations/domain-model/route/index.ts`
 - SDK tests that still exercise the legacy descriptor behavior now import the factory directly from its legacy implementation file instead of through the public barrel.
 - No compatibility adapter or replacement factory was introduced.
 

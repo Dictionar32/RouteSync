@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const authority = read('packages/core/src/compiler/analysis/astDataflowAuthority.ts');
 const analysis = read('packages/core/src/compiler/analysis/astAnalysisInterface.ts');
-const phase161 = read('packages/core/src/compiler/scanner/lexer/routeAst/PHASE161_TYPED_KNOWLEDGE_DATAFLOW_SOURCE_PROVENANCE.md');
+const phase161 = read('packages/core/src/compiler/frontend/php/routeAst/PHASE161_TYPED_KNOWLEDGE_DATAFLOW_SOURCE_PROVENANCE.md');
 const resource = read('packages/core/PHASE_RESOURCE_PRODUCER_TRACE_REPAIR.md');
 const test = read('packages/core/src/compiler/analysis/__tests__/ecommerceShopHighestAstDataflowPhase760.spec.ts');
 const all = fs.readdirSync(path.join(root, 'packages/core/src'), { recursive: true })

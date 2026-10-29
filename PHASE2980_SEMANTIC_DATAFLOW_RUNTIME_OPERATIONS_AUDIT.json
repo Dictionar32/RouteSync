@@ -1,0 +1,71 @@
+{
+  "phase": 2980,
+  "title": "Fully Explicit Simplicity — Semantic Dataflow Runtime Operations",
+  "scope": [
+    "semantic dataflow identity key/equality runtime operations",
+    "fact lineage attachment operation",
+    "upstream producer and downstream IR consumer cutover",
+    "upstream → CLI → manifest → IR trace and export backlog inventory"
+  ],
+  "checks": [
+    {
+      "name": "identity key/equality are owned by an interface-typed runtime object",
+      "passed": true
+    },
+    {
+      "name": "lineage attachment is owned by an interface-typed runtime object",
+      "passed": true
+    },
+    {
+      "name": "old standalone identity exports are retired",
+      "passed": true
+    },
+    {
+      "name": "old standalone lineage factory export is retired",
+      "passed": true
+    },
+    {
+      "name": "upstream projection consumers call the domain lineage operation",
+      "passed": true
+    },
+    {
+      "name": "identity consumers call the canonical identity operations",
+      "passed": true
+    },
+    {
+      "name": "public upstream surface exports runtime objects and their contracts",
+      "passed": true
+    },
+    {
+      "name": "core public index exports typed runtime operations",
+      "passed": true
+    },
+    {
+      "name": "no production TypeScript consumers reference retired function names",
+      "passed": true
+    },
+    {
+      "name": "upstream collections remains empty",
+      "passed": true
+    },
+    {
+      "name": "deleted relation foundation files remain absent",
+      "passed": true
+    }
+  ],
+  "inventory": {
+    "scannedTypeScriptFiles": 819,
+    "remainingExportFunctionDeclarations": 52,
+    "remainingExportArrowDeclarations": 180,
+    "directImportsFromDeletedRelationFoundationModules": 82
+  },
+  "verification": {
+    "focusedRuntimeTestsAdded": "packages/core/src/types/upstream/__tests__/semanticDataflowRuntimeOperations.phase2980.test.ts",
+    "focusedRuntimeSmoke": "3/3 passed via transpiled semanticDataflow module",
+    "sourceSyntaxCheck": "16 changed TypeScript files transpiled without syntax diagnostics",
+    "fullWorkspaceTypecheck": "blocked: installed global TypeScript does not support project ES2025 target; workspace dependencies/types are unavailable",
+    "fullTestSuite": "not run: workspace dependencies are unavailable"
+  },
+  "passed": 11,
+  "total": 11
+}

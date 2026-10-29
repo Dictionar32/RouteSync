@@ -1,0 +1,34 @@
+{
+  "phase": 2956,
+  "title": "Source Inventory Identity Cardinality ADT",
+  "scope": [
+    "packages/core/src/types/upstream/names.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "packages/core/src/types/upstream/__tests__/source-file-inventory-domain-visitor.phase2921.test.ts",
+    "packages/core/src/index.ts",
+    "scripts/audits/audit-phase2956-source-inventory-identity-cardinality.cjs",
+    "package.json"
+  ],
+  "structuralAudit": {
+    "passed": 13,
+    "total": 13,
+    "priorRelevantAudits": {
+      "phase2952": "11/11 passed; audit updated to the evolved identity-cardinality contract",
+      "phase2953": "11/11 passed; audit updated to the evolved identity-cardinality contract",
+      "phase2954": "9/9 passed",
+      "phase2955": "10/10 passed"
+    }
+  },
+  "syntaxTranspile": {
+    "files": 4,
+    "diagnostics": 0,
+    "method": "TypeScript transpileModule; syntax only, not full typecheck"
+  },
+  "packageJsonParse": "passed",
+  "collectionsBytes": 0,
+  "focusedVitest": "not run; local Vitest executable unavailable",
+  "fullTypecheck": "not verified; no full project typecheck pass is claimed",
+  "fullBuild": "not run",
+  "cliEndToEnd": "not run",
+  "zipIntegrity": "verified after packaging"
+}

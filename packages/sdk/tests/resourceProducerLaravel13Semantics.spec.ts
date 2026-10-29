@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { resourceOperationType } from '../../core/src/compiler/scanner/subscanners/resource/resourceFieldProducer'
+import { resourceOperationType } from '../../core/src/compiler/scanner/operations/resource/resourceFieldProducer'
 
 const method = (property: string, args: any[] = []): any => ({ kind: 'method_chain', property, arguments: args })
 const literal = (value: string): any => ({ kind: 'literal', literalType: 'string', value })

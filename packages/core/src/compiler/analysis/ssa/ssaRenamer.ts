@@ -7,7 +7,7 @@ import { createVariableVersionScope, type VariableVersionScope } from './renamer
 import { renameBlockInstructions, updateSuccessorPhis } from './renamer';
 import { basicBlockLookup, basicBlockReplace, createControlFlowGraph } from '../../utils/ControlFlowGraph';
 import { relationAny, relationFold, relationOptionFold, relationResolve, relationVariantValue, relationRefine } from '../../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../../semantic/relations/relationFoundation';
+import { relationEqual } from '../../../semantic/relations/semanticRelations';
 
 export interface SSARenamer { readonly rename: (cfg: ControlFlowGraph, dom: DominatorTree) => ControlFlowGraph; }
 

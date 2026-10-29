@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { LaravelSourceLexer } from '@routesync/core'
-import { scanControllerAction } from '../../core/src/compiler/scanner/subscanners/controller/actionScanner'
+import { scanControllerAction } from '../../core/src/compiler/scanner/operations/controller/actionScanner'
 
 /**
  * Tests for LaravelRouteParser assignment scanner fixes:

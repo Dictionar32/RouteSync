@@ -1,0 +1,19 @@
+{
+  "phase": 2842,
+  "title": "Semantic Dataflow Judgment Operations",
+  "trace": [
+    "CLI scan/sync",
+    "manifest builder",
+    "source-AST projection",
+    "semanticDataflowManifestSurface.judgmentsFromInputs",
+    "semanticDataflowReasoningAuthority.judge",
+    "SemanticDataflowJudgment.operations",
+    "semantic dataflow admission and consumers"
+  ],
+  "operations": ["containsFact", "reaches", "pathsBetween"],
+  "removedPrimitive": "SemanticDataflowJudgment.reasoning",
+  "preserved": ["reasoningContract", "fixedPoint", "closureCertificate", "complete/blocked manifest distinction"],
+  "collectionsBytes": 0,
+  "audit": "audit:phase2842-semantic-dataflow-judgment-operations",
+  "verificationScope": "structural source assertions only"
+}

@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/responseScanner.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/responseScanner.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE2012_FRAMEWORK_VERSION_COMPATIBILITY_JUDGMENT_INTERFACE_FIRST.md');
 const checks = [
   ['lock facts are a typed ADT distinct from compatibility judgment', () => {
@@ -55,7 +55,7 @@ const checks = [
     assert.doesNotMatch(scanner, /controllerReturnSemanticFromMethod/);
   }],
   ['no relation/foundation subscanner is introduced', () => {
-    assert.doesNotMatch(scanner, /subscanners\/(relation|foundation)/);
+    assert.doesNotMatch(scanner, /operations\/(relation|foundation)/);
     assert.match(docs, /No `relation` or `foundation` subscanner is added/);
   }],
   ['official documentation and verification limits are recorded', () => {

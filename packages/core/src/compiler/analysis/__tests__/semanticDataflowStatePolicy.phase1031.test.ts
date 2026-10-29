@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import type {
   SemanticDataflowIdentity,
 } from '../../../types/upstream/semanticDataflow';
-import { createSourceFile } from '../../../types/upstream/names';
+import { sourceFileIdentityFactory } from '../../../types/upstream/names';
 import { numberValue, stringValue } from '../../../types/upstream/valueObjects';
 import { createSemanticDataflowStatePolicy } from '../dataflow/semanticDataflowStatePolicy';
 import type { DataFlowInterface } from '../../../types/dataflow/dataFlowInterface';
@@ -14,12 +14,12 @@ const identity = (role: string): SemanticDataflowIdentity => ({
   kind: 'semantic_dataflow_identity',
   source: Object.freeze({
     kind: 'source_span' as const,
-    file: createSourceFile('fixture.php'),
+    file: sourceFileIdentityFactory.create(stringValue.create('fixture.php')),
     start: numberValue(0),
     end: numberValue(1),
   }),
   role: 'value',
-  slot: stringValue(role),
+  slot: stringValue.create(role),
 });
 
 const source = identity('source');

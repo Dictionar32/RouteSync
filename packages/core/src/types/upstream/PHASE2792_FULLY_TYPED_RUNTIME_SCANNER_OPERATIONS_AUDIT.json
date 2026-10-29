@@ -1,0 +1,22 @@
+{
+  "phase": 2792,
+  "title": "Fully Typed Runtime Scanner Operations",
+  "scope": "PHP AST expression mapping operations on the upstream CLI manifest scanner path",
+  "changes": [
+    "Removed exported free-function declarations from phpAstExpressionMappings.ts.",
+    "Introduced PhpAstExpressionMappingOperationsInterface and the frozen phpAstExpressionMappingOperations object.",
+    "Introduced PhpAstExpressionClosureOperationsInterface and the frozen phpAstExpressionClosureOperations object.",
+    "Migrated scanner and semantic producer call sites to the typed operation object.",
+    "Removed generic semantic/relations imports from the PHP AST expression-mapping and closure-traversal boundaries and replaced them with explicit discriminant switches and direct sequence ADT construction.",
+    "Preserved domain SemanticDataFlowRelation ADT and empty upstream collections.ts contract."
+  ],
+  "verification": {
+    "phase2792_structural_audit": "run after changes",
+    "phase2791_structural_audit": "10/10 passed",
+    "changed_typescript_syntax_transpile": "10 files, 0 syntax errors",
+    "full_typecheck": "not verified",
+    "build": "not verified",
+    "tests": "not verified",
+    "cli_end_to_end": "not verified"
+  }
+}

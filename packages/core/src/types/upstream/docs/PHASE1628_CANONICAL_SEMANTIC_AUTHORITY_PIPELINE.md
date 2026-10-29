@@ -19,9 +19,9 @@ This is an evolution of the existing pipeline contract, not a new executor or a 
 ## Ownership findings
 
 - `semantic/foundation` is not safe to delete as a folder: it owns generic relation algebra, collection, membership, rewrite, and execution-plan machinery. It has direct scanner consumers and consumers outside the scanner.
-- `compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts` is a compatibility facade to the foundation-owned generic solver.
-- `compiler/scanner/lexer/routeAst/semanticClosureEngine.ts` delegates to the upstream semantic closure model.
-- `compiler/scanner/lexer/routeAst/semanticRelationProgram.ts` delegates to the upstream program contract.
+- `compiler/frontend/php/routeAst/semanticRewriteEngine.ts` is a compatibility facade to the foundation-owned generic solver.
+- `compiler/frontend/php/routeAst/semanticClosureEngine.ts` delegates to the upstream semantic closure model.
+- `compiler/frontend/php/routeAst/semanticRelationProgram.ts` delegates to the upstream program contract.
 - Domain-specific relation catalogs and evidence adapters may remain in scanner while generic reasoning mechanics remain in their canonical owners. They should not implement another generic solver.
 
 ## Error policy

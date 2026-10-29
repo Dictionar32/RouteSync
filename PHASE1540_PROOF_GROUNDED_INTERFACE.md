@@ -17,7 +17,7 @@ This phase intentionally strengthens the existing `SemanticDataflowJudgmentBound
 - `scripts/audits/audit-phase1540-proof-grounded-interface.cjs`: added static contract audit.
 - `package.json`: added `audit:phase1540-proof-grounded-interface` script.
 - `packages/core/src/types/upstream/semanticDataflowAuthority.ts`: unchanged.
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts`: unchanged.
+- `packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts`: unchanged.
 
 ## Verification
 

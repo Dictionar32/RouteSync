@@ -3,11 +3,11 @@ const path = require('path');
 const ts = require('typescript');
 const root = path.join(process.cwd(), 'packages/core/src');
 const frontier = [
-  'compiler/scanner/descriptors/route/RouteSemanticFlowFactory.ts',
-  'compiler/scanner/descriptors/route/routeDeclarations.ts',
-  'compiler/scanner/descriptors/route/routeMutations.ts',
-  'compiler/scanner/descriptors/route/factories/contractRouteFactories.ts',
-  'compiler/scanner/subscanners/InvalidationResolver.ts',
+  'compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory.ts',
+  'compiler/scanner/operations/domain-model/route/routeDeclarations.ts',
+  'compiler/scanner/operations/domain-model/route/routeMutations.ts',
+  'compiler/scanner/operations/domain-model/route/factories/contractRouteFactories.ts',
+  'compiler/scanner/operations/InvalidationResolver.ts',
 ];
 const files=[];
 function walk(d){ for(const e of fs.readdirSync(d,{withFileTypes:true})){ const p=path.join(d,e.name); if(e.isDirectory()) walk(p); else if(e.isFile()&&p.endsWith('.ts')&&!p.endsWith('.test.ts')) files.push(p); } }

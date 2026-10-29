@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/invocationSemanticJudgmentInterface.ts');
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
-const test = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
+const test = read('packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.phase219.test.ts');
 const checks = [];
 const check = (name, passed, detail) => checks.push({ name, passed, detail });
 const witness = contract.match(/export type InvocationSemanticDerivationWitness = Readonly<\{([\s\S]*?)\}>;/)?.[1] ?? '';

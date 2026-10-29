@@ -8,7 +8,7 @@ const contractPath = 'packages/core/src/types/upstream/laravelSubscannerRetireme
 const channelPath = 'packages/core/src/types/upstream/laravelChannelScannerInterface.ts';
 const judgmentPath = 'packages/core/src/types/upstream/laravelScannerSemanticJudgment.ts';
 const pipelinePath = 'packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts';
-const channelRuntimePath = 'packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts';
+const channelRuntimePath = 'packages/core/src/compiler/scanner/operations/ChannelScanner.ts';
 const indexPath = 'packages/core/src/index.ts';
 const packagePath = 'package.json';
 const retirement = read(contractPath);
@@ -38,7 +38,7 @@ check('channel scan contract is advanced to v4', channel.includes('readonly cont
 check('channel migration contract explicitly requires eventual deletion', channel.includes('readonly retirement:') && channel.includes('delete-channel-scanner-after-all-consumers-use-upstream-source-evidence-and-judgment-contracts'));
 check('global semantic judgment contract advances to v4', judgment.includes('readonly version: 4;') && judgment.includes('version: 4,'));
 check('global judgment contract says canonical channel AST only exists after resolved judgment', judgment.includes('channelAstBoundary') && judgment.includes('canonical-channel-ast-exists-only-for-resolved-judgment'));
-check('legacy source pipeline still imports subscanner facades, accurately leaving migration open', pipeline.includes('from "../subscanners"') && /ModelScanner\.scanCanonicalBundle/.test(pipeline) && /ChannelScanner\.scanCanonicalAsts/.test(pipeline));
+check('legacy source pipeline still imports subscanner facades, accurately leaving migration open', pipeline.includes('from "../operations"') && /ModelScanner\.scanCanonicalBundle/.test(pipeline) && /ChannelScanner\.scanCanonicalAsts/.test(pipeline));
 check('current channel runtime still contains heuristic classification, so no false cutover claim', /isPresence|isPrivate/.test(channelRuntime));
 check('channel interface does not claim runtime implementation is complete', channel.includes('pattern-heuristic-classification-remains-in-channel-scanner'));
 check('new interface contracts avoid semantic/foundation dependency', !retirement.includes('semantic/foundation') && !channel.includes('semantic/foundation'));

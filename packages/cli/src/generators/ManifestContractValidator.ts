@@ -7,13 +7,13 @@
 
 import type { ModelAst, ResourceAst, RouteManifest } from '@routesync/core'
 
-function requireValue(value: unknown, label: string): void {
+const requireValue: (value: unknown, label: string) => void = (value: unknown, label: string): void => {
   if (value === undefined || value === null) {
     throw new Error(`Manifest invariant failed: ${label} is missing`)
   }
-}
+};
 
-function validateResponse(route: RouteManifest['routes'][number], models: readonly ModelAst[], resources: readonly ResourceAst[]): void {
+const validateResponse: (route: RouteManifest['routes'][number], models: readonly ModelAst[], resources: readonly ResourceAst[]) => void = (route: RouteManifest['routes'][number], models: readonly ModelAst[], resources: readonly ResourceAst[]): void => {
   const response = route.binding.response
   requireValue(response, `${route.identity.coordinates.name.value.value}.response`)
 
@@ -31,14 +31,64 @@ function validateResponse(route: RouteManifest['routes'][number], models: readon
     requireValue(response.origin, `${route.identity.coordinates.name.value.value}.response.origin`)
     requireValue(response.semanticContract, `${route.identity.coordinates.name.value.value}.response.semanticContract`)
   }
+};
+
+export interface ManifestContractViolation {
+  readonly kind: 'manifest_contract_invariant_violated';
+  readonly message: string;
 }
 
-export function validateManifestContract(manifest: RouteManifest): void {
-  if (manifest.routes.length !== manifest.contracts.length) {
-    throw new Error('Manifest invariant failed: routes/contracts cardinality mismatch')
-  }
+export interface ManifestContractValidationHandlers<Result> {
+  readonly onValidated: (judgment: ManifestContractValidatedJudgment) => Result;
+  readonly onRejected: (judgment: ManifestContractRejectedJudgment) => Result;
+}
 
-  manifest.routes.forEach(route => {
+export interface ManifestContractValidatedJudgment {
+  readonly kind: 'manifest_contract_validated';
+  readonly manifest: RouteManifest;
+  readonly continueWith: <Result>(handlers: ManifestContractValidationHandlers<Result>) => Result;
+}
+
+export interface ManifestContractRejectedJudgment {
+  readonly kind: 'manifest_contract_rejected';
+  readonly violations: readonly ManifestContractViolation[];
+  readonly continueWith: <Result>(handlers: ManifestContractValidationHandlers<Result>) => Result;
+}
+
+/** Closed validation ADT: each terminal owns a typed domain continuation. */
+export type ManifestContractValidationJudgment =
+  | ManifestContractValidatedJudgment
+  | ManifestContractRejectedJudgment;
+
+export interface ManifestContractValidationOperationsInterface {
+  readonly validate: (manifest: RouteManifest) => ManifestContractValidationJudgment;
+}
+
+const validatedJudgment = (manifest: RouteManifest): ManifestContractValidatedJudgment => {
+  const judgment: ManifestContractValidatedJudgment = Object.freeze({
+    kind: 'manifest_contract_validated',
+    manifest,
+    continueWith: handlers => handlers.onValidated(judgment),
+  });
+  return judgment;
+};
+
+const rejectedJudgment = (violations: readonly ManifestContractViolation[]): ManifestContractRejectedJudgment => {
+  const judgment: ManifestContractRejectedJudgment = Object.freeze({
+    kind: 'manifest_contract_rejected',
+    violations,
+    continueWith: handlers => handlers.onRejected(judgment),
+  });
+  return judgment;
+};
+
+const validateManifestContractRuntime = (manifest: RouteManifest): ManifestContractValidationJudgment => {
+  try {
+    if (manifest.routes.length !== manifest.contracts.length) {
+      throw new Error('Manifest invariant failed: routes/contracts cardinality mismatch')
+    }
+
+    manifest.routes.forEach(route => {
     requireValue(route.identity, `${route.identity.coordinates.name.value.value}.identity`)
     requireValue(route.binding, `${route.identity.coordinates.name.value.value}.binding`)
     requireValue(route.capability, `${route.identity.coordinates.name.value.value}.capability`)
@@ -49,6 +99,17 @@ export function validateManifestContract(manifest: RouteManifest): void {
     requireValue(route.capability.security, `${route.identity.coordinates.name.value.value}.capability.security`)
     requireValue(route.capability.executionSignature, `${route.identity.coordinates.name.value.value}.capability.executionSignature`)
     requireValue(route.capability.errorResponses, `${route.identity.coordinates.name.value.value}.capability.errorResponses`)
-    validateResponse(route, manifest.models, manifest.resources)
-  })
-}
+      validateResponse(route, manifest.models, manifest.resources)
+    })
+    return validatedJudgment(manifest);
+  } catch (error: unknown) {
+    return rejectedJudgment(Object.freeze([{
+      kind: 'manifest_contract_invariant_violated',
+      message: error instanceof Error ? error.message : String(error),
+    }]));
+  }
+};
+
+export const manifestContractValidationOperations: ManifestContractValidationOperationsInterface = Object.freeze({
+  validate: validateManifestContractRuntime,
+});

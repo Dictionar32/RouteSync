@@ -48,7 +48,7 @@ export interface ResourceProducerResult {
 }
 
 export interface ResourceFieldProductionOperationInterface<Value extends object, Model extends object> {
-  (input: ResourceFieldProducerInput<Value, Model>): ResourceField;
+  readonly produce: (input: ResourceFieldProducerInput<Value, Model>) => ResourceField;
 }
 
 /** Existing Resource producer operations have one upstream owner and explicit operation contracts. */

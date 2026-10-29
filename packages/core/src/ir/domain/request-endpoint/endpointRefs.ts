@@ -14,7 +14,7 @@ import type {
 } from '../../../types/ir';
 import { PrimitiveKind } from '../../../types/domain/semanticType';
 import { createPropertyName } from '../../../types/ir/nominalVocabulary';
-import type { DescriptionText } from '../../../types/upstream/valueObjects';
+import { descriptionText, stringValue } from '../../../types/upstream/valueObjects';
 import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import type { RouteParameter } from '../../../types/upstream/route';
 import { PARAMETER_TYPE_KNOWLEDGE } from '../../../types/semantic/semanticKnowledge';
@@ -61,10 +61,9 @@ export function extractPathParams(route: RouteSemanticFlow): ParameterIR[] {
     name: createPropertyName(parameter.propertyName.value.value),
     type: primitiveKindFromRouteParameter(parameter),
     required: parameter.presence.kind === 'required',
-    description: {
-      kind: 'description_text',
-      value: `Path parameter: ${parameter.propertyName.value.value}`
-    } satisfies DescriptionText,
+    description: descriptionText.create(
+      stringValue.create(`Path parameter: ${parameter.propertyName.value.value}`),
+    ),
     validation: { kind: 'validation_rules', items: { kind: 'empty' } }
   }));
 }

@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const parameterAlgebra = read('packages/core/src/types/upstream/phpParameterTypeAlgebra.ts');
 const propertyAlgebra = read('packages/core/src/types/upstream/phpTypeExpressionAlgebra.ts');
-const mappings = read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts');
+const mappings = read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts');
 const index = read('packages/core/src/types/upstream/index.ts');
 const tests = read('packages/core/src/types/upstream/__test__/php-parameter-type-algebra.phase1477.test.ts');
 const checks = [

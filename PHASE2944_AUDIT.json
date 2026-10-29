@@ -1,0 +1,22 @@
+{
+  "phase": 2944,
+  "title": "Source Inventory Domain Operation Closure",
+  "scope": "Remove the effect-only SourceFileInventory visitor from the upstream CLI manifest source-read path and reuse the existing ordered domain projection operation.",
+  "changedFiles": [
+    "packages/core/src/types/upstream/names.ts",
+    "packages/core/src/index.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "packages/core/src/types/upstream/__tests__/source-file-inventory-domain-visitor.phase2921.test.ts",
+    "packages/core/src/types/upstream/__tests__/laravel-route-source-selection.phase2922.test.ts",
+    "scripts/audits/audit-phase2944-source-inventory-operation.cjs",
+    "PHASE2944_SOURCE_INVENTORY_DOMAIN_OPERATION_CLOSURE.md"
+  ],
+  "auditCommand": "npm run audit:phase2944-source-inventory-operation",
+  "structuralChecksExpected": 8,
+  "fullTypecheck": "not run",
+  "unitTests": "not run",
+  "build": "not run",
+  "cliEndToEnd": "not run",
+  "exportFunctionMigration": "not complete",
+  "collectionsTsBytes": 0
+}

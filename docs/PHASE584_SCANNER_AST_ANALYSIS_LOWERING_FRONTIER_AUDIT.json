@@ -1,7 +1,7 @@
 {
   "phase": 584,
   "frontier": [
-    "scanner/lexer",
+    "frontend/php",
     "resolver graph",
     "AST/upstream mapping",
     "analysis",
@@ -32,7 +32,7 @@
   },
   "bySurface": [
     {
-      "root": "packages/core/src/compiler/scanner/lexer",
+      "root": "packages/core/src/compiler/frontend/php",
       "files": 90,
       "counts": {
         "if": 0,
@@ -320,62 +320,62 @@
   ],
   "leakingFiles": [
     {
-      "file": "packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts",
+      "file": "packages/core/src/compiler/frontend/php/astClassifierEvidence.ts",
       "counts": {
         "new": 3
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts",
       "counts": {
         "new": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerBodyParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerBodyParser.ts",
       "counts": {
         "new": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/controllerMethodParser.ts",
       "counts": {
         "new": 1,
         "Map": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/modelDeclarationParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/modelDeclarationParser.ts",
       "counts": {
         "new": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpAstCoreTypes.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpAstCoreTypes.ts",
       "counts": {
         "new": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/phpMethodParser.ts",
+      "file": "packages/core/src/compiler/frontend/php/phpMethodParser.ts",
       "counts": {
         "new": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts",
       "counts": {
         "any": 2
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts",
+      "file": "packages/core/src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts",
       "counts": {
         "any": 1
       }
     },
     {
-      "file": "packages/core/src/compiler/scanner/lexer/tokenizer.ts",
+      "file": "packages/core/src/compiler/frontend/php/tokenizer.ts",
       "counts": {
         "new": 1
       }

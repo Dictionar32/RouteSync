@@ -1,5 +1,5 @@
-import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/descriptors/route/RouteSemanticFlowFactory'
-import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
+import { RouteSemanticFlowFactory } from '../../core/src/compiler/scanner/operations/domain-model/route/RouteSemanticFlowFactory'
+import { TypeDeriver } from '../../core/src/compiler/scanner/operations/TypeDeriver'
 import { describe, it, expect } from 'vitest'
 import {
   ScannedControllerActionDescriptor,

@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contractPath = 'packages/core/src/types/upstream/astClassifierEvidenceContract.ts';
-const classifierPath = 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts';
+const classifierPath = 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts';
 const contract = read(contractPath);
 const classifier = read(classifierPath);
 const packageJson = JSON.parse(read('package.json'));

@@ -1,5 +1,5 @@
 import { createClassName, createMethodName, createTableName } from './names';
-import { createPhpQualifiedClassName } from './phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from './phpClassNameResolutionInterface';
 import { phpClassNameResolutionAuthority } from './phpClassNameResolutionAuthority';
 import type {
   ControllerStaticCallClassReferenceResolutionJudgment,
@@ -14,7 +14,7 @@ import type {
   ControllerStaticCallOriginRulePattern,
 } from './controllerStaticCallOriginInterface';
 
-const databaseFacadeQualifiedName = createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB');
+const databaseFacadeQualifiedName = phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB');
 
 const databaseFacadeTableCallPattern: ControllerStaticCallOriginRulePattern = Object.freeze({
   kind: 'qualified_class_method',

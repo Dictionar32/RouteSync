@@ -1,0 +1,58 @@
+{
+  "phase": 2885,
+  "audit": "explicit-query-policy-selection",
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "changed TypeScript files parse",
+      "pass": true,
+      "detail": "12 files, 0 parse diagnostics"
+    },
+    {
+      "name": "selection ADT has default and explicit states",
+      "pass": true,
+      "detail": "two named policy-selection states"
+    },
+    {
+      "name": "selection ADT exposes domain continuation",
+      "pass": true,
+      "detail": "continueWith operation declared on selection ADT"
+    },
+    {
+      "name": "selection runtime uses interface-first export",
+      "pass": true,
+      "detail": "factory export is explicitly annotated"
+    },
+    {
+      "name": "project identity has required policy selection",
+      "pass": true,
+      "detail": "no optional project policy intent field"
+    },
+    {
+      "name": "CLI canonicalization consumes policy ADT",
+      "pass": true,
+      "detail": "no undefined-based policy branch"
+    },
+    {
+      "name": "manifest surface consumes policy ADT",
+      "pass": true,
+      "detail": "policy choice delegated to domain selection"
+    },
+    {
+      "name": "manifest builder passes required selection",
+      "pass": true,
+      "detail": "builder does not pass optional intent"
+    },
+    {
+      "name": "upstream barrel exports policy contract",
+      "pass": true,
+      "detail": "policy ADT is exported from upstream barrel"
+    },
+    {
+      "name": "collections utility remains empty",
+      "pass": true,
+      "detail": "collections.ts is 0 bytes"
+    }
+  ]
+}

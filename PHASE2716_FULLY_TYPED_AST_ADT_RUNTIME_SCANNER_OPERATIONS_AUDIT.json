@@ -1,0 +1,64 @@
+{
+  "phase": 2716,
+  "title": "Fully Typed AST ADT Runtime Scanner Operations",
+  "result": "PASS_STRUCTURAL_AUDIT_ONLY",
+  "migratedOperations": [
+    {
+      "from": "packages/core/src/compiler/scanner/operations/expressionAstCanonical.ts",
+      "to": "packages/core/src/compiler/semantic/expressionAstCanonical.ts",
+      "contract": "ExpressionAstFromPhpAstOperationInterface<PhpAstValue>"
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/operations/expressionProducer.ts",
+      "to": "packages/core/src/compiler/semantic/expressionProducer.ts",
+      "contracts": [
+        "ExpressionFromPhpAstOperationInterface<PhpAstValue>",
+        "ExpressionProducerInterface<PhpAstValue>"
+      ]
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/operations/propertyProducer.ts",
+      "to": "packages/core/src/compiler/semantic/propertyProducer.ts",
+      "contract": "PropertyProducerInterface<PhpClassPropertyAst>"
+    }
+  ],
+  "checks": {
+    "movedImplementationsPresent": true,
+    "oldScannerImplementationsRemoved": true,
+    "changedFilesCheckedForRelativeImports": 9,
+    "unresolvedRelativeImports": 0,
+    "cliTraceFilesPresent": 6,
+    "interfaceTypedFrozenObjects": true,
+    "exportFunctionInMovedOperations": 0,
+    "relationFoundationIntroduced": false
+  },
+  "cliManifestTrace": [
+    "CLI scan/sync commands",
+    "RouteSyncCliUpstreamCompositionFactory.compose",
+    "routeSyncCliManifestScanOperationFactory.create",
+    "manifestScanOperation.scan",
+    "controllerInvocationManifestCompositionAuthority.compose",
+    "source identity/discovery/acquisition/binding",
+    "PHP syntax evidence and invocation semantic judgment",
+    "inventory authority",
+    "manifestBuilderOperationPreparation.prepare(input).build()",
+    "complete manifest or explicit blocked judgment",
+    "CLI semantic projection only for complete manifest"
+  ],
+  "remainingArchitectureGaps": [
+    "compiler/scanner is not wiring-only",
+    "other scanner binders/descriptors/operations/resolvers/semantic/subscanners/symbols/upstream implementations remain",
+    "other export function and arrow exports remain and require runtime call-path audit"
+  ],
+  "validation": {
+    "structuralAudit": "passed",
+    "typescriptTypecheck": "not_verified_environment_failure_missing_node_modules_and_global_tsc_config_incompatibility",
+    "vitest": "not_run",
+    "build": "not_run",
+    "cliEndToEnd": "not_run"
+  },
+  "externalReferences": [
+    "https://www.typescriptlang.org/docs/handbook/2/objects",
+    "https://github.com/glayzzle/php-parser"
+  ]
+}

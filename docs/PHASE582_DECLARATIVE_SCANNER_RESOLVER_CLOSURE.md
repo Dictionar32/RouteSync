@@ -2,7 +2,7 @@
 
 ## Objective
 
-Push the remaining scanner/lexer semantic substrate toward a relation-only model. Host collection state (`Map`/`Set`) and collection combinators are not treated as semantic authority; canonical catalogs and indexes are represented as typed relations and resolved through the relation substrate.
+Push the remaining frontend/php semantic substrate toward a relation-only model. Host collection state (`Map`/`Set`) and collection combinators are not treated as semantic authority; canonical catalogs and indexes are represented as typed relations and resolved through the relation substrate.
 
 ## Research basis
 
@@ -31,7 +31,7 @@ The direction follows the declarative pattern/rewrite architecture documented by
 
 62 changed/frontier TypeScript files were individually transpiled with TypeScript 5.8.3: **0 diagnostics**.
 
-A TypeScript-AST audit over the 56 production files under `compiler/scanner/lexer/routeAst` reports:
+A TypeScript-AST audit over the 56 production files under `compiler/frontend/php/routeAst` reports:
 
 - `if`: 0
 - `for`: 0

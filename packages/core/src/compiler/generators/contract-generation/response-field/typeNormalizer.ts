@@ -1,5 +1,5 @@
 import type { FieldPresence, ResponseFieldData, ResponseFieldResolved } from './types';
-import { RESPONSE_FIELD_NORMALIZATION_RULES, RESPONSE_RESOLVED_TYPE_RULES, resolveLoweringOperation } from '../../../ir/semanticIRLoweringRelations';
+import { RESPONSE_FIELD_NORMALIZATION_RULES, RESPONSE_RESOLVED_TYPE_RULES, irLoweringOperations } from '../../../ir/semanticIRLoweringRelations';
 
 const TYPE_MAP: ReadonlyMap<string, string> = new Map([
   ['int', 'number'], ['integer', 'number'], ['float', 'number'], ['double', 'number'],
@@ -7,7 +7,7 @@ const TYPE_MAP: ReadonlyMap<string, string> = new Map([
 ]);
 
 export function normalizeKind(kind: ResponseFieldData['kind']): 'primitive' | 'object' | 'array' {
-  return resolveLoweringOperation(kind, RESPONSE_FIELD_NORMALIZATION_RULES) as 'primitive' | 'object' | 'array';
+  return irLoweringOperations.resolve(kind, RESPONSE_FIELD_NORMALIZATION_RULES) as 'primitive' | 'object' | 'array';
 }
 
 export function normalizeType(type: string): string {
@@ -15,7 +15,7 @@ export function normalizeType(type: string): string {
 }
 
 export function extractType(fieldData: ResponseFieldData): string {
-  const operation = resolveLoweringOperation(fieldData.kind, RESPONSE_FIELD_NORMALIZATION_RULES);
+  const operation = irLoweringOperations.resolve(fieldData.kind, RESPONSE_FIELD_NORMALIZATION_RULES);
   const handlers: Record<string, () => string> = {
     primitive: () => normalizeType((fieldData as Extract<ResponseFieldData, { kind: 'primitive' }>).type),
     object: () => 'object',
@@ -28,7 +28,7 @@ export function extractType(fieldData: ResponseFieldData): string {
 }
 
 function resolvedType(resolved: ResponseFieldResolved): string {
-  const operation = resolveLoweringOperation(resolved.kind, RESPONSE_RESOLVED_TYPE_RULES);
+  const operation = irLoweringOperations.resolve(resolved.kind, RESPONSE_RESOLVED_TYPE_RULES);
   const handlers: Record<string, () => string> = {
     reference: () => (resolved as Extract<ResponseFieldResolved, { kind: 'reference' }>).typeName,
     type: () => normalizeType((resolved as Extract<ResponseFieldResolved, { kind: 'type' }>).typeName),

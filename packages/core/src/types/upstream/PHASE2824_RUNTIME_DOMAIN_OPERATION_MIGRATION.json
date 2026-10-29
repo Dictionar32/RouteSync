@@ -1,0 +1,20 @@
+{
+  "phase": 2824,
+  "title": "Runtime Domain Operation Migration",
+  "decision": "reuse_existing_domain_types_and_make_runtime_operations_interface_first",
+  "migratedOperations": [
+    "resourceMiddlewareSyntaxOperation.derive",
+    "routeTargetMethodSetOperation.resolve",
+    "resourceMiddlewareScopeOperation.resolve"
+  ],
+  "genericReasoningPrimitiveAdded": false,
+  "parallelRouteMethodContractAdded": false,
+  "legacyExportsRemoved": true,
+  "adtDomainOperationRequired": true,
+  "manifestTracePreservesCompleteBlocked": true,
+  "astFailurePromotedToEmptyManifest": false,
+  "collectionsFileMustRemainEmpty": true,
+  "typescriptBuild": "not_run",
+  "fullTestSuite": "not_run",
+  "cliEndToEnd": "not_run"
+}

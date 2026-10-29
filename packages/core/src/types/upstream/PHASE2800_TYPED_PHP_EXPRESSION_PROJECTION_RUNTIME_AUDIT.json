@@ -1,0 +1,12 @@
+{
+  "phase": 2800,
+  "title": "Typed PHP Expression Projection Runtime Audit",
+  "scope": "frontend PHP expression structure projection on the upstream CLI manifest path",
+  "runtimeOperation": "phpExpressionStructureProjectionOperation",
+  "contract": "PhpExpressionStructureProjectionOperationInterface",
+  "legacyExportRemoved": "projectPhpExpressionStructure",
+  "upstreamContractAdded": false,
+  "adtAlternatives": ["short_ternary", "ternary", "array_access", "call", "binary", "unary"],
+  "collectionsModuleBytes": 0,
+  "verificationLimitations": ["full TypeScript typecheck not run", "build not run", "complete test suite not run", "CLI scan/sync end-to-end not run"]
+}

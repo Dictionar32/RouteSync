@@ -12,8 +12,8 @@ const check = (label, condition) => {
   passed += 1;
   process.stdout.write(`PASS ${label}\n`);
 };
-const dataflow = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
-const resolver = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const dataflow = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
+const resolver = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const authority = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
 const action = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const runtime = read('packages/core/src/types/upstream/laravelControllerActionExecutionInterface.ts');

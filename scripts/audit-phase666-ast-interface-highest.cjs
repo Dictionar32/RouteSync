@@ -9,8 +9,8 @@ const boundaries = [
   'packages/core/src/types/upstream/astSemanticStageInterface.ts',
   'packages/core/src/types/upstream/astSemanticStageProof.ts',
   'packages/core/src/types/upstream/astSemanticStagePreservation.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenEvidence.ts',
-  'packages/core/src/compiler/scanner/lexer/phpAstAlgebra.ts',
+  'packages/core/src/compiler/frontend/php/tokenEvidence.ts',
+  'packages/core/src/compiler/frontend/php/phpAstAlgebra.ts',
   'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptLoweringSemanticRelations.ts',
   'packages/core/src/compiler/domain/common/ts-lowerer/typeScriptTargetSurfaceRelations.ts',
@@ -19,10 +19,10 @@ const counts = Object.fromEntries(boundaries.map(file => [file, [...read(file).m
 const algebra = read(boundaries[0]);
 const stage = read(boundaries[1]);
 const stageAuthority = read('packages/core/src/types/upstream/astSemanticStageAuthority.ts');
-const legacyDataflowAdapter = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const legacyDataflowAdapter = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const legacyEmpty = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 ].every(size === undefined ? () => false : file => size(file) === 0);
 const interfaceClosed = [
   'AstSemanticStageInterface',

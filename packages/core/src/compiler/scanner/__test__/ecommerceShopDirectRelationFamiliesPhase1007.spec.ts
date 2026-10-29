@@ -1,3 +1,5 @@
+import { laravelRouteSourceSelectionAuthority } from '../../../types/upstream/laravelRouteSourceSelection';
+import { sourceFileIdentityFactory, stringValue } from '../../../types/upstream/names';
 import { describe, expect, test } from 'vitest';
 import path from 'node:path';
 import { manifestBuilderOperationPreparation } from '../wiring/upstreamManifestBuilder';
@@ -32,9 +34,9 @@ const findRelation = (
 
 describe('Phase 1007 ecommerce direct relation-family closure', () => {
   test('keeps belongsTo, hasMany, and hasOne on the canonical reconciled relation lane', async () => {
-    const sourceProject = createLaravelSourceProjectIdentity(fixtureRoot);
+    const sourceProject = createLaravelSourceProjectIdentity.create(sourceFileIdentityFactory.create(stringValue.create(fixtureRoot)));
     const receipt = await createNotConnectedControllerInventoryReceipt(sourceProject);
-    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: { kind: 'laravel_route_source_selection_default' } }).build();
+    const manifestJudgment = await manifestBuilderOperationPreparation.prepare({ kind: 'manifest_builder_input', invocationInventoryReceipt: receipt, routeSelection: laravelRouteSourceSelectionAuthority.defaultIntent() }).build();
     if (manifestJudgment.kind !== 'manifest_builder_complete') throw new Error(`Fixture manifest blocked: ${manifestJudgment.projection.kind}`);
     const manifest = manifestJudgment.manifest;
     const manifestFlow = routeSyncManifestFlowProjection.project(manifest);

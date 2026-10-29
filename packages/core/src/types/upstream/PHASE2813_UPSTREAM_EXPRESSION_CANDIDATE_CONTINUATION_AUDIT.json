@@ -1,0 +1,33 @@
+{
+  "phase": 2813,
+  "title": "Upstream Expression Candidate Continuation Audit",
+  "runtimeTrace": [
+    "classifyAstTokens(tokens)",
+    "scannerAstExpressionCandidateContractAlgebra.resolve(query)",
+    "ScannerExpressionCandidateJudgment<Token>",
+    "candidateJudgment.continueForAstClassification(continuation)",
+    "AST classification rule precedence and resolution",
+    "source-located AST value",
+    "scanner and CLI manifest composition path"
+  ],
+  "changes": [
+    "Evolved the existing ScannerExpressionCandidateJudgment ADT in its upstream owner.",
+    "Added a domain-specific continueForAstClassification operation to both ADT variants.",
+    "Constructed immutable operated judgment values in scannerAstExpressionCandidateAlgebra.",
+    "Removed downstream switch over candidateJudgment.kind while preserving the distinct AST-classification judgment switch.",
+    "Added behavior assertions for both not_applicable and resolved continuations."
+  ],
+  "constraints": {
+    "genericReasoningPrimitiveAdded": false,
+    "collectionsTsBytes": 0,
+    "newParallelContractAdded": false
+  },
+  "verification": {
+    "phase2813Audit": "11/11 passed",
+    "focusedVitest": "attempted twice; timed out; not verified",
+    "fullTypecheck": "not verified",
+    "productionBuild": "not verified",
+    "fullTestSuite": "not verified",
+    "cliScanSyncE2E": "not verified"
+  }
+}

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { CompilerBridge } from '../../cli/src/generators/CompilerBridge'
 import { RouteManifest } from '@routesync/core'
-import { TypeDeriver } from '../../core/src/compiler/scanner/subscanners/TypeDeriver'
+import { TypeDeriver } from '../../core/src/compiler/scanner/operations/TypeDeriver'
 
 describe('CompilerBridge - PaymentResource Appended & Flattened Fields', () => {
   it('should process object flattening and generate correct PaymentResourceTransformed interface', async () => {

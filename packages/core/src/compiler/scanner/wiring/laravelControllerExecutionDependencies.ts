@@ -7,8 +7,8 @@ import { sourceFileAcquisition } from '../sourceFiles';
  * is the only place that binds them to current implementations.
  */
 import type { ControllerProducer } from '../../../types/upstream/controllerProducerInterface';
-import { resolveControllerActionContract, type ControllerActionContract } from '../descriptors/request/controllerActionContract';
-import type { ControllerMethodAst, ControllerParameterAst } from '../lexer/controllerAstTypes';
+import { controllerActionContractOperations, type ControllerActionContract } from '../operations/domain-model/request/controllerActionContract';
+import type { ControllerMethodAst, ControllerParameterAst } from '../../frontend/php/controllerAstTypes';
 import type { ControllerBodySemanticJudgmentAuthorityInterface } from '../../../types/upstream/controllerBodySemanticJudgmentInterface';
 import type { LaravelControllerRequestSemanticBindingAuthorityInterface } from '../../../types/upstream/laravelControllerRequestSemanticBindingInterface';
 import type { ControllerResourceBindingAuthorityInterface } from '../../../types/upstream/controllerResourceBindingInterface';
@@ -19,30 +19,29 @@ import { controllerActionSchemaSemanticJudgmentAuthority } from '../../../types/
 import type { ControllerActionResponseReferenceJudgmentInterface } from '../../../types/upstream/controllerActionResponseReferenceJudgmentInterface';
 import { controllerActionResponseReferenceJudgmentAuthority } from '../../../types/upstream/controllerActionResponseReferenceJudgmentAuthority';
 import type { ControllerRuntimeReturnProjectionInterface } from '../../../types/upstream/controllerRuntimeReturnProjectionInterface';
-import { controllerRuntimeReturnProjection } from '../lexer/routeAst/controllerRuntimeReturnProjection';
+import { controllerRuntimeReturnProjection } from '../../frontend/php/routeAst/controllerRuntimeReturnProjection';
 import { controllerDependencySemanticJudgmentAuthority } from '../../../types/upstream/controllerDependencySemanticJudgmentAuthority';
 import type { ControllerDependencySemanticJudgmentAuthorityInterface, ControllerDependencySemanticJudgment } from '../../../types/upstream/controllerDependencySemanticJudgmentInterface';
 import type { SourceFile } from '../../../types/upstream/names';
 import { controllerParameterClassNameJudgmentAuthority } from './controllerParameterClassNameJudgmentExecutor';
 import { controllerActionProjectionMigration, type LaravelControllerActionContractResolverInterface, type LaravelControllerActionSemanticJudgmentInput, type LaravelControllerActionSemanticJudgmentPublication, type LaravelControllerActionSemanticJudgmentAuthorityInterface } from '../../../types/upstream/laravelControllerActionSemanticJudgmentInterface';
-import { controllerProducer } from '../subscanners/controller/controllerProducer';
-import { controllerActionFromMethod, controllerMethodContractFromMethod, controllerMethodAttributesFromAttributes, controllerMethodSemanticProjectionFromMethod, controllerBodySemanticJudgmentAuthority, controllerReturnSemanticFromMethod } from '../subscanners/controller/controllerAstCanonical';
-import { controllerRequestBindingEvidenceFromMethod, schemaRequestEvidence } from '../descriptors/request/controllerActionContract';
+import { controllerProducer } from '../operations/controller/controllerProducer';
+import { controllerBodySemanticJudgmentAuthority, controllerAstCanonicalOperations } from '../operations/controller/controllerAstCanonical';
 import { controllerDependencyEvidenceProjection } from './controllerDependencyEvidenceProjection';
 import { controllerPhpAstExpressionSemanticAuthority } from './controllerVariableSemanticRuntimeBinding';
 import { laravelControllerRequestSemanticBindingAuthority } from '../../../types/upstream/laravelControllerRequestSemanticBindingAuthority';
 import type { LaravelControllerRequestBindingEvidenceProjectionInterface } from '../../../types/upstream/laravelControllerRequestSemanticBindingInterface';
-import type { FormRequestSourceIndex } from '../descriptors/request/controllerActionContract';
+import type { FormRequestSourceIndex } from '../operations/domain-model/request/controllerActionContract';
 import { controllerResourceBindingAuthority } from '../../../types/upstream/controllerResourceBindingAuthority';
 import type { SourceSpan } from '../../../types/upstream/provenance';
 import type { ControllerStaticCallClassNameResolutionContextEvidence } from '../../../types/upstream/controllerStaticCallOriginInterface';
 import type { ControllerResourceBindingJudgment } from '../../../types/upstream/controllerResourceBindingInterface';
 import { createActionName, createClassName } from '../../../types/upstream/names';
 import type { ControllerResourceReturnSourceEvidenceProjectionInterface } from '../../../types/upstream/controllerResourceReturnSourceEvidenceProjectionInterface';
-import type { PhpAstValue } from '../lexer/phpAstExpressionTypes';
+import type { PhpAstValue } from '../../frontend/php/phpAstExpressionTypes';
 import type { PhpAstExpressionSemanticAuthorityInterface } from '../../../types/upstream/phpAstExpressionSemanticAuthorityInterface';
-import type { SourceRange } from '../lexer/phpAstTypes';
-import { controllerResourceReturnSourceEvidenceProjection } from '../lexer/routeAst/controllerResourceReturnSourceEvidenceProjection';
+import type { SourceRange } from '../../frontend/php/phpAstTypes';
+import { controllerResourceReturnSourceEvidenceProjection } from '../../frontend/php/routeAst/controllerResourceReturnSourceEvidenceProjection';
 
 
 
@@ -74,16 +73,16 @@ export interface LaravelControllerExecutionDependencies {
     ControllerMethodAst,
     import('../../../types/upstream/names').ControllerName,
     SourceFile,
-    import('../descriptors/request/controllerActionContract').ControllerActionContractResolverContext,
+    import('../operations/domain-model/request/controllerActionContract').ControllerActionContractResolverContext,
     ControllerActionContract
   >;
   readonly actionJudgment: LaravelControllerActionSemanticJudgmentAuthorityInterface<ControllerActionContract, ControllerMethodAst, ControllerParameterAst>;
   readonly controllerProducer: ControllerProducer;
   readonly controllerAstProjection: Readonly<{
-    readonly actionFromMethod: typeof controllerActionFromMethod;
-    readonly methodContractFromMethod: typeof controllerMethodContractFromMethod;
-    readonly methodAttributesFromAttributes: typeof controllerMethodAttributesFromAttributes;
-    readonly methodSemanticProjectionFromMethod: typeof controllerMethodSemanticProjectionFromMethod;
+    readonly actionFromMethod: typeof controllerAstCanonicalOperations.controllerActionFromMethod;
+    readonly methodContractFromMethod: typeof controllerAstCanonicalOperations.controllerMethodContractFromMethod;
+    readonly methodAttributesFromAttributes: typeof controllerAstCanonicalOperations.controllerMethodAttributesFromAttributes;
+    readonly methodSemanticProjectionFromMethod: typeof controllerAstCanonicalOperations.controllerMethodSemanticProjectionFromMethod;
   }> ;
 }
 
@@ -104,7 +103,7 @@ const createActionJudgmentAuthority = (
     ControllerMethodAst,
     import('../../../types/upstream/names').ControllerName,
     SourceFile,
-    import('../descriptors/request/controllerActionContract').ControllerActionContractResolverContext,
+    import('../operations/domain-model/request/controllerActionContract').ControllerActionContractResolverContext,
     ControllerActionContract
   >,
 ): LaravelControllerActionSemanticJudgmentAuthorityInterface<ControllerActionContract, ControllerMethodAst, ControllerParameterAst> => Object.freeze({
@@ -169,8 +168,9 @@ const createActionJudgmentAuthority = (
         }
       }));
       const schemaSemanticJudgment = schemaSemanticJudgmentAuthority.judge(Object.freeze({
-        requestEvidence: schemaRequestEvidence(requestBindingJudgment),
+        requestEvidence: controllerActionContractOperations.schemaRequestEvidence(requestBindingJudgment),
         inlineSchema: bodyJudgment.schema,
+        inlineSchemaEvidence: bodyJudgment.inlineSchemaEvidence,
         inlineValidationEntries: bodyJudgment.validationEntries,
         sourceIdentity: sourceFile,
       }));
@@ -226,7 +226,8 @@ const createActionJudgmentAuthority = (
           request: requestBindingJudgment,
           dataflowJudgment: input.method.body.dataflow,
           dataflow: input.method.body.dataflow.semanticVariables,
-          schema: schemaSemanticJudgment.derivation.schema,
+          schema: schemaSemanticJudgment.routeRequestEvidence.schema,
+          schemaEvidence: schemaSemanticJudgment.routeRequestEvidence,
           bodyJudgment,
           body: Object.freeze({
             statements: bodyJudgment.statements,
@@ -265,17 +266,17 @@ const bodySemanticJudgmentAuthority = controllerBodySemanticJudgmentAuthority;
 const requestBindingEvidenceProjection: LaravelControllerExecutionDependencies['requestBindingEvidenceProjection'] = Object.freeze({
   kind: 'laravel_controller_request_binding_evidence_projection',
   output: 'closed-controller-method-parameter-inventory-evidence',
-  project: ({ method, formRequestIndex }) => controllerRequestBindingEvidenceFromMethod(method, formRequestIndex),
+  project: ({ method, formRequestIndex }) => controllerActionContractOperations.controllerRequestBindingEvidenceFromMethod(method, formRequestIndex),
 });
 const returnSemanticProduction: LaravelControllerExecutionDependencies['returnSemanticProduction'] = Object.freeze({
   kind: 'controller_return_semantic_production',
   ownership: 'produces-the-existing-ControllerReturnSemantic-ADT-for-the-exact-method-source-subject',
-  produce: ({ method, sourceFile, responseReferenceJudgment }) => controllerReturnSemanticFromMethod(method, sourceFile.value.value, responseReferenceJudgment),
+  produce: ({ method, sourceFile, responseReferenceJudgment }) => controllerAstCanonicalOperations.controllerReturnSemanticFromMethod(method, sourceFile.value.value, responseReferenceJudgment),
 });
 const actionContractResolver: LaravelControllerExecutionDependencies['actionContractResolver'] = Object.freeze({
   kind: 'laravel_controller_action_contract_resolver',
   ownership: 'projects-already-closed-upstream-judgments-without-semantic-derivation',
-  resolve: ({ method, controller, source, context }) => resolveControllerActionContract(method, controller, source, context),
+  resolve: ({ method, controller, source, context }) => controllerActionContractOperations.resolveControllerActionContract(method, controller, source, context),
 });
 const actionJudgmentAuthority = createActionJudgmentAuthority(
   bodySemanticJudgmentAuthority,
@@ -311,9 +312,9 @@ export const legacyLaravelControllerExecutionDependencies: LaravelControllerExec
   actionJudgment: actionJudgmentAuthority,
   controllerProducer,
   controllerAstProjection: Object.freeze({
-    actionFromMethod: controllerActionFromMethod,
-    methodContractFromMethod: controllerMethodContractFromMethod,
-    methodAttributesFromAttributes: controllerMethodAttributesFromAttributes,
-    methodSemanticProjectionFromMethod: controllerMethodSemanticProjectionFromMethod,
+    actionFromMethod: controllerAstCanonicalOperations.controllerActionFromMethod,
+    methodContractFromMethod: controllerAstCanonicalOperations.controllerMethodContractFromMethod,
+    methodAttributesFromAttributes: controllerAstCanonicalOperations.controllerMethodAttributesFromAttributes,
+    methodSemanticProjectionFromMethod: controllerAstCanonicalOperations.controllerMethodSemanticProjectionFromMethod,
   }),
 });

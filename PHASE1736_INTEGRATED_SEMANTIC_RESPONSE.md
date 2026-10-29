@@ -7,7 +7,7 @@ Interface-first modeling of one integrated result that retains invocation analys
 - `packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts` already defined the ordinary invocation `InvocationSemanticAnalysis`, inventory-bound publication result, and publication authority interface separately.
 - Those types did not provide one response model tying the complete analysis to either a validated publication receipt or a typed publication rejection.
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts` already required the scanner to forward validated publication/rejection without semantic repair, but did not name integrated-response ownership.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` continues delegating invocation analysis through `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)`; it was not changed.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` continues delegating invocation analysis through `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)`; it was not changed.
 
 ## Interface changes
 - Added `InvocationSemanticIntegratedResponseContract` and its frozen v1 contract value.

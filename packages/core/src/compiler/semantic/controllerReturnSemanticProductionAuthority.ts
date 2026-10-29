@@ -8,12 +8,12 @@
  */
 import type { ControllerReturnSemantic } from '../../types/upstream/controller';
 import type { ControllerReturnSemanticProductionInput, ControllerReturnSemanticProductionInterface } from '../../types/upstream/controllerReturnSemanticProductionInterface';
-import type { PhpAstValue } from '../scanner/lexer/phpAstExpressionTypes';
-import type { PhpBlock, PhpStatement } from '../scanner/lexer/phpAstStatementTypes';
+import type { PhpAstValue } from '../frontend/php/phpAstExpressionTypes';
+import type { PhpBlock, PhpStatement } from '../frontend/php/phpAstStatementTypes';
 import type { Expression } from '../../types/upstream/expression';
 import type { ResponseJsonPayload, ResponseStatus } from '../../types/upstream/response';
 import type { HttpStatusCode } from '../../types/upstream/valueObjects';
-import { projectPhpAstExpressionToUpstream } from '../scanner/lexer/routeAst/phpAstExpressionSemanticAuthority';
+import { phpAstExpressionProjectionOperations } from '../frontend/php/routeAst/phpAstExpressionSemanticAuthority';
 import type { Sequence } from '../../types/upstream/collections';
 
 function sequenceOf<T>(values: readonly T[]): Sequence<T> {
@@ -42,7 +42,7 @@ function positionalArgument(value: PhpAstValue, position: number): PhpAstValue |
 }
 
 function expression(value: PhpAstValue, file: string): Expression {
-  return projectPhpAstExpressionToUpstream(value, file);
+  return phpAstExpressionProjectionOperations.projectExpression(value, file);
 }
 
 function responsePayload(value: PhpAstValue, file: string): ResponseJsonPayload {

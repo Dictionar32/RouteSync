@@ -5,7 +5,7 @@
     "packages/core/src/types/upstream/semanticDataflow.ts",
     "packages/core/src/types/upstream/semanticDataflowAuthority.ts",
     "packages/core/src/types/upstream/semanticDataflowInterface.ts",
-    "packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts"
+    "packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts"
   ],
   "checks": [
     {

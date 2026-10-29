@@ -3,8 +3,8 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '../..');
 const interfacePath = path.join(root, 'packages/core/src/types/upstream/controllerParameterClassNameJudgmentInterface.ts');
-const contractPath = path.join(root, 'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const actionScannerPath = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const contractPath = path.join(root, 'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const actionScannerPath = path.join(root, 'packages/core/src/compiler/scanner/operations/controller/actionScanner.ts');
 const wiringPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const executorPath = path.join(root, 'packages/core/src/compiler/scanner/wiring/controllerParameterClassNameJudgmentExecutor.ts');
 const upstreamBarrelPath = path.join(root, 'packages/core/src/types/upstream/index.ts');

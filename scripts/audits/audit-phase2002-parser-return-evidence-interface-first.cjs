@@ -9,8 +9,8 @@ const responseInterface = read('packages/core/src/types/upstream/laravelControll
 const pipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const index = read('packages/core/src/index.ts');
-const testFixture = read('packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts');
-const subscannerRoot = path.join(root, 'packages/core/src/compiler/scanner/subscanners');
+const testFixture = read('packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts');
+const subscannerRoot = path.join(root, 'packages/core/src/compiler/scanner/operations');
 const subscannerFiles = [];
 const walk = directory => fs.readdirSync(directory, { withFileTypes: true }).forEach(entry => {
   const target = path.join(directory, entry.name);
@@ -75,7 +75,7 @@ const checks = [
     assert.match(testFixture, /expressionKind: returnStatement\.expression\.kind/);
   }],
   ['no new relation/foundation subscanner files were introduced', () => {
-    assert.ok(fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/controllerReturnParser.ts')));
+    assert.ok(fs.existsSync(path.join(root, 'packages/core/src/compiler/frontend/php/controllerReturnParser.ts')));
     assert.equal(subscannerFiles.some(file => /phase2002|responseSemanticPipeline/i.test(path.basename(file))), false);
   }],
   ['pipeline and response contract versions are advanced together', () => {

@@ -6,7 +6,7 @@ const resolution = readFileSync(resolve(root, 'phpFunctionNameResolutionInterfac
 const invocationContract = readFileSync(resolve(root, 'phpFunctionInvocationSemanticAuthorityInterface.ts'), 'utf8');
 const invocationAuthority = readFileSync(resolve(root, 'phpFunctionInvocationSemanticAuthority.ts'), 'utf8');
 const callAuthority = readFileSync(resolve(root, 'phpFunctionCallSemanticAuthority.ts'), 'utf8');
-const scannerMapper = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
+const scannerMapper = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
 const checks = [
   ['runtime fallback is an explicit deferred judgment', resolution.includes("kind: 'function_name_deferred'")],
   ['name evidence preserves lexical identifier segments before canonicalization', resolution.includes('PhpFunctionNameSegmentSequence') && resolution.includes('syntaxEvidence: PhpFunctionNameSyntaxEvidence')],

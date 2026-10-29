@@ -6,7 +6,6 @@ import type { ResourceModelBindingBatchClosure, ResourceModelBindingJudgment, Re
 import type { ResourceReference } from './semanticReferences';
 import type { SourceSpan } from './provenance';
 import type { SourceProjectIdentity } from './highLevelSourceModel';
-import type { Sequence } from './collections';
 import { RESOURCE_MODEL_BINDING_INVOCATION_INTEGRATION_MODEL, RESOURCE_MODEL_BINDING_SEMANTIC_JUDGMENT_MODEL, type ResourceModelBindingInvocationIntegrationModelInterface } from './resourceModelBindingSemanticInterface';
 
 /** Closed upstream contract for resource binding from source-model knowledge. */
@@ -110,9 +109,9 @@ export const LARAVEL_RESOURCE_INTEGRATED_RESPONSE_CONTRACT: LaravelResourceInteg
   invocationPreservation: RESOURCE_MODEL_BINDING_INVOCATION_INTEGRATION_MODEL,
 });
 
-export interface LaravelResourceScanArtifactSequence {
-  readonly kind: 'laravel_resource_scan_artifact_sequence';
-  readonly items: Sequence<LaravelResourceScanArtifact>;
+export interface LaravelResourceScanArtifactCollection {
+  readonly kind: 'laravel_resource_scan_artifacts';
+  readonly items: readonly LaravelResourceScanArtifact[];
 }
 
 /**
@@ -125,8 +124,8 @@ export interface LaravelResourceIntegratedResponse<Artifact extends LaravelResou
   readonly controllerScan: LaravelControllerScanJudgment;
   readonly bindingClosure: ResourceModelBindingBatchClosure;
   readonly artifacts: Readonly<{
-    readonly kind: 'laravel_resource_scan_artifact_sequence';
-    readonly items: Sequence<Artifact>;
+    readonly kind: 'laravel_resource_scan_artifacts';
+    readonly items: readonly Artifact[];
   }>;
 }
 

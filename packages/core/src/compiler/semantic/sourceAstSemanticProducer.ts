@@ -1,23 +1,23 @@
 import path from "node:path";
-import { PHP_STATEMENT_KINDS } from "../scanner/lexer/phpAstStatementKinds";
-import { expressionProducer } from "../scanner/operations/expressionProducer";
-import { propertyProducer } from "../scanner/operations/propertyProducer";
+import { PHP_STATEMENT_KINDS } from "../frontend/php/phpAstStatementKinds";
+import { expressionProducer } from "./expressionProducer";
+import { propertyProducer } from "./propertyProducer";
 import { relationAsyncFold, relationExpand, relationFirstOption, relationOptionFold, relationGate, relationProject, relationSelect, relationRefine, relationVariant, relationSome, relationNone, relationFold, type RelationOption } from "../../semantic/relations/relationalSequence";
 import { relationEqual, relationAll, relationAny } from "../../semantic/relations/semanticRelations";
 import type { ExpressionAst } from "../../types/upstream/ast";
 import type { Assignment, AssignmentAst } from "../../types/upstream/assignment";
-import { createSourceFile } from "../../types/upstream/names";
-import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode } from "../scanner/lexer/routeAst/phpAstExpressionMappings";
-import { expressionFromPhpAst } from "../scanner/operations/expressionProducer";
-import type { PhpStatement, PhpBlock, PhpForClause, PhpIfAlternative, PhpFinallyClause } from "../scanner/lexer/phpAstStatementTypes";
-import type { PhpMethodAst } from "../scanner/lexer/phpMethodAstTypes";
-import type { PhpAstValue, PhpArrayEntry, PhpArrayKey } from "../scanner/lexer/phpAstExpressionTypes";
+import { sourceFileIdentityFactory, stringValue } from "../../types/upstream/names";
+import { phpAstExpressionMappingOperations } from "../frontend/php/routeAst/phpAstExpressionMappings";
+import { expressionFromPhpAst } from "./expressionProducer";
+import type { PhpStatement, PhpBlock, PhpForClause, PhpIfAlternative, PhpFinallyClause } from "../frontend/php/phpAstStatementTypes";
+import type { PhpMethodAst } from "../frontend/php/phpMethodAstTypes";
+import type { PhpAstValue, PhpArrayEntry, PhpArrayKey } from "../frontend/php/phpAstExpressionTypes";
 import type { PropertyAst } from "../../types/upstream/property";
 import { createClassName } from "../../types/upstream/names";
 import type { SourceAstSemanticProducerInterface } from "../../types/upstream/sourceAstSemanticProducerInterface";
 import type { SourceAstParsedFile } from "../../types/upstream/sourceAstSyntaxParserInterface";
-import type { TokenDescriptor, PhpClassPropertyAst } from "../scanner/lexer";
-import { sourceAstSyntaxParser } from "./sourceAstSyntaxParser";
+import type { TokenDescriptor, PhpClassPropertyAst } from "../frontend/php";
+import { sourceAstSyntaxParser } from "../frontend/php/sourceAstSyntaxParser";
 import { sourceAstEvidenceAcquisition } from "./sourceAstEvidenceAcquisition";
 import { sourceAstSemanticOriginAuthority } from "./sourceAstSemanticOriginAuthority";
 
@@ -25,7 +25,7 @@ const stringValue = (value: string) => ({ kind: "string_value" as const, value }
 
 const sourceSpan = (file: string, start: number, end: number) => ({
     kind: "source_span" as const,
-    file: { kind: "source_file" as const, value: stringValue(file) },
+    file: { kind: "source_file" as const, value: stringValue.create(file) },
     start: { kind: "number_value" as const, value: start },
     end: { kind: "number_value" as const, value: end },
 });
@@ -90,10 +90,10 @@ const blockExpressions = (block: PhpBlock): readonly PhpAstValue[] =>
 
 const assignmentAstFromStatement = (statement: Extract<PhpStatement, { readonly kind: "assignment" }>, file: string): AssignmentAst => {
     const source = sourceSpan(file, statement.source.startOffset, statement.source.endOffset);
-    const sourceFile = createSourceFile(file);
-    const target = resolveAssignmentTarget(
+    const sourceFile = sourceFileIdentityFactory.create(stringValue.create(file));
+    const target = phpAstExpressionMappingOperations.resolveAssignmentTarget(
         statement.target,
-        (syntax, path) => expressionFromPhpAst.project({ syntax, sourceFile: createSourceFile(path) }),
+        (syntax, path) => expressionFromPhpAst.project({ syntax, sourceFile: sourceFileIdentityFactory.create(stringValue.create(path)) }),
         file,
     );
     const expression = expressionFromPhpAst.project({ syntax: statement.value, sourceFile });
@@ -101,8 +101,8 @@ const assignmentAstFromStatement = (statement: Extract<PhpStatement, { readonly 
         kind: "assignment",
         target,
         expression,
-        operator: resolveAssignmentOperator(statement.operator.kind),
-        reference: assignmentReferenceMode(statement.reference.kind),
+        operator: phpAstExpressionMappingOperations.resolveAssignmentOperator(statement.operator.kind),
+        reference: phpAstExpressionMappingOperations.assignmentReferenceMode(statement.reference.kind),
         source,
     };
     return { kind: "assignment_ast", definition, source };

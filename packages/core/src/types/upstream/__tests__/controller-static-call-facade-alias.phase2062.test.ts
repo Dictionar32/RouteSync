@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { controllerStaticCallOriginAuthority } from '../controllerStaticCallOriginAuthority';
 import { createClassName, createMethodName } from '../names';
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import { stringValue } from '../valueObjects';
 import type { ControllerStaticCallOriginInput } from '../controllerStaticCallOriginInterface';
 import type { PhpClassNameResolutionContext } from '../phpClassNameResolutionInterface';
@@ -9,7 +9,7 @@ import type { PhpClassNameResolutionContext } from '../phpClassNameResolutionInt
 const databaseImport = (alias: string) => Object.freeze({
   kind: 'php_class_import_binding' as const,
   alias: createClassName(alias),
-  target: createPhpQualifiedClassName('Illuminate\\Support\\Facades\\DB'),
+  target: phpQualifiedClassNameFactory.create('Illuminate\\Support\\Facades\\DB'),
 });
 
 const input = (className: string, classImports: PhpClassNameResolutionContext['classImports'], sourceName = className): ControllerStaticCallOriginInput => Object.freeze({
@@ -23,13 +23,13 @@ const input = (className: string, classImports: PhpClassNameResolutionContext['c
     kind: 'available',
     context: Object.freeze({
     kind: 'php_class_name_resolution_context',
-    namespaceName: createPhpQualifiedClassName('App\\Http\\Controllers'),
+    namespaceName: phpQualifiedClassNameFactory.create('App\\Http\\Controllers'),
     classImports,
     importInventory: 'complete',
     }),
   }),
   methodName: createMethodName('table'),
-  tableArgument: Object.freeze({ kind: 'positional_string_literal', value: stringValue('posts') }),
+  tableArgument: Object.freeze({ kind: 'positional_string_literal', value: stringValue.create('posts') }),
   modelClasses: Object.freeze([]),
 });
 
@@ -38,7 +38,7 @@ describe('Phase 2062 canonical Laravel facade identity', () => {
     expect(controllerStaticCallOriginAuthority.judge(input('Database', [databaseImport('Database')]))).toMatchObject({
       kind: 'resolved',
       rule: 'database_facade_table_literal',
-      origin: { kind: 'table', name: { value: stringValue('posts') } },
+      origin: { kind: 'table', name: { value: stringValue.create('posts') } },
     });
   });
 

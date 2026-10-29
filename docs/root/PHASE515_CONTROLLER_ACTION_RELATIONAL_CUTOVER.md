@@ -1,7 +1,7 @@
 # Phase 515 — Controller Action Contract Relational Cutover
 
 Target:
-- `packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts`
+- `packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts`
 
 Architecture:
 - scanner evidence remains an input boundary;

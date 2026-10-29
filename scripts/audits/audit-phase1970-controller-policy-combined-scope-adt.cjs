@@ -22,8 +22,8 @@ const checks = [
   ['effective policy algebra handles combined authorization scope', algebra.includes("case 'only_except':") && algebra.includes('relation.actions.only') && algebra.includes('relation.actions.except')],
   ['route middleware knowledge catalog handles combined scope', catalog.includes("case 'only_except':") && catalog.includes('included(scope.only)') && catalog.includes('included(scope.except)')],
   ['regression test preserves simultaneous only and except', read(testPath).includes('preserves simultaneous only and except arguments as a combined semantic scope')],
-  ['no relation subscanner created', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation'))],
-  ['no foundation subscanner created', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation subscanner created', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation'))],
+  ['no foundation subscanner created', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
 ];
 for (const [label, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${label}\n`);
 const failed = checks.filter(([, passed]) => !passed);

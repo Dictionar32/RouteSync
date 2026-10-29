@@ -3,10 +3,10 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const files = {
-  binding: 'packages/core/src/compiler/scanner/symbols/resource/resourceBindingTypes.ts',
+  binding: 'packages/core/src/compiler/semantic/resource-model/resourceModelBinding.ts',
   resolver: 'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts',
-  knowledge: 'packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts',
-  closure: 'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts',
+  knowledge: 'packages/core/src/compiler/scanner/operations/resource/resourceModelKnowledgeDataFlow.ts',
+  closure: 'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts',
 };
 const source = Object.fromEntries(Object.entries(files).map(([key, rel]) => [key, fs.readFileSync(path.join(root, rel), 'utf8')]));
 const forbidden = {

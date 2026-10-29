@@ -3,9 +3,9 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const files = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticObjectIdentityRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticObjectIdentityRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts',
 ].map(file => path.join(root, file));
 
 const forbidden = /\b(?:if|while|for|switch|map|filter|reduce|flatMap|undefined|unknown|any|new)\b|\?\?|===|\bas\b/;

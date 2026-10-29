@@ -1,0 +1,32 @@
+{
+  "phase": 2919,
+  "title": "Fully Typed Runtime Scanner Operations — upstream CLI manifest runtime trace",
+  "base": "Phase2918",
+  "scope": [
+    "CLI scan/sync manifest entrypoints",
+    "CLI manifest scan operation factory",
+    "controller invocation manifest composition authority",
+    "upstream source discovery and SourceFileInventory contracts",
+    "source read batch and inventory closure",
+    "manifest terminal judgment and CLI projection"
+  ],
+  "structuralAudit": {
+    "phase2919": "18/18 passed",
+    "phase2918": "19/19 passed",
+    "phase2917": "16/16 passed",
+    "phase2916": "19/19 passed",
+    "total": "72/72 passed"
+  },
+  "invariants": {
+    "tracedProductionPathExportFunctionDeclarations": 0,
+    "tracedManifestPathSourceFileArrayDeclarations": 0,
+    "collectionsTsBytes": 0,
+    "runtimeEntryPointsInterfaceFirst": true,
+    "manifestBlockedStatePreserved": true
+  },
+  "knownDebt": [
+    "SourceFileInventory.continueWith remains generic and needs a domain-specific replacement study before it can be removed safely.",
+    "Other upstream contracts outside the traced CLI manifest path still contain SourceFile[] and require their own domain/caller trace.",
+    "Full project typecheck, build, unit tests, and E2E were not verified."
+  ]
+}

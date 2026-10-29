@@ -1,0 +1,14 @@
+{
+  "phase": 2834,
+  "kind": "drift_manifest_terminal_adt_closure",
+  "runtimeEntry": "packages/cli/src/commands/audit/driftAuditor.ts",
+  "contract": "ControllerInvocationManifest",
+  "changes": [
+    "explicitly terminate on project-root identity canonicalization block",
+    "explicitly terminate on source-document identity rejection",
+    "preserve existing discovery/read/inventory/manifest-builder blockers",
+    "reuse existing upstream authorities and contracts"
+  ],
+  "collectionsTsBytes": 0,
+  "verification": "structural audit only; no full typecheck or e2e claim"
+}

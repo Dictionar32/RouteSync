@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const algebra = read('packages/core/src/types/upstream/astClassifierRuleAlgebra.ts');
 const candidate = read('packages/core/src/types/upstream/scannerAstExpressionCandidateInterface.ts');
 const phase2052 = read('scripts/audits/audit-phase2052-response-attribute-semantic-judgment-interface-first.cjs');

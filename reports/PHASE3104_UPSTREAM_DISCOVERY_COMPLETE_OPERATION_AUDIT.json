@@ -1,0 +1,15 @@
+{
+  "phase": 3104,
+  "scope": "move complete-versus-blocked discovery continuation ownership into the upstream discovery ADT and use the fixed domain operation in runtime traversal",
+  "upstreamDiscoveryDeclaresFixedCompleteOperation": true,
+  "completeVariantDelegatesToItsEvidence": true,
+  "blockedVariantPreservesItsOwnJudgment": true,
+  "runtimeTraversalUsesUpstreamOperation": true,
+  "runtimeCursorNoLongerExposesGenericContinuation": true,
+  "regressionCoverageForCompleteAndBlockedVariants": true,
+  "genericContinuationRetainedOnlyAtDistinctOuterCompositionBoundary": true,
+  "noDeletedRelationFoundationRestored": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

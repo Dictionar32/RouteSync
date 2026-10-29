@@ -2,7 +2,7 @@
 
 ## Scope
 
-This phase takes the uploaded Phase 2020 RouteSync tree as its baseline. It makes a narrow source change in `compiler/scanner/lexer/astClassifierRuntime.ts` and records the remaining migration boundary. It does not run `npm run build` and does not add a `relation` or `foundation` subscanner.
+This phase takes the uploaded Phase 2020 RouteSync tree as its baseline. It makes a narrow source change in `compiler/frontend/php/astClassifierRuntime.ts` and records the remaining migration boundary. It does not run `npm run build` and does not add a `relation` or `foundation` subscanner.
 
 ## Trace findings
 

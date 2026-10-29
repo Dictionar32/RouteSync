@@ -1,0 +1,43 @@
+{
+  "phase": 2817,
+  "title": "Route Path Explicit ADT / Relation-Free Acceptance Audit",
+  "scope": "Route-path acceptance operation in the PHP route declaration scanner",
+  "changes": [
+    "Introduced route-local closed RoutePathTokenActual ADT with string, other, and none variants",
+    "Built route-path actual evidence directly from TokenCursor.currentPresence",
+    "Removed relationOptionFold and relationContains from routePathTokenAcceptanceOperation",
+    "Preserved interface-first frozen runtime operation and RoutePathTokenFact domain continuation",
+    "Preserved existing RouteSyntaxSemanticFact and RouteSyntaxSemanticJudgment contracts"
+  ],
+  "runtimeTrace": [
+    "CLI scan/sync",
+    "manifestScanOperation.scan(input)",
+    "controller invocation manifest composition",
+    "upstream manifest builder / LaravelSourceAstPipelineInterface.execute()",
+    "Laravel route scanner / routeDeclarationParser.parse",
+    "routePathTokenAcceptanceOperation.accepts",
+    "routePathTokenFactFactory.create",
+    "RoutePathTokenFact.continueForAcceptance",
+    "RouteSyntaxSemanticFact.continueForProofRelation",
+    "semantic route projection",
+    "manifest projection, validation, serialization and persistence"
+  ],
+  "auditResults": {
+    "phase2817": "10/10 passed",
+    "phase2816": "14/14 passed",
+    "phase2815": "10/10 passed",
+    "phase2814": "7/7 passed"
+  },
+  "collectionsBytes": 0,
+  "globalRelationUtilitiesRemoved": false,
+  "remainingRelationMigrationSurfaces": [
+    "Other route syntax responsibilities in semanticRouteSyntaxRelations.ts",
+    "Relation-option-backed token fact and membership helpers in syntaxValue.ts"
+  ],
+  "notRun": [
+    "Full TypeScript typecheck",
+    "Production build",
+    "Full test suite",
+    "CLI scan/sync end-to-end verification"
+  ]
+}

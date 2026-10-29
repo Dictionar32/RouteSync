@@ -1,30 +1,15 @@
 import type { RouteSyncManifest } from '../../../types/upstream/manifest';
-import type {
-  RequestTypeDerivationSemanticPipelineInterface,
-  RequestTypeEvidenceReference,
-} from '../../../types/upstream/requestTypeDerivationInterface';
-import type { RouteManifest } from './routeManifestInterface';
+import type { RequestTypeDerivationSemanticPipelineInterface } from '../../../types/upstream/requestTypeDerivationInterface';
 import { routeManifestProjectionCompositionFactory } from './routeManifestProjectionComposition';
+import { routeManifestRequestResolutionPreflight } from './routeManifestRequestResolutionPreflight';
 import type { RouteManifestProjectionCompositionResult } from './routeManifestProjectionComposition';
 
 /**
- * Result of the authority-backed integrated-manifest operation.
- * A RouteManifest is materialized only after the upstream runtime executor has
- * accepted a closed, verified RequestType judgment. Non-projectable outcomes
- * remain explicit data and can never be replaced by the legacy solver here.
+ * Integration exposes the composition ADT unchanged. Renaming its two outcomes
+ * to `integrated_manifest | manifest_derivation_blocked` duplicated the same
+ * semantic result and discarded the variant-owned continuation operation.
  */
-export type IntegratedRouteManifestAuthorityResult =
-  | Readonly<{
-      kind: 'integrated_manifest';
-      manifest: RouteManifest;
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      derivation: Extract<RouteManifestProjectionCompositionResult, { kind: 'manifest_projected' }>['derivation'];
-    }>
-  | Readonly<{
-      kind: 'manifest_derivation_blocked';
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      derivation: Extract<RouteManifestProjectionCompositionResult, { kind: 'manifest_projection_blocked' }>['derivation'];
-    }>;
+export type IntegratedRouteManifestAuthorityResult = RouteManifestProjectionCompositionResult;
 
 export interface IntegratedRouteManifestAuthorityInterface {
   readonly integrate: (
@@ -40,33 +25,21 @@ export interface IntegratedRouteManifestAuthorityInterface {
  * this operation cannot invent a producer, classify source evidence, or fall
  * back to unverified RequestType[] output.
  */
-export const createIntegratedRouteManifestAuthority = (
-  pipeline: RequestTypeDerivationSemanticPipelineInterface,
-): IntegratedRouteManifestAuthorityInterface => {
+export interface IntegratedRouteManifestAuthorityFactoryInterface {
+  readonly create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ) => IntegratedRouteManifestAuthorityInterface;
+}
+
+export const integratedRouteManifestAuthorityFactory: IntegratedRouteManifestAuthorityFactoryInterface = Object.freeze({
+  create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ): IntegratedRouteManifestAuthorityInterface => {
   const composition = routeManifestProjectionCompositionFactory.create(pipeline);
 
   return Object.freeze({
-    integrate: (manifest: RouteSyncManifest, baseURL: string, version: string): IntegratedRouteManifestAuthorityResult => {
-      const result = composition.project(manifest, baseURL, version);
-      switch (result.kind) {
-        case 'manifest_projected':
-          return Object.freeze({
-            kind: 'integrated_manifest',
-            manifest: result.manifest,
-            sourceEvidence: result.sourceEvidence,
-            derivation: result.derivation,
-          });
-        case 'manifest_projection_blocked':
-          return Object.freeze({
-            kind: 'manifest_derivation_blocked',
-            sourceEvidence: result.sourceEvidence,
-            derivation: result.derivation,
-          });
-        default: {
-          const exhaustive: never = result;
-          return exhaustive;
-        }
-      }
-    },
+    integrate: (manifest: RouteSyncManifest, baseURL: string, version: string): IntegratedRouteManifestAuthorityResult =>
+      composition.project(routeManifestRequestResolutionPreflight.evaluate(manifest), baseURL, version),
   });
-};
+  },
+});

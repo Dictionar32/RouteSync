@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const algebra = read('packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts');
 const contract = read('packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const tests = read('packages/core/src/types/upstream/__test__/scannerAssignmentTargetAlgebra.phase1422.test.ts');
 const pkg = JSON.parse(read('package.json'));
 const start = runtime.indexOf('function classifyAssignmentTarget(');

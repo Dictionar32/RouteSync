@@ -1,0 +1,72 @@
+{
+  "phase": 3075,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — canonicalization failure evidence normalization",
+  "status": "PASS",
+  "passed": 14,
+  "total": 14,
+  "checks": {
+    "blockedEvidenceNoLongerExportsOpaqueUnknownFailure": true,
+    "blockedJudgmentUsesNormalizedDiagnosticFields": true,
+    "failureEvidencePreservationOperationRemainsDomainOwned": true,
+    "nodeRejectionIsNormalizedAtCliAdapterBoundary": true,
+    "normalizedFailureCodeRemainsClosedTypedAdt": true,
+    "requestedIdentityAndFilesystemLocationPreserved": true,
+    "blockedManifestTerminalStillReceivesEvidence": true,
+    "noRawFailurePayloadInCanonicalizationContract": true,
+    "canonicalizationStillInterfaceFirst": true,
+    "noExportedFunctionDeclarationInChangedUpstreamFile": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedFilesTranspileWithoutSyntaxDiagnostics": true,
+    "compositionInterfaceStillTypesBlockedTerminal": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": [
+    {
+      "phase": "phase3074",
+      "status": "PASS",
+      "output": "PASS canonicalizationHandlersAndGenericResultRemoved\nPASS canonicalizedOutcomeOwnsSourceDiscoveryIdentityOperation\nPASS blockedOutcomeOwnsFailurePreservationOperation\nPASS canonicalizationOutcomesAreClosedTypedUnion\nPASS canonicalizationFactoryIsInterfaceFirst\nPASS filesystemRealpathStillOwnsCanonicalRoot\nPASS queryPolicyDefaultAndExplicitBranchesPreserved\nPASS compositionConsumesDomainOperationsInsteadOfGenericContinuation\nPASS blockedManifestTerminalStillReceivesOriginalTypedJudgment\nPASS obsoleteGenericTypesNotPubliclyReexported\nPASS noExportedFunctionDeclarationsInChangedUpstreamIdentity\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedFilesTranspileWithoutSyntaxDiagnostics\nphase3072 regression: PASS\nphase3071 regression: PASS\nphase3070 regression: PASS\nphase3069 regression: PASS\nPASS: 14/14 checks passed\n"
+    },
+    {
+      "phase": "phase3072",
+      "status": "PASS",
+      "output": "PASS genericContinuationRemovedFromBoundaryDomain\nPASS genericHandlerBundleRemoved\nPASS delimiterRecognitionIsClosedTypedJudgment\nPASS statementPositionIsClosedTypedJudgment\nPASS cursorValidityUsesDomainOperation\nPASS canonicalRuntimeExportIsInterfaceFirst\nPASS compatibilityRuntimeExportIsInterfaceFirst\nPASS noExportedFunctionDeclarations\nPASS terminatorRuntimeFixture\nPASS endOfInputRuntimeFixture\nPASS unexpectedCloserRuntimeFixture\nPASS mismatchedCloserRuntimeFixture\nPASS unclosedDelimiterRuntimeFixture\nPASS invalidCursorRuntimeFixture\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedFileTranspilesWithoutSyntaxDiagnostics\n17/17 checks passed\nphase3071 regression: PASS\nphase3070 regression: PASS\nphase3069 regression: PASS\n"
+    },
+    {
+      "phase": "phase3071",
+      "status": "PASS",
+      "output": "PASS genericContinueWithRemovedFromScannerControl\nPASS genericResultHandlerContractsRemoved\nPASS tokenPresenceHasExplicitDomainOperation\nPASS keywordRecognitionHasNamedDomainCatalog\nPASS semanticOutcomeIsClosedAndTyped\nPASS noMapSideChannel\nPASS publicRuntimeContractRemainsInterfaceFirst\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedFileTranspilesWithoutSyntaxDiagnostics\n10/10 checks passed\nphase3070 regression: PASS\nphase3069 regression: PASS\nphase3068 regression: PASS\n"
+    },
+    {
+      "phase": "phase3070",
+      "status": "PASS",
+      "output": "PASS genericInputHandlersRemoved\nPASS explicitInputDomainOperationsDeclared\nPASS notProvidedInputOwnsDomainOperation\nPASS providedInputOwnsDomainOperation\nPASS authorityConsumesInputOperationDirectly\nPASS noGenericHandlerDispatchRemainsInJudge\nPASS notProvidedOutcomePreserved\nPASS providedOutcomePreservesBindingAndIntegration\nPASS inputContractVersionUpdated\nPASS exportedFactoryRemainsInterfaceFirst\nPASS exportedRuntimeAuthorityIsInterfaceFirstObject\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n14/14 checks passed\nphase3069 regression: PASS\nphase3068 regression: PASS\nphase3067 regression: PASS\n"
+    },
+    {
+      "phase": "phase3069",
+      "status": "PASS",
+      "output": "PASS genericIntegrationHandlerContractRemoved\nPASS integrationOutcomesOwnExplicitControllerJudgmentOperation\nPASS operationHasDomainSpecificReturnType\nPASS integrationContractVersionBumped\nPASS contractNamesDomainOperation\nPASS notConnectedOutcomeInstallsOperation\nPASS sourceBindingRejectedOutcomeInstallsOperation\nPASS completeOutcomeInstallsOperation\nPASS blockedOutcomeInstallsOperation\nPASS operationPreservesExactResponseAndSourceIdentity\nPASS operationIsInterfaceFirstExport\nPASS consumerUsesDomainOperationInsteadOfGenericDispatch\nPASS oldGenericHandlerIsNotRetainedInIntegrationModule\nPASS canonicalIdentityAuthorityStillOwnsIdentityRelation\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n17/17 checks passed\nPhase 3068 regression: PASS\nPhase 3067 regression: PASS\n"
+    }
+  ],
+  "runtimeTrace": [
+    "CLI scan/sync invokes the manifest composition authority with the requested SourceProjectIdentity.",
+    "The interface-first Node filesystem adapter attempts fs.realpath before source discovery.",
+    "On rejection, the Node boundary classifies the filesystem code and normalizes Error.name and Error.message into StringValue fields.",
+    "The upstream blocked canonicalization judgment retains requested identity, typed filesystem code, root location, and normalized diagnostics; the raw platform rejection no longer crosses the upstream ADT boundary.",
+    "preserveFailureEvidence() projects the normalized evidence to the existing CLI source-project-identity-blocked manifest terminal.",
+    "Canonical success still proceeds through discovery, source reads, invocation semantics, inventory, manifest projection, validation, generator, and persistence; end-to-end execution is not claimed."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "changedFileSyntaxTranspile": "PASS",
+    "regressions": "PASS",
+    "wholeProgramStrictTypeScript": "NOT_CLAIMED",
+    "endToEndPhpCliManifestExecution": "NOT_RUN",
+    "globalPrimitiveElimination": "NOT_CLAIMED — remaining platform-boundary unknown and fallback operators are isolated in the Node adapter; this phase only prevents raw rejection payloads from crossing the canonicalization ADT."
+  },
+  "remainingRisks": [
+    "The normalized name/message are StringValue wrappers but their underlying payload remains text; this is deliberate diagnostic data, not a semantic branch discriminator.",
+    "Non-Error rejection values are represented by an explicit diagnostic label and message; arbitrary thrown object internals are not retained. If those internals are operationally required, model a safe bounded diagnostic schema rather than reintroducing unknown into the domain ADT.",
+    "The CLI composition switch and unrelated filesystem discovery failure: unknown remain outside this focused canonicalization migration."
+  ]
+}

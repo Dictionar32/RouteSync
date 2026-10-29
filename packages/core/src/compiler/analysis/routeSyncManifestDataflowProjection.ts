@@ -26,6 +26,3 @@ export const routeSyncManifestDataflowProjection: RouteSyncManifestDataflowProje
   }),
 });
 
-export const routeSyncManifestDataflowSurfaceFromFlow = (
-  manifest: RouteSyncManifestFlow,
-): RouteSyncManifestDataflowSurface => routeSyncManifestDataflowProjection.project(manifest);

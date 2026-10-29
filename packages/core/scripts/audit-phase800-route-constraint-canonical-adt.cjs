@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const syntax = fs.readFileSync(path.join(root, 'src/compiler/scanner/lexer/routeAst/semanticRouteSyntaxRelations.ts'), 'utf8');
-const parser = fs.readFileSync(path.join(root, 'src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts'), 'utf8');
-const ast = fs.readFileSync(path.join(root, 'src/compiler/scanner/lexer/routeAst/routeDeclarationAst.ts'), 'utf8');
+const syntax = fs.readFileSync(path.join(root, 'src/compiler/frontend/php/routeAst/semanticRouteSyntaxRelations.ts'), 'utf8');
+const parser = fs.readFileSync(path.join(root, 'src/compiler/frontend/php/routeAst/routeDeclarationParser.ts'), 'utf8');
+const ast = fs.readFileSync(path.join(root, 'src/compiler/frontend/php/routeAst/routeDeclarationAst.ts'), 'utf8');
 const checks = {
   canonicalConstraintArgumentAlias: syntax.includes('export type RouteConstraintSyntaxArgument = RouteConstraintArgumentAst;'),
   noDuplicateConstraintUnion: !syntax.includes("readonly kind: 'pattern';\n    readonly value: RouteConstraintValueAst;"),

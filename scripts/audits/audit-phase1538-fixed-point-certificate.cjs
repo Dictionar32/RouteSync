@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const authority = read('packages/core/src/types/upstream/semanticDataflowAuthority.ts');
 const model = read('packages/core/src/types/upstream/semanticDataflow.ts');
 const boundary = read('packages/core/src/types/upstream/semanticDataflowInterface.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const checks = [
   ['judgment model requires closure certificate', /readonly closureCertificate: SemanticDataflowClosureCertificate/.test(model)],
   ['certificate records fact convergence and rounds', /factClosure: Readonly<\{ readonly kind: 'fact_closure'; readonly converged: true; readonly rounds: number \}>/.test(model)],

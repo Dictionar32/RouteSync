@@ -10,7 +10,7 @@ const checks = [
   ['each family declaration encodes its required constraints', /QueryOperationSemanticRequiredConstraints<Rule>/s.test(read('packages/core/src/types/upstream/queryProducerSemanticInterface.ts'))],
   ['rule authoring helper is generic over the rule identity', /const declareQueryOperationRule = <Rule extends ClaimedQueryOperationRule\['kind'\]>/s.test(read('packages/core/src/types/upstream/queryProducerSemanticReasoning.ts'))],
   ['public index exports the family-indexed contract', /QueryOperationSemanticRuleFamily, QueryOperationSemanticRuleDeclarationFor/.test(read('packages/core/src/index.ts'))],
-  ['scanner still consumes the upstream judgment rather than declaring rule obligations', /queryProducerSemanticAlgebra\.resolveQueryOperation\(/.test(read('packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts'))],
+  ['scanner still consumes the upstream judgment rather than declaring rule obligations', /queryProducerSemanticAlgebra\.resolveQueryOperation\(/.test(read('packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts'))],
 ];
 let failed = false;
 for (const [name, passed] of checks) {

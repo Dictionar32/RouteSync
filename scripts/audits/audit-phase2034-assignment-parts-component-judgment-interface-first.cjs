@@ -6,7 +6,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerAssignmentPartsInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerAssignmentPartsAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const test = read('packages/core/src/types/upstream/__test__/scannerAssignmentPartsInterfaceAlgebra.phase1444.test.ts');
 const packageJson = JSON.parse(read('package.json'));
 const checks = [
@@ -17,7 +17,7 @@ const checks = [
   ['scanner runtime translates target and expression classifiers into explicit judgments', runtime.includes("classifyTarget: source => relationOptionFold(classifyAssignmentTarget(source), () => ({ kind: 'unresolved' as const") && runtime.includes("classifyValue: source => relationGate(relationCount(source) > 0")],
   ['canonical assignment-parts tests use resolved/unresolved judgments', test.includes("kind: 'resolved' as const, value:") && test.includes("kind: 'unresolved' as const, reason: 'not_recognized' as const") && !test.includes('classifyTarget: (source: readonly string[]) => source.length === 1 && source[0]?.startsWith(\'$\') ? source[0] : undefined')],
   ['Laravel invocation and integrated response wiring remain in their existing authority path', read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts').includes('invocationJudgment') && read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts').includes('responseJudgment')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['phase audit script is registered', typeof packageJson.scripts['audit:phase2034-assignment-parts-component-judgment-interface-first'] === 'string'],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);

@@ -4,13 +4,13 @@ This phase closes the remaining host-control-flow leakage in the canonical seman
 
 ## Closed surface
 
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts` verified clean
+- `packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts` verified clean
 - `packages/core/src/compiler/passes/adapter/contractValidator.ts` verified clean
 
 ## Architecture
 
-`scanner/lexer evidence -> semantic relation patterns -> indexed candidate matching -> binding witnesses -> recursive plan application -> stratified fixed-point saturation -> canonical semantic facts`
+`frontend/php evidence -> semantic relation patterns -> indexed candidate matching -> binding witnesses -> recursive plan application -> stratified fixed-point saturation -> canonical semantic facts`
 
 The solver no longer uses host-language `&&`, `||`, negation, or language-level branch constructs as semantic authority. Conjunction/disjunction/negation are represented through relation predicates and relation gates.
 

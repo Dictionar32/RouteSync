@@ -1,0 +1,28 @@
+{
+  "phase": 3004,
+  "kind": "typescript-transpile-syntax-check",
+  "files": 5,
+  "diagnosticCount": 0,
+  "results": [
+    {
+      "file": "packages/cli/src/commands/scan.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/manifestScanOperationInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/parsers/php/controllerInvocationManifestCompositionInterface.ts",
+      "diagnostics": []
+    },
+    {
+      "file": "packages/cli/src/upstreamCompositionFactory.ts",
+      "diagnostics": []
+    }
+  ]
+}

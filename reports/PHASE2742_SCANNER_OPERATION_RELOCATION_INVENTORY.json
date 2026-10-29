@@ -1,0 +1,563 @@
+{
+  "phase": 2742,
+  "kind": "scanner_operation_relocation_inventory",
+  "sourceDirectoryRemoved": "packages/core/src/compiler/scanner/subscanners",
+  "targetDirectory": "packages/core/src/compiler/scanner/operations",
+  "fileCount": 83,
+  "typescriptFileCount": 78,
+  "exportedFunctionDeclarationsConverted": 26,
+  "exportedCallableConstFunctionsConverted": 10,
+  "operationObjects": 16,
+  "convertedFunctions": 36,
+  "operationConversions": [
+    {
+      "file": "serviceSourceStatements.ts",
+      "names": [
+        "serviceSourceStatements"
+      ],
+      "operation": "serviceSourceStatementsOperations"
+    },
+    {
+      "file": "controller/resourceDataflowAggregator.ts",
+      "names": [
+        "findControllerResourceBinding",
+        "extractResourceDataflow"
+      ],
+      "operation": "resourceDataflowAggregatorOperations"
+    },
+    {
+      "file": "controller/responseDetector.ts",
+      "names": [
+        "detectResourceResponse",
+        "detectModelResponse",
+        "detectInlineResponse"
+      ],
+      "operation": "responseDetectorOperations"
+    },
+    {
+      "file": "controller/controllerAstCanonical.ts",
+      "names": [
+        "resolvedExpression",
+        "sourceStatements",
+        "controllerStatements",
+        "controllerMethodSemanticProjectionFromMethod",
+        "controllerReturnSemanticFromMethod",
+        "controllerReturnSemanticFromValues",
+        "controllerMethodAttributesFromAttributes",
+        "controllerPolicyRelationsFromAttributes",
+        "controllerPolicyInventoryFromDeclaration",
+        "controllerHasMiddlewareRelations",
+        "controllerQueryEvidence",
+        "controllerQueryOperations",
+        "controllerMethodContractFromMethod",
+        "controllerActionFromMethod"
+      ],
+      "operation": "controllerAstCanonicalOperations"
+    },
+    {
+      "file": "controller/responseDtoReader.ts",
+      "names": [
+        "readResponseDtoAnalysis",
+        "readResponseDtoFields"
+      ],
+      "operation": "responseDtoReaderOperations"
+    },
+    {
+      "file": "controller/resourceInvocationDetector.ts",
+      "names": [
+        "detectResourceInvocation"
+      ],
+      "operation": "resourceInvocationDetectorOperations"
+    },
+    {
+      "file": "controller/actionValidationExtractor.ts",
+      "names": [
+        "extractInlineValidation"
+      ],
+      "operation": "actionValidationExtractorOperations"
+    },
+    {
+      "file": "typeDeriverUtils.ts",
+      "names": [
+        "resolvePrimitiveKind",
+        "resolveRouteDomain"
+      ],
+      "operation": "typeDeriverUtilsOperations"
+    },
+    {
+      "file": "serviceAstCanonical.ts",
+      "names": [
+        "buildServiceProducerResult"
+      ],
+      "operation": "serviceAstCanonicalOperations"
+    },
+    {
+      "file": "providerAstCanonical.ts",
+      "names": [
+        "buildProviderSemanticResultFromSource"
+      ],
+      "operation": "providerAstCanonicalOperations"
+    },
+    {
+      "file": "InvalidationResolver.ts",
+      "names": [
+        "resolveRouteInvalidations"
+      ],
+      "operation": "InvalidationResolver"
+    },
+    {
+      "file": "model/modelColumnOrigin.ts",
+      "names": [
+        "correlateModelColumnFacts"
+      ],
+      "operation": "modelColumnOriginOperations"
+    },
+    {
+      "file": "model/columnInferrer.ts",
+      "names": [
+        "resolveModelColumns",
+        "resolveModelSchema"
+      ],
+      "operation": "modelColumnResolutionOperations"
+    },
+    {
+      "file": "model/modelColumnFactsCanonical.ts",
+      "names": [
+        "buildModelColumnFacts"
+      ],
+      "operation": "modelColumnFactsCanonicalOperations"
+    },
+    {
+      "file": "model/modelParser.ts",
+      "names": [
+        "typeEvidenceFromPhpAst",
+        "sourceSemanticsEvidenceFrom"
+      ],
+      "operation": "modelParserOperations"
+    },
+    {
+      "file": "model/semanticTypeCanonical.ts",
+      "names": [
+        "semanticType"
+      ],
+      "operation": "semanticTypeCanonicalOperations"
+    }
+  ],
+  "files": [
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/attributeAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/attributeAstCanonical.ts",
+      "bytes": 80
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/attributeProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/attributeProducer.ts",
+      "bytes": 81
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/channelProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/channelProducer.ts",
+      "bytes": 2481
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/ChannelScanner.ts",
+      "to": "packages/core/src/compiler/scanner/operations/ChannelScanner.ts",
+      "bytes": 5140
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/__tests__/responseDtoReader.phase2186.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/__tests__/responseDtoReader.phase2186.test.ts",
+      "bytes": 1314
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/actionScanner.ts",
+      "bytes": 339
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/actionValidationExtractor.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/actionValidationExtractor.ts",
+      "bytes": 3926
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/actionVariableTracker.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/actionVariableTracker.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controller-contextual-attribute-flow.phase36.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controller-contextual-attribute-flow.phase36.test.ts",
+      "bytes": 1269
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts",
+      "bytes": 68608
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerBodyResolver.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerBodyResolver.ts",
+      "bytes": 424
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowSemanticJudgmentSelection.phase2069.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerDataflowSemanticJudgmentSelection.phase2069.test.ts",
+      "bytes": 3070
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerErrorDetector.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerErrorDetector.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerHasMiddleware.phase900.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerHasMiddleware.phase900.test.ts",
+      "bytes": 6489
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerInheritance.phase905.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerInheritance.phase905.test.ts",
+      "bytes": 1213
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerMethodContract.phase894.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerMethodContract.phase894.test.ts",
+      "bytes": 8409
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerParserProjectionContext.phase1900.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerParserProjectionContext.phase1900.test.ts",
+      "bytes": 1953
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts",
+      "bytes": 5829
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/controllerReturnSemantic.phase10.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/controllerReturnSemantic.phase10.test.ts",
+      "bytes": 692
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/index.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/index.ts",
+      "bytes": 409
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/resourceDataflowAggregator.ts",
+      "bytes": 2181
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/resourceInvocationDetector.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/resourceInvocationDetector.ts",
+      "bytes": 8400
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/responseAttributeScanner.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/responseAttributeScanner.ts",
+      "bytes": 486
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/responseDetector.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/responseDetector.ts",
+      "bytes": 7382
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/controller/responseDtoReader.ts",
+      "to": "packages/core/src/compiler/scanner/operations/controller/responseDtoReader.ts",
+      "bytes": 7208
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/dtoAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/dtoAstCanonical.ts",
+      "bytes": 9164
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/dtoProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/dtoProducer.ts",
+      "bytes": 4462
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts",
+      "to": "packages/core/src/compiler/scanner/operations/FormRequestScanner.ts",
+      "bytes": 15400
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/index.ts",
+      "to": "packages/core/src/compiler/scanner/operations/index.ts",
+      "bytes": 540
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/InvalidationResolver.ts",
+      "to": "packages/core/src/compiler/scanner/operations/InvalidationResolver.ts",
+      "bytes": 8677
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/middlewareAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/middlewareAstCanonical.ts",
+      "bytes": 3133
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/middlewareProducer.ts",
+      "bytes": 2065
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/migrationAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/migrationAstCanonical.ts",
+      "bytes": 3113
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/migrationProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/migrationProducer.ts",
+      "bytes": 25705
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/columnInferrer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/columnInferrer.ts",
+      "bytes": 1969
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/index.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/index.ts",
+      "bytes": 370
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/memberPropertiesParser.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/memberPropertiesParser.ts",
+      "bytes": 1679
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/migrationScanner.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/migrationScanner.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/modelCanonical.ts",
+      "bytes": 9298
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/modelColumnFactsCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/modelColumnFactsCanonical.ts",
+      "bytes": 788
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/modelColumnOrigin.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/modelColumnOrigin.ts",
+      "bytes": 2900
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/modelMemberParser.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/modelMemberParser.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/modelParser.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/modelParser.ts",
+      "bytes": 12809
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/modelSourceFactsParser.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/modelSourceFactsParser.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/model/semanticTypeCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/model/semanticTypeCanonical.ts",
+      "bytes": 4382
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/PHASE810_RESOURCE_CONSUMER_UPSTREAM.md",
+      "to": "packages/core/src/compiler/scanner/operations/PHASE810_RESOURCE_CONSUMER_UPSTREAM.md",
+      "bytes": 2842
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/PHASE811_RESOURCE_CONSUMER_ADT_FOLD.md",
+      "to": "packages/core/src/compiler/scanner/operations/PHASE811_RESOURCE_CONSUMER_ADT_FOLD.md",
+      "bytes": 842
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/PHASE817_ROUTE_EMISSION_CUTOVER.md",
+      "to": "packages/core/src/compiler/scanner/operations/PHASE817_ROUTE_EMISSION_CUTOVER.md",
+      "bytes": 1777
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/providerAstCanonical.ts",
+      "bytes": 25898
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/providerProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/providerProducer.ts",
+      "bytes": 1064
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/queryProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/queryProducer.ts",
+      "bytes": 752
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/request-deriver/actionDeriver.ts",
+      "to": "packages/core/src/compiler/scanner/operations/request-deriver/actionDeriver.ts",
+      "bytes": 279
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/request-deriver/domainExtractor.ts",
+      "to": "packages/core/src/compiler/scanner/operations/request-deriver/domainExtractor.ts",
+      "bytes": 307
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/request-deriver/index.ts",
+      "to": "packages/core/src/compiler/scanner/operations/request-deriver/index.ts",
+      "bytes": 1055
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/request-deriver/rawTypeConverter.ts",
+      "to": "packages/core/src/compiler/scanner/operations/request-deriver/rawTypeConverter.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/request-deriver/requestSourceMerger.ts",
+      "to": "packages/core/src/compiler/scanner/operations/request-deriver/requestSourceMerger.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/request-deriver/responseDeriver.ts",
+      "to": "packages/core/src/compiler/scanner/operations/request-deriver/responseDeriver.ts",
+      "bytes": 380
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/PHASE1482_CONTEXTUAL_PHP_TYPE_WIRING.md",
+      "to": "packages/core/src/compiler/scanner/operations/resource/PHASE1482_CONTEXTUAL_PHP_TYPE_WIRING.md",
+      "bytes": 2350
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/PHASE209_KNOWLEDGE_DATA_FLOW_ELEVATION.md",
+      "to": "packages/core/src/compiler/scanner/operations/resource/PHASE209_KNOWLEDGE_DATA_FLOW_ELEVATION.md",
+      "bytes": 2065
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/php-type-context-wiring.phase1482.test.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/php-type-context-wiring.phase1482.test.ts",
+      "bytes": 1964
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceAstCanonical.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingModelFactory.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceBindingModelFactory.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingOriginResolver.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceBindingOriginResolver.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingPathBuilder.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceBindingPathBuilder.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingProvenanceBuilder.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceBindingProvenanceBuilder.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingSemanticInterface.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceBindingSemanticInterface.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceBindingTraversalBuilder.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceBindingTraversalBuilder.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts",
+      "bytes": 87
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts",
+      "bytes": 175
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionClosure.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionClosure.ts",
+      "bytes": 159
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionMappings.ts",
+      "to": "packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionMappings.ts",
+      "bytes": 162
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/responseProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/responseProducer.ts",
+      "bytes": 8205
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/responseScanner.ts",
+      "to": "packages/core/src/compiler/scanner/operations/responseScanner.ts",
+      "bytes": 7928
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/schemaProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/schemaProducer.ts",
+      "bytes": 7239
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/SemanticTypeDeriver.ts",
+      "to": "packages/core/src/compiler/scanner/operations/SemanticTypeDeriver.ts",
+      "bytes": 2037
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts",
+      "to": "packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts",
+      "bytes": 27488
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/serviceProducer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/serviceProducer.ts",
+      "bytes": 1085
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts",
+      "to": "packages/core/src/compiler/scanner/operations/serviceSourceStatements.ts",
+      "bytes": 28592
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/TypeDeriver.ts",
+      "to": "packages/core/src/compiler/scanner/operations/TypeDeriver.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/typeDeriverUtils.ts",
+      "to": "packages/core/src/compiler/scanner/operations/typeDeriverUtils.ts",
+      "bytes": 3603
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/validationArrayPropLowerer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/validationArrayPropLowerer.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/validationRuleChecker.ts",
+      "to": "packages/core/src/compiler/scanner/operations/validationRuleChecker.ts",
+      "bytes": 0
+    },
+    {
+      "from": "packages/core/src/compiler/scanner/subscanners/ValidationRuleFieldLowerer.ts",
+      "to": "packages/core/src/compiler/scanner/operations/ValidationRuleFieldLowerer.ts",
+      "bytes": 876
+    }
+  ]
+}

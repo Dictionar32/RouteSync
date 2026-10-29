@@ -1,0 +1,22 @@
+{
+  "phase": 2806,
+  "title": "Non-generic Manifest ADT Dispatch",
+  "correction": "Removed generic T and unsafe never casts from Phase 2805 dispatch.",
+  "handlerContract": {
+    "manifest_projected": "RouteManifest",
+    "manifest_projection_blocked": "never"
+  },
+  "dispatch": "Exhaustive switch owned by RouteManifestProjectionCompositionResult operation; no semantic outcome switch in CLI consumers.",
+  "constraints": {
+    "genericReasoningPrimitive": false,
+    "unsafeNeverCastsInDispatch": false,
+    "collectionsModuleBytes": 0
+  },
+  "verification": {
+    "structuralAudit": "npm run audit:phase2806-nongeneric-manifest-adt-dispatch",
+    "fullTypecheck": "not_run",
+    "productionBuild": "not_run",
+    "fullTestSuite": "not_run",
+    "cliEndToEnd": "not_run"
+  }
+}

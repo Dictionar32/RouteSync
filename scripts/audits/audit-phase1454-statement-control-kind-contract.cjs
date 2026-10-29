@@ -4,8 +4,8 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/scannerStatementControlInterface.ts');
 const algebra = read('packages/core/src/types/upstream/scannerStatementControlAlgebra.ts');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
-const facade = read('packages/core/src/compiler/scanner/lexer/phpControlEvidence.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
+const facade = read('packages/core/src/compiler/frontend/php/phpControlEvidence.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');
 const docs = read('packages/core/src/types/upstream/docs/PHASE1454_STATEMENT_CONTROL_KIND_CONTRACT.md');
 const checks = [

@@ -1,0 +1,58 @@
+{
+  "phase": 3071,
+  "title": "Fully Explicit Typed Runtime Scanner Operations — structured statement control evidence",
+  "status": "PASS",
+  "passed": 10,
+  "total": 10,
+  "checks": {
+    "genericContinueWithRemovedFromScannerControl": true,
+    "genericResultHandlerContractsRemoved": true,
+    "tokenPresenceHasExplicitDomainOperation": true,
+    "keywordRecognitionHasNamedDomainCatalog": true,
+    "semanticOutcomeIsClosedAndTyped": true,
+    "noMapSideChannel": true,
+    "publicRuntimeContractRemainsInterfaceFirst": true,
+    "protectedCollectionsInvariantOneNewlineByte": true,
+    "deletedRelationFoundationRemainsAbsent": true,
+    "changedFileTranspilesWithoutSyntaxDiagnostics": true
+  },
+  "syntaxDiagnostics": [],
+  "regressions": [
+    {
+      "phase": "phase3070",
+      "status": "PASS",
+      "output": "PASS genericInputHandlersRemoved\nPASS explicitInputDomainOperationsDeclared\nPASS notProvidedInputOwnsDomainOperation\nPASS providedInputOwnsDomainOperation\nPASS authorityConsumesInputOperationDirectly\nPASS noGenericHandlerDispatchRemainsInJudge\nPASS notProvidedOutcomePreserved\nPASS providedOutcomePreservesBindingAndIntegration\nPASS inputContractVersionUpdated\nPASS exportedFactoryRemainsInterfaceFirst\nPASS exportedRuntimeAuthorityIsInterfaceFirstObject\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n14/14 checks passed\nphase3069 regression: PASS\nphase3068 regression: PASS\nphase3067 regression: PASS\n"
+    },
+    {
+      "phase": "phase3069",
+      "status": "PASS",
+      "output": "PASS genericIntegrationHandlerContractRemoved\nPASS integrationOutcomesOwnExplicitControllerJudgmentOperation\nPASS operationHasDomainSpecificReturnType\nPASS integrationContractVersionBumped\nPASS contractNamesDomainOperation\nPASS notConnectedOutcomeInstallsOperation\nPASS sourceBindingRejectedOutcomeInstallsOperation\nPASS completeOutcomeInstallsOperation\nPASS blockedOutcomeInstallsOperation\nPASS operationPreservesExactResponseAndSourceIdentity\nPASS operationIsInterfaceFirstExport\nPASS consumerUsesDomainOperationInsteadOfGenericDispatch\nPASS oldGenericHandlerIsNotRetainedInIntegrationModule\nPASS canonicalIdentityAuthorityStillOwnsIdentityRelation\nPASS protectedCollectionsInvariantOneNewlineByte\nPASS deletedRelationFoundationRemainsAbsent\nPASS changedTypeScriptFilesTranspileWithoutSyntaxDiagnostics\n17/17 checks passed\nPhase 3068 regression: PASS\nPhase 3067 regression: PASS\n"
+    },
+    {
+      "phase": "phase3068",
+      "status": "PASS",
+      "output": "PASS producerContractOwnsDomainIntegrationOperation\nPASS producerNoLongerExposesGenericResultHandlers\nPASS producerAuthorityInstallsOperationOnBlockedOutcome\nPASS producerAuthorityInstallsOperationOnCompleteOutcome\nPASS sourceBindingAdtOwnsCompositionProjection\nPASS sourceBindingAuthorityUsesItsDomainOperation\nPASS compositionEvidenceAdtOwnsIntegrationOperation\nPASS notConnectedEvidenceOwnsIntegrationOperation\nPASS connectedAndRejectedEvidenceOwnIntegrationOperation\nPASS integrationOutcomeFactoryIsExplicitlyTyped\nPASS completeIntegrationRetainsExactPipelineAndBatch\nPASS blockedIntegrationRetainsExactPipelineAndSourceBinding\nPASS consumerCallsProducerDomainOperation\nPASS integrationAuthorityDelegatesToEvidenceDomainOperation\nPASS consumerNoLongerDispatchesPipelineResultHandlers\nPASS completionAndBlockageRemainSeparate\nPASS sourceBindingKeepsExactPipelineResult\nPASS contractVersionBumpedForOperationChange\nPASS manifestBuilderBlockedProjectionStillExists\nPASS cliScanBlockedGatePrecedesOutputWrites\nPASS cliSyncBlockedGatePrecedesOutputWrites\nPASS deletedRelationFoundationRemainsAbsent\nPASS protectedCollectionsInvariantOneNewlineByte\n23/23 checks passed\nPhase 3067 regression: PASS\nPhase 3062 regression: PASS\n"
+    }
+  ],
+  "runtimeTrace": [
+    "The CLI/runtime scanner supplies source tokens and the token-to-source-spelling operation to the upstream scanner control algebra.",
+    "Token-head evidence is represented as a closed present/absent judgment rather than a generic Result continuation.",
+    "Present-token evidence is interpreted through the named control-keyword catalog; PHP spellings map to typed ScannerStatementControlKind values.",
+    "The catalog outcome exposes the domain operation toScannerStatementControlJudgment, yielding structured or not_structured evidence without a generic visitor/handler bundle.",
+    "The resulting ScannerStatementControlJudgment is returned through the existing ScannerStatementControlInterface and remains consumable by the scanner runtime."
+  ],
+  "verification": {
+    "structuralAudit": "PASS",
+    "changedFileSyntaxTranspile": "PASS",
+    "regressions": "PASS",
+    "strictTypeScript": "NOT_CLAIMED — syntax transpilation does not establish whole-program type correctness.",
+    "vitestRuntime": "NOT_RUN — workspace Vitest installation is incomplete.",
+    "endToEndPhpCliManifestFixture": "NOT_RUN",
+    "globalPrimitiveElimination": "NOT_CLAIMED — lexical recognition still requires an explicit token catalog and presence boundary; this phase removes generic continuations and the Map side channel from this scanner algebra only."
+  },
+  "remainingRisks": [
+    "The control-keyword catalog currently uses array search and a presence check; this is an isolated lexical-recognition boundary, not a claim that all primitive operators have been removed.",
+    "Other upstream scanner algebra modules still contain generic continuation operations, including statement-boundary and source-identity paths; each requires its own runtime trace before migration.",
+    "Full PHP → CLI → manifest/IR execution remains unverified."
+  ]
+}

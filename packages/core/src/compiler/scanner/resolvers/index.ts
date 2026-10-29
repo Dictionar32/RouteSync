@@ -25,6 +25,6 @@ export {
     type RouteBoundaryContract,
     type RouteBoundaryOptions,
     RouteBoundaryContractFactory
-} from "./boundary";
+} from "../../semantic/route-boundary";
 
 export * from './resolverGraphSemanticInterface';

@@ -1,0 +1,14 @@
+{
+  "phase": 2783,
+  "title": "Upstream Manifest Runtime Operation Object Closure",
+  "passed": true,
+  "checks": 12,
+  "passedChecks": 12,
+  "failedChecks": [],
+  "limits": [
+    "Static source-contract audit only; no successful TypeScript build, full test run, or CLI end-to-end execution is claimed.",
+    "SourceScanJudgment is not yet the end-to-end scanner-to-manifest ADT; the active pipeline retains LaravelSourceAstProjectionJudgment.",
+    "collections.ts intentionally remains empty and its dependent imports remain unresolved until domain-owned contracts are migrated.",
+    "The existing domain reasoning contract is unchanged; this phase adds no reasoning primitive."
+  ]
+}

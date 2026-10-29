@@ -1,0 +1,34 @@
+{
+  "phase": 3046,
+  "title": "Assignment Effect Domain Operations — Operator Carries Write vs Read-Write Semantics",
+  "runtimeTrace": [
+    "PHP expression/statement syntax producer resolves the syntax operator at the boundary to a canonical SemanticAssignmentOperatorDefinition",
+    "the canonical operator definition carries its SemanticAssignmentEffectDefinition as domain data",
+    "plain set carries a write-only effect projection; compound assignment operators carry a projection of distinct ref and mod relations",
+    "semanticModRefEffectFactory projects the already-modeled relation kind without reclassifying the operator",
+    "the canonical SemanticKnowledgeDataFlow preserves the effect relation through semanticObjectIdentityOperations.modRefEvidence",
+    "the interface-backed CLI manifest scan and controller-invocation composition path remain the downstream route"
+  ],
+  "checks": {
+    "assignmentOperatorCarriesItsEffectAsDomainData": true,
+    "effectKnowledgeUsesNamedInterfaceFirstObject": true,
+    "plainWriteAndCompoundReadWriteAreDistinct": true,
+    "operatorsCarryEffectDirectly": true,
+    "effectFactoryProjectsDomainEffectWithoutReclassification": true,
+    "expressionProducerPassesOperatorEffect": true,
+    "statementProducerPassesOperatorEffect": true,
+    "focusedTestCoversWriteAndReadWriteAndTargetIdentity": true,
+    "canonicalModRefConsumerRetainsConcreteEffects": true,
+    "cliManifestRuntimeStillUsesExplicitInterfaces": true,
+    "deletedRelationFoundationsRemainAbsent": true,
+    "collectionsInvariantPreserved": true
+  },
+  "passed": 12,
+  "total": 12,
+  "remainingDebt": [
+    "The syntax boundary still maps parser operator spelling/code to the canonical operator definition; effect projection is now owned by the operator effect ADT, but parser-boundary lookup and primitives remain.",
+    "PHP by-reference assignment, heap alias identity, and interprocedural callable summaries remain separate semantic work.",
+    "Full repository typecheck, full Vitest, and CLI-to-manifest end-to-end execution remain unverified."
+  ],
+  "failedChecks": []
+}

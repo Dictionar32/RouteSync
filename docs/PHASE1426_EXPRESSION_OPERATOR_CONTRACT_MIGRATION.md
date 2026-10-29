@@ -6,7 +6,7 @@
 
 ## Migration
 
-- PHP token spellings and supported PHP operator facts now live in `compiler/scanner/lexer/phpExpressionOperatorContract.ts`.
+- PHP token spellings and supported PHP operator facts now live in `compiler/frontend/php/phpExpressionOperatorContract.ts`.
 - The PHP contract invokes the language-neutral `scannerExpressionOperatorAlgebra` and adapts its closed resolution to the scanner's `RelationOption` boundary.
 - `astClassifierRuntime.ts` calls `resolvePhpExpressionRootOperator()` and then recursively classifies operands and constructs PHP AST nodes. AST construction intentionally remains a language adapter responsibility.
 - The upstream algebra now models `left`, `right`, and `non_associative` precedence tiers. A top-level chain with multiple operators in a non-associative tier returns `malformed` rather than silently selecting a root.

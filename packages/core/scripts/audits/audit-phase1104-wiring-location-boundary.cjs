@@ -20,7 +20,7 @@ const projection = read(wiringFiles[1]);
 const lowering = read(wiringFiles[4]);
 const projectionInterface = read(wiringFiles[3]);
 const lowerer = read(wiringFiles[0]);
-const subscannerIndex = read('src/compiler/scanner/subscanners/index.ts');
+const subscannerIndex = read('src/compiler/scanner/operations/index.ts');
 const upstream = fs.readdirSync(src('src/types/upstream')).filter(x => x.endsWith('.ts'));
 const upstreamTexts = upstream.map(x => read(`src/types/upstream/${x}`));
 const checks = {
@@ -28,7 +28,7 @@ const checks = {
   legacyPathsPreservedEmpty: legacyPaths.every(p => !exists(p)) && (!fs.existsSync(legacyUpstreamDir) || fs.readdirSync(legacyUpstreamDir).length === 0),
   projectionHasNoTypeDeriver: !projection.includes('TypeDeriver'),
   projectionBoundaryIsDirectional: projectionInterface.includes('InterfaceDependencyBoundary<RouteSyncManifest, RouteManifestProjection>'),
-  loweringOwnsCompilerTypes: lowering.includes("from '../subscanners/RequestTypeDeriver'") && lowering.includes("from '../subscanners/SemanticTypeDeriver'") && lowering.includes('RequestTypeDeriver.derive') && lowering.includes('SemanticTypeDeriver.derive'),
+  loweringOwnsCompilerTypes: lowering.includes("from '../operations/RequestTypeDeriver'") && lowering.includes("from '../operations/SemanticTypeDeriver'") && lowering.includes('RequestTypeDeriver.derive') && lowering.includes('SemanticTypeDeriver.derive'),
   lowererConsumesProjection: lowerer.includes('projection: RouteManifestProjection') && lowerer.includes('projection.requestTypes') && lowerer.includes('projection.semanticTypes'),
   typeDeriverNotBarrelExported: !subscannerIndex.includes('export { TypeDeriver }'),
   upstreamNoCompilerImports: upstreamTexts.every(t => !/(from\s+['"][^'"]*(?:compiler|cli|sdk)[^'"]*['"])/.test(t)),

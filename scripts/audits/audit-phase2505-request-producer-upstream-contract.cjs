@@ -2,8 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/requestProducerInterface.ts'), 'utf8');
-const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/requestProducer.ts'), 'utf8');
-const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/FormRequestScanner.ts'), 'utf8');
+const producer = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/requestProducer.ts'), 'utf8');
+const scanner = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/operations/FormRequestScanner.ts'), 'utf8');
 const assertions = [
   ['upstream contract owns named RequestProducerInput', /export interface RequestProducerInput\s*\{/.test(contract)],
   ['upstream contract owns RequestProducerResult', /export interface RequestProducerResult\s*\{/.test(contract)],

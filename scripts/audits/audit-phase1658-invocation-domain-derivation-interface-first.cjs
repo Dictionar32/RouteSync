@@ -8,7 +8,7 @@ const contract = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const authority = read('packages/core/src/types/upstream/invocationSemanticJudgmentAuthority.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 check('invocation model owns executable domain derivations', /judgment: Object\.freeze\(\{[\s\S]*kind: 'invocation_semantic_derivation_model',[\s\S]*rules: invocationDerivationRules/.test(contract));
 check('invocation contract does not compile generic semantic law kinds', !/compileSemanticJudgmentModel|SemanticJudgmentLaw|SemanticJudgmentModel|createSemanticLawCompilerRegistry/.test(contract));
 check('semantic meaning is a single source for target/effect literals', /INVOCATION_SEMANTIC_MEANING/.test(contract) && /l\(INVOCATION_SEMANTIC_MEANING\.identity\.targetEvidenceRole\)/.test(contract) && /l\(INVOCATION_SEMANTIC_MEANING\.effects\.resultKind\)/.test(contract) && /l\(INVOCATION_SEMANTIC_MEANING\.effects\.exceptionKind\)/.test(contract));

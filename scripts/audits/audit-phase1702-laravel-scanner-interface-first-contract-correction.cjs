@@ -7,11 +7,11 @@ const routeInterface = read('packages/core/src/types/upstream/laravelRouteScanne
 const resourceInterface = read('packages/core/src/types/upstream/laravelResourceScannerInterface.ts');
 const pipeline = read('packages/core/src/compiler/scanner/wiring/laravelSourceAstPipeline.ts');
 const resourceScanner = read('packages/core/src/compiler/scanner/wiring/laravelResourceScanner.ts');
-const resourceResolverPath = 'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts';
-const resourceFlowPath = 'packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts';
+const resourceResolverPath = 'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts';
+const resourceFlowPath = 'packages/core/src/compiler/scanner/operations/resource/resourceModelKnowledgeDataFlow.ts';
 const resourceModelResolver = read('packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts');
 const invocation = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const controllerDataflow = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const controllerDataflow = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const upstreamBarrel = read('packages/core/src/types/upstream/index.ts');
 const coreBarrel = read('packages/core/src/index.ts');
 const report = read('PHASE1702_LARAVEL_SCANNER_INTERFACE_FIRST_CONTRACT_CORRECTION.md');
@@ -25,7 +25,7 @@ const checks = [
   ['route-controller judgment remains explicit and discriminated', () => judgment.includes('RouteControllerBindingJudgmentAuthority') && judgment.includes("readonly kind: 'resolved'") && judgment.includes("readonly kind: 'unresolved'") && judgment.includes("readonly kind: 'ambiguous'")],
   ['route interface consumes the whole correlated controller scan judgment rather than a detached action array', () => routeInterface.includes('controllerScan: LaravelControllerScanJudgment') && !routeInterface.includes('controllerActions: readonly ControllerActionFlowContract[]')],
   ['orphaned relation resolver and subscanner-owned knowledge implementation are retired; active resolver consumes upstream reasoning', () => !require('node:fs').existsSync(require('node:path').join(__dirname, '../..', resourceResolverPath)) && !require('node:fs').existsSync(require('node:path').join(__dirname, '../..', resourceFlowPath)) && resourceModelResolver.includes('reasonResourceModel(reasoningInput)')],
-  ['source AST pipeline consumes its injected Resource scanner operation rather than importing a legacy ResourceScanner implementation', () => pipeline.includes('const { controllerScanner, resourceScanner, responseScanner, routeScanner } = dependencies;') && pipeline.includes('await resourceScanner.scan({') && !pipeline.includes('subscanners/ResourceScanner') && resourceScanner.includes('export const laravelResourceScanner: LaravelResourceScannerInterface')],
+  ['source AST pipeline consumes its injected Resource scanner operation rather than importing a legacy ResourceScanner implementation', () => pipeline.includes('const { controllerScanner, resourceScanner, responseScanner, routeScanner } = dependencies;') && pipeline.includes('await resourceScanner.scan({') && !pipeline.includes('operations/ResourceScanner') && resourceScanner.includes('export const laravelResourceScanner: LaravelResourceScannerInterface')],
   ['existing upstream invocation semantic pipeline binds the existing batch authority rather than duplicating semantic judgment', () => invocation.includes('export const invocationSemanticPipeline: InvocationSemanticPipelineInterface') && invocation.includes('batchAuthority.analyze(knowledge)') && invocation.includes('semanticInterproceduralDataFlowAuthority')],
   ['contract is exported from both upstream and public core barrels', () => upstreamBarrel.includes("export * from './laravelScannerSemanticJudgment'") && coreBarrel.includes("export * from './types/upstream/laravelScannerSemanticJudgment'")],
   ['no semantic/foundation dependency was introduced', () => !judgment.includes('semantic/foundation') && !resourceInterface.includes('semantic/foundation')],

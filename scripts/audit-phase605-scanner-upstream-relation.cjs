@@ -4,8 +4,8 @@ const ts = require('typescript');
 
 const root = __dirname.replace(/\/scripts$/, '');
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/serviceSourceStatements.ts',
-  'packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/serviceSourceStatements.ts',
+  'packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts',
 ];
 const patterns = {
   if: /\bif\b/g, while: /\bwhile\b/g, for: /\bfor\b/g, switch: /\bswitch\b/g,

@@ -1,32 +1,16 @@
 /**
  * Closed resolver-graph semantic authority.
  *
- * Resolver implementations produce evidence; the graph itself is a relation
- * program. The semantic interface exposes only the saturated judgment.
+ * Resolver implementations produce evidence; this authority projects the
+ * already-resolved domain judgments into a closed, operation-bearing graph ADT.
  */
 import type { CrudRole, HttpMethod, RouteSecurityDescriptor } from '../../../types/route';
-import type { PropertyName, RoutePath } from '../../../types/upstream/names';
+import type { RoutePath } from '../../../types/upstream/names';
 import type { AstMappingInterface } from '../../../types/upstream/astMappingInterface';
 import type { RouteDomainResolutionContext, RouteDomainResolutionJudgment } from '../../../types/upstream/routeDomainAuthority';
 import type { RouteSecurityResolution } from './RouteSecurityResolver';
 import { routeDomainAuthority } from '../../../types/upstream/routeDomainAuthority';
 import type { RouteCapabilityContract } from '../../../types/upstream/route';
-import { relationEqual } from '../../../semantic/relations/semanticRelations';
-import { truthValue } from '../../../types/upstream/valueObjects';
-import { relationProject } from '../../../semantic/relations/relationalSequence';
-import { semanticTextTerm, type SemanticRewriteFact, type SemanticRewritePattern, type SemanticRewritePatternTerm, type SemanticRewriteRule } from '../lexer/routeAst/semanticRewriteInterface';
-import { solveClosedSemanticRelations } from '../../../types/upstream/semanticRewriteAuthority';
-
-export type ResolverGraphRelation =
-  | 'route_input'
-  | 'mapping_input'
-  | 'domain_input'
-  | 'security_input'
-  | 'crud_input'
-  | 'mapping_refinement'
-  | 'domain_resolution'
-  | 'security_resolution'
-  | 'crud_resolution';
 
 export type ResolverGraphFact =
   | Readonly<{ readonly kind: 'domain_candidate'; readonly value: RouteDomainResolutionJudgment['result'] }>
@@ -40,7 +24,12 @@ export type ResolverGraphEdge = Readonly<{
   readonly to: ResolverGraphFact['kind'];
 }>;
 
-export type ResolverGraphSemanticJudgment = Readonly<{
+export interface ResolverGraphSemanticJudgmentContinuationHandlersInterface<Result> {
+  readonly candidate_selected: (judgment: ResolverGraphCandidateSelectedJudgment) => Result;
+  readonly default_applied: (judgment: ResolverGraphDefaultAppliedJudgment) => Result;
+}
+
+type ResolverGraphSemanticJudgmentBase = Readonly<{
   readonly kind: 'resolver_graph_semantic_judgment';
   readonly mapping: AstMappingInterface['judgment'];
   readonly domain: RouteDomainResolutionJudgment;
@@ -48,11 +37,21 @@ export type ResolverGraphSemanticJudgment = Readonly<{
   readonly crudRole: CrudRole;
   readonly facts: readonly ResolverGraphFact[];
   readonly edges: readonly ResolverGraphEdge[];
-  readonly closure: 'least_fixed_point';
-  readonly reasoning: 'declarative_relation_rewrite_fixed_point';
   readonly authority: 'resolver_graph_judgment';
   readonly closed: true;
 }>;
+
+export type ResolverGraphCandidateSelectedJudgment = ResolverGraphSemanticJudgmentBase & Readonly<{
+  readonly domainOutcome: 'candidate_selected';
+  readonly continueWith: <Result>(handlers: ResolverGraphSemanticJudgmentContinuationHandlersInterface<Result>) => Result;
+}>;
+
+export type ResolverGraphDefaultAppliedJudgment = ResolverGraphSemanticJudgmentBase & Readonly<{
+  readonly domainOutcome: 'default_applied';
+  readonly continueWith: <Result>(handlers: ResolverGraphSemanticJudgmentContinuationHandlersInterface<Result>) => Result;
+}>;
+
+export type ResolverGraphSemanticJudgment = ResolverGraphCandidateSelectedJudgment | ResolverGraphDefaultAppliedJudgment;
 
 export type ResolverGraphSemanticInterface = Readonly<{
   readonly kind: 'resolver_graph_semantic_interface';
@@ -63,7 +62,7 @@ export type ResolverGraphSemanticInterface = Readonly<{
 
 export type ResolverGraphInput = Readonly<{
   readonly domain: RouteDomainResolutionContext;
-  /** Pre-resolved closed judgment; this graph consumes it without re-running security reasoning. */
+  /** Pre-resolved security judgment; this graph consumes it without recomputing security. */
   readonly security: RouteSecurityResolution;
   readonly method: HttpMethod;
   readonly path: RoutePath;
@@ -71,53 +70,11 @@ export type ResolverGraphInput = Readonly<{
   readonly capability: RouteCapabilityContract;
 }>;
 
-const resolverGraphPattern = (relation: ResolverGraphRelation, polarity: 'positive' | 'negative', route: string): SemanticRewritePattern<ResolverGraphRelation> => Object.freeze({
-  relation,
-  arguments: Object.freeze([semanticTextTerm(route)] as readonly SemanticRewritePatternTerm[]),
-  polarity,
-});
-
-const resolverGraphRule = (
-  id: string,
-  priority: number,
-  when: readonly SemanticRewritePattern<ResolverGraphRelation>[],
-  then: readonly SemanticRewritePattern<ResolverGraphRelation>[],
-): SemanticRewriteRule<ResolverGraphRelation> => Object.freeze({
-  id,
-  priority,
-  when: Object.freeze(when),
-  then: Object.freeze(then),
-});
-
-const resolverGraphRules: readonly SemanticRewriteRule<ResolverGraphRelation>[] = Object.freeze([
-  resolverGraphRule('resolver-map', 4,
-    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('mapping_input', 'positive', 'route')]),
-    Object.freeze([resolverGraphPattern('mapping_refinement', 'positive', 'route')])),
-  resolverGraphRule('resolver-domain', 3,
-    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('domain_input', 'positive', 'route')]),
-    Object.freeze([resolverGraphPattern('domain_resolution', 'positive', 'route')])),
-  resolverGraphRule('resolver-security', 2,
-    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('security_input', 'positive', 'route')]),
-    Object.freeze([resolverGraphPattern('security_resolution', 'positive', 'route')])),
-  resolverGraphRule('resolver-crud', 1,
-    Object.freeze([resolverGraphPattern('route_input', 'positive', 'route'), resolverGraphPattern('crud_input', 'positive', 'route')]),
-    Object.freeze([resolverGraphPattern('crud_resolution', 'positive', 'route')])),
-]);
-
-const relation = <R extends ResolverGraphRelation>(name: R, route: string): SemanticRewriteFact<R> => Object.freeze({ relation: name, arguments: Object.freeze([semanticTextTerm(route)]) });
-
-export const resolveResolverGraphJudgment = (input: ResolverGraphInput): ResolverGraphSemanticJudgment => {
-  const route = 'route';
+const resolveResolverGraphJudgmentImplementation = (input: ResolverGraphInput): ResolverGraphSemanticJudgment => {
   const domain = routeDomainAuthority.resolveJudgment(input.domain);
   const security = input.security;
   const crudRole = input.capability.crudRole;
   const mapping = input.mapping.judgment;
-  const seeds: readonly SemanticRewriteFact<ResolverGraphRelation>[] = Object.freeze([
-    relation('route_input', route), relation('mapping_input', route), relation('domain_input', route),
-    relation('security_input', route), relation('crud_input', route),
-  ]);
-  const solved = solveClosedSemanticRelations(seeds, resolverGraphRules);
-  const solvedKinds = relationProject(solved.facts, entry => entry.relation);
   const facts: readonly ResolverGraphFact[] = Object.freeze([
     Object.freeze({ kind: 'domain_candidate' as const, value: domain.result }),
     Object.freeze({ kind: 'security_resolution' as const, value: security.security }),
@@ -130,12 +87,42 @@ export const resolveResolverGraphJudgment = (input: ResolverGraphInput): Resolve
     Object.freeze({ kind: 'resolver_edge' as const, from: 'crud_input' as const, to: 'crud_resolution' as const }),
     Object.freeze({ kind: 'resolver_edge' as const, from: 'mapping_input' as const, to: 'mapping_refinement' as const }),
   ] satisfies readonly ResolverGraphEdge[]);
-  return Object.freeze({
+  const base: ResolverGraphSemanticJudgmentBase = Object.freeze({
     kind: 'resolver_graph_semantic_judgment', mapping, domain, security, crudRole, facts, edges,
-    closure: 'least_fixed_point', reasoning: 'declarative_relation_rewrite_fixed_point', authority: 'resolver_graph_judgment', closed: true,
+    authority: 'resolver_graph_judgment', closed: true,
   });
+  switch (domain.selected.kind) {
+    case 'candidate_selected': {
+      let judgment: ResolverGraphCandidateSelectedJudgment;
+      judgment = Object.freeze({
+        ...base,
+        domainOutcome: 'candidate_selected',
+        continueWith: handlers => handlers.candidate_selected(judgment),
+      });
+      return judgment;
+    }
+    case 'default_applied': {
+      let judgment: ResolverGraphDefaultAppliedJudgment;
+      judgment = Object.freeze({
+        ...base,
+        domainOutcome: 'default_applied',
+        continueWith: handlers => handlers.default_applied(judgment),
+      });
+      return judgment;
+    }
+  }
 };
 
-export const resolverGraphSemanticInterface = (input: ResolverGraphInput): ResolverGraphSemanticInterface => Object.freeze({
-  kind: 'resolver_graph_semantic_interface', authority: 'resolver_graph_judgment', judgment: resolveResolverGraphJudgment(input), closed: true,
+const createResolverGraphSemanticInterfaceImplementation = (input: ResolverGraphInput): ResolverGraphSemanticInterface => Object.freeze({
+  kind: 'resolver_graph_semantic_interface', authority: 'resolver_graph_judgment', judgment: resolveResolverGraphJudgmentImplementation(input), closed: true,
+});
+
+export interface ResolverGraphSemanticOperationsInterface {
+  readonly resolveJudgment: (input: ResolverGraphInput) => ResolverGraphSemanticJudgment;
+  readonly createInterface: (input: ResolverGraphInput) => ResolverGraphSemanticInterface;
+}
+
+export const resolverGraphSemanticOperations: ResolverGraphSemanticOperationsInterface = Object.freeze({
+  resolveJudgment: resolveResolverGraphJudgmentImplementation,
+  createInterface: createResolverGraphSemanticInterfaceImplementation,
 });

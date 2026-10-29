@@ -9,28 +9,37 @@
 import { type ResourceGroupCapabilityContract, type ResourceGroupRouteReference, type ResourceGroupSlotDecision, type ResourceGroupDescriptor } from '@routesync/core';
 import type { ClassifiedRoute } from '../route-capability-projection';
 
-export function pushUnique(items: string[], item: string): void {
-  if (!items.includes(item)) items.push(item);
+export interface PushUniqueOperation {
+  (items: string[], item: string): void;
 }
 
-export function addRouteInvalidations(route: ClassifiedRoute, invs: string[]): void {
+export const pushUnique: PushUniqueOperation = Object.freeze((items: string[], item: string): void => {
+  if (!items.includes(item)) items.push(item);
+});
+
+export interface AddRouteInvalidationsOperation {
+  (route: ClassifiedRoute, invs: string[]): void;
+}
+
+export const addRouteInvalidations: AddRouteInvalidationsOperation = Object.freeze((route: ClassifiedRoute, invs: string[]): void => {
   for (const expr of route.contract.invalidation.queryKeyExpressions) {
     pushUnique(invs, `          ${expr},`);
   }
+});
+
+export interface LowerGroupCacheLinesOperation {
+  (group: ResourceGroupDescriptor<ClassifiedRoute>, addInvs: (route: ClassifiedRoute, invs: string[]) => void): Iterable<string>;
 }
 
-export function* lowerGroupCacheLines(
-  group: ResourceGroupDescriptor<ClassifiedRoute>,
-  addInvs: (route: ClassifiedRoute, invs: string[]) => void
-): Iterable<string> {
+export const lowerGroupCacheLines: LowerGroupCacheLinesOperation = Object.freeze(function* (group: ResourceGroupDescriptor<ClassifiedRoute>, addInvs: (route: ClassifiedRoute, invs: string[]) => void): Iterable<string> {
   yield* group.lowerCacheConfig(addInvs);
+});
+
+export interface LowerGroupHookConfigOperation {
+  (group: ResourceGroupDescriptor<ClassifiedRoute>, addInvs: (route: ClassifiedRoute, invs: string[]) => void, capability: ResourceGroupCapabilityContract): Iterable<string>;
 }
 
-export function* lowerGroupHookConfig(
-  group: ResourceGroupDescriptor<ClassifiedRoute>,
-  addInvs: (route: ClassifiedRoute, invs: string[]) => void,
-  capability: ResourceGroupCapabilityContract
-): Iterable<string> {
+export const lowerGroupHookConfig: LowerGroupHookConfigOperation = Object.freeze(function* (group: ResourceGroupDescriptor<ClassifiedRoute>, addInvs: (route: ClassifiedRoute, invs: string[]) => void, capability: ResourceGroupCapabilityContract): Iterable<string> {
   const { groupName } = group;
   yield `  ${groupName}: {`;
   yield `    types: {`;
@@ -121,4 +130,4 @@ export function* lowerGroupHookConfig(
   }
 
   yield `  },`;
-}
+});

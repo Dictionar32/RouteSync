@@ -1,0 +1,78 @@
+{
+  "phase": 2724,
+  "title": "Semantic Resource Matcher Ownership",
+  "passed": 16,
+  "total": 16,
+  "checks": [
+    {
+      "name": "semantic matcher no longer imports scanner-owned ModelSymbolTable",
+      "pass": true
+    },
+    {
+      "name": "semantic matcher accepts the narrow symbol-collection contract",
+      "pass": true
+    },
+    {
+      "name": "ResourceModelResolver public entrypoint has a named interface",
+      "pass": true
+    },
+    {
+      "name": "ResourceModelResolver public entrypoint is a frozen interface-first object",
+      "pass": true
+    },
+    {
+      "name": "Resource model port implementation is internal, not exported",
+      "pass": true
+    },
+    {
+      "name": "callable alias resolveResourceModelInterface removed",
+      "pass": true
+    },
+    {
+      "name": "structural matcher implementation is owned by compiler semantic layer",
+      "pass": true
+    },
+    {
+      "name": "structural matcher has a named interface contract",
+      "pass": true
+    },
+    {
+      "name": "structural matcher is an interface-first frozen operation object",
+      "pass": true
+    },
+    {
+      "name": "structural matcher implementation is internal",
+      "pass": true
+    },
+    {
+      "name": "resource model resolver consumes matcher through named operation",
+      "pass": true
+    },
+    {
+      "name": "actual resource binder uses typed resolver object",
+      "pass": true
+    },
+    {
+      "name": "SDK regression tests retain public resolver object usage",
+      "pass": true
+    },
+    {
+      "name": "CLI scan and sync both enter through manifestScanOperation",
+      "pass": true
+    },
+    {
+      "name": "manifest builder preserves complete and blocked judgments",
+      "pass": true
+    },
+    {
+      "name": "relative imports in changed runtime files resolve",
+      "pass": true,
+      "detail": "2 files checked"
+    }
+  ],
+  "changedFiles": [
+    "packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts",
+    "packages/core/src/compiler/semantic/resource-model/structuralFieldMatcher.ts"
+  ],
+  "unresolvedRelativeImports": []
+}

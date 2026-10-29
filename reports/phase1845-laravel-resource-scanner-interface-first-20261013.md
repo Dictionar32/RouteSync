@@ -21,7 +21,7 @@ Date: 2026-10-13
 ## Production cutover
 
 - Added `compiler/scanner/wiring/laravelResourceScanner.ts` implementing the existing upstream interface.
-- Added `compiler/scanner/lexer/resourceSourceEvidence.ts` as a source-only extraction boundary. It preserves resource syntax/provenance and emits source-backed nested-resource relation evidence; it does not choose model candidates or produce ResourceDefinition.
+- Added `compiler/frontend/php/resourceSourceEvidence.ts` as a source-only extraction boundary. It preserves resource syntax/provenance and emits source-backed nested-resource relation evidence; it does not choose model candidates or produce ResourceDefinition.
 - Production wiring now calls `laravelResourceScanner.scan(...)` and projects ASTs and definitions from the same resolved artifacts.
 - Removed `ResourceScanner.ts` and its subscanner barrel export. The controller response detector now imports the lower-level resource expression mapper directly.
 - Removed the production `ControllerScanner.scanCanonicalBundle()` and `ControllerScanner.extractResourceDataflow(...)` dependency from `laravelSourceAstPipeline.ts`.

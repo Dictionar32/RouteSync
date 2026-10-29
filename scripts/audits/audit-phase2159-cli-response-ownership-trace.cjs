@@ -10,7 +10,7 @@ const sync = read('packages/cli/src/commands/sync.ts');
 const generate = read('packages/cli/src/commands/generate.ts');
 const controllerScanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const executionDeps = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const responsePipeline = read('packages/core/src/types/upstream/laravelControllerResponseSemanticPipeline.ts');
 const responseInterface = read('packages/core/src/types/upstream/laravelControllerResponseSemanticJudgmentInterface.ts');
 const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
@@ -27,7 +27,7 @@ check('absent response attribute still maps to void descriptor', /case 'absent':
 check('integrated evidence distinguishes observed return from descriptor candidate', /kind: 'observed_controller_return'/.test(responsePipeline) && /kind: 'controller_action_response_reference_candidate'/.test(responsePipeline));
 check('descriptor candidate is not declared canonical return proof', /candidate-not-direct-PHP-return-proof/.test(responseInterface));
 check('resource binding treats response_absent as unresolved rather than proven no-content', /case 'response_reference_not_declared':[\s\S]*?kind: 'unresolved', reason: 'response_reference_not_declared'/.test(resourceAuthority));
-check('no new duplicate response authority proposed', !/ResponsePresenceSemanticAuthority|subscanners\/responsePresence|semantic\/foundation/.test(actionContract + executionDeps));
+check('no new duplicate response authority proposed', !/ResponsePresenceSemanticAuthority|operations\/responsePresence|semantic\/foundation/.test(actionContract + executionDeps));
 check('trace records response declaration/reference as distinct from HTTP return semantics', /declaration\/reference availability/.test(read('reports/phase2159/TRACE.md')) && /actual HTTP return semantics/.test(read('reports/phase2159/TRACE.md')));
 
 const failed = checks.filter(item => !item.passed);

@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
-const producer = read('packages/core/src/compiler/scanner/subscanners/responseProducer.ts');
+const producer = read('packages/core/src/compiler/scanner/operations/responseProducer.ts');
 const high = read('packages/core/src/types/upstream/highLevelContracts.ts');
 const descriptor = read('packages/core/src/types/domain/responseDescriptors.ts');
 const checks = {

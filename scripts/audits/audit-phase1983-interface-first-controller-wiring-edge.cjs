@@ -21,8 +21,8 @@ const checks = [
   ['retirement contract references the wiring interface', retirement.includes('readonly invocationResponseWiring: LaravelControllerInvocationResponseWiringInterface;')],
   ['retirement contract version advances to 10', retirement.includes('readonly version: 10;')],
   ['public barrel exports the result and interface as types', barrel.includes("export type { LaravelControllerInvocationResponseWiringArtifact, LaravelControllerInvocationResponseWiringInterface, LaravelControllerInvocationResponseWiringResult } from './types/upstream/laravelControllerInvocationResponseWiringInterface';")],
-  ['no relation/foundation or replacement subscanner is introduced by the contract', !wiring.includes('semantic/relations') && !wiring.includes('semantic/foundation') && !wiring.includes('subscanners/')],
-  ['trace confirms runtime migration gap instead of claiming it is solved', runtime.includes("from '../../../semantic/relations/") && !runtime.includes('responseJudgment:')],
+  ['no relation/foundation or replacement subscanner is introduced by the contract', !wiring.includes('semantic/relations') && !wiring.includes('semantic/foundation') && !wiring.includes('operations/')],
+  ['trace confirms runtime migration gap instead of claiming it is solved', runtime.includes("from '../../../semantic/relations") && !runtime.includes('responseJudgment:')],
 ];
 const report = {
   phase: 1983,

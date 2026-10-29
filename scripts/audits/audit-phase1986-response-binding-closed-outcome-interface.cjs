@@ -23,7 +23,7 @@ const checks = [
   ['response source identity remains owned by the existing semantics interface', response.includes("readonly owner: 'LaravelSourceIdentitySemanticsInterface'") && response.includes('readonly sourceIdentitySemantics: LaravelSourceIdentitySemanticsInterface')],
   ['public barrel exports the new type-only contract', barrel.includes('LaravelControllerResponseEvidenceSourceBindingEntry') && barrel.includes('LaravelControllerResponseEvidenceSourceBindingRejectedJudgment') && barrel.includes('LaravelControllerResponseSemanticJudgmentFromInput')],
   ['retirement contract version advanced', retirement.includes('readonly version: 13;')],
-  ['no relation/foundation replacement layer is introduced', !response.includes('subscanners/relation') && !response.includes('subscanners/foundation') && !retirement.includes('subscanners/relation') && !retirement.includes('subscanners/foundation')],
+  ['no relation/foundation replacement layer is introduced', !response.includes('operations/relation') && !response.includes('operations/foundation') && !retirement.includes('operations/relation') && !retirement.includes('operations/foundation')],
   ['response contract module remains declarations only', !/^\s*(?:export\s+)?const\s/m.test(response) && !/^\s*(?:export\s+)?function\s/m.test(response)],
 ];
 const report = { phase: 1986, title: 'Response evidence binding closed outcome interface', scope: 'interface/type declarations only; runtime and wiring implementations untouched', checks: checks.map(([name, passed]) => ({ name, passed })), passed: checks.filter(([, passed]) => passed).length, total: checks.length };

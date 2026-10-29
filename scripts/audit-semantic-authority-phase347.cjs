@@ -13,7 +13,7 @@ const targets = [
   'semantic/kernel/syntax/constraintRuleRelations.ts',
   'semantic/kernel/syntax/syntaxEvidenceClosure.ts',
   'compiler/constraints/solver/declarativeConstraintProgram.ts',
-  'compiler/scanner/lexer/routeAst/semanticRewriteEngine.ts',
+  'compiler/frontend/php/routeAst/semanticRewriteEngine.ts',
   'semantic/plugins/expression/ternaryHandler.ts',
 ];
 const forbidden = /\b(if|while|for|switch|undefined|null)\b|\.map\(|\.filter\(|\.reduce\(|\.flatMap\(|\?\?|===|!==|\bas\b/g;

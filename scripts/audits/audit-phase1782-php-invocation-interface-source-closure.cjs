@@ -7,8 +7,8 @@ const resolution = read('packages/core/src/types/upstream/phpFunctionNameResolut
 const invocation = read('packages/core/src/types/upstream/phpFunctionInvocationSemanticAuthorityInterface.ts');
 const pipelineInterface = read('packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts');
 const pipelineRuntime = read('packages/core/src/types/upstream/invocationSemanticPipeline.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const resourceScanner = read('packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const resourceScanner = read('packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts');
 
 const checks = [
   ['resolution-contract-version-4', resolution.includes('readonly version: 4') && resolution.includes('version: 4,')],

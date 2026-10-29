@@ -49,10 +49,11 @@ export interface RouteResponsePayloadVisitor<R> {
   readonly unknown: (u: UnknownResponsePayloadContract) => R;
 }
 
-export function matchRouteResponsePayload<R>(
-  payload: RouteResponsePayloadContract,
-  visitor: RouteResponsePayloadVisitor<R>
-): R {
+export interface MatchRouteResponsePayloadOperation {
+  <R>(payload: RouteResponsePayloadContract, visitor: RouteResponsePayloadVisitor<R>): R;
+}
+
+export const matchRouteResponsePayload: MatchRouteResponsePayloadOperation = Object.freeze(<R> (payload: RouteResponsePayloadContract, visitor: RouteResponsePayloadVisitor<R>): R => {
   const handler = visitor[payload.kind];
   return (handler as (p: RouteResponsePayloadContract) => R)(payload);
-}
+});

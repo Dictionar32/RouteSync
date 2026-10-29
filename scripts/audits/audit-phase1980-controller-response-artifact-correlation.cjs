@@ -9,7 +9,7 @@ const response = fs.readFileSync(responsePath, 'utf8');
 const scanner = fs.readFileSync(scannerPath, 'utf8');
 const retirement = fs.readFileSync(retirementPath, 'utf8');
 const barrel = fs.readFileSync(barrelPath, 'utf8');
-const controllerDir = path.join(root, 'packages/core/src/compiler/scanner/subscanners/controller');
+const controllerDir = path.join(root, 'packages/core/src/compiler/scanner/operations/controller');
 const productionControllerFiles = fs.readdirSync(controllerDir)
   .filter(file => file.endsWith('.ts') && !file.endsWith('.test.ts'))
   .map(file => ({ file, source: fs.readFileSync(path.join(controllerDir, file), 'utf8') }));
@@ -25,7 +25,7 @@ const checks = [
   ['retirement contract version is 7', retirement.includes('readonly version: 7;')],
   ['generic response judgment is publicly type-exported', barrel.includes('LaravelControllerResponseSemanticJudgmentFor')],
   ['response judgment file has no runtime values and scanner interface adds no executable declaration', !/^\s*(?:export\s+)?(?:const|function|class|enum)\s/m.test(response) && !/^\s*(?:export\s+)?(?:function|class|enum)\s/m.test(scanner)],
-  ['no relation/foundation replacement subscanner is introduced', !retirement.includes('subscanners/relation') && !retirement.includes('subscanners/foundation') && !response.includes('semantic/relations') && !response.includes('semantic/foundation')],
+  ['no relation/foundation replacement subscanner is introduced', !retirement.includes('operations/relation') && !retirement.includes('operations/foundation') && !response.includes('semantic/relations') && !response.includes('semantic/foundation')],
   ['legacy relation/foundation import count is explicitly visible for migration', relationImportOccurrences >= 0 && foundationImportOccurrences >= 0],
 ];
 const report = {

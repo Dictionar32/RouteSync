@@ -4,9 +4,9 @@ const root = path.resolve(__dirname, '../..');
 const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 const model = read('src/types/upstream/model.ts');
 const definition = read('src/compiler/scanner/semantic/model/modelSemanticDefinition.ts');
-const canonical = read('src/compiler/scanner/subscanners/model/modelCanonical.ts');
+const canonical = read('src/compiler/scanner/operations/model/modelCanonical.ts');
 const manifest = read('src/types/upstream/semanticDataflowManifestSurface.ts');
-const migrationScanner = path.join(root, 'src/compiler/scanner/subscanners/model/migrationScanner.ts');
+const migrationScanner = path.join(root, 'src/compiler/scanner/operations/model/migrationScanner.ts');
 const checks = {
   modelSemanticDefinitionOwnsRelationInterface: /readonly relation: ModelRelationInterface;/.test(model),
   builderPersistsCanonicalRelationInterface: /relation: relationInterface/.test(definition),

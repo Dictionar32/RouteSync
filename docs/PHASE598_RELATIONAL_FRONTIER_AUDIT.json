@@ -24,7 +24,7 @@
       "new": 0,
       "ternary": 0
     },
-    "compiler/scanner/lexer/tokenizer.ts": {
+    "compiler/frontend/php/tokenizer.ts": {
       "if": 0,
       "while": 0,
       "for": 0,

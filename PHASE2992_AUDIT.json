@@ -1,0 +1,39 @@
+{
+  "phase": 2992,
+  "title": "Source-Owned Inline Schema Evidence and Runtime Trace",
+  "status": "implemented_with_end_to_end_trace_gap",
+  "changes": [
+    "ControllerBodySemanticJudgment now publishes source-owned inlineSchemaEvidence.",
+    "Schema authority accepts source evidence and no longer infers presence by checking four collection lengths.",
+    "Schema derivation ADT exposes deriveFormRequestSchema(fields) rather than generic onEmpty/onPresent callbacks.",
+    "Runtime exports remain interface-first Object.freeze operation objects."
+  ],
+  "audit": {
+    "removed_downstream_collection_presence_recheck": true,
+    "source_boundary_primitive_check_remains": true,
+    "request_evidence_switch_remains": true,
+    "schema_judgment_to_controller_action_contract_trace": true,
+    "controller_action_schema_to_manifest_serializer_field_provenance": "not_proven",
+    "manifest_serializer_preserves_request_body_schema": true,
+    "ir_field_provenance_from_this_schema_judgment": "not_proven",
+    "full_repository_typecheck": "blocked_toolchain_and_dependencies_unavailable",
+    "full_test_suite": "not_run_vitest_unavailable",
+    "end_to_end_laravel_fixture": "not_run",
+    "static_source_checks": "13/13 passed",
+    "syntax_transpilation": "8/8 changed TypeScript files transpile without syntax diagnostics",
+    "typecheck_blockers": [
+      "No project node_modules installed, including @types/node and vitest/globals.",
+      "Available global TypeScript compiler does not support repository target/lib ES2025 settings."
+    ]
+  },
+  "runtime_exports": {
+    "schema_authority": "export const controllerActionSchemaSemanticJudgmentAuthority: ControllerActionSchemaSemanticJudgmentAuthorityInterface<SourceFile> = Object.freeze({...})",
+    "new_export_function_declarations": 0
+  },
+  "next_required_trace": [
+    "Follow ControllerActionSemanticJudgmentPublication through route/invocation inventory projections.",
+    "Identify the exact adapter that supplies controller schema to RouteManifest request.body.schema.",
+    "Prove field provenance and source identity through manifest serialization and IR lowering.",
+    "Add a Laravel fixture covering FormRequest plus inline $request->validate(...) and assert no schema evidence is lost or duplicated."
+  ]
+}

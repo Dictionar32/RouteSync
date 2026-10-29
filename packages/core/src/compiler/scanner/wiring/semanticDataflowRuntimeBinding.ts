@@ -4,7 +4,7 @@
  * depends only on SemanticDataflowRuntimeExecutorInterface.
  */
 import { semanticDataflowRuntimeExecutor } from '../../../types/upstream/semanticDataflowRuntimeExecutor';
-import { createSemanticDataFlowAnalyzer } from '../lexer/routeAst/semanticDataFlowAnalyzer';
+import { createSemanticDataFlowAnalyzer } from '../../frontend/php/routeAst/semanticDataFlowAnalyzer';
 
 export const semanticDataFlowAnalyzer = createSemanticDataFlowAnalyzer(semanticDataflowRuntimeExecutor);
 export const analyzeSemanticDataFlowJudgment = semanticDataFlowAnalyzer.analyzeSemanticDataFlowJudgment;

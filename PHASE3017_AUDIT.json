@@ -1,0 +1,44 @@
+{
+  "phase": 3017,
+  "title": "Fully Explicit Simplicity Typed Runtime Scanner Operations — route projection domain operation and CLI manifest trace",
+  "checks": [
+    {
+      "name": "route projection result is an explicit ADT",
+      "passed": true
+    },
+    {
+      "name": "result exposes Laravel domain operation, not generic continuation",
+      "passed": true
+    },
+    {
+      "name": "domain operation preserves seed data and appends canonical facts",
+      "passed": true
+    },
+    {
+      "name": "controller seed invokes the ADT operation",
+      "passed": true
+    },
+    {
+      "name": "controller, query and request projection facts remain composed after route facts",
+      "passed": true
+    },
+    {
+      "name": "sync runtime reaches canonical manifest operation",
+      "passed": true
+    },
+    {
+      "name": "CLI manifest terminal is domain-operational",
+      "passed": true
+    },
+    {
+      "name": "deleted relation foundations remain absent",
+      "passed": true
+    },
+    {
+      "name": "collections.ts remains one newline byte",
+      "passed": true
+    }
+  ],
+  "passed": 9,
+  "total": 9
+}

@@ -1,0 +1,21 @@
+{
+  "phase": 2850,
+  "title": "Manifest Persistence Terminal Operations",
+  "runtimeTrace": [
+    "scan/sync",
+    "manifestGeneratorOperations.save",
+    "manifest contract validation",
+    "manifest serialization",
+    "persistence/write",
+    "ManifestPersistenceJudgment.continueWith",
+    "command outcome"
+  ],
+  "terminalKinds": [
+    "manifest_persistence_complete",
+    "manifest_persistence_contract_rejected",
+    "manifest_persistence_serialization_rejected",
+    "manifest_persistence_write_rejected"
+  ],
+  "collectionsFileMustRemainEmpty": true,
+  "verificationScope": "structural source assertions only"
+}

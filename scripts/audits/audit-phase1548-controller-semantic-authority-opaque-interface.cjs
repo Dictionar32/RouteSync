@@ -8,7 +8,7 @@ const contract = read('packages/core/src/types/upstream/controllerVariableSemant
 const authority = read('packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts');
 const executor = read('packages/core/src/types/upstream/controllerVariableSemanticRuntimeExecutor.ts');
 const adapter = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticEvidenceAdapter.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const binding = read('packages/core/src/compiler/scanner/wiring/controllerVariableSemanticRuntimeBinding.ts');
 check('public-authority-interface-does-not-expose-solver-contract', !/readonly contract\s*:/.test(contract) && !/SemanticDecisionContract/.test(contract), 'Consumers can request an authoritative judgment but cannot retrieve/re-run the authority decision contract.');
 check('decision-contract-is-private-to-authority-implementation', /const contract: SemanticDecisionContract/.test(authority) && !/export\s+const contract/.test(authority), 'The existing semantic decision algebra contract remains implementation-owned and is not exported as a second consumer API.');

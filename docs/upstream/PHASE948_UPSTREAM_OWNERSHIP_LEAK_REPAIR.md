@@ -11,7 +11,7 @@ A direct ownership leak was found in the semantic kernel: `packages/core/src/sem
 The two producer-owned modules now live at:
 
 - `packages/core/src/compiler/scanner/semantic/semanticEvidenceRelations.ts`
-- `packages/core/src/compiler/scanner/lexer/routeAst/relationalSyntaxCursor.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/relationalSyntaxCursor.ts`
 
 Scanner consumers import them locally. `packages/core/src/semantic/kernel` has no remaining direct `compiler/` or `scanner/` imports.
 

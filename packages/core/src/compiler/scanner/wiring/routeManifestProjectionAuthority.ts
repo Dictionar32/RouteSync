@@ -1,35 +1,15 @@
 import type { RouteManifestRequestResolutionPreflight } from './routeManifestProjectionInterface';
-import type {
-  RequestTypeDerivationSemanticPipelineInterface,
-  RequestTypeDerivationRuntimeExecutionResult,
-  RequestTypeEvidenceReference,
-  RequestTypeRouteRequestResolutionReceipt,
-} from '../../../types/upstream/requestTypeDerivationInterface';
-import type { RequestType } from '../../artifacts/RequestTypesArtifact';
-import type { ObjectType } from '../../../types/domain/semanticType';
-import { createAuthorityBackedRouteManifestTypeLowering } from './routeManifestTypeLoweringAuthority';
+import type { RequestTypeDerivationSemanticPipelineInterface } from '../../../types/upstream/requestTypeDerivationInterface';
+import { authorityBackedRouteManifestTypeLoweringFactory } from './routeManifestTypeLoweringAuthority';
+import type { AuthorityBackedRouteManifestTypeLoweringResult } from './routeManifestTypeLoweringAuthority';
 
 /**
- * Authority-backed projection outcome. A failed semantic judgment is carried to
- * the caller; it is never silently downgraded to an empty RequestType array or
- * replaced with the legacy solver's result.
+ * Projection preserves the lowering authority's closed ADT unchanged.
+ * The former `lowered | derivation_not_projectable` -> `projected | not_projectable`
+ * conversion carried no new evidence or domain decision, so it duplicated the
+ * same outcome boundary and forced another exhaustive switch.
  */
-export type AuthorityBackedRouteManifestProjectionResult =
-  | Readonly<{
-      kind: 'projected';
-      requestTypes: readonly RequestType[];
-      semanticTypes: readonly ObjectType[];
-      derivation: Extract<RequestTypeDerivationRuntimeExecutionResult, { kind: 'projected' }>;
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
-    }>
-  | Readonly<{
-      kind: 'not_projectable';
-      semanticTypes: readonly ObjectType[];
-      derivation: Exclude<RequestTypeDerivationRuntimeExecutionResult, { kind: 'projected' }>;
-      sourceEvidence: readonly RequestTypeEvidenceReference[];
-      requestResolutionLedger: readonly RequestTypeRouteRequestResolutionReceipt[];
-    }>;
+export type AuthorityBackedRouteManifestProjectionResult = AuthorityBackedRouteManifestTypeLoweringResult;
 
 export interface AuthorityBackedRouteManifestProjectionInterface {
   readonly project: (preflight: RouteManifestRequestResolutionPreflight) => AuthorityBackedRouteManifestProjectionResult;
@@ -40,37 +20,21 @@ export interface AuthorityBackedRouteManifestProjectionInterface {
  * RequestType semantics. The authority is injected; this module does not build
  * semantic judgments or reinterpret source evidence.
  */
-export const createAuthorityBackedRouteManifestProjection = (
-  pipeline: RequestTypeDerivationSemanticPipelineInterface,
-): AuthorityBackedRouteManifestProjectionInterface => {
-  const lowering = createAuthorityBackedRouteManifestTypeLowering(pipeline);
+export interface AuthorityBackedRouteManifestProjectionFactoryInterface {
+  readonly create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ) => AuthorityBackedRouteManifestProjectionInterface;
+}
+
+export const authorityBackedRouteManifestProjectionFactory: AuthorityBackedRouteManifestProjectionFactoryInterface = Object.freeze({
+  create: (
+    pipeline: RequestTypeDerivationSemanticPipelineInterface,
+  ): AuthorityBackedRouteManifestProjectionInterface => {
+  const lowering = authorityBackedRouteManifestTypeLoweringFactory.create(pipeline);
 
   return Object.freeze({
-    project: (preflight: RouteManifestRequestResolutionPreflight): AuthorityBackedRouteManifestProjectionResult => {
-      const result = lowering.project(preflight);
-      switch (result.kind) {
-        case 'lowered':
-          return Object.freeze({
-            kind: 'projected',
-            requestTypes: result.requestTypes,
-            semanticTypes: result.semanticTypes,
-            derivation: result.derivation,
-            sourceEvidence: result.sourceEvidence,
-            requestResolutionLedger: result.requestResolutionLedger,
-          });
-        case 'derivation_not_projectable':
-          return Object.freeze({
-            kind: 'not_projectable',
-            semanticTypes: result.semanticTypes,
-            derivation: result.derivation,
-            sourceEvidence: result.sourceEvidence,
-            requestResolutionLedger: result.requestResolutionLedger,
-          });
-        default: {
-          const exhaustive: never = result;
-          return exhaustive;
-        }
-      }
-    },
+    project: (preflight: RouteManifestRequestResolutionPreflight): AuthorityBackedRouteManifestProjectionResult =>
+      lowering.project(preflight),
   });
-};
+  },
+});

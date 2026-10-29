@@ -1,0 +1,21 @@
+{
+  "phase": 3109,
+  "method": "TypeScript compiler AST scan",
+  "scope": [
+    "packages/core/src",
+    "packages/cli/src",
+    "packages/sdk/src",
+    "packages/react/src"
+  ],
+  "typescriptFiles": 2245,
+  "exportFunctionDeclarations": 520,
+  "exportedArrowVariableDeclarations": 459,
+  "exportedFunctionExpressionVariableDeclarations": 0,
+  "totalNamedExportFunctionCandidates": 979,
+  "remainingGenericContinueWithArrowImplementations": 51,
+  "globalExportInterfaceMigrationComplete": false,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false,
+  "note": "AST inventory refreshed after Phase 3109. Counts are candidates within the stated TypeScript source scope, not proof that every candidate should be mechanically rewritten."
+}

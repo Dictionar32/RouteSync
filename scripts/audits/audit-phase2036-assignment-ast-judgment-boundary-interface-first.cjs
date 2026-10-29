@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const failure = read('packages/core/src/types/upstream/scannerAstSourceFailureInterface.ts');
 const controller = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const pkg = JSON.parse(read('package.json'));
@@ -25,7 +25,7 @@ const checks = [
   ['simple statement boundary forwards terminal source failures rather than flattening them', runtime.includes("case 'malformed':\n        case 'rule_contract_violation':\n            throw new AstSourceJudgmentFailureError(judgment.failure);")],
   ['legacy RelationOption wrapper is isolated for counted-for clause compatibility', statement.includes('function classifyAssignment(tokens: readonly TokenDescriptor[]): RelationOption<PhpStatement>')],
   ['canonical Laravel invocation judgment and integrated response ownership remain present', controller.includes('invocationJudgment') && controller.includes('responseJudgment')],
-  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation'))],
+  ['no relation/foundation subscanner was introduced', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation'))],
   ['audit is registered in package scripts', typeof pkg.scripts['audit:phase2036-assignment-ast-judgment-boundary-interface-first'] === 'string'],
 ];
 for (const [name, passed] of checks) console.log(`${passed ? 'PASS' : 'FAIL'} ${name}`);

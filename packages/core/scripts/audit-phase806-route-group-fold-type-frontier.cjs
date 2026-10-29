@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
-const file = path.join(root, 'src/compiler/scanner/lexer/routeAst/routeDeclarationParser.ts');
+const file = path.join(root, 'src/compiler/frontend/php/routeAst/routeDeclarationParser.ts');
 const source = fs.readFileSync(file, 'utf8');
 const checks = {
   consumesUpstreamArgument: source.includes('argument: RouteConstraintArgument'),

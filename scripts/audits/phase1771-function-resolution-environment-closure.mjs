@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '../../packages/core/src/types/upstream');
 const resolution = readFileSync(resolve(root, 'phpFunctionNameResolutionInterface.ts'), 'utf8');
 const invocation = readFileSync(resolve(root, 'phpFunctionInvocationSemanticAuthorityInterface.ts'), 'utf8');
-const scanner = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
+const scanner = readFileSync(resolve(import.meta.dirname, '../../packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts'), 'utf8');
 const checks = [
   ['environment completeness has a named witness', resolution.includes('PhpFunctionResolutionEnvironmentCompletenessWitness') && resolution.includes("kind: 'php_function_resolution_environment_complete'")],
   ['completeness witness ties to source file and source span', resolution.includes('readonly sourceFile: SourceFile') && resolution.includes('readonly source: SourceSpan')],

@@ -1,0 +1,26 @@
+{
+  "phase": 2955,
+  "title": "Invocation Judgment Match Cardinality ADT",
+  "scope": [
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryInterface.ts",
+    "packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInventoryAuthority.ts",
+    "packages/core/src/types/upstream/__tests__/laravel-controller-invocation-judgment-cardinality.phase2955.test.ts",
+    "packages/core/src/index.ts",
+    "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts"
+  ],
+  "structuralAudit": {
+    "passed": 10,
+    "total": 10,
+    "priorPhaseAudits": "Phase2950 13/13; Phase2951 11/11; Phase2952 11/11 (updated to reflect Phase2955 cardinality); Phase2953 11/11; Phase2954 9/9"
+  },
+  "focusedVitest": "not run; local Vitest executable unavailable in the workspace",
+  "fullTypecheck": "attempted but blocked by environment: globally installed TypeScript compiler does not support ES2025 target/lib and @types/node plus vitest/globals are unavailable; no project typecheck pass is claimed",
+  "fullBuild": "not run",
+  "cliEndToEnd": "not run",
+  "collectionsBytes": 0,
+  "syntaxTranspile": {
+    "files": 4,
+    "diagnostics": 0,
+    "method": "TypeScript transpileModule; syntax only, not typecheck"
+  }
+}

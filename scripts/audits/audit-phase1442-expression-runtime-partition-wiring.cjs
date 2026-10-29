@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const checks = [
   ['runtime operator lookup returns occurrence evidence, not numeric offsets', /function findTopLevelOperatorEvidence\([^)]*\): TokenOccurrenceEvidence<TokenDescriptor> \| undefined/.test(runtime)],
   ['runtime lookup is backed by the public token structure interface', /scannerTokenStructureInterface\.locateTopLevel\(/.test(runtime)],

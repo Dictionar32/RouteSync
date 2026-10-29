@@ -2,11 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const bodyTypes = read('packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts');
-const lexerIndex = read('packages/core/src/compiler/scanner/lexer/index.ts');
-const contract = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const bodyTypes = read('packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts');
+const lexerIndex = read('packages/core/src/compiler/frontend/php/index.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const test = read('packages/core/src/compiler/scanner/__test__/ecommerceShopDataflowPhase104.spec.ts');
 
 const productionRoot = path.join(root, 'packages/core/src');

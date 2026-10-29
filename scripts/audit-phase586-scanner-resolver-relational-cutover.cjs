@@ -2,19 +2,19 @@ const fs = require('fs');
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/SourceStream.ts',
-  'packages/core/src/compiler/scanner/lexer/tokenizer.ts',
-  'packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts',
+  'packages/core/src/compiler/frontend/php/SourceStream.ts',
+  'packages/core/src/compiler/frontend/php/tokenizer.ts',
+  'packages/core/src/compiler/frontend/php/controllerMethodParser.ts',
   'packages/core/src/compiler/scanner/symbols/model/originModelSymbol.ts',
   'packages/core/src/compiler/scanner/symbols/model/modelSymbolTableClass.ts',
-  'packages/core/src/compiler/scanner/subscanners/ControllerScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/actionScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/resourceDataflowAggregator.ts',
-  'packages/core/src/compiler/scanner/subscanners/RouteScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts',
-  'packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts',
+  'packages/core/src/compiler/scanner/operations/ControllerScanner.ts',
+  'packages/core/src/compiler/scanner/operations/controller/actionScanner.ts',
+  'packages/core/src/compiler/scanner/operations/controller/resourceDataflowAggregator.ts',
+  'packages/core/src/compiler/scanner/operations/RouteScanner.ts',
+  'packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts',
+  'packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts',
   'packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts',
-  'packages/core/src/compiler/scanner/subscanners/ResourceScanner.ts',
+  'packages/core/src/compiler/scanner/operations/ResourceScanner.ts',
 ];
 const patterns = {
   if: /\bif\s*\(/g, for: /\bfor\s*\(/g, while: /\bwhile\s*\(/g, switch: /\bswitch\s*\(/g,
@@ -30,5 +30,5 @@ const scan = file => {
 };
 const results = targets.map(scan);
 const aggregate = Object.fromEntries(Object.keys(patterns).map(k => [k, results.reduce((n, r) => n + r.counts[k], 0)]));
-const report = { phase: 586, frontier: 'scanner/lexer + scanner resolver relation cutover', targets, aggregate, files: results, transpileDiagnosticsClean: true };
+const report = { phase: 586, frontier: 'frontend/php + scanner resolver relation cutover', targets, aggregate, files: results, transpileDiagnosticsClean: true };
 console.log(JSON.stringify(report, null, 2));

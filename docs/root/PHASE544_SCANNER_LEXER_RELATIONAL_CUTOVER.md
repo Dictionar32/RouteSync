@@ -4,7 +4,7 @@
 
 This phase removes imperative control/absence leakage from two scanner utilities that were still acting as local semantic authorities:
 
-- `packages/core/src/compiler/scanner/lexer/astClassifierEvidence.ts`
+- `packages/core/src/compiler/frontend/php/astClassifierEvidence.ts`
 - `packages/core/src/compiler/scanner/subscanners/scannerUtils.ts`
 
 ## Architectural changes

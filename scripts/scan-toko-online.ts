@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import {
   manifestBuilder,
   createLaravelSourceProjectIdentity,
+  createSourceFile,
   routeSyncManifestFlowFromManifest,
   routeSyncManifestDataflowSurfaceFromFlow,
   routeSyncManifestGraphSurfaceFromFlow,
@@ -10,19 +11,19 @@ import {
   projectRouteSyncManifestForRouteManifest,
   IRNodeRegistry,
   analyzeRouteSyncManifestDataflow,
-  projectSemanticDataflowToIR,
+  semanticDataflowIRProjection,
   createServiceGraphBuilder,
   semanticDataflowRuntimeBoundary
 } from '../packages/core/src';
-import { ManifestGenerator } from '../packages/cli/src/generators/ManifestGenerator';
-import { validateManifestContract } from '../packages/cli/src/generators/ManifestContractValidator';
+import { manifestGeneratorOperations } from '../packages/cli/src/generators/ManifestGenerator';
+import { manifestContractValidationOperations } from '../packages/cli/src/generators/ManifestContractValidator';
 
 async function run() {
   const targetDir = '/home/annas-zen/Documents/laragon-docker/www/toko-online';
   const outputPath = path.resolve(targetDir, 'routesync.manifest.json');
   console.log(`Scanning Laravel project at: ${targetDir}`);
 
-  const sourceProject = createLaravelSourceProjectIdentity(targetDir);
+  const sourceProject = createLaravelSourceProjectIdentity.create(createSourceFile(targetDir));
   const scannedManifest = await manifestBuilder.build(sourceProject);
   const manifestFlow = routeSyncManifestFlowFromManifest(scannedManifest);
   const dataflowSurface = routeSyncManifestDataflowSurfaceFromFlow(manifestFlow);
@@ -41,10 +42,34 @@ async function run() {
   const irRegistry = new IRNodeRegistry();
 
   console.log(`Validating manifest contract...`);
-  validateManifestContract(resolvedManifest);
+  const contractJudgment = manifestContractValidationOperations.validate(resolvedManifest);
+  switch (contractJudgment.kind) {
+    case 'manifest_contract_validated':
+      break;
+    case 'manifest_contract_rejected':
+      throw new Error(`Manifest contract rejected: ${JSON.stringify(contractJudgment.violations)}`);
+    default: {
+      const exhaustive: never = contractJudgment;
+      throw new Error(String(exhaustive));
+    }
+  }
 
   console.log(`Saving manifest to: ${outputPath}`);
-  await ManifestGenerator.save(resolvedManifest, outputPath);
+  const persistence = await manifestGeneratorOperations.save(resolvedManifest, outputPath);
+  switch (persistence.kind) {
+    case 'manifest_persistence_complete':
+      break;
+    case 'manifest_persistence_contract_rejected':
+      throw new Error(`Manifest contract rejected: ${JSON.stringify(persistence.violations)}`);
+    case 'manifest_persistence_serialization_rejected':
+      throw new Error(`Manifest serialization rejected: ${persistence.message}`);
+    case 'manifest_persistence_write_rejected':
+      throw new Error(`Manifest write rejected at ${persistence.outputPath}: ${persistence.message}`);
+    default: {
+      const exhaustive: never = persistence;
+      throw new Error(String(exhaustive));
+    }
+  }
 
   const graphBuilder = createServiceGraphBuilder();
   const serviceGraph = graphBuilder.project(graphSurface);
@@ -53,7 +78,7 @@ async function run() {
   const dataflowAnalysis = analyzeRouteSyncManifestDataflow(dataflowSurface, semanticDataflowRuntimeBoundary);
   fs.writeFileSync(path.resolve(targetDir, 'routesync.dataflow.json'), JSON.stringify(dataflowAnalysis, null, 2));
 
-  const dataflowIR = dataflowAnalysis.map(result => projectSemanticDataflowToIR(result.analysis.interface));
+  const dataflowIR = dataflowAnalysis.map(result => semanticDataflowIRProjection.project(result.analysis.interface));
   fs.writeFileSync(path.resolve(targetDir, 'routesync.dataflow.ir.json'), JSON.stringify(dataflowIR, null, 2));
 
   fs.writeFileSync(

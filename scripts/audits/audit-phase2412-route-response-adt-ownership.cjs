@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const controller = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const route = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const routeRelations = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const routeRelations = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const boundaryOptions = read('packages/core/src/compiler/scanner/resolvers/boundary/boundaryBasicsTypes.ts');
 const routeBindings = read('packages/core/src/types/domain/routes.ts');
 const endpointBindings = read('packages/core/src/types/upstream/endpointBindings.ts');

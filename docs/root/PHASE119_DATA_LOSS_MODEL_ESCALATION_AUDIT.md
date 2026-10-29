@@ -16,7 +16,7 @@ Audit lanjutan terhadap `routeAst` untuk memastikan pengetahuan sintaks Laravel 
 
 ## Static audit results
 
-AST-based scan of `packages/core/src/compiler/scanner/lexer/routeAst`:
+AST-based scan of `packages/core/src/compiler/frontend/php/routeAst`:
 
 - Nullish coalescing (`??`): 0
 - Conditional expressions / ternary: 0

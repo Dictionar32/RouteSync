@@ -4,29 +4,29 @@ const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = file => fs.existsSync(path.join(root, file));
 const ast = read('packages/core/src/types/upstream/ast.ts');
-const syntax = read('packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts');
-const parser = read('packages/core/src/compiler/scanner/lexer/phpMethodParser.ts');
-const expression = read('packages/core/src/compiler/scanner/subscanners/expressionAstCanonical.ts');
+const syntax = read('packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts');
+const parser = read('packages/core/src/compiler/frontend/php/phpMethodParser.ts');
+const expression = read('packages/core/src/compiler/scanner/operations/expressionAstCanonical.ts');
 const producers = [
   'routeProducer.ts','resourceProducer.ts','requestProducer.ts','requestAstCanonical.ts','modelCanonical.ts',
   'serviceAstCanonical.ts','dtoProducer.ts','middlewareProducer.ts','providerAstCanonical.ts','attributeProducer.ts',
   'channelProducer.ts','migrationProducer.ts','responseProducer.ts','controllerProducer.ts','resourceBinder.ts'
 ];
 const producerPaths = [
-  'packages/core/src/compiler/scanner/subscanners/routeProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/resourceProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/requestProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/requestAstCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/serviceAstCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/dtoProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/middlewareProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/providerAstCanonical.ts',
-  'packages/core/src/compiler/scanner/subscanners/attributeProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/channelProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/migrationProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/responseProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/controller/controllerProducer.ts',
+  'packages/core/src/compiler/scanner/operations/routeProducer.ts',
+  'packages/core/src/compiler/scanner/operations/resourceProducer.ts',
+  'packages/core/src/compiler/scanner/operations/requestProducer.ts',
+  'packages/core/src/compiler/scanner/operations/requestAstCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/model/modelCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/serviceAstCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/dtoProducer.ts',
+  'packages/core/src/compiler/scanner/operations/middlewareProducer.ts',
+  'packages/core/src/compiler/scanner/operations/providerAstCanonical.ts',
+  'packages/core/src/compiler/scanner/operations/attributeProducer.ts',
+  'packages/core/src/compiler/scanner/operations/channelProducer.ts',
+  'packages/core/src/compiler/scanner/operations/migrationProducer.ts',
+  'packages/core/src/compiler/scanner/operations/responseProducer.ts',
+  'packages/core/src/compiler/scanner/operations/controller/controllerProducer.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
 ];
 const producerAudit = producerPaths.map(file => ({

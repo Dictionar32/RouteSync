@@ -3,7 +3,6 @@ import type { SemanticReasoningContract } from './semanticReasoning';
 import type { SemanticType } from '../domain/semanticType';
 import type { PropertyName, ResourceName, FormTypeName } from '../domain/semanticValues';
 import { IdentifierCase } from '../../utils/naming';
-import { relationProject } from '../../semantic/relations/relationalSequence';
 
 export type SemanticMappingDirection = 'read' | 'write';
 export type SemanticMappingKind = 'direct' | 'object' | 'resource' | 'collection' | 'resource_collection';
@@ -70,6 +69,17 @@ export interface SemanticMappingConsumerInterface extends SemanticMappingContrac
 export interface SemanticMappingWiringInterface<Downstream>
   extends UpstreamWiringInterface<SemanticMappingConsumerInterface, Downstream> {}
 
+
+/** Mapping-domain projection: preserves input order while assigning each item its semantic mapping. */
+interface SemanticMappingProjectionOperationsInterface {
+  readonly project: <Input, Output>(source: readonly Input[], operation: (value: Input, index: number) => Output) => readonly Output[];
+}
+
+const semanticMappingProjectionOperations: SemanticMappingProjectionOperationsInterface = Object.freeze({
+  project: <Input, Output>(source: readonly Input[], operation: (value: Input, index: number) => Output): readonly Output[] =>
+    Object.freeze(source.map(operation)),
+});
+
 const camel = (value: string): string => IdentifierCase.toCamel(value);
 const pascal = (value: string): string => IdentifierCase.toPascal(value);
 
@@ -84,7 +94,7 @@ const field = (source: PropertyName, kind: SemanticMappingKind, children: readon
 const resolveField = (source: PropertyName, type: SemanticType): SemanticMappingField => {
   switch (type.kind) {
     case 'object': {
-      const children = relationProject(type.properties, property => resolveField(property.name, property.type));
+      const children = semanticMappingProjectionOperations.project(type.properties, property => resolveField(property.name, property.type));
       return field(source, type.role === 'resource' ? 'resource' : 'object', children, type.role === 'resource' ? {
         resourceName: type.name.endsWith('Resource') ? type.name.slice(0, -8) : type.name,
         mapperName: `to${pascal(type.name.endsWith('Resource') ? type.name.slice(0, -8) : type.name)}Read`,
@@ -112,10 +122,23 @@ const resolveField = (source: PropertyName, type: SemanticType): SemanticMapping
   }
 };
 
-export function semanticReadMapperFromResource(
+export interface SemanticMappingRuntimeOperationsInterface {
+  readonly readMapperFromResource: (
+    resource: ResourceName,
+    fields: readonly { readonly name: PropertyName; readonly type: SemanticType }[],
+  ) => SemanticReadMapperContract;
+  readonly writeMapperFromAction: (
+    resource: ResourceName,
+    actionName: string,
+    formType: FormTypeName,
+    fields: readonly { readonly sourceName: PropertyName }[],
+  ) => SemanticWriteMapperContract;
+}
+
+const semanticReadMapperFromResourceImpl = (
   resource: ResourceName,
   fields: readonly { readonly name: PropertyName; readonly type: SemanticType }[],
-): SemanticReadMapperContract {
+): SemanticReadMapperContract => {
   const resourceName = resource.value.value;
   const pascalName = pascal(resourceName);
   return Object.freeze({
@@ -124,16 +147,16 @@ export function semanticReadMapperFromResource(
     listMapperName: `to${pascalName}ReadList`,
     apiResponseType: `${pascalName}ApiResponse`,
     transformedType: `${pascalName}Transformed`,
-    fields: Object.freeze(relationProject(fields, item => resolveField(item.name, item.type))),
+    fields: Object.freeze(semanticMappingProjectionOperations.project(fields, item => resolveField(item.name, item.type))),
   });
-}
+};
 
-export function semanticWriteMapperFromAction(
+const semanticWriteMapperFromActionImpl = (
   resource: ResourceName,
   actionName: string,
   formType: FormTypeName,
   fields: readonly { readonly sourceName: PropertyName }[],
-): SemanticWriteMapperContract {
+): SemanticWriteMapperContract => {
   const resourceName = resource.value.value;
   const pascalName = pascal(resourceName);
   const actionPascal = pascal(actionName);
@@ -143,9 +166,15 @@ export function semanticWriteMapperFromAction(
     functionName: `toApi${pascalName}${actionPascal}`,
     formTypeName: formType.value.value,
     contractTypeName: `${pascalName}Contract`,
-    fields: Object.freeze(relationProject(fields, item => Object.freeze({
+    fields: Object.freeze(semanticMappingProjectionOperations.project(fields, item => Object.freeze({
       source: item.sourceName.value.value,
       target: item.sourceName.value.value.toUpperCase().replace(/[^A-Z0-9]/g, ''),
     }))),
   });
-}
+};
+
+/** Runtime operations for projecting resolved semantic types into mapper contracts. */
+export const semanticMappingRuntimeOperations: SemanticMappingRuntimeOperationsInterface = Object.freeze({
+  readMapperFromResource: semanticReadMapperFromResourceImpl,
+  writeMapperFromAction: semanticWriteMapperFromActionImpl,
+});

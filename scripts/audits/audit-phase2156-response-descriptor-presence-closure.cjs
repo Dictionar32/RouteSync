@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 
-const contract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const responseDescriptors = read('packages/core/src/types/domain/responseDescriptors.ts');
 const actionAuthority = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const responsePipeline = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
@@ -22,7 +22,7 @@ check('response descriptor presence contract is exported', /type ResponseDescrip
 check('action semantic authority remains existing production composition', /legacyLaravelControllerExecutionDependencies/.test(actionAuthority) && /actionJudgment: Object\.freeze/.test(actionAuthority));
 check('integrated response pipeline remains a distinct controller-wide judgment', /judgeIntegratedResponse/.test(responsePipeline) && /astProjection\.judge/.test(responsePipeline));
 check('phase 2155 request-authority retirement remains documented', /resolveRequest/.test(phase2155) && /authority/.test(phase2155));
-check('no relation/foundation subscanner or duplicate response authority introduced', !/semantic\/foundation|subscanners\/responseSemanticAuthority/.test(contract));
+check('no relation/foundation subscanner or duplicate response authority introduced', !/semantic\/foundation|operations\/responseSemanticAuthority/.test(contract));
 
 const failed = checks.filter(item => !item.passed);
 const report = { phase: 2156, title: 'Response Descriptor Presence Closure — Descriptor-Owned Judgment, Interface First', passed: checks.length - failed.length, total: checks.length, checks };

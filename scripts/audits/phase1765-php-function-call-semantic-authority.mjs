@@ -3,10 +3,10 @@ import { readFileSync } from 'node:fs';
 const files = {
   contract: 'packages/core/src/types/upstream/phpFunctionCallSemanticAuthorityInterface.ts',
   authority: 'packages/core/src/types/upstream/phpFunctionCallSemanticAuthority.ts',
-  mapper: 'packages/core/src/compiler/scanner/subscanners/resource/resourceUpstreamExpressionCanonical.ts',
+  mapper: 'packages/core/src/compiler/scanner/operations/resource/resourceUpstreamExpressionCanonical.ts',
   barrel: 'packages/core/src/types/upstream/index.ts',
   invocation: 'packages/core/src/types/upstream/invocationSemanticPipelineInterface.ts',
-  scannerAst: 'packages/core/src/compiler/scanner/lexer/controllerBodyAstTypes.ts',
+  scannerAst: 'packages/core/src/compiler/frontend/php/controllerBodyAstTypes.ts',
 };
 const source = Object.fromEntries(Object.entries(files).map(([key, path]) => [key, readFileSync(path, 'utf8')]));
 const checks = [

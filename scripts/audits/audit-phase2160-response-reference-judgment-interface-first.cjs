@@ -6,7 +6,7 @@ const checks = [];
 const check = (name, passed) => checks.push({ name, passed: Boolean(passed) });
 const controller = read('packages/core/src/types/upstream/controller.ts');
 const descriptors = read('packages/core/src/types/domain/responseDescriptors.ts');
-const actionContract = read('packages/core/src/compiler/scanner/descriptors/request/controllerActionContract.ts');
+const actionContract = read('packages/core/src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
 const actionInterface = read('packages/core/src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const actionWiring = read('packages/core/src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const controllerScanner = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
@@ -31,7 +31,7 @@ check('integrated response pipeline distinguishes reference candidate from obser
 check('resource binding consumes reference ADT and preserves unresolved not-declared outcome', /case 'response_reference_not_declared'/.test(resourceAuthority) && /reason: 'response_reference_not_declared'/.test(resourceAuthority) && /ControllerResponseReferenceJudgment/.test(resourceInterface));
 check('scan and sync use shared source-to-judgment manifest composition', /buildManifestWithInvocationPipeline/.test(scan) && /buildManifestWithInvocationPipeline/.test(sync) && /manifestBuilder\.build\(terminalOutcome\.result\.receipt/.test(cliCompose));
 check('generate remains a manifest consumer rather than Laravel semantic classifier', /CompilerBridge\.emitFullBundle/.test(generate) && !/resolveResponse\(|responseSemanticPipeline/.test(generate));
-check('no new relation/foundation layer or response subscanner', !/semantic\/foundation|subscanners\/responsePresence|ResponsePresenceSemanticAuthority/.test(actionContract + actionWiring + descriptors));
+check('no new relation/foundation layer or response subscanner', !/semantic\/foundation|operations\/responsePresence|ResponsePresenceSemanticAuthority/.test(actionContract + actionWiring + descriptors));
 const failed = checks.filter(item => !item.passed);
 const report = { phase: 2160, title: 'Response Reference Judgment — Upstream Interface-First', passed: checks.length - failed.length, total: checks.length, checks, productionCodeChanged: true, fullBuildRun: false, fullTypecheckRun: false, vitestRun: false };
 fs.writeFileSync(path.join(root, 'reports/phase2160/PHASE2160_AUDIT.json'), JSON.stringify(report, null, 2) + '\n');

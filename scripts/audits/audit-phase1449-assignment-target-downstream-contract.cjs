@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-const runtime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const runtime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const algebra = read('packages/core/src/types/upstream/scannerAssignmentTargetAlgebra.ts');
 const contract = read('packages/core/src/types/upstream/scannerAssignmentTargetInterface.ts');
 const legacyTest = read('packages/core/src/types/upstream/__test__/scannerAssignmentTargetAlgebra.phase1422.test.ts');

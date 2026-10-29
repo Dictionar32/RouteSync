@@ -3,7 +3,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const projection = read('packages/core/src/compiler/scanner/subscanners/routeProducerRelations.ts');
+const projection = read('packages/core/src/compiler/scanner/operations/routeProducerRelations.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
 const methodContract = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const checks = [

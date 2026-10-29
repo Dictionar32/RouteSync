@@ -1,3 +1,4 @@
+/** Scanner compatibility barrel; semantic binding ownership lives outside scanner. */
 export {
     ResourceModelBindingSource,
     type MonoModelBinding,
@@ -5,6 +6,8 @@ export {
     type UnbackedDtoBinding,
     type ResourceModelBinding,
     type ResourceModelBindingVisitor,
-    matchResourceModelBinding,
-    ResourceModelBindingFactory
-} from './resourceBindingTypes';
+    type ResourceModelBindingMatcherInterface,
+    type ResourceModelBindingFactoryInterface,
+    resourceModelBindingMatcher,
+    resourceModelBindingFactory,
+} from '../../../semantic/resource-model/resourceModelBinding';

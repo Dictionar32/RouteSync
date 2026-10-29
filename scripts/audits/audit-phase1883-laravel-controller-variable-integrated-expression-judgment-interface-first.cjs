@@ -5,12 +5,12 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = (file) => fs.existsSync(path.join(root, file));
 const contract = read('packages/core/src/types/upstream/controllerVariableSemanticInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerVariableSemanticAuthority.ts');
-const canonical = read('packages/core/src/compiler/scanner/subscanners/controller/controllerAstCanonical.ts');
+const canonical = read('packages/core/src/compiler/scanner/operations/controller/controllerAstCanonical.ts');
 const expressionTypes = read('packages/core/src/types/upstream/expression.ts');
 const upstreamBarrel = read('packages/core/src/types/upstream/index.ts');
 const test = read('packages/core/src/types/upstream/__test__/controllerVariableSemanticAuthority.phase1547.test.ts');
 const packageJson = JSON.parse(read('package.json'));
-const controllerDir = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDir = 'packages/core/src/compiler/scanner/operations/controller';
 const checks = [
   ['source judgment is the owner of the integrated expression value', /ControllerVariableResolvedSemanticJudgment/.test(contract) && /readonly expressionValue: Extract<SemanticValue, \{ readonly kind: 'reference' \}>/.test(contract)],
   ['authority and runtime executor expose the integrated judgment contract', /judgmentContract: 'semantic_and_expression_value_are_integrated'/.test(contract) && /judgmentContract: 'semantic_and_expression_value_are_integrated'/.test(authority) && /judgmentContract: 'semantic_and_expression_value_are_integrated'/.test(read('packages/core/src/types/upstream/controllerVariableSemanticRuntimeExecutor.ts'))],

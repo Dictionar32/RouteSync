@@ -4,7 +4,7 @@ import {
 } from '../../../compiler/scanner/wiring/laravelSourceAstPipeline';
 import { laravelControllerScanner } from '../../../compiler/scanner/wiring/laravelControllerScanner';
 import { laravelResourceScanner } from '../../../compiler/scanner/wiring/laravelResourceScanner';
-import { laravelResponseScanner } from '../../../compiler/scanner/subscanners/responseScanner';
+import { laravelResponseScanner } from '../../../compiler/scanner/operations/responseScanner';
 import { laravelRouteScanner } from '../../../compiler/scanner/wiring/laravelRouteScanner';
 import { routeControllerBindingAuthority } from '../../../compiler/semantic/routeControllerBindingAuthority';
 

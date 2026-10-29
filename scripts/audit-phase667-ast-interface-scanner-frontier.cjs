@@ -5,19 +5,19 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const size = file => fs.statSync(path.join(root, file)).size;
 const forbidden = /\b(if|while|for|switch)\s*\(|\.(map|filter|reduce|flatMap)\s*\(|\bundefined\b|\?\?|===|!==|as\s+unknown|new\s+(Set|Map)\b|\bany\b/;
 const files = [
-  'packages/core/src/compiler/scanner/lexer/tokenEvidence.ts',
-  'packages/core/src/compiler/scanner/lexer/phpMethodParser.ts',
-  'packages/core/src/compiler/scanner/lexer/controllerMethodParser.ts',
-  'packages/core/src/compiler/scanner/lexer/arrayParser.ts',
-  'packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceSemanticMappingRelations.ts',
+  'packages/core/src/compiler/frontend/php/tokenEvidence.ts',
+  'packages/core/src/compiler/frontend/php/phpMethodParser.ts',
+  'packages/core/src/compiler/frontend/php/controllerMethodParser.ts',
+  'packages/core/src/compiler/frontend/php/arrayParser.ts',
+  'packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceSemanticMappingRelations.ts',
 ];
 const counts = Object.fromEntries(files.map(file => [file, [...read(file).matchAll(new RegExp(forbidden.source, 'g'))].length]));
-const token = read('packages/core/src/compiler/scanner/lexer/tokenEvidence.ts');
+const token = read('packages/core/src/compiler/frontend/php/tokenEvidence.ts');
 const stage = read('packages/core/src/types/upstream/astSemanticStageInterfaceAlgebra.ts');
 const legacy = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
 ].every(file => size(file) === 0);
 const tokenClosed = [
   'TokenEvidenceJudgment',

@@ -6,7 +6,7 @@ const read = file => fs.readFileSync(path.join(upstream, file), 'utf8');
 const match = read('scannerMatchExpressionInterface.ts');
 const tokenStructure = read('scannerTokenStructureInterface.ts');
 const barrel = read('index.ts');
-const runtime = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts'), 'utf8');
+const runtime = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/astClassifierRuntime.ts'), 'utf8');
 const checks = [
   ['complete match body source is preserved', match.includes('readonly body: readonly Token[]')],
   ['interstitial subject-to-body evidence is preserved', match.includes('readonly betweenSubjectAndBody: readonly Token[]')],

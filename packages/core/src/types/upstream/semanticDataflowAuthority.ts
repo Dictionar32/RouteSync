@@ -20,16 +20,16 @@ import type {
   SemanticDataflowPath,
   SemanticDataflowReasoningAuthorityInterface,
 } from './semanticDataflow';
-import { semanticDataflowIdentityKey } from './semanticDataflow';
+import { semanticDataflowIdentityOperations } from './semanticDataflow';
 import { semanticReasoningContract } from './semanticReasoning';
 
-const identityKey = (value: SemanticDataflowIdentity): string => JSON.stringify(semanticDataflowIdentityKey(value));
+const identityKey = (value: SemanticDataflowIdentity): string => JSON.stringify(semanticDataflowIdentityOperations.key(value));
 const factKey = (fact: SemanticDataflowFact): string => JSON.stringify(
   fact.kind === 'reaches'
     ? fact
     : fact.kind === 'dependency'
-      ? { kind: fact.kind, source: semanticDataflowIdentityKey(fact.source), target: semanticDataflowIdentityKey(fact.target), role: fact.role, guard: fact.guard }
-      : { kind: fact.kind, source: semanticDataflowIdentityKey(fact.source), target: semanticDataflowIdentityKey(fact.target), role: fact.role, guard: fact.guard },
+      ? { kind: fact.kind, source: semanticDataflowIdentityOperations.key(fact.source), target: semanticDataflowIdentityOperations.key(fact.target), role: fact.role, guard: fact.guard }
+      : { kind: fact.kind, source: semanticDataflowIdentityOperations.key(fact.source), target: semanticDataflowIdentityOperations.key(fact.target), role: fact.role, guard: fact.guard },
 );
 const uniqueFacts = (facts: readonly SemanticDataflowFact[], index = 0, output: readonly SemanticDataflowFact[] = []): readonly SemanticDataflowFact[] =>
   relationResolve(relationEqual(index, facts.length), () => Object.freeze(output), () => relationOptionFold(
@@ -131,8 +131,8 @@ const pathClosure = (facts: readonly SemanticDataflowFact[]): Readonly<{ paths: 
   return Object.freeze({ paths: Object.freeze(result.paths), rounds: result.rounds, converged: true as const });
 };
 
-const ruleName = (value: string): SemanticDataflowRuleName => Object.freeze({ kind: 'semantic_dataflow_rule', value: stringValue(value) });
-const witnessName = (value: string): SemanticDataflowWitnessName => Object.freeze({ kind: 'semantic_dataflow_witness', value: stringValue(value) });
+const ruleName = (value: string): SemanticDataflowRuleName => Object.freeze({ kind: 'semantic_dataflow_rule', value: stringValue.create(value) });
+const witnessName = (value: string): SemanticDataflowWitnessName => Object.freeze({ kind: 'semantic_dataflow_witness', value: stringValue.create(value) });
 const derivationKey = (derivation: SemanticDataflowDerivation): string => JSON.stringify(derivation);
 
 const factIn = (facts: readonly SemanticDataflowFact[], candidate: SemanticDataflowFact): boolean => facts.some(fact => relationEqual(factKey(fact), factKey(candidate)));
@@ -224,29 +224,41 @@ const derivationsFor = (facts: readonly SemanticDataflowFact[], closure: readonl
   );
 };
 
-export const validateSemanticDataflowDerivations = (closure: readonly SemanticDataflowFact[], derivations: readonly SemanticDataflowDerivation[]): boolean =>
+const derivationsAreValid = (closure: readonly SemanticDataflowFact[], derivations: readonly SemanticDataflowDerivation[]): boolean =>
   derivations.every(derivation => factIn(closure, derivation.conclusion) && derivation.premises.every(premise => factIn(closure, premise)));
 
-export const createSemanticDataflowJudgment = (input: SemanticDataflowInput): SemanticDataflowJudgment => {
-  const facts = Object.freeze(uniqueFacts(relationProject(input.facts, fact => fact)));
-  const closureResult = reachClosure(facts);
-  const pathResult = pathClosure(facts);
-  const closure = closureResult.facts;
-  const paths = pathResult.paths;
-  const derivations = derivationsFor(facts, closure);
-  if (!validateSemanticDataflowDerivations(closure, derivations)) throw new Error('semantic dataflow derivation invariant violated');
-  return Object.freeze({
-    kind: 'semantic_dataflow_judgment', node: input.node, source: input.source, facts, closure, derivations, origin: input.origin,
-    paths, closureCertificate: Object.freeze({ kind: 'semantic_dataflow_closure_certificate', factClosure: Object.freeze({ kind: 'fact_closure', converged: true as const, rounds: closureResult.rounds }), pathClosure: Object.freeze({ kind: 'path_closure', converged: true as const, rounds: pathResult.rounds }), derivationCoverage: Object.freeze({ kind: 'derivation_coverage', complete: true as const, coveredFacts: closure.length }), closed: true as const }),
-    fixedPoint: 'least_fixed_point', reasoning: 'declarative_relation_rewrite_fixed_point', reasoningContract: semanticReasoningContract('declarative_relation_rewrite_fixed_point'), authority: 'semantic_dataflow_judgment', closed: true,
-  });
-};
-
-
-
-/** Canonical runtime entry point for the upstream semantic-dataflow solver. */
+/** Canonical interface-first runtime entry point for semantic-dataflow derivation and validation. */
 export const semanticDataflowReasoningAuthority: SemanticDataflowReasoningAuthorityInterface = Object.freeze({
   kind: 'semantic_dataflow_reasoning_authority',
   authority: 'upstream',
-  judge: createSemanticDataflowJudgment,
+  validateDerivations: (closure: readonly SemanticDataflowFact[], derivations: readonly SemanticDataflowDerivation[]): boolean =>
+    derivationsAreValid(closure, derivations),
+  judge: (input: SemanticDataflowInput): SemanticDataflowJudgment => {
+    const facts = Object.freeze(uniqueFacts(relationProject(input.facts, fact => fact)));
+    const closureResult = reachClosure(facts);
+    const pathResult = pathClosure(facts);
+    const closure = closureResult.facts;
+    const paths = pathResult.paths;
+    const derivations = derivationsFor(facts, closure);
+    if (!derivationsAreValid(closure, derivations)) throw new Error('semantic dataflow derivation invariant violated');
+    const judgmentEvidence = {
+      kind: 'semantic_dataflow_judgment' as const, node: input.node, source: input.source, facts, closure, derivations, origin: input.origin,
+      paths, closureCertificate: Object.freeze({ kind: 'semantic_dataflow_closure_certificate' as const, factClosure: Object.freeze({ kind: 'fact_closure' as const, converged: true as const, rounds: closureResult.rounds }), pathClosure: Object.freeze({ kind: 'path_closure' as const, converged: true as const, rounds: pathResult.rounds }), derivationCoverage: Object.freeze({ kind: 'derivation_coverage' as const, complete: true as const, coveredFacts: closure.length }), closed: true as const }),
+      fixedPoint: 'least_fixed_point' as const, reasoningContract: semanticReasoningContract('declarative_relation_rewrite_fixed_point'), authority: 'semantic_dataflow_judgment' as const, closed: true as const,
+    };
+    return Object.freeze({
+      ...judgmentEvidence,
+      operations: Object.freeze({
+        containsFact: (fact: SemanticDataflowFact): boolean => factIn(closure, fact),
+        reaches: (source: SemanticDataflowIdentity, target: SemanticDataflowIdentity): boolean => closure.some(candidate =>
+          candidate.kind === 'reaches'
+          && relationEqual(identityKey(candidate.source), identityKey(source))
+          && relationEqual(identityKey(candidate.target), identityKey(target))),
+        pathsBetween: (source: SemanticDataflowIdentity, target: SemanticDataflowIdentity): readonly SemanticDataflowPath[] => Object.freeze(
+          paths.filter(path => relationEqual(identityKey(path.source), identityKey(source))
+            && relationEqual(identityKey(path.target), identityKey(target))),
+        ),
+      }),
+    });
+  },
 });

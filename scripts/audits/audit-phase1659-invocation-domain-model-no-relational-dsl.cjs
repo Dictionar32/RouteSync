@@ -6,7 +6,7 @@ const contract = read('packages/core/src/types/upstream/invocationSemanticJudgme
 const compiler = read('packages/core/src/types/upstream/invocationSemanticModelCompiler.ts');
 const algebra = read('packages/core/src/types/upstream/invocationSemanticJudgmentAlgebra.ts');
 const executor = read('packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts');
-const scanner = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
+const scanner = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
 const checks = [
   ['interface models invocation with domain operations', /kind: 'target-resolution'[\s\S]*targetEvidence: 'invocation-callable-data-flow'[\s\S]*successfulJudgment: 'resolved-call-target'/.test(contract)],
   ['interface contains no relational premise/conclusion DSL', !/invocationDerivation\s*\(|invocationPattern\s*\(|premises:\s*readonly|conclusions:\s*readonly/.test(contract)],

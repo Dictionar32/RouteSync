@@ -36,10 +36,10 @@ The current scan covers 1,369 `.ts`/`.tsx` files and reports zero TypeScript par
 ## Highest-priority semantic files
 
 1. `compiler/scanner/subscanners/queryProducer.ts`
-2. `compiler/scanner/lexer/astClassifier.ts`
+2. `compiler/frontend/php/astClassifier.ts`
 3. `compiler/scanner/subscanners/providerAstCanonical.ts`
 4. `compiler/scanner/subscanners/controller/controllerAstCanonical.ts`
-5. `compiler/scanner/lexer/controllerMethodParser.ts`
+5. `compiler/frontend/php/controllerMethodParser.ts`
 6. `compiler/scanner/subscanners/migrationProducer.ts`
 7. `compiler/scanner/subscanners/resource/resourceFieldProducer.ts`
 8. `compiler/scanner/subscanners/resourceProducer.ts`

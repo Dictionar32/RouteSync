@@ -3,7 +3,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const checks = [];
 const check = (name, condition) => checks.push({ name, passed: Boolean(condition) });
-const resolverPath = 'packages/core/src/compiler/scanner/subscanners/resource/twoPassRelationResolver.ts';
+const resolverPath = 'packages/core/src/compiler/scanner/operations/resource/twoPassRelationResolver.ts';
 const productionRoot = path.join(root, 'packages/core/src');
 const productionFiles = [];
 const visit = (directory) => {
@@ -15,7 +15,7 @@ const visit = (directory) => {
 };
 visit(productionRoot);
 const productionText = productionFiles.map(file => fs.readFileSync(file, 'utf8')).join('\n');
-const legacyKnowledgePath = 'packages/core/src/compiler/scanner/subscanners/resource/resourceModelKnowledgeDataFlow.ts';
+const legacyKnowledgePath = 'packages/core/src/compiler/scanner/operations/resource/resourceModelKnowledgeDataFlow.ts';
 const authority = fs.readFileSync(path.join(root, 'packages/core/src/compiler/semantic/resourceModelKnowledgeDataFlowAuthority.ts'), 'utf8');
 const contract = fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/resourceModelKnowledgeDataFlowInterface.ts'), 'utf8');
 const resolver = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/resolvers/resource/ResourceModelResolver.ts'), 'utf8');
@@ -33,10 +33,10 @@ console.log(`\nResult: ${checks.filter(result => result.passed).length}/${checks
 console.log('\nOpen frontiers:');
 for (const file of [
   'packages/core/src/compiler/scanner/operations/resourceProducer.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceFieldProducer.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceFieldProducer.ts',
   'packages/core/src/compiler/scanner/operations/resourceAstExpressionMapper.ts',
   'packages/core/src/compiler/scanner/binders/resource/resourceBinder.ts',
-  'packages/core/src/compiler/scanner/lexer/resourceSourceEvidence.ts',
+  'packages/core/src/compiler/frontend/php/resourceSourceEvidence.ts',
 ]) {
   const absolute = path.join(root, file);
   if (fs.existsSync(absolute)) {

@@ -2,9 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const targets = [
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceBindingPathBuilder.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceBindingProvenanceBuilder.ts',
-  'packages/core/src/compiler/scanner/subscanners/resource/resourceBindingOriginResolver.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceBindingPathBuilder.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceBindingProvenanceBuilder.ts',
+  'packages/core/src/compiler/scanner/operations/resource/resourceBindingOriginResolver.ts',
 ];
 
 const patterns = {

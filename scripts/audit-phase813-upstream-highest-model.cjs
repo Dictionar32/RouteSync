@@ -3,8 +3,8 @@ const path = require('node:path');
 
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const routeScanner = read('packages/core/src/compiler/scanner/subscanners/RouteScanner.ts');
-const routeDataFlow = read('packages/core/src/compiler/scanner/lexer/routeAst/routeDataFlow.ts');
+const routeScanner = read('packages/core/src/compiler/scanner/operations/RouteScanner.ts');
+const routeDataFlow = read('packages/core/src/compiler/frontend/php/routeAst/routeDataFlow.ts');
 const contractExtraction = read('packages/core/src/compiler/passes/contract-domain/contractExtraction.ts');
 const sourceAstScanner = read('packages/core/src/compiler/scanner/orchestrator/sourceAstScanner.ts');
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { phpClassNameResolutionAuthority } from '../phpClassNameResolutionAuthority';
 import { createClassName } from '../names';
-import { createPhpQualifiedClassName } from '../phpClassNameResolutionInterface';
+import { phpQualifiedClassNameFactory } from '../phpClassNameResolutionInterface';
 import type { PhpClassNameResolutionContext } from '../phpClassNameResolutionInterface';
 
 const context = (
@@ -10,7 +10,7 @@ const context = (
   importInventory: PhpClassNameResolutionContext['importInventory'] = 'complete',
 ): PhpClassNameResolutionContext => Object.freeze({
   kind: 'php_class_name_resolution_context',
-  namespaceName: createPhpQualifiedClassName(namespace),
+  namespaceName: phpQualifiedClassNameFactory.create(namespace),
   classImports,
   importInventory,
 });
@@ -29,7 +29,7 @@ describe('shared PHP class-name resolution authority phase 2063', () => {
   });
 
   it('resolves aliases for simple and qualified class references', () => {
-    const imports = [{ kind: 'php_class_import_binding' as const, alias: createClassName('Parent'), target: createPhpQualifiedClassName('Vendor\\BaseController') }];
+    const imports = [{ kind: 'php_class_import_binding' as const, alias: createClassName('Parent'), target: phpQualifiedClassNameFactory.create('Vendor\\BaseController') }];
     expect(judge('Parent', context('App\\Http\\Controllers', imports))).toMatchObject({ kind: 'php_class_name_resolved', rule: 'class_import', qualifiedName: { value: { value: 'Vendor\\BaseController' } } });
     expect(judge('Parent\\Nested', context('App\\Http\\Controllers', imports))).toMatchObject({ kind: 'php_class_name_resolved', rule: 'class_import', qualifiedName: { value: { value: 'Vendor\\BaseController\\Nested' } } });
   });

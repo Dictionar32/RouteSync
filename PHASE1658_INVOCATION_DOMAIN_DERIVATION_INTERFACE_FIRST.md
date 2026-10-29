@@ -19,9 +19,9 @@ Keep scanner runtime as wiring only while making the upstream invocation semanti
   - Remains the validated authority boundary: the algebra's judgment is checked against invocation identity, trace, obligation witnesses, and closure before returning downstream.
 - `packages/core/src/types/upstream/invocationSemanticRuntimeExecutor.ts`
   - Remains a thin delegate to the one-judgment authority and the separate batch authority.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts`
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts`
   - Invocation analysis remains one `executeAll(semanticKnowledgeDataFlow)` call; no target resolution, argument binding, or closure rules were added to the scanner.
-- `packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts`
+- `packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts`
   - Compatibility facade exports the authoritative model and meaning contract without implementing semantics.
 - Added `scripts/audits/audit-phase1658-invocation-domain-derivation-interface-first.cjs` and the root npm audit script.
 

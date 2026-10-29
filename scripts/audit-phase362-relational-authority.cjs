@@ -3,11 +3,11 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlowRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlowRelations.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationalCollections.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationStore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/phpAstSemanticKnowledgeDataFlowAdapter.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlowRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlowRelations.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationalCollections.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationStore.ts',
   'packages/core/src/semantic/kernel/syntax/parserAdapterRelations.ts',
   'packages/core/src/semantic/plugins/expression/ternaryHandler.ts',
 ];
@@ -28,8 +28,8 @@ for (const relative of targets) {
   if (hits.length) violations[relative] = [...new Set(hits)];
 }
 const legacy = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticVersionedStateDataFlow.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticInterproceduralDataFlow.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticVersionedStateDataFlow.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticInterproceduralDataFlow.ts',
 ];
 const legacyBytes = Object.fromEntries(legacy.map(relative => [relative, fs.statSync(path.join(root, relative)).size]));
 const result = { phase: 362, violations, legacyBytes };

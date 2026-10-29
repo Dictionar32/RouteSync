@@ -8,11 +8,11 @@
  * this boundary.
  */
 import type { ModelSymbolTable } from "../../symbols/ModelSymbolTable";
-import type { OriginModelSymbol } from "../../symbols/model/originModelSymbol";
-import type { PhpStatement, PhpAssignmentTarget } from "../../lexer/phpAstTypes";
-import type { PhpMethodAst } from "../../lexer/phpMethodAstTypes";
-import type { PhpClassPropertyAst } from "../../lexer/phpAstDeclarationTypes";
-import type { PhpArrayEntry, PhpAstValue, PhpArrayKey } from "../../lexer/PhpAst";
+import type { OriginModelSymbol } from "../../../semantic/model/originModelSymbol";
+import type { PhpStatement, PhpAssignmentTarget } from "../../../frontend/php/phpAstTypes";
+import type { PhpMethodAst } from "../../../frontend/php/phpMethodAstTypes";
+import type { PhpClassPropertyAst } from "../../../frontend/php/phpAstDeclarationTypes";
+import type { PhpArrayEntry, PhpAstValue, PhpArrayKey } from "../../../frontend/php/PhpAst";
 import { createDomainAstJudgment, type ResourceAst } from "../../../../types/upstream/ast";
 import type {
     ResourceDefinition,
@@ -34,20 +34,20 @@ import { type ResourceName, type SourceFile, type PropertyName, type VariableNam
 import type { ModelReference, ResourceReference, ResponseReference } from "../../../../types/upstream/semanticReferences";
 import type { TruthValue, StringValue } from "../../../../types/upstream/valueObjects";
 import type { ResourceWrapping } from "../../../../types/upstream/resource";
-import { resourceProducer } from "../../operations/resourceProducer";
+import { resourceProducer } from "../../../semantic/resource-production/resourceProducer";
 import type { ResourceProducerInterface, ResourceFieldProducerInput } from "../../../../types/upstream/resourceProducerInterface";
 import type { ResourceDefinitionBindingInput, ResourceDefinitionBindingOperationInterface } from "../../../../types/upstream/resourceDefinitionBindingInterface";
 import type { ResourceModelKnowledgeDataFlow } from "../../../../types/upstream/resourceModelKnowledgeDataFlowInterface";
 type ResourceProducerOperations = ResourceProducerInterface<PhpArrayEntry, PhpStatement, PhpMethodAst, PhpClassPropertyAst, PhpAstValue, OriginModelSymbol>;
 type ResourceDefinitionBindingParameters = ResourceDefinitionBindingInput<PhpArrayEntry, PhpStatement, PhpMethodAst, ModelSymbolTable, ResourceModelKnowledgeDataFlow>;
 type ResourceDefinitionBindingOperation = ResourceDefinitionBindingOperationInterface<ResourceDefinitionBindingParameters>;
-import { projectPhpStatementsToSourceStatements } from "../../lexer/routeAst/phpAstExpressionSemanticAuthority";
-import { resolveAssignmentTarget, resolveAssignmentOperator, assignmentReferenceMode, sourceSpanFromRange } from "../../lexer/routeAst/phpAstExpressionMappings";
+import { phpAstExpressionProjectionOperations } from "../../../frontend/php/routeAst/phpAstExpressionSemanticAuthority";
+import { sourceSpanFromRange, phpAstExpressionMappingOperations } from "../../../frontend/php/routeAst/phpAstExpressionMappings";
 import { ResourceModelResolver } from "../../resolvers/resource/ResourceModelResolver";
-import { matchResourceModelBinding } from "../../symbols/resource/resourceBindingTypes";
+import { resourceModelBindingMatcher } from "../../../semantic/resource-model/resourceModelBinding";
 import { relationEqual, relationGate } from "../../../../semantic/relations/semanticRelations";
 import { relationExpand, relationFoldRight, relationOptionFold, relationProject, relationRefine } from "../../../../semantic/relations/relationalSequence";
-import { mapResourceAstExpression } from "../../operations/resourceAstExpressionMapper";
+import { resourceAstExpressionMapping } from "../../../semantic/resource-production/resourceAstExpressionMapping";
 
 const stringValue = (value: string): StringValue => ({ kind: 'string_value', value });
 const truthValue = (value: boolean): TruthValue => ({ kind: 'truth_value', value });
@@ -57,17 +57,17 @@ const sequence = <T>(items: readonly T[]): Sequence<T> =>
 
 const modelReference = (value: string): ModelReference => ({
     kind: 'model_reference',
-    name: { kind: 'model_name', value: stringValue(value) },
+    name: { kind: 'model_name', value: stringValue.create(value) },
 });
 const resourceReference = (value: string): ResourceReference => ({
     kind: 'resource_reference',
-    name: { kind: 'resource_name', value: stringValue(value) },
+    name: { kind: 'resource_name', value: stringValue.create(value) },
 });
 const responseReference = (resourceName: ResourceName): ResponseReference => ({
     kind: 'response_reference',
-    name: { kind: 'response_type_name', value: stringValue(`${resourceName.value.value}Response`) },
+    name: { kind: 'response_type_name', value: stringValue.create(`${resourceName.value.value}Response`) },
 });
-const propertyName = (value: string): PropertyName => ({ kind: 'property_name', value: stringValue(value) });
+const propertyName = (value: string): PropertyName => ({ kind: 'property_name', value: stringValue.create(value) });
 
 const keyedEntry = (entry: PhpArrayEntry) => relationRefine(
     entry,
@@ -98,7 +98,7 @@ const fieldFromEntry = (
 ): readonly ResourceField[] => relationOptionFold(
     keyedEntry(entry),
     () => [],
-    keyed => [resourceProducer.produceField({ entryKey: stringArrayKey(keyed.key), value: keyed.value, file, resource, model })],
+    keyed => [resourceProducer.produceField.produce({ entryKey: stringArrayKey(keyed.key), value: keyed.value, file, resource, model })],
 );
 
 const operationFromField = (field: ResourceField): readonly ResourceOperation[] => relationOptionFold(
@@ -118,14 +118,14 @@ const assignmentFromStatement = (
         () => [],
         target => {
             const source = sourceSpanFromRange(sourceFile, assignment.source);
-            const mapped = mapResourceAstExpression({ value: assignment.value, sourceFile });
+            const mapped = resourceAstExpressionMapping.map({ value: assignment.value, sourceFile });
             const expression: Expression = mapped.upstream;
             return [{
                 kind: 'assignment',
-                target: resolveAssignmentTarget(target, value => mapResourceAstExpression({ value, sourceFile }).upstream, sourceFile.value.value),
+                target: phpAstExpressionMappingOperations.resolveAssignmentTarget(target, value => resourceAstExpressionMapping.map({ value, sourceFile }).upstream, sourceFile.value.value),
                 expression,
-                operator: resolveAssignmentOperator(assignment.operator.kind),
-                reference: assignmentReferenceMode(assignment.reference.kind),
+                operator: phpAstExpressionMappingOperations.resolveAssignmentOperator(assignment.operator.kind),
+                reference: phpAstExpressionMappingOperations.assignmentReferenceMode(assignment.reference.kind),
                 source,
             }];
         },
@@ -133,7 +133,7 @@ const assignmentFromStatement = (
 );
 
 export const buildResourceField: ResourceProducerOperations['produceField'] = input =>
-    resourceProducer.produceField(input);
+    resourceProducer.produceField.produce(input);
 
 const resourceProperty = (field: ResourceField, source: SourceSpan): PropertyDefinition => ({
     kind: 'property',
@@ -151,7 +151,7 @@ const resourceProperty = (field: ResourceField, source: SourceSpan): PropertyDef
     source,
 });
 
-export const bindResourceDefinition: ResourceDefinitionBindingOperation = (params: ResourceDefinitionBindingParameters): ResourceAst => {
+export const bindResourceDefinition: ResourceDefinitionBindingOperation = Object.freeze((params: ResourceDefinitionBindingParameters): ResourceAst => {
     const { resourceName, entries, source, modelSymbolTable, knowledgeDataFlow, assignments = [], method, baseClass, wrapping, requestParameter, documentationMixins } = params;
     const sourceFile: SourceFile = source.file;
     const fieldNames = relationExpand(entries, entry => relationOptionFold(
@@ -167,7 +167,7 @@ export const bindResourceDefinition: ResourceDefinitionBindingOperation = (param
         knowledgeDataFlow: knowledgeDataFlow ? { kind: 'present', value: knowledgeDataFlow } : { kind: 'absent' },
     });
 
-    return matchResourceModelBinding(resolution, {
+    return resourceModelBindingMatcher.match(resolution, {
         mono: binding => {
             const model = binding.model;
             const fields: readonly ResourceField[] = relationExpand(entries, entry => fieldFromEntry(entry, sourceFile.value.value, resourceName.value.value, model));
@@ -181,11 +181,11 @@ export const bindResourceDefinition: ResourceDefinitionBindingOperation = (param
             };
             const transformation: ResourceTransformation = {
                 kind: 'resource_transformation',
-                method: { kind: 'method_name', value: stringValue(method.name) },
+                method: { kind: 'method_name', value: stringValue.create(method.name) },
                 visibility: { kind: 'public' },
                 request: { kind: 'request_parameter_declared', parameter: requestParameter },
                 returnType: { kind: 'array', element: { kind: 'mixed' } },
-                body: projectPhpStatementsToSourceStatements(method.body, sourceFile.value.value),
+                body: phpAstExpressionProjectionOperations.projectStatements(method.body, sourceFile.value.value),
                 source,
             };
             const inheritance: ResourceInheritance = { kind: 'resource_inheritance', base: baseClass, source };
@@ -249,7 +249,7 @@ export const bindResourceDefinition: ResourceDefinitionBindingOperation = (param
         poly: () => { throw Error(`Resource '${resourceName.value.value}' has multiple semantic model candidates at the AST boundary`); },
         unbacked_dto: binding => { throw Error(`Resource '${resourceName.value.value}' cannot cross the AST semantic boundary: ${binding.reason.value}`); },
     });
-}
+});
 
 export const requireVariableTargetName = (target: PhpAssignmentTarget): string =>
     relationOptionFold(variableTarget(target), () => { throw Error('Expected a variable assignment target at the Resource boundary'); }, value => value.name);

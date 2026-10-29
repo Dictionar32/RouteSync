@@ -6,7 +6,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const authority = read('packages/core/src/types/upstream/routeResourceFlow.ts');
 const names = read('packages/core/src/types/upstream/names.ts');
 const scanner = read('packages/core/src/compiler/scanner/wiring/laravelRouteScanner.ts');
-const emitter = read('packages/core/src/compiler/scanner/subscanners/route-scanner/routeEmitter.ts');
+const emitter = read('packages/core/src/compiler/scanner/operations/route-scanner/routeEmitter.ts');
 const executor = emitter.split('export function emitResourceRoutesFromJudgment(')[1].split('/** Compatibility entrypoint')[0];
 const resourceBranch = scanner.split("case 'laravel_route_declaration_method_resource': {")[1].split("case 'laravel_route_declaration_method_query': {")[0];
 const checks = [

@@ -5,7 +5,7 @@
 The Phase 1741 source trace showed a mismatch between the desired scanner boundary and the current runtime:
 
 - `packages/core/src/types/upstream/laravelControllerScannerInterface.ts` described the scanner as consuming only `InvocationSemanticIntegratedResponseCompositionInterface.integrate`.
-- `packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts` still calls `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)` and does not consume the composition interface.
+- `packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts` still calls `invocationSemanticPipeline.analyzeKnowledge(semanticKnowledgeDataFlow)` and does not consume the composition interface.
 - `InvocationSemanticIntegratedResponseCompositionInterface` is a contract-only interface; no production composition implementation or Laravel wiring exists.
 
 The interface should specify the target constraint without stating that a future migration has already happened.

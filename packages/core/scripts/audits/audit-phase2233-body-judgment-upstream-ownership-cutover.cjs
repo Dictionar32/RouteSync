@@ -2,8 +2,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
-const resolver = read('src/compiler/scanner/descriptors/request/controllerActionContract.ts');
-const scanner = read('src/compiler/scanner/subscanners/controller/actionScanner.ts');
+const resolver = read('src/compiler/scanner/operations/domain-model/request/controllerActionContract.ts');
+const scanner = read('src/compiler/scanner/operations/controller/actionScanner.ts');
 const wiring = read('src/compiler/scanner/wiring/laravelControllerExecutionDependencies.ts');
 const semantic = read('src/types/upstream/laravelControllerActionSemanticJudgmentInterface.ts');
 const execution = read('src/types/upstream/laravelControllerActionExecutionInterface.ts');
@@ -19,7 +19,7 @@ const checks = [
   ['integrated response authority remains the existing pipeline interface', /readonly judgeIntegratedResponse:/.test(response) && /LaravelControllerResponseSemanticPipelineInterface/.test(semantic)],
   ['executor forwards the exact judgment without semantic reclassification', /semanticJudgment: input\.semanticJudgment/.test(wiring) && /without-deriving-or-upgrading-either-from-the-consumer-projection/.test(execution)],
   ['no relation/foundation dependency was added to the changed authority path', !/semantic\/(relations|foundation)\//.test(resolver + scanner + wiring + semantic)],
-  ['remaining subscanner dependency is explicitly retained as open migration debt', /import \{ scanControllerAction \} from '\.\.\/subscanners\/controller'/.test(wiring) && /controllerBodySemanticJudgmentAuthority/.test(wiring)],
+  ['remaining subscanner dependency is explicitly retained as open migration debt', /import \{ scanControllerAction \} from '\.\.\/operations\/controller'/.test(wiring) && /controllerBodySemanticJudgmentAuthority/.test(wiring)],
 ];
 for (const [name, passed] of checks) process.stdout.write(`${passed ? 'PASS' : 'FAIL'} ${name}\n`);
 process.stdout.write(`${checks.filter(([, passed]) => passed).length}/${checks.length} structural checks passed\n`);

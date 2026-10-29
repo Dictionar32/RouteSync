@@ -1,0 +1,47 @@
+{
+  "phase": 2988,
+  "passed": 10,
+  "total": 10,
+  "checks": [
+    {
+      "name": "sequence algebra has no deleted relation foundation imports",
+      "passed": true
+    },
+    {
+      "name": "cursor arithmetic is owned by a scanner-domain cursor operation",
+      "passed": true
+    },
+    {
+      "name": "progress is represented by a continuation-bearing domain judgment",
+      "passed": true
+    },
+    {
+      "name": "partition validity is represented by a continuation-bearing domain judgment",
+      "passed": true
+    },
+    {
+      "name": "runtime export is an explicit interface-typed operation object",
+      "passed": true
+    },
+    {
+      "name": "legacy relationGate and relationAdvanceIndex calls are absent",
+      "passed": true
+    },
+    {
+      "name": "public sequence result remains a closed serializable ADT",
+      "passed": true
+    },
+    {
+      "name": "Phase 2987 upstream-to-CLI-to-manifest trace is retained",
+      "passed": true
+    },
+    {
+      "name": "deleted generic relation foundation files remain absent",
+      "passed": true
+    },
+    {
+      "name": "package audit command is registered",
+      "passed": true
+    }
+  ]
+}

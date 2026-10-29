@@ -1,0 +1,29 @@
+{
+  "phase": 2913,
+  "title": "Fully Typed Runtime Scanner Operations \u2014 Explicit Source Read Failure Judgment",
+  "checks": {
+    "phase2913": {
+      "passed": 13,
+      "total": 13
+    },
+    "related_phases_2906_to_2912": {
+      "passed": 82,
+      "total": 82
+    },
+    "combined": {
+      "passed": 95,
+      "total": 95
+    }
+  },
+  "typescript_transpile_diagnostics": 0,
+  "collections_ts_bytes": 0,
+  "full_project_typecheck": "not_run",
+  "build": "not_run",
+  "unit_tests": "not_run",
+  "cli_end_to_end_tests": "not_run",
+  "notes": [
+    "Unrecognized source-read error codes now have a distinct operation-owning judgment and preserve code evidence as StringValue.",
+    "The existing upstream blocker contract is reused; unrecognized errors are conservatively mapped to the existing unreadable blocker.",
+    "Platform boundary still interprets Node filesystem error codes; primitive reasoning is not claimed to be fully eliminated."
+  ]
+}

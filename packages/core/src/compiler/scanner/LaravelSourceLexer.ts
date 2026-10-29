@@ -13,23 +13,23 @@ import {
     createAstIdentifier,
     PhpAstFactory,
     matchPhpAstValue
-} from "./lexer";
-import type { TokenType, TokenDescriptor, SourceOffset, SourceLineNumber, AstIdentifier, PhpLiteralValue, PhpAstValue, PhpAstValueVisitor, PhpMicroAstVisitor, PhpArrayEntry, PhpArgument, PhpParameter, PhpClosureCapture, PhpStatement, PhpBlock, ParsedPhpArrayResult, SourceStream } from "./lexer";
-import { phpSourceTokenizer } from "./lexer/tokenizer";
-import type { PhpSourceTokenizerInterface } from "./lexer/tokenizer";
-import { phpArrayParser } from "./lexer/arrayParser";
-import type { PhpArrayParserInterface } from "./lexer/arrayParser";
-import { classifyAstTokens, classifyAstValue, classifyPhpBlock } from "./lexer/astClassifier";
-import { parseRouteDeclarations } from "./lexer/routeAst/routeDeclarationParser";
-import type { RouteDeclarationAst } from "./lexer/routeAst/routeDeclarationAst";
-import { parseControllerDeclaration, parseControllerDeclarationFromInvocationJudgment } from "./lexer/controllerDeclarationParser";
+} from "../frontend/php";
+import type { TokenType, TokenDescriptor, SourceOffset, SourceLineNumber, AstIdentifier, PhpLiteralValue, PhpAstValue, PhpAstValueVisitor, PhpMicroAstVisitor, PhpArrayEntry, PhpArgument, PhpParameter, PhpClosureCapture, PhpStatement, PhpBlock, ParsedPhpArrayResult, SourceStream } from "../frontend/php";
+import { phpSourceTokenizer } from "../frontend/php/tokenizer";
+import type { PhpSourceTokenizerInterface } from "../frontend/php/tokenizer";
+import { phpArrayParser } from "../frontend/php/arrayParser";
+import type { PhpArrayParserInterface } from "../frontend/php/arrayParser";
+import { classifyAstTokens, classifyAstValue, classifyPhpBlock } from "../frontend/php/astClassifier";
+import { routeDeclarationParser } from "../frontend/php/routeAst/routeDeclarationParser";
+import type { RouteDeclarationAst } from "../frontend/php/routeAst/routeDeclarationAst";
+import { controllerDeclarationParser } from "../frontend/php/controllerDeclarationParser";
 import type { LaravelControllerAstProjectionContext, LaravelControllerInvocationSemanticJudgmentInterface, LaravelControllerAstProjectionSemanticAuthorityInterface } from '../../types/upstream/laravelControllerInvocationSemanticJudgmentInterface';
 import { laravelControllerAstProjectionSemanticAuthority } from '../../types/upstream/laravelControllerAstProjectionSemanticAuthority';
 import { phpClassNameResolutionAuthority } from '../../types/upstream/phpClassNameResolutionAuthority';
 import type { PhpClassNameResolutionRuleInterface } from '../../types/upstream/phpClassNameResolutionInterface';
-import type { ControllerDeclarationAst } from "./lexer/controllerAstTypes";
-import { parseResponseDtoDeclaration } from './lexer/responseDtoDeclarationParser';
-import type { ResponseDtoDeclarationAst } from './lexer/responseDtoAstTypes';
+import type { ControllerDeclarationAst } from "../frontend/php/controllerAstTypes";
+import { parseResponseDtoDeclaration } from '../frontend/php/responseDtoDeclarationParser';
+import type { ResponseDtoDeclarationAst } from '../frontend/php/responseDtoAstTypes';
 
 function parseControllerDeclarationFacade(
     source: string, tokens: readonly TokenDescriptor[], className: AstIdentifier,
@@ -48,7 +48,9 @@ function parseControllerDeclarationFacade(
     projectionAuthority: LaravelControllerAstProjectionSemanticAuthorityInterface = laravelControllerAstProjectionSemanticAuthority,
     classNameResolutionAuthority: PhpClassNameResolutionRuleInterface = phpClassNameResolutionAuthority,
 ): ControllerDeclarationAst<boolean> {
-    return parseControllerDeclaration(source, tokens, className, context, projectionAuthority, classNameResolutionAuthority);
+    return context.kind === 'syntax_only'
+        ? controllerDeclarationParser.parseSyntaxOnly(source, tokens, className, context, projectionAuthority, classNameResolutionAuthority)
+        : controllerDeclarationParser.parseWithInvocationJudgment(source, tokens, className, context.judgment, projectionAuthority, classNameResolutionAuthority);
 }
 
 // Explicit named re-exports (Rule 14: 0 wildcard re-exports)
@@ -88,9 +90,8 @@ export {
     classifyAstTokens,
     classifyAstValue,
     classifyPhpBlock,
-    parseRouteDeclarations,
-    parseControllerDeclaration,
-    parseControllerDeclarationFromInvocationJudgment,
+    routeDeclarationParser,
+    controllerDeclarationParser,
     parseResponseDtoDeclaration
 };
 
@@ -101,9 +102,9 @@ export const LaravelSourceLexer = Object.freeze({
     classifyAstValue: (raw: string): PhpAstValue => classifyAstValue(raw),
     classifyAstTokens: (exprTokens: readonly TokenDescriptor[]): PhpAstValue => classifyAstTokens(exprTokens),
     classifyPhpBlock: (tokens: readonly TokenDescriptor[]): PhpBlock => classifyPhpBlock(tokens),
-    parseRouteDeclarations: (tokens: readonly TokenDescriptor[]): readonly RouteDeclarationAst[] => parseRouteDeclarations(tokens),
+    parseRouteDeclarations: (tokens: readonly TokenDescriptor[]): readonly RouteDeclarationAst[] => routeDeclarationParser.parse(tokens),
     parseControllerDeclaration: parseControllerDeclarationFacade,
-    parseControllerDeclarationFromInvocationJudgment: (source: string, tokens: readonly TokenDescriptor[], className: AstIdentifier, invocationJudgment: LaravelControllerInvocationSemanticJudgmentInterface, projectionAuthority: LaravelControllerAstProjectionSemanticAuthorityInterface = laravelControllerAstProjectionSemanticAuthority, classNameResolutionAuthority: PhpClassNameResolutionRuleInterface = phpClassNameResolutionAuthority): ControllerDeclarationAst => parseControllerDeclarationFromInvocationJudgment(source, tokens, className, invocationJudgment, projectionAuthority, classNameResolutionAuthority),
+    parseControllerDeclarationFromInvocationJudgment: (source: string, tokens: readonly TokenDescriptor[], className: AstIdentifier, invocationJudgment: LaravelControllerInvocationSemanticJudgmentInterface, projectionAuthority: LaravelControllerAstProjectionSemanticAuthorityInterface = laravelControllerAstProjectionSemanticAuthority, classNameResolutionAuthority: PhpClassNameResolutionRuleInterface = phpClassNameResolutionAuthority): ControllerDeclarationAst => controllerDeclarationParser.parseWithInvocationJudgment(source, tokens, className, invocationJudgment, projectionAuthority, classNameResolutionAuthority),
     parseResponseDtoDeclaration: (tokens: readonly TokenDescriptor[], className: AstIdentifier): ResponseDtoDeclarationAst => parseResponseDtoDeclaration(tokens, className),
     matchAstValue: <R>(ast: PhpAstValue, visitor: PhpAstValueVisitor<R>): R => matchPhpAstValue(ast, visitor),
 });

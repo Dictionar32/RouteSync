@@ -4,7 +4,7 @@ import type { ControlFlowGraph, BasicBlock, Instruction, Operand } from '../../u
 import { basicBlockLookup, basicBlockReplace, createControlFlowGraph, type BasicBlockRelation } from '../../utils/ControlFlowGraph';
 import type { DominanceFrontier } from '../DominatorAnalysis';
 import { relationContains, relationInsert } from '../../../semantic/relations/relationMembership';
-import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/relations/relationFoundation';
+import { relationOptionFold, relationResolve, relationEqual } from '../../../semantic/relations/semanticRelations';
 import { relationVariantValue } from '../../../semantic/relations/relationalSequence';
 import { relationAll, relationFold } from '../../../semantic/relations/relationalSequence';
 

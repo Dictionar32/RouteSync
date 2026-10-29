@@ -10,12 +10,12 @@ import { ErrorType } from "../../../../types/domain/semanticType";
 import { toCamelCase } from "../../../../utils/resource-naming";
 import { ResourceFieldExpressionFactory } from "../../../../types/route";
 
-export function bindWhenLoadedField(
-    key: string,
-    relationName: RelationName,
-    modelSymbol: OriginModelSymbol,
-): BoundResourceFieldResult {
+export interface BindWhenLoadedFieldOperation {
+  (key: string, relationName: RelationName, modelSymbol: OriginModelSymbol): BoundResourceFieldResult;
+}
+
+export const bindWhenLoadedField: BindWhenLoadedFieldOperation = Object.freeze((key: string, relationName: RelationName, modelSymbol: OriginModelSymbol): BoundResourceFieldResult => {
     const resolution = resolveWhenLoadedRelation(modelSymbol, relationName);
     return bindWhenLoadedResolution(key, resolution);
-}
+});
 

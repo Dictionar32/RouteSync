@@ -6,14 +6,14 @@ import type { Sequence } from './collections';
 
 const source = Object.freeze({
   kind: 'source_span' as const,
-  file: Object.freeze({ kind: 'source_file' as const, value: stringValue('Controller.php') }),
+  file: Object.freeze({ kind: 'source_file' as const, value: stringValue.create('Controller.php') }),
   start: Object.freeze({ kind: 'number_value' as const, value: 0 }),
   end: Object.freeze({ kind: 'number_value' as const, value: 1 }),
 });
 
 const named = (name: 'only' | 'except', value: Expression): ExpressionArgument => Object.freeze({
   kind: 'named',
-  name: Object.freeze({ kind: 'expression_argument_name', value: stringValue(name) }),
+  name: Object.freeze({ kind: 'expression_argument_name', value: stringValue.create(name) }),
   value,
 });
 
@@ -27,7 +27,7 @@ const argumentsOf = (items: readonly ExpressionArgument[]): ExpressionArguments 
 
 const dynamicMethods = (): Expression => Object.freeze({
   kind: 'variable',
-  name: Object.freeze({ kind: 'variable_name', value: stringValue('methods') }),
+  name: Object.freeze({ kind: 'variable_name', value: stringValue.create('methods') }),
   source,
 });
 

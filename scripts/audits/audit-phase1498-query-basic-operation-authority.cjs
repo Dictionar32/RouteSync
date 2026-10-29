@@ -4,7 +4,7 @@ const root = path.resolve(__dirname, '../..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const iface = read('packages/core/src/types/upstream/queryProducerSemanticInterface.ts');
 const algebra = read('packages/core/src/types/upstream/queryProducerSemanticAlgebra.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/queryEvidenceProducer.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/queryEvidenceProducer.ts');
 const checks = [
   ['interface declares closed basic-operation authority', /resolveQueryBasicOperation:\s*\(methodName: string, arguments_: readonly Expression\[\]\) => QueryProducerSemanticJudgment<QueryOperationAst>/.test(iface)],
   ['algebra owns where-family names and operation construction', /const resolveQueryBasicOperation/.test(algebra) && /methodName === 'where'/.test(algebra) && /methodName === 'orWhereNot'/.test(algebra)],

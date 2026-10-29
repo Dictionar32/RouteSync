@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const ts = require('typescript');
 const targets = [
-  'packages/core/src/compiler/scanner/lexer/routeAst/semanticRelationSolver.ts',
-  'packages/core/src/compiler/scanner/lexer/routeAst/syntaxErrorRelationCore.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/semanticRelationSolver.ts',
+  'packages/core/src/compiler/frontend/php/routeAst/syntaxErrorRelationCore.ts',
   'packages/core/src/compiler/passes/adapter/contractValidator.ts',
 ].map(file => path.join(process.cwd(), file));
 const checks = {

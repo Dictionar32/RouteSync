@@ -4,9 +4,9 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const exists = relative => fs.existsSync(path.join(root, relative));
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const semantic = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticKnowledgeDataFlowRelations.ts');
-const semanticAnalyzer = read('packages/core/src/compiler/scanner/lexer/routeAst/semanticDataFlowAnalyzer.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const semantic = read('packages/core/src/compiler/frontend/php/routeAst/semanticKnowledgeDataFlowRelations.ts');
+const semanticAnalyzer = read('packages/core/src/compiler/frontend/php/routeAst/semanticDataFlowAnalyzer.ts');
 const upstreamController = read('packages/core/src/types/upstream/controller.ts');
 
 const forbidden = /\b(?:if|while|for|switch|map|filter|reduce|flatMap|undefined|null|any|new)\b|\?\.|===|\bas\b|unknown/;

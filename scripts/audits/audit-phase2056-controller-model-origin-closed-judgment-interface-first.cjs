@@ -5,7 +5,7 @@ const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const contract = read('packages/core/src/types/upstream/controllerResourceBindingInterface.ts');
 const authority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
-const scanner = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const scanner = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const test = read('packages/core/src/types/upstream/__tests__/controller-model-origin-closed-judgment.phase2056.test.ts');
 const report = read('packages/core/src/types/upstream/docs/PHASE2056_CONTROLLER_MODEL_ORIGIN_CLOSED_JUDGMENT_INTERFACE_FIRST.md');
 const checks = [

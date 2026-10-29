@@ -10,7 +10,7 @@ const checks = [
   ['SymbolTable API is exported as types, not runtime values', 'packages/core/src/index.ts', "export type { SymbolTable, ModelSymbol } from './semantic/SymbolTable'"],
   ['core entry exports SourceStream as a type', 'packages/core/src/index.ts', 'type SourceStream,'],
   ['compiler entry exports SourceStream as a type', 'packages/core/src/compiler/index.ts', 'type SourceStream,'],
-  ['lexer barrel exports SourceStream as a type', 'packages/core/src/compiler/scanner/lexer/index.ts', 'export type { SourceStream } from "./SourceStream";'],
+  ['lexer barrel exports SourceStream as a type', 'packages/core/src/compiler/frontend/php/index.ts', 'export type { SourceStream } from "./SourceStream";'],
   ['LaravelSourceLexer exports SourceStream as a type', 'packages/core/src/compiler/scanner/LaravelSourceLexer.ts', '    SourceStream,'],
 ];
 let failed = 0;
@@ -20,7 +20,7 @@ for (const [label, relative, needle] of checks) {
   process.stdout.write(`${pass ? 'PASS' : 'FAIL'} ${label}\n`);
   if (!pass) failed += 1;
 }
-const syntaxRange = fs.readFileSync(path.join(root, 'packages/core/src/compiler/scanner/lexer/routeAst/syntaxRange.ts'), 'utf8');
+const syntaxRange = fs.readFileSync(path.join(root, 'packages/core/src/compiler/frontend/php/routeAst/syntaxRange.ts'), 'utf8');
 const duplicateImport = (syntaxRange.match(/import\s*\{[^}]*\brelationResolve\b[^}]*\}\s*from\s*['"]\.\.\/\.\.\/\.\.\/relational\/sequence['"];?/g) || []).length;
 const pass = duplicateImport <= 1;
 process.stdout.write(`${pass ? 'PASS' : 'FAIL'} syntaxRange has no duplicate relationResolve import (${duplicateImport})\n`);

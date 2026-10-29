@@ -29,7 +29,7 @@ const graphProjection = read('packages/core/src/graph/RouteSyncManifestGraphProj
 const graphInterface = read('packages/core/src/graph/RouteSyncManifestGraphProjectionInterface.ts');
 const dataflowInterface = read('packages/core/src/compiler/analysis/routeSyncManifestDataflowProjectionInterface.ts');
 const manifest = read('packages/core/src/types/upstream/manifest.ts');
-const modelCanonical = read('packages/core/src/compiler/scanner/subscanners/model/modelCanonical.ts');
+const modelCanonical = read('packages/core/src/compiler/scanner/operations/model/modelCanonical.ts');
 const checks = {
   upstreamNoCompilerImports: upstreamFiles.concat(domainFiles, semanticFiles).every((p) => !compilerImport.test(read(p))),
   canonicalRelationAuthority: relationSource.includes("kind: 'model_relation'") && relationSource.includes("kind: 'route_controller'") && relationSource.includes("kind: 'controller_dependency'"),

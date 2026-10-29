@@ -1,0 +1,22 @@
+{
+  "phase": 3103,
+  "scope": "replace the CLI filesystem directory-read generic handler/visitor boundary with concrete source-discovery domain operations",
+  "directoryReadSettlementUsesNamedDiscoveryOperation": true,
+  "directoryReadSettlementHasNoGenericHandlers": true,
+  "entriesVariantDelegatesToTypedDiscoveryOperation": true,
+  "blockedVariantPreservesOriginalDiscoveryResult": true,
+  "directoryEntryTraversalNamedAsOperationNotVisitor": true,
+  "runtimeSettlementUsesNamedOperation": true,
+  "noGenericDirectoryReadContinuationRemains": true,
+  "sourceDiscoveryBlockerAndPartialEvidenceFieldsRemain": true,
+  "repositoryExportFrontierStillExplicitlyTracked": true,
+  "currentExportFunctionDeclarations": 520,
+  "currentExportedArrowVariableDeclarations": 459,
+  "currentTotalNamedExportFunctionCandidates": 979,
+  "currentGenericContinueWithArrowImplementations": 61,
+  "repositoryWideExportConversionStatus": "incomplete",
+  "noDeletedRelationFoundationRestored": true,
+  "fullTypecheckVerified": false,
+  "fullTestSuiteVerified": false,
+  "phpToCliManifestGeneratorE2eVerified": false
+}

@@ -5,7 +5,7 @@ const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const checks = [];
 const check = (label, condition) => checks.push({ label, passed: Boolean(condition) });
 
-const astRuntime = read('packages/core/src/compiler/scanner/lexer/astClassifierRuntime.ts');
+const astRuntime = read('packages/core/src/compiler/frontend/php/astClassifierRuntime.ts');
 const astPort = read('packages/core/src/types/upstream/astClassifierEvidenceContract.ts');
 const expressionJudgment = read('packages/core/src/types/upstream/scannerExpressionJudgmentInterface.ts');
 const invocationJudgment = read('packages/core/src/types/upstream/laravelControllerInvocationSemanticJudgmentInterface.ts');
@@ -19,7 +19,7 @@ check('AST legacy relation dependency is explicitly detected, not falsely marked
 check('invocation outcome ADT retains complete and blocked outcomes', invocationJudgment.includes('php_source_invocation_integration_complete') && invocationJudgment.includes('php_source_invocation_integration_blocked'));
 check('Laravel scanner contract still requires the closed inventory receipt', /contractVersion: 26/.test(scannerContract) && scannerContract.includes('LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt'));
 check('scanner wiring forwards exact invocation and response judgments to AST projection', scannerWiring.includes('judgment: invocationJudgment') && scannerWiring.includes('responseJudgment'));
-check('no relation/foundation subscanner was added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/subscanners/foundation')));
+check('no relation/foundation subscanner was added', !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/relation')) && !fs.existsSync(path.join(root, 'packages/core/src/compiler/scanner/operations/foundation')));
 check('trace explicitly prohibits claiming relation-free AST prematurely', trace.includes('Do not describe AST as relation-free until'));
 
 for (const item of checks) console.log(`${item.passed ? 'PASS' : 'FAIL'} ${item.label}`);

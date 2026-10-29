@@ -350,7 +350,7 @@ export {
     type RouteSemanticFlowParams,
     type ScannedRouteParameterParams,
     type ScannedRouteQueryParameterParams,
-      compileBroadcastRuntimePattern,
+      broadcastRuntimePatternCompiler,
     ScannedFormFieldDescriptor,
     type ScannedFormFieldParams,
     ScannedFormActionDescriptor,

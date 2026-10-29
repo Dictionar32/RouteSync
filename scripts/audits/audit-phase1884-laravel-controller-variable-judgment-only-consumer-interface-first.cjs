@@ -4,15 +4,15 @@ const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = (file) => fs.existsSync(path.join(root, file));
 const controllerTypes = read('packages/core/src/types/upstream/controller.ts');
-const analyzer = read('packages/core/src/compiler/scanner/lexer/controllerDataflowAnalyzer.ts');
-const contract = read('packages/core/src/compiler/scanner/subscanners/controller/controllerDataflowContract.ts');
+const analyzer = read('packages/core/src/compiler/frontend/php/controllerDataflowAnalyzer.ts');
+const contract = read('packages/core/src/compiler/scanner/operations/controller/controllerDataflowContract.ts');
 const resourceAuthority = read('packages/core/src/types/upstream/controllerResourceBindingAuthority.ts');
 const semanticInterface = read('packages/core/src/types/upstream/controllerVariableSemanticInterface.ts');
 const scannerBoundary = read('packages/core/src/types/upstream/laravelControllerScannerInterface.ts');
 const scannerImplementation = read('packages/core/src/compiler/scanner/wiring/laravelControllerScanner.ts');
 const barrel = read('packages/core/src/types/upstream/index.ts');
 const packageJson = JSON.parse(read('package.json'));
-const controllerDir = 'packages/core/src/compiler/scanner/subscanners/controller';
+const controllerDir = 'packages/core/src/compiler/scanner/operations/controller';
 const checks = [
   ['ControllerVariableDefinition has one semantic owner: the closed judgment', /interface ControllerVariableDefinition[\s\S]*readonly semanticResolution: ControllerVariableSemanticJudgment/.test(controllerTypes) && !/interface ControllerVariableDefinition[\s\S]*readonly semantic: ControllerVariableSemantic;/.test(controllerTypes)],
   ['legacy semantic sidecar projection is removed from the analyzer', !/semanticProjection/.test(analyzer) && !/semantic: semanticProjection/.test(analyzer)],

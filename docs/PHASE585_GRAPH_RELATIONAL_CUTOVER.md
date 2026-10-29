@@ -33,7 +33,7 @@ The design follows the strongest common direction across declarative compiler sy
 
 Phase 585 intentionally closes the graph resolver surface first. The remaining frontier is now concentrated in:
 
-1. scanner/lexer construction boundaries (`SourceStream`, static catalogs, controller scanner maps),
+1. frontend/php construction boundaries (`SourceStream`, static catalogs, controller scanner maps),
 2. resolver/AST/upstream mapping and source-model indexing,
 3. analysis/verification passes,
 4. semantic type lowering and constructor-based semantic ADTs.

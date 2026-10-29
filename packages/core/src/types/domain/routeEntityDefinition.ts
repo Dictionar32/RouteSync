@@ -14,9 +14,7 @@ import {
   type SourceLineNumber,
 } from './semanticValues';
 import type { HttpMethod } from './httpVocabulary';
-import { relationGate, relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
-import { relationTextStartsWith } from '../../semantic/relations/relationalSequence';
+
 
 export type { RouteName, RoutePath, PropertyName, SourceFilePath, SourceLineNumber };
 

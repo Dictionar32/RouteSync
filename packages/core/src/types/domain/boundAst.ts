@@ -26,7 +26,6 @@ import type {
 } from './semanticValues';
 import type { EloquentRelationType } from './eloquentTypes';
 import type { QueryProjectionSurface } from './semanticResolution';
-import { relationEqual, relationOptionFold, relationRefine } from '../../semantic/relations/semanticRelations';
 
 export type BoundSemanticKind =
   | 'bound_primitive'

@@ -1,5 +1,4 @@
 /** Compatibility entry point: constraint execution uses the canonical rewrite executor. */
-import type { SemanticRelation } from '../../semantic/relations/semanticRewriteEngine';
 import type { SemanticConstraintProgram, SemanticConstraintSolveResult } from './semanticConstraintInterface';
 import { semanticRewriteRuntimeExecutor } from './semanticRewriteRuntimeExecutor';
 

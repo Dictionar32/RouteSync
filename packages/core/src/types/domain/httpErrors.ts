@@ -6,7 +6,6 @@ import type { HttpErrorSchema as UpstreamHttpErrorSchema, HttpErrorSchemaField a
 import type { RequestRuntimeValue } from "./requestModels";
 import { HttpStatusCode } from "./httpVocabulary";
 import { SemanticValueFactory, type HttpErrorName, type ResponseTypeName } from "./semanticValues";
-import { relationGate } from "../../semantic/relations/relationalSequence";
 
 export interface RouteQueryParameter {
   readonly name: RouteParameterName;
@@ -224,5 +223,4 @@ export const httpErrorResponseNotFound = (): HttpErrorResponseDescriptor => http
 export const httpErrorResponseServerError = (): HttpErrorResponseDescriptor => httpErrorResponseFromKind(HttpErrorKind.ServerError);
 export const httpErrorResponseBadRequest = (): HttpErrorResponseDescriptor => createHttpErrorResponse({ kind: HttpErrorKind.Custom, statusCode: HttpStatusCode.BadRequest, name: 'BadRequest', typeName: 'LaravelBadRequestError' });
 export const httpErrorResponseCustom = (statusCode: HttpStatusCode, name: string, typeName?: string, schema?: HttpErrorSchema): HttpErrorResponseDescriptor => createHttpErrorResponse({ kind: HttpErrorKind.Custom, statusCode, name, typeName, schema });
-
 

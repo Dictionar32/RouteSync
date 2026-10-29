@@ -19,8 +19,6 @@ import { semanticReasoningContract, type SemanticReasoningContract } from './sem
 import { RouteSemanticFlowCacheInvalidationDescriptor } from '../domain/cacheInvalidation';
 import type { Presence } from './primitiveVocabulary';
 import { presenceFold, presenceOf } from './presence';
-import { relationAny, relationEqual, relationGate } from '../../semantic/relations/semanticRelations';
-import { relationProject, relationTextSlice, relationVariantFold } from '../../semantic/relations/relationalSequence';
 import type { BaseValidationRuleNode } from '../domain/validationRules';
 import { createActionName, type ActionName, type DomainTypeName, type RoutePath } from './names';
 import type { RouteCapabilityCrudEvidence } from './route';

@@ -5,7 +5,6 @@ import { createClassName, createMethodName, createModelName, stringValue, source
 import { numberValue } from '../valueObjects';
 import type { SourceSpan } from '../provenance';
 import type { Expression } from '../expression';
-import { RELATION_NONE } from '../../../semantic/relations/relationalSequence';
 import { queryOperationSemanticRuleRequirements, validateQueryOperationSemanticRuleCatalog, type QueryOperationSemanticRuleDeclaration } from '../queryProducerSemanticInterface';
 
 const source: SourceSpan = { kind: 'source_span', file: sourceFileIdentityFactory.create(stringValue.create('User.php')), start: numberValue(0), end: numberValue(12) };

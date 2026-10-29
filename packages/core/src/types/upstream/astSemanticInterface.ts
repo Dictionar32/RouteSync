@@ -23,18 +23,6 @@ import type {
   AstWitnessName,
 } from './ast';
 import { astSequenceOperations } from './ast';
-import {
-  relationAny,
-  relationAll,
-  relationEqual,
-  relationFixedPoint,
-  relationFold,
-  relationSelect,
-  relationProject,
-  relationResolve,
-  relationVariantFold,
-} from '../../semantic/relations/relationalSequence';
-import { relationUnique } from '../../semantic/relations/relationMembership';
 import { numberValue, stringValue, type NumberValue, type StringValue } from './valueObjects';
 import { semanticReasoningContract, type SemanticReasoningContract } from './semanticReasoning';
 

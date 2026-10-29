@@ -4,15 +4,8 @@
  * The relation program owns semantic classification. The executor only consumes
  * the derived projection operation and invokes the corresponding constructor.
  */
-import {
-    solveSemanticRelations,
-    type SemanticRelation,
-    type SemanticRelationRewrite,
-} from '../../semantic/relations/semanticRewriteEngine';
 import type { PrimitiveVocabulary } from '../upstream/primitiveVocabulary';
 import type { TypeExpression } from '../upstream/typeVocabulary';
-import { relationAny, relationAll, relationEqual } from '../../semantic/relations/semanticRelations';
-import { relationFirst, relationOptionFold, relationProject } from '../../semantic/relations/relationalSequence';
 
 export type TypeExpressionProjection =
     | 'primitive'

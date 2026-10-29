@@ -4,8 +4,7 @@ import type { QueryOperationAst } from './query';
 import type { MethodName, ModelName, PropertyName, RelationName } from './names';
 import type { DescriptionText, NumberValue } from './valueObjects';
 import type { SourceSpan } from './provenance';
-import type { RelationOption } from '../../semantic/relations/relationalSequence';
-type RelationNoneValue = typeof import('../../semantic/relations/relationalSequence').RELATION_NONE;
+type RelationNoneValue = unknown;
 
 export type QueryJoinMethodName =
   | 'join' | 'leftJoin' | 'rightJoin' | 'crossJoin'

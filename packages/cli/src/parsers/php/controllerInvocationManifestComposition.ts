@@ -547,16 +547,16 @@ const discoveredSourcesContinuationOperation: DiscoveredSourcesContinuationOpera
       discoveredSources,
       dependencies.sourceDocumentReader,
     );
-    const sourceReadBatch = phpSourceDocumentReadOperationBatchFactory.fromSettlements(settledSourceReads);
-    if (sourceReadBatch.kind === 'php_source_document_read_operation_batch_rejected') {
-      const rejectedBatch = sourceReadBatch.preserveRejectedEvidence();
+    const operationReadBatch = phpSourceDocumentReadOperationBatchFactory.fromSettlements(settledSourceReads);
+    if (operationReadBatch.kind === 'php_source_document_read_operation_batch_rejected') {
+      const rejectedBatch = operationReadBatch.preserveRejectedEvidence();
       return Promise.resolve(controllerInvocationManifestTerminalOperationsFactory.sourceDocumentReadOperationRejected(Object.freeze({
         kind: 'controller_invocation_manifest_source_document_read_operation_rejected',
         sourceFiles: rejectedBatch.sourceFiles,
         rejections: rejectedBatch.rejections,
       })));
     }
-    const identityBatch = sourceReadBatch.bindIdentityBatch(
+    const identityBatch = operationReadBatch.bindIdentityBatch(
       phpSourceDocumentIdentityBindingBatchFactory,
       dependencies.sourceDocumentIdentityBinding,
     );
@@ -567,9 +567,9 @@ const discoveredSourcesContinuationOperation: DiscoveredSourcesContinuationOpera
         rejections: rejectedBatch.rejections,
       })));
     }
-    const sourceReadBatch = identityBatch.toSourceReadBatch(phpSourceDocumentReadBatchFactory);
-    if (sourceReadBatch.kind === 'php_source_document_read_batch_blocked') {
-      const blockedBatch = sourceReadBatch.preserveBlockedEvidence();
+    const boundReadBatch = identityBatch.toSourceReadBatch(phpSourceDocumentReadBatchFactory);
+    if (boundReadBatch.kind === 'php_source_document_read_batch_blocked') {
+      const blockedBatch = boundReadBatch.preserveBlockedEvidence();
       return Promise.resolve(controllerInvocationManifestTerminalOperationsFactory.sourceDocumentsBlocked(Object.freeze({
         kind: 'controller_invocation_manifest_source_documents_blocked',
         partialDocuments: blockedBatch.partialDocuments,
@@ -579,7 +579,7 @@ const discoveredSourcesContinuationOperation: DiscoveredSourcesContinuationOpera
       })));
     }
     return completeDocumentsContinuationOperation.continue(Object.freeze({
-      documents: sourceReadBatch.provideDocumentsForSemanticPipeline(),
+      documents: boundReadBatch.provideDocumentsForSemanticPipeline(),
       discoverySourceProject,
       sourceProject,
       routeSelection,

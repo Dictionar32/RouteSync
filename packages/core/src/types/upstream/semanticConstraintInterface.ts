@@ -1,9 +1,4 @@
 /** Typed constraint calculus contract shared by upstream authority and runtime executor. */
-import type {
-  SemanticRelation,
-  SemanticRelationAtom,
-  SemanticRelationPattern,
-} from '../../semantic/relations/semanticRewriteEngine';
 
 export type SemanticConstraintTerm = SemanticRelationAtom | Readonly<{ readonly variable: string }>;
 export type SemanticConstraint =
@@ -65,4 +60,3 @@ export interface SemanticConstraintAuthorityCapability {
     maxRounds?: number,
   ) => SemanticConstraintSolveResult<R>;
 }
-

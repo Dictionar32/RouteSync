@@ -1,8 +1,4 @@
 /** Upstream contract for declarative CHR-style semantic constraint reasoning. */
-import type {
-  SemanticRelation,
-  SemanticRelationPattern,
-} from '../../semantic/relations/semanticRewriteEngine';
 
 export type ConstraintHandlingMode = 'propagation' | 'simplification' | 'simpagation';
 
@@ -36,4 +32,3 @@ export interface SemanticConstraintHandlingAuthorityInterface {
   readonly kind: 'semantic_constraint_handling_authority';
   readonly solve: <R extends string>(seed: readonly SemanticRelation<R>[], rules: readonly ConstraintHandlingRule<R>[], maxRounds?: number) => ConstraintHandlingResult<R>;
 }
-

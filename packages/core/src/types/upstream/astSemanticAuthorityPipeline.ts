@@ -12,8 +12,6 @@ import { astSemanticInterface } from './astSemanticInterface';
 import type { AstSemanticInterface } from './astSemanticInterface';
 import { astSemanticInterfaceFacts, astSemanticInterfaceProofs, astSemanticPipelineInterfaces, type AstSemanticStageInterface } from './astSemanticStageInterfaceAlgebra';
 import { astSemanticStageTopologyAuthority } from './astSemanticStageContract';
-import { relationFirstOption, relationFold, relationOptionFold, relationRefine } from '../../semantic/relations/relationalSequence';
-import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
 import type { AstSemanticStageTransition } from './astSemanticStageTransition';
 import { astSemanticStageTransitionAuthority } from './astSemanticStageTransition';
 

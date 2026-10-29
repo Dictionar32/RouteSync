@@ -5,7 +5,6 @@
  * It deliberately does not import the solver or implement reasoning.
  */
 import type { SemanticConstraintAuthorityCapability } from './semanticConstraintInterface';
-import type { SemanticRelation, SemanticRelationDerivation, SemanticRelationRewrite } from '../../semantic/relations/semanticRewriteEngine';
 
 export type SemanticRewriteTerm =
   | Readonly<{ readonly kind: 'text_term'; readonly value: string }>

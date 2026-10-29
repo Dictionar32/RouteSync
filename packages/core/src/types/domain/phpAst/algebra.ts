@@ -8,7 +8,6 @@
  */
 
 import type { PhpAstNode, ArrayEntryAstNode } from './nodes';
-import { relationProject, relationOptionFold, relationRefine, relationEqual } from '../../../semantic/relations/relationalSequence';
 import type { PhpArgument, PhpPropertyName, PhpBlock, PhpStatement, PhpReturnExpression, ArrayKey } from './astValues';
 import type { PropertyLookupAstNode, NullsafePropertyLookupAstNode, OffsetLookupAstNode, StaticPropertyLookupAstNode, FunctionCallAstNode, MethodCallAstNode, NullsafeMethodCallAstNode, StaticMethodCallAstNode, VariableCallAstNode, NewInstanceAstNode, ClosureAstNode, ArrowFuncAstNode, BinaryAstNode, UnaryAstNode, TypeCastAstNode, TernaryAstNode, ArrayAstNode, LiteralAstNode, StaticConstantAstNode, VariableAstNode, UnsupportedAstNode } from './nodes';
 

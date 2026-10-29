@@ -1,7 +1,6 @@
 import { createResponseTypeName } from './names';
 import type { ResponseValueContract } from '../domain/responseContracts';
 import type { TypeExpression } from './typeVocabulary';
-import type { Sequence } from '../../semantic/relations/relationalSequence';
 import type {
   LaravelDtoResponseValueProjectionContract,
   LaravelDtoResponseValueProjectionInput,

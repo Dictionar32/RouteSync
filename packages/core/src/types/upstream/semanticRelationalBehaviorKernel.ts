@@ -1,4 +1,3 @@
-import { visit } from '../../semantic/relations/semanticRelationalCollections';
 /**
  * Phase 267 — construct-free semantic behavior kernel.
  *
@@ -8,7 +7,6 @@ import { visit } from '../../semantic/relations/semanticRelationalCollections';
  * a closed rewrite result. `maxRounds` is a per-stage budget; the reported
  * `rounds` value is the sum of completed work across the stages reached.
  */
-import type { SemanticRelation, SemanticRelationAtom, SemanticRelationDerivation } from '../../semantic/relations/semanticRewriteEngine';
 import { semanticRewriteAuthority } from './semanticRewriteAuthority';
 import type { SemanticConstraintDerivation, SemanticConstraintSolveResult } from './semanticConstraintInterface';
 import { semanticTheoryFact, validateSemanticTheoryFact } from './semanticRelationTheory';

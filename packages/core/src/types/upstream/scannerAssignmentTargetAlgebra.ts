@@ -5,7 +5,6 @@
  * A compatibility facade adapts the former cursor-oriented contract for legacy
  * callers; it contains no independent target-recognition algorithm.
  */
-import type { RelationOption } from '../../semantic/relations/semanticRelations';
 import {
   scannerTokenStructureInterface,
   type DelimitedTokenJudgment,

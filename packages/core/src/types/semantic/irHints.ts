@@ -7,7 +7,6 @@
  */
 
 import type { PhpAstNode } from '../domain/phpAst';
-import { relationFirstOption, relationOptionFold } from '../../semantic/relations/relationalSequence';
 
 export type IRKind =
   | "raw_code"

@@ -18,8 +18,6 @@ import {
   type AstSemanticJudgment,
   type AstSemanticTerm,
 } from './astSemanticInterface';
-import { relationFold, relationProject, relationResolve, relationLookup, relationOptionFold } from '../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
 import type { AstSemanticStageProof } from './astSemanticStageProof';
 import { astSemanticStageProofOperations } from './astSemanticStageProof';
 import type {

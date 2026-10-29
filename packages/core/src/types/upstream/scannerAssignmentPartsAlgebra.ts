@@ -6,7 +6,6 @@
  * wiring; it translates its cursor result into the same occurrence judgment,
  * then projects the canonical judgment back to the legacy result shape.
  */
-import { relationEqual, relationOptionFold, type RelationOption } from '../../semantic/relations/relationalSequence';
 import type { TokenStructureResolution } from './scannerTokenStructureAlgebra';
 import type {
   AssignmentOperatorRule,

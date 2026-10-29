@@ -1,4 +1,3 @@
-import type { RelationOption } from '../../semantic/relations/relationalSequence';
 
 /**
  * Declarative semantic-decision contract.

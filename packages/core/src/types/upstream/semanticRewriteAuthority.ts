@@ -1,12 +1,4 @@
 /** Concrete upstream semantic rewrite authority; delegates to the canonical foundation solver. */
-import {
-  solveSemanticRelationsDetailed,
-  type SemanticRelation,
-  type SemanticRelationRewrite,
-} from '../../semantic/relations/semanticRewriteEngine';
-import { relationEqual, relationOptionFold, relationGate } from '../../semantic/relations/semanticRelations';
-import { relationProject, relationVariant } from '../../semantic/relations/relationalSequence';
-import { relationContains, relationInsert } from '../../semantic/relations/relationMembership';
 import { resolveSemanticConstraints } from './semanticConstraintAuthority';
 import type {
   SemanticRewriteAuthorityInterface,

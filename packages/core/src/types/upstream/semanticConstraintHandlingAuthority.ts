@@ -1,10 +1,4 @@
 /** Upstream CHR-style constraint reasoning authority. */
-import { relationContains, relationUnique } from '../../semantic/relations/relationMembership';
-import { expand, project, retain } from '../../semantic/relations/semanticRelationalCollections';
-import { relationResolve, relationAt, relationOptionFold, type RelationOption } from '../../semantic/relations/relationalSequence';
-import { relationAll, relationAny, relationEqual, relationIsSome, relationNotEqual } from '../../semantic/relations/semanticRelations';
-import type { SemanticRelation, SemanticRelationBindings, SemanticRelationPattern } from '../../semantic/relations/semanticRewriteEngine';
-import { matchSemanticRelationPattern, instantiateSemanticRelationPattern } from '../../semantic/relations/semanticRewriteEngine';
 import type { ConstraintHandlingResult, ConstraintHandlingRule, SemanticConstraintHandlingAuthorityInterface } from './semanticConstraintHandlingInterface';
 
 type Bindings = SemanticRelationBindings;

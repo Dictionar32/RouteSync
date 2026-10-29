@@ -6,8 +6,6 @@
  * belong to this upstream authority rather than a compiler-local analyzer.
  */
 import { stringValue } from './valueObjects';
-import { relationAny, relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
-import { relationFixedPoint, relationProject, relationSelect, relationExpand, relationFirstOption, relationOptionFold, relationVariantFold, relationAt, relationAnyMatch, relationIndexOf } from '../../semantic/relations/relationalSequence';
 import type {
   SemanticDataflowFact,
   SemanticDataflowIdentity,

@@ -1,5 +1,3 @@
-import type { Lookup } from '../../types/upstream/collections';
-import { matchLookup } from '../../types/upstream/collections';
 import type { ClassReference, ModelReference, ServiceReference } from '../../types/upstream/semanticReferences';
 
 export type GraphNodeReference = ClassReference | ModelReference | ServiceReference;

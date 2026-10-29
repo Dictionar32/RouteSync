@@ -1,5 +1,4 @@
 /** Runtime composition only: semantic decisions remain owned by the injected upstream authority. */
-import type { SemanticRelation } from '../../semantic/relations/semanticRewriteEngine';
 import { semanticRewriteAuthority } from './semanticRewriteAuthority';
 import type { SemanticConstraintProgram, SemanticConstraintSolveResult } from './semanticConstraintInterface';
 import type {

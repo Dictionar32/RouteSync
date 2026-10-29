@@ -19,7 +19,6 @@ import type { RouteSemanticFlow } from '../../../types/domain/routes';
 import type { RouteParameter } from '../../../types/upstream/route';
 import { PARAMETER_TYPE_KNOWLEDGE } from '../../../types/semantic/semanticKnowledge';
 import { HTTP_METHOD_REGISTRY } from '../../../types/domain/httpVocabulary';
-import { solveSemanticRelations, type SemanticRelation } from '../../../semantic/relations/semanticRewriteEngine';
 
 export const PARAMETER_TYPE_RULES = PARAMETER_TYPE_KNOWLEDGE;
 
@@ -122,5 +121,4 @@ export function buildResponseReference(route: RouteSemanticFlow): ResponseRefere
       return { type: 'empty_response', binding: projection };
   }
 }
-
 

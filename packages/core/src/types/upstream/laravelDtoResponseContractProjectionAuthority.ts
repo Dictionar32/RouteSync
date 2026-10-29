@@ -31,7 +31,7 @@ export const LARAVEL_DTO_RESPONSE_CONTRACT_PROJECTION_CONTRACT: LaravelDtoRespon
   runtimeRule: 'runtime-executor-only-forwards-the-closed-projection-judgment-and-does-not-infer-field-semantics',
 });
 
-const sequenceToArray = <T>(items: import('../../semantic/relations/relationalSequence').Sequence<T>, output: readonly T[] = []): readonly T[] =>
+const sequenceToArray = <T>(items: unknown, output: readonly T[] = []): readonly T[] =>
   items.kind === 'empty' ? output : sequenceToArray(items.tail, Object.freeze([...output, items.head]));
 
 const fieldBindingFor = (

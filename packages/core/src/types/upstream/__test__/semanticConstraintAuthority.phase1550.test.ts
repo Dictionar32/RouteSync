@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import type { SemanticRelation } from '../../../semantic/relations/semanticRewriteEngine';
 import { semanticRewriteAuthority } from '../semanticRewriteAuthority';
 import type { SemanticConstraintProgram } from '../semanticConstraintInterface';
 

@@ -9,8 +9,6 @@ import type {
   AstSemanticStage,
   AstSemanticStageContract,
 } from './astSemanticStageInterface';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
-import { relationLookup, relationOptionFold, relationProject, relationResolve } from '../../semantic/relations/relationalSequence';
 
 export type AstSemanticPreservationFact =
   | Readonly<{ kind: 'scanner_preservation'; from: 'source_syntax'; to: 'scanner_evidence'; relation: 'preserves_identity' | 'preserves_origin' }>

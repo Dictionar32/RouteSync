@@ -9,7 +9,6 @@
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import type { ServiceConfig } from '../types/config';
-import { snakeCaseKeys } from '../utils';
 import { prepareRequest } from './http';
 import type { HttpRequestExecution } from './HttpRequestExecution';
 

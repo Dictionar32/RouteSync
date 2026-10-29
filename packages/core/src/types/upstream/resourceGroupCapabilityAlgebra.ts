@@ -13,19 +13,6 @@ import type {
   ResourceGroupShape,
   ResourceGroupSlotDecision,
 } from './resourceGroupCapability';
-import {
-  relationAll,
-  relationEqual,
-  relationIndexAdd,
-  relationIndexLookup,
-  relationOptionFold,
-  relationFold,
-  relationProject,
-  relationResolve,
-  relationUnique,
-  type RelationIndex,
-} from '../../semantic/relations/relationalSequence';
-import { relationContains } from '../../semantic/relations/relationMembership';
 
 type ResourceGroupState = Readonly<{
   readonly routeCount: number;

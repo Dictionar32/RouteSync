@@ -8,7 +8,6 @@
 import type { ModelName, ResourceName } from './names';
 import type { Presence } from './presence';
 import { semanticReasoningContract, type SemanticReasoningContract } from './semanticReasoning';
-import { relationFirst } from '../../semantic/relations/relationalSequence';
 
 export type ResourceModelCandidateSource =
   | 'controller_dataflow'

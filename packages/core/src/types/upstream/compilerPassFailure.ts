@@ -8,7 +8,6 @@
  */
 import { createExceptionName, type ExceptionName } from './names';
 import { stringValue, type StringValue } from './valueObjects';
-import { relationVariantFold } from '../../semantic/relations/relationalSequence';
 
 export type CompilerPassFailure =
   | {

@@ -7,7 +7,6 @@
  */
 
 import type { AxiosRequestConfig } from 'axios';
-import { snakeCaseKeys } from '../../utils';
 import { hasFiles, toFormData } from './formDataTransformer';
 
 export interface PreparedRequest {

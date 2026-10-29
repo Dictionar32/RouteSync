@@ -1,7 +1,6 @@
 /** Semantic binding produced after PhpAstNode parsing. */
 import type { SemanticResolution } from './semanticResolution';
 import type { PhpAstNode } from './phpAst';
-import { relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
 
 export interface ResolvedFieldBinding {
   readonly kind: 'resolved';

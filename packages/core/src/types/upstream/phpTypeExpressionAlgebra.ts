@@ -1,4 +1,3 @@
-import { relationGate } from '../../semantic/relations/relationalSequence';
 import { phpTypeAtomAlgebra } from './phpTypeAtomAlgebra';
 import { scannerTokenStructureInterface } from './scannerTokenStructureAlgebra';
 import { stringValue } from './valueObjects';

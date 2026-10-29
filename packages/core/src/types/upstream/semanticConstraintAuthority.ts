@@ -1,9 +1,4 @@
 /** Canonical upstream authority for constrained semantic relation closure. */
-import { project, retain } from '../../semantic/relations/semanticRelationalCollections';
-import { solveSemanticRelationsDetailed, type SemanticRelation, type SemanticRelationAtom, type SemanticRelationPattern, type SemanticRelationRewrite } from '../../semantic/relations/semanticRewriteEngine';
-import { relationResolve, relationFirst, relationOptionFold, relationOptionMap, relationOptionalFold, relationRefine, relationVariant, type RelationOption } from '../../semantic/relations/relationalSequence';
-import { relationAll, relationAny, relationGate, relationEqual, relationIsSome, relationNone, relationNotEqual, relationSome } from '../../semantic/relations/semanticRelations';
-import { relationContains, relationInsert } from '../../semantic/relations/relationMembership';
 import type { SemanticConstraint, SemanticConstraintProgram, SemanticConstraintSolveResult, SemanticConstraintTerm, SemanticConstraintDerivation, SemanticConstraintRule } from './semanticConstraintInterface';
 import type { SemanticRewriteRule, SemanticRewritePatternTerm, SemanticRewriteTerm } from './semanticRewriteInterface';
 

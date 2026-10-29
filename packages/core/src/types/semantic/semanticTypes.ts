@@ -7,8 +7,6 @@
  */
 
 import type { SemanticResolution } from '../contract';
-import { relationOptionFold, relationFirstOption, relationProject, relationRefine } from '../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
 import type { PropertyName } from '../domain/semanticValues';
 
 export type SemanticType = import('../domain/semanticType').SemanticType;

@@ -1,7 +1,3 @@
-import { relationResolve } from '../../semantic/relations/relationalSequence';
-import { relationFirst, relationOptionFold, relationSome, relationNone, relationGate, relationRefine } from '../../semantic/relations/relationalSequence';
-import { relationAll, relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';
-import { relationContains, relationInsert, type RelationMembership } from '../../semantic/relations/relationMembership';
 /**
  * Declarative relation-program validation.
  *
@@ -10,8 +6,6 @@ import { relationContains, relationInsert, type RelationMembership } from '../..
  * program is well-formed before the generic solver executes it.
  */
 import type { SemanticConstraintRule } from './semanticConstraintInterface';
-import { project, retain, visit } from '../../semantic/relations/semanticRelationalCollections';
-import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom, SemanticRelationVariable, } from '../../semantic/relations/semanticRewriteEngine';
 export interface SemanticRelationSchema<R extends string = string> {
     readonly relation: R;
     readonly arity: number;

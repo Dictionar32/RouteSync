@@ -1,5 +1,4 @@
 import { SemanticValueFactory } from "./semanticValues";
-import { relationGate } from "../../semantic/relations/relationalSequence";
 import type { TruthValue } from "../upstream/valueObjects";
 import { truthValue, stringValue } from "../upstream/valueObjects";
 import {

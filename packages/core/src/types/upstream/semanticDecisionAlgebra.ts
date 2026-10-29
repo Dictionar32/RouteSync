@@ -1,5 +1,4 @@
 /** Generic declarative rule-resolution algebra. It owns precedence validation, not domain-specific semantics. */
-import { relationOptionFold } from '../../semantic/relations/relationalSequence';
 import type { SemanticDecisionContract, SemanticDecisionInterface, SemanticDecisionJudgment, SemanticDecisionProof, SemanticDecisionRule, SemanticDecisionProofVerification } from './semanticDecisionInterface';
 
 const validate = <Input, Output, Id extends symbol>(

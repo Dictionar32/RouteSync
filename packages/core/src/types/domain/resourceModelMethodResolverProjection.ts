@@ -5,7 +5,6 @@ import type { ResourceQueryProjection } from './resourceQueryOperation';
 import type { ResourceModelSurface } from './resourceModelSurface';
 import type { ModelSemanticColumn, ModelSemanticAccessor } from './models';
 import { meaningFor } from './resourceModelMethodResolverMeaning';
-import { relationEqual, relationLookup, relationOptionFold, relationResolve } from '../../semantic/relations/relationalSequence';
 
 type ProjectionContext = {
   readonly state: ResourceQueryState;
@@ -72,4 +71,3 @@ function aggregateResult(context: ProjectionContext, operation: 'sum' | 'avg' | 
 function unsupported(state: ResourceQueryState, method: MethodName): ResourceMethodResult {
   return { kind: 'unsupported', origin: Object.freeze({ receiver: state, method, meaning: meaningFor(method) }), method, semanticType: ErrorType('resource method unsupported'), cardinality: { kind: 'single' }, traversal: { kind: 'rejected', reason: 'unsupported' } };
 }
-

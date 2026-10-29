@@ -6,13 +6,6 @@ import {
     ObjectType, PrimitiveKind, ReadonlyCollectionType, ReferenceType, UnionType, IntersectionType,
     type PrimitiveType, type GenericParameter, type SemanticType, type ScannedObjectProperty
 } from './semanticType';
-import {
-    relationAny,
-    relationProject,
-    relationSequenceToArray,
-    relationResolve,
-    relationVariantFold,
-} from '../../semantic/relations/relationalSequence';
 
 /**
  * Canonical TypeExpression -> SemanticType lowering.

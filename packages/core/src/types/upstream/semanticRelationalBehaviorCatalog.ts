@@ -6,7 +6,6 @@
  * syntax dispatch and no construct-shaped control ontology.
  */
 import type { SemanticConstraintRule } from './semanticConstraintInterface';
-import type { SemanticRelationPattern, SemanticRelationRewrite, SemanticRelationAtom } from '../../semantic/relations/semanticRewriteEngine';
 import { assertSemanticRelationProgram, type SemanticRelationProgram } from './semanticRelationProgram';
 
 export type SemanticBehaviorRelation =
@@ -159,4 +158,3 @@ export const SEMANTIC_BEHAVIOR_PROGRAM: SemanticRelationProgram<SemanticBehavior
 });
 
 assertSemanticRelationProgram(SEMANTIC_BEHAVIOR_PROGRAM);
-

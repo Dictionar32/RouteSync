@@ -1,7 +1,6 @@
 import type { PrimitiveBody, ResponseBody } from './responseBody';
 import type { ObjectProperty } from "./semanticType";
 import type { SemanticType } from "./semanticType";
-import { relationProject } from '../../semantic/relations/relationalSequence';
 import type { ResponseContract } from "./responseContracts";
 import type { ResourceFieldSemanticBinding } from "./resourceFieldSemanticBinding";
 import { requireResourceFieldType } from './resourceFieldSemantic';
@@ -89,7 +88,7 @@ const resourceDescriptor = (params: ResourceResponseParams): ResourceResponseDes
 };
 
 export const ResourceResponseDescriptor = Object.freeze({
-  create: ({ resourceName, shape = 'single' }: { readonly resourceName: ResourceName; readonly shape?: ResponseShape }) => resourceDescriptor({ resourceName, shape }),
+  create: ({ resourceName, shape = 'single' }: { readonly resourceName: ResourceName; readonly shape: ResponseShape }) => resourceDescriptor({ resourceName, shape }),
   single: (resourceName: ResourceName) => resourceDescriptor({ resourceName, shape: 'single' }),
   collection: (resourceName: ResourceName) => resourceDescriptor({ resourceName, shape: 'collection' }),
 });

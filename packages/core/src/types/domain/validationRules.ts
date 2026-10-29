@@ -4,8 +4,6 @@ import type { ColumnName, DateFormat, TableName, ValidationConstraintValue, Vali
 import type { RequestField } from "./request";
 import type { SourceSpan } from '../upstream/provenance';
 import { SemanticValueFactory } from './semanticValues';
-import { relationAnyMatch, relationFirst, relationFold, relationOptionFold, relationProject, relationResolve, relationRefine } from '../../semantic/relations/relationalSequence';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
 
 /**
  * ValidationRuleKind

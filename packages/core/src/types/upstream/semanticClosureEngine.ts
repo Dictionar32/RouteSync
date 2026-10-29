@@ -9,8 +9,6 @@
  * can explain not only WHAT is true, but WHY it became true.
  */
 import { solveSemanticBehavior, type SemanticBehaviorClosure, type SemanticBehaviorRelation, } from './semanticRelationalBehaviorKernel';
-import type { SemanticRelation } from '../../semantic/relations/semanticRewriteEngine';
-import { project, retain, visit } from '../../semantic/relations/semanticRelationalCollections';
 import { semanticTheoryFact, validateSemanticTheoryFact, type SemanticTheoryFact, type SemanticTheoryAtom } from './semanticRelationTheory';
 export interface SemanticClosureEvidence {
     readonly fact: SemanticRelation<SemanticBehaviorRelation>;

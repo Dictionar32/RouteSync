@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { relationNone, relationSome } from '../../../semantic/relations/relationalSequence';
 import { scannerAssignmentPartsAlgebra, type AssignmentOperatorRule } from '../scannerAssignmentPartsAlgebra';
 import { scannerTokenStructureAlgebra } from '../scannerTokenStructureAlgebra';
 

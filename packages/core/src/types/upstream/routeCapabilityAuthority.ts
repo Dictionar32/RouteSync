@@ -8,9 +8,6 @@ import type { ActionName, RoutePath } from './names';
 import type { CrudRole, HttpMethod } from './routeExecutionVocabulary';
 import { CrudRole as CrudRoleValue } from './routeExecutionVocabulary';
 import { RESOURCE_ACTION_KNOWLEDGE } from './routeResourceFlow';
-import { relationAll, relationEqual, relationResolve } from '../../semantic/relations/semanticRelations';
-import { relationFirstOption, relationOptionFold, relationSelect } from '../../semantic/relations/relationalSequence';
-import { relationNone, relationSome, type RelationOption } from '../../semantic/relations/relationalSequence';
 import type { RouteCapabilityCrudEvidence } from './route';
 
 export interface RouteCrudRoleResolution {

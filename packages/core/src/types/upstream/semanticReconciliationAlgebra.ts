@@ -10,7 +10,6 @@ import type { ForeignKey } from './databaseVocabulary';
 import type { TableName } from './names';
 import { createTableName } from './names';
 import { inferLaravelTableName } from '../../utils/resource-naming';
-import { relationSelect } from '../../semantic/relations/relationalSequence';
 import { schemaForeignKeyEvidence, type SchemaForeignKeyEvidence, type SchemaRelationInterface } from './schemaRelation';
 
 const items = <T>(value: import('./collections').Sequence<T>, output: readonly T[] = []): readonly T[] =>

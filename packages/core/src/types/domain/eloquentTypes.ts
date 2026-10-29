@@ -5,8 +5,6 @@ import { SemanticValueFactory, type ClassName, type ColumnName, type ModelName, 
 import type { Cardinality } from '../upstream/primitiveVocabulary';
 import type { ModelAccessorFact, ModelCastFact } from '../upstream/modelSourceFacts';
 import type { ModelSemanticRelation } from '../upstream/model';
-import { relationEqual } from '../../semantic/relations/semanticRelations';
-import { relationGate, relationOptionFold, relationSome, relationRefine, relationResolve } from '../../semantic/relations/relationalSequence';
 
 /**
  * EloquentCastKind

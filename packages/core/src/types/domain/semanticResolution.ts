@@ -1,5 +1,3 @@
-import { relationEqual } from '../../semantic/relations/semanticRelations';
-import { relationOptionFold, relationRefine } from '../../semantic/relations/relationalSequence';
 /**
  * Closed semantic resolution ADT.
  *

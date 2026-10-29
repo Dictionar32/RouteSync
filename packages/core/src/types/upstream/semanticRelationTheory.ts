@@ -4,10 +4,6 @@
  * The semantic authority is a validated relation theory. Source syntax is
  * evidence only; semantic consumers receive canonical facts and witnesses.
  */
-import { project, visit } from '../../semantic/relations/semanticRelationalCollections';
-import { semanticNullAtom, type SemanticNullAtom } from '../../semantic/relations/semanticRewriteEngine';
-import { relationResolve, relationFirstOption, relationOptionFold, relationOptionalFold } from '../../semantic/relations/relationalSequence';
-import { relationAll, relationEqual, relationNotEqual } from '../../semantic/relations/semanticRelations';
 
 export type SemanticTheoryAtom = string | number | boolean | SemanticNullAtom;
 export type SemanticTheorySort = 'entity' | 'predicate' | 'value' | 'effect' | 'resource' | 'state' | 'relation-target';

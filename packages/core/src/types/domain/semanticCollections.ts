@@ -5,8 +5,6 @@ import type { Nullability } from './modelContracts';
 import { SemanticValueFactory } from './semanticValues';
 import type { ColumnName, ModelName, RelationName, PropertyName, VariableName, MethodName } from './semanticValues';
 import type { Lookup } from '../upstream/collections';
-import { relationOptionFold, relationProject, relationFold } from '../../semantic/relations/relationalSequence';
-import { relationIndexLookup, type RelationIndex } from '../../semantic/relations/relationMembership';
 
 export interface ModelFieldInfo { readonly type: SemanticType; readonly nullability: Nullability; }
 export interface ModelFieldEntry { readonly column: ColumnName; readonly info: ModelFieldInfo; }

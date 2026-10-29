@@ -4,10 +4,7 @@ import { descriptionText, numberValue, stringValue } from './valueObjects';
 import type { RelationPath, PropertyNames } from './collections';
 import type { PropertyName, RelationName } from './names';
 import { createModelName, createPropertyName, createRelationName, type MethodName } from './names';
-import { RELATION_NONE, type RelationOption } from '../../semantic/relations/relationalSequence';
 type RelationNoneValue = typeof RELATION_NONE;
-import { relationAdvanceIndex, relationAll, relationGate, relationLookup, relationNone, relationOptionFold, relationProject, relationSome, relationVariant, relationTextSlice } from '../../semantic/relations/relationalSequence';
-import { relationEqual, relationAny } from '../../semantic/relations/semanticRelations';
 import { validateQueryOperationSemanticDecision, validateQueryOperationSemanticRuleCatalog, type QueryArgumentPosition, type QueryJoinDescriptor, type QueryOperationEvidence, type QueryOperationSemanticEvidenceBoundExecution, type QueryOperationSemanticSourceEvidence, type QueryOperationSemanticDecision, type QueryOperationSemanticRule, type QueryOperationSemanticRuleClaim, type QueryOperationSemanticRuleDeclaration, type QueryOperationSemanticRuleDeclarationFor, type QueryOperationSemanticRuleExecution, type QueryProducerSemanticInterface, type QueryProducerSemanticJudgment, type QuerySemanticDiagnostic, type ResolvedModelStaticOperation } from './queryProducerSemanticInterface';
 import type { QueryOperationAst } from './query';
 

@@ -1,6 +1,5 @@
 import type { MethodName } from './semanticValues';
 import type { ResourceModelMethodMeaning } from './resourceModelMethodMeaning';
-import { dispatchValue } from '../../semantic/authority/declarativeDispatch';
 
 const KNOWN_METHODS = Object.freeze(['query','first','find','firstOrFail','findOrFail','sole','findOrNew','get','all','getModels','paginate','simplePaginate','cursorPaginate','exists','count','sum','avg','min','max','value','pluck','where','orWhere','whereHas','orWhereHas','with','without','latest','oldest','orderBy','orderByDesc','orderByRaw','select','selectRaw','addSelect','limit','offset','take','skip','groupBy','having','havingRaw','distinct','when','unless','lockForUpdate','sharedLock'] as const);
 

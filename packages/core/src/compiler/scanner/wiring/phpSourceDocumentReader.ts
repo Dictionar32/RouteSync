@@ -49,9 +49,9 @@ export const phpSourceDocumentReader: PhpSourceDocumentReaderInterface = Object.
       content => phpSourceDocumentReadResultFactory.complete(
         phpSourceTextFactory.create(stringValue.create(content)).bindTo(input.sourceFile),
       ),
-      failure => phpSourceDocumentReadResultFactory.blocked(
-        input.sourceFile,
-        nodeFilesystemFailureObservation.observe(failure).failureCode.createSourceReadBlocker(input.sourceFile),
-      ),
+      failure => nodeFilesystemFailureObservation.observe(failure)
+        .failureCode
+        .createSourceReadBlocker(input.sourceFile)
+        .blockRequestedRead(),
     ),
 });

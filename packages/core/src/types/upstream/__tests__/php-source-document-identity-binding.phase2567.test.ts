@@ -127,40 +127,32 @@ describe('PHP source document identity binding', () => {
     }
   });
 
-  it('continues a missing-file blocker through its domain operation', () => {
-    expect(phpSourceDocumentReadBlockerFactory.fileMissing(sourceFile).continueWith({
-      onFileMissing: blocker => blocker.kind,
-      onPathNotFile: blocker => blocker.kind,
-      onFileUnreadable: blocker => blocker.kind,
-      onFailureCodeUnrecognized: blocker => blocker.kind,
-    })).toBe('php_source_document_file_missing');
+  it('blocks a missing-file read through its domain operation', () => {
+    const blocker = phpSourceDocumentReadBlockerFactory.fileMissing(sourceFile);
+    const result = blocker.blockRequestedRead();
+    expect(result.kind).toBe('php_source_document_read_blocked');
+    expect(result.blocker).toBe(blocker);
   });
 
-  it('continues a path-not-file blocker through its domain operation', () => {
-    expect(phpSourceDocumentReadBlockerFactory.pathNotFile(sourceFile).continueWith({
-      onFileMissing: blocker => blocker.kind,
-      onPathNotFile: blocker => blocker.kind,
-      onFileUnreadable: blocker => blocker.kind,
-      onFailureCodeUnrecognized: blocker => blocker.kind,
-    })).toBe('php_source_document_path_not_file');
+  it('blocks a path-not-file read through its domain operation', () => {
+    const blocker = phpSourceDocumentReadBlockerFactory.pathNotFile(sourceFile);
+    const result = blocker.blockRequestedRead();
+    expect(result.kind).toBe('php_source_document_read_blocked');
+    expect(result.blocker).toBe(blocker);
   });
 
-  it('continues an unreadable-file blocker through its domain operation', () => {
-    expect(phpSourceDocumentReadBlockerFactory.fileUnreadable(sourceFile).continueWith({
-      onFileMissing: blocker => blocker.kind,
-      onPathNotFile: blocker => blocker.kind,
-      onFileUnreadable: blocker => blocker.kind,
-      onFailureCodeUnrecognized: blocker => blocker.kind,
-    })).toBe('php_source_document_file_unreadable');
+  it('blocks an unreadable-file read through its domain operation', () => {
+    const blocker = phpSourceDocumentReadBlockerFactory.fileUnreadable(sourceFile);
+    const result = blocker.blockRequestedRead();
+    expect(result.kind).toBe('php_source_document_read_blocked');
+    expect(result.blocker).toBe(blocker);
   });
 
   it('preserves an unrecognized filesystem failure code as a distinct domain blocker', () => {
-    expect(phpSourceDocumentReadBlockerFactory.failureCodeUnrecognized(sourceFile).continueWith({
-      onFileMissing: blocker => blocker.kind,
-      onPathNotFile: blocker => blocker.kind,
-      onFileUnreadable: blocker => blocker.kind,
-      onFailureCodeUnrecognized: blocker => blocker.kind,
-    })).toBe('php_source_document_failure_code_unrecognized');
+    const blocker = phpSourceDocumentReadBlockerFactory.failureCodeUnrecognized(sourceFile);
+    const result = blocker.blockRequestedRead();
+    expect(result.kind).toBe('php_source_document_read_blocked');
+    expect(result.blocker).toBe(blocker);
+    expect(result.blocker.kind).toBe('php_source_document_failure_code_unrecognized');
   });
 });
-

@@ -61,54 +61,88 @@ export const phpSourceTextFactory: PhpSourceTextFactoryInterface = Object.freeze
 });
 
 
-/** Each source-read blocker owns its domain continuation, not only diagnostic data. */
-export interface PhpSourceDocumentReadBlockerHandlers<Result> {
-  readonly onFileMissing: (blocker: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_file_missing' }>) => Result;
-  readonly onPathNotFile: (blocker: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_path_not_file' }>) => Result;
-  readonly onFileUnreadable: (blocker: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_file_unreadable' }>) => Result;
-  readonly onFailureCodeUnrecognized: (blocker: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_failure_code_unrecognized' }>) => Result;
+/** Each source-read blocker owns the domain operation that settles the requested read. */
+export interface PhpSourceDocumentReadBlockerOperations {
+  readonly blockRequestedRead: () => PhpSourceDocumentReadBlockedResult;
 }
 
-export interface PhpSourceDocumentReadBlockerOperations {
-  readonly continueWith: <Result>(handlers: PhpSourceDocumentReadBlockerHandlers<Result>) => Result;
-}
+export type PhpSourceDocumentFileMissingBlockerEvidence = Readonly<{
+  readonly kind: 'php_source_document_file_missing';
+  readonly sourceFile: SourceFile;
+}>;
+
+export type PhpSourceDocumentPathNotFileBlockerEvidence = Readonly<{
+  readonly kind: 'php_source_document_path_not_file';
+  readonly sourceFile: SourceFile;
+}>;
+
+export type PhpSourceDocumentFileUnreadableBlockerEvidence = Readonly<{
+  readonly kind: 'php_source_document_file_unreadable';
+  readonly sourceFile: SourceFile;
+}>;
+
+export type PhpSourceDocumentFailureCodeUnrecognizedBlockerEvidence = Readonly<{
+  readonly kind: 'php_source_document_failure_code_unrecognized';
+  readonly sourceFile: SourceFile;
+}>;
 
 export type PhpSourceDocumentReadBlockerEvidence =
-  | Readonly<{ readonly kind: 'php_source_document_file_missing'; readonly sourceFile: SourceFile }>
-  | Readonly<{ readonly kind: 'php_source_document_path_not_file'; readonly sourceFile: SourceFile }>
-  | Readonly<{ readonly kind: 'php_source_document_file_unreadable'; readonly sourceFile: SourceFile }>
-  | Readonly<{ readonly kind: 'php_source_document_failure_code_unrecognized'; readonly sourceFile: SourceFile }>;
+  | PhpSourceDocumentFileMissingBlockerEvidence
+  | PhpSourceDocumentPathNotFileBlockerEvidence
+  | PhpSourceDocumentFileUnreadableBlockerEvidence
+  | PhpSourceDocumentFailureCodeUnrecognizedBlockerEvidence;
+
+export type PhpSourceDocumentFileMissingBlocker = PhpSourceDocumentFileMissingBlockerEvidence & PhpSourceDocumentReadBlockerOperations;
+export type PhpSourceDocumentPathNotFileBlocker = PhpSourceDocumentPathNotFileBlockerEvidence & PhpSourceDocumentReadBlockerOperations;
+export type PhpSourceDocumentFileUnreadableBlocker = PhpSourceDocumentFileUnreadableBlockerEvidence & PhpSourceDocumentReadBlockerOperations;
+export type PhpSourceDocumentFailureCodeUnrecognizedBlocker = PhpSourceDocumentFailureCodeUnrecognizedBlockerEvidence & PhpSourceDocumentReadBlockerOperations;
 
 export type PhpSourceDocumentReadBlocker =
-  | (Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_file_missing' }> & PhpSourceDocumentReadBlockerOperations)
-  | (Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_path_not_file' }> & PhpSourceDocumentReadBlockerOperations)
-  | (Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_file_unreadable' }> & PhpSourceDocumentReadBlockerOperations)
-  | (Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_failure_code_unrecognized' }> & PhpSourceDocumentReadBlockerOperations);
+  | PhpSourceDocumentFileMissingBlocker
+  | PhpSourceDocumentPathNotFileBlocker
+  | PhpSourceDocumentFileUnreadableBlocker
+  | PhpSourceDocumentFailureCodeUnrecognizedBlocker;
 
 export interface PhpSourceDocumentReadBlockerFactoryInterface {
-  readonly fileMissing: (sourceFile: SourceFile) => Extract<PhpSourceDocumentReadBlocker, { readonly kind: 'php_source_document_file_missing' }>;
-  readonly pathNotFile: (sourceFile: SourceFile) => Extract<PhpSourceDocumentReadBlocker, { readonly kind: 'php_source_document_path_not_file' }>;
-  readonly fileUnreadable: (sourceFile: SourceFile) => Extract<PhpSourceDocumentReadBlocker, { readonly kind: 'php_source_document_file_unreadable' }>;
-  readonly failureCodeUnrecognized: (sourceFile: SourceFile) => Extract<PhpSourceDocumentReadBlocker, { readonly kind: 'php_source_document_failure_code_unrecognized' }>;
+  readonly fileMissing: (sourceFile: SourceFile) => PhpSourceDocumentFileMissingBlocker;
+  readonly pathNotFile: (sourceFile: SourceFile) => PhpSourceDocumentPathNotFileBlocker;
+  readonly fileUnreadable: (sourceFile: SourceFile) => PhpSourceDocumentFileUnreadableBlocker;
+  readonly failureCodeUnrecognized: (sourceFile: SourceFile) => PhpSourceDocumentFailureCodeUnrecognizedBlocker;
 }
 
-/** Variant-owned constructors attach follow-up behavior at the upstream contract boundary. */
+/** Variant-owned constructors attach the blocked-read outcome at the upstream contract boundary. */
 export const phpSourceDocumentReadBlockerFactory: PhpSourceDocumentReadBlockerFactoryInterface = Object.freeze({
   fileMissing: sourceFile => {
-    const evidence: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_file_missing' }> = Object.freeze({ kind: 'php_source_document_file_missing', sourceFile });
-    return Object.freeze({ ...evidence, continueWith: <Result>(handlers: PhpSourceDocumentReadBlockerHandlers<Result>): Result => handlers.onFileMissing(evidence) });
+    const evidence: PhpSourceDocumentFileMissingBlockerEvidence = Object.freeze({ kind: 'php_source_document_file_missing', sourceFile });
+    const blocker: PhpSourceDocumentFileMissingBlocker = Object.freeze({
+      ...evidence,
+      blockRequestedRead: (): PhpSourceDocumentReadBlockedResult => phpSourceDocumentReadResultFactory.blocked(sourceFile, blocker),
+    });
+    return blocker;
   },
   pathNotFile: sourceFile => {
-    const evidence: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_path_not_file' }> = Object.freeze({ kind: 'php_source_document_path_not_file', sourceFile });
-    return Object.freeze({ ...evidence, continueWith: <Result>(handlers: PhpSourceDocumentReadBlockerHandlers<Result>): Result => handlers.onPathNotFile(evidence) });
+    const evidence: PhpSourceDocumentPathNotFileBlockerEvidence = Object.freeze({ kind: 'php_source_document_path_not_file', sourceFile });
+    const blocker: PhpSourceDocumentPathNotFileBlocker = Object.freeze({
+      ...evidence,
+      blockRequestedRead: (): PhpSourceDocumentReadBlockedResult => phpSourceDocumentReadResultFactory.blocked(sourceFile, blocker),
+    });
+    return blocker;
   },
   fileUnreadable: sourceFile => {
-    const evidence: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_file_unreadable' }> = Object.freeze({ kind: 'php_source_document_file_unreadable', sourceFile });
-    return Object.freeze({ ...evidence, continueWith: <Result>(handlers: PhpSourceDocumentReadBlockerHandlers<Result>): Result => handlers.onFileUnreadable(evidence) });
+    const evidence: PhpSourceDocumentFileUnreadableBlockerEvidence = Object.freeze({ kind: 'php_source_document_file_unreadable', sourceFile });
+    const blocker: PhpSourceDocumentFileUnreadableBlocker = Object.freeze({
+      ...evidence,
+      blockRequestedRead: (): PhpSourceDocumentReadBlockedResult => phpSourceDocumentReadResultFactory.blocked(sourceFile, blocker),
+    });
+    return blocker;
   },
   failureCodeUnrecognized: sourceFile => {
-    const evidence: Extract<PhpSourceDocumentReadBlockerEvidence, { readonly kind: 'php_source_document_failure_code_unrecognized' }> = Object.freeze({ kind: 'php_source_document_failure_code_unrecognized', sourceFile });
-    return Object.freeze({ ...evidence, continueWith: <Result>(handlers: PhpSourceDocumentReadBlockerHandlers<Result>): Result => handlers.onFailureCodeUnrecognized(evidence) });
+    const evidence: PhpSourceDocumentFailureCodeUnrecognizedBlockerEvidence = Object.freeze({ kind: 'php_source_document_failure_code_unrecognized', sourceFile });
+    const blocker: PhpSourceDocumentFailureCodeUnrecognizedBlocker = Object.freeze({
+      ...evidence,
+      blockRequestedRead: (): PhpSourceDocumentReadBlockedResult => phpSourceDocumentReadResultFactory.blocked(sourceFile, blocker),
+    });
+    return blocker;
   },
 });
 
@@ -128,8 +162,6 @@ export type PhpSourceDocumentReadBlockedEvidence = Readonly<{
  * carries the result into the next source-read batch state without exposing a generic
  * callback/visitor contract to the accumulator.
  *
- * `continueWith` remains temporarily for compatibility with existing identity-binding
- * consumers; migration of those consumers is tracked as a separate frontier.
  */
 /** Identity binding is a source-domain follow-up, with one named operation per read judgment. */
 export interface PhpSourceDocumentReadIdentityBindingOperations {
@@ -152,13 +184,16 @@ export interface PhpSourceDocumentReadResultOperations {
 }
 
 export type PhpSourceDocumentReadResult =
-  | (PhpSourceDocumentReadCompleteEvidence & PhpSourceDocumentReadResultOperations)
-  | (PhpSourceDocumentReadBlockedEvidence & PhpSourceDocumentReadResultOperations);
+  | PhpSourceDocumentReadCompleteResult
+  | PhpSourceDocumentReadBlockedResult;
+
+export type PhpSourceDocumentReadCompleteResult = PhpSourceDocumentReadCompleteEvidence & PhpSourceDocumentReadResultOperations;
+export type PhpSourceDocumentReadBlockedResult = PhpSourceDocumentReadBlockedEvidence & PhpSourceDocumentReadResultOperations;
 
 export interface PhpSourceDocumentReadResultFactoryInterface {
   readonly kind: 'php_source_document_read_result_factory';
-  readonly complete: (document: PhpSourceDocument) => Extract<PhpSourceDocumentReadResult, { readonly kind: 'php_source_document_read_complete' }>;
-  readonly blocked: (sourceFile: SourceFile, blocker: PhpSourceDocumentReadBlocker) => Extract<PhpSourceDocumentReadResult, { readonly kind: 'php_source_document_read_blocked' }>;
+  readonly complete: (document: PhpSourceDocument) => PhpSourceDocumentReadCompleteResult;
+  readonly blocked: (sourceFile: SourceFile, blocker: PhpSourceDocumentReadBlocker) => PhpSourceDocumentReadBlockedResult;
 }
 
 /** Constructs each read outcome with its domain continuation at the producer boundary. */

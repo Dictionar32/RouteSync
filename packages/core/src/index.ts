@@ -776,7 +776,6 @@ export type { RouteSyncManifestScannerInterface } from './compiler/scanner/orche
 export type { RouteSyncManifestFlowCompleteJudgment, RouteSyncManifestFlowScanJudgment, RouteSyncManifestScanOperationInput, RouteSyncManifestScanOperationFactoryInterface, RouteSyncManifestScanOperationInterface } from './compiler/scanner/orchestrator/RouteSyncManifestScanOperationInterface'
 export type { RouteSyncManifestFlowProjectionInterface } from './compiler/scanner/orchestrator/RouteSyncManifestFlowProjectionInterface'
 export type { SemanticPresence, SemanticAbsenceReasonCode, SemanticAbsenceReasonDefinition } from './types/upstream/semanticDataflowKnowledge'
-export { analyzeSemanticDataflowInput } from './compiler/analysis/semanticDataflowPipeline'
 export { routeSyncManifestDataflowAnalysisOperations } from './compiler/analysis/routeSyncDataflowAnalysis'
 export { routeSyncManifestDataflowProjection } from './compiler/analysis/routeSyncManifestDataflowProjection'
 export type { RouteSyncManifestDataflowSurface, RouteSyncManifestDataflowProjectionInterface, RouteSyncManifestDataflowControllerSurface } from './compiler/analysis/routeSyncManifestDataflowProjectionInterface'

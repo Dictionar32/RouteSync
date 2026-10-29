@@ -12,15 +12,13 @@ import {
 import { ScannedObjectProperty } from '../../../types/domain/semanticType';
 import { toCamelCase } from '../../../utils/resource-naming';
 import type { SemanticDerivationContext } from './SemanticDerivationContext';
-import { relationEqual, relationFold, relationGate, relationProject, relationTextSlice, relationVariantFold, relationSequenceToArray } from '../../../semantic/relations/relationalSequence';
-import { relationInsert, type RelationMembership } from '../../../semantic/relations/relationMembership';
 import { stringValue } from '../../../types/upstream/valueObjects';
 
 export function deriveResourceTypes(
     context: SemanticDerivationContext,
     seenNames: RelationMembership<string>
 ): readonly ObjectType[] {
-    return Object.freeze(relationProject(context.resources, resource => deriveResource(resource, seenNames)));
+    return Object.freeze(context.resources.map(resource => deriveResource(resource, seenNames)));
 }
 
 function emptyObjectProperties(): ObjectProperty[] {
@@ -32,19 +30,19 @@ function deriveResource(
     seenNames: RelationMembership<string>,
 ): ObjectType {
     const definition = resource.definition;
-    const properties = relationFold(
-        relationSequenceToArray(definition.fields.items),
+    const properties = context.relations.fold(
+        context.relations.sequenceToArray(definition.fields.items),
         emptyObjectProperties(),
         (current, field) => [...current, ...deriveFieldProperties(field, '')],
     );
     const originalName = definition.name.value.value;
-    const baseName = relationGate(
+    const baseName = context.relations.gate(
         originalName.endsWith('Transformed'),
         () => originalName.replace(/Transformed$/, ''),
         () => originalName,
     );
     const typeName = originalName;
-    seenNames = relationInsert(seenNames, typeName);
+    seenNames = context.relations.insert(seenNames, typeName);
     return ObjectType({
         name: typeName,
         baseName,
@@ -55,12 +53,12 @@ function deriveResource(
 
 function deriveFieldProperties(field: ResourceField, prefix: string): readonly ObjectProperty[] {
     const name = qualifiedName(prefix, field.name.value.value);
-    return relationVariantFold(
+    return context.relations.variantFold(
         field.type,
         'object',
         () => [createProperty(name, field.type, 'semantic_resolution')],
-        objectType => relationFold(
-            relationSequenceToArray(objectType.properties.items),
+        objectType => context.relations.fold(
+            context.relations.sequenceToArray(objectType.properties.items),
             emptyObjectProperties(),
             (current, child) => [...current, ...deriveTypeProperties(child.name.value.value, child.type, name)],
         ),
@@ -73,12 +71,12 @@ function deriveTypeProperties(
     prefix: string,
 ): readonly ObjectProperty[] {
     const name = qualifiedName(prefix, fieldName);
-    return relationVariantFold(
+    return context.relations.variantFold(
         type,
         'object',
         () => [createProperty(name, type, 'nested_object')],
-        objectType => relationFold(
-            relationSequenceToArray(objectType.properties.items),
+        objectType => context.relations.fold(
+            context.relations.sequenceToArray(objectType.properties.items),
             emptyObjectProperties(),
             (current, child) => [...current, ...deriveTypeProperties(child.name.value.value, child.type, name)],
         ),
@@ -103,10 +101,10 @@ import { typeExpressionToSemanticType } from '../../domain/common/typeExpression
 
 function qualifiedName(prefix: string, fieldName: string): string {
     const camel = toCamelCase(fieldName);
-    return relationGate(
-        relationEqual(prefix.length, 0),
+    return context.relations.gate(
+        context.relations.equal(prefix.length, 0),
         () => camel,
-        () => `${prefix}${camel.charAt(0).toUpperCase()}${relationTextSlice(camel, 1)}`,
+        () => `${prefix}${camel.charAt(0).toUpperCase()}${context.relations.textSlice(camel, 1)}`,
     );
 }
 

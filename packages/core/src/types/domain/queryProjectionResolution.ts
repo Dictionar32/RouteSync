@@ -3,7 +3,6 @@ import type { BoundCardinality, BoundNullability, BoundSemanticNode } from './bo
 import type { ColumnName, ModelName, ResponseFieldName } from './semanticValues';
 import type { ModelSemanticDefinition } from './models';
 import type { ResolutionStatus, SemanticTraceNode } from './semanticResolution';
-import type { Lookup } from '../upstream/collections';
 
 interface ResolutionBase {
   readonly status: ResolutionStatus;
@@ -17,6 +16,10 @@ export interface SemanticObjectField {
   readonly type: SemanticType;
 }
 
+export type SemanticObjectFieldResolution =
+  | { readonly kind: 'missing_field' }
+  | { readonly kind: 'field_found'; readonly value: SemanticObjectField };
+
 export class SemanticObjectFieldIndex {
   private readonly lookup: ReadonlyMap<ResponseFieldName, SemanticObjectField>;
 
@@ -27,15 +30,19 @@ export class SemanticObjectFieldIndex {
     Object.freeze(this);
   }
 
-  public lookupField(name: ResponseFieldName): Lookup<SemanticObjectField> {
+  public lookupField(name: ResponseFieldName): SemanticObjectFieldResolution {
     const value = this.lookup.get(name);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
+    return value === undefined ? { kind: 'missing_field' } : { kind: 'field_found', value };
   }
 }
 
 export type QueryProjectionField =
   | { readonly kind: 'column'; readonly name: ResponseFieldName; readonly source: ColumnName; readonly type: SemanticType }
   | { readonly kind: 'aggregate'; readonly name: ResponseFieldName; readonly aggregate: 'avg' | 'count' | 'sum' | 'min' | 'max'; readonly source: { readonly kind: 'column'; readonly column: ColumnName } | { readonly kind: 'rows' }; readonly type: SemanticType };
+
+export type QueryProjectionFieldResolution =
+  | { readonly kind: 'missing_projection_field' }
+  | { readonly kind: 'projection_field_found'; readonly value: QueryProjectionField };
 
 export class QueryProjectionFieldIndex {
   private readonly lookup: ReadonlyMap<ResponseFieldName, QueryProjectionField>;
@@ -47,9 +54,9 @@ export class QueryProjectionFieldIndex {
     Object.freeze(this);
   }
 
-  public lookupField(name: ResponseFieldName): Lookup<QueryProjectionField> {
+  public lookupField(name: ResponseFieldName): QueryProjectionFieldResolution {
     const value = this.lookup.get(name);
-    return value === undefined ? { kind: 'missing' } : { kind: 'found', value };
+    return value === undefined ? { kind: 'missing_projection_field' } : { kind: 'projection_field_found', value };
   }
   public get size(): number { return this.lookup.size; }
 }

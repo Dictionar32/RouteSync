@@ -2,7 +2,6 @@ import type { ExpressionAst } from './ast';
 import type { Expression, ModelStaticOperation, QueryOperation } from './expression';
 import type { ModelName } from './names';
 import type { SourceSpan } from './provenance';
-import type { Option, Sequence } from './collections';
 import type { QueryProducerSemanticJudgment } from './queryProducerSemanticInterface';
 
 export type QueryOperationAst =

@@ -61,7 +61,21 @@ export type EloquentRelationType =
   | { readonly kind: 'morph_to_many' }
   | { readonly kind: 'morphed_by_many' };
 
-export const EloquentRelationType = Object.freeze({
+export interface EloquentRelationTypeInterface {
+  readonly HasOne: { readonly kind: 'has_one' };
+  readonly HasMany: { readonly kind: 'has_many' };
+  readonly BelongsTo: { readonly kind: 'belongs_to' };
+  readonly BelongsToMany: { readonly kind: 'belongs_to_many' };
+  readonly HasOneThrough: { readonly kind: 'has_one_through' };
+  readonly HasManyThrough: { readonly kind: 'has_many_through' };
+  readonly MorphTo: { readonly kind: 'morph_to' };
+  readonly MorphOne: { readonly kind: 'morph_one' };
+  readonly MorphMany: { readonly kind: 'morph_many' };
+  readonly MorphToMany: { readonly kind: 'morph_to_many' };
+  readonly MorphedByMany: { readonly kind: 'morphed_by_many' };
+}
+
+export const EloquentRelationType: EloquentRelationTypeInterface = Object.freeze({
   HasOne: { kind: 'has_one' },
   HasMany: { kind: 'has_many' },
   BelongsTo: { kind: 'belongs_to' },
@@ -100,4 +114,3 @@ export type EloquentRelationDescriptor = {
 export type RelationForeignKey =
   | { readonly kind: 'convention' }
   | { readonly kind: 'explicit'; readonly column: ColumnName };
-

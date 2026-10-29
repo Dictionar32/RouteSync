@@ -190,7 +190,23 @@ export function matchRouteActionKind<R>(
  *
  * Canonical Domain Vocabulary for Standard HTTP Status Codes.
  */
-export const HttpStatusCode = Object.freeze({
+export interface HttpStatusCodeInterface {
+  readonly Ok: 200;
+  readonly Created: 201;
+  readonly Accepted: 202;
+  readonly NoContent: 204;
+  readonly BadRequest: 400;
+  readonly Unauthorized: 401;
+  readonly Forbidden: 403;
+  readonly NotFound: 404;
+  readonly MethodNotAllowed: 405;
+  readonly Conflict: 409;
+  readonly UnprocessableEntity: 422;
+  readonly TooManyRequests: 429;
+  readonly InternalServerError: 500;
+}
+
+export const HttpStatusCode: HttpStatusCodeInterface = Object.freeze({
   Ok: 200,
   Created: 201,
   Accepted: 202,

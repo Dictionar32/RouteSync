@@ -26,7 +26,6 @@ import type { RouteSchemaPayload } from "./validation";
 import type { RouteName, RoutePath, DomainName, ResourceName, PropertyName, ResponseTypeName, HttpErrorName } from "./semanticValues";
 import type { HttpErrorSchema } from "../upstream/routeErrorVocabulary";
 import { SemanticValueFactory } from './semanticValues';
-import type { Sequence } from '../upstream/collections';
 
 function sequenceToArray<T>(sequence: Sequence<T>): readonly T[] {
   const values: T[] = [];
@@ -222,4 +221,3 @@ export function getManifestContractMap(manifest: RouteManifestDomainSurface): Ma
   }
   return map;
 }
-

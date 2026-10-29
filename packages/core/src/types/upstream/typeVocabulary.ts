@@ -2,7 +2,6 @@ import type { ClassName, DomainTypeName, VariableName, PropertyName } from './na
 import type { PrimitiveVocabulary, Nullability } from './primitiveVocabulary';
 import type { SourceSpan } from './provenance';
 import type { StringValue } from './valueObjects';
-import type { Sequence } from './collections';
 
 export type TypeReference =
   | { readonly kind: 'class'; readonly name: ClassName }

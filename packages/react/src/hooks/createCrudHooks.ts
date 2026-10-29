@@ -31,6 +31,29 @@ import {
   buildExtraHooks
 } from './crud/builders';
 
+export type CrudHooksResult<ReadIndexList, ReadShow, CreateForm, UpdateForm> = {
+  readonly useIndex: ReturnType<typeof buildUseIndex<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly useShow: ReturnType<typeof buildUseShow<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly useCreate: ReturnType<typeof buildUseCreate<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly useUpdate: ReturnType<typeof buildUseUpdate<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly useUpdateSelf: ReturnType<typeof buildUseUpdateSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly usePatch: ReturnType<typeof buildUseUpdateSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly usePut: ReturnType<typeof buildUseUpdateSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly useRemove: ReturnType<typeof buildUseRemove<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly useDelete: ReturnType<typeof buildUseRemove<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly useDeleteSelf: ReturnType<typeof buildUseDeleteSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly index: ReturnType<typeof buildUseIndex<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly show: ReturnType<typeof buildUseShow<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly create: ReturnType<typeof buildUseCreate<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly update: ReturnType<typeof buildUseUpdate<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly updateSelf: ReturnType<typeof buildUseUpdateSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly patch: ReturnType<typeof buildUseUpdateSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly put: ReturnType<typeof buildUseUpdateSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly remove: ReturnType<typeof buildUseRemove<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly delete: ReturnType<typeof buildUseRemove<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+  readonly deleteSelf: ReturnType<typeof buildUseDeleteSelf<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+} & ReturnType<typeof buildExtraHooks<ReadIndexList, ReadShow, CreateForm, UpdateForm>>;
+
 // ─── Active Consumer Orchestrator: Pure Flow ──────────────────────────────────
 
 export const createCrudHooks = <
@@ -38,7 +61,7 @@ export const createCrudHooks = <
   ReadShow,
   CreateForm,
   UpdateForm
->(config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>) => {
+>(config: CrudHooksConfig<ReadIndexList, ReadShow, CreateForm, UpdateForm>): CrudHooksResult<ReadIndexList, ReadShow, CreateForm, UpdateForm> => {
   const useIndex = buildUseIndex(config);
   const useShow = buildUseShow(config);
   const useCreate = buildUseCreate(config);
@@ -49,16 +72,16 @@ export const createCrudHooks = <
   const extraHooks = buildExtraHooks(config);
 
   return {
-    useIndex,
-    useShow,
-    useCreate,
-    useUpdate,
-    useUpdateSelf,
+    useIndex: useIndex,
+    useShow: useShow,
+    useCreate: useCreate,
+    useUpdate: useUpdate,
+    useUpdateSelf: useUpdateSelf,
     usePatch: useUpdateSelf,
     usePut: useUpdateSelf,
-    useRemove,
+    useRemove: useRemove,
     useDelete: useRemove,
-    useDeleteSelf,
+    useDeleteSelf: useDeleteSelf,
     index: useIndex,
     show: useShow,
     create: useCreate,

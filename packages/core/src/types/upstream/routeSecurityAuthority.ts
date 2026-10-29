@@ -7,7 +7,6 @@
 import type { TruthValue } from './valueObjects';
 import { truthValue, numberValue, stringValue } from './valueObjects';
 import { SecuritySchemeKind, RoutePolicyKind, createRouteSecurityDescriptor, type RouteSecurityDescriptor, type RoutePolicyDescriptor, type RouteRateLimit } from './route';
-import type { RouteMiddlewares, Sequence } from './collections';
 import type { RouteMiddleware } from './route';
 import type { LaravelRouteAuthorizationSemanticJudgment } from './routeAuthorizationSemanticJudgmentInterface';
 import type { MiddlewareName } from './names';

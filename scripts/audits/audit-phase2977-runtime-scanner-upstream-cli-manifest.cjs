@@ -10,8 +10,8 @@ const sourceSelection = read('packages/core/src/types/upstream/laravelRouteSourc
 const routeScanner = read('packages/core/src/types/upstream/laravelRouteScannerInterface.ts');
 const cliComposition = read('packages/cli/src/upstreamCompositionFactory.ts');
 const cliManifest = read('packages/cli/src/manifestScanOperationInterface.ts');
-const manifestScanner = read('packages/core/src/compiler/scanner/orchestrator/upstreamManifestScanner.ts');
-const manifestBuilder = read('packages/core/src/compiler/scanner/wiring/upstreamManifestBuilder.ts');
+const manifestScanner = read('packages/core/src/types/upstream/runtimeCompositionOperations.ts');
+const manifestBuilder = read('packages/core/src/types/upstream/manifestBuilderInterface.ts');
 const manifestGraph = read('packages/core/src/graph/service/manifestGraphCompiler.ts');
 const checkExport = (source, name, contract) => new RegExp(`export const ${name}:\\s*${contract}\\s*=`).test(source);
 check('scanner algebra runtime export is interface-typed', checkExport(scanner, 'scannerTokenStructureAlgebra', 'ScannerTokenStructureAlgebra'));
@@ -22,11 +22,11 @@ check('route scan outcomes own source-AST continuation', /continueToSourceAstPro
 check('CLI composition factory uses explicit runtime interface', checkExport(cliComposition, 'routeSyncCliUpstreamCompositionFactory', 'RouteSyncCliUpstreamCompositionFactoryInterface'));
 check('CLI composition rejection/acceptance is domain-dispatched', /assembly\.continueWith\(/.test(cliComposition) && /continueForCliComposition/.test(cliComposition));
 check('CLI manifest scan factory is interface-typed', checkExport(cliManifest, 'routeSyncCliManifestScanOperationFactory', 'RouteSyncCliManifestScanOperationFactoryInterface'));
-check('manifest scan operation factory is interface-typed', checkExport(manifestScanner, 'routeSyncManifestScanOperationFactory', 'RouteSyncManifestScanOperationFactoryInterface'));
-check('manifest scanner runtime facade is interface-typed', checkExport(manifestScanner, 'routeSyncManifestScanner', 'RouteSyncManifestScannerInterface'));
-check('manifest builder preparation is interface-typed', checkExport(manifestBuilder, 'manifestBuilderOperationPreparation', 'ManifestBuilderOperationPreparationInterface'));
+check('manifest preparation is interface-typed', checkExport(manifestScanner, 'manifestBuilderOperationPreparation', 'ManifestBuilderOperationPreparationInterface'));
+check('manifest builder contract owns a typed build operation', /export interface ManifestBuilderInterface/.test(manifestBuilder) && /readonly build: \(\) => Promise<ManifestBuilderJudgment>/.test(manifestBuilder));
+check('manifest builder preparation is interface-typed', checkExport(manifestScanner, 'manifestBuilderOperationPreparation', 'ManifestBuilderOperationPreparationInterface'));
 check('manifest graph compiler runtime operation is interface-typed', checkExport(manifestGraph, 'manifestGraphCompilationOperations', 'ManifestGraphCompilationOperationsInterface'));
-check('upstream collection foundation remains absent/empty', fs.statSync(path.join(root, 'packages/core/src/types/upstream/collections.ts')).size === 0);
+check('upstream collection foundation remains absent', fs.readFileSync(path.join(root, 'packages/core/src/types/upstream/collections.ts')).toString() === '\n');
 
 const deletedRelationPattern = /from\s*['\"][^'\"]*semantic\/relations\/(relationMembership|relationalSequence|semanticRelations)['\"]/g;
 const relationImports = [];

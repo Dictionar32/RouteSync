@@ -92,7 +92,7 @@ export const laravelDtoTypeReferenceBindingAuthorityFactory: LaravelDtoTypeRefer
   create: createLaravelDtoTypeReferenceBindingAuthorityImplementation,
 });
 
-export const laravelDtoTypeReferenceBindingAuthority = laravelDtoTypeReferenceBindingAuthorityFactory.create(
+export const laravelDtoTypeReferenceBindingAuthority: LaravelDtoTypeReferenceBindingAuthorityInterface = laravelDtoTypeReferenceBindingAuthorityFactory.create(
   Object.freeze({
     classNameResolutionAuthority: phpClassNameResolutionAuthority,
     declarationResolutionAuthority: laravelControllerResponseDtoDeclarationResolutionAuthority,

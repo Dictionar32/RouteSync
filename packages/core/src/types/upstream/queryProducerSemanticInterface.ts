@@ -1,5 +1,4 @@
 import type { Expression, ModelStaticOperation, OrderDirection, QueryDatePart, QueryDateRelative, QueryGrouping, QueryJoin, QueryRelationAggregate, QueryRelationAggregateFunction } from './expression';
-import type { RelationPath } from './collections';
 import type { QueryOperationAst } from './query';
 import type { MethodName, ModelName, PropertyName, RelationName } from './names';
 import type { DescriptionText, NumberValue } from './valueObjects';
@@ -242,7 +241,14 @@ const queryOperationRuleRequirement = <
   constraints: freezeSemanticTuple(constraints),
 });
 
-export const queryOperationSemanticRuleRequirements = Object.freeze({
+export interface QueryOperationSemanticRuleRequirementsInterface {
+  readonly [rule: string]: Readonly<{
+    readonly premises: readonly QueryOperationSemanticPremise[];
+    readonly constraints: readonly QueryOperationSemanticConstraint[];
+  }>;
+}
+
+export const queryOperationSemanticRuleRequirements: QueryOperationSemanticRuleRequirementsInterface = Object.freeze({
   query_join_rule: queryOperationRuleRequirement(['method_vocabulary_claimed', 'argument_shape_valid'], ['arity', 'join_shape', 'nested_query_shape']),
   query_basic_condition_rule: queryOperationRuleRequirement(['method_vocabulary_claimed', 'argument_shape_valid', 'property_or_relation_evidence_resolved', 'operator_evidence_supported'], ['arity', 'literal_domain', 'operator_domain', 'property_identity']),
   query_range_condition_rule: queryOperationRuleRequirement(['method_vocabulary_claimed', 'argument_shape_valid', 'property_or_relation_evidence_resolved', 'operator_evidence_supported'], ['arity', 'property_identity', 'literal_domain']),

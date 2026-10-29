@@ -1,11 +1,32 @@
-import { useQueryClient, QueryClient } from '@tanstack/react-query'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { type EndpointCallable, type EndpointCallableOptions } from '@routesync/sdk'
 
-export function useApiQueryClient() {
+export interface ApiQueryClientOperations {
+  readonly queryClient: QueryClient;
+  readonly invalidateEndpoint: <TResponse, TParams, TBody>(
+    endpoint: EndpointCallable<TResponse, TParams, TBody>,
+    options?: EndpointCallableOptions<TParams, TBody>
+  ) => Promise<void>;
+  readonly prefetchEndpoint: <TResponse, TParams, TBody>(
+    endpoint: EndpointCallable<TResponse, TParams, TBody>,
+    options?: EndpointCallableOptions<TParams, TBody>
+  ) => Promise<void>;
+  readonly setEndpointData: <TResponse, TParams, TBody>(
+    endpoint: EndpointCallable<TResponse, TParams, TBody>,
+    options: EndpointCallableOptions<TParams, TBody> | undefined,
+    updater: TResponse | ((oldData: TResponse | undefined) => TResponse)
+  ) => TResponse | undefined;
+  readonly getEndpointData: <TResponse, TParams, TBody>(
+    endpoint: EndpointCallable<TResponse, TParams, TBody>,
+    options?: EndpointCallableOptions<TParams, TBody>
+  ) => TResponse | undefined;
+}
+
+export function useApiQueryClient(): ApiQueryClientOperations {
   const queryClient = useQueryClient()
 
   return {
-    queryClient,
+    queryClient: queryClient,
     
     invalidateEndpoint: <TResponse, TParams, TBody>(
       endpoint: EndpointCallable<TResponse, TParams, TBody>,

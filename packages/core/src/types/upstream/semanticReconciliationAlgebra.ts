@@ -12,7 +12,7 @@ import { createTableName } from './names';
 import { inferLaravelTableName } from '../../utils/resource-naming';
 import { schemaForeignKeyEvidence, type SchemaForeignKeyEvidence, type SchemaRelationInterface } from './schemaRelation';
 
-const items = <T>(value: import('./collections').Sequence<T>, output: readonly T[] = []): readonly T[] =>
+const items = <T>(value: readonly T[], output: readonly T[] = []): readonly T[] =>
   value.kind === 'empty' ? output : items(value.tail, [...output, value.head]);
 
 const modelTable = (model: string): TableName => createTableName(inferLaravelTableName(model));

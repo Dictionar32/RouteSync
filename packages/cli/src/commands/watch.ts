@@ -3,7 +3,9 @@ import chalk from 'chalk'
 import fs from 'fs-extra'
 import path from 'path'
 
-export const watchCommand = new Command('watch')
+export interface WatchCommandInterface extends Command {}
+
+export const watchCommand: WatchCommandInterface = new Command('watch')
   .description('Watch routes file and re-sync on changes')
   .option('-i, --input <path>', 'Path to routes/api.php', 'routes/api.php')
   .option('-o, --output <path>', 'Output directory', 'src/api')

@@ -5,7 +5,13 @@ import type { RouteParameter } from "./parameters";
  *
  * Explicit Domain Model for Laravel Broadcast Channels (routes/channels.php).
  */
-export const BroadcastChannelKind = Object.freeze({
+export interface BroadcastChannelKindInterface {
+  readonly Public: 'public';
+  readonly Private: 'private';
+  readonly Presence: 'presence';
+}
+
+export const BroadcastChannelKind: BroadcastChannelKindInterface = Object.freeze({
   Public: 'public',
   Private: 'private',
   Presence: 'presence'
@@ -91,4 +97,3 @@ export function matchBroadcastChannel<R>(
 ): R {
   return visitor[channel.kind](channel as any);
 }
-

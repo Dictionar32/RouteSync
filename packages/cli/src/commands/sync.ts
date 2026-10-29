@@ -5,18 +5,7 @@ import ora from 'ora'
 import chalk from 'chalk'
 import { manifestGeneratorOperations } from '../generators/ManifestGenerator'
 import { manifestContractValidationOperations } from '../generators/ManifestContractValidator'
-import { SDKGenerator } from '../generators/SDKGenerator'
-import { HookGenerator } from '../generators/HookGenerator'
-import { ValuesGenerator } from '../generators/ValuesGenerator'
-import { NextActionGenerator } from '../generators/NextActionGenerator'
-import { MswGenerator } from '../generators/MswGenerator'
-import { LaravelChannelParser } from '../parsers/LaravelChannelParser'
-import { EchoGenerator } from '../generators/EchoGenerator'
-import { IndexGenerator } from '../generators/IndexGenerator'
-import { ModelGenerator } from '../generators/ModelGenerator'
-import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
-import { ConstantsGenerator } from '../generators/ConstantsGenerator'
-import { RoutesGenerator } from '../generators/RoutesGenerator'
+import { manifestCodeGenerationOperation } from '../generators/manifestCodeGenerationOperation'
 import { createLaravelSourceProjectIdentity, sourceFileIdentityFactory, sourceFileInventoryFactory, laravelRouteSourceSelectionAuthority, routeSyncManifestFlowProjection, routeSyncManifestDataflowProjection, routeManifestProjectionCompositionFactory, routeManifestRequestResolutionPreflight, IRNodeRegistry, routeSyncManifestDataflowAnalysisOperations, semanticDataflowIRProjection, stringValue } from '@routesync/core'
 import { cliSemanticDataflowRuntimeBoundary } from '../dataflow/semanticDataflowRuntimeBoundary'
 import type { RouteSyncCliUpstreamCompositionInterface } from '../upstreamCompositionInterface'
@@ -87,13 +76,7 @@ export const createSyncCommand: SyncCommandFactoryInterface = Object.freeze({
         options.baseURL,
         '6.0.0',
       )
-      const resolvedManifest = routeManifestProjection.continue({
-        manifest_projected: (outcome) => outcome.manifest,
-        manifest_projection_blocked: (outcome) => {
-          spinner.fail(chalk.red(`Sync blocked by upstream RequestType semantic judgment: ${JSON.stringify(outcome.derivation)}`))
-          process.exit(1)
-        },
-      })
+      const resolvedManifest = routeManifestProjection.requireCompleteManifest()
       const routes = resolvedManifest.routes
       const models = resolvedManifest.models
       const resources = resolvedManifest.resources
@@ -157,10 +140,13 @@ export const createSyncCommand: SyncCommandFactoryInterface = Object.freeze({
 
       await fs.ensureDir(options.output)
 
-      spinner.start('Compiling and emitting full contract bundle...')
-      const { CompilerBridge } = require('../generators/CompilerBridge')
-      const emitted = await CompilerBridge.emitFullBundle(resolvedManifest, options.output, options)
-      spinner.succeed(chalk.green(`✔ Emitted ${emitted.allWrittenPaths.length} compiler & client artifacts successfully`))
+      spinner.start('Resolving upstream manifest code-generation operation...')
+      const generation = manifestCodeGenerationOperation.emit({
+        manifest: resolvedManifest,
+        outputDir: options.output,
+        options,
+      })
+      generation.requireCompleteGeneration()
 
       console.log(chalk.bold.green('\n  Sync complete!\n'))
       console.log(`  Output: ${chalk.cyan(options.output)}`)

@@ -6,7 +6,16 @@ import type { PropertyName, ResourceName } from "./semanticValues";
  *
  * Canonical ADT discriminator for classifying Route Resource Groups.
  */
-export const ResourceGroupKind = Object.freeze({
+export interface ResourceGroupKindInterface {
+  readonly FullCrud: 'full_crud';
+  readonly ReadOnlyCrud: 'read_only_crud';
+  readonly FlexibleCrud: 'flexible_crud';
+  readonly Crud: 'crud';
+  readonly Singleton: 'singleton';
+  readonly Custom: 'custom';
+}
+
+export const ResourceGroupKind: ResourceGroupKindInterface = Object.freeze({
   FullCrud: 'full_crud',
   ReadOnlyCrud: 'read_only_crud',
   FlexibleCrud: 'flexible_crud',
@@ -95,7 +104,13 @@ export interface AbsentMutation {
 
 export type MutationCapability<TRoute> = AvailableMutation<TRoute> | AbsentMutation;
 
-export const MutationCapability = Object.freeze({
+export interface MutationCapabilityInterface {
+  readonly available: <TRoute>(route: TRoute) => AvailableMutation<TRoute>;
+  readonly absent: () => AbsentMutation;
+  readonly fromNullable: <TRoute>(route: TRoute | null | undefined) => MutationCapability<TRoute>;
+}
+
+export const MutationCapability: MutationCapabilityInterface = Object.freeze({
   available: <TRoute>(route: TRoute): AvailableMutation<TRoute> =>
     Object.freeze({ available: true, route }),
   absent: (): AbsentMutation =>
@@ -596,7 +611,7 @@ export class ScannedFullCrudResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements FullCrudResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.FullCrud;
+  public readonly kind: typeof ResourceGroupKind.FullCrud = ResourceGroupKind.FullCrud;
   public readonly types: FullCrudTypeSignature;
   public readonly create: TRoute;
   public readonly update: TRoute;
@@ -645,7 +660,7 @@ export class ScannedReadOnlyCrudResourceGroupDescriptor<TRoute = RouteSemanticFl
   extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements ReadOnlyCrudResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.ReadOnlyCrud;
+  public readonly kind: typeof ResourceGroupKind.ReadOnlyCrud = ResourceGroupKind.ReadOnlyCrud;
   public readonly types: ReadOnlyCrudTypeSignature;
 
   public static create<TRoute = RouteSemanticFlow>(params: ReadOnlyCrudParams<TRoute>): ScannedReadOnlyCrudResourceGroupDescriptor<TRoute> {
@@ -681,7 +696,7 @@ export class ScannedFlexibleCrudResourceGroupDescriptor<TRoute = RouteSemanticFl
   extends AbstractCrudResourceGroupDescriptor<TRoute>
   implements FlexibleCrudResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.FlexibleCrud;
+  public readonly kind: typeof ResourceGroupKind.FlexibleCrud = ResourceGroupKind.FlexibleCrud;
   public readonly types: FlexibleCrudTypeSignature;
   public readonly create: MutationCapability<TRoute>;
   public readonly update: MutationCapability<TRoute>;
@@ -773,7 +788,7 @@ export class ScannedSingletonResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractResourceGroupDescriptor<TRoute>
   implements SingletonResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.Singleton;
+  public readonly kind: typeof ResourceGroupKind.Singleton = ResourceGroupKind.Singleton;
   public readonly isCrud = false as const;
   public readonly types: SingletonTypeSignature;
 
@@ -845,7 +860,7 @@ export class ScannedCustomResourceGroupDescriptor<TRoute = RouteSemanticFlow>
   extends AbstractResourceGroupDescriptor<TRoute>
   implements CustomResourceGroupDescriptor<TRoute>
 {
-  public readonly kind = ResourceGroupKind.Custom;
+  public readonly kind: typeof ResourceGroupKind.Custom = ResourceGroupKind.Custom;
   public readonly isCrud = false as const;
   public readonly types: CustomTypeSignature;
 

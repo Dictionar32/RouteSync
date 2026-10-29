@@ -1,5 +1,4 @@
-import type { SourceAsts } from './collections';
-import type { CompleteSourceAst } from './ast';
+import type { CompleteSourceAst, SourceAsts } from './ast';
 import type { IncompleteUpstream } from './completeness';
 import type { LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt } from './laravelControllerInvocationSemanticJudgmentInventoryInterface';
 import type { LaravelRouteSourceSelectionIntent } from './laravelRouteSourceSelection';

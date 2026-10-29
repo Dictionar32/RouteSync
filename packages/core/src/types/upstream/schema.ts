@@ -1,4 +1,3 @@
-import type { Columns, ForeignKeys, Indexes, Sequence } from './collections';
 import type { MigrationInterface } from './migrationInterface';
 import type { TableName } from './names';
 import type { MigrationProvenance, SourceSpan } from './provenance';

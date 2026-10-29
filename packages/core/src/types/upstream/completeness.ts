@@ -2,7 +2,6 @@ import type { RouteSyncManifest } from './manifest';
 import { completeSourceProof } from './ast';
 import type { SourceAst, CompleteSourceAst } from './ast';
 import type { SourceSpan } from './provenance';
-import type { SourceDiscovery, Sequence, CompletenessFailures } from './collections';
 
 export type SourceCategory =
   | { readonly kind: 'model' } | { readonly kind: 'resource' } | { readonly kind: 'request' }

@@ -1,7 +1,6 @@
 import type { ArrayEntry, Expression, ModelStaticOperation, OrderDirection, QueryColumnReference, QueryDatePart, QueryDateRelative, QueryGrouping, QueryJoin, QueryJoinConstraint, QueryOrderingTarget, QueryRelationAggregate, QueryRelationAggregateFunction } from './expression';
 import type { SourceSpan } from './provenance';
 import { descriptionText, numberValue, stringValue } from './valueObjects';
-import type { RelationPath, PropertyNames } from './collections';
 import type { PropertyName, RelationName } from './names';
 import { createModelName, createPropertyName, createRelationName, type MethodName } from './names';
 type RelationNoneValue = typeof RELATION_NONE;
@@ -184,7 +183,7 @@ const rowValuePredicateCatalog: readonly (readonly [string, QueryRowValueDescrip
 ]);
 
 const queryColumnReferencesFromEntries = (
-  entries: import('./collections').Sequence<ArrayEntry>,
+  entries: readonly ArrayEntry[],
   output: readonly QueryColumnReference[] = [],
 ): QueryProducerSemanticJudgment<readonly QueryColumnReference[]> => {
   if (entries.kind === 'empty') return output.length > 0 ? resolved(output) : malformed('row-value predicate requires at least one column');
@@ -234,7 +233,7 @@ const resolveColumnReference = (evidence: Expression): QueryProducerSemanticJudg
 };
 
 const resolveColumnComparisonPairs = (
-  entries: import('./collections').Sequence<ArrayEntry>,
+  entries: readonly ArrayEntry[],
   output: readonly import('./expression').QueryColumnComparison[] = [],
 ): QueryProducerSemanticJudgment<readonly import('./expression').QueryColumnComparison[]> => {
   if (entries.kind === 'empty') return output.length > 0 ? resolved(output) : malformed('column comparison requires at least one column pair');
@@ -348,13 +347,13 @@ const comparisonOperatorCatalog: readonly (readonly [string, import('./expressio
   ['like', { kind: 'like' }], ['not like', { kind: 'not_like' }],
 ]);
 
-const positionalModelArguments = (items: import('./collections').Sequence<import('./expression').ExpressionArgument>, output: Expression[] = []): readonly Expression[] => {
+const positionalModelArguments = (items: readonly import('./expression').ExpressionArgument[], output: Expression[] = []): readonly Expression[] => {
   if (items.kind === 'empty') return output;
   if (items.head.kind === 'positional') return positionalModelArguments(items.tail, output.concat([items.head.value]));
   return positionalModelArguments(items.tail, output);
 };
 
-const sequenceOf = <T>(items: readonly T[], index = items.length - 1, tail: import('./collections').Sequence<T> = { kind: 'empty' }): import('./collections').Sequence<T> =>
+const sequenceOf = <T>(items: readonly T[], index = items.length - 1, tail: readonly T[] = []): readonly T[] =>
   relationGate(index < 0, () => tail, () => sequenceOf(items, index - 1, { kind: 'cons', head: items[index], tail }));
 
 const orderingTargetFromEvidence = (evidence: Expression): QueryOrderingTarget => {
@@ -579,7 +578,7 @@ const nullSafeEqualityCatalog: readonly (readonly [string, QueryNullSafeEquality
   ['whereNullSafeEquals', { junction: { kind: 'where' } }], ['orWhereNullSafeEquals', { junction: { kind: 'or_where' } }],
 ]);
 
-const arrayValues = (items: import('./collections').Sequence<import('./expression').ArrayEntry>, output: readonly Expression[] = []): readonly Expression[] =>
+const arrayValues = (items: readonly import('./expression').ArrayEntry[], output: readonly Expression[] = []): readonly Expression[] =>
   items.kind === 'empty' ? output : arrayValues(items.tail, output.concat([items.head.value]));
 
 const resolveRangeCondition = (methodName: MethodName, arguments_: readonly Expression[]): QueryProducerSemanticJudgment<QueryOperationAst> => {
@@ -1032,7 +1031,7 @@ const groupingTarget = (expression: Expression): QueryOrderingTarget => relation
   ),
 );
 
-const groupingSequence = (evidence: readonly Expression[], index = evidence.length - 1, tail: import('./collections').Sequence<QueryOrderingTarget> = { kind: 'empty' }): import('./collections').Sequence<QueryOrderingTarget> =>
+const groupingSequence = (evidence: readonly Expression[], index = evidence.length - 1, tail: readonly QueryOrderingTarget[] = []): readonly QueryOrderingTarget[] =>
   relationGate(index < 0, () => tail, () => groupingSequence(evidence, relationAdvanceIndex(index, -1), { kind: 'cons', head: groupingTarget(evidence[index]), tail }));
 
 const resolveQueryGrouping = (evidence: readonly Expression[]): QueryProducerSemanticJudgment<QueryGrouping> =>

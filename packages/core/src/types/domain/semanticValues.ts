@@ -151,7 +151,45 @@ export type BoundTargetModel =
 
 const stringValue = (value: string): StringValue => Object.freeze({ kind: 'string_value', value });
 
-export const SemanticValueFactory = Object.freeze({
+export interface SemanticValueFactoryInterface {
+  readonly stringValue: typeof stringValue;
+  readonly modelName: (value: string) => ModelName;
+  readonly tableName: (value: string) => TableName;
+  readonly routeName: (value: string) => RouteName;
+  readonly responseTypeName: (value: string) => ResponseTypeName;
+  readonly httpErrorName: (value: string) => HttpErrorName;
+  readonly abilityName: (value: string) => AbilityName;
+  readonly className: (value: string) => ClassName;
+  readonly domainName: (value: string) => DomainName;
+  readonly resourceName: (value: string) => ResourceName;
+  readonly columnName: (value: string) => ColumnName;
+  readonly propertyName: (value: string) => PropertyName;
+  readonly relationName: (value: string) => RelationName;
+  readonly methodName: (value: string) => MethodName;
+  readonly actionName: (value: string) => ActionName;
+  readonly controllerName: (value: string) => ControllerName;
+  readonly routePath: (value: string) => RoutePath;
+  readonly routeParameterName: (value: string) => RouteParameterName;
+  readonly sourceFilePath: (value: string) => SourceFilePath;
+  readonly sourceLineNumber: (value: number) => SourceLineNumber;
+  readonly variableName: (value: string) => VariableName;
+  readonly responseFieldName: (value: string) => ResponseFieldName;
+  readonly requestFieldName: (value: string) => RequestFieldName;
+  readonly formTypeName: (value: string) => FormTypeName;
+  readonly formTypeNameFromRequestClass: (value: ClassName) => FormTypeName;
+  readonly responseDataKey: (value: string) => ResponseDataKey;
+  readonly responseMetaKey: (value: string) => ResponseMetaKey;
+  readonly responseLinksKey: (value: string) => ResponseLinksKey;
+  readonly envelopeTypeName: (value: string) => EnvelopeTypeName;
+  readonly databaseTypeName: (value: string) => DatabaseTypeName;
+  readonly castTypeName: (value: string) => CastTypeName;
+  readonly conditionExpression: (value: string) => ConditionExpression;
+  readonly semanticOperator: (value: SemanticOperator['value']) => SemanticOperator;
+  readonly phpFunctionName: (value: string) => PhpFunctionName;
+  readonly literalValue: (value: BoundLiteralValue) => BoundLiteralValue;
+}
+
+export const SemanticValueFactory: SemanticValueFactoryInterface = Object.freeze({
   stringValue,
   modelName(value: string): ModelName { return Object.freeze({ kind: 'model_name', value: stringValue.create(value) }); },
   tableName(value: string): TableName { return Object.freeze({ kind: 'table_name', value: stringValue.create(value) }); },

@@ -1,5 +1,4 @@
 import type { ClassName, PropertyName, VariableName } from './names';
-import type { VariableNames } from './collections';
 import type { Expression } from './expression';
 import type { SourceSpan } from './provenance';
 
@@ -65,6 +64,11 @@ export type AssignmentAst = {
   readonly kind: 'assignment_ast';
   readonly definition: Assignment;
   readonly source: SourceSpan;
+};
+
+export type AssignmentAsts = {
+  readonly kind: 'assignment_asts';
+  readonly items: readonly AssignmentAst[];
 };
 
 /** Canonical source mutation vocabulary. Every mutation keeps its source datum intact. */

@@ -1,4 +1,3 @@
-import type { SourceDiscovery, Sequence } from './collections';
 import type { ControllerAction } from './controller';
 import type { Expression, ResolvedExpression, ExpressionArguments } from './expression';
 import type { PropertyDefinition } from './property';

@@ -230,7 +230,14 @@ export function matchRoute<R>(
  *
  * Canonical Domain Vocabulary for Route ADT Discriminator Tags.
  */
-export const RouteDescriptorKind = Object.freeze({
+export interface RouteDescriptorKindInterface {
+  readonly GetCollection: 'get_collection';
+  readonly GetItem: 'get_item';
+  readonly Mutation: 'mutation';
+  readonly Deletion: 'deletion';
+}
+
+export const RouteDescriptorKind: RouteDescriptorKindInterface = Object.freeze({
   GetCollection: 'get_collection',
   GetItem: 'get_item',
   Mutation: 'mutation',
@@ -348,4 +355,3 @@ export class RouteSemanticFlowRegistry implements RouteCollectionRegistry {
     return this.all.map(desc => matchRoute(desc, visitor));
   }
 }
-

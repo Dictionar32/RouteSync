@@ -29,7 +29,7 @@ export interface ModelSourceSemanticsEvidence {
 export interface ModelSourceSemanticsJudgment {
   readonly kind: 'model_source_semantics_resolved';
   readonly inheritance: ModelInheritance;
-  readonly capabilities: { readonly kind: 'model_source_capabilities'; readonly traits: { readonly kind: 'model_traits'; readonly items: import('./collections').Sequence<TraitName> } };
+  readonly capabilities: { readonly kind: 'model_source_capabilities'; readonly traits: { readonly kind: 'model_traits'; readonly items: readonly TraitName[] } };
   readonly methods: readonly ModelMethod[];
   readonly constants: readonly ModelConstant[];
 }

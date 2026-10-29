@@ -119,7 +119,7 @@ export function matchSdkResponseResolution<R>(
   return visitor[resolution.kind](resolution as any);
 }
 
-export const matchSdkResponse = matchSdkResponseResolution;
+export const matchSdkResponse: typeof matchSdkResponseResolution = matchSdkResponseResolution;
 
 export class ScannedSdkResponseResolution implements SdkResponseResolution {
   public readonly kind: SdkResponseKind;

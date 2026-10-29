@@ -1,6 +1,5 @@
 /** Closed validation projection. No rule strings or optional parallel bags. */
 
-import type { ValidationRules } from '../upstream/collections';
 import type { StringValue } from '../upstream/valueObjects';
 import type { PropertyName, CodeExpression } from './nominalVocabulary';
 

@@ -313,7 +313,73 @@ export const matchBoundSemantic = <R>(
 
 
 
-export const BoundSemanticFactory = Object.freeze({
+export interface BoundSemanticFactoryInterface {
+  readonly modelReference: (model: ModelName) => BoundModelReferenceNode;
+  readonly resourceReference: (resource: ResourceName) => BoundResourceReferenceNode;
+  readonly primitive: (semanticType: SemanticType, value: BoundLiteralValue) => BoundPrimitiveNode;
+  readonly modelColumn: (params: {
+    readonly model: ModelName;
+    readonly column: ColumnName;
+    readonly dbType: DatabaseType;
+    readonly castType: BoundCastType;
+    readonly semanticType: SemanticType;
+  }) => BoundModelColumnNode;
+  readonly relation: (params: {
+    readonly sourceModel: ModelName;
+    readonly relationName: RelationName;
+    readonly relationType: EloquentRelationType;
+    readonly targetModel: ModelName;
+    readonly cardinality: BoundCardinality;
+    readonly nullability: BoundNullability;
+    readonly semanticType: SemanticType;
+  }) => BoundRelationNode;
+  readonly propertyChain: (params: {
+    readonly rootModel: ModelName;
+    readonly steps: readonly BoundStepEdge[];
+    readonly resultingType: SemanticType;
+    readonly nullability: BoundNullability;
+  }) => BoundPropertyChainNode;
+  readonly conditional: (params: {
+    readonly wrapper: ConditionalWrapperKind;
+    readonly conditionExpression: ConditionExpression;
+    readonly target: BoundSemanticNode;
+    readonly relationModel: BoundTargetModel;
+    readonly availability: BoundConditionalAvailability;
+    readonly semanticType: SemanticType;
+  }) => BoundConditionalNode;
+  readonly binary: (params: {
+    readonly operator: SemanticOperator;
+    readonly left: BoundSemanticNode;
+    readonly right: BoundSemanticNode;
+    readonly resultingType: SemanticType;
+  }) => BoundBinaryNode;
+  readonly ternary: (params: {
+    readonly conditionExpression: ConditionExpression;
+    readonly branches: { readonly kind: 'then_else'; readonly whenTrue: BoundSemanticNode; readonly whenFalse: BoundSemanticNode };
+    readonly resultingType: SemanticType;
+  }) => BoundTernaryNode;
+  readonly projectionField: (params: {
+    readonly sourceModel: ModelName;
+    readonly field: ResponseFieldName;
+    readonly semanticType: SemanticType;
+  }) => BoundProjectionFieldNode;
+  readonly queryProjection: (params: {
+    readonly sourceModel: ModelName;
+    readonly surface: QueryProjectionSurface;
+    readonly cardinality: BoundCardinality;
+    readonly nullability: BoundNullability;
+  }) => BoundQueryProjectionNode;
+  readonly methodCall: (params: {
+    readonly targetModel: BoundTargetModel;
+    readonly methodName: MethodName;
+    readonly returnType: SemanticType;
+    readonly cardinality: BoundCardinality;
+    readonly nullability: BoundNullability;
+  }) => BoundMethodCallNode;
+  readonly unsupported: (reason: BoundUnsupportedReason) => BoundUnsupportedNode;
+}
+
+export const BoundSemanticFactory: BoundSemanticFactoryInterface = Object.freeze({
   modelReference(model: ModelName): BoundModelReferenceNode {
     return Object.freeze({ kind: 'bound_model_reference', model });
   },

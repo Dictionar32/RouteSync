@@ -58,7 +58,7 @@ export function matchRouteExecutionSignature<R>(
   return visitors[signature.payloadMode](signature);
 }
 
-export const matchRoutePayloadMode = matchRouteExecutionSignature;
+export const matchRoutePayloadMode: typeof matchRouteExecutionSignature = matchRouteExecutionSignature;
 
 export interface RouteSemanticFlowExecutionSignatureFactory {
   readonly noPayload: () => NoPayloadExecutionSignature;

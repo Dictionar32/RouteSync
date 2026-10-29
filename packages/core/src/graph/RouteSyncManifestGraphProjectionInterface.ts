@@ -8,7 +8,6 @@ import type { SemanticRelationGraph } from '../types/upstream/semanticReferences
 import type { ModelDefinition } from '../types/upstream/model';
 import type { DependencyTargetReference } from '../types/upstream/semanticReferences';
 import type { ControllerName, ActionName } from '../types/upstream/names';
-import type { Sequence } from '../types/upstream/collections';
 
 /**
  * Minimal graph-owned model slice. Graph construction needs the canonical
@@ -27,8 +26,8 @@ export interface GraphServiceMethodSurface {
 /** Minimal service slice required by graph node/edge construction. */
 export interface GraphServiceSurface {
   readonly name: ServiceSemanticContract['name'];
-  readonly methods: Sequence<GraphServiceMethodSurface>;
-  readonly dependencyTargets: Sequence<DependencyTargetReference>;
+  readonly methods: readonly GraphServiceMethodSurface[];
+  readonly dependencyTargets: readonly DependencyTargetReference[];
 }
 
 /** Minimal controller/action slice required by graph node construction. */
@@ -48,9 +47,8 @@ export interface RouteSyncManifestGraphProjectionInterface
 
 export interface RouteSyncManifestGraphSurface {
   readonly kind: 'route_sync_manifest_graph_surface';
-  readonly models: Sequence<GraphModelSurface>;
-  readonly services: Sequence<GraphServiceSurface>;
-  readonly controllers: Sequence<GraphControllerSurface>;
+  readonly models: readonly GraphModelSurface[];
+  readonly services: readonly GraphServiceSurface[];
+  readonly controllers: readonly GraphControllerSurface[];
   readonly relations: SemanticRelationGraph;
 }
-

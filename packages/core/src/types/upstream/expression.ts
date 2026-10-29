@@ -3,7 +3,6 @@ import type { ResourceOperation } from './resourceVocabulary';
 import type { TypeExpression } from './typeVocabulary';
 import type { SourceSpan } from './provenance';
 import type { LiteralValue, SemanticValue } from './primitiveVocabulary';
-import type { Expressions, MatchArms, ObjectProperties, RelationPaths, RelationPath, PropertyPath, SqlExpressions, ClosureCaptures, PropertyPaths, Sequence, Option } from './collections';
 import type { NumberValue, StringValue } from './valueObjects';
 import type { Assignment, AssignmentTarget } from './assignment';
 import type { SourceStatements } from './sourceStatements';
@@ -31,6 +30,14 @@ export type CollectionOperation =
   | { readonly kind: 'group_by'; readonly field: PropertyName }
   | { readonly kind: 'map'; readonly callback: Expression };
 export type ExpressionArgumentName = { readonly kind: 'expression_argument_name'; readonly value: StringValue };
+/**
+ * Explicit expression collection owned by the expression ADT.
+ *
+ * This replaces the removed upstream collection/foundation wrapper.  The
+ * collection is deliberately domain-specific: consumers can inspect the
+ * expression list without depending on a generic sequence abstraction.
+ */
+export type Expressions = { readonly kind: 'expressions'; readonly items: readonly Expression[] };
 export type ExpressionArgument =
   | { readonly kind: 'positional'; readonly value: Expression }
   | { readonly kind: 'named'; readonly name: ExpressionArgumentName; readonly value: Expression }

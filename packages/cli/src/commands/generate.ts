@@ -1,23 +1,14 @@
 import { Command } from 'commander'
 import ora from 'ora'
 import chalk from 'chalk'
-import { SDKGenerator } from '../generators/SDKGenerator'
-import { TypeGenerator } from '../generators/TypeGenerator'
-import { HookGenerator } from '../generators/HookGenerator'
-import { NextActionGenerator } from '../generators/NextActionGenerator'
-import { MswGenerator } from '../generators/MswGenerator'
-import { EchoGenerator } from '../generators/EchoGenerator'
-import { IndexGenerator } from '../generators/IndexGenerator'
-import { QueryKeyGenerator } from '../generators/QueryKeyGenerator'
-import { ConstantsGenerator } from '../generators/ConstantsGenerator'
 import path from 'path'
 import fs from 'fs-extra'
 import { type RouteManifest } from '@routesync/core'
-import { ModelGenerator } from '../generators/ModelGenerator'
-import { RoutesGenerator } from '../generators/RoutesGenerator'
+import { manifestCodeGenerationOperation } from '../generators/manifestCodeGenerationOperation'
 
+export interface GenerateCommandInterface extends Command {}
 
-export const generateCommand = new Command('generate')
+export const generateCommand: GenerateCommandInterface = new Command('generate')
   .description('Generate typed SDK, types, and hooks from route manifest')
   .option('-m, --manifest <path>', 'Path to route manifest', 'routesync.manifest.json')
   .option('-o, --output <path>', 'Output directory', 'src/api')
@@ -39,11 +30,13 @@ export const generateCommand = new Command('generate')
       let manifest: RouteManifest = await fs.readJson(options.manifest)
       await fs.ensureDir(options.output)
 
-      spinner.text = 'Compiling and emitting full contract bundle...'
-      const { CompilerBridge } = await import('../generators/CompilerBridge')
-      const emitted = await CompilerBridge.emitFullBundle(manifest, options.output, options)
-      console.log(`  [CompilerBridge] Emitted ${emitted.allWrittenPaths.length} compiler & client artifacts successfully:`)
-      emitted.allWrittenPaths.forEach(p => console.log(`    ✓ ${path.relative(options.output, p)}`))
+      spinner.text = 'Resolving upstream manifest code-generation operation...'
+      const generation = manifestCodeGenerationOperation.emit({
+        manifest,
+        outputDir: options.output,
+        options,
+      })
+      generation.requireCompleteGeneration()
 
       spinner.succeed(chalk.green(`SDK generated → ${options.output}`))
       console.log(`  ${chalk.cyan('api.ts')}     Typed API client`)

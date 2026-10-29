@@ -9,7 +9,6 @@ import type { ServiceDefinition } from './service';
 import type { MigrationDefinition } from './migration';
 import type { ResponseDefinition } from './response';
 import type { DtoDefinition, MiddlewareDefinition, ProviderDefinition, AttributeDefinition } from './application';
-import type { SourceAsts } from './collections';
 import type { RouteDefinition } from './route';
 import type { ChannelDefinition } from './channel';
 import type { Expression } from './expression';
@@ -104,6 +103,91 @@ export type AstRelationFactSequence =
 export type ControllerMethodSequence =
   | { readonly kind: 'ast_sequence_empty' }
   | { readonly kind: 'ast_sequence_cons'; readonly head: ControllerMethod; readonly tail: ControllerMethodSequence };
+
+type ModelSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly ModelAst[] };
+type ResourceSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly ResourceAst[] };
+type RequestSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly RequestAst[] };
+type RouteSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly RouteAst[] };
+type ControllerSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly ControllerAst[] };
+type ServiceSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly ServiceAst[] };
+type MigrationSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly MigrationAst[] };
+type SchemaSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly import('./schema').SchemaAst[] };
+type ResponseSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly ResponseAst[] };
+type DtoSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly DtoAst[] };
+type MiddlewareSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly MiddlewareAst[] };
+type ProviderSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly ProviderAst[] };
+type AttributeSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly AttributeAst[] };
+type ChannelSourceInventory =
+  | { readonly kind: 'not_scanned' }
+  | { readonly kind: 'scanned'; readonly items: readonly import('./ast').ChannelAst[] };
+
+/**
+ * Complete source inventory owned by the AST boundary.
+ *
+ * This is deliberately named per source domain instead of being expressed as
+ * `SourceDiscovery<T>`: the scanner contract is explicit at the boundary and
+ * does not depend on a generic collection/foundation module.
+ */
+export type SourceAsts = {
+  readonly kind: 'source_asts';
+  readonly controllerInvocationSemanticInventory: import('./laravelControllerInvocationSemanticJudgmentInventoryInterface').LaravelControllerInvocationSemanticJudgmentInventoryClosureReceipt;
+  readonly controllerScan: import('./laravelControllerScannerInterface').LaravelControllerScanJudgment;
+  readonly modelDefinitions: readonly ModelDefinition[];
+  readonly resourceDefinitions: readonly ResourceDefinition[];
+  readonly resourceScan: import('./laravelResourceScannerInterface').LaravelResourceScanJudgment;
+  readonly requestDefinitions: readonly RequestDefinition[];
+  readonly providerDefinitions: readonly ProviderDefinition[];
+  readonly serviceDefinitions: readonly ServiceDefinition[];
+  readonly responseDefinitions: readonly ResponseDefinition[];
+  readonly responseProjectionJudgments: readonly import('./laravelControllerResponseSemanticJudgmentInterface').LaravelControllerMethodResponseAstProjectionJudgment[];
+  readonly schemas: { readonly kind: 'schema_asts'; readonly items: SchemaSourceInventory };
+  readonly models: { readonly kind: 'model_asts'; readonly items: ModelSourceInventory };
+  readonly resources: { readonly kind: 'resource_asts'; readonly items: ResourceSourceInventory };
+  readonly requests: { readonly kind: 'request_asts'; readonly items: RequestSourceInventory };
+  readonly routes: { readonly kind: 'route_asts'; readonly items: RouteSourceInventory };
+  readonly routeFlows: readonly import('../domain/routes').RouteSemanticFlow[];
+  readonly routeScan: import('./laravelRouteScannerInterface').LaravelRouteScanJudgment;
+  readonly controllers: { readonly kind: 'controller_asts'; readonly items: ControllerSourceInventory };
+  readonly controllerActions: readonly import('./highLevelContracts').ControllerActionFlowContract[];
+  readonly services: { readonly kind: 'service_asts'; readonly items: ServiceSourceInventory };
+  readonly migrations: { readonly kind: 'migration_asts'; readonly items: MigrationSourceInventory };
+  readonly responses: { readonly kind: 'response_asts'; readonly items: ResponseSourceInventory };
+  readonly dtos: { readonly kind: 'dto_asts'; readonly items: DtoSourceInventory };
+  readonly middlewares: { readonly kind: 'middleware_asts'; readonly items: MiddlewareSourceInventory };
+  readonly providers: { readonly kind: 'provider_asts'; readonly items: ProviderSourceInventory };
+  readonly attributes: { readonly kind: 'attribute_asts'; readonly items: AttributeSourceInventory };
+  readonly channels: { readonly kind: 'channel_asts'; readonly items: ChannelSourceInventory };
+  readonly properties: import('./property').PropertyAsts;
+  readonly assignments: import('./assignment').AssignmentAsts;
+  readonly expressions: { readonly kind: 'expression_asts'; readonly items: readonly ExpressionAst[] };
+  readonly queries: import('./query').QueryAsts;
+};
 
 
 export type AstEvidence<Surface> = {
@@ -426,7 +510,7 @@ export type AstCompatibilityProjection<Kind extends AstSemanticSchemaKind> =
   Kind extends 'resource_ast' ? { readonly definition: ResourceDefinition; readonly source: SourceSpan } :
   Kind extends 'request_ast' ? { readonly definition: RequestDefinition; readonly source: SourceSpan } :
   Kind extends 'route_ast' ? { readonly definition: RouteDefinition; readonly declaration: RouteDeclarationEvidence; readonly source: SourceSpan } :
-  Kind extends 'controller_ast' ? { readonly methods: import('./collections').Sequence<ControllerMethod>; readonly source: SourceSpan } :
+  Kind extends 'controller_ast' ? { readonly methods: readonly ControllerMethod[]; readonly source: SourceSpan } :
   Kind extends 'response_ast' ? { readonly definition: ResponseDefinition; readonly source: SourceSpan } :
   Kind extends 'service_ast' ? { readonly definition: ServiceDefinition; readonly source: SourceSpan } :
   Kind extends 'migration_ast' ? { readonly definition: MigrationDefinition; readonly source: SourceSpan } :
@@ -633,7 +717,6 @@ export const astJudgmentAlgebra: AstJudgmentAlgebra = Object.freeze({
 export type SourceAst = SourceAsts;
 export type CompleteSourceAst = { readonly kind: 'complete_source_ast'; readonly ast: SourceAst; readonly [completeSourceProof]: 'complete' };
 
-export type { SourceAsts } from './collections';
 export type { PropertyAst } from './property';
 export type { AssignmentAst, MutationAst, SourceMutation } from './assignment';
 export type { QueryAst } from './query';

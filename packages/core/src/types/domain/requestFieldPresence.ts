@@ -51,7 +51,13 @@ class UnspecifiedPresence implements UnspecifiedRequestFieldPresence {
 
 const unspecified = new UnspecifiedPresence();
 
-export const RequestFieldPresenceFactory = Object.freeze({
+export interface RequestFieldPresenceFactoryInterface {
+  readonly required: (nullable: boolean, source?: 'declared' | 'inferred') => RequestFieldPresence;
+  readonly optional: (nullable: boolean, source?: 'declared' | 'inferred') => RequestFieldPresence;
+  readonly unspecified: () => RequestFieldPresence;
+}
+
+export const RequestFieldPresenceFactory: RequestFieldPresenceFactoryInterface = Object.freeze({
   required: (nullable: boolean, source: 'declared' | 'inferred' = 'declared'): RequestFieldPresence => new RequiredPresence(nullable, source),
   optional: (nullable: boolean, source: 'declared' | 'inferred' = 'declared'): RequestFieldPresence => new OptionalPresence(nullable, source),
   unspecified: (): RequestFieldPresence => unspecified

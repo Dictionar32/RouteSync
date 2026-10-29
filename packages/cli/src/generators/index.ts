@@ -1,5 +1,14 @@
 /** Public generator contracts and typed runtime operations. */
 export { manifestContractValidationOperations } from './ManifestContractValidator';
+export {
+  manifestCodeGenerationOperation,
+  ManifestCodeGenerationBlockedError,
+} from './manifestCodeGenerationOperation';
+export type {
+  ManifestCodeGenerationInput,
+  ManifestCodeGenerationBlockedOutcome,
+  ManifestCodeGenerationOperationInterface,
+} from './manifestCodeGenerationOperation';
 export type {
   ManifestContractViolation,
   ManifestContractValidationHandlers,

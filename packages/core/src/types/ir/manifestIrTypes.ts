@@ -2,7 +2,6 @@
 import type { SemanticType } from '../domain/semanticType';
 import type { DescriptionText } from '../upstream/valueObjects';
 import type { Presence } from '../upstream/primitiveVocabulary';
-import type { ValidationRules } from '../upstream/collections';
 import type { PaginationState } from './paginationState';
 import type { SourceFile } from '../upstream/names';
 import type { ActionName, ControllerName, ModelName, PropertyName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceFilePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';

@@ -25,7 +25,9 @@ export {
     annotationWriterOperations
 };
 
-export const annotateCommand = new Command('annotate')
+export interface AnnotateCommandInterface extends Command {}
+
+export const annotateCommand: AnnotateCommandInterface = new Command('annotate')
   .description('Auto-inject #[Response] PHP 8 attributes into controller methods based on Resource discovery')
   .option('--input <file>', 'Path to routes/api.php', 'routes/api.php')
   .option('--dry-run', 'Preview changes without writing files')

@@ -12,7 +12,6 @@ import type {
   SemanticDataflowJudgment,
 } from './semanticDataflow';
 import { semanticDataflowIdentityOperations } from './semanticDataflow';
-import type { Sequence } from './collections';
 import type { SourceFile } from './names';
 import type { SourceProjectIdentity } from './highLevelSourceModel';
 import type { LaravelSourceProjectIdentityFactoryInterface } from './sourceProjectIdentity';

@@ -251,6 +251,10 @@ const resolve = (type: SemanticType): RequestFieldMeaning => type.accept({
   object: value => objectMeaningFactories[value.role](value)
 });
 
-export const RequestFieldMeaningFactory = Object.freeze({
+export interface RequestFieldMeaningFactoryInterface {
+  readonly fromSemanticType: (semanticType: SemanticType) => RequestFieldMeaning;
+}
+
+export const RequestFieldMeaningFactory: RequestFieldMeaningFactoryInterface = Object.freeze({
   fromSemanticType: resolve
 });

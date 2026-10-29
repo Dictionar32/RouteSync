@@ -1,7 +1,6 @@
 import type { ChannelAst } from './ast';
 import type { ChannelName } from './names';
 import type { RouteParameter } from './route';
-import type { Sequence } from './collections';
 import type { SourceSpan } from './provenance';
 import type { SourceProjectIdentity } from './highLevelSourceModel';
 import type {

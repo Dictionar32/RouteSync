@@ -52,8 +52,8 @@ export interface ControllerMethodEvidence {
 export interface ControllerDeclarationEvidence {
   readonly kind: 'controller_declaration_evidence';
   readonly controller: ControllerName;
-  readonly attributes: import('./collections').Sequence<ControllerMethodAttribute>;
-  readonly inheritedAttributes: import('./collections').Sequence<ControllerMethodAttribute>;
+  readonly attributes: readonly ControllerMethodAttribute[];
+  readonly inheritedAttributes: readonly ControllerMethodAttribute[];
   readonly inheritance: import('./controller').ControllerInheritanceRelation | null;
   readonly interfaces: readonly ClassName[];
   readonly methods: readonly ControllerMethodEvidence[];

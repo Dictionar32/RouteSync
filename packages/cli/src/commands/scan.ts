@@ -61,13 +61,7 @@ export const createScanCommand: ScanCommandFactoryInterface = Object.freeze({
         options.baseURL,
         '6.0.0',
       )
-      const resolvedManifest = routeManifestProjection.continue({
-        manifest_projected: (outcome) => outcome.manifest,
-        manifest_projection_blocked: (outcome) => {
-          spinner.fail(chalk.red(`Scan blocked by upstream RequestType semantic judgment: ${JSON.stringify(outcome.derivation)}`))
-          process.exit(1)
-        },
-      })
+      const resolvedManifest = routeManifestProjection.requireCompleteManifest()
       const routes = resolvedManifest.routes
       const models = resolvedManifest.models
       const resources = resolvedManifest.resources

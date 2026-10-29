@@ -3,7 +3,6 @@ import type { ColumnName, PropertyName, RequestName, TableName, FormTypeName, Va
 import type { RouteMethod } from './route';
 import type { RequestContentType } from './routeExecutionVocabulary';
 import type { NumberValue, StringValue, StringValues } from './valueObjects';
-import type { PropertyPath, PropertyPaths, RequestFields, ValidationRules } from './collections';
 import type { SourceSpan } from './provenance';
 import type { Presence } from './primitiveVocabulary';
 import type { TypeExpression } from './typeVocabulary';
@@ -21,7 +20,7 @@ export type FileValidationConstraint =
   | { readonly kind: 'extensions'; readonly values: StringValues }
   | { readonly kind: 'mime_types'; readonly values: StringValues }
   | { readonly kind: 'max_bytes'; readonly value: NumberValue };
-export type FileValidationConstraints = { readonly kind: 'file_validation_constraints'; readonly items: import('./collections').Sequence<FileValidationConstraint> };
+export type FileValidationConstraints = { readonly kind: 'file_validation_constraints'; readonly items: readonly FileValidationConstraint[] };
 
 export type ValidationDatabaseColumn =
   | { readonly kind: 'default_column' }
@@ -44,7 +43,7 @@ export type ValidationRule =
   | { readonly kind: 'exists'; readonly table: TableName; readonly column: ValidationDatabaseColumn }
   | { readonly kind: 'unique'; readonly table: TableName; readonly column: ValidationDatabaseColumn; readonly target: UniqueTarget }
   | { readonly kind: 'file' } | { readonly kind: 'image' }
-  | { readonly kind: 'named'; readonly rule: ValidationRuleName; readonly parameters: import('./collections').Sequence<ValidationParameter> }
+  | { readonly kind: 'named'; readonly rule: ValidationRuleName; readonly parameters: readonly ValidationParameter[] }
   | { readonly kind: 'rule_object'; readonly type: TypeExpression }
   | { readonly kind: 'closure'; readonly expression: Expression };
 
@@ -75,8 +74,8 @@ export type RequestIpAddress = { readonly kind: 'request_ip_address'; readonly v
 
 export type RequestContentNegotiation =
   | { readonly kind: 'acceptable_content_types' }
-  | { readonly kind: 'accepts'; readonly contentTypes: import('./collections').Sequence<RequestContentType> }
-  | { readonly kind: 'prefers'; readonly contentTypes: import('./collections').Sequence<RequestContentType> }
+  | { readonly kind: 'accepts'; readonly contentTypes: readonly RequestContentType[] }
+  | { readonly kind: 'prefers'; readonly contentTypes: readonly RequestContentType[] }
   | { readonly kind: 'accepts_any_content_type' }
   | { readonly kind: 'accepts_json' }
   | { readonly kind: 'accepts_html' }
@@ -177,7 +176,7 @@ export type RequestInputRead = {
 export type RequestDataAccess =
   | { readonly kind: 'data_read'; readonly field: PropertyPath | { readonly kind: 'all' }; readonly default: RequestDefault }
   | { readonly kind: 'exists'; readonly field: PropertyPath }
-  | { readonly kind: 'when_enum'; readonly field: PropertyPath; readonly type: TypeExpression; readonly onMatch: import('./collections').SourceStatements; readonly onElse: import('./collections').SourceStatements | { readonly kind: 'absent' } }
+  | { readonly kind: 'when_enum'; readonly field: PropertyPath; readonly type: TypeExpression; readonly onMatch: import('./sourceStatements').SourceStatements; readonly onElse: import('./sourceStatements').SourceStatements | { readonly kind: 'absent' } }
   | { readonly kind: 'is_empty_string'; readonly field: PropertyPath };
 
 export type RequestInputSelection =
@@ -216,8 +215,8 @@ export type RequestInputConditionalCallback = {
   readonly when: RequestInputConditionalKind;
   readonly field: PropertyPath;
   readonly matchedInput: RequestInputCallbackParameter | { readonly kind: 'absent' };
-  readonly onMatch: import('./collections').SourceStatements;
-  readonly onElse: import('./collections').SourceStatements | { readonly kind: 'absent' };
+  readonly onMatch: import('./sourceStatements').SourceStatements;
+  readonly onElse: import('./sourceStatements').SourceStatements | { readonly kind: 'absent' };
   readonly source: SourceSpan;
 }
 
@@ -241,7 +240,7 @@ export type RequestValidationField = {
 
 export type RequestValidationFields = {
   readonly kind: 'request_validation_fields';
-  readonly items: import('./collections').Sequence<RequestValidationField>;
+  readonly items: readonly RequestValidationField[];
 };
 
 export type RequestValidationInvocation = {
@@ -276,7 +275,7 @@ export type RequestInputAccess =
 
 export type RequestInputAccesses = {
   readonly kind: 'request_input_accesses';
-  readonly items: import('./collections').Sequence<RequestInputAccess>;
+  readonly items: readonly RequestInputAccess[];
 };
 
 export type RequestHttpContext = {
@@ -298,8 +297,8 @@ export type RequestRuleCondition =
 export type ValidationRuleArguments =
   | { readonly kind: 'none' }
   | { readonly kind: 'values'; readonly values: StringValues }
-  | { readonly kind: 'parameters'; readonly parameters: import('./collections').Sequence<ValidationParameter> }
-  | { readonly kind: 'expressions'; readonly expressions: import('./collections').Sequence<Expression> };
+  | { readonly kind: 'parameters'; readonly parameters: readonly ValidationParameter[] }
+  | { readonly kind: 'expressions'; readonly expressions: readonly Expression[] };
 
 export type ValidationRuleDefinition = {
   readonly kind: 'validation_rule_definition';
@@ -316,24 +315,24 @@ export type RequestValidatorReference =
 export type RequestValidationCallback = {
   readonly kind: 'request_validation_callback';
   readonly validator: RequestValidatorReference;
-  readonly statements: import('./collections').SourceStatements;
+  readonly statements: import('./sourceStatements').SourceStatements;
   readonly source: SourceSpan;
 };
 
 export type RequestValidationLifecycle =
   | { readonly kind: 'authorize'; readonly expression: Expression }
-  | { readonly kind: 'prepare_for_validation'; readonly statements: import('./collections').SourceStatements }
-  | { readonly kind: 'after_validation'; readonly callbacks: import('./collections').Sequence<RequestValidationCallback> }
-  | { readonly kind: 'after_validation_source'; readonly statements: import('./collections').SourceStatements }
-  | { readonly kind: 'with_validator_source'; readonly statements: import('./collections').SourceStatements }
+  | { readonly kind: 'prepare_for_validation'; readonly statements: import('./sourceStatements').SourceStatements }
+  | { readonly kind: 'after_validation'; readonly callbacks: readonly RequestValidationCallback[] }
+  | { readonly kind: 'after_validation_source'; readonly statements: import('./sourceStatements').SourceStatements }
+  | { readonly kind: 'with_validator_source'; readonly statements: import('./sourceStatements').SourceStatements }
   | { readonly kind: 'with_validator'; readonly callback: RequestValidationCallback }
-  | { readonly kind: 'passed_validation'; readonly statements: import('./collections').SourceStatements }
-  | { readonly kind: 'failed_authorization'; readonly statements: import('./collections').SourceStatements }
+  | { readonly kind: 'passed_validation'; readonly statements: import('./sourceStatements').SourceStatements }
+  | { readonly kind: 'failed_authorization'; readonly statements: import('./sourceStatements').SourceStatements }
   | { readonly kind: 'failed_validation'; readonly callback: RequestValidationCallback };
 
 export type RequestValidationLifecycles = {
   readonly kind: 'request_validation_lifecycles';
-  readonly items: import('./collections').Sequence<RequestValidationLifecycle>;
+  readonly items: readonly RequestValidationLifecycle[];
 };
 
 export type RequestValidationMessage = {
@@ -346,7 +345,7 @@ export type RequestValidationMessage = {
 
 export type RequestValidationMessages = {
   readonly kind: 'validation_messages';
-  readonly items: import('./collections').Sequence<RequestValidationMessage>;
+  readonly items: readonly RequestValidationMessage[];
 };
 
 export type RequestValidationAttribute = {
@@ -358,7 +357,7 @@ export type RequestValidationAttribute = {
 
 export type RequestValidationAttributes = {
   readonly kind: 'validation_attributes';
-  readonly items: import('./collections').Sequence<RequestValidationAttribute>;
+  readonly items: readonly RequestValidationAttribute[];
 };
 
 export type RequestValidationFailurePolicy =
@@ -457,7 +456,7 @@ export type RequestValidationCapability =
       readonly schema: RequestSchema;
       readonly lifecycle: RequestValidationLifecycles;
       readonly failureResponse: RequestFailureResponseConfiguration;
-      readonly validatedInput: import('./collections').Sequence<ValidatedInputOperation>;
+      readonly validatedInput: readonly ValidatedInputOperation[];
     };
 
 export type RequestValidationCapabilityVisitor<T> = {

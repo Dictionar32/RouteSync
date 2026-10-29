@@ -6,7 +6,16 @@
  * @module types/domain/provenance
  */
 
-export const DataProvenanceKind = Object.freeze({
+export interface DataProvenanceKindInterface {
+  readonly RouteDefinition: 'route_definition';
+  readonly ControllerAction: 'controller_action';
+  readonly FormRequest: 'form_request';
+  readonly EloquentModel: 'eloquent_model';
+  readonly JsonResource: 'json_resource';
+  readonly Inferred: 'inferred';
+}
+
+export const DataProvenanceKind: DataProvenanceKindInterface = Object.freeze({
   RouteDefinition: 'route_definition',
   ControllerAction: 'controller_action',
   FormRequest: 'form_request',

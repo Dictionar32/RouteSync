@@ -2,7 +2,6 @@ import type { Assignment } from './assignment';
 import type { ExpressionArguments, Expression, ExpressionArgument } from './expression';
 import type { ActionName, ClassName, ControllerName, MethodName, ModelName, RequestName, ResourceName, TableName, VariableName, MiddlewareName } from './names';
 import type { SourceSpan } from './provenance';
-import type { CatchHandlers, SourceStatements, Sequence } from './collections';
 import type { SourceConditionalBranches } from './sourceStatements';
 import type { ModelReference, ResourceReference, ResponseReference } from './semanticReferences';
 import type { ResponseCardinality, ResponseResult } from './response';

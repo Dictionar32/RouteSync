@@ -76,7 +76,11 @@ export function createResourceGroupGraph<TRoute = RouteSemanticFlow>(
 /**
  * Backward compatibility alias for ScannedResourceGroupGraph.
  */
-export const ScannedResourceGroupGraph = Object.freeze({
+export interface ScannedResourceGroupGraphInterface {
+  readonly from: typeof createResourceGroupGraph;
+}
+
+export const ScannedResourceGroupGraph: ScannedResourceGroupGraphInterface = Object.freeze({
   from: createResourceGroupGraph
 });
 

@@ -1,6 +1,5 @@
 import type { ColumnName } from './names';
 import type { ColumnDefinition } from './databaseVocabulary';
-import type { Sequence } from './collections';
 import type { ModelKeyKind, ModelKeySemanticType } from './model';
 
 export type ModelKeyFactsEvidence = {

@@ -6,8 +6,8 @@ import {
   RoutePolicyKind,
   type RouteSecurityDescriptor,
   type RoutePolicyDescriptor,
+  type RouteMiddleware,
 } from "../upstream/route";
-import type { RouteMiddlewares } from "../upstream/collections";
 import { routeSecurityAuthority } from "../upstream/routeSecurityAuthority";
 import { createAbilityName } from "../upstream/names";
 
@@ -19,7 +19,7 @@ export type { RouteSecurityDescriptor, RoutePolicyDescriptor } from "../upstream
  * this domain-facing class only projects its already-closed security descriptor.
  */
 export class RouteSecurityClassifier {
-  public static classify(middleware: RouteMiddlewares): RouteSecurityDescriptor {
+  public static classify(middleware: readonly RouteMiddleware[]): RouteSecurityDescriptor {
     return routeSecurityAuthority.resolve({ kind: 'route_security_authority_input', middleware, authorization: { kind: 'laravel_route_authorization_middleware_absent', middleware: Object.freeze([]) } }).security;
   }
 }

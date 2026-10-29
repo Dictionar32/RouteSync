@@ -73,8 +73,12 @@ export type RequestTypeDerivationLawObligation = Readonly<{
   readonly requiredWitness: RequestTypeDerivationLawWitnessKind;
 }>;
 
+export interface RequestTypeDerivationLawObligationsInterface {
+  readonly [lawId: string]: RequestTypeDerivationLawObligation;
+}
+
 /** Every canonical law has one explicit proof obligation owned by upstream. */
-export const REQUEST_TYPE_DERIVATION_LAW_OBLIGATIONS = Object.freeze({
+export const REQUEST_TYPE_DERIVATION_LAW_OBLIGATIONS: RequestTypeDerivationLawObligationsInterface = Object.freeze({
   route_has_explicit_request_binding: { domain: 'request_resolution', requiredWitness: 'route_disposition_binding_evidence' },
   request_identity_exact_match: { domain: 'request_resolution', requiredWitness: 'exact_request_identity_match' },
   request_identity_normalized_unique_match: { domain: 'request_resolution', requiredWitness: 'unique_normalized_request_match' },
@@ -2401,4 +2405,3 @@ export interface RequestTypeDerivationAuthorityIntegrityGateInterface<
     verification: RequestTypeDerivationSemanticVerificationFor<TContract, TInference>,
   ) => RequestTypeDerivationAuthorityIntegrityGateResult<TContract, TInference>;
 }
-

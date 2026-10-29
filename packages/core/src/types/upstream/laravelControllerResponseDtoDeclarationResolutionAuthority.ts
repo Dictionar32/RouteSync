@@ -136,7 +136,7 @@ export const laravelControllerResponseDtoDeclarationResolutionAuthorityFactory: 
   }),
 });
 
-export const laravelControllerResponseDtoDeclarationResolutionAuthority = laravelControllerResponseDtoDeclarationResolutionAuthorityFactory.create(
+export const laravelControllerResponseDtoDeclarationResolutionAuthority: LaravelControllerResponseDtoDeclarationResolutionAuthorityInterface = laravelControllerResponseDtoDeclarationResolutionAuthorityFactory.create(
   Object.freeze({ sourceIdentitySemantics: laravelSourceIdentitySemantics }),
 );
 

@@ -2,7 +2,7 @@ export class TokenManager {
   private static TOKEN_KEY = 'routesync_token'
   private token: string | null = null
 
-  set(token: string) {
+  set(token: string): void {
     this.token = token
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(TokenManager.TOKEN_KEY, token)
@@ -17,7 +17,7 @@ export class TokenManager {
     return null
   }
 
-  clear() {
+  clear(): void {
     this.token = null
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(TokenManager.TOKEN_KEY)

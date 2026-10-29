@@ -43,7 +43,16 @@ export function capitalize(str: string): string {
  *
  * Canonical Domain Vocabulary for Laravel Resource and Transformed Type suffixes.
  */
-export const ResourceNamingConvention = Object.freeze({
+export interface ResourceNamingConventionInterface {
+    readonly ResourceSuffix: 'Resource';
+    readonly ResponseSuffix: 'Response';
+    readonly TransformedSuffix: 'Transformed';
+    readonly CombinedSuffix: 'ResourceTransformed';
+    readonly stripSuffix: (name?: string) => string;
+    readonly toTransformedName: (baseName: string) => string;
+}
+
+export const ResourceNamingConvention: ResourceNamingConventionInterface = Object.freeze({
     ResourceSuffix: 'Resource',
     ResponseSuffix: 'Response',
     TransformedSuffix: 'Transformed',

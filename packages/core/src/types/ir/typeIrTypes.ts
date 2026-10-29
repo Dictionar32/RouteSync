@@ -5,7 +5,6 @@
 
 import type { PropertyName, TypeExpression } from './nominalVocabulary';
 import type { PrimitiveKind } from '../domain/semanticType';
-import type { Option } from '../upstream/collections';
 import type { LiteralValue } from '../upstream/primitiveVocabulary';
 import type { CodeExpression } from './nominalVocabulary';
 
@@ -22,7 +21,7 @@ export type PrimitiveFormatIR =
 export interface ReferenceTypeIR {
     readonly kind: 'reference';
     readonly target: CodeExpression;
-    readonly module: Option<CodeExpression>;
+    readonly module: { readonly kind: 'module_absent' } | { readonly kind: 'module_present'; readonly value: CodeExpression };
     readonly role: 'plain' | 'resource' | 'model' | 'response';
 }
 

@@ -1,10 +1,8 @@
 import type { DomainTypeName } from './names';
-import type { Properties } from './collections';
 import type { ModelSemanticProperty } from './model';
 import type { NumberValue, StringValue, TruthValue } from './valueObjects';
 import type { FunctionName, PropertyName } from './names';
 import type { ExpressionArguments, MethodOperation, StaticMethodAction, StaticReceiver } from './expression';
-import type { SemanticValues } from './collections';
 export type PrimitiveVocabulary = { readonly kind: 'string' } | { readonly kind: 'number' } | { readonly kind: 'integer' } | { readonly kind: 'decimal' } | { readonly kind: 'boolean' } | { readonly kind: 'date_time' } | { readonly kind: 'file' } | { readonly kind: 'json' } | { readonly kind: 'unspecified' };
 export type Presence = { readonly kind: 'required' } | { readonly kind: 'optional' } | { readonly kind: 'unspecified' };
 export type Nullability = { readonly kind: 'non_nullable' } | { readonly kind: 'nullable' };

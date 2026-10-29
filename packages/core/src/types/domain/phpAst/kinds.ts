@@ -7,7 +7,31 @@
  * @module core/types/domain/phpAst
  */
 
-export const PhpAstKind = Object.freeze({
+export interface PhpAstKindInterface {
+    readonly PropertyLookup: 'property_lookup';
+    readonly NullsafePropertyLookup: 'nullsafe_property_lookup';
+    readonly OffsetLookup: 'offset_lookup';
+    readonly StaticPropertyLookup: 'static_property_lookup';
+    readonly FunctionCall: 'function_call';
+    readonly MethodCall: 'method_call';
+    readonly NullsafeMethodCall: 'nullsafe_method_call';
+    readonly StaticMethodCall: 'static_method_call';
+    readonly VariableCall: 'variable_call';
+    readonly NewInstance: 'new_instance';
+    readonly Closure: 'closure';
+    readonly ArrowFunc: 'arrow_func';
+    readonly Binary: 'binary';
+    readonly Unary: 'unary';
+    readonly TypeCast: 'type_cast';
+    readonly Ternary: 'ternary';
+    readonly Array: 'array';
+    readonly Literal: 'literal';
+    readonly StaticConstant: 'static_constant';
+    readonly Variable: 'variable';
+    readonly Unsupported: 'unsupported';
+}
+
+export const PhpAstKind: PhpAstKindInterface = Object.freeze({
     // Member Access
     PropertyLookup: 'property_lookup',
     NullsafePropertyLookup: 'nullsafe_property_lookup',

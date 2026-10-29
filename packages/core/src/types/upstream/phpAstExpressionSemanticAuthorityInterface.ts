@@ -1,5 +1,4 @@
 import type { Expression } from './expression';
-import type { Option } from './collections';
 import type { SourceFile } from './names';
 import type { PhpTypeClassContext } from './phpTypeAtomInterface';
 

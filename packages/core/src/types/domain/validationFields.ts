@@ -38,7 +38,13 @@ export type ValidationFieldNode =
   | ArrayValidationFieldNode
   | ObjectValidationFieldNode;
 
-export const ValidationFieldKind = Object.freeze({
+export interface ValidationFieldKindInterface {
+  readonly Scalar: 'scalar';
+  readonly Array: 'array';
+  readonly Object: 'object';
+}
+
+export const ValidationFieldKind: ValidationFieldKindInterface = Object.freeze({
   Scalar: 'scalar',
   Array: 'array',
   Object: 'object'

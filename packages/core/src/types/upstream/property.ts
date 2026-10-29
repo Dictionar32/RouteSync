@@ -1,7 +1,6 @@
 import type { ClassName, ColumnName, MethodName, ModelName, PropertyName, RelationName } from './names';
 import type { NumberValue, StringValue } from './valueObjects';
 import type { Presence } from './primitiveVocabulary';
-import type { Properties, Sequence } from './collections';
 import type { TypeExpression } from './typeVocabulary';
 import type { SourceSpan } from './provenance';
 import type { Expression } from './expression';
@@ -178,6 +177,11 @@ export type PropertyAst = {
   readonly kind: 'property_ast';
   readonly definition: PropertyDefinition;
   readonly source: SourceSpan;
+};
+
+export type PropertyAsts = {
+  readonly kind: 'property_asts';
+  readonly items: readonly PropertyAst[];
 };
 
 export type PropertySurface = {

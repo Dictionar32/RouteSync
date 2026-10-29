@@ -6,7 +6,7 @@ import type { PhpTypeExpressionEvidence, PhpTypeExpressionInterface, PhpTypeExpr
 export type { PhpTypeExpressionEvidence, PhpTypeExpressionInterface, PhpTypeExpressionJudgment } from './phpTypeExpressionInterface';
 
 type ParseResult = Readonly<{ readonly kind: 'resolved'; readonly expression: TypeExpression }> | Readonly<{ readonly kind: 'unsupported'; readonly source: string; readonly reason: 'context_required' | 'missing_vocabulary'; readonly diagnostic: string }> | Readonly<{ readonly kind: 'malformed'; readonly diagnostic: string }>;
-const sequence = <T>(items: readonly T[]): import('./collections').Sequence<T> => relationGate(
+const sequence = <T>(items: readonly T[]): readonly T[] => relationGate(
   items.length === 0,
   () => ({ kind: 'empty' as const }),
   () => ({ kind: 'cons' as const, head: items[0], tail: sequence(items.slice(1)) }),

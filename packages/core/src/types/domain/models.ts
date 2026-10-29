@@ -15,13 +15,3 @@ export type {
   ModelSemanticDefinition,
   ModelPropertyAccessFact,
 } from '../upstream/model';
-
-export {
-  ModelSemanticPropertyIndex,
-  ModelSemanticRelationIndex,
-  modelSemanticPropertyIndexFrom,
-  modelSemanticPropertyLookup,
-  modelSemanticPropertyHas,
-  modelSemanticRelationIndexFrom,
-  modelSemanticRelationLookup,
-} from '../upstream/model';

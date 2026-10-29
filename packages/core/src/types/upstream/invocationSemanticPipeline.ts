@@ -107,7 +107,7 @@ export const invocationSemanticIntegratedResponseCompositionFactory: InvocationS
 });
 
 /** Production composition used by the Laravel scanner; all authorities are upstream-owned. */
-export const invocationSemanticIntegratedResponseComposition = invocationSemanticIntegratedResponseCompositionFactory.create(Object.freeze({
+export const invocationSemanticIntegratedResponseComposition: InvocationSemanticIntegratedResponseCompositionInterface = invocationSemanticIntegratedResponseCompositionFactory.create(Object.freeze({
   inventory: invocationSemanticSubjectCoverageInventory,
   pipeline: invocationSemanticPipeline,
   publicationAuthority: invocationSemanticCoveragePublicationAuthority,

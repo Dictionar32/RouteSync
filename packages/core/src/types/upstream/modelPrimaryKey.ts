@@ -1,7 +1,6 @@
 import type { ColumnName, TableName } from './names';
 import type { ModelKeyOrigin } from './model';
 import type { SchemaRelationIndexInterface } from './schemaRelation';
-import type { Sequence } from './collections';
 
 export type ModelPrimaryKeyReconciliationStatus =
   | 'matched'

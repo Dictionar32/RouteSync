@@ -1,5 +1,3 @@
-import type { Sequence } from './collections';
-import type { Columns, ForeignKeys, Indexes } from './collections';
 import type { Expression } from './expression';
 import type { SourceFile, TableName } from './names';
 import type { SourceSpan } from './provenance';

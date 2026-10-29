@@ -11,7 +11,24 @@ import type { ModelSemanticRelation } from '../upstream/model';
  *
  * Canonical Domain Vocabulary for Eloquent Attribute Casts.
  */
-export const EloquentCastKind = Object.freeze({
+export interface EloquentCastKindInterface {
+  readonly Integer: 'integer';
+  readonly Float: 'float';
+  readonly Decimal: 'decimal';
+  readonly Boolean: 'boolean';
+  readonly String: 'string';
+  readonly DateTime: 'datetime';
+  readonly Date: 'date';
+  readonly Timestamp: 'timestamp';
+  readonly Array: 'array';
+  readonly Json: 'json';
+  readonly Object: 'object';
+  readonly Collection: 'collection';
+  readonly Encrypted: 'encrypted';
+  readonly Custom: 'custom';
+}
+
+export const EloquentCastKind: EloquentCastKindInterface = Object.freeze({
   Integer: 'integer',
   Float: 'float',
   Decimal: 'decimal',
@@ -225,7 +242,7 @@ export function matchRelationCardinality<R>(
   );
 }
 
-export const matchRelation = matchRelationCardinality;
+export const matchRelation: typeof matchRelationCardinality = matchRelationCardinality;
 
 export interface EloquentRelationTypeVisitor<R> {
   readonly hasOne: (rel: ModelSemanticRelation) => R;
@@ -276,7 +293,15 @@ export function matchRelationType<R>(
  *
  * Canonical Domain Vocabulary for Eloquent Model Primary Keys.
  */
-export const ModelKeyType = Object.freeze({
+export interface ModelKeyTypeInterface {
+  readonly Int: 'int';
+  readonly BigInt: 'bigint';
+  readonly String: 'string';
+  readonly Uuid: 'uuid';
+  readonly Ulid: 'ulid';
+}
+
+export const ModelKeyType: ModelKeyTypeInterface = Object.freeze({
   Int: 'int',
   BigInt: 'bigint',
   String: 'string',

@@ -14,7 +14,6 @@ import { GraphNodeIndex } from './graphNodeIndex';
 import { createServiceNodeName } from '../../types/semantic/nominalVocabulary';
 import type { ControllerRegistry } from './controllerRegistry';
 import { structuralSemanticRelationProjectionOperations } from './structuralSemanticRelationProjection';
-import type { Sequence } from '../../types/upstream/collections';
 
 export interface GraphBuilderContext {
   readonly modelsMap: GraphNodeIndex<ServiceModelNode>;
@@ -26,22 +25,12 @@ export interface GraphBuilderContext {
 }
 
 /** Graph-surface sequence consumption is owned by this graph compiler, not a generic relation foundation. */
-const graphSurfaceSequenceToArray = <T>(items: Sequence<T>): readonly T[] => items.kind === 'empty'
-  ? Object.freeze([])
-  : Object.freeze([items.head, ...graphSurfaceSequenceToArray(items.tail)]);
-
-const graphSurfaceSequenceOperations: Readonly<{ toArray: typeof graphSurfaceSequenceToArray }> = Object.freeze({
-  toArray: graphSurfaceSequenceToArray,
-});
-
-const sequenceToArray = graphSurfaceSequenceOperations.toArray;
-
 const serviceMethods = (service: GraphServiceSurface): readonly import('../../types/upstream/names').ActionName[] =>
-  sequenceToArray(service.methods).map((method: GraphServiceMethodSurface) => method.name);
+  service.methods.map((method: GraphServiceMethodSurface) => method.name);
 
 const serviceDependencies = (service: GraphServiceSurface): readonly ServiceDependency[] => {
   const from: ServiceReference = { kind: 'service_reference', name: { kind: 'class_name', value: { kind: 'string_value', value: service.name.value.value } } };
-  return sequenceToArray(service.dependencyTargets).map((target): ServiceDependency => {
+  return service.dependencyTargets.map((target): ServiceDependency => {
     switch (target.kind) {
       case 'model_reference': return { from, to: target, type: 'depends_on_model', weight: 1 };
       case 'service_reference': return { from, to: target, type: 'depends_on_service', weight: 1 };
@@ -50,7 +39,7 @@ const serviceDependencies = (service: GraphServiceSurface): readonly ServiceDepe
 };
 
 const registerServicesFromGraphSurfaceImplementation = (surface: RouteSyncManifestGraphSurface, builder: GraphBuilderContext): void => {
-  const services = sequenceToArray(surface.services);
+  const services = surface.services;
   services.forEach(service => {
     const reference: ServiceReference = { kind: 'service_reference', name: service.name };
     builder.servicesMap.set(reference, graphNodeFactoryOperations.buildServiceNode(
@@ -71,7 +60,7 @@ const registerControllersFromGraphSurface = (
   surface: RouteSyncManifestGraphSurface,
   builder: GraphBuilderContext,
 ): void => {
-  const controllers = sequenceToArray(surface.controllers);
+  const controllers = surface.controllers;
   const seeded = controllers.reduce(
     (registry, action) => registry.registerAction(action.controller.value.value, { name: action.action }),
     builder.controllersIndex,
@@ -84,7 +73,7 @@ const projectStructuralRelations = (
   surface: RouteSyncManifestGraphSurface,
   builder: GraphBuilderContext,
 ): void => {
-  sequenceToArray(surface.relations.relations).forEach(relation => {
+  surface.relations.relations.forEach(relation => {
       if (!isStructuralSemanticRelation(relation)) return;
       const projection = structuralSemanticRelationProjectionOperations.project(relation);
       if (projection.kind === 'projected') builder.addGraphEdgeRelation(projection.relation);

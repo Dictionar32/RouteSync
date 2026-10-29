@@ -1,7 +1,6 @@
 import type { RouteParameterType } from "./parameters";
 import { createPropertyName, type PropertyName, type RouteParameterName } from "../upstream/names";
 import type { Presence, Cardinality, Nullability } from "../upstream/primitiveVocabulary";
-import type { Option } from "../upstream/collections";
 import type { HttpErrorSchema as UpstreamHttpErrorSchema, HttpErrorSchemaField as UpstreamHttpErrorSchemaField } from "../upstream/routeErrorVocabulary";
 import type { RequestRuntimeValue } from "./requestModels";
 import { HttpStatusCode } from "./httpVocabulary";
@@ -13,8 +12,12 @@ export interface RouteQueryParameter {
   readonly presence: Presence;
   readonly type: RouteParameterType;
   readonly cardinality: Cardinality;
-  readonly defaultValue: Option<RequestRuntimeValue>;
+  readonly defaultValue: RouteQueryParameterDefault;
 }
+
+export type RouteQueryParameterDefault =
+  | { readonly kind: 'no_default' }
+  | { readonly kind: 'defaulted'; readonly value: RequestRuntimeValue };
 
 /**
  * Canonical Laravel Error Types (SSOT)
@@ -50,7 +53,16 @@ export type HttpErrorSchema = UpstreamHttpErrorSchema;
 
 const NON_NULLABLE: Nullability = Object.freeze({ kind: 'non_nullable' });
 
-export const HttpErrorKind = Object.freeze({
+export interface HttpErrorKindInterface {
+  readonly Validation: 'validation';
+  readonly Unauthorized: 'unauthorized';
+  readonly Forbidden: 'forbidden';
+  readonly NotFound: 'notFound';
+  readonly ServerError: 'serverError';
+  readonly Custom: 'custom';
+}
+
+export const HttpErrorKind: HttpErrorKindInterface = Object.freeze({
   Validation: 'validation',
   Unauthorized: 'unauthorized',
   Forbidden: 'forbidden',
@@ -223,4 +235,3 @@ export const httpErrorResponseNotFound = (): HttpErrorResponseDescriptor => http
 export const httpErrorResponseServerError = (): HttpErrorResponseDescriptor => httpErrorResponseFromKind(HttpErrorKind.ServerError);
 export const httpErrorResponseBadRequest = (): HttpErrorResponseDescriptor => createHttpErrorResponse({ kind: HttpErrorKind.Custom, statusCode: HttpStatusCode.BadRequest, name: 'BadRequest', typeName: 'LaravelBadRequestError' });
 export const httpErrorResponseCustom = (statusCode: HttpStatusCode, name: string, typeName?: string, schema?: HttpErrorSchema): HttpErrorResponseDescriptor => createHttpErrorResponse({ kind: HttpErrorKind.Custom, statusCode, name, typeName, schema });
-

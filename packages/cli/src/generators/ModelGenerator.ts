@@ -2,29 +2,65 @@ import fs from 'fs-extra'
 import path from 'path'
 import {
   type RouteManifest,
-  SemanticTypeResolver,
-  toTypeScriptTypeExpression,
-  typeExpressionToSemanticType,
   type ModelSemanticProperty,
   type ModelAst,
+  typeExpressionToSemanticType,
 } from '@routesync/core'
 
-const resolver = SemanticTypeResolver.default()
+type SemanticPropertySequence<T> =
+  | Readonly<{ readonly kind: 'empty' }>
+  | Readonly<{ readonly kind: 'cons'; readonly head: T; readonly tail: SemanticPropertySequence<T> }>
 
-const sequenceToArray = <T>(sequence: { readonly kind: 'empty' } | { readonly kind: 'cons'; readonly head: T; readonly tail: typeof sequence }, output: readonly T[] = []): readonly T[] =>
-  sequence.kind === 'empty' ? output : sequenceToArray(sequence.tail, [...output, sequence.head])
+type CanonicalSemanticType = ReturnType<typeof typeExpressionToSemanticType>
+
+export interface ModelTypeScriptProjectionInterface {
+  readonly project: (semanticType: CanonicalSemanticType) => string
+}
+
+const semanticTypeScriptProjection: ModelTypeScriptProjectionInterface = Object.freeze({
+  project: (semanticType: CanonicalSemanticType): string => semanticType.accept({
+    primitive: value => ({
+      string: 'string',
+      number: 'number',
+      boolean: 'boolean',
+      datetime: 'string',
+      file: 'File',
+      indeterminate: 'unknown',
+      unspecified: 'unknown',
+    }[value.type]),
+    jsonValue: () => 'unknown',
+    optional: value => `${semanticTypeScriptProjection.project(value.innerType)} | undefined`,
+    nullable: value => `${semanticTypeScriptProjection.project(value.innerType)} | null`,
+    never: () => 'never',
+    error: () => 'unknown',
+    reference: value => value.emittedName,
+    union: value => value.members.map(semanticTypeScriptProjection.project).join(' | '),
+    intersection: value => value.members.map(semanticTypeScriptProjection.project).join(' & '),
+    readonlyCollection: value => `ReadonlyArray<${semanticTypeScriptProjection.project(value.elementType)}>`,
+    mutableCollection: value => `Array<${semanticTypeScriptProjection.project(value.elementType)}>`,
+    generic: value => `${value.base.emittedName}<${value.parameters.map(parameter => semanticTypeScriptProjection.project(parameter.type)).join(', ')}>`,
+    object: value => `{ ${value.properties.map(property => `${property.name.value.value}: ${semanticTypeScriptProjection.project(property.type)}`).join('; ')} }`,
+  }),
+})
+
+const sequenceToArray = <T>(sequence: SemanticPropertySequence<T>): readonly T[] => {
+  const values: T[] = []
+  let cursor: SemanticPropertySequence<T> = sequence
+  while (cursor.kind === 'cons') {
+    values.push(cursor.head)
+    cursor = cursor.tail
+  }
+  return Object.freeze(values)
+}
 
 const semanticPropertyType = (property: ModelSemanticProperty): string =>
-  toTypeScriptTypeExpression(resolver.resolve(typeExpressionToSemanticType(property.semanticType)))
-
-const semanticPropertyName = (property: ModelSemanticProperty): string => property.property.value.value
+  semanticTypeScriptProjection.project(typeExpressionToSemanticType(property.traversal.semanticType))
 
 const modelLines = (model: ModelAst): readonly string[] => {
-  const semantic = model.definition.semantic
-  const properties = sequenceToArray(semantic.surface.properties)
+  const properties = sequenceToArray(model.definition.semanticProperties)
   return [
-    `export interface ${semantic.identity.shortName.value.value} {`,
-    ...properties.map(property => `  ${semanticPropertyName(property)}: ${semanticPropertyType(property)}`),
+    `export interface ${model.definition.identity.shortName.value.value} {`,
+    ...properties.map(property => `  ${property.property.value.value}: ${semanticPropertyType(property)}`),
     `}`,
     ``,
   ]

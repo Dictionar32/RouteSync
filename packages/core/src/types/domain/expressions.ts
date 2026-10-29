@@ -16,7 +16,37 @@ import type { ExceptionName } from '../upstream/names';
  *
  * Canonical Domain Vocabulary for Resource Field AST Expressions.
  */
-export const ResourceExpressionKind = Object.freeze({
+export interface ResourceExpressionKindInterface {
+  readonly Primitive: 'primitive';
+  readonly Model: 'model';
+  readonly Resource: 'resource';
+  readonly Object: 'object';
+  readonly Array: 'array';
+  readonly PropertyAccess: 'property_access';
+  readonly NullsafePropertyAccess: 'nullsafe_property_access';
+  readonly Variable: 'variable';
+  readonly TypeCast: 'type_cast';
+  readonly BinaryExpression: 'binary_expression';
+  readonly MethodCall: 'method_call';
+  readonly NullsafeMethodCall: 'nullsafe_method_call';
+  readonly StaticMethodCall: 'static_method_call';
+  readonly ArrayAccess: 'array_access';
+  readonly FunctionCall: 'function_call';
+  readonly Ternary: 'ternary';
+  readonly ShortTernary: 'short_ternary';
+  readonly NullCoalesce: 'null_coalesce';
+  readonly UnaryExpression: 'unary_expression';
+  readonly MatchExpression: 'match_expression';
+  readonly ClassReference: 'class_reference';
+  readonly Construct: 'construct';
+  readonly InstanceOf: 'instance_of';
+  readonly Closure: 'closure';
+  readonly ArrowFunction: 'arrow_function';
+  readonly Literal: 'literal';
+  readonly Unsupported: 'unsupported';
+}
+
+export const ResourceExpressionKind: ResourceExpressionKindInterface = Object.freeze({
   Primitive: 'primitive',
   Model: 'model',
   Resource: 'resource',
@@ -549,7 +579,7 @@ export function matchResourceFieldExpression<R>(
   }
 }
 
-export const matchResourceExpression = matchResourceFieldExpression;
+export const matchResourceExpression: typeof matchResourceFieldExpression = matchResourceFieldExpression;
 
 /**
  * ResourceFieldExpressionFactory

@@ -7,16 +7,8 @@ import type {
   RouteSyncManifestGraphProjectionInterface,
   RouteSyncManifestGraphSurface,
 } from './RouteSyncManifestGraphProjectionInterface';
-import type { Sequence } from '../types/upstream/collections';
 import type { ModelHighLevelContract, ServiceSemanticContract, ControllerActionFlowContract } from '../types/upstream/highLevelContracts';
 import type { DependencyTargetReference } from '../types/upstream/semanticReferences';
-
-const sequenceMap = <T, U>(
-  items: Sequence<T>,
-  map: (item: T) => U,
-): Sequence<U> => items.kind === 'empty'
-  ? { kind: 'empty' }
-  : { kind: 'cons', head: map(items.head), tail: sequenceMap(items.tail, map) };
 
 const projectModel = (model: ModelHighLevelContract): GraphModelSurface => ({
   identity: model.identity,
@@ -24,8 +16,8 @@ const projectModel = (model: ModelHighLevelContract): GraphModelSurface => ({
 
 const projectService = (service: ServiceSemanticContract): GraphServiceSurface => ({
   name: service.name,
-  methods: sequenceMap(service.methods.items, (method): GraphServiceMethodSurface => ({ name: method.name })),
-  dependencyTargets: sequenceMap(service.resolvedDependencies.items, (dependency): DependencyTargetReference => dependency.target),
+  methods: Object.freeze(service.methods.items.map((method): GraphServiceMethodSurface => ({ name: method.name }))),
+  dependencyTargets: Object.freeze(service.resolvedDependencies.items.map((dependency): DependencyTargetReference => dependency.target)),
 });
 
 const projectController = (controller: ControllerActionFlowContract): GraphControllerSurface => ({
@@ -38,10 +30,9 @@ const projectController = (controller: ControllerActionFlowContract): GraphContr
 export const routeSyncManifestGraphProjection: RouteSyncManifestGraphProjectionInterface = Object.freeze({
   project: (manifest: RouteSyncManifestFlow): RouteSyncManifestGraphSurface => Object.freeze({
     kind: 'route_sync_manifest_graph_surface' as const,
-    models: sequenceMap(manifest.contracts.models, projectModel),
-    services: sequenceMap(manifest.contracts.services, projectService),
-    controllers: sequenceMap(manifest.contracts.controllers, projectController),
+    models: Object.freeze(manifest.contracts.models.map(projectModel)),
+    services: Object.freeze(manifest.contracts.services.map(projectService)),
+    controllers: Object.freeze(manifest.contracts.controllers.map(projectController)),
     relations: manifest.relations,
   }),
 });
-

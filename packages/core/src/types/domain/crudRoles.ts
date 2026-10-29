@@ -6,7 +6,13 @@ export { CrudRole, RouteHookKind } from '../upstream/routeExecutionVocabulary';
  *
  * Canonical ADT discriminator for Page Route Endpoints.
  */
-export const PageEndpointKind = Object.freeze({
+export interface PageEndpointKindInterface {
+  readonly Static: 'static';
+  readonly Parameterized: 'parameterized';
+  readonly QueryFiltered: 'query_filtered';
+}
+
+export const PageEndpointKind: PageEndpointKindInterface = Object.freeze({
   Static: 'static',
   Parameterized: 'parameterized',
   QueryFiltered: 'query_filtered'
@@ -188,7 +194,7 @@ export function matchRouteHookKind<R>(
   }
 }
 
-export const matchHookKind = matchRouteHookKind;
+export const matchHookKind: typeof matchRouteHookKind = matchRouteHookKind;
 
 export class RouteSemanticFlowHookDescriptor<K extends RouteHookKind = RouteHookKind>
   implements BaseRouteHookDescriptor<K> {
@@ -499,7 +505,15 @@ export class ScannedCrudRoleDescriptor implements BaseCrudRoleDescriptor {
 
 
 
-export const SdkResponseKind = Object.freeze({
+export interface SdkResponseKindInterface {
+  readonly Void: 'void';
+  readonly Raw: 'raw';
+  readonly Validated: 'validated';
+  readonly Mapped: 'mapped';
+  readonly ValidatedAndMapped: 'validated_and_mapped';
+}
+
+export const SdkResponseKind: SdkResponseKindInterface = Object.freeze({
   Void: 'void',
   Raw: 'raw',
   Validated: 'validated',

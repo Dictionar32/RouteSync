@@ -6,7 +6,32 @@ import type { TypeExpression } from "../upstream/typeVocabulary";
  *
  * Canonical Domain Vocabulary for Database Column Engine Types.
  */
-export const DatabaseColumnKind = Object.freeze({
+export interface DatabaseColumnKindInterface {
+  readonly BigInt: 'bigint';
+  readonly Integer: 'integer';
+  readonly SmallInt: 'smallint';
+  readonly TinyInt: 'tinyint';
+  readonly Float: 'float';
+  readonly Double: 'double';
+  readonly Decimal: 'decimal';
+  readonly Boolean: 'boolean';
+  readonly String: 'string';
+  readonly Text: 'text';
+  readonly MediumText: 'mediumtext';
+  readonly LongText: 'longtext';
+  readonly Date: 'date';
+  readonly DateTime: 'datetime';
+  readonly Timestamp: 'timestamp';
+  readonly Time: 'time';
+  readonly Json: 'json';
+  readonly Enum: 'enum';
+  readonly Binary: 'binary';
+  readonly Uuid: 'uuid';
+  readonly Ulid: 'ulid';
+  readonly Unknown: 'unknown';
+}
+
+export const DatabaseColumnKind: DatabaseColumnKindInterface = Object.freeze({
   BigInt: 'bigint',
   Integer: 'integer',
   SmallInt: 'smallint',

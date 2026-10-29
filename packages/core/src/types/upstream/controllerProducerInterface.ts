@@ -3,7 +3,6 @@ import type { ControllerMethod, ControllerMethodContract } from './controller';
 import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { ControllerDeclarationEvidence, ControllerMethodEvidence } from './controllerEvidence';
 import type { PhpAstExpressionKind } from './phpAstSyntaxKind';
-import type { Sequence } from './collections';
 import type { ControllerName, SourceFile } from './names';
 import type { LaravelControllerInvocationSemanticJudgmentInterface } from './laravelControllerInvocationSemanticJudgmentInterface';
 import type { ResponseShape } from '../domain/responseShapes';

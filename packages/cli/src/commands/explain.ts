@@ -38,7 +38,9 @@ type ExplainGraph = {
 const readGraph = (graphPath: string): ExplainGraph =>
   JSON.parse(fs.readFileSync(graphPath, 'utf8')) as ExplainGraph
 
-export const explainCommand = new Command('explain')
+export interface ExplainCommandInterface extends Command {}
+
+export const explainCommand: ExplainCommandInterface = new Command('explain')
   .description('Explain the type resolution evidence for a specific field')
   .argument('<path>', 'Field path (e.g. login.post.data.user.role or PaymentResource.provider)')
   .option('-g, --graph <path>', 'Path to graph file', 'routesync.graph.json')

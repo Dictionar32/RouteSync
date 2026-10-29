@@ -87,7 +87,13 @@ const resourceDescriptor = (params: ResourceResponseParams): ResourceResponseDes
   return Object.freeze(descriptor);
 };
 
-export const ResourceResponseDescriptor = Object.freeze({
+export interface ResourceResponseDescriptorFactoryInterface {
+  readonly create: (params: { readonly resourceName: ResourceName; readonly shape: ResponseShape }) => ResourceResponseDescriptor;
+  readonly single: (resourceName: ResourceName) => ResourceResponseDescriptor;
+  readonly collection: (resourceName: ResourceName) => ResourceResponseDescriptor;
+}
+
+export const ResourceResponseDescriptor: ResourceResponseDescriptorFactoryInterface = Object.freeze({
   create: ({ resourceName, shape = 'single' }: { readonly resourceName: ResourceName; readonly shape: ResponseShape }) => resourceDescriptor({ resourceName, shape }),
   single: (resourceName: ResourceName) => resourceDescriptor({ resourceName, shape: 'single' }),
   collection: (resourceName: ResourceName) => resourceDescriptor({ resourceName, shape: 'collection' }),
@@ -120,7 +126,13 @@ const modelDescriptor = (params: ModelResponseParams): ModelResponseDescriptor =
   return Object.freeze(descriptor);
 };
 
-export const ModelResponseDescriptor = Object.freeze({
+export interface ModelResponseDescriptorFactoryInterface {
+  readonly create: (params: { readonly modelName: ModelName; readonly shape?: ResponseShape }) => ModelResponseDescriptor;
+  readonly single: (modelName: ModelName) => ModelResponseDescriptor;
+  readonly collection: (modelName: ModelName) => ModelResponseDescriptor;
+}
+
+export const ModelResponseDescriptor: ModelResponseDescriptorFactoryInterface = Object.freeze({
   create: ({ modelName, shape = 'single' }: { readonly modelName: ModelName; readonly shape?: ResponseShape }) => modelDescriptor({ modelName, shape }),
   single: (modelName: ModelName) => modelDescriptor({ modelName, shape: 'single' }),
   collection: (modelName: ModelName) => modelDescriptor({ modelName, shape: 'collection' }),
@@ -143,7 +155,11 @@ const voidDescriptor = (): VoidResponseDescriptor => {
   return Object.freeze(descriptor);
 };
 
-export const VoidResponseDescriptor = Object.freeze({ create: voidDescriptor });
+export interface VoidResponseDescriptorFactoryInterface {
+  readonly create: () => VoidResponseDescriptor;
+}
+
+export const VoidResponseDescriptor: VoidResponseDescriptorFactoryInterface = Object.freeze({ create: voidDescriptor });
 
 export type ResponseSemanticProperty = ObjectProperty;
 
@@ -215,7 +231,19 @@ const inlineDescriptor = (params: InlineResponseDescriptorParams): InlineRespons
   return Object.freeze(descriptor);
 };
 
-export const InlineResponseDescriptor = Object.freeze({
+export interface InlineResponseDescriptorFactoryInterface {
+  readonly create: (params: {
+    readonly domain: DomainName;
+    readonly baseName?: ResourceName;
+    readonly typeName?: ResponseTypeName;
+    readonly fields: readonly ResourceFieldSemanticBinding[];
+    readonly shape?: ResponseShape;
+    readonly origin: ResponseDescriptorOrigin;
+    readonly semanticContract: ResponseSemanticContract;
+  }) => InlineResponseDescriptor;
+}
+
+export const InlineResponseDescriptor: InlineResponseDescriptorFactoryInterface = Object.freeze({
   create: ({ domain, baseName = SemanticValueFactory.resourceName(domain.value.value), typeName = SemanticValueFactory.responseTypeName(`${baseName.value.value}Transformed`), fields, shape = ResponseShape.Single, origin, semanticContract }: {
     readonly domain: DomainName;
     readonly baseName?: ResourceName;
@@ -245,7 +273,14 @@ function semanticTypeToPropertyType(type: SemanticType): { readonly kind: 'scala
   });
 }
 
-export const ResponseKind = Object.freeze({
+export interface ResponseKindInterface {
+  readonly Resource: 'resource';
+  readonly Model: 'model';
+  readonly Inline: 'inline';
+  readonly Void: 'void';
+}
+
+export const ResponseKind: ResponseKindInterface = Object.freeze({
   Resource: 'resource',
   Model: 'model',
   Inline: 'inline',

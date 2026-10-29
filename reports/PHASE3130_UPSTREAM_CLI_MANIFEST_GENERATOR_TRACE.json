@@ -1,0 +1,49 @@
+{
+  "phase": 3130,
+  "title": "Upstream CLI manifest generator trace and explicit runtime operation frontier",
+  "sourceToManifest": {
+    "sourceDiscovery": "packages/cli/src/parsers/php/controllerInvocationManifestComposition.ts",
+    "manifestBuilderPreparation": "packages/core/src/types/upstream/runtimeCompositionOperations.ts",
+    "manifestProjection": "packages/core/src/types/upstream/runtimeManifestOperations.ts",
+    "cliConsumers": [
+      "packages/cli/src/commands/scan.ts",
+      "packages/cli/src/commands/sync.ts"
+    ],
+    "generatorConsumer": "packages/cli/src/commands/generate.ts"
+  },
+  "upstreamAdtOperations": {
+    "projectionResultOwnsRequireCompleteManifest": true,
+    "blockedProjectionOwnsTypedError": true,
+    "preflightDoesNotFabricateResolvedLedger": true,
+    "preparationIsExplicitlyTyped": true
+  },
+  "cliTrace": {
+    "scanConsumesActionableManifestOutcome": true,
+    "syncConsumesActionableManifestOutcome": true,
+    "scanDoesNotUseGenericProjectionContinuation": true,
+    "syncDoesNotUseGenericProjectionContinuation": true,
+    "activeCommandsDoNotUseCompilerBridge": true
+  },
+  "generatorTrace": {
+    "generatorHasExplicitOperationInterface": true,
+    "generatorOutcomeOwnsFollowUpOperation": true,
+    "generatorBlocksWithoutContractIRProducer": true
+  },
+  "publicRuntimeExports": {
+    "coreIndexExportsManifestRuntimeTypes": true,
+    "coreUpstreamExportsManifestRuntimeTypes": true,
+    "coreIndexExportsCodegenOperationIndirectly": true,
+    "cliIndexExportsCodegenOperation": true
+  },
+  "migrationFrontier": {
+    "inventory": {
+      "exportedFunctionDeclarations": 110,
+      "exportedArrowConstants": 35
+    },
+    "repositoryWideExportConversion": false,
+    "primitiveAndControlFlowErasure": false,
+    "fullTypecheckVerified": false,
+    "fullTestSuiteVerified": false,
+    "phpToCliManifestGeneratorE2eVerified": false
+  }
+}

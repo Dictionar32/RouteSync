@@ -11,7 +11,6 @@ import { PrimitiveKind } from '../domain/semanticType';
 import type { HttpMethod } from '../domain/httpVocabulary';
 import type { ResourceFieldIR } from './resourceIrTypes';
 import type { ActionName, CodeExpression, ControllerName, EndpointId, HttpHeaderName, ModelName, PropertyName, RequestName, ResourceName, ResponseTypeName, RouteName, RoutePath, SourceLineNumber, TypeExpression } from './nominalVocabulary';
-import type { ValidationRules } from '../upstream/collections';
 import { createPropertyName } from './nominalVocabulary';
 import type { DescriptionText } from '../upstream/valueObjects';
 import type { LaravelControllerMethodResponseProduct } from '../upstream/laravelControllerResponseSemanticJudgmentInterface';

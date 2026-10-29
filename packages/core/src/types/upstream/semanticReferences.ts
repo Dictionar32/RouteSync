@@ -73,7 +73,7 @@ export type ControllerReference = { readonly kind: 'controller_reference'; reado
 
 export type SemanticRelationGraph = {
   readonly kind: 'semantic_relation_graph';
-  readonly relations: import('./collections').Sequence<SemanticRelation>;
+  readonly relations: readonly SemanticRelation[];
 };
 
 export type SemanticReference =

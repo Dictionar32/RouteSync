@@ -2,7 +2,6 @@ import type { Expression } from './expression';
 import type { ExpressionAst } from './ast';
 import type { ActionName, ClassName, MethodName, PropertyName, ResourceName, RoutePath } from './names';
 import type { StringValue } from './valueObjects';
-import type { Assignments, Properties, ResourceFields, ResourceActions, RoutePaths, Sequence, SourceStatements } from './collections';
 import type { TypeExpression } from './typeVocabulary';
 import type { Presence } from './primitiveVocabulary';
 import type { SourceSpan } from './provenance';
@@ -66,7 +65,7 @@ export type ResourceFieldPresence =
 export type ResourceRequestAwareness =
   | { readonly kind: 'request_parameter_declared'; readonly parameter: import('./names').VariableName }
   | { readonly kind: 'request_parameter_unused'; readonly parameter: import('./names').VariableName }
-  | { readonly kind: 'request_parameter_used'; readonly parameter: import('./names').VariableName; readonly expressions: import('./collections').Expressions };
+  | { readonly kind: 'request_parameter_used'; readonly parameter: import('./names').VariableName; readonly expressions: import('./expression').Expressions };
 
 export type ResourceOperations = { readonly kind: 'resource_operations'; readonly items: Sequence<import('./resourceVocabulary').ResourceOperation> };
 

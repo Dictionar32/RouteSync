@@ -4,7 +4,6 @@ import { matchRequestValidationCapability } from './request';
 import type { RouteDefinition } from './route';
 import type { SourceSpan } from './provenance';
 import type { ActionName, ControllerName, SourceFile } from './names';
-import { sourceDiscoveryMatcher, sequenceAlgebra, type Sequence } from './collections';
 import type { ModelReference, ResourceReference, RequestReference, ResponseReference, RouteReference, ChannelReference, ServiceReference, ControllerReference, ClassReference, SemanticRelation, SemanticRelationGraph } from './semanticReferences';
 import type { EffectiveControllerActionPolicy, EffectiveControllerActionPolicyCatalogEntry } from './effectiveControllerActionPolicy';
 import { controllerActionPolicyRelations } from './controllerActionPolicyRelations';

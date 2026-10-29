@@ -14,4 +14,8 @@ export function matchResolvedSemanticType<R>(
   return type.accept(visitor);
 }
 
-export const matchResolvedSemanticTypeIR = matchResolvedSemanticType;
+export interface MatchResolvedSemanticTypeIRInterface {
+  <R>(type: SemanticType, visitor: SemanticTypeVisitor<R>): R;
+}
+
+export const matchResolvedSemanticTypeIR: MatchResolvedSemanticTypeIRInterface = matchResolvedSemanticType;

@@ -1,4 +1,8 @@
 import type {
+  ManifestBuilderInput,
+  ManifestBuilderOperationPreparationInterface,
+} from './manifestBuilderInterface';
+import type {
   RequestTypeDerivationContract,
   RequestTypeDerivationSemanticPipelineAssemblyResult,
   RequestTypeDerivationSemanticPipelineCompositionInterface,
@@ -11,10 +15,10 @@ import { requestTypeDerivationContract } from './requestTypeDerivationInterface'
  * Keep the upstream preparation boundary explicit and fail closed until a
  * source-AST pipeline implementation is composed again.
  */
-export const manifestBuilderOperationPreparation = Object.freeze({
+export const manifestBuilderOperationPreparation: ManifestBuilderOperationPreparationInterface = Object.freeze({
   kind: 'manifest_builder_operation_preparation' as const,
   contractVersion: 1 as const,
-  prepare: (input: unknown): never => {
+  prepare: (_input: ManifestBuilderInput): never => {
     throw new Error('Manifest builder source-AST pipeline is not composed in the active upstream runtime.');
   },
 });

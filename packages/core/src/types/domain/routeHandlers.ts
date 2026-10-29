@@ -9,7 +9,13 @@
 
 import { SemanticValueFactory, type ActionName, type ClassName, type SourceFilePath } from './semanticValues';
 
-export const RouteHandlerKind = Object.freeze({
+export interface RouteHandlerKindInterface {
+  readonly ControllerAction: 'controller_action';
+  readonly InvokableController: 'invokable_controller';
+  readonly Closure: 'closure';
+}
+
+export const RouteHandlerKind: RouteHandlerKindInterface = Object.freeze({
   ControllerAction: 'controller_action',
   InvokableController: 'invokable_controller',
   Closure: 'closure'
@@ -110,7 +116,11 @@ export interface FormRequestDescriptor {
   readonly sourceFile: SourceFilePath;
 }
 
-export const ScannedFormRequestDescriptor = Object.freeze({
+export interface ScannedFormRequestDescriptorInterface {
+  readonly create: (name: string, sourceFile: string) => FormRequestDescriptor;
+}
+
+export const ScannedFormRequestDescriptor: ScannedFormRequestDescriptorInterface = Object.freeze({
   create(name: string, sourceFile: string): FormRequestDescriptor {
     return Object.freeze({
       name: SemanticValueFactory.className(name),

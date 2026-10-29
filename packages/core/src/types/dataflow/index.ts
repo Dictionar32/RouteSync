@@ -9,6 +9,7 @@ export type {
   DataFlowQueryInterface,
   DataFlowClosureInterface,
   DataFlowAuthorityContractInterface, DataFlowAuthorityInterface,
+  DataFlowProducerContractInterface,
   DataFlowCapabilityAuthorityInterface,
   DataFlowConsumerInterface,
 } from './dataFlowInterface';

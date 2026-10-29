@@ -27,11 +27,11 @@ export class Interceptor {
     return this.client.interceptors.response.use(onFulfilled, onRejected)
   }
 
-  removeRequestInterceptor(id: number) {
+  removeRequestInterceptor(id: number): void {
     this.client.interceptors.request.eject(id)
   }
 
-  removeResponseInterceptor(id: number) {
+  removeResponseInterceptor(id: number): void {
     this.client.interceptors.response.eject(id)
   }
 }

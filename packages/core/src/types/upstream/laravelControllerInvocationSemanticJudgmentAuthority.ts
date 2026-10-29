@@ -69,7 +69,7 @@ export const laravelControllerInvocationSemanticInputFactory: LaravelControllerI
 export class LaravelControllerInvocationSemanticJudgmentAuthority
   implements LaravelControllerInvocationSemanticJudgmentAuthorityInterface {
   readonly kind: 'laravel_controller_invocation_semantic_judgment_authority' = 'laravel_controller_invocation_semantic_judgment_authority';
-  readonly contract = LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_CONTRACT;
+  readonly contract: LaravelControllerInvocationSemanticJudgmentContract = LARAVEL_CONTROLLER_INVOCATION_SEMANTIC_JUDGMENT_CONTRACT;
   readonly dependencies: LaravelControllerInvocationSemanticJudgmentAuthorityDependencies;
 
   constructor(dependencies: LaravelControllerInvocationSemanticJudgmentAuthorityDependencies) {

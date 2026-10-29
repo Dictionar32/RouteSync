@@ -113,7 +113,7 @@ export const createLaravelDtoResponseContractProjectionAuthority = (
 });
 
 /** Default composition binding; the authority's dependency remains typed by its upstream interface. */
-export const laravelDtoResponseContractProjectionAuthority = createLaravelDtoResponseContractProjectionAuthority(
+export const laravelDtoResponseContractProjectionAuthority: LaravelDtoResponseContractProjectionAuthorityInterface = createLaravelDtoResponseContractProjectionAuthority(
   laravelDtoResponseValueProjectionAuthority,
 );
 

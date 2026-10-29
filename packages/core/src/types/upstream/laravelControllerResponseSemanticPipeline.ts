@@ -12,7 +12,6 @@ import type { SemanticValue } from './primitiveVocabulary';
 import type { ModelReference, ResourceReference } from './semanticReferences';
 import type { ResourceDefinition, ResourceField } from './resource';
 import type { ControllerReturnSemantic, ControllerModelOrigin } from './controller';
-import type { Sequence } from './collections';
 import type { SourceSpan } from './provenance';
 import type {
   LaravelControllerInvocationSemanticJudgmentInterface,

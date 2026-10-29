@@ -18,7 +18,13 @@ import type {
   ResponseLinksKeySpecification
 } from "./semanticValues";
 
-export const ResponseShape = Object.freeze({
+export interface ResponseShapeInterface {
+  readonly Paginated: 'paginated';
+  readonly Collection: 'collection';
+  readonly Single: 'single';
+}
+
+export const ResponseShape: ResponseShapeInterface = Object.freeze({
   Paginated: 'paginated',
   Collection: 'collection',
   Single: 'single'
@@ -94,7 +100,12 @@ export function matchResponseShape<R>(
  *
  * Canonical Domain Vocabulary for Laravel Pagination Envelopes.
  */
-export const PaginationKind = Object.freeze({
+export interface PaginationKindInterface {
+  readonly LengthAware: 'length_aware';
+  readonly Cursor: 'cursor';
+}
+
+export const PaginationKind: PaginationKindInterface = Object.freeze({
   LengthAware: 'length_aware',
   Cursor: 'cursor'
 } as const);
@@ -182,13 +193,21 @@ export function matchPaginatedEnvelope<R>(
   }
 }
 
-export const matchPaginationKind = matchPaginatedEnvelope;
+export const matchPaginationKind: typeof matchPaginatedEnvelope = matchPaginatedEnvelope;
 
 // ----------------------------------------------------------------------------
 // 22. Polymorphic Relation ADT (MorphTo, MorphMany, MorphedByMany, etc.)
 // ----------------------------------------------------------------------------
 
-export const PolymorphicMorphType = Object.freeze({
+export interface PolymorphicMorphTypeInterface {
+  readonly MorphTo: 'morphTo';
+  readonly MorphOne: 'morphOne';
+  readonly MorphMany: 'morphMany';
+  readonly MorphToMany: 'morphToMany';
+  readonly MorphedByMany: 'morphedByMany';
+}
+
+export const PolymorphicMorphType: PolymorphicMorphTypeInterface = Object.freeze({
   MorphTo: 'morphTo',
   MorphOne: 'morphOne',
   MorphMany: 'morphMany',
@@ -317,7 +336,7 @@ export function matchPolymorphicRelation<R>(
   }
 }
 
-export const matchPolymorphicMorphType = matchPolymorphicRelation;
+export const matchPolymorphicMorphType: typeof matchPolymorphicRelation = matchPolymorphicRelation;
 
 
 export interface ScannedPaginatedEnvelopeParams {

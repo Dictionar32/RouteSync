@@ -1,14 +1,29 @@
 import type { StringValue } from './valueObjects';
 
 /** Canonical route execution vocabulary produced at the source/AST boundary. */
-export const RouteHookKind = Object.freeze({
+export interface RouteHookKindInterface {
+  readonly Query: 'query';
+  readonly Mutation: 'mutation';
+  readonly InfiniteQuery: 'infinite_query';
+}
+
+export const RouteHookKind: RouteHookKindInterface = Object.freeze({
   Query: 'query',
   Mutation: 'mutation',
   InfiniteQuery: 'infinite_query'
 } as const);
 export type RouteHookKind = typeof RouteHookKind[keyof typeof RouteHookKind];
 
-export const CrudRole = Object.freeze({
+export interface CrudRoleInterface {
+  readonly Index: 'index';
+  readonly Show: 'show';
+  readonly Create: 'create';
+  readonly Update: 'update';
+  readonly Delete: 'delete';
+  readonly Custom: 'custom';
+}
+
+export const CrudRole: CrudRoleInterface = Object.freeze({
   Index: 'index',
   Show: 'show',
   Create: 'create',
@@ -18,7 +33,14 @@ export const CrudRole = Object.freeze({
 } as const);
 export type CrudRole = typeof CrudRole[keyof typeof CrudRole];
 
-export const RouteActionKind = Object.freeze({
+export interface RouteActionKindInterface {
+  readonly Create: 'create';
+  readonly Update: 'update';
+  readonly Read: 'read';
+  readonly Delete: 'delete';
+}
+
+export const RouteActionKind: RouteActionKindInterface = Object.freeze({
   Create: 'create',
   Update: 'update',
   Read: 'read',
@@ -26,7 +48,14 @@ export const RouteActionKind = Object.freeze({
 } as const);
 export type RouteActionKind = typeof RouteActionKind[keyof typeof RouteActionKind];
 
-export const RequestContentType = Object.freeze({
+export interface RequestContentTypeInterface {
+  readonly Json: 'application/json';
+  readonly Multipart: 'multipart/form-data';
+  readonly UrlEncoded: 'application/x-www-form-urlencoded';
+  readonly None: 'none';
+}
+
+export const RequestContentType: RequestContentTypeInterface = Object.freeze({
   Json: 'application/json',
   Multipart: 'multipart/form-data',
   UrlEncoded: 'application/x-www-form-urlencoded',
@@ -34,7 +63,18 @@ export const RequestContentType = Object.freeze({
 } as const);
 export type RequestContentType = typeof RequestContentType[keyof typeof RequestContentType];
 
-export const HttpMethod = Object.freeze({
+export interface HttpMethodInterface {
+  readonly GET: 'GET';
+  readonly POST: 'POST';
+  readonly PUT: 'PUT';
+  readonly PATCH: 'PATCH';
+  readonly DELETE: 'DELETE';
+  readonly OPTIONS: 'OPTIONS';
+  readonly HEAD: 'HEAD';
+  readonly QUERY: 'QUERY';
+}
+
+export const HttpMethod: HttpMethodInterface = Object.freeze({
   GET: 'GET',
   POST: 'POST',
   PUT: 'PUT',
@@ -46,7 +86,13 @@ export const HttpMethod = Object.freeze({
 } as const);
 export type HttpMethod = typeof HttpMethod[keyof typeof HttpMethod];
 
-export const RoutePayloadMode = Object.freeze({
+export interface RoutePayloadModeInterface {
+  readonly None: 'none';
+  readonly Required: 'required';
+  readonly Optional: 'optional';
+}
+
+export const RoutePayloadMode: RoutePayloadModeInterface = Object.freeze({
   None: 'none',
   Required: 'required',
   Optional: 'optional'
@@ -54,7 +100,13 @@ export const RoutePayloadMode = Object.freeze({
 export type RoutePayloadMode = typeof RoutePayloadMode[keyof typeof RoutePayloadMode];
 
 /** Closed upstream placement for unwrapped endpoint variables. Runtime consumers must not infer this from HTTP method. */
-export const RoutePayloadLocation = Object.freeze({
+export interface RoutePayloadLocationInterface {
+  readonly None: 'none';
+  readonly Query: 'query';
+  readonly Body: 'body';
+}
+
+export const RoutePayloadLocation: RoutePayloadLocationInterface = Object.freeze({
   None: 'none',
   Query: 'query',
   Body: 'body'

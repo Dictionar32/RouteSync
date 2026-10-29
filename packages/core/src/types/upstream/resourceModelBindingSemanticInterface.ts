@@ -90,7 +90,13 @@ export interface ResourceModelBindingBatchStateSemanticsInterface {
   ) => boolean;
 }
 
-export const RESOURCE_MODEL_BINDING_BATCH_STATE_SEMANTICS_IDENTITY = Object.freeze({
+export interface ResourceModelBindingBatchStateSemanticsIdentityInterface {
+  readonly subject: 'exact-canonical-input-subject-object';
+  readonly judgment: 'closed-judgment-correlated-to-that-exact-subject';
+  readonly ordering: 'not-semantic-identity';
+}
+
+export const RESOURCE_MODEL_BINDING_BATCH_STATE_SEMANTICS_IDENTITY: ResourceModelBindingBatchStateSemanticsIdentityInterface = Object.freeze({
   subject: 'exact-canonical-input-subject-object',
   judgment: 'closed-judgment-correlated-to-that-exact-subject',
   ordering: 'not-semantic-identity',

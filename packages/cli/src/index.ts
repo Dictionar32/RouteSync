@@ -157,6 +157,8 @@ export {
   manifestContractValidationOperations,
   manifestSerializationOperations,
   manifestGeneratorOperations,
+  manifestCodeGenerationOperation,
+  ManifestCodeGenerationBlockedError,
 } from './generators';
 export type {
   ManifestContractViolation,
@@ -182,6 +184,9 @@ export type {
   ManifestPersistenceSerializationRejectedJudgment,
   ManifestPersistenceWriteRejectedJudgment,
   ManifestGeneratorOperationsInterface,
+  ManifestCodeGenerationInput,
+  ManifestCodeGenerationBlockedOutcome,
+  ManifestCodeGenerationOperationInterface,
 } from './generators';
 
 export type { RouteSyncCliUpstreamCompositionInterface } from './upstreamCompositionInterface';

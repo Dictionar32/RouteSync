@@ -1,4 +1,4 @@
-import { useQuery, useSuspenseQuery, useInfiniteQuery, type UseQueryOptions, type UseSuspenseQueryOptions, type UseInfiniteQueryOptions, type InfiniteData, type QueryFunctionContext } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery, useInfiniteQuery, type UseQueryOptions, type UseSuspenseQueryOptions, type UseInfiniteQueryOptions, type UseQueryResult, type UseSuspenseQueryResult, type UseInfiniteQueryResult, type InfiniteData, type QueryFunctionContext } from '@tanstack/react-query'
 import { type EndpointCallable, type EndpointCallableOptions, type LooseEndpointOptions, type ApiError, type CallOptions } from '@routesync/sdk'
 
 export type ApiQueryOptions<TResponse, TError = ApiError, TData = TResponse> = Omit<UseQueryOptions<TResponse, TError, TData>, 'queryKey' | 'queryFn'>
@@ -42,7 +42,7 @@ export function useApiSuspenseQuery<
   endpoint: EndpointCallable<TResponse, TParams, TBody>,
   options?: LooseEndpointOptions,
   queryOptions?: Omit<UseSuspenseQueryOptions<TResponse, TError, TData>, 'queryKey' | 'queryFn'>
-) {
+): UseSuspenseQueryResult<TData, TError> {
   const queryKey = endpoint.$queryKey(options)
 
   return useSuspenseQuery<TResponse, TError, TData>({
@@ -65,7 +65,7 @@ export function useApiInfiniteQuery<
   queryOptions: Omit<UseInfiniteQueryOptions<TResponse, TError, TData, readonly unknown[], TPageParam>, 'queryKey' | 'queryFn'> & {
     getNextPageParam: UseInfiniteQueryOptions<TResponse, TError, TData, readonly unknown[], TPageParam>['getNextPageParam']
   }
-) {
+): UseInfiniteQueryResult<TData, TError> {
   const queryKey = endpoint.$queryKey(options)
 
   return useInfiniteQuery<TResponse, TError, TData, readonly unknown[], TPageParam>({

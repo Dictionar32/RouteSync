@@ -16,7 +16,23 @@ export enum PrimitiveKind {
 
 export enum CollectionKind { ARRAY = 'array', COLLECTION = 'collection', NULLABLE = 'nullable' }
 
-export const SemanticTypeKind = Object.freeze({
+export interface SemanticTypeKindInterface {
+    readonly Primitive: 'primitive';
+    readonly JsonValue: 'json_value';
+    readonly Optional: 'optional';
+    readonly Nullable: 'nullable';
+    readonly Never: 'never';
+    readonly Error: 'error';
+    readonly Reference: 'reference';
+    readonly Union: 'union';
+    readonly Intersection: 'intersection';
+    readonly ReadonlyCollection: 'readonly_collection';
+    readonly MutableCollection: 'mutable_collection';
+    readonly Generic: 'generic';
+    readonly Object: 'object';
+}
+
+export const SemanticTypeKind: SemanticTypeKindInterface = Object.freeze({
     Primitive: 'primitive', JsonValue: 'json_value', Optional: 'optional', Nullable: 'nullable',
     Never: 'never', Error: 'error', Reference: 'reference', Union: 'union', Intersection: 'intersection',
     ReadonlyCollection: 'readonly_collection', MutableCollection: 'mutable_collection', Generic: 'generic', Object: 'object'
@@ -187,10 +203,26 @@ export function ObjectType(params: ObjectTypeDescriptorParams): ObjectType {
 }
 export namespace ObjectType {
     export const create = (params: ObjectTypeDescriptorParams): ObjectType => ObjectType(params);
-    export const empty = (name: string, baseName = name): ObjectType => ObjectType({ name, baseName, properties: [], role: 'plain' });
+    export const empty = (name: string, baseName: string = name): ObjectType => ObjectType({ name, baseName, properties: [], role: 'plain' });
 }
 
-export const SemanticTypeFactory = Object.freeze({
+export interface SemanticTypeFactoryInterface {
+    readonly primitive: typeof primitiveType;
+    readonly json: typeof JsonValueType;
+    readonly never: typeof NeverType;
+    readonly error: typeof ErrorType;
+    readonly reference: typeof ReferenceType;
+    readonly nullable: typeof NullableType;
+    readonly optional: typeof OptionalType;
+    readonly collection: (kind: CollectionKind, element: SemanticType) => ReadonlyCollectionType;
+    readonly mutableCollection: typeof MutableCollectionType;
+    readonly union: (members: readonly SemanticType[]) => UnionType;
+    readonly intersection: (members: readonly SemanticType[]) => IntersectionType;
+    readonly generic: typeof GenericType;
+    readonly object: typeof ObjectType;
+}
+
+export const SemanticTypeFactory: SemanticTypeFactoryInterface = Object.freeze({
     primitive: primitiveType,
     json: JsonValueType,
     never: NeverType,
@@ -205,4 +237,3 @@ export const SemanticTypeFactory = Object.freeze({
     generic: GenericType,
     object: ObjectType,
 });
-

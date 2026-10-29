@@ -16,7 +16,6 @@ import type { RequestField, RequestValidationCapability } from './request';
 import type { SemanticDataflowIdentity, SemanticDataflowInputFact } from './semanticDataflow';
 import { semanticDataflowFactLineageOperations } from './semanticDataflow';
 import { stringValue } from './valueObjects';
-import type { Sequence } from './collections';
 import type { Expression, RequestArgument, RequestOperation } from './expression';
 
 const sequenceItems = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>

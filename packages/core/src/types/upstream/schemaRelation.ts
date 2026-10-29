@@ -1,7 +1,6 @@
 import type { ForeignKey } from './databaseVocabulary';
 import type { SchemaInterface, SchemaTable } from './schema';
 import type { ColumnName, DomainTypeName, TableName } from './names';
-import type { Sequence } from './collections';
 import type { MigrationProvenance, SourceSpan } from './provenance';
 
 export type SchemaForeignKeyEvidence = Readonly<{

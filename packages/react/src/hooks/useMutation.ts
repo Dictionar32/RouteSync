@@ -1,5 +1,5 @@
 // @ts-ignore TanStack Query is a peer dependency provided by consumers.
-import { useMutation, useQueryClient, UseMutationOptions } from '@tanstack/react-query'
+import { useMutation, useQueryClient, type UseMutationOptions, type UseMutationResult } from '@tanstack/react-query'
 import { type EndpointCallable, type EndpointCallableOptions, type ApiError } from '@routesync/sdk'
 
 /**
@@ -21,6 +21,9 @@ export interface ApiMutationOptions<TData, TError, TVariables, TContext = unknow
   invalidate?: EndpointCallable[]
 }
 
+export interface UseApiMutationResult<TResponse, TError, TVariables, TContext>
+  extends UseMutationResult<TResponse, TError, TVariables, TContext> {}
+
 export function useApiMutation<
   TResponse = unknown, 
   TParams = unknown, 
@@ -30,7 +33,7 @@ export function useApiMutation<
 >(
   endpoint: EndpointCallable<TResponse, TParams, TBody>,
   options?: ApiMutationOptions<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>
-) {
+): UseApiMutationResult<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext> {
   const queryClient = useQueryClient()
   return useMutation<TResponse, TError, EndpointCallableOptions<TParams, TBody>, TContext>({
     ...options,

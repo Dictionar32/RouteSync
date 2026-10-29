@@ -6,7 +6,6 @@
  * @module core/types/semantic
  */
 
-import type { Lookup } from '../upstream/collections';
 import type { PropertyName } from '../upstream/names';
 import { SemanticValueFactory } from '../domain/semanticValues';
 
@@ -14,6 +13,10 @@ export interface ZodPropertyEntry {
   readonly key: PropertyName;
   readonly schema: ZodAST;
 }
+
+export type ZodPropertyResolution =
+  | { readonly kind: 'missing_property' }
+  | { readonly kind: 'property_found'; readonly value: ZodPropertyEntry };
 
 export class ZodObjectShape implements Iterable<ZodPropertyEntry> {
   public readonly properties: readonly ZodPropertyEntry[];
@@ -37,11 +40,11 @@ export class ZodObjectShape implements Iterable<ZodPropertyEntry> {
     return new ZodObjectShape(properties);
   }
 
-  public lookup(key: PropertyName): Lookup<ZodPropertyEntry> {
+  public lookup(key: PropertyName): ZodPropertyResolution {
     return relationOptionFold(
       relationFirstOption(this.properties, entry => relationEqual(entry.key.value.value, key.value.value)),
-      () => ({ kind: 'missing' }),
-      value => ({ kind: 'found', value }),
+      () => ({ kind: 'missing_property' }),
+      value => ({ kind: 'property_found', value }),
     );
   }
   public has(key: PropertyName): boolean { return relationOptionFold(relationFirstOption(this.properties, entry => relationEqual(entry.key.value.value, key.value.value)), () => false, () => true); }

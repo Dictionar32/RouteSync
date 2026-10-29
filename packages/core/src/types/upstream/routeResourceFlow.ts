@@ -9,7 +9,6 @@
 import type { ActionName, PropertyName, RouteParameterName, RoutePath, ResourceName } from './names';
 import { createActionName, createResourceName, createRouteParameterName, createRoutePath, deriveRouteConstantKey } from './names';
 import type { RouteResourceRegistration } from './route';
-import type { Sequence } from './collections';
 import type { RouteDeclarationEvidence } from './routeDeclarationEvidence';
 
 export type RouteResourceAction =

@@ -27,4 +27,4 @@ const produce = (observation: AstSemanticEvidenceObservation): AstSemanticStageP
 ]);
 
 export const astSemanticEvidenceProducerInterface: AstSemanticEvidenceProducerInterface = Object.freeze({ produce });
-export const produceAstSemanticEvidence = astSemanticEvidenceProducerInterface.produce;
+export const produceAstSemanticEvidence: AstSemanticEvidenceProducerInterface['produce'] = astSemanticEvidenceProducerInterface.produce;

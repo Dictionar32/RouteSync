@@ -3,8 +3,7 @@ import path from 'path'
 import {
   type BroadcastChannelDescriptor,
   BROADCAST_CHANNEL_REGISTRY,
-  matchRouteParameterType,
-  compileBroadcastRuntimePattern
+  matchRouteParameterType
 } from '@routesync/core'
 import { toTypeName } from './names'
 
@@ -52,7 +51,7 @@ export class EchoGenerator {
           }).join(', ') + ', '
         : ''
 
-      const runtimeChannelName = channel.runtimePattern || compileBroadcastRuntimePattern(channel.name || '', parameters);
+      const runtimeChannelName = channel.runtimePattern
       const channelMethod = BROADCAST_CHANNEL_REGISTRY[channel.kind].echoMethod
 
       lines.push(`/**`)

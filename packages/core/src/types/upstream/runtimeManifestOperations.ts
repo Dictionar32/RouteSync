@@ -2,7 +2,6 @@ import type { RouteSyncManifest, RouteSyncManifestFlow } from './manifest';
 import type { RouteSemanticFlow } from '../domain/routes';
 import type { RouteManifest } from '../domain/base';
 import type { ModelAst, ResourceAst, RequestAst } from './ast';
-import type { Sequence } from './collections';
 import type { ControllerActionFlowContract } from './highLevelContracts';
 import type { RequestTypeDerivationSemanticPipelineInterface } from './requestTypeDerivationInterface';
 import type { SemanticDataflowIdentity, SemanticDataflowJudgment } from './semanticDataflow';
@@ -35,13 +34,10 @@ export interface RouteSyncManifestDataflowControllerSurface {
 
 export interface RouteSyncManifestDataflowSurface {
   readonly kind: 'route_sync_manifest_dataflow_surface';
-  readonly dataflowJudgments: Sequence<SemanticDataflowJudgment>;
+  readonly dataflowJudgments: readonly SemanticDataflowJudgment[];
   readonly dataflowQueryPolicyContracts: readonly unknown[];
   readonly controllers: readonly RouteSyncManifestDataflowControllerSurface[];
 }
-
-const sequenceToArray = <Item>(items: Sequence<Item>, output: readonly Item[] = []): readonly Item[] =>
-  items.kind === 'empty' ? output : sequenceToArray(items.tail, [...output, items.head]);
 
 export interface RouteSyncManifestDataflowProjectionInterface {
   readonly project: (manifest: RouteSyncManifestFlow) => RouteSyncManifestDataflowSurface;
@@ -52,7 +48,7 @@ export const routeSyncManifestDataflowProjection: RouteSyncManifestDataflowProje
     kind: 'route_sync_manifest_dataflow_surface',
     dataflowJudgments: manifest.dataflowJudgments,
     dataflowQueryPolicyContracts: manifest.dataflowQueryPolicyContracts,
-    controllers: Object.freeze(sequenceToArray(manifest.contracts.controllers).map((controller: ControllerActionFlowContract) => Object.freeze({
+    controllers: Object.freeze(manifest.contracts.controllers.map((controller: ControllerActionFlowContract) => Object.freeze({
       controller: controller.controller.value.value,
       action: controller.action.value.value,
       dataflowNode: controller.semantic.dataflow.node,
@@ -61,7 +57,7 @@ export const routeSyncManifestDataflowProjection: RouteSyncManifestDataflowProje
 });
 
 export interface RouteManifestRequestResolutionPreflight {
-  readonly kind: 'route_manifest_request_resolution_preflight';
+  readonly kind: 'route_manifest_request_resolution_preflight_blocked';
   readonly manifest: RouteSyncManifest;
   readonly input: {
     readonly routes: readonly RouteSemanticFlow[];
@@ -73,12 +69,18 @@ export interface RouteManifestRequestResolutionPreflight {
     readonly sourceEvidence: readonly unknown[];
   };
   readonly sourceEvidence: readonly unknown[];
-  readonly identityCollisionInventory: Readonly<{ readonly kind: 'identity_inventory_collision_free' }>;
-  readonly requestResolutionLedger: readonly unknown[];
-  readonly assessment: Readonly<{ readonly kind: 'resolved'; readonly ledger: readonly unknown[] }>;
-  readonly resourceResolutionLedger: readonly unknown[];
-  readonly resourceAssessment: Readonly<{ readonly kind: 'resolved'; readonly ledger: readonly unknown[] }>;
-  readonly semanticTypes: readonly unknown[];
+  readonly assessment: Readonly<{ readonly kind: 'blocked'; readonly reason: 'request_resolution_authority_not_composed' }>;
+  readonly resourceAssessment: Readonly<{ readonly kind: 'blocked'; readonly reason: 'resource_resolution_authority_not_composed' }>;
+  readonly requireResolved: () => never;
+}
+
+export class RouteManifestRequestResolutionPreflightBlockedError extends Error {
+  readonly kind = 'route_manifest_request_resolution_preflight_blocked_error' as const;
+
+  constructor(readonly preflight: RouteManifestRequestResolutionPreflight) {
+    super('Request and resource resolution preflight is blocked because its upstream authorities are not composed.');
+    this.name = 'RouteManifestRequestResolutionPreflightBlockedError';
+  }
 }
 
 export interface RouteManifestRequestResolutionPreflightInterface {
@@ -98,43 +100,44 @@ export const routeManifestRequestResolutionPreflight: RouteManifestRequestResolu
       resources: sourceItems(source.resources.items),
       requests: sourceItems(source.requests.items),
     });
-    const sourceEvidence = Object.freeze([]);
-    const requestResolutionLedger = Object.freeze([]);
-    const resourceResolutionLedger = Object.freeze([]);
-    return Object.freeze({
-      kind: 'route_manifest_request_resolution_preflight',
+    const sourceEvidence: readonly unknown[] = Object.freeze([]);
+    const outcome: RouteManifestRequestResolutionPreflight = Object.freeze({
+      kind: 'route_manifest_request_resolution_preflight_blocked',
       manifest,
       input,
       semanticInput: Object.freeze({ input, sourceEvidence }),
       sourceEvidence,
-      identityCollisionInventory: Object.freeze({ kind: 'identity_inventory_collision_free' as const }),
-      requestResolutionLedger,
-      assessment: Object.freeze({ kind: 'resolved' as const, ledger: requestResolutionLedger }),
-      resourceResolutionLedger,
-      resourceAssessment: Object.freeze({ kind: 'resolved' as const, ledger: resourceResolutionLedger }),
-      semanticTypes: Object.freeze([]),
+      assessment: Object.freeze({ kind: 'blocked' as const, reason: 'request_resolution_authority_not_composed' as const }),
+      resourceAssessment: Object.freeze({ kind: 'blocked' as const, reason: 'resource_resolution_authority_not_composed' as const }),
+      requireResolved: (): never => {
+        throw new RouteManifestRequestResolutionPreflightBlockedError(outcome);
+      },
     });
+    return outcome;
   },
 });
 
 export interface ManifestProjectedOutcome {
   readonly kind: 'manifest_projected';
   readonly manifest: RouteManifest;
+  readonly requireCompleteManifest: () => RouteManifest;
 }
 
 export interface ManifestProjectionBlockedOutcome {
   readonly kind: 'manifest_projection_blocked';
   readonly derivation: Readonly<{ readonly kind: 'upstream_semantic_projection_unavailable'; readonly reason: string }>;
+  readonly requireCompleteManifest: () => never;
 }
 
-export interface RouteManifestProjectionCompositionResult {
-  readonly kind: 'manifest_projected' | 'manifest_projection_blocked';
-  readonly manifest?: RouteManifest;
-  readonly derivation?: Readonly<{ readonly kind: 'upstream_semantic_projection_unavailable'; readonly reason: string }>;
-  readonly continue: (handlers: {
-    readonly manifest_projected: (outcome: ManifestProjectedOutcome) => RouteManifest;
-    readonly manifest_projection_blocked: (outcome: ManifestProjectionBlockedOutcome) => never;
-  }) => RouteManifest;
+export type RouteManifestProjectionCompositionResult = ManifestProjectedOutcome | ManifestProjectionBlockedOutcome;
+
+export class RouteManifestProjectionBlockedError extends Error {
+  readonly kind = 'route_manifest_projection_blocked_error' as const;
+
+  constructor(readonly outcome: ManifestProjectionBlockedOutcome) {
+    super(outcome.derivation.reason);
+    this.name = 'RouteManifestProjectionBlockedError';
+  }
 }
 
 export interface RouteManifestProjectionCompositionInterface {
@@ -153,14 +156,11 @@ const blockedProjection = (reason: string): RouteManifestProjectionCompositionRe
   const outcome: ManifestProjectionBlockedOutcome = Object.freeze({
     kind: 'manifest_projection_blocked',
     derivation: Object.freeze({ kind: 'upstream_semantic_projection_unavailable', reason }),
+    requireCompleteManifest: (): never => {
+      throw new RouteManifestProjectionBlockedError(outcome);
+    },
   });
-  return Object.freeze({
-    ...outcome,
-    continue: (handlers: {
-      readonly manifest_projected: (value: ManifestProjectedOutcome) => RouteManifest;
-      readonly manifest_projection_blocked: (value: ManifestProjectionBlockedOutcome) => never;
-    }): RouteManifest => handlers.manifest_projection_blocked(outcome),
-  });
+  return outcome;
 };
 
 export const routeManifestProjectionCompositionFactory: RouteManifestProjectionCompositionFactoryInterface = Object.freeze({
@@ -207,7 +207,7 @@ export interface RouteSyncManifestDataflowAnalysisOperationsInterface {
 export const routeSyncManifestDataflowAnalysisOperations: RouteSyncManifestDataflowAnalysisOperationsInterface = Object.freeze({
   analyze: (manifest: RouteSyncManifestDataflowSurface, runtime: SemanticDataflowRuntimeBoundary): readonly RouteSyncControllerDataflowAnalysis[] =>
     Object.freeze(manifest.controllers.map(controller => {
-      const judgment = sequenceToArray(manifest.dataflowJudgments).find(candidate => candidate.node === controller.dataflowNode);
+      const judgment = manifest.dataflowJudgments.find(candidate => candidate.node === controller.dataflowNode);
       if (!judgment) throw new Error(`Missing upstream-closed dataflow judgment for controller action: ${controller.controller}.${controller.action}`);
       return Object.freeze({
         controller: controller.controller,
@@ -232,4 +232,3 @@ export const semanticDataflowIRProjection: SemanticDataflowIRProjection = Object
     closed: true as const,
   }),
 });
-

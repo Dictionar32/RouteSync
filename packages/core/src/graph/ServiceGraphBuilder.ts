@@ -9,7 +9,6 @@ import type { RouteSyncManifestGraphSurface } from './RouteSyncManifestGraphProj
 import type { GraphModelNodeSurface } from '../types/semantic/modelGraphTypes';
 import type { ActionName } from '../types/upstream/names';
 import type { ControllerNodeName, ServiceNodeName } from '../types/semantic/nominalVocabulary';
-import type { Lookup } from '../types/upstream/collections';
 import { GraphNodeIndex } from './service/graphNodeIndex';
 import type { GraphNodeReference } from './service/graphNodeIndex';
 import { controllerRegistryOperations, type ControllerRegistry, type ControllerLookup } from './service/controllerRegistry';
@@ -23,6 +22,14 @@ import type { ServiceGraphBuilderInterface } from './ServiceGraphBuilderInterfac
 import type { ServiceGraphAssemblyInterface } from './ServiceGraphAssemblyInterface';
 import { GraphEdgeRelationSink } from './service/graphEdgeRelationSink';
 import type { GraphEdgeRelation } from './service/graphEdgeRelation';
+
+export type ServiceModelResolution =
+  | { readonly kind: 'missing_model' }
+  | { readonly kind: 'model_found'; readonly value: ServiceModelNode };
+
+export type ServiceResolution =
+  | { readonly kind: 'missing_service' }
+  | { readonly kind: 'service_found'; readonly value: ServiceNode };
 
 const modelReference = (name: string): GraphNodeReference => ({
   kind: 'model_reference',
@@ -73,11 +80,11 @@ export class ServiceGraphBuilder implements ServiceGraphBuilderInterface, Servic
     this.controllersIndex = this.controllersIndex.register(name, controller);
   }
 
-  public getModel(name: string): Lookup<ServiceModelNode> {
+  public getModel(name: string): ServiceModelResolution {
     return this.modelsMap.lookup(modelReference(name));
   }
 
-  public getService(name: string): Lookup<ServiceNode> {
+  public getService(name: string): ServiceResolution {
     return this.servicesMap.lookup(serviceReference(name));
   }
 

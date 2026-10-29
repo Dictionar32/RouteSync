@@ -4,7 +4,6 @@ import { toCamelCase, toPascalCase } from '../../utils/resource-naming';
 import type { LaravelRoutePathResolutionAuthority, LaravelRoutePathResolutionInput, ResolvedLaravelRoutePath } from './routePathResolution';
 import type { RouteParameter, RouteParameterBinding, RouteParameterType } from './route';
 import type { ModelReference } from './semanticReferences';
-import type { Option } from './collections';
 
 const normalizedSegments = (input: LaravelRoutePathResolutionInput): readonly string[] => Object.freeze([
   ...input.groupPrefixes.flatMap(prefix => prefix.split('/').filter(segment => segment.length > 0)),

@@ -5,7 +5,6 @@ import type { Expression } from './expression';
 import type { PropertySurface } from './property';
 import type { TypeExpression } from './typeVocabulary';
 import type { SourceSpan } from './provenance';
-import type { ModelAccessors, ModelCasts, ModelConstants, ModelMethods, ModelRelations, ModelTraits, Properties, PropertyNames, Columns, ForeignKeys, Lookup, Sequence, ModelColumnFacts } from './collections';
 
 import type { ModelAccessorComputation, ModelAccessorResult, ModelAccessorVisibility, ModelConfigurationVisibility, EloquentRelationCardinality } from './modelVocabulary';
 import type { ModelRelationInterface } from './modelRelation';
@@ -327,7 +326,7 @@ export type ModelRelation = {
   readonly source: SourceSpan;
 };
 export type ModelCast = { readonly kind: 'model_cast'; readonly property: PropertyName; readonly target: import('./expression').CastType; readonly source: SourceSpan };
-export type ModelSchema = { readonly kind: 'model_schema'; readonly columns: import('./collections').ModelColumnFacts; readonly foreignKeys: ForeignKeys; readonly indexes: import('./collections').Indexes };
+export type ModelSchema = { readonly kind: 'model_schema'; readonly columns: { readonly kind: 'model_column_facts'; readonly items: readonly import('./modelSourceFacts').ModelColumnFact[] }; readonly foreignKeys: readonly import('./databaseVocabulary').ForeignKey[]; readonly indexes: readonly import('./databaseVocabulary').IndexDefinition[] };
 export type ModelConstantVisibility =
   | { readonly kind: 'public' }
   | { readonly kind: 'protected' }

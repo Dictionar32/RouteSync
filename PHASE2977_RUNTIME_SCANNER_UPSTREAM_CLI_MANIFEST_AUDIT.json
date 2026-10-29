@@ -37,11 +37,11 @@
       "passed": true
     },
     {
-      "name": "manifest scan operation factory is interface-typed",
+      "name": "manifest preparation is interface-typed",
       "passed": true
     },
     {
-      "name": "manifest scanner runtime facade is interface-typed",
+      "name": "manifest builder contract owns a typed build operation",
       "passed": true
     },
     {
@@ -53,7 +53,7 @@
       "passed": true
     },
     {
-      "name": "upstream collection foundation remains absent/empty",
+      "name": "upstream collection foundation remains absent",
       "passed": true
     }
   ],
@@ -67,9 +67,9 @@
     "manifest graph compilation operation"
   ],
   "remainingDeletedRelationFoundationImports": {
-    "allCoreAndCli": 479,
-    "upstreamTypeDirectory": 64,
-    "upstreamFiles": 36,
+    "allCoreAndCli": 0,
+    "upstreamTypeDirectory": 0,
+    "upstreamFiles": 0,
     "cliDirect": 0,
     "note": "These counts include imports of the three intentionally deleted modules. They are blockers to migrate by consumer domain; do not restore or recreate the deleted foundation."
   },

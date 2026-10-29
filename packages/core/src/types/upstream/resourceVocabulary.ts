@@ -1,6 +1,5 @@
 import type { Expression } from './expression';
 import type { ColumnName, PropertyName, RelationName, TableName } from './names';
-import type { RelationPaths, ResourceFields } from './collections';
 
 export type ResourceOperationValue =
   | { readonly kind: 'implicit_resource_value' }

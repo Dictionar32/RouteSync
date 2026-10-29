@@ -4,7 +4,6 @@ import type { SemanticValue } from './primitiveVocabulary';
 import type { ModelReference, ResourceReference } from './semanticReferences';
 import type { SourceSpan } from './provenance';
 import type { HttpStatusCode, StringValue, TruthValue } from './valueObjects';
-import type { Sequence } from './collections';
 import type { TypeExpression } from './typeVocabulary';
 
 export type ResponseHeaderName = { readonly kind: 'response_header_name'; readonly value: StringValue };

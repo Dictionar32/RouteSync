@@ -1,4 +1,3 @@
-import type { Sequence } from './collections';
 import type { ModelMethod, ModelMethodResult } from './model';
 import type { ModelSourceSemanticsAuthorityInterface, ModelSourceSemanticsEvidence, ModelSourceSemanticsJudgment, ModelMethodReturnTypeEvidence } from './modelSourceSemanticsAuthorityInterface';
 

@@ -2,7 +2,6 @@ import type { Assignment, StaticPropertyOwner } from './assignment';
 import type { PropertyName } from './names';
 import type { Expression, ResolvedExpression } from './expression';
 import type { ExceptionName, VariableName } from './names';
-import type { VariableNames } from './collections';
 import type { SourceSpan } from './provenance';
 import type { HttpStatusCode } from './valueObjects';
 
@@ -16,7 +15,7 @@ export type SourceCatchHandler = {
 
 export type SourceCatchHandlers = {
   readonly kind: 'catch_handlers';
-  readonly items: import('./collections').Sequence<SourceCatchHandler>;
+  readonly items: readonly SourceCatchHandler[];
 };
 
 export type SourceForClause =
@@ -33,7 +32,7 @@ export type SourceUnsetTarget =
 
 export type SourceUnsetTargets = {
   readonly kind: 'source_unset_targets';
-  readonly items: import('./collections').Sequence<SourceUnsetTarget>;
+  readonly items: readonly SourceUnsetTarget[];
 };
 
 export type SourceForEachTarget =
@@ -67,5 +66,5 @@ export type SourceIncludeKind =
 
 export type SourceStatements = {
   readonly kind: 'source_statements';
-  readonly items: import('./collections').Sequence<SourceStatement>;
+  readonly items: readonly SourceStatement[];
 };

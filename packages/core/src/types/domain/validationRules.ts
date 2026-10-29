@@ -10,7 +10,36 @@ import { SemanticValueFactory } from './semanticValues';
  *
  * Canonical Domain Vocabulary for Laravel Validation Rules.
  */
-export const ValidationRuleKind = Object.freeze({
+export interface ValidationRuleKindInterface {
+  readonly Required: 'required';
+  readonly RequiredWith: 'required_with';
+  readonly RequiredWithAll: 'required_with_all';
+  readonly RequiredWithout: 'required_without';
+  readonly RequiredWithoutAll: 'required_without_all';
+  readonly RequiredIf: 'required_if';
+  readonly RequiredUnless: 'required_unless';
+  readonly Nullable: 'nullable';
+  readonly Optional: 'optional';
+  readonly String: 'string';
+  readonly Number: 'number';
+  readonly Boolean: 'boolean';
+  readonly Array: 'array';
+  readonly Email: 'email';
+  readonly Url: 'url';
+  readonly Uuid: 'uuid';
+  readonly Date: 'date';
+  readonly Min: 'min';
+  readonly Max: 'max';
+  readonly Between: 'between';
+  readonly In: 'in';
+  readonly Exists: 'exists';
+  readonly Unique: 'unique';
+  readonly File: 'file';
+  readonly Image: 'image';
+  readonly Custom: 'custom';
+}
+
+export const ValidationRuleKind: ValidationRuleKindInterface = Object.freeze({
   Required: 'required',
   RequiredWith: 'required_with',
   RequiredWithAll: 'required_with_all',
@@ -400,7 +429,7 @@ export function matchValidationRule<R>(
   );
 }
 
-export const matchRule = matchValidationRule;
+export const matchRule: typeof matchValidationRule = matchValidationRule;
 
 /**
  * ValidationRuleNodeFactory

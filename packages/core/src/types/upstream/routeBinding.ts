@@ -1,7 +1,5 @@
 import type { RouteParameter } from './route';
 import type { RouteParameterName } from './names';
-import type { RouteParameters } from './collections';
-import type { Sequence } from './collections';
 
 export interface RouteBindingDomainOperationsInterface {
   readonly containsParameter: (name: RouteParameterName) => boolean;

@@ -1,9 +1,7 @@
 import type { ActionName, ClassName, DomainTypeName, ResourceName, RouteName, RoutePath, RouteParameterName, PropertyName, SourceFile } from './names';
 import type { ControllerReturnSemantic } from './controller';
-import type { Option } from './collections';
 import type { EndpointRequestBinding, EndpointResponseBinding } from './endpointBindings';
 import type { SourceSpan } from './provenance';
-import type { RouteMiddlewares, RouteMethods, RouteParameters, Sequence } from './collections';
 import type { MiddlewareName } from './names';
 import type { RouteMiddlewareScope } from './routeMiddleware';
 import type { StringValue } from './valueObjects';
@@ -340,7 +338,14 @@ export interface RouteDefinition {
   readonly provenance: RouteProvenance;
 }
 
-export const SecuritySchemeKind = Object.freeze({
+export interface SecuritySchemeKindInterface {
+  readonly Sanctum: 'sanctum';
+  readonly Bearer: 'bearer';
+  readonly Cookie: 'cookie';
+  readonly Public: 'public';
+}
+
+export const SecuritySchemeKind: SecuritySchemeKindInterface = Object.freeze({
   Sanctum: 'sanctum', Bearer: 'bearer', Cookie: 'cookie', Public: 'public'
 } as const);
 export type SecuritySchemeKind = typeof SecuritySchemeKind[keyof typeof SecuritySchemeKind];
@@ -370,7 +375,13 @@ export type RateLimitDescriptor =
   | { readonly kind: 'named'; readonly name: import('./names').Name };
 
 
-export const RoutePolicyKind = Object.freeze({
+export interface RoutePolicyKindInterface {
+  readonly AbilityModel: 'ability_model';
+  readonly Gate: 'gate';
+  readonly Custom: 'custom';
+}
+
+export const RoutePolicyKind: RoutePolicyKindInterface = Object.freeze({
   AbilityModel: 'ability_model', Gate: 'gate', Custom: 'custom'
 } as const);
 export type RoutePolicyKind = typeof RoutePolicyKind[keyof typeof RoutePolicyKind];

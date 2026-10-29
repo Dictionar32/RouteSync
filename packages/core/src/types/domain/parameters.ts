@@ -11,12 +11,30 @@ export type { RouteParameterBinding };
 export type { RouteParameterConstraint } from '../upstream/route';
 
 export type RouteParameterLocationKind = RouteParameterLocation['kind'];
-export const RouteParameterLocation = Object.freeze({
+export interface RouteParameterLocationInterface {
+  readonly Path: 'path';
+  readonly Query: 'query';
+  readonly Header: 'header';
+}
+
+export const RouteParameterLocation: RouteParameterLocationInterface = Object.freeze({
   Path: 'path' as const, Query: 'query' as const, Header: 'header' as const
 });
 
 export type RouteParameterTypeKind = RouteParameterType['kind'];
-export const RouteParameterType = Object.freeze({
+export interface RouteParameterTypeInterface {
+  readonly String: 'string';
+  readonly Integer: 'integer';
+  readonly Number: 'number';
+  readonly Boolean: 'boolean';
+  readonly Uuid: 'uuid';
+  readonly Ulid: 'ulid';
+  readonly Date: 'date';
+  readonly Slug: 'slug';
+  readonly Model: 'model';
+}
+
+export const RouteParameterType: RouteParameterTypeInterface = Object.freeze({
   String: 'string' as const, Integer: 'integer' as const, Number: 'number' as const, Boolean: 'boolean' as const,
   Uuid: 'uuid' as const, Ulid: 'ulid' as const, Date: 'date' as const, Slug: 'slug' as const, Model: 'model' as const
 });
@@ -108,4 +126,3 @@ export type RouteParameterVisitor<R> = {
 export function matchRouteParameter<R>(param: RouteParameter, visitor: RouteParameterVisitor<R>): R {
   return visitor[param.location.kind](param);
 }
-

@@ -5,7 +5,6 @@ import type {
 } from './effectiveControllerActionPolicy';
 import type { ActionName, MiddlewareName } from './names';
 import type { RouteMiddlewareContract, RouteMiddlewareExclusionContract } from './routeMiddleware';
-import type { Sequence } from './collections';
 
 const sequenceToArray = <T>(items: Sequence<T>, output: readonly T[] = []): readonly T[] =>
   items.kind === 'empty' ? output : sequenceToArray(items.tail, Object.freeze([...output, items.head]));

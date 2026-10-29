@@ -1,5 +1,4 @@
 export * from './valueObjects';
-export * from './collections';
 export * from './names';
 export * from './provenance';
 export * from './primitiveVocabulary';
@@ -47,6 +46,8 @@ export * from './semanticDataflowRuntimeExecutor';
 export * from './astClassifierEvidenceContract';
 export * from './manifest';
 export * from './manifestBuilderInterface';
+export * from './runtimeManifestOperations';
+export * from './runtimeCompositionOperations';
 export * from './resourceVocabulary';
 export * from './service';
 export * from './migration';
@@ -72,7 +73,6 @@ export { controllerActionBindingAuthority } from './controllerActionBindingAutho
 export * from './sourceProjectIdentity';
 export * from './endpointBindings';
 
-export type { Option, Lookup } from './collections';
 
 export { channelKindFactory } from './channel';
 export type { ChannelDefinition, ChannelKind, ChannelKindFactoryInterface, ChannelKindHandlers, ChannelAuthenticationRequirement, PublicChannelKind, PrivateChannelKind, PresenceChannelKind } from './channel';

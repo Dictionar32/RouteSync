@@ -1,6 +1,13 @@
 import { RequestOptionsDescriptor } from '../types/request'
 import type { HttpMethod, RequestOptions, RequestOptionsContract } from '../types/request'
 
+export interface RequestBuild {
+  readonly url: string;
+  readonly method: HttpMethod;
+  readonly body: unknown;
+  readonly options: RequestOptionsContract;
+}
+
 export class Request {
   private _url: string = ''
   private _method: HttpMethod = 'GET'
@@ -39,7 +46,7 @@ export class Request {
     return this
   }
 
-  build() {
+  build(): RequestBuild {
     return {
       url: this._url,
       method: this._method,

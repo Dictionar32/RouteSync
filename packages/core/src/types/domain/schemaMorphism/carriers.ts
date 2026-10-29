@@ -11,7 +11,14 @@ import { PrimitiveKind } from '../semanticType';
 import type { TypeWrapper } from './wrappers';
 import type { ModelName, ResourceName } from '../../upstream/names';
 
-export const DomainCarrierKind = Object.freeze({
+export interface DomainCarrierKindInterface {
+    readonly Scalar: 'scalar';
+    readonly Model: 'model';
+    readonly Resource: 'resource';
+    readonly Structural: 'structural';
+}
+
+export const DomainCarrierKind: DomainCarrierKindInterface = Object.freeze({
     Scalar: 'scalar',
     Model: 'model',
     Resource: 'resource',

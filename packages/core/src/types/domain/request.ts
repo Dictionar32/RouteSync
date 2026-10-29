@@ -55,7 +55,12 @@ export interface RequestField {
     readonly source: SourceSpan;
 }
 
-export const FormActionName = Object.freeze({
+export interface FormActionNameInterface {
+    readonly Create: 'create';
+    readonly Update: 'update';
+}
+
+export const FormActionName: FormActionNameInterface = Object.freeze({
     Create: "create",
     Update: "update"
 } as const);

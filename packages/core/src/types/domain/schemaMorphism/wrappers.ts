@@ -7,7 +7,14 @@
  * @module core/types/domain/schemaMorphism
  */
 
-export const TypeWrapperKind = Object.freeze({
+export interface TypeWrapperKindInterface {
+    readonly Identity: 'identity';
+    readonly Nullable: 'nullable';
+    readonly Collection: 'collection';
+    readonly Paginated: 'paginated';
+}
+
+export const TypeWrapperKind: TypeWrapperKindInterface = Object.freeze({
     Identity: 'identity',
     Nullable: 'nullable',
     Collection: 'collection',

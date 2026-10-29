@@ -11,7 +11,9 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { manifestDriftAuditOperations, semanticCoverageAuditOperations } from './audit/index';
 
-export const auditCommand = new Command('audit')
+export interface AuditCommandInterface extends Command {}
+
+export const auditCommand: AuditCommandInterface = new Command('audit')
   .description('Audit the manifest for unresolved fields and missing resolvers')
   .option('-g, --graph <path>', 'Path to graph file', 'routesync.graph.json')
   .option('-m, --manifest <path>', 'Path to manifest file', 'routesync.manifest.json')

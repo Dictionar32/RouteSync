@@ -35,7 +35,7 @@ export class HttpClient {
     this.setupInterceptors();
   }
 
-  private setupInterceptors() {
+  private setupInterceptors(): void {
     this.client.interceptors.request.use(
       (config) => {
         if (config.data && !(config.data instanceof FormData)) {
@@ -71,11 +71,11 @@ export class HttpClient {
     );
   }
 
-  setToken(token: string) {
+  setToken(token: string): void {
     this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
 
-  removeToken() {
+  removeToken(): void {
     delete this.client.defaults.headers.common['Authorization'];
   }
 

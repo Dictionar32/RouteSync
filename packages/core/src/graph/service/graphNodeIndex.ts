@@ -57,7 +57,12 @@ export interface GraphNodeIndex<T> extends Iterable<GraphNodeEntry<T>> {
   readonly referencesIterator: () => IterableIterator<GraphNodeReference>;
 }
 
-export const GraphNodeIndex = Object.freeze({
+export interface GraphNodeIndexFactoryInterface {
+  readonly empty: <T>() => GraphNodeIndex<T>;
+  readonly fromEntries: <T>(entries: readonly GraphNodeEntry<T>[]) => GraphNodeIndex<T>;
+}
+
+export const GraphNodeIndex: GraphNodeIndexFactoryInterface = Object.freeze({
   empty: <T>(): GraphNodeIndex<T> => create<T>([]),
   fromEntries: <T>(entries: readonly GraphNodeEntry<T>[]): GraphNodeIndex<T> => create(entries),
 });

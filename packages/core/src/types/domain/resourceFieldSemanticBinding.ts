@@ -40,7 +40,18 @@ const createResourceFieldBinding = (params: ResourceFieldSemanticBindingInput): 
   },
 });
 
-export const ResourceFieldSemanticBinding = Object.freeze({
+export interface ResourceFieldSemanticBindingFactoryInterface {
+  readonly fromExpression: (
+    name: string,
+    expression: ResourceFieldExpression,
+    semanticType: SemanticType,
+    propertyName: string,
+    boundAst: BoundSemanticNode,
+  ) => ResourceFieldSemanticBinding;
+  readonly create: (params: ResourceFieldSemanticBindingInput) => ResourceFieldSemanticBinding;
+}
+
+export const ResourceFieldSemanticBinding: ResourceFieldSemanticBindingFactoryInterface = Object.freeze({
   fromExpression(
     name: string,
     expression: ResourceFieldExpression,

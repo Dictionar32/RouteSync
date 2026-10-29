@@ -1222,13 +1222,13 @@ const invocationRuleById = <Id extends InvocationSemanticRuleId>(
 };
 
 /** Compatibility names are projections of the authoritative model, never separate rule definitions. */
-export const INVOCATION_EVIDENCE_PRESENCE_RULE = invocationRuleById('invocation-evidence-presence');
-export const INVOCATION_TARGET_RESOLUTION_RULE = invocationRuleById('invocation-target-resolution');
-export const INVOCATION_TARGET_AMBIGUITY_RULE = invocationRuleById('invocation-target-ambiguity');
-export const INVOCATION_ARGUMENT_BINDING_RULE = invocationRuleById('invocation-positional-argument-binding');
-export const INVOCATION_RESULT_EMISSION_RULE = invocationRuleById('invocation-result-emission');
-export const INVOCATION_EXCEPTION_EMISSION_RULE = invocationRuleById('invocation-exception-emission');
-export const INVOCATION_UNRESOLVED_TARGET_RULE = invocationRuleById('invocation-unresolved-target-obligation');
+export const INVOCATION_EVIDENCE_PRESENCE_RULE: Extract<InvocationSemanticRule, { readonly id: 'invocation-evidence-presence' }> = invocationRuleById('invocation-evidence-presence');
+export const INVOCATION_TARGET_RESOLUTION_RULE: Extract<InvocationSemanticRule, { readonly id: 'invocation-target-resolution' }> = invocationRuleById('invocation-target-resolution');
+export const INVOCATION_TARGET_AMBIGUITY_RULE: Extract<InvocationSemanticRule, { readonly id: 'invocation-target-ambiguity' }> = invocationRuleById('invocation-target-ambiguity');
+export const INVOCATION_ARGUMENT_BINDING_RULE: Extract<InvocationSemanticRule, { readonly id: 'invocation-positional-argument-binding' }> = invocationRuleById('invocation-positional-argument-binding');
+export const INVOCATION_RESULT_EMISSION_RULE: Extract<InvocationSemanticRule, { readonly id: 'invocation-result-emission' }> = invocationRuleById('invocation-result-emission');
+export const INVOCATION_EXCEPTION_EMISSION_RULE: Extract<InvocationSemanticRule, { readonly id: 'invocation-exception-emission' }> = invocationRuleById('invocation-exception-emission');
+export const INVOCATION_UNRESOLVED_TARGET_RULE: Extract<InvocationSemanticRule, { readonly id: 'invocation-unresolved-target-obligation' }> = invocationRuleById('invocation-unresolved-target-obligation');
 
 export const INVOCATION_SEMANTIC_RULES: readonly InvocationSemanticRule[] = Object.freeze([
   ...INVOCATION_SEMANTIC_MODEL.judgment.operations,
@@ -1570,4 +1570,4 @@ export interface SemanticInterproceduralDataFlowAuthorityInterface {
 
 /** Compatibility aliases; the canonical contract is INVOCATION_SEMANTIC_CONTRACT. */
 export type SemanticInvocationSemanticContract = InvocationSemanticContract;
-export const SEMANTIC_INVOCATION_SEMANTIC_CONTRACT = INVOCATION_SEMANTIC_CONTRACT;
+export const SEMANTIC_INVOCATION_SEMANTIC_CONTRACT: typeof INVOCATION_SEMANTIC_CONTRACT = INVOCATION_SEMANTIC_CONTRACT;

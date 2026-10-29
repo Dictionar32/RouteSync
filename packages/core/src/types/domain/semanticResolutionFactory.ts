@@ -19,7 +19,17 @@ interface Common {
   readonly boundAst: BoundSemanticNode;
 }
 
-export const SemanticResolutionFactory = Object.freeze({
+export interface SemanticResolutionFactoryInterface {
+  readonly scalar: (input: Common & { semanticType: SemanticType; nullability: BoundNullability }) => SemanticResolution;
+  readonly model: (input: Common & { model: ModelName; definition: ModelSemanticDefinition; cardinality: import('./semanticResolution').ResolutionCardinality }) => SemanticResolution;
+  readonly resource: (input: Common & { resource: ResourceName; cardinality: import('./semanticResolution').ResolutionCardinality }) => SemanticResolution;
+  readonly object: (input: Common & { fields: readonly SemanticObjectField[] }) => SemanticResolution;
+  readonly queryProjection: (input: Common & { sourceModel: ModelName; sourceDefinition: ModelSemanticDefinition; surface: QueryProjectionSurface; cardinality: BoundCardinality; nullability: BoundNullability }) => SemanticResolution;
+  readonly queryProjectionSurface: (fields: readonly QueryProjectionField[]) => QueryProjectionSurface;
+  readonly indeterminate: (input: Common) => SemanticResolution;
+}
+
+export const SemanticResolutionFactory: SemanticResolutionFactoryInterface = Object.freeze({
   scalar(input: Common & { semanticType: SemanticType; nullability: BoundNullability }): SemanticResolution {
     return Object.freeze({ kind: 'scalar', ...input });
   },

@@ -1,7 +1,14 @@
 import type { ResourceName } from '../upstream/names';
 import { SemanticValueFactory } from './semanticValues';
 import type { StringValue } from '../upstream/valueObjects';
-export const InvalidationTargetKind = Object.freeze({
+export interface InvalidationTargetKindInterface {
+  readonly SelfList: 'self_list';
+  readonly ParentList: 'parent_list';
+  readonly ParentDetail: 'parent_detail';
+  readonly AuthResource: 'auth_resource';
+}
+
+export const InvalidationTargetKind: InvalidationTargetKindInterface = Object.freeze({
   SelfList: 'self_list',
   ParentList: 'parent_list',
   ParentDetail: 'parent_detail',
@@ -50,7 +57,7 @@ export type InvalidationTargetRegistry = {
   readonly [K in InvalidationTargetKind]: InvalidationTargetSpecification<K>;
 };
 
-export const INVALIDATION_TARGET_REGISTRY = Object.freeze({
+export const INVALIDATION_TARGET_REGISTRY: InvalidationTargetRegistry = Object.freeze({
   [InvalidationTargetKind.SelfList]: {
     kind: InvalidationTargetKind.SelfList,
     queryKeySuffix: 'all',
@@ -183,5 +190,5 @@ export class RouteSemanticFlowCacheInvalidationDescriptor implements RouteCacheI
   }
 }
 
-export const RouteSemanticFlowInvalidationPayload = RouteSemanticFlowCacheInvalidationDescriptor;
+export const RouteSemanticFlowInvalidationPayload: typeof RouteSemanticFlowCacheInvalidationDescriptor = RouteSemanticFlowCacheInvalidationDescriptor;
 export type RouteSemanticFlowInvalidationPayload = RouteSemanticFlowCacheInvalidationDescriptor;

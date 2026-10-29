@@ -4,7 +4,6 @@ import type { RequestFieldTarget } from './request';
 import type { PropertyName } from './names';
 import type { ModelReference, PropertyReference, ResourceReference } from './semanticReferences';
 import type { ResponseJsonPayload, ResponseJsonShape } from './response';
-import type { ValidationRules } from './collections';
 import type { ModelDefinition, ModelRelation } from './model';
 import type { ResourceDefinition } from './resource';
 import type { RequestDefinition } from './request';
@@ -68,7 +67,7 @@ export interface ControllerDataflowSurface {
 
 /** Upstream dependency-flow surface; consumers never inspect parameter order. */
 export interface ControllerDependencyFlowSurface {
-  readonly dependencies: import('./collections').Sequence<ControllerDependency>;
+  readonly dependencies: readonly ControllerDependency[];
 }
 
 export interface ServiceDependencySurface {
@@ -153,26 +152,22 @@ export type LaravelDomainContract =
  * models, resources, requests, routes, controllers, and services.
  */
 export interface LaravelSemanticContractCatalog {
-  readonly models: import('./collections').Sequence<ModelHighLevelContract>;
-  readonly resources: import('./collections').Sequence<ResourceHighLevelContract>;
-  readonly requests: import('./collections').Sequence<RequestHighLevelContract>;
-  readonly responses: import('./collections').Sequence<ResponseHighLevelContract>;
-  readonly routes: import('./collections').Sequence<RouteHighLevelContract>;
-  readonly controllers: import('./collections').Sequence<ControllerActionFlowContract>;
-  readonly services: import('./collections').Sequence<ServiceSemanticContract>;
-  readonly providers: import('./collections').Sequence<ProviderHighLevelContract>;
+  readonly models: readonly ModelHighLevelContract[];
+  readonly resources: readonly ResourceHighLevelContract[];
+  readonly requests: readonly RequestHighLevelContract[];
+  readonly responses: readonly ResponseHighLevelContract[];
+  readonly routes: readonly RouteHighLevelContract[];
+  readonly controllers: readonly ControllerActionFlowContract[];
+  readonly services: readonly ServiceSemanticContract[];
+  readonly providers: readonly ProviderHighLevelContract[];
   /** Migration-derived schema semantics are retained at the canonical source boundary. */
-  readonly schemas: import('./collections').Sequence<SchemaHighLevelContract>;
-  readonly migrations: import('./collections').Sequence<MigrationHighLevelContract>;
+  readonly schemas: readonly SchemaHighLevelContract[];
+  readonly migrations: readonly MigrationHighLevelContract[];
   /** Laravel application surfaces scanned upstream must not disappear at model projection. */
-  readonly dtos: import('./collections').Sequence<DtoHighLevelContract>;
-  readonly middlewares: import('./collections').Sequence<MiddlewareHighLevelContract>;
-  readonly attributes: import('./collections').Sequence<AttributeHighLevelContract>;
-  readonly channels: import('./collections').Sequence<ChannelHighLevelContract>;
-}
-
-export interface LaravelSemanticLookup<T> {
-  readonly lookup: (name: PropertyName) => import('./collections').Lookup<T>;
+  readonly dtos: readonly DtoHighLevelContract[];
+  readonly middlewares: readonly MiddlewareHighLevelContract[];
+  readonly attributes: readonly AttributeHighLevelContract[];
+  readonly channels: readonly ChannelHighLevelContract[];
 }
 
 /** Resource-field semantic projection consumed by response/graph layers. */
@@ -183,5 +178,5 @@ export interface ResourceFieldSemanticContract {
   readonly model: ModelReference | { readonly kind: 'absent' };
   readonly property: PropertyReference | { readonly kind: 'absent' };
   readonly resource: ResourceReference | { readonly kind: 'absent' };
-  readonly validation: ValidationRules | { readonly kind: 'absent' };
+  readonly validation: RequestDefinition['validation'] | { readonly kind: 'absent' };
 }

@@ -6,7 +6,6 @@ import type {
   ControllerPolicyNamedScopeArgument,
 } from './controller';
 import type { ActionName } from './names';
-import type { Sequence } from './collections';
 import { createActionName } from './names';
 import type { ControllerPolicyActionScopeJudgmentInterface } from './controllerPolicyActionScopeJudgmentInterface';
 

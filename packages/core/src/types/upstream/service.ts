@@ -1,9 +1,7 @@
 import type { ActionName, ClassName, ModelName, SourceFile } from './names';
 import type { DeclaredType } from './typeVocabulary';
 import type { Expression, ResolvedExpression } from './expression';
-import type { SourceStatements, ServiceParameters } from './collections';
 import type { SourceSpan } from './provenance';
-import type { Sequence } from './collections';
 import type { ModelReference, ServiceReference } from './semanticReferences';
 import type { SemanticValue } from './primitiveVocabulary';
 

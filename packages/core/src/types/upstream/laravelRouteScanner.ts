@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import type { RouteSemanticFlow } from '../domain/routes';
 import type { ControllerActionFlowContract } from './highLevelContracts';
+import type { SourceFile } from './names';
 import type { ControllerActionJudgmentPublication } from './laravelControllerScannerInterface';
 import {
   laravelRouteScanOutcomeOperations,
@@ -58,7 +59,7 @@ const executePreparedScan = async (
   const selectedFiles = input.sourceSelectionIntent.resolveFilesFor(sourceProject, laravelDefaultRouteSourceResolution);
   const sourcePresence: LaravelRouteSourcePresenceInterface = Object.freeze({
     kind: 'laravel_route_source_presence',
-    observe: sourceFile => existsSync(sourceFile.value.value)
+    observe: (sourceFile: SourceFile) => existsSync(sourceFile.value.value)
       ? laravelRouteSourcePresenceJudgmentFactory.present(sourceFile)
       : laravelRouteSourcePresenceJudgmentFactory.absent(sourceFile),
   });
@@ -70,73 +71,75 @@ const executePreparedScan = async (
   return observation.continueToRouteScan(authorities.sourceDocumentReader, {
     scanReadyObservation: async (ready, readBatch: PhpSourceDocumentReadBatchJudgment) => {
       const sourceFiles: readonly LaravelRouteSourceFileObservation[] = ready.sourceFiles;
-      return readBatch.continueWith({
-        onBlocked: async blocked => laravelRouteScanOutcomeOperations.sourceReadBlocked(Object.freeze({
+      return readBatch.continueToRouteScan({
+      blocked: async blocked => {
+        return laravelRouteScanOutcomeOperations.sourceReadBlocked(Object.freeze({
           kind: 'laravel_route_scan_source_read_blocked',
           contractVersion: 28,
           sourceFiles,
           readBatch: blocked,
-        })),
-        onComplete: async _complete => {
-          // Declaration evidence is already a closed source-grounded ADT at
-          // this boundary. The scanner executes its domain composition; it
-          // does not tokenize or reinterpret PHP in this operation.
-          const publications = actionPublications(input);
-          const declarations = input.declarations.flatMap(declarationEvidence => {
-            const methodJudgment = authorities.declarationMethodAuthority.judge({
-              method: declarationEvidence.method,
-              targetMethods: declarationEvidence.targetMethods,
-            });
-            const boundaries = authorities.declarationCompositionAuthority.compose({
-              declarationEvidence,
-              methodJudgment,
-              authorizationAuthority: authorities.authorizationAuthority,
-              routeResourceFlowAuthority: authorities.routeResourceFlowAuthority,
-              routePathResolutionAuthority: authorities.routePathResolutionAuthority,
-              sourceFile: declarationEvidence.span.file,
-              controllerScan: input.controllerScan,
-              publications,
-              controllerActionRouteCorrelationAuthority: authorities.controllerActionRouteCorrelationAuthority,
-            });
-            return boundaries.map(boundary => Object.freeze({ boundary, declarationEvidence, methodJudgment }));
+        }));
+      },
+      complete: async _complete => {
+        // Declaration evidence is already a closed source-grounded ADT at this
+        // boundary. The scanner executes its domain composition; it does not
+        // tokenize or reinterpret PHP in this operation.
+        const publications = actionPublications(input);
+        const declarations = input.declarations.flatMap(declarationEvidence => {
+          const methodJudgment = authorities.declarationMethodAuthority.judge({
+            method: declarationEvidence.method,
+            targetMethods: declarationEvidence.targetMethods,
           });
-          const policyCatalog = authorities.declarationCompositionAuthority.catalogFromControllerScan(input.controllerScan);
-          const artifacts = declarations.map(({ boundary, declarationEvidence, methodJudgment }) => {
-            const producerInput = authorities.routeProducerInputComposition.compose({
-              boundary,
-              declaration: declarationEvidence,
-              source: declarationEvidence.span,
-              methodJudgment,
-            });
-            const ast = authorities.routeProducer.produce(producerInput);
-            const binding = authorities.bindingAuthority.judge({
-              kind: 'route_controller_binding_judgment_input',
-              route: ast,
-              controllerActions: controllerActions(input),
-            });
-            const controllerActionPolicy = authorities.declarationCompositionAuthority.policyForBinding({
-              routeMiddleware: Object.freeze([...declarationEvidence.middleware, ...declarationEvidence.routeMiddleware].map(createMiddlewareName)),
-              declarationEvidence,
-              binding,
-              controllerPolicyCatalog: policyCatalog,
-              effectiveControllerActionPolicyAuthority: authorities.effectiveControllerActionPolicyAuthority,
-            });
-            return Object.freeze({
-              kind: 'laravel_route_scan_artifact' as const,
-              ast,
-              flow: flowFromBoundary(boundary, controllerActionPolicy),
-              binding,
-              authorization: boundary.authorization,
-            });
+          const boundaries = authorities.declarationCompositionAuthority.compose({
+            declarationEvidence,
+            methodJudgment,
+            authorizationAuthority: authorities.authorizationAuthority,
+            routeResourceFlowAuthority: authorities.routeResourceFlowAuthority,
+            routePathResolutionAuthority: authorities.routePathResolutionAuthority,
+            sourceFile: declarationEvidence.span.file,
+            controllerScan: input.controllerScan,
+            publications,
+            controllerActionRouteCorrelationAuthority: authorities.controllerActionRouteCorrelationAuthority,
           });
-          const scan: LaravelRouteScanJudgment = Object.freeze({
-            kind: 'laravel_route_scan_judgment',
-            contractVersion: 27,
-            sourceFiles,
-            artifacts: Object.freeze(artifacts),
+          return boundaries.map(boundary => Object.freeze({ boundary, declarationEvidence, methodJudgment }));
+        });
+        const policyCatalog = authorities.declarationCompositionAuthority.catalogFromControllerScan(input.controllerScan);
+        const artifacts = declarations.map(({ boundary, declarationEvidence, methodJudgment }) => {
+          const producerInput = authorities.routeProducerInputComposition.compose({
+            boundary,
+            declaration: declarationEvidence,
+            source: declarationEvidence.span,
+            methodJudgment,
           });
-          return authorities.declarationCompositionAuthority.outcomeFromScan(scan);
-        },
+          const ast = authorities.routeProducer.produce(producerInput);
+          const binding = authorities.bindingAuthority.judge({
+            kind: 'route_controller_binding_judgment_input',
+            route: ast,
+            controllerActions: controllerActions(input),
+          });
+          const controllerActionPolicy = authorities.declarationCompositionAuthority.policyForBinding({
+            routeMiddleware: Object.freeze([...declarationEvidence.middleware, ...declarationEvidence.routeMiddleware].map(createMiddlewareName)),
+            declarationEvidence,
+            binding,
+            controllerPolicyCatalog: policyCatalog,
+            effectiveControllerActionPolicyAuthority: authorities.effectiveControllerActionPolicyAuthority,
+          });
+          return Object.freeze({
+            kind: 'laravel_route_scan_artifact' as const,
+            ast,
+            flow: flowFromBoundary(boundary, controllerActionPolicy),
+            binding,
+            authorization: boundary.authorization,
+          });
+        });
+        const scan: LaravelRouteScanJudgment = Object.freeze({
+          kind: 'laravel_route_scan_judgment',
+          contractVersion: 27,
+          sourceFiles,
+          artifacts: Object.freeze(artifacts),
+        });
+        return authorities.declarationCompositionAuthority.outcomeFromScan(scan);
+      },
       });
     },
   });
@@ -149,16 +152,15 @@ export const laravelRouteScannerFactory: LaravelRouteScannerFactoryInterface = O
     closed: true,
     contractVersion: 40,
     ...authorities,
-    prepare: async (input: LaravelRouteScanInput): Promise<LaravelRouteScanOperationInterface> => {
-      const outcome = await executePreparedScan(input, authorities);
-      return Object.freeze({
+    prepare: async (input: LaravelRouteScanInput): Promise<LaravelRouteScanOperationInterface> => Object.freeze({
         kind: 'prepared_laravel_route_scan_operation',
         closed: true,
         contractVersion: 4,
         ...authorities,
         input,
-        execute: async () => outcome,
-      });
-    },
+        // Preparation closes over the request and authority set only. Source
+        // discovery, reads, and route judgment production belong to execute().
+        execute: async () => executePreparedScan(input, authorities),
+      }),
   }),
 });

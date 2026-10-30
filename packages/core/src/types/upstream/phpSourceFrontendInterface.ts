@@ -13,6 +13,7 @@ import type {
 import type { FilesystemFailureCode } from './filesystemFailureInterface';
 import { sourceFileInventoryFactory } from './names';
 import type { SourceSpan } from './provenance';
+import type { LaravelRouteScanOutcome } from './laravelRouteScannerInterface';
 import { stringValue, type NumberValue, type StringValue } from './valueObjects';
 
 /** Source bytes/text are owned by the frontend; downstream stages receive typed evidence, not reparsed strings. */
@@ -450,10 +451,20 @@ export interface PhpSourceDocumentReadBatchBlockedOperations {
   readonly preserveBlockedEvidence: () => PhpSourceDocumentReadBatchBlockedEvidence;
 }
 
+/** Route-read outcomes own the continuation into the route scanner. */
+export interface PhpSourceDocumentReadBatchRouteScanContinuationInterface {
+  readonly complete: (judgment: PhpSourceDocumentReadBatchCompleteEvidence) => Promise<LaravelRouteScanOutcome>;
+  readonly blocked: (judgment: PhpSourceDocumentReadBatchBlockedEvidence) => Promise<LaravelRouteScanOutcome>;
+}
+
+export interface PhpSourceDocumentReadBatchContinuationOperations {
+  readonly continueToRouteScan: (continuation: PhpSourceDocumentReadBatchRouteScanContinuationInterface) => Promise<LaravelRouteScanOutcome>;
+}
+
 /** Each outcome owns the operation valid for its domain state; no generic result handler is needed. */
 export type PhpSourceDocumentReadBatchJudgment =
-  | (PhpSourceDocumentReadBatchCompleteEvidence & PhpSourceDocumentReadBatchCompleteOperations)
-  | (PhpSourceDocumentReadBatchBlockedEvidence & PhpSourceDocumentReadBatchBlockedOperations);
+  | (PhpSourceDocumentReadBatchCompleteEvidence & PhpSourceDocumentReadBatchCompleteOperations & PhpSourceDocumentReadBatchContinuationOperations)
+  | (PhpSourceDocumentReadBatchBlockedEvidence & PhpSourceDocumentReadBatchBlockedOperations & PhpSourceDocumentReadBatchContinuationOperations);
 
 export interface PhpSourceDocumentReadBatchFactoryInterface {
   readonly kind: 'php_source_document_read_batch_factory';
@@ -470,18 +481,21 @@ interface PhpSourceDocumentReadBatchAccumulator {
 const completeReadBatchAccumulator = (
   documents: readonly PhpSourceDocument[],
 ): PhpSourceDocumentReadBatchAccumulator => Object.freeze({
-  acceptComplete: document => completeReadBatchAccumulator(Object.freeze([...documents, document])),
-  acceptBlocked: blocked => blockedReadBatchAccumulator(documents, Object.freeze([blocked])),
+  acceptComplete: (document: PhpSourceDocument) => completeReadBatchAccumulator(Object.freeze([...documents, document])),
+  acceptBlocked: (blocked: PhpSourceDocumentReadBlockedEvidence) => blockedReadBatchAccumulator(documents, Object.freeze([blocked])),
   finish: () => {
+    const noBlockedReads: readonly [] = Object.freeze([]);
     const evidence: PhpSourceDocumentReadBatchCompleteEvidence = Object.freeze({
       kind: 'php_source_document_read_batch_complete',
       documents,
-      blockedReads: Object.freeze([]),
+      blockedReads: noBlockedReads,
     });
-    return Object.freeze({
+    const judgment: PhpSourceDocumentReadBatchCompleteEvidence & PhpSourceDocumentReadBatchCompleteOperations & PhpSourceDocumentReadBatchContinuationOperations = Object.freeze({
       ...evidence,
       provideDocumentsForSemanticPipeline: (): readonly PhpSourceDocument[] => evidence.documents,
+      continueToRouteScan: (continuation: PhpSourceDocumentReadBatchRouteScanContinuationInterface): Promise<LaravelRouteScanOutcome> => continuation.complete(evidence),
     });
+    return judgment;
   },
 });
 
@@ -489,25 +503,27 @@ const blockedReadBatchAccumulator = (
   partialDocuments: readonly PhpSourceDocument[],
   blockedReads: readonly [PhpSourceDocumentReadBlockedEvidence, ...PhpSourceDocumentReadBlockedEvidence[]],
 ): PhpSourceDocumentReadBatchAccumulator => Object.freeze({
-  acceptComplete: document => blockedReadBatchAccumulator(Object.freeze([...partialDocuments, document]), blockedReads),
-  acceptBlocked: blocked => blockedReadBatchAccumulator(partialDocuments, Object.freeze([...blockedReads, blocked]) as readonly [PhpSourceDocumentReadBlockedEvidence, ...PhpSourceDocumentReadBlockedEvidence[]]),
+  acceptComplete: (document: PhpSourceDocument) => blockedReadBatchAccumulator(Object.freeze([...partialDocuments, document]), blockedReads),
+  acceptBlocked: (blocked: PhpSourceDocumentReadBlockedEvidence) => blockedReadBatchAccumulator(partialDocuments, Object.freeze([...blockedReads, blocked]) as readonly [PhpSourceDocumentReadBlockedEvidence, ...PhpSourceDocumentReadBlockedEvidence[]]),
   finish: () => {
     const evidence: PhpSourceDocumentReadBatchBlockedEvidence = Object.freeze({
       kind: 'php_source_document_read_batch_blocked',
       partialDocuments,
       blockedReads,
     });
-    return Object.freeze({
+    const judgment: PhpSourceDocumentReadBatchBlockedEvidence & PhpSourceDocumentReadBatchBlockedOperations & PhpSourceDocumentReadBatchContinuationOperations = Object.freeze({
       ...evidence,
       preserveBlockedEvidence: (): PhpSourceDocumentReadBatchBlockedEvidence => evidence,
+      continueToRouteScan: (continuation: PhpSourceDocumentReadBatchRouteScanContinuationInterface): Promise<LaravelRouteScanOutcome> => continuation.blocked(evidence),
     });
+    return judgment;
   },
 });
 
 /** The batch ADT owns accumulation and terminal classification; callers do not inspect counts or result discriminants. */
 export const phpSourceDocumentReadBatchFactory: PhpSourceDocumentReadBatchFactoryInterface = Object.freeze({
   kind: 'php_source_document_read_batch_factory',
-  fromResults: results => {
+  fromResults: (results: readonly PhpSourceDocumentReadResult[]): PhpSourceDocumentReadBatchJudgment => {
     /**
      * Result ADTs own classification; this domain sequence only preserves order and
      * contributes each result to the current batch state. No index/cursor arithmetic

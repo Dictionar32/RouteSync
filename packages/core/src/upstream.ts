@@ -37,3 +37,17 @@ export type {
   RequestTypeDerivationSemanticPipelineAssemblyResult,
 } from './types/upstream/requestTypeDerivationInterface';
 export { requestTypeDerivationProductionPipelineAssembler } from './types/upstream/runtimeCompositionOperations';
+export { manifestBuilderOperationPreparation } from './types/upstream/runtimeCompositionOperations';
+export { laravelRouteScannerFactory } from './types/upstream/laravelRouteScanner';
+export type { LaravelRouteScannerFactoryInterface } from './types/upstream/laravelRouteScanner';
+export { laravelDefaultRouteSourceResolution } from './types/upstream/laravelDefaultRouteSourceResolution';
+export { laravelRouteSourceSelectionAuthority, laravelRouteSourcePresenceJudgmentFactory } from './types/upstream/laravelRouteSourceSelection';
+export type { LaravelRouteSourceSelectionIntent, LaravelRouteSourcePresenceInterface, LaravelRouteSourcePresenceJudgment } from './types/upstream/laravelRouteSourceSelection';
+export type {
+  ManifestBuilderInput,
+  ManifestBuilderInterface,
+  ManifestBuilderJudgment,
+  ManifestBuilderCompleteJudgment,
+  ManifestBuilderBlockedJudgment,
+  ManifestBuilderOperationPreparationInterface,
+} from './types/upstream/manifestBuilderInterface';

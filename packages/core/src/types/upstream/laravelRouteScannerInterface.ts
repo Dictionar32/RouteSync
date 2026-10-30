@@ -1,9 +1,9 @@
 import type { RouteAst } from './ast';
-import type { LaravelRouteSourceSelectionIntent, LaravelRouteScanBlockedJudgment, LaravelRouteSourceFileObservation, LaravelRouteSourceObservationJudgment, LaravelRouteSourcePresenceInterface } from './laravelRouteSourceSelection';
+import type { LaravelRouteSourceSelectionIntent, LaravelRouteScanBlockedJudgment, LaravelRouteSourceFileObservation } from './laravelRouteSourceSelection';
 export type { LaravelRouteScanBlockedJudgment, LaravelRouteSourceFileObservation, LaravelRouteSourceObservationJudgment } from './laravelRouteSourceSelection';
 import type { RouteSemanticFlow } from '../domain/routes';
 import type { ControllerActionJudgmentPublication, LaravelControllerScanJudgment } from './laravelControllerScannerInterface';
-import type { SourceFile, SourceFileInventory } from './names';
+import type { SourceFile } from './names';
 import type { SourceProjectIdentity } from './highLevelSourceModel';
 import type { RouteControllerBindingJudgment, RouteControllerBindingJudgmentAuthority } from './laravelScannerSemanticJudgment';
 import type { MiddlewareName } from './names';
@@ -58,8 +58,6 @@ export interface LaravelRouteDeclarationCompositionAuthorityInterface {
   readonly compose: (input: LaravelRouteDeclarationCompositionInput) => readonly RouteBoundaryContract[];
   readonly catalogFromControllerScan: (controllerScan: LaravelControllerScanJudgment) => EffectiveControllerActionPolicyCatalogJudgment;
   readonly policyForBinding: (input: LaravelRoutePolicyProjectionInput) => Presence<EffectiveControllerActionPolicy>;
-  readonly resolveSourceFiles: (sourceProject: SourceProjectIdentity, intent: LaravelRouteSourceSelectionIntent) => SourceFileInventory;
-  readonly observeSourceFiles: (input: LaravelRouteSourceObservationInput) => LaravelRouteSourceObservationJudgment;
   readonly outcomeFromScan: (scan: LaravelRouteScanJudgment) => LaravelRouteScanOutcome;
 }
 
@@ -71,13 +69,6 @@ export interface LaravelRoutePolicyProjectionInput {
   readonly controllerPolicyCatalog: EffectiveControllerActionPolicyCatalogJudgment;
   readonly effectiveControllerActionPolicyAuthority: EffectiveControllerActionPolicySemanticAuthorityInterface;
 }
-
-export interface LaravelRouteSourceObservationInput {
-  readonly intent: LaravelRouteSourceSelectionIntent;
-  readonly selectedFiles: SourceFileInventory;
-  readonly presence: LaravelRouteSourcePresenceInterface;
-}
-
 
 export interface LaravelRouteScanOperationInterface extends LaravelRouteScannerAuthorityInterface {
   readonly kind: 'prepared_laravel_route_scan_operation';
@@ -91,7 +82,7 @@ export interface LaravelRouteScanOperationInterface extends LaravelRouteScannerA
 export interface LaravelRouteScannerInterface extends LaravelRouteScannerAuthorityInterface {
   readonly kind: 'laravel_route_scanner';
   readonly closed: true;
-  readonly contractVersion: 39;
+  readonly contractVersion: 40;
   /** Preparation closes source evidence and semantic judgments; execution only publishes the prepared outcome. */
   readonly prepare: (input: LaravelRouteScanInput) => Promise<LaravelRouteScanOperationInterface>;
 }
@@ -101,6 +92,8 @@ export interface LaravelRouteScanInput {
   readonly controllerScan: LaravelControllerScanJudgment;
   /** Closed selection intent is always explicit; the executor never infers a default from absence. */
   readonly sourceSelectionIntent: LaravelRouteSourceSelectionIntent;
+  /** Route declarations arrive as source-correlated ADT evidence; CLI supplies data and invokes the scanner operation. */
+  readonly declarations: readonly RouteDeclarationEvidence[];
 }
 
 /** One route's AST, semantic flow, and binding judgment cannot drift across parallel arrays. */

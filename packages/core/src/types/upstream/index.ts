@@ -268,6 +268,9 @@ export * from './invocationSemanticExecutionBoundaryContract';
 
 export * from './laravelSourceAstPipelineInterface';
 export * from './laravelRouteScannerInterface';
+export { laravelRouteScannerFactory } from './laravelRouteScanner';
+export type { LaravelRouteScannerFactoryInterface } from './laravelRouteScanner';
+export { laravelDefaultRouteSourceResolution } from './laravelDefaultRouteSourceResolution';
 export * from './routeAuthorizationSemanticJudgmentInterface';
 export * from './laravelControllerScannerInterface';
 export * from './laravelControllerActionSemanticJudgmentInterface';
